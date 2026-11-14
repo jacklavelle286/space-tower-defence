@@ -1,0 +1,2990 @@
+{
+ "meta": {
+  "title": "Space Colony Defence - combat and economy tables",
+  "status": "INITIAL PLAYTEST SETTINGS - proposals, not validated balance",
+  "rulesetVersion": "draft-r1",
+  "campaignVersion": "luna-1-draft-c1",
+  "generatedBy": "sim/make_data.py"
+ },
+ "simulation": {
+  "tickRateHz": 60,
+  "note": "Fixed timestep. One tick = 1/60 simulation second. 1x = accumulate real time, 2x = accumulate at double rate, pause = zero steps.",
+  "maxCatchUpStepsPerFrame": 8,
+  "speeds": [
+   1,
+   2
+  ],
+  "tickOrder": [
+   "1 apply queued player commands (place, upgrade, sell, targeting, power) in arrival order",
+   "2 scheduled spawns that are due, then descendant releases that are due (both respect caps)",
+   "3 support timers: Mira shield pulses, Patchling heal pulse (global clock), boss phase checks",
+   "4 astronaut attacks in pad-id order (P01..P16)",
+   "5 alien movement in alien-id order; leaks resolved as they happen",
+   "6 defeat check, then wave-complete check"
+  ]
+ },
+ "map": {
+  "planetId": "luna-1",
+  "name": "Moonbeam Research Colony (proposal)",
+  "grid": {
+   "cols": 20,
+   "rows": 11,
+   "note": "x 0..19 left to right, y 0..10 top to bottom; one unit = one tile"
+  },
+  "route": [
+   [
+    0,
+    2
+   ],
+   [
+    4,
+    2
+   ],
+   [
+    4,
+    8
+   ],
+   [
+    8,
+    8
+   ],
+   [
+    8,
+    3
+   ],
+   [
+    12,
+    3
+   ],
+   [
+    12,
+    8
+   ],
+   [
+    16,
+    8
+   ],
+   [
+    16,
+    3
+   ],
+   [
+    19,
+    3
+   ]
+  ],
+  "portal": [
+   0,
+   2
+  ],
+  "colony": [
+   19,
+   3
+  ],
+  "pads": [
+   {
+    "id": "P01",
+    "x": 2,
+    "y": 0,
+    "opensAfterWave": 20,
+    "note": "Portal lookout: sees only the entry stretch. A quiet spot for Mira, who needs no range."
+   },
+   {
+    "id": "P02",
+    "x": 2,
+    "y": 4,
+    "opensAfterWave": 0,
+    "note": "Entry corner: first shots; covers the end of the entry stretch and the top of the first descent."
+   },
+   {
+    "id": "P03",
+    "x": 6,
+    "y": 3,
+    "opensAfterWave": 5,
+    "note": "Mouth of the first U: modest short-range cover; good long-range cover."
+   },
+   {
+    "id": "P04",
+    "x": 6,
+    "y": 5,
+    "opensAfterWave": 0,
+    "note": "Inside the first U: sees the descent and the climb; an excellent long-range pad."
+   },
+   {
+    "id": "P05",
+    "x": 6,
+    "y": 7,
+    "opensAfterWave": 0,
+    "note": "PRIME - bottom of the first U: three path stretches within short range."
+   },
+   {
+    "id": "P06",
+    "x": 6,
+    "y": 10,
+    "opensAfterWave": 15,
+    "note": "Below the first U: weak at short range; a perch for long-range Orion."
+   },
+   {
+    "id": "P07",
+    "x": 10,
+    "y": 1,
+    "opensAfterWave": 15,
+    "note": "Above the top bend: weak at short range; a perch for long-range Orion."
+   },
+   {
+    "id": "P08",
+    "x": 10,
+    "y": 4,
+    "opensAfterWave": 10,
+    "note": "PRIME - under the top bend: three path stretches within short range. Opens with Juno."
+   },
+   {
+    "id": "P09",
+    "x": 10,
+    "y": 6,
+    "opensAfterWave": 0,
+    "note": "Command pad: centre of the map; an excellent long-range pad; all three PRIME pads are within Sol's first radius."
+   },
+   {
+    "id": "P10",
+    "x": 10,
+    "y": 8,
+    "opensAfterWave": 25,
+    "note": "Beacon mound: little cover of its own, six pads within Sol's radius. Opens with Sol."
+   },
+   {
+    "id": "P11",
+    "x": 14,
+    "y": 3,
+    "opensAfterWave": 10,
+    "note": "Mouth of the last U: modest short-range cover; good long-range cover."
+   },
+   {
+    "id": "P12",
+    "x": 14,
+    "y": 5,
+    "opensAfterWave": 0,
+    "note": "Inside the last U: sees the last descent and the final climb; an excellent long-range pad."
+   },
+   {
+    "id": "P13",
+    "x": 14,
+    "y": 7,
+    "opensAfterWave": 5,
+    "note": "PRIME - bottom of the last U: the last place to catch groups. Opens with Pip."
+   },
+   {
+    "id": "P14",
+    "x": 14,
+    "y": 10,
+    "opensAfterWave": 25,
+    "note": "Below the last U: weak at short range; fine for long range."
+   },
+   {
+    "id": "P15",
+    "x": 18,
+    "y": 1,
+    "opensAfterWave": 20,
+    "note": "Colony balcony: hardly sees the path - ideal for Mira."
+   },
+   {
+    "id": "P16",
+    "x": 18,
+    "y": 5,
+    "opensAfterWave": 0,
+    "note": "Last line: covers the final climb and the colony approach."
+   }
+  ]
+ },
+ "colony": {
+  "maxHealth": 20,
+  "shieldCap": 10,
+  "shieldAbsoluteCap": 20,
+  "repairOnBossClear": 3,
+  "miraRepairCapPerWave": 1,
+  "note": "Leak damage is removed from shield points first, then health. Health 0 = defeat. Shield above shieldCap (only possible from the Colony Shield power) is trimmed to shieldCap when the wave ends."
+ },
+ "classes": {
+  "nova": {
+   "name": "Nova",
+   "role": "Laser Scout",
+   "unlockAfterWave": 0,
+   "deployCap": null,
+   "attack": "single",
+   "targeting": [
+    "FRONT",
+    "FAST"
+   ],
+   "targetingFromLevel": {
+    "FAST": 1
+   },
+   "levels": [
+    {
+     "level": 1,
+     "cost": 50,
+     "range": 2.5,
+     "period": 1.0,
+     "damage": 10
+    },
+    {
+     "level": 2,
+     "cost": 60,
+     "range": 2.5,
+     "period": 0.6,
+     "damage": 10
+    },
+    {
+     "level": 3,
+     "cost": 150,
+     "range": 3.0,
+     "period": 0.6,
+     "damage": 16
+    }
+   ]
+  },
+  "pip": {
+   "name": "Pip",
+   "role": "Frost Explorer",
+   "unlockAfterWave": 5,
+   "deployCap": 3,
+   "attack": "slow",
+   "targeting": [
+    "FRONT",
+    "FAST"
+   ],
+   "targetingFromLevel": {
+    "FAST": 1
+   },
+   "levels": [
+    {
+     "level": 1,
+     "cost": 60,
+     "range": 2.5,
+     "period": 0.8,
+     "damage": 5,
+     "slowPct": 30,
+     "slowDuration": 3.0,
+     "slowRadius": 0.0
+    },
+    {
+     "level": 2,
+     "cost": 80,
+     "range": 2.5,
+     "period": 0.8,
+     "damage": 6,
+     "slowPct": 40,
+     "slowDuration": 4.0,
+     "slowRadius": 0.0
+    },
+    {
+     "level": 3,
+     "cost": 170,
+     "range": 2.5,
+     "period": 0.8,
+     "damage": 7,
+     "slowPct": 40,
+     "slowDuration": 4.0,
+     "slowRadius": 1.0
+    }
+   ]
+  },
+  "juno": {
+   "name": "Juno",
+   "role": "Comet Engineer",
+   "unlockAfterWave": 10,
+   "deployCap": 4,
+   "attack": "blast",
+   "targeting": [
+    "CROWD",
+    "FRONT"
+   ],
+   "targetingFromLevel": {
+    "FRONT": 1
+   },
+   "levels": [
+    {
+     "level": 1,
+     "cost": 110,
+     "range": 2.5,
+     "period": 1.8,
+     "damage": 16,
+     "splashRadius": 1.0
+    },
+    {
+     "level": 2,
+     "cost": 130,
+     "range": 2.5,
+     "period": 1.8,
+     "damage": 16,
+     "splashRadius": 1.4
+    },
+    {
+     "level": 3,
+     "cost": 260,
+     "range": 2.5,
+     "period": 1.8,
+     "damage": 26,
+     "splashRadius": 1.4
+    }
+   ]
+  },
+  "orion": {
+   "name": "Orion",
+   "role": "Orbit Ranger",
+   "unlockAfterWave": 15,
+   "deployCap": 3,
+   "attack": "single",
+   "targeting": [
+    "FRONT",
+    "STRONG"
+   ],
+   "targetingFromLevel": {
+    "STRONG": 3
+   },
+   "levels": [
+    {
+     "level": 1,
+     "cost": 170,
+     "range": 4.5,
+     "period": 2.4,
+     "damage": 50
+    },
+    {
+     "level": 2,
+     "cost": 100,
+     "range": 6.0,
+     "period": 2.4,
+     "damage": 50
+    },
+    {
+     "level": 3,
+     "cost": 330,
+     "range": 6.0,
+     "period": 2.4,
+     "damage": 90
+    }
+   ]
+  },
+  "mira": {
+   "name": "Mira",
+   "role": "Shield Specialist",
+   "unlockAfterWave": 20,
+   "deployCap": 2,
+   "attack": "shield",
+   "targeting": [],
+   "targetingFromLevel": {},
+   "levels": [
+    {
+     "level": 1,
+     "cost": 160,
+     "shieldPoints": 1,
+     "period": 15.0,
+     "repairOnWaveClear": 0
+    },
+    {
+     "level": 2,
+     "cost": 180,
+     "shieldPoints": 2,
+     "period": 15.0,
+     "repairOnWaveClear": 0
+    },
+    {
+     "level": 3,
+     "cost": 280,
+     "shieldPoints": 2,
+     "period": 12.0,
+     "repairOnWaveClear": 1
+    }
+   ]
+  },
+  "sol": {
+   "name": "Sol",
+   "role": "Beacon Commander",
+   "unlockAfterWave": 25,
+   "deployCap": 2,
+   "attack": "buff",
+   "targeting": [],
+   "targetingFromLevel": {},
+   "levels": [
+    {
+     "level": 1,
+     "cost": 150,
+     "buffPct": 15,
+     "radius": 4.5
+    },
+    {
+     "level": 2,
+     "cost": 200,
+     "buffPct": 25,
+     "radius": 4.5
+    },
+    {
+     "level": 3,
+     "cost": 300,
+     "buffPct": 25,
+     "radius": 6.0
+    }
+   ]
+  }
+ },
+ "combatRules": {
+  "rangeRule": "An alien is in range when the distance from the pad centre to the alien's point on the route is <= range.",
+  "instantHit": true,
+  "damageOrder": [
+   "base damage",
+   "Sol buff: floor((base*(100+pct)+50)/100)",
+   "flying: Juno blast halved, rounded up",
+   "bubble layer absorbs the whole hit",
+   "armour: max(1, damage - armour)",
+   "health"
+  ],
+  "slow": {
+   "capPct": 50,
+   "stacking": "none - an alien has one slow at a time; a stronger slow replaces it (strength and duration); an equally strong one keeps whichever remaining time is longer; a weaker one is ignored",
+   "bossSlowFactor": 0.5
+  },
+  "splash": "full-radius: every alien whose centre is within splashRadius of the target's position takes the full blast damage; nothing outside the previewed circle is damaged; no falloff",
+  "buff": "an astronaut takes only the single largest buffPct among Sols whose radius reaches its pad; Sol never buffs Sol, Mira or itself; buff strength depends only on Sol's own level",
+  "targetingModes": {
+   "FRONT": "the alien in range that is furthest along the route (default for every attacking class)",
+   "FAST": "the alien in range with the highest current speed; ties -> FRONT",
+   "CROWD": "the alien in range with the most aliens inside the blast radius around it; ties -> FRONT",
+   "STRONG": "the alien in range with the highest current health; ties -> FRONT (Orion from level 3)"
+  },
+  "pipTargetRule": "Within its chosen mode Pip first prefers aliens that are not currently slowed.",
+  "sell": {
+   "refundPct": 70,
+   "roundDownTo": 5,
+   "covers": "purchase price plus all paid upgrades"
+  },
+  "rounding": {
+   "alienHealth": "max(1, floor(baseHealth * hpMult + 0.5))",
+   "solBuff": "floor((damage * (100 + buffPct) + 50) / 100)",
+   "junoBlastOnFlying": "ceil(damage / 2)",
+   "armour": "max(1, damage - armour)",
+   "patchlingHeal": "floor(amount * hpMult + 0.5), never above maximum health",
+   "cometBurst": "ceil(maxHealth * pct / 100), removed directly from health",
+   "sellRefund": "floor(floor(invested * 70 / 100) / 5) * 5"
+  },
+  "attackTiming": "An attacker fires on the first tick on which its timer is ready and a target is in range, then waits one attack period. All timers are ready at wave start. Upgrading keeps the timer. A newly placed attacker is ready at once; a newly placed Mira starts a full recharge.",
+  "waveComplete": "The schedule is exhausted, no descendant release is queued, and no alien is active."
+ },
+ "economy": {
+  "startingCredits": 150,
+  "waveClearBonus": 0,
+  "learningRewardByBlock": [
+   {
+    "afterWaveFrom": 1,
+    "afterWaveTo": 9,
+    "credits": 30
+   },
+   {
+    "afterWaveFrom": 10,
+    "afterWaveTo": 19,
+    "credits": 40
+   },
+   {
+    "afterWaveFrom": 20,
+    "afterWaveTo": 29,
+    "credits": 50
+   },
+   {
+    "afterWaveFrom": 30,
+    "afterWaveTo": 39,
+    "credits": 60
+   },
+   {
+    "afterWaveFrom": 40,
+    "afterWaveTo": 49,
+    "credits": 75
+   }
+  ],
+  "endlessLearningReward": 75,
+  "subjectRotation": [
+   "maths",
+   "phonics",
+   "spelling"
+  ],
+  "note": "Credits come only from defeated aliens and successful normal learning activities. Meteor challenges award powers, never credits."
+ },
+ "aliens": {
+  "blob": {
+   "name": "Moon Blob",
+   "hp": 24,
+   "speed": 1.0,
+   "leak": 1,
+   "bounty": 4,
+   "firstWave": 1,
+   "traits": {},
+   "traitRule": "No special rule.",
+   "cue": "Round wobbling jelly; slow squash-and-stretch walk."
+  },
+  "mite": {
+   "name": "Meteor Mite",
+   "hp": 12,
+   "speed": 2.0,
+   "leak": 1,
+   "bounty": 2,
+   "firstWave": 3,
+   "traits": {},
+   "traitRule": "No special rule: simply fast and fragile.",
+   "cue": "Small pointed rock with legs; quick scurry with a dust trail."
+  },
+  "shell": {
+   "name": "Shellback",
+   "hp": 60,
+   "speed": 0.7,
+   "leak": 2,
+   "bounty": 5,
+   "firstWave": 6,
+   "traits": {
+    "armour": 4
+   },
+   "traitRule": "Armour 4: every hit loses 4 damage, but always does at least 1.",
+   "cue": "Wide domed shell; slow heavy plod; hits make a 'clonk' spark."
+  },
+  "swarm": {
+   "name": "Bubble Swarm",
+   "hp": 8,
+   "speed": 1.3,
+   "leak": 1,
+   "bounty": 1,
+   "firstWave": 8,
+   "traits": {
+    "cluster": true
+   },
+   "traitRule": "Always arrives as a tight cluster of small bubbles (each bubble is one alien).",
+   "cue": "Tiny bobbing bubbles in a bunch; bouncy hop."
+  },
+  "flutter": {
+   "name": "Orbit Flutter",
+   "hp": 20,
+   "speed": 1.6,
+   "leak": 1,
+   "bounty": 3,
+   "firstWave": 12,
+   "traits": {
+    "flying": true
+   },
+   "traitRule": "Flying: follows the same route; Juno's blast does half damage to it (rounded up).",
+   "cue": "Winged disc with a shadow on the path below; fluttering bob (visual only)."
+  },
+  "guard": {
+   "name": "Bubble Guard",
+   "hp": 34,
+   "speed": 0.9,
+   "leak": 2,
+   "bounty": 5,
+   "firstWave": 14,
+   "traits": {
+    "bubbles": 4
+   },
+   "traitRule": "Four bubble layers: each layer absorbs one whole hit of any size, then pops. Layers never come back. Slows still apply.",
+   "cue": "Alien inside four nested soap bubbles; a layer pops with each hit."
+  },
+  "patch": {
+   "name": "Patchling",
+   "hp": 26,
+   "speed": 1.0,
+   "leak": 1,
+   "bounty": 4,
+   "firstWave": 22,
+   "traits": {
+    "healer": {
+     "amount": 6,
+     "radius": 1.5,
+     "period": 3.0
+    }
+   },
+   "traitRule": "Healer: on a shared 3-second clock, every OTHER alien within 1.5 tiles of at least one Patchling regains 6 health multiplied by the wave's health multiplier (never above its maximum; being near several Patchlings gives one heal, not several).",
+   "cue": "Carries a sticking-plaster flag; green sparkle ring on each heal pulse."
+  },
+  "slime": {
+   "name": "Split Slime",
+   "hp": 44,
+   "speed": 0.8,
+   "leak": 2,
+   "bounty": 3,
+   "firstWave": 24,
+   "traits": {
+    "children": [
+     {
+      "type": "slimelet",
+      "count": 2
+     }
+    ]
+   },
+   "traitRule": "Splitter: when defeated, releases 2 Slimelets at its route position. If it reaches the colony it does not split.",
+   "cue": "Two-lobed blob with a visible seam; stretches as it oozes."
+  },
+  "slimelet": {
+   "name": "Slimelet",
+   "hp": 14,
+   "speed": 1.2,
+   "leak": 1,
+   "bounty": 1,
+   "firstWave": 24,
+   "descendantOnly": true,
+   "traits": {},
+   "traitRule": "Descendant of Split Slime. Never splits again.",
+   "cue": "Half-size single-lobed slime; quick hop."
+  },
+  "craft": {
+   "name": "Alien Craft",
+   "hp": 120,
+   "speed": 0.6,
+   "leak": 4,
+   "bounty": 6,
+   "firstWave": 27,
+   "traits": {
+    "children": [
+     {
+      "type": "blob",
+      "count": 4
+     }
+    ]
+   },
+   "traitRule": "Carrier: when defeated, releases its cargo (default 4 Moon Blobs; a wave may name other cargo) at its route position. If it reaches the colony it applies its leak damage and releases nothing.",
+   "cue": "Toy-like hovering saucer, low over the path; portholes show the passengers."
+  }
+ },
+ "caps": {
+  "maxActiveAliens": 60,
+  "scheduledSpawnSoftCap": 48,
+  "maxLiveDescendants": 24,
+  "descendantReleaseGap": 0.25,
+  "deferredSpawnGap": 0.25,
+  "maxDescendantDepth": 2,
+  "rule": "A scheduled spawn that is due while 48 or more aliens are active waits (never dropped) and is released in schedule order, at most one every 0.25 s, as room appears. A descendant release waits at the parent's defeat position while 60 aliens are active or 24 descendants are alive. Deferred entities keep their identity and bounty; nothing is duplicated or lost. Depth: a Craft's cargo may not contain Crafts or Split Slimes (depth 1); only a boss release may contain Split Slimes, whose Slimelets are depth 2; nothing goes deeper."
+ },
+ "bosses": {
+  "boss1": {
+   "name": "King Wobble",
+   "wave": 10,
+   "hp": 450,
+   "speed": 0.5,
+   "leak": 8,
+   "bounty": 50,
+   "armour": 0,
+   "bubbles": 0,
+   "based": "giant Moon Blob wearing a paper crown",
+   "phases": [
+    {
+     "fromPct": 100,
+     "name": "Royal stroll",
+     "speedFactor": 1.0,
+     "armour": 0,
+     "cue": "Blue, crown upright, slow wobble."
+    },
+    {
+     "fromPct": 50,
+     "name": "Wobble dash",
+     "speedFactor": 1.3,
+     "armour": 0,
+     "cue": "Turns pink with steam puffs, crown tilts, wobble doubles in speed."
+    }
+   ],
+   "bossSlowFactor": 0.5,
+   "rule": "Bosses never damage, disable or block astronauts or pads, use the one route, fire nothing. Slows work at half strength. A boss that reaches the colony applies its leak damage, is removed, and releases nothing further."
+  },
+  "boss2": {
+   "name": "Captain Clank",
+   "wave": 20,
+   "hp": 1000,
+   "speed": 0.45,
+   "leak": 10,
+   "bounty": 75,
+   "armour": 5,
+   "bubbles": 0,
+   "based": "giant Shellback in bolted-on armour plates",
+   "phases": [
+    {
+     "fromPct": 100,
+     "name": "Full plate",
+     "speedFactor": 1.0,
+     "armour": 5,
+     "cue": "All plates on; hits spark."
+    },
+    {
+     "fromPct": 60,
+     "name": "Cracked shell",
+     "speedFactor": 1.15,
+     "armour": 2,
+     "cue": "Plates fall off with a clatter; cracks glow."
+    },
+    {
+     "fromPct": 25,
+     "name": "Shell off",
+     "speedFactor": 1.4,
+     "armour": 0,
+     "cue": "No shell, spotty pants showing; runs."
+    }
+   ],
+   "bossSlowFactor": 0.5,
+   "rule": "Bosses never damage, disable or block astronauts or pads, use the one route, fire nothing. Slows work at half strength. A boss that reaches the colony applies its leak damage, is removed, and releases nothing further."
+  },
+  "boss3": {
+   "name": "Queen Bubbla",
+   "wave": 30,
+   "hp": 2200,
+   "speed": 0.45,
+   "leak": 12,
+   "bounty": 100,
+   "armour": 0,
+   "bubbles": 8,
+   "based": "giant Bubble Guard with a bubble-wand sceptre",
+   "phases": [
+    {
+     "fromPct": 100,
+     "name": "First bubble",
+     "speedFactor": 1.0,
+     "armour": 0,
+     "onEnter": {
+      "selfBubbles": 8
+     },
+     "cue": "Eight-layer bubble; a counter of layers floats above."
+    },
+    {
+     "fromPct": 66,
+     "name": "Bubble gift",
+     "speedFactor": 1.0,
+     "armour": 0,
+     "onEnter": {
+      "selfBubbles": 8,
+      "giveBubbles": {
+       "layers": 1,
+       "radius": 2.0
+      }
+     },
+     "cue": "Waves the wand: new bubble on herself, one layer on every alien within 2 tiles."
+    },
+    {
+     "fromPct": 33,
+     "name": "Bubble storm",
+     "speedFactor": 1.15,
+     "armour": 0,
+     "onEnter": {
+      "selfBubbles": 8,
+      "giveBubbles": {
+       "layers": 1,
+       "radius": 2.0
+      }
+     },
+     "cue": "Wand sparkles faster; same gift again; she speeds up."
+    }
+   ],
+   "bossSlowFactor": 0.5,
+   "rule": "Bosses never damage, disable or block astronauts or pads, use the one route, fire nothing. Slows work at half strength. A boss that reaches the colony applies its leak damage, is removed, and releases nothing further."
+  },
+  "boss4": {
+   "name": "The Mothership",
+   "wave": 40,
+   "hp": 2300,
+   "speed": 0.4,
+   "leak": 14,
+   "bounty": 125,
+   "armour": 2,
+   "bubbles": 0,
+   "based": "giant Alien Craft with three cargo doors",
+   "phases": [
+    {
+     "fromPct": 100,
+     "name": "Doors shut",
+     "speedFactor": 1.0,
+     "armour": 2,
+     "cue": "Three closed doors with numbered lights."
+    },
+    {
+     "fromPct": 75,
+     "name": "Door one",
+     "speedFactor": 1.0,
+     "armour": 2,
+     "onEnter": {
+      "release": [
+       {
+        "type": "mite",
+        "count": 4
+       }
+      ]
+     },
+     "cue": "Door 1 drops open; Meteor Mites tumble out."
+    },
+    {
+     "fromPct": 50,
+     "name": "Door two",
+     "speedFactor": 1.0,
+     "armour": 2,
+     "onEnter": {
+      "release": [
+       {
+        "type": "flutter",
+        "count": 4
+       }
+      ]
+     },
+     "cue": "Door 2 opens; Orbit Flutters fly out."
+    },
+    {
+     "fromPct": 25,
+     "name": "Door three",
+     "speedFactor": 1.2,
+     "armour": 0,
+     "onEnter": {
+      "release": [
+       {
+        "type": "shell",
+        "count": 2
+       }
+      ]
+     },
+     "cue": "Door 3 opens; Shellbacks march out; hull plating falls away and the ship hurries."
+    }
+   ],
+   "onDefeatRelease": [
+    {
+     "type": "blob",
+     "count": 4
+    }
+   ],
+   "bossSlowFactor": 0.5,
+   "rule": "Bosses never damage, disable or block astronauts or pads, use the one route, fire nothing. Slows work at half strength. A boss that reaches the colony applies its leak damage, is removed, and releases nothing further."
+  },
+  "boss5": {
+   "name": "The Great Glorp",
+   "wave": 50,
+   "hp": 3600,
+   "speed": 0.4,
+   "leak": 20,
+   "bounty": 150,
+   "armour": 4,
+   "bubbles": 0,
+   "based": "mega alien that borrows one trick from each earlier boss",
+   "phases": [
+    {
+     "fromPct": 100,
+     "name": "Armoured",
+     "speedFactor": 1.0,
+     "armour": 4,
+     "cue": "Wears Clank's plates."
+    },
+    {
+     "fromPct": 70,
+     "name": "Bubbled",
+     "speedFactor": 1.0,
+     "armour": 0,
+     "onEnter": {
+      "selfBubbles": 10,
+      "release": [
+       {
+        "type": "swarm",
+        "count": 6
+       }
+      ]
+     },
+     "cue": "Plates drop; ten-layer bubble inflates; a bubble swarm escapes."
+    },
+    {
+     "fromPct": 40,
+     "name": "Cargo",
+     "speedFactor": 1.1,
+     "armour": 0,
+     "onEnter": {
+      "release": [
+       {
+        "type": "slime",
+        "count": 2
+       },
+       {
+        "type": "mite",
+        "count": 4
+       }
+      ]
+     },
+     "cue": "Belly hatch opens: two Split Slimes and Mites spill out."
+    },
+    {
+     "fromPct": 15,
+     "name": "Wobble dash",
+     "speedFactor": 1.35,
+     "armour": 0,
+     "cue": "Turns pink and steams like King Wobble; final rush."
+    }
+   ],
+   "bossSlowFactor": 0.5,
+   "rule": "Bosses never damage, disable or block astronauts or pads, use the one route, fire nothing. Slows work at half strength. A boss that reaches the colony applies its leak damage, is removed, and releases nothing further."
+  }
+ },
+ "waves": [
+  {
+   "wave": 1,
+   "groups": [
+    {
+     "type": "blob",
+     "count": 6,
+     "at": 0.0,
+     "gap": 2.5
+    }
+   ],
+   "hpMult": 1.0,
+   "speedMult": 1.0,
+   "newThisWave": "Moon Blob",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 2,
+   "groups": [
+    {
+     "type": "blob",
+     "count": 8,
+     "at": 0.0,
+     "gap": 2.0
+    }
+   ],
+   "hpMult": 1.05,
+   "speedMult": 1.0,
+   "newThisWave": "",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 3,
+   "groups": [
+    {
+     "type": "mite",
+     "count": 8,
+     "at": 0.0,
+     "gap": 3.0
+    }
+   ],
+   "hpMult": 1.1,
+   "speedMult": 1.0,
+   "newThisWave": "Meteor Mite (alone)",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 4,
+   "groups": [
+    {
+     "type": "blob",
+     "count": 7,
+     "at": 0.0,
+     "gap": 1.65
+    },
+    {
+     "type": "mite",
+     "count": 4,
+     "at": 14.0,
+     "gap": 1.5
+    }
+   ],
+   "hpMult": 1.15,
+   "speedMult": 1.0,
+   "newThisWave": "",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 5,
+   "groups": [
+    {
+     "type": "blob",
+     "count": 9,
+     "at": 0.0,
+     "gap": 1.6
+    },
+    {
+     "type": "mite",
+     "count": 5,
+     "at": 6.0,
+     "gap": 2.5
+    }
+   ],
+   "hpMult": 1.2,
+   "speedMult": 1.0,
+   "newThisWave": "",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 6,
+   "groups": [
+    {
+     "type": "shell",
+     "count": 3,
+     "at": 0.0,
+     "gap": 9.0
+    }
+   ],
+   "hpMult": 1.2,
+   "speedMult": 1.0,
+   "newThisWave": "Shellback (alone); Pip available",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 7,
+   "groups": [
+    {
+     "type": "blob",
+     "count": 6,
+     "at": 0.0,
+     "gap": 2.5
+    },
+    {
+     "type": "shell",
+     "count": 2,
+     "at": 6.0,
+     "gap": 7.0
+    }
+   ],
+   "hpMult": 1.25,
+   "speedMult": 1.0,
+   "newThisWave": "",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 8,
+   "groups": [
+    {
+     "type": "swarm",
+     "count": 6,
+     "at": 0.0,
+     "gap": 0.5
+    },
+    {
+     "type": "swarm",
+     "count": 6,
+     "at": 9.0,
+     "gap": 0.5
+    },
+    {
+     "type": "swarm",
+     "count": 6,
+     "at": 18.0,
+     "gap": 0.5
+    }
+   ],
+   "hpMult": 1.3,
+   "speedMult": 1.0,
+   "newThisWave": "Bubble Swarm (alone)",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 9,
+   "groups": [
+    {
+     "type": "blob",
+     "count": 10,
+     "at": 0.0,
+     "gap": 1.15
+    },
+    {
+     "type": "mite",
+     "count": 7,
+     "at": 4.0,
+     "gap": 1.25
+    },
+    {
+     "type": "shell",
+     "count": 2,
+     "at": 14.0,
+     "gap": 5.0
+    },
+    {
+     "type": "swarm",
+     "count": 10,
+     "at": 24.0,
+     "gap": 0.4
+    }
+   ],
+   "hpMult": 1.35,
+   "speedMult": 1.0,
+   "newThisWave": "",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 10,
+   "groups": [
+    {
+     "type": "blob",
+     "count": 4,
+     "at": 0.0,
+     "gap": 2.0
+    },
+    {
+     "type": "boss1",
+     "count": 1,
+     "at": 8.0,
+     "gap": 0.0
+    },
+    {
+     "type": "blob",
+     "count": 4,
+     "at": 24.0,
+     "gap": 2.0
+    }
+   ],
+   "hpMult": 1.4,
+   "speedMult": 1.0,
+   "newThisWave": "BOSS King Wobble",
+   "note": "",
+   "boss": "boss1"
+  },
+  {
+   "wave": 11,
+   "groups": [
+    {
+     "type": "blob",
+     "count": 7,
+     "at": 0.0,
+     "gap": 0.45
+    },
+    {
+     "type": "blob",
+     "count": 7,
+     "at": 8.0,
+     "gap": 0.45
+    },
+    {
+     "type": "blob",
+     "count": 7,
+     "at": 16.0,
+     "gap": 0.45
+    },
+    {
+     "type": "mite",
+     "count": 9,
+     "at": 24.0,
+     "gap": 0.6
+    }
+   ],
+   "hpMult": 1.6,
+   "speedMult": 1.0,
+   "newThisWave": "",
+   "note": "Juno available; tight groups",
+   "boss": null
+  },
+  {
+   "wave": 12,
+   "groups": [
+    {
+     "type": "flutter",
+     "count": 7,
+     "at": 0.0,
+     "gap": 3.5
+    }
+   ],
+   "hpMult": 1.75,
+   "speedMult": 1.0,
+   "newThisWave": "Orbit Flutter (alone)",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 13,
+   "groups": [
+    {
+     "type": "swarm",
+     "count": 12,
+     "at": 0.0,
+     "gap": 0.25
+    },
+    {
+     "type": "blob",
+     "count": 12,
+     "at": 4.0,
+     "gap": 0.9
+    },
+    {
+     "type": "swarm",
+     "count": 12,
+     "at": 16.0,
+     "gap": 0.25
+    },
+    {
+     "type": "mite",
+     "count": 9,
+     "at": 20.0,
+     "gap": 0.6
+    }
+   ],
+   "hpMult": 1.95,
+   "speedMult": 1.0,
+   "newThisWave": "",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 14,
+   "groups": [
+    {
+     "type": "guard",
+     "count": 4,
+     "at": 0.0,
+     "gap": 7.0
+    }
+   ],
+   "hpMult": 2.1,
+   "speedMult": 1.0,
+   "newThisWave": "Bubble Guard (alone)",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 15,
+   "groups": [
+    {
+     "type": "blob",
+     "count": 8,
+     "at": 0.0,
+     "gap": 1.65
+    },
+    {
+     "type": "flutter",
+     "count": 4,
+     "at": 5.0,
+     "gap": 2.65
+    },
+    {
+     "type": "shell",
+     "count": 2,
+     "at": 12.0,
+     "gap": 8.0
+    },
+    {
+     "type": "mite",
+     "count": 5,
+     "at": 24.0,
+     "gap": 1.1
+    }
+   ],
+   "hpMult": 2.3,
+   "speedMult": 1.0,
+   "newThisWave": "",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 16,
+   "groups": [
+    {
+     "type": "shell",
+     "count": 5,
+     "at": 0.0,
+     "gap": 4.0
+    },
+    {
+     "type": "mite",
+     "count": 7,
+     "at": 6.0,
+     "gap": 1.75
+    }
+   ],
+   "hpMult": 2.5,
+   "speedMult": 1.0,
+   "newThisWave": "",
+   "note": "Orion available; Shellback parade",
+   "boss": null
+  },
+  {
+   "wave": 17,
+   "groups": [
+    {
+     "type": "guard",
+     "count": 4,
+     "at": 0.0,
+     "gap": 4.0
+    },
+    {
+     "type": "blob",
+     "count": 11,
+     "at": 2.0,
+     "gap": 1.35
+    },
+    {
+     "type": "flutter",
+     "count": 6,
+     "at": 16.0,
+     "gap": 1.5
+    }
+   ],
+   "hpMult": 2.65,
+   "speedMult": 1.0,
+   "newThisWave": "",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 18,
+   "groups": [
+    {
+     "type": "swarm",
+     "count": 12,
+     "at": 0.0,
+     "gap": 0.3
+    },
+    {
+     "type": "swarm",
+     "count": 12,
+     "at": 7.0,
+     "gap": 0.3
+    },
+    {
+     "type": "mite",
+     "count": 10,
+     "at": 12.0,
+     "gap": 0.6
+    },
+    {
+     "type": "shell",
+     "count": 4,
+     "at": 14.0,
+     "gap": 2.65
+    },
+    {
+     "type": "swarm",
+     "count": 12,
+     "at": 24.0,
+     "gap": 0.3
+    }
+   ],
+   "hpMult": 2.85,
+   "speedMult": 1.0,
+   "newThisWave": "",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 19,
+   "groups": [
+    {
+     "type": "blob",
+     "count": 12,
+     "at": 0.0,
+     "gap": 1.0
+    },
+    {
+     "type": "guard",
+     "count": 3,
+     "at": 4.0,
+     "gap": 5.0
+    },
+    {
+     "type": "flutter",
+     "count": 7,
+     "at": 14.0,
+     "gap": 1.25
+    },
+    {
+     "type": "shell",
+     "count": 3,
+     "at": 18.0,
+     "gap": 4.0
+    },
+    {
+     "type": "mite",
+     "count": 9,
+     "at": 30.0,
+     "gap": 0.7
+    }
+   ],
+   "hpMult": 3.0,
+   "speedMult": 1.0,
+   "newThisWave": "",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 20,
+   "groups": [
+    {
+     "type": "shell",
+     "count": 2,
+     "at": 0.0,
+     "gap": 5.0
+    },
+    {
+     "type": "boss2",
+     "count": 1,
+     "at": 8.0,
+     "gap": 0.0
+    },
+    {
+     "type": "mite",
+     "count": 6,
+     "at": 26.0,
+     "gap": 1.5
+    }
+   ],
+   "hpMult": 3.2,
+   "speedMult": 1.0,
+   "newThisWave": "BOSS Captain Clank",
+   "note": "",
+   "boss": "boss2"
+  },
+  {
+   "wave": 21,
+   "groups": [
+    {
+     "type": "blob",
+     "count": 17,
+     "at": 0.0,
+     "gap": 0.8
+    },
+    {
+     "type": "mite",
+     "count": 12,
+     "at": 6.0,
+     "gap": 0.8
+    },
+    {
+     "type": "flutter",
+     "count": 7,
+     "at": 16.0,
+     "gap": 1.25
+    },
+    {
+     "type": "shell",
+     "count": 2,
+     "at": 20.0,
+     "gap": 4.0
+    }
+   ],
+   "hpMult": 3.35,
+   "speedMult": 1.0,
+   "newThisWave": "",
+   "note": "Mira available; breather",
+   "boss": null
+  },
+  {
+   "wave": 22,
+   "groups": [
+    {
+     "type": "blob",
+     "count": 6,
+     "at": 0.0,
+     "gap": 1.2
+    },
+    {
+     "type": "patch",
+     "count": 2,
+     "at": 3.0,
+     "gap": 3.0
+    },
+    {
+     "type": "blob",
+     "count": 6,
+     "at": 12.0,
+     "gap": 1.2
+    },
+    {
+     "type": "patch",
+     "count": 1,
+     "at": 15.0,
+     "gap": 0.0
+    }
+   ],
+   "hpMult": 3.5,
+   "speedMult": 1.0,
+   "newThisWave": "Patchling (with Moon Blobs only)",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 23,
+   "groups": [
+    {
+     "type": "shell",
+     "count": 3,
+     "at": 0.0,
+     "gap": 4.5
+    },
+    {
+     "type": "patch",
+     "count": 2,
+     "at": 2.0,
+     "gap": 5.0
+    },
+    {
+     "type": "blob",
+     "count": 9,
+     "at": 10.0,
+     "gap": 1.1
+    },
+    {
+     "type": "guard",
+     "count": 3,
+     "at": 14.0,
+     "gap": 4.0
+    },
+    {
+     "type": "mite",
+     "count": 5,
+     "at": 28.0,
+     "gap": 1.0
+    }
+   ],
+   "hpMult": 3.7,
+   "speedMult": 1.0,
+   "newThisWave": "",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 24,
+   "groups": [
+    {
+     "type": "slime",
+     "count": 4,
+     "at": 0.0,
+     "gap": 5.0
+    }
+   ],
+   "hpMult": 3.85,
+   "speedMult": 1.0,
+   "newThisWave": "Split Slime (alone)",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 25,
+   "groups": [
+    {
+     "type": "slime",
+     "count": 5,
+     "at": 0.0,
+     "gap": 3.0
+    },
+    {
+     "type": "mite",
+     "count": 12,
+     "at": 3.0,
+     "gap": 0.8
+    },
+    {
+     "type": "flutter",
+     "count": 9,
+     "at": 14.0,
+     "gap": 1.05
+    },
+    {
+     "type": "swarm",
+     "count": 12,
+     "at": 22.0,
+     "gap": 0.3
+    }
+   ],
+   "hpMult": 4.0,
+   "speedMult": 1.0,
+   "newThisWave": "",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 26,
+   "groups": [
+    {
+     "type": "guard",
+     "count": 6,
+     "at": 0.0,
+     "gap": 2.4
+    },
+    {
+     "type": "patch",
+     "count": 3,
+     "at": 1.5,
+     "gap": 5.0
+    },
+    {
+     "type": "blob",
+     "count": 13,
+     "at": 10.0,
+     "gap": 0.9
+    },
+    {
+     "type": "shell",
+     "count": 4,
+     "at": 16.0,
+     "gap": 3.0
+    }
+   ],
+   "hpMult": 4.15,
+   "speedMult": 1.0,
+   "newThisWave": "",
+   "note": "Sol available",
+   "boss": null
+  },
+  {
+   "wave": 27,
+   "groups": [
+    {
+     "type": "craft",
+     "count": 1,
+     "at": 0.0,
+     "gap": 0.0
+    },
+    {
+     "type": "craft",
+     "count": 1,
+     "at": 18.0,
+     "gap": 0.0
+    }
+   ],
+   "hpMult": 4.3,
+   "speedMult": 1.0,
+   "newThisWave": "Alien Craft (alone; cargo 4 Moon Blobs)",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 28,
+   "groups": [
+    {
+     "type": "craft",
+     "count": 1,
+     "at": 0.0,
+     "gap": 0.0
+    },
+    {
+     "type": "slime",
+     "count": 3,
+     "at": 4.0,
+     "gap": 5.0
+    },
+    {
+     "type": "patch",
+     "count": 2,
+     "at": 6.0,
+     "gap": 8.0
+    },
+    {
+     "type": "mite",
+     "count": 12,
+     "at": 20.0,
+     "gap": 0.65
+    }
+   ],
+   "hpMult": 4.5,
+   "speedMult": 1.0,
+   "newThisWave": "",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 29,
+   "groups": [
+    {
+     "type": "blob",
+     "count": 11,
+     "at": 0.0,
+     "gap": 0.9
+    },
+    {
+     "type": "shell",
+     "count": 3,
+     "at": 3.0,
+     "gap": 4.0
+    },
+    {
+     "type": "guard",
+     "count": 3,
+     "at": 8.0,
+     "gap": 4.0
+    },
+    {
+     "type": "patch",
+     "count": 2,
+     "at": 10.0,
+     "gap": 8.0
+    },
+    {
+     "type": "flutter",
+     "count": 6,
+     "at": 18.0,
+     "gap": 1.2
+    },
+    {
+     "type": "craft",
+     "count": 1,
+     "at": 24.0,
+     "gap": 0.0
+    },
+    {
+     "type": "swarm",
+     "count": 11,
+     "at": 30.0,
+     "gap": 0.25
+    }
+   ],
+   "hpMult": 4.65,
+   "speedMult": 1.0,
+   "newThisWave": "",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 30,
+   "groups": [
+    {
+     "type": "guard",
+     "count": 2,
+     "at": 0.0,
+     "gap": 4.0
+    },
+    {
+     "type": "boss3",
+     "count": 1,
+     "at": 8.0,
+     "gap": 0.0
+    },
+    {
+     "type": "swarm",
+     "count": 8,
+     "at": 20.0,
+     "gap": 0.35
+    },
+    {
+     "type": "swarm",
+     "count": 8,
+     "at": 34.0,
+     "gap": 0.35
+    }
+   ],
+   "hpMult": 4.8,
+   "speedMult": 1.0,
+   "newThisWave": "BOSS Queen Bubbla",
+   "note": "",
+   "boss": "boss3"
+  },
+  {
+   "wave": 31,
+   "groups": [
+    {
+     "type": "mite",
+     "count": 16,
+     "at": 0.0,
+     "gap": 0.5
+    },
+    {
+     "type": "blob",
+     "count": 16,
+     "at": 4.0,
+     "gap": 0.75
+    },
+    {
+     "type": "shell",
+     "count": 4,
+     "at": 8.0,
+     "gap": 2.65
+    },
+    {
+     "type": "flutter",
+     "count": 10,
+     "at": 12.0,
+     "gap": 0.8
+    },
+    {
+     "type": "mite",
+     "count": 16,
+     "at": 24.0,
+     "gap": 0.5
+    }
+   ],
+   "hpMult": 4.9,
+   "speedMult": 1.05,
+   "newThisWave": "",
+   "note": "Mite rush",
+   "boss": null
+  },
+  {
+   "wave": 32,
+   "groups": [
+    {
+     "type": "shell",
+     "count": 9,
+     "at": 0.0,
+     "gap": 2.25
+    },
+    {
+     "type": "guard",
+     "count": 5,
+     "at": 4.0,
+     "gap": 3.0
+    },
+    {
+     "type": "patch",
+     "count": 3,
+     "at": 6.0,
+     "gap": 4.0
+    }
+   ],
+   "hpMult": 5.05,
+   "speedMult": 1.05,
+   "newThisWave": "",
+   "note": "Shell wall",
+   "boss": null
+  },
+  {
+   "wave": 33,
+   "groups": [
+    {
+     "type": "swarm",
+     "count": 15,
+     "at": 0.0,
+     "gap": 0.25
+    },
+    {
+     "type": "guard",
+     "count": 6,
+     "at": 4.0,
+     "gap": 1.8
+    },
+    {
+     "type": "swarm",
+     "count": 15,
+     "at": 10.0,
+     "gap": 0.25
+    },
+    {
+     "type": "shell",
+     "count": 4,
+     "at": 14.0,
+     "gap": 2.35
+    },
+    {
+     "type": "flutter",
+     "count": 12,
+     "at": 20.0,
+     "gap": 0.65
+    },
+    {
+     "type": "slime",
+     "count": 4,
+     "at": 22.0,
+     "gap": 2.0
+    },
+    {
+     "type": "swarm",
+     "count": 15,
+     "at": 30.0,
+     "gap": 0.25
+    }
+   ],
+   "hpMult": 5.15,
+   "speedMult": 1.05,
+   "newThisWave": "",
+   "note": "Bubble storm",
+   "boss": null
+  },
+  {
+   "wave": 34,
+   "groups": [
+    {
+     "type": "flutter",
+     "count": 14,
+     "at": 0.0,
+     "gap": 0.85
+    },
+    {
+     "type": "patch",
+     "count": 3,
+     "at": 2.0,
+     "gap": 5.0
+    },
+    {
+     "type": "blob",
+     "count": 16,
+     "at": 10.0,
+     "gap": 0.7
+    },
+    {
+     "type": "shell",
+     "count": 3,
+     "at": 12.0,
+     "gap": 3.0
+    },
+    {
+     "type": "flutter",
+     "count": 9,
+     "at": 22.0,
+     "gap": 0.8
+    }
+   ],
+   "hpMult": 5.3,
+   "speedMult": 1.05,
+   "newThisWave": "",
+   "note": "Flutter flock",
+   "boss": null
+  },
+  {
+   "wave": 35,
+   "groups": [
+    {
+     "type": "craft",
+     "count": 2,
+     "at": 0.0,
+     "gap": 12.0
+    },
+    {
+     "type": "mite",
+     "count": 14,
+     "at": 5.0,
+     "gap": 0.7
+    },
+    {
+     "type": "slime",
+     "count": 4,
+     "at": 12.0,
+     "gap": 2.65
+    }
+   ],
+   "hpMult": 5.4,
+   "speedMult": 1.1,
+   "newThisWave": "",
+   "note": "Craft convoy",
+   "boss": null
+  },
+  {
+   "wave": 36,
+   "groups": [
+    {
+     "type": "slime",
+     "count": 7,
+     "at": 0.0,
+     "gap": 2.5
+    },
+    {
+     "type": "shell",
+     "count": 4,
+     "at": 5.0,
+     "gap": 4.0
+    },
+    {
+     "type": "patch",
+     "count": 2,
+     "at": 6.0,
+     "gap": 8.0
+    },
+    {
+     "type": "swarm",
+     "count": 13,
+     "at": 24.0,
+     "gap": 0.25
+    }
+   ],
+   "hpMult": 5.5,
+   "speedMult": 1.1,
+   "newThisWave": "",
+   "note": "Slime tide",
+   "boss": null
+  },
+  {
+   "wave": 37,
+   "groups": [
+    {
+     "type": "guard",
+     "count": 9,
+     "at": 0.0,
+     "gap": 1.9
+    },
+    {
+     "type": "patch",
+     "count": 4,
+     "at": 1.2,
+     "gap": 4.0
+    },
+    {
+     "type": "blob",
+     "count": 19,
+     "at": 12.0,
+     "gap": 0.6
+    },
+    {
+     "type": "mite",
+     "count": 14,
+     "at": 24.0,
+     "gap": 0.5
+    }
+   ],
+   "hpMult": 5.65,
+   "speedMult": 1.1,
+   "newThisWave": "",
+   "note": "Guarded healers",
+   "boss": null
+  },
+  {
+   "wave": 38,
+   "groups": [
+    {
+     "type": "blob",
+     "count": 12,
+     "at": 0.0,
+     "gap": 0.75
+    },
+    {
+     "type": "mite",
+     "count": 14,
+     "at": 2.0,
+     "gap": 0.6
+    },
+    {
+     "type": "flutter",
+     "count": 10,
+     "at": 10.0,
+     "gap": 0.8
+    },
+    {
+     "type": "shell",
+     "count": 4,
+     "at": 12.0,
+     "gap": 2.65
+    },
+    {
+     "type": "craft",
+     "count": 1,
+     "at": 20.0,
+     "gap": 0.0,
+     "cargo": [
+      {
+       "type": "mite",
+       "count": 6
+      }
+     ]
+    },
+    {
+     "type": "slime",
+     "count": 2,
+     "at": 24.0,
+     "gap": 4.0
+    }
+   ],
+   "hpMult": 5.75,
+   "speedMult": 1.1,
+   "newThisWave": "",
+   "note": "Fast mix; craft carries Mites",
+   "boss": null
+  },
+  {
+   "wave": 39,
+   "groups": [
+    {
+     "type": "shell",
+     "count": 4,
+     "at": 0.0,
+     "gap": 2.65
+    },
+    {
+     "type": "guard",
+     "count": 4,
+     "at": 3.0,
+     "gap": 2.65
+    },
+    {
+     "type": "patch",
+     "count": 2,
+     "at": 5.0,
+     "gap": 8.0
+    },
+    {
+     "type": "craft",
+     "count": 1,
+     "at": 12.0,
+     "gap": 0.0
+    },
+    {
+     "type": "flutter",
+     "count": 10,
+     "at": 16.0,
+     "gap": 0.8
+    },
+    {
+     "type": "swarm",
+     "count": 14,
+     "at": 30.0,
+     "gap": 0.25
+    },
+    {
+     "type": "mite",
+     "count": 10,
+     "at": 34.0,
+     "gap": 0.55
+    }
+   ],
+   "hpMult": 5.9,
+   "speedMult": 1.15,
+   "newThisWave": "",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 40,
+   "groups": [
+    {
+     "type": "flutter",
+     "count": 4,
+     "at": 0.0,
+     "gap": 1.5
+    },
+    {
+     "type": "boss4",
+     "count": 1,
+     "at": 8.0,
+     "gap": 0.0
+    },
+    {
+     "type": "mite",
+     "count": 6,
+     "at": 40.0,
+     "gap": 1.0
+    }
+   ],
+   "hpMult": 6.0,
+   "speedMult": 1.15,
+   "newThisWave": "BOSS The Mothership",
+   "note": "",
+   "boss": "boss4"
+  },
+  {
+   "wave": 41,
+   "groups": [
+    {
+     "type": "blob",
+     "count": 18,
+     "at": 0.0,
+     "gap": 0.6
+    },
+    {
+     "type": "mite",
+     "count": 15,
+     "at": 4.0,
+     "gap": 0.55
+    },
+    {
+     "type": "shell",
+     "count": 6,
+     "at": 10.0,
+     "gap": 2.4
+    },
+    {
+     "type": "slime",
+     "count": 4,
+     "at": 14.0,
+     "gap": 2.65
+    },
+    {
+     "type": "flutter",
+     "count": 13,
+     "at": 22.0,
+     "gap": 0.65
+    }
+   ],
+   "hpMult": 6.1,
+   "speedMult": 1.15,
+   "newThisWave": "",
+   "note": "Breather before the final climb",
+   "boss": null
+  },
+  {
+   "wave": 42,
+   "groups": [
+    {
+     "type": "guard",
+     "count": 8,
+     "at": 0.0,
+     "gap": 2.15
+    },
+    {
+     "type": "slime",
+     "count": 6,
+     "at": 3.0,
+     "gap": 3.2
+    },
+    {
+     "type": "patch",
+     "count": 4,
+     "at": 5.0,
+     "gap": 4.0
+    },
+    {
+     "type": "swarm",
+     "count": 15,
+     "at": 22.0,
+     "gap": 0.25
+    },
+    {
+     "type": "mite",
+     "count": 13,
+     "at": 28.0,
+     "gap": 0.5
+    }
+   ],
+   "hpMult": 6.2,
+   "speedMult": 1.15,
+   "newThisWave": "",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 43,
+   "groups": [
+    {
+     "type": "craft",
+     "count": 2,
+     "at": 0.0,
+     "gap": 12.0,
+     "cargo": [
+      {
+       "type": "mite",
+       "count": 5
+      }
+     ]
+    },
+    {
+     "type": "shell",
+     "count": 4,
+     "at": 4.0,
+     "gap": 4.65
+    },
+    {
+     "type": "flutter",
+     "count": 9,
+     "at": 14.0,
+     "gap": 1.0
+    },
+    {
+     "type": "patch",
+     "count": 2,
+     "at": 8.0,
+     "gap": 8.0
+    }
+   ],
+   "hpMult": 6.3,
+   "speedMult": 1.2,
+   "newThisWave": "",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 44,
+   "groups": [
+    {
+     "type": "swarm",
+     "count": 10,
+     "at": 0.0,
+     "gap": 0.25
+    },
+    {
+     "type": "blob",
+     "count": 12,
+     "at": 3.0,
+     "gap": 0.75
+    },
+    {
+     "type": "guard",
+     "count": 7,
+     "at": 10.0,
+     "gap": 2.1
+    },
+    {
+     "type": "shell",
+     "count": 7,
+     "at": 14.0,
+     "gap": 2.1
+    },
+    {
+     "type": "swarm",
+     "count": 10,
+     "at": 22.0,
+     "gap": 0.25
+    },
+    {
+     "type": "flutter",
+     "count": 10,
+     "at": 26.0,
+     "gap": 0.7
+    },
+    {
+     "type": "slime",
+     "count": 5,
+     "at": 30.0,
+     "gap": 1.9
+    },
+    {
+     "type": "craft",
+     "count": 1,
+     "at": 34.0,
+     "gap": 0.0
+    }
+   ],
+   "hpMult": 6.4,
+   "speedMult": 1.2,
+   "newThisWave": "",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 45,
+   "groups": [
+    {
+     "type": "shell",
+     "count": 8,
+     "at": 0.0,
+     "gap": 2.55
+    },
+    {
+     "type": "patch",
+     "count": 3,
+     "at": 2.0,
+     "gap": 7.0
+    },
+    {
+     "type": "slime",
+     "count": 5,
+     "at": 8.0,
+     "gap": 3.0
+    },
+    {
+     "type": "mite",
+     "count": 16,
+     "at": 20.0,
+     "gap": 0.5
+    },
+    {
+     "type": "craft",
+     "count": 1,
+     "at": 24.0,
+     "gap": 0.0
+    }
+   ],
+   "hpMult": 6.5,
+   "speedMult": 1.2,
+   "newThisWave": "",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 46,
+   "groups": [
+    {
+     "type": "flutter",
+     "count": 17,
+     "at": 0.0,
+     "gap": 0.65
+    },
+    {
+     "type": "guard",
+     "count": 10,
+     "at": 2.0,
+     "gap": 1.7
+    },
+    {
+     "type": "blob",
+     "count": 17,
+     "at": 12.0,
+     "gap": 0.55
+    },
+    {
+     "type": "patch",
+     "count": 4,
+     "at": 14.0,
+     "gap": 3.35
+    },
+    {
+     "type": "slime",
+     "count": 6,
+     "at": 24.0,
+     "gap": 2.4
+    },
+    {
+     "type": "craft",
+     "count": 1,
+     "at": 30.0,
+     "gap": 0.0
+    }
+   ],
+   "hpMult": 6.6,
+   "speedMult": 1.2,
+   "newThisWave": "",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 47,
+   "groups": [
+    {
+     "type": "craft",
+     "count": 2,
+     "at": 0.0,
+     "gap": 12.0,
+     "cargo": [
+      {
+       "type": "flutter",
+       "count": 4
+      }
+     ]
+    },
+    {
+     "type": "shell",
+     "count": 5,
+     "at": 3.0,
+     "gap": 3.5
+    },
+    {
+     "type": "mite",
+     "count": 15,
+     "at": 10.0,
+     "gap": 0.55
+    },
+    {
+     "type": "guard",
+     "count": 4,
+     "at": 20.0,
+     "gap": 3.0
+    },
+    {
+     "type": "swarm",
+     "count": 15,
+     "at": 34.0,
+     "gap": 0.3
+    }
+   ],
+   "hpMult": 6.7,
+   "speedMult": 1.25,
+   "newThisWave": "",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 48,
+   "groups": [
+    {
+     "type": "blob",
+     "count": 15,
+     "at": 0.0,
+     "gap": 0.65
+    },
+    {
+     "type": "shell",
+     "count": 6,
+     "at": 2.0,
+     "gap": 3.0
+    },
+    {
+     "type": "guard",
+     "count": 5,
+     "at": 6.0,
+     "gap": 3.0
+    },
+    {
+     "type": "patch",
+     "count": 3,
+     "at": 8.0,
+     "gap": 6.0
+    },
+    {
+     "type": "flutter",
+     "count": 11,
+     "at": 20.0,
+     "gap": 0.75
+    },
+    {
+     "type": "slime",
+     "count": 4,
+     "at": 24.0,
+     "gap": 3.0
+    },
+    {
+     "type": "mite",
+     "count": 11,
+     "at": 34.0,
+     "gap": 0.65
+    }
+   ],
+   "hpMult": 6.8,
+   "speedMult": 1.25,
+   "newThisWave": "",
+   "note": "",
+   "boss": null
+  },
+  {
+   "wave": 49,
+   "groups": [
+    {
+     "type": "craft",
+     "count": 2,
+     "at": 0.0,
+     "gap": 12.0
+    },
+    {
+     "type": "shell",
+     "count": 4,
+     "at": 2.0,
+     "gap": 4.65
+    },
+    {
+     "type": "guard",
+     "count": 4,
+     "at": 5.0,
+     "gap": 4.65
+    },
+    {
+     "type": "patch",
+     "count": 3,
+     "at": 7.0,
+     "gap": 6.0
+    },
+    {
+     "type": "flutter",
+     "count": 9,
+     "at": 20.0,
+     "gap": 0.9
+    },
+    {
+     "type": "slime",
+     "count": 3,
+     "at": 26.0,
+     "gap": 4.5
+    },
+    {
+     "type": "swarm",
+     "count": 12,
+     "at": 36.0,
+     "gap": 0.35
+    },
+    {
+     "type": "mite",
+     "count": 9,
+     "at": 40.0,
+     "gap": 0.65
+    }
+   ],
+   "hpMult": 6.9,
+   "speedMult": 1.25,
+   "newThisWave": "",
+   "note": "Everything together",
+   "boss": null
+  },
+  {
+   "wave": 50,
+   "groups": [
+    {
+     "type": "shell",
+     "count": 2,
+     "at": 0.0,
+     "gap": 4.0
+    },
+    {
+     "type": "guard",
+     "count": 2,
+     "at": 2.0,
+     "gap": 4.0
+    },
+    {
+     "type": "boss5",
+     "count": 1,
+     "at": 8.0,
+     "gap": 0.0
+    },
+    {
+     "type": "flutter",
+     "count": 6,
+     "at": 30.0,
+     "gap": 1.0
+    },
+    {
+     "type": "patch",
+     "count": 2,
+     "at": 34.0,
+     "gap": 6.0
+    }
+   ],
+   "hpMult": 7.0,
+   "speedMult": 1.25,
+   "newThisWave": "BOSS The Great Glorp - campaign completion",
+   "note": "",
+   "boss": "boss5"
+  }
+ ],
+ "powers": {
+  "frost_pulse": {
+   "name": "Frost Pulse",
+   "effect": "Every alien on the field is slowed by 50% for 6 s (bosses 25%). Obeys the normal strongest-slow rule and the 50% cap.",
+   "slowPct": 50,
+   "duration": 6.0,
+   "targeting": "none - whole field",
+   "mouse": "Click the power button (or its HUD icon).",
+   "keyboard": "Press 1, or Tab to the button and press Enter/Space."
+  },
+  "comet_burst": {
+   "name": "Comet Burst",
+   "effect": "Every alien within 1.5 tiles of the chosen point on the route loses 50% of its MAXIMUM health (bosses 10%), ignoring armour and bubbles. Aliens brought to zero are defeated and pay their normal bounty.",
+   "radius": 1.5,
+   "pctMaxHp": 50,
+   "bossPctMaxHp": 10,
+   "targeting": "a point on the route",
+   "mouse": "Click the power button, move the ring (it snaps to the nearest point of the route), click to drop. Right-click or Esc cancels without using the charge.",
+   "keyboard": "Press 2: the ring starts on the front-most alien. Left/Right arrows slide it along the route in half-tile steps, Enter/Space drops, Esc cancels."
+  },
+  "colony_shield": {
+   "name": "Colony Shield",
+   "effect": "Adds 10 shield points at once. May lift the shield above the normal cap of 10 up to the absolute cap of 20; anything above 10 is trimmed when the wave ends.",
+   "shieldPoints": 10,
+   "targeting": "none",
+   "mouse": "Click the power button.",
+   "keyboard": "Press 3, or Tab to the button and press Enter/Space."
+  }
+ },
+ "powerRules": {
+  "inventoryCapPerPower": 2,
+  "perWaveUseLimitPerPower": 1,
+  "sharedLockoutSeconds": 3.0,
+  "persistence": "Unused charges stay in the run's inventory (they are run resources in the snapshot) until used, defeat, abandon or run completion. They never transfer to another run.",
+  "usableIn": "any wave after the charge is earned (including the boss wave it was earned for)",
+  "awardMapping": "fixed rotation by meteor challenge: Frost Pulse, Comet Burst, Colony Shield, then round again",
+  "meteorSchedule": [
+   {
+    "afterWave": 9,
+    "slotId": "M-009",
+    "power": "frost_pulse",
+    "charges": 1
+   },
+   {
+    "afterWave": 19,
+    "slotId": "M-019",
+    "power": "comet_burst",
+    "charges": 1
+   },
+   {
+    "afterWave": 29,
+    "slotId": "M-029",
+    "power": "colony_shield",
+    "charges": 1
+   },
+   {
+    "afterWave": 39,
+    "slotId": "M-039",
+    "power": "frost_pulse",
+    "charges": 1
+   },
+   {
+    "afterWave": 49,
+    "slotId": "M-049",
+    "power": "comet_burst",
+    "charges": 1
+   }
+  ],
+  "pausedWhileTargeting": true,
+  "note": "Choosing a Comet Burst target pauses the simulation (zero steps) so aiming is untimed. Cooldowns are per wave, so no timer state is ever saved."
+ },
+ "endless": {
+  "startsAtWave": 51,
+  "generator": "pure function of the wave number (no randomness, no seed): every run sees the same endless waves",
+  "templateRule": "wave n with (n - 50) mod 10 = j uses the groups of authored campaign wave 40 + j for j = 1..9; j = 0 (waves 60, 70, ...) is a boss wave",
+  "templateForOffset": {
+   "1": 41,
+   "2": 42,
+   "3": 43,
+   "4": 44,
+   "5": 45,
+   "6": 46,
+   "7": 47,
+   "8": 48,
+   "9": 49
+  },
+  "bossCycle": [
+   "boss1",
+   "boss2",
+   "boss3",
+   "boss4",
+   "boss5"
+  ],
+  "bossEscortTemplates": {
+   "boss1": 10,
+   "boss2": 20,
+   "boss3": 30,
+   "boss4": 40,
+   "boss5": 50
+  },
+  "hpMult": {
+   "base": 7.0,
+   "perWave": 0.1,
+   "cap": 14.0,
+   "formula": "min(cap, base + perWave * (n - 50))"
+  },
+  "speedMult": {
+   "base": 1.25,
+   "perWave": 0.005,
+   "cap": 1.4,
+   "formula": "min(cap, base + perWave * (n - 50))"
+  },
+  "countMult": {
+   "base": 1.0,
+   "perCycle": 0.05,
+   "cap": 1.25,
+   "formula": "min(cap, 1 + perCycle * floor((n - 51) / 10)); group count = ceil(count * countMult), gaps unchanged"
+  },
+  "maxScheduledSpawnsPerWave": 110,
+  "bossHp": {
+   "base": 4000,
+   "perBoss": 1000,
+   "cap": 10000,
+   "formula": "min(cap, base + perBoss * k) for the k-th endless boss (k = 1 at wave 60); the boss keeps its own phases, speed and leak damage"
+  },
+  "bossBounty": 100,
+  "meteorBeforeBoss": true,
+  "learningReward": 75,
+  "concurrencyCaps": "identical to the campaign caps (60 active, 48 scheduled soft cap, 24 live descendants)",
+  "plateau": "after the last cap is reached every wave with the same template is identical for ever; nothing grows"
+ },
+ "badges": [
+  {
+   "id": "first-steps",
+   "name": "First Steps",
+   "permanent": true,
+   "rule": "highestCompletedWave >= 1 on any campaign run (awarded in COMPLETE_WAVE)."
+  },
+  {
+   "id": "boss-1",
+   "name": "Wobble Stopper",
+   "permanent": true,
+   "rule": "COMPLETE_WAVE for campaign wave 10."
+  },
+  {
+   "id": "boss-2",
+   "name": "Clank Cracker",
+   "permanent": true,
+   "rule": "COMPLETE_WAVE for campaign wave 20 (same event records next-planet eligibility)."
+  },
+  {
+   "id": "boss-3",
+   "name": "Bubble Popper",
+   "permanent": true,
+   "rule": "COMPLETE_WAVE for campaign wave 30."
+  },
+  {
+   "id": "boss-4",
+   "name": "Mothership Mover",
+   "permanent": true,
+   "rule": "COMPLETE_WAVE for campaign wave 40."
+  },
+  {
+   "id": "campaign-luna-1",
+   "name": "Colony Hero",
+   "permanent": true,
+   "rule": "COMPLETE_WAVE for campaign wave 50; committed before the endless offer is shown."
+  },
+  {
+   "id": "endless-60",
+   "name": "Star Voyager",
+   "permanent": true,
+   "rule": "COMPLETE_WAVE for endless wave 60."
+  },
+  {
+   "id": "full-crew",
+   "name": "Full Crew",
+   "permanent": true,
+   "rule": "A wave-start snapshot (START_WAVE) contains at least one astronaut of each of the six classes."
+  },
+  {
+   "id": "top-team",
+   "name": "Top Team",
+   "permanent": true,
+   "rule": "A wave-start snapshot contains at least one level-3 astronaut."
+  },
+  {
+   "id": "safe-and-sound",
+   "name": "Safe and Sound",
+   "permanent": true,
+   "rule": "COMPLETE_WAVE for a campaign boss wave (10/20/30/40/50) whose post-wave snapshot health is not lower than the health in that wave's start snapshot."
+  },
+  {
+   "id": "meteor-catcher",
+   "name": "Meteor Catcher",
+   "permanent": true,
+   "rule": "Any meteor slot resolves SUCCEEDED."
+  },
+  {
+   "id": "bright-spark-10",
+   "name": "Bright Spark",
+   "permanent": true,
+   "rule": "Lifetime count of SUCCEEDED normal activities (sum of the learning summaries) reaches 10."
+  },
+  {
+   "id": "bright-spark-50",
+   "name": "Brilliant Spark",
+   "permanent": true,
+   "rule": "Lifetime count of SUCCEEDED normal activities reaches 50."
+  },
+  {
+   "id": "all-rounder",
+   "name": "All-Rounder",
+   "permanent": true,
+   "rule": "Learning summaries show at least 5 SUCCEEDED activities in each of maths, phonics and spelling."
+  },
+  {
+   "id": "keep-trying",
+   "name": "Keep Trying",
+   "permanent": true,
+   "rule": "A slot resolves SUCCEEDED on its second or third attempt."
+  },
+  {
+   "id": "challenge-blob-parade",
+   "name": "Parade Marshal",
+   "permanent": true,
+   "rule": "Final wave of challenge 'blob-parade' completed."
+  },
+  {
+   "id": "challenge-bubble-trouble",
+   "name": "Bubble Wrangler",
+   "permanent": true,
+   "rule": "Final wave of challenge 'bubble-trouble' completed."
+  },
+  {
+   "id": "challenge-wobble-rematch",
+   "name": "Boss Buddy",
+   "permanent": true,
+   "rule": "Final wave of challenge 'wobble-rematch' completed."
+  }
+ ],
+ "challenges": [
+  {
+   "id": "blob-parade",
+   "name": "Blob Parade",
+   "startingCredits": 150,
+   "classes": [
+    "nova"
+   ],
+   "colonyHealth": 20,
+   "padsOpenAsForWave": 1,
+   "presetPlacements": [],
+   "waves": [
+    1,
+    2,
+    4,
+    5,
+    7
+   ],
+   "learningReward": 30,
+   "meteor": false,
+   "about": "Five gentle waves with only Nova on the six starting pads: a first taste, or a quick go."
+  },
+  {
+   "id": "wobble-rematch",
+   "name": "Wobble Rematch",
+   "startingCredits": 200,
+   "classes": [
+    "nova",
+    "pip"
+   ],
+   "colonyHealth": 20,
+   "padsOpenAsForWave": 10,
+   "presetPlacements": [
+    {
+     "pad": "P04",
+     "class": "nova",
+     "level": 1
+    },
+    {
+     "pad": "P05",
+     "class": "nova",
+     "level": 1
+    },
+    {
+     "pad": "P09",
+     "class": "nova",
+     "level": 1
+    },
+    {
+     "pad": "P12",
+     "class": "nova",
+     "level": 1
+    }
+   ],
+   "waves": [
+    7,
+    9,
+    10
+   ],
+   "learningReward": 30,
+   "meteor": true,
+   "meteorAfterIndex": 2,
+   "meteorPower": "frost_pulse",
+   "about": "The team is already at its posts. Two warm-up waves, an optional meteor challenge for a Frost Pulse, then King Wobble."
+  },
+  {
+   "id": "bubble-trouble",
+   "name": "Bubble Trouble",
+   "startingCredits": 250,
+   "classes": [
+    "nova",
+    "pip",
+    "juno"
+   ],
+   "colonyHealth": 20,
+   "padsOpenAsForWave": 16,
+   "presetPlacements": [
+    {
+     "pad": "P02",
+     "class": "nova",
+     "level": 1
+    },
+    {
+     "pad": "P04",
+     "class": "nova",
+     "level": 1
+    },
+    {
+     "pad": "P05",
+     "class": "juno",
+     "level": 1
+    },
+    {
+     "pad": "P09",
+     "class": "nova",
+     "level": 1
+    },
+    {
+     "pad": "P12",
+     "class": "nova",
+     "level": 1
+    },
+    {
+     "pad": "P13",
+     "class": "pip",
+     "level": 1
+    },
+    {
+     "pad": "P16",
+     "class": "nova",
+     "level": 1
+    }
+   ],
+   "waves": [
+    8,
+    13,
+    14,
+    17,
+    18,
+    19
+   ],
+   "learningReward": 40,
+   "meteor": false,
+   "about": "A ready-made team with one Juno and one Pip. Six waves of swarms, Bubble Guards and groups."
+  }
+ ],
+ "performance": {
+  "maxActiveAliens": 60,
+  "maxAstronauts": 16,
+  "maxBeamEffects": 32,
+  "maxBlastEffects": 16,
+  "maxParticles": 240,
+  "starBurstParticles": 8,
+  "maxFloatingTexts": 24,
+  "note": "Attacks resolve instantly in the simulation; beams, comets and star bursts are pooled render-only effects with fixed lifetimes. When a pool is empty the oldest effect is recycled; simulation outcomes never depend on effects."
+ }
+}

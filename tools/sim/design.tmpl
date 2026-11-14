@@ -1,0 +1,739 @@
+# 10 - Game design: combat, economy and simulator evidence
+
+Specialist source material for the Space Colony Defence implementation plan: section C (game design), with inputs to F (run resources), I (validation) and J (backlog). British English. Written 2026-11-14.
+
+**This file is generated.** Every table is printed from `sim/game_data.json` (design tables) or `sim/results.json` (simulator output) by `sim/tables.py`, and the result numbers quoted in the prose are filled in from the same files by `sim/build_report.py`. If the data changes, re-run the commands in section 16.7 and this document follows.
+
+## 0. Status of what is in here
+
+| Label | Meaning in this report |
+|---|---|
+| **CONFIRMED** | Fixed by the approved specification. Cited as `prompt.md:<line>` (file `/home/jack/Documents/Projects/space-tower-defence/prompt.md`, read in full). |
+| **PROPOSAL** | My design recommendation. **Every name, number, coordinate, formula and rule in this report is a PROPOSAL and an INITIAL PLAYTEST SETTING unless it carries another label.** None of it is validated balance. |
+| **SIM** | A number produced by running the headless simulator in `sim/`. Reproducible from the files. Evidence about a coarse model with heuristic players. **Not validation with real children.** |
+| **VERIFIED** | Read directly in a file; path given. |
+| **UNVERIFIED** | Stated from memory; not confirmed here. Collected in section 20. |
+
+"Spine S4" and similar point at `/tmp/claude-1000/-home-jack-Documents-Projects-space-tower-defence/21e4d7b3-740a-407a-9ce4-b4a3156f1b6c/scratchpad/spine.md` (VERIFIED: read in full; it is a v0.1 draft, so section 18 lists what this design needs added or confirmed there).
+
+Files produced with this report, all in `/tmp/claude-1000/-home-jack-Documents-Projects-space-tower-defence/21e4d7b3-740a-407a-9ce4-b4a3156f1b6c/scratchpad/sim/`:
+
+| File | What it is |
+|---|---|
+| `game_data.json` | Machine-readable version of ALL tables: simulation rules, map, colony, classes, combat rules, economy, aliens, caps, bosses, 50 waves, powers, endless formulas, badges, challenges, performance budget. |
+| `make_data.py` | Authoring helper that writes `game_data.json` (compact wave definitions, the toughness curve, the frozen tuning output). |
+| `sim.py` | The headless fixed-timestep simulator and the heuristic players. Python 3 standard library only. |
+| `tune.py` | Measures the "margin" before every wave and, with `--adapt`, rescales waves to a target margin curve. Used to choose the numbers; not part of the game. |
+| `run_matrix.py`, `results.json`, `results.md` | The scenario matrix ({{F:scenarios}} runs), its raw output and the result tables. |
+| `selftest.py` | Invariant checks on the data and the simulator, and an independent check of the worked example's arithmetic. |
+| `example.py` | The worked early-run example, executed through the simulator. |
+| `tables.py`, `build_report.py`, `design.tmpl` | Table printer, report assembler and the text template of this document. |
+
+---
+
+## 1. The decisions that matter most
+
+1. **One clock.** A fixed 60-tick-per-second simulation; 1x and 2x are "how many ticks per frame"; pause is zero ticks. Combat has no randomness. Attacks resolve in the tick they fire (there are no simulated projectiles).
+2. **One route, 16 pads, opened in stages.** The route is {{F:routeLength}} tiles long. Six good pads are open at the start and two more open with each new class (after waves 5, 10, 15, 20 and 25). The first screen stays simple for a five-year-old and every newly unlocked class has a free pad waiting. Fallback: open all 16 from wave 1, which is one data value per pad; in the simulator the naive player then gets less far (16.3).
+3. **Unlock order kept as proposed**: Nova at the start, then Pip, Juno, Orion, Mira, Sol after waves 5, 10, 15, 20 and 25. The first four unlocks all add firepower, so a child who always buys "the new one" has attackers before the two non-attacking classes arrive.
+4. **Small deployment caps keep the team mixed**: Pip 3, Juno 4, Orion 3, Mira 2, Sol 2; Nova uncapped.
+5. **Credits come from two places only**: defeated aliens and successful normal learning activities (CONFIRMED prompt.md:447). No wave-clear bonus. A run starts with {{F:startCredits}}. The campaign offers {{F:bountyTotal}} credits of bounty and {{F:learnTotal}} of learning rewards; the reference 16-astronaut level-3 board costs {{F:fieldCost}}.
+6. **Selling returns 70% of everything paid for that astronaut, rounded down to a multiple of 5.** Sell-then-rebuy always loses credits (proof in 5.7).
+7. **The colony has {{F:maxHealth}} health and up to {{F:shieldCap}} shield points.** Small aliens cost 1 health; the five bosses cost {{F:bossLeakList}}. A boss that gets through is a heavy blow, not an automatic defeat, except the last one against an unshielded colony.
+8. **Six alien traits, each a single exact rule**: armour (flat reduction), bubble layers (absorb a number of hits), flying (halves Juno's blast), healer (shared 3-second pulse), splitter, carrier. Each rewards a different class without requiring it.
+9. **Five bosses built only from those traits.** No new routes, projectiles or pad effects.
+10. **Meteor powers follow a fixed rotation** (Frost Pulse, Comet Burst, Colony Shield, ...): one charge per successful meteor challenge, kept until used, at most two of each.
+11. **Endless continuation is a pure function of the wave number**, built from waves 41-49 and the five bosses, with caps reached at waves {{F:endlessCaps.speed}} (speed), {{F:endlessCaps.count}} (counts), {{F:endlessCaps.boss}} (boss health) and {{F:endlessCaps.hp}} (health).
+12. **Simulator verdict against the design targets** (SIM, section 16). Competent player, 0% learning, no powers: clears wave {{F:c0.cleared}} with {{F:c0.health}} health; smallest margin {{F:marginMin}}. Competent, 60%: clears with {{F:c60.health}} health. Naive child, 60%: clears between {{F:naive60.min}} and {{F:naive60.max}} waves over {{F:naive60.n}} seeds, median {{F:naive60.median}}, and {{F:naive60.ge30}} of {{F:naive60.n}} reach wave 30. Every boss is beaten without powers and with any one class removed. The soft spots are listed plainly in 16.6.
+
+---
+
+## 2. Simulation rules
+
+All PROPOSAL except where marked.
+
+### 2.1 Time
+
+- **Tick.** One simulation step is exactly 1/60 simulation second. Durations in the data are simulation seconds and are converted to whole ticks once, at load: `ticks = round(seconds * 60)`. Speeds are tiles per simulation second; movement per tick is `speed / 60`.
+- **Battle speed.** The frame loop keeps an accumulator: `acc += realFrameSeconds * speedFactor`, with `speedFactor` 1 or 2; while `acc >= 1/60` it runs one tick and subtracts 1/60. At most 8 ticks run per rendered frame and anything left over is discarded, so a slow laptop plays in slow motion instead of falling ever further behind.
+- **Pause** is zero ticks. Opening a dialog or learning panel, or hiding the page, pauses; returning stays paused until the player resumes (CONFIRMED prompt.md:273). Choosing a Comet Burst target also pauses, so aiming is untimed.
+- **Frame rate never changes outcomes** (CONFIRMED prompt.md:303): damage, movement and rewards depend only on the tick count. The simulator gives the same result at 30 and 60 ticks per second (SIM, 16.5).
+- **Preparation**: no ticks run and nothing is on a timer (CONFIRMED prompt.md:503: no countdown; Ready starts the wave).
+- **Everything resets at wave start**: every attacker is ready to fire, Mira's recharge starts from zero, no alien or slow exists, per-wave power-use flags are cleared. So no timer or cooldown is ever part of a saved snapshot. This confirms the assumption written into spine S4.
+
+### 2.2 Determinism and arithmetic
+
+- Combat uses **no random numbers**. The same wave against the same board with the same commands on the same ticks always gives the same result (CONFIRMED intent prompt.md:409).
+- Every alien gets a unique integer id in spawn order (CONFIRMED prompt.md:391). Ties are broken by "further along the route", then by lower id.
+- Health, damage, credits, shield points, bounties and timers (in ticks) are integers. Route progress is fractional. If exact reproduction of a battle in another language is ever wanted (for example to share test replays between the TypeScript engine and a Python checker), progress can be held as a whole number of 1/10,000 tile; this design does not require it. The rounding rules, once:
+
+| Quantity | Rule |
+|---|---|
+| Alien health in a wave | `max(1, floor(baseHealth * hpMult + 0.5))` |
+| Sol buff on damage | `floor((damage * (100 + buffPct) + 50) / 100)` |
+| Juno blast on a flying alien | `ceil(damage / 2)` |
+| Armour | `max(1, damage - armour)` |
+| Patchling heal | `floor(6 * hpMult + 0.5)`, never above maximum health |
+| Comet Burst | `ceil(maxHealth * pct / 100)`, removed directly from health |
+| Sell refund | `floor(floor(invested * 70 / 100) / 5) * 5` |
+
+- Order of steps for one hit: base damage; Sol buff; flying halving (Juno only); a bubble layer absorbs the whole hit if one exists; armour; health.
+
+### 2.3 What happens inside one tick
+
+1. Apply queued player commands (place, upgrade, sell, change targeting, use a power) in the order they arrived. Each is validated against the state at that moment (credits, pad open and free, class unlocked, cap), so two quick clicks can never drive credits negative (AC-09).
+2. Scheduled spawns that are due, then descendant releases that are due (both respect the caps in 6.3).
+3. Support timers: Mira's shield pulses, the Patchling heal pulse.
+4. Astronaut attacks in pad-id order, P01 to P16. A boss's phase change resolves at the moment the damage lands.
+5. Alien movement in id order; an alien that reaches the end of the route leaks at once.
+6. Defeat check (colony health 0 or less), then wave-complete check.
+
+### 2.4 Attacks resolve instantly
+
+An astronaut whose timer is ready and who has a target in range fires on that tick; the damage, slow or blast is applied on that same tick and the timer restarts. Beams, comets and star bursts are drawn afterwards and have no effect on the simulation.
+
+Why: (1) nothing can be "wasted in flight", which would confuse a young player and complicate the rules; (2) the simulation then has only two kinds of entity, astronauts and aliens, which is much easier to write, test and keep deterministic in a first game; (3) at 2x the cosmetic effects simply play faster and combat stays readable (CONFIRMED need prompt.md:303). The price is that a comet visibly lands a moment after its damage; Juno's effect should therefore be a very short streak plus an impact ring drawn at the exact blast radius.
+
+An astronaut that was idle fires on the first tick a target comes into range. Upgrading does not reset an attack timer. A newly placed attacker is ready at once; a newly placed Mira starts a full recharge, so re-placing her can never speed up shield pulses.
+
+---
+
+## 3. Map
+
+### 3.1 Space and route
+
+- Logical space is a grid of 20 by 11 tiles. Coordinates are tile-centre coordinates: x from 0 (left) to 19, y from 0 (top) to 10. One unit is one tile. The angled 2D look (CONFIRMED prompt.md:279) is a matter of art and projection; the rules work in this flat space, and range, blast and buff previews must be drawn by passing the logical circle through the same projection, so that the preview is the truth (CONFIRMED need prompt.md:331).
+- One route (CONFIRMED prompt.md:281), authored as a polyline. Aliens appear at the portal at (0, 2); the colony gate is at (19, 3). Total length {{F:routeLength}} tiles. Flying aliens follow exactly this polyline (CONFIRMED prompt.md:301).
+
+{{T:route}}
+
+"Route progress" is distance travelled along the polyline: 0 at the portal, {{F:routeLength}} at the colony. An alien's position is a pure function of its progress.
+
+The shape is a serpentine with three U-bends. Each bend has one pad from which three stretches of path are within short range. Those three PRIME pads are the obvious strong spots, and finding them is the first tactical lesson the map teaches.
+
+### 3.2 Build pads
+
+{{T:pads}}
+
+"Route in range r" is the length of route within r tiles of the pad centre; divide it by an alien's speed to get the seconds that alien spends in range. Every pad is exactly 2 tiles from the nearest stretch of route, so every attacker (shortest range 2.5) reaches the path from every pad. "Pads within 4.5 / 6.0" counts the other pads inside Sol's two buff radii.
+
+**Range rule**: an alien is in range when the distance from the pad centre to the alien's point on the route is less than or equal to the range. Alien size is ignored.
+
+### 3.3 Pads open in stages (PROPOSAL, with a fallback)
+
+{{T:pad_stages}}
+
+Reasons:
+
+- **A simple first screen.** A five-year-old sees six glowing pads, all of them good, not sixteen of very different quality. "Very hard to lose early" then holds even for random placement: the weakest of the six starting pads still has 5.5 tiles of route in range.
+- **Every new class has somewhere to go.** A child who has filled every pad would otherwise meet a new astronaut with nowhere to put it, and nothing tells them they are allowed to sell. With staging, two fresh pads open at the same moment as each class and one of them suits it: P13 and P08 are PRIME pads that open with Pip and Juno; P06 and P07 are long-range perches for Orion; P15 is the balcony for Mira; P10 is the beacon mound for Sol.
+- **No saved state.** Whether a pad is open is a function of the highest completed wave.
+- **Evidence** (SIM, 16.3): with the same naive player at 60% learning, staged pads gave a median of {{F:naive60.median}} waves cleared; all 16 pads open from wave 1 gave {{F:naivePads.median}}. The competent player completes the campaign either way.
+
+Fallback: set every pad's `opensAfterWave` to 0; nothing else changes. The spec says pads are "predefined" (CONFIRMED prompt.md:281) and says nothing about staged opening, so this is plainly my proposal.
+
+---
+
+## 4. The colony
+
+| Rule | Value |
+|---|---|
+| Health | {{F:maxHealth}} (an integer). 0 or less is defeat, which is terminal for the run (CONFIRMED prompt.md:675). |
+| Shield points | Separate from health, capped at {{F:shieldCap}}. Leak damage comes off shield points first, then health. |
+| Sources of shield | Mira's pulses (5.5) and the Colony Shield power (section 10). The power may lift the shield to an absolute cap of {{F:shieldAbs}} for the rest of that wave; anything above {{F:shieldCap}} is removed when the wave ends. |
+| Between waves | Health and shield carry over unchanged (both are in the snapshot). Nothing regenerates while preparing. |
+| Repair | +{{F:bossRepair}} health when a boss wave is completed, whether or not the boss was defeated; +1 health per completed wave while a level-3 Mira is deployed (at most 1 per wave in total). Never above {{F:maxHealth}}. |
+| Leak damage | Per alien type (section 6): 1 for small aliens, 2 for sturdy ones, 4 for an Alien Craft, {{F:bossLeakList}} for the five bosses. |
+
+No alien damages, disables or blocks an astronaut or a pad: nothing in this design lets anything except a player command change an astronaut (CONFIRMED prompt.md:297, AC-07).
+
+Why 20 and these leak values: a child can let twenty Moon Blobs through over a run before losing, which is a great deal of forgiveness early on; and a boss leak of 8 to 14 leaves a healthy colony standing, so failing to stop a boss is a setback to recover from, not the end of a long run. The small repair after each boss makes clearing a boss feel good and gives a struggling player something back.
+
+---
+
+## 5. Astronaut roster
+
+The six roles are CONFIRMED (prompt.md:305-355); the names are the spec's proposals; every number is an initial playtest setting.
+
+### 5.1 Classes
+
+{{T:classes}}
+
+### 5.2 Levels, costs and values
+
+{{T:roster}}
+
+Each level changes something a child can see and a preview can show (AC-08): Nova fires faster at level 2, then reaches further and hits harder at 3; Pip's frost gets stronger and longer at 2 and becomes a small area at 3; Juno's blast ring grows at 2 and hits harder at 3; Orion reaches further at 2 and hits much harder at 3; Mira's pulses grow at 2 and quicken at 3, with a repair; Sol's bonus grows at 2 and its ring widens at 3. These follow the spec's level descriptions line by line (CONFIRMED prompt.md:312-314, 320-322, 328-330, 336-338, 344-346, 352-354).
+
+### 5.3 Targeting
+
+{{T:targeting}}
+
+- Every attacking class defaults to a mode that is sensible if never touched; the naive simulated player never changes it.
+- At most two modes per class, shown as two picture buttons. Orion gains STRONG at level 3 (CONFIRMED prompt.md:346).
+- Pip, within its chosen mode, first prefers an alien that is not currently slowed, so it spreads its frost instead of re-freezing one alien.
+- Juno defaults to CROWD because a blast centred on the front alien wastes the half of the circle that lies ahead of the group.
+
+### 5.4 Pip's slow (CONFIRMED need: a cap and a stacking policy, prompt.md:323)
+
+- A slow reduces an alien's speed by a percentage for a duration.
+- **No stacking.** An alien has one slow at a time. A stronger slow replaces it, strength and duration both; an equally strong one keeps whichever remaining time is longer; a weaker one is ignored.
+- **Cap: 50%.** No effect or combination may reduce speed by more than half, so no alien can ever be stopped. Pip reaches 40%; Frost Pulse reaches the cap.
+- **Bosses take slows at half strength** (Pip 15% or 20%, Frost Pulse 25%), so slowing is an advantage against bosses without becoming the required answer.
+- A bubble layer absorbs Pip's damage but the slow still applies.
+
+### 5.5 Mira's shield and repair (CONFIRMED need: no unlimited stacking or invulnerability, prompt.md:339)
+
+- Every `period` seconds of wave time each Mira adds her shield points to the colony shield, up to the cap of {{F:shieldCap}}. The first pulse comes one full period after the wave starts, or after she is placed.
+- At most 2 Miras. Two level-3 Miras add at most 20 shield points a minute and the shield never holds more than {{F:shieldCap}}; shields soak up a trickle of leaks but cannot save a colony from a wave that is getting through.
+- Level 3 also repairs 1 health when a wave is cleared; total Mira repair is capped at 1 per wave however many Miras there are.
+- Mira needs no range and no view of the path; any pad will do.
+
+### 5.6 Sol's buff (CONFIRMED need: strongest wins, no loops, prompt.md:355)
+
+- Sol adds a percentage to the damage of Nova, Pip, Juno and Orion standing on pads whose centres are within Sol's radius of Sol's pad.
+- An astronaut in range of two Sols gets only the larger percentage. Sol does not buff Sol, Mira or itself, and Sol's strength depends only on its own level, so there is no recursion.
+- The buff changes damage only: not range, rate, slow strength, shield pulses or bounties.
+
+### 5.7 Selling
+
+- Selling removes the astronaut and returns `floor(floor(invested * 70 / 100) / 5) * 5` credits, where `invested` is the purchase price plus every upgrade paid for that astronaut. The refund at each level is a column of the roster table.
+- Selling and placing are separate transactions (CONFIRMED prompt.md:281). The interface may offer them back to back as a "swap", but the rules see a sale followed by a purchase.
+- **Proof that selling and re-buying cannot create credits.** Let W = credits + the sum of `invested` over all deployed astronauts. Placing and upgrading move credits into `invested`, so W is unchanged. Selling removes `invested` and returns a refund of at most 0.7 * invested, which is less than `invested`, so W falls by at least 30% of that astronaut's cost. No shop action raises W; only bounties and learning rewards do. After any sequence of sales and purchases the player therefore holds no more than before, and strictly less if anything was sold. W is also exactly the quantity the server bounds in spine S6 rule 1. `selftest.py` runs 20,000 random shop actions and checks that W never rises and credits never go negative (SIM: passes).
+
+### 5.8 Deployment caps
+
+| Class | Cap | Why |
+|---|---|---|
+| Nova | none | Always available, so a free pad can always be filled and no cap can leave a child with nothing to buy. |
+| Pip | 3 | Slows do not stack; three Pips already cover the three bends. |
+| Juno | 4 | One per PRIME pad plus one. |
+| Orion | 3 | One per inner pad. |
+| Mira | 2 | Stops shield stacking drifting towards invulnerability. |
+| Sol | 2 | Strongest-wins already limits it; a second Sol only helps a different part of the map. |
+
+The cap appears on the class card as a small row of tokens ("three Orion badges, one left").
+
+Why cap Juno and Orion at all: while tuning without caps, the simulator's player ended up with one-class boards, first seven Junos doing most of the damage and, after I toned Juno down, mostly Orions. Those intermediate runs are not among the saved results, so treat that sentence as my observation rather than reproducible evidence. Caps are the most direct and most child-readable way to keep a team mixed.
+
+### 5.9 Why this unlock order (CONFIRMED need to choose and explain, prompt.md:357)
+
+| Unlock | Arrives for | What it adds at that moment | How it supports the bosses |
+|---|---|---|---|
+| Nova, start | waves 1-5 (Moon Blobs, Meteor Mites) | Dependable single-target damage; the only class the first block needs. | King Wobble can be beaten with Nova alone. |
+| Pip, after wave 5 | Shellbacks from wave 6 | The first support choice (the spec's block 1-9 names "early support choices", CONFIRMED prompt.md:413): slowed aliens take more hits from everyone nearby. | King Wobble spends longer under fire, at half strength. |
+| Juno, after wave 10 | tight groups (wave 11), swarms (wave 13) | Area damage; PRIME pad P08 opens with her. | Clears Captain Clank's Meteor Mite escort. |
+| Orion, after wave 15 | the Shellback parade (wave 16) | A heavy shot that armour barely dents, and reach across half the map. | Captain Clank (armour 5 at first) and every later boss: a slow single target stays inside Orion's range for most of its walk. |
+| Mira, after wave 20 | healers, splitters and carriers (waves 21-29) | Insurance, just as there start to be more ways for something to slip through. | Softens a boss leak at 30, 40 and 50. |
+| Sol, after wave 25 | the second half | A multiplier, once there are ten or more attackers to multiply. | Queen Bubbla onwards. |
+
+Alternatives considered and rejected: **Mira earlier** (a child who buys the newest class would spend on a non-attacker while firepower is thin; and in the simulator the naive player, with powers unused, defeated the first two bosses in every seed without any shield class); **Orion before Juno** (groups arrive before heavy armour does, and one slow heavy shot is the weakest answer to a swarm).
+
+No boss requires a class: section 16.4 gives the boss-wave margin of boards built with each class removed in turn, and of a Nova-only board.
+
+---
+
+## 6. Aliens
+
+The nine catalogue entries are CONFIRMED as a list (prompt.md:365-381; names after the first four are the spec's proposals). Statistics and trait rules are initial playtest settings.
+
+### 6.1 Catalogue
+
+{{T:aliens}}
+
+- **Health** in a wave is the base health times that wave's health multiplier (section 8). **Speed** is the base speed times the wave's speed multiplier. Armour, bubble layers, leak damage and bounty do not scale.
+- **Bounty** is paid once, when the alien is defeated by any means. An alien that reaches the colony pays nothing.
+- Defeat is a burst of stars; each trait has a silhouette or motion cue, so colour is never the only signal (CONFIRMED prompt.md:299).
+- "Bubble Swarm" is the catalogue name for a cluster; each bubble is an ordinary alien with its own id, health and bounty.
+
+Why these trait rules: each gives some class an advantage without shutting any class out.
+
+| Trait | Rewards | Everything else still works |
+|---|---|---|
+| Armour 4 (Shellback) | Big hits: Orion loses 8% of a 50-damage shot, a level-1 Nova loses 40%. | Every hit does at least 1; a level-3 Nova keeps 75%. |
+| Bubble layers (Bubble Guard) | Fast hitters and blasts: each hit of any size pops one layer. | Orion pops a layer too; it merely spends a big shot doing so. |
+| Flying (Orbit Flutter) | Aimed shots: Nova, Pip and Orion are unaffected. | Juno still does half damage. |
+| Small and many (Bubble Swarm, Meteor Mite) | Juno's blast. | Nova pops one bubble per shot. |
+| Healer (Patchling) | Burst and area damage that catches the Patchling with its patients. | The heal is small and never stacks. |
+
+### 6.2 Carriers and splitters (CONFIRMED rules prompt.md:387-401)
+
+- When a Split Slime or an Alien Craft is **defeated**, its descendants are queued at the parent's route progress and released one every 0.25 s from that exact point, the first on the next tick. Releasing them one at a time stops them sitting exactly on top of each other while still spawning every one at the parent's progress.
+- Each descendant is a normal alien with a new unique id and its own bounty. Parent and descendant bounties are separate lines of the catalogue: a Craft pays 6 and each of its Moon Blobs pays 4; a Split Slime pays 3 and each Slimelet pays 1.
+- A carrier or splitter that **reaches the colony** applies its own leak damage and releases nothing (CONFIRMED prompt.md:399).
+- A wave may name a Craft's cargo (waves 38, 43 and 47 do). Cargo may not contain Crafts or Split Slimes. Slimelets never split. Only a boss release may contain Split Slimes. So descendants are never more than two generations deep.
+- **A wave is complete only when** the schedule is exhausted, no release is queued, and no alien is active (CONFIRMED prompt.md:393, AC-10). `selftest.py` checks over a whole campaign that defeated plus leaked equals spawned in every wave, and that bounty earned equals bounty available whenever nothing leaked (SIM: passes).
+- **No duplication on pause, reload or retry** (CONFIRMED prompt.md:397): pause runs zero ticks, and nothing is saved during a wave. A reload or a save-and-exit returns to the wave-start snapshot, and the whole wave, ids included, is generated again from the same definition (spine S3.2).
+
+### 6.3 Caps (CONFIRMED need prompt.md:401, 405)
+
+{{T:caps}}
+
+What happens at a cap: a scheduled spawn that is due while 48 or more aliens are active **waits**; waiting spawns are released in schedule order, at most one every 0.25 s, as room appears. A descendant release waits at its parent's defeat position while 60 aliens are active or 24 descendants are alive. Nothing is ever dropped, duplicated or re-priced, so the bounty a wave offers is a constant. The 12-alien gap between the two limits is headroom reserved for descendants.
+
+In the authored campaign the caps are a safety net: the worst peak in any simulated campaign scenario was {{F:worstPeak}} aliens (wave {{F:worstPeakWave}}) and the most live descendants at once was {{F:maxDesc}} (SIM). In endless mode these caps, with the bound on scheduled spawns per wave, are what keep object counts bounded.
+
+### 6.4 "No enemy may require a class that is not yet unlocked" (CONFIRMED prompt.md:301)
+
+By construction: before wave 6 only Moon Blobs and Meteor Mites appear and only Nova exists; a Shellback (wave 6) still takes 6 damage from each level-1 Nova hit; a wave-8 swarm bubble pops to one Nova shot; flying affects only Juno; bubble layers and healing treat every class alike or favour the fast ones. By simulation: a Nova-only player cleared {{F:novaOnlyCleared}} waves, and the campaign is completed with any single class removed (SIM, 16.4).
+
+---
+
+## 7. Bosses
+
+Proposal names, all built from the catalogue's traits. They obey the same rules as every alien: they walk the one route, never damage, disable or block astronauts or pads, and fire nothing (CONFIRMED prompt.md:403).
+
+{{T:bosses}}
+
+{{T:boss_phases}}
+
+Rules:
+
+- Boss health is an absolute number; it is **not** multiplied by the wave's health multiplier. Escorts, and anything a boss releases, are ordinary aliens of that wave and are multiplied.
+- A phase begins the moment the boss's health falls to or below its threshold. If one hit crosses two thresholds, both phases' actions run, in order. Phase actions run before the defeat check, so a boss's releases can never be skipped and the bounty a boss wave offers is a constant.
+- "Gains N bubble layers" sets the boss's layers to N. "Gives 1 bubble layer" raises every non-boss alien within the radius to at least 1 layer. This is the spec's "enemy shields help other aliens" (CONFIRMED prompt.md:297) in its simplest form.
+- Releases follow the descendant rules in 6.2 and count towards the same caps.
+- Slows work at half strength on bosses.
+- **A boss that reaches the colony** applies its leak damage, is removed, pays no bounty and releases nothing more. The wave still completes when everything else is resolved, and the run continues if the colony has health left.
+- Completing a boss wave repairs {{F:bossRepair}} health.
+- The visual cues are part of the definition: every phase change must be readable from shape and motion (plates falling off, a door opening, a colour change with steam), not from a number.
+
+For the competent player at 0% learning the five boss waves last {{F:c0.bossDur}} seconds at 1x, all inside the guide of about 150 s, and their margins are {{F:bossMargins0}} (SIM).
+
+---
+
+## 8. The 50-wave campaign
+
+CONFIRMED structure: 50 authored waves; bosses on 10, 20, 30, 40 and 50; one fixed route; new enemies introduced gently; later challenge mainly from more aliens, faster aliens and stronger combinations (prompt.md:385, 405, 409-433).
+
+### 8.1 How to read the table
+
+- **Spawn groups**: `count type @start every spacing`. A group's first alien appears `start` seconds after the wave begins and the rest follow at the stated spacing. Groups overlap freely; that is how combinations are authored. Nothing is random.
+- **Modifiers**: the wave's health multiplier ("toughness") and, from wave 31, its speed multiplier. Toughness rises in straight lines between anchors (x1 at wave 1, x1.4 at wave 10, x3.2 at 20, x4.8 at 30, x6 at 40, x7 at 50), rounded to 0.05. Speed is x1 up to wave 30 and then rises by 0.05 every four waves to x1.25.
+- **Aliens scheduled (with descendants)**: the bracketed number also counts everything a splitter, carrier or boss can release.
+- **Total bounty available**: the credits on offer if nothing leaks. This is `maxBounty[w]` for the server-side bound in spine S6.
+- **Duration** and **peak concurrent aliens** are simulator outputs (SIM): duration for the competent player at 0% and at 60% learning; peak for the competent player at 0%, and the worst peak seen in any campaign scenario, naive player included.
+- **Margin**: the largest factor by which every health value in that wave could be multiplied before the competent player's board (0% learning, no powers, no purchases during the wave) lets its first alien through. 2.0 means "could be twice as tough"; 1.08 is thin.
+
+### 8.2 The schedule, one row per wave
+
+{{T:waves}}
+
+Totals: {{F:aliensScheduled}} aliens scheduled across the campaign, {{F:aliensTotal}} with every possible descendant; {{F:bountyTotal}} credits of bounty.
+
+### 8.3 How the schedule was built
+
+1. I wrote each wave's composition and timing by hand to follow the spec's blocks: waves 1-9 placement and basics; 11-19 flying, shields and group combinations; 21-29 healers, splitters and carriers; 31-39 denser and faster; 41-49 escalation.
+2. Each new alien first appears **alone and in small numbers**: Meteor Mite (wave 3), Shellback (6), Bubble Swarm (8), Orbit Flutter (12), Bubble Guard (14), Split Slime (24), Alien Craft (27). The Patchling (22) arrives with Moon Blobs only, because a healer alone has nobody to heal. These introduction waves are deliberately left much easier than their neighbours (margins from about 2 up to 9).
+3. The wave after each boss shows off the class that has just unlocked against familiar aliens: tight groups for Juno in wave 11, a Shellback parade for Orion in wave 16.
+4. `tune.py` then scaled the **counts** of each ordinary wave, keeping its time span, and set each **boss's health**, so that the competent player's margin follows a target curve: about 4 at wave 1, 2.6 at wave 9, 2.0 at wave 19, 1.55 at wave 29, 1.28 at wave 39 and 1.10 at wave 49, with boss waves set a little below their neighbours. Finally, by hand, I eased wave 48 slightly and lowered the health of the last three bosses (16.4 says why), which is why those three boss waves now sit level with their neighbours rather than below them. Counts were preferred to toughness as the lever because the spec asks for "more aliens" first (CONFIRMED prompt.md:405).
+5. The result is a sawtooth: boss, then a gentler wave with a new toy, a build-up, and the next boss.
+
+The margin curve is the real design decision; the counts are its consequence. It is deliberately very generous early and thin only at the end, because a defeat is terminal (CONFIRMED prompt.md:675) and would send a small child back to wave 1 of a campaign with about {{F:c0.minutes}} minutes of combat alone.
+
+---
+
+## 9. Economy
+
+### 9.1 Rules
+
+| Rule | Value | Status |
+|---|---|---|
+| Starting credits | {{F:startCredits}}: exactly three Novas | PROPOSAL (a fixed allowance is CONFIRMED prompt.md:447) |
+| Sources of credits | Bounties from defeated aliens; one reward per successful normal learning activity | CONFIRMED prompt.md:447 |
+| Wave-clear bonus | **None** | PROPOSAL (decision below) |
+| Meteor challenge reward | A power charge, never credits | CONFIRMED prompt.md:439 |
+| Wrong answers | Cost nothing, neither credits nor health. Three wrong answers end the activity with no reward. | CONFIRMED prompt.md:451 |
+| Activities per interval | One normal activity, so rewards cannot be farmed | CONFIRMED prompt.md:453 |
+| Same at every age | Combat data, prices, bounties and rewards contain no age input at all | CONFIRMED prompt.md:449, AC-13 |
+| On defeat or a fresh restart | Credits back to {{F:startCredits}}, only Nova available, board empty, powers gone, six pads open. Best completed wave, badges and learning summaries are kept. | CONFIRMED prompt.md:455-465, AC-14 |
+| Wallet | None. Credits belong to one run and are never shared between saved runs. | CONFIRMED prompt.md:447, 467 |
+| Selling | 70% of everything paid, rounded down to 5 (5.7) | PROPOSAL |
+
+**No wave-clear bonus: why.** The spec names two sources of credits and I see no reason to add a third. A bonus would also weaken the link the game is built on: learning is how you get ahead. The usual argument for a clear bonus is to stop a struggling player spiralling, since leaked aliens pay nothing and a weak board therefore earns less. Here that job is done by things already in the design: the learning reward does not depend on how the last wave went; early margins are very wide; clearing a boss repairs the colony; and Mira exists. It also keeps the server's bound to one line (spine S6 rule 1).
+
+### 9.2 Learning rewards
+
+{{T:learning_rewards}}
+
+The reward for the activity after wave w depends on w alone and is pinned on the slot when the run is created (spine S3.3). It is the same number for a five-year-old counting stars and a seven-year-old doing number bonds (CONFIRMED Example A, prompt.md:1110-1124).
+
+### 9.3 Income curves
+
+{{T:income}}
+
+The 60% column is an expected value. Bounty assumes nothing leaks; a board that leaks earns less.
+
+### 9.4 Where the credits go
+
+The reference board is the 16-astronaut mixed team the competent simulated player aims for:
+
+{{T:field_cost}}
+
+- At 0% learning a perfect player ever holds {{F:startCredits}} + {{F:bountyTotal}} credits, about three quarters of the reference board. In the simulator the competent player had {{F:c0.invested}} invested at the end of wave 50 and completed the campaign (SIM).
+- At 60% the competent player had {{F:c60.invested}} invested. At 100% it had the whole reference board ({{F:c100.invested}}), completed at wave {{F:c100.boardDoneWave}} (SIM).
+- So learning is worth about half as much again as combat income. It never gates progress; it speeds it up. That is the intended reading of "optional bonuses should make play more rewarding without an unrecoverable question-failure lock" (CONFIRMED prompt.md:451).
+
+### 9.5 Purchasing power of one correct answer
+
+{{T:purchasing_power}}
+
+Read with the reward table: early on, one correct answer is worth three quarters of the next wave's whole bounty and more than half a new astronaut, so a child feels it at once. Later it is a little under half a wave's bounty and pays for a Nova's level-2 upgrade outright or half of its level 3. Prices rise with the classes (a level-3 Orion costs as much as twelve Novas), so the reward is stepped up block by block to stay meaningful. It is deliberately not scaled wave by wave, so that it is easy to say ("30 credits for a right answer") and easy for the server to check.
+
+Roughly one purchase per wave is affordable throughout, a little more with good answers. Prices are multiples of 10 and bounties are small whole numbers, but a five-year-old should never need the arithmetic: a card is lit when it is affordable and, when it is not, shows how many more credits are needed.
+
+---
+
+## 10. Meteor powers
+
+CONFIRMED: optional extra challenges after waves 9, 19, 29, 39 and 49, additional to the normal activity and with separate ids; success gives a temporary power useful for the boss; failing or declining must not make the boss unwinnable; powers belong to the run (prompt.md:439-441, 1156-1166).
+
+{{T:powers}}
+
+{{T:meteor_schedule}}
+
+{{T:power_rules}}
+
+Decisions and reasons:
+
+- **A fixed mapping, not a choice.** Each meteor slot awards a named power, in a repeating order. A choice screen is one more decision for a young child just before a boss; and a fixed reward can be pinned on the slot when the run is created, which is what spine S3.3 and S6 rule 4 expect. The order starts with the power that needs no aiming (Frost Pulse), then introduces aiming (Comet Burst), then the shield, by which time Mira has shown what shields are.
+- **Unused charges are kept** for the rest of the run, up to two of each. A child who forgets to press the button has not lost the reward. Charges are run resources: gone on defeat, abandon or a fresh run (CONFIRMED prompt.md:463), and restored with the wave-start snapshot if a wave is abandoned part-way (CONFIRMED Example E, prompt.md:1168-1180).
+- **Each power once per wave**, with a 3-second lockout between powers, which mostly guards against double presses. Because limits are per wave, nothing about powers needs saving except the charge counts.
+- **Comet Burst always lands on the route.** The target ring snaps to the nearest point of the path, so mouse and keyboard do the same thing and a click can never miss the only place aliens can be. With the keyboard the ring starts on the front-most alien and slides along the path.
+- **Percentage damage** for Comet Burst means one definition serves wave 10, wave 50 and endless mode, with no per-charge "tier" to store.
+- Keys 1, 2 and 3 act only while the battlefield has focus, never while a learning answer is being typed (CONFIRMED prompt.md:273).
+
+**Every boss is beatable without any power** (SIM): the competent player defeats all five with powers unused at 0%, 60% and 100% learning (16.2), and the boss-wave margins in 16.4 are all measured without powers. In the model, powers changed nothing for the competent player, who never needed them, and helped the naive player a little (16.3).
+
+---
+
+## 11. Endless continuation
+
+CONFIRMED: optional, offered after the campaign badge is committed; a later defeat keeps the badge and the best completed wave; explicit limits so that "endless" never means unlimited objects; the normal activity precedes wave 51 (prompt.md:405, 435, 519, 1194-1202).
+
+### 11.1 Generator
+
+- Wave n >= 51 is a **pure function of n**: no seed and no randomness. Every run meets the same endless waves, and the server can compute the bounty bound for any n.
+- With j = (n - 50) mod 10: for j = 1 to 9 the wave uses the spawn groups of authored wave 40 + j; for j = 0 (waves 60, 70, 80, ...) it is a boss wave. The five bosses come round in order, each with its own campaign escorts.
+- Health, speed and counts follow the formulas below. Each has a cap.
+
+{{T:endless_formulas}}
+
+{{T:endless_samples}}
+
+### 11.2 Rewards
+
+- Bounties are the catalogue values; an endless boss pays 100.
+- The normal activity before each endless wave pays 75 credits, the value of the last campaign block. A meteor challenge precedes each endless boss (slots M-059, M-069, ...) and continues the same power rotation.
+- Offline, the supply of prepared activities is finite; when it runs out the run waits at a preparation boundary (CONFIRMED prompt.md:721). That belongs to the content and offline sections; nothing here needs more than one activity per interval.
+
+### 11.3 Plateau, and what the simulator shows
+
+- From wave {{F:endlessCaps.hp}} every cap has been reached. From then on wave n and wave n + 50 are identical for ever, because templates repeat every 10 waves and bosses every 50. Nothing grows.
+- At most 110 scheduled spawns per wave, 60 active aliens, 24 live descendants and 16 astronauts: object counts are bounded whatever the wave number.
+- SIM: the competent player, by then holding the whole reference board, was defeated after clearing wave {{F:endless0}} at 0% learning, {{F:endless60}} at 60% and {{F:endless100}} at 100%; the peak was {{F:endlessPeak}} aliens and no spawn had to wait for a cap. So with these formulas a strong board falls before the plateau, which also bounds how long an endless run, and its stored activity slots, can become. Whether that is the right length is a playtest question.
+- **Open point, stated plainly.** Once the board is complete (wave {{F:c100.boardDoneWave}} at 100% learning in the simulator), credits have nothing left to buy, in the last waves of the campaign and throughout endless mode. Learning rewards then stop changing the game. I have not added a credit sink (a paid colony repair, say), because that would be a new feature. If playtests show motivation dropping there, it is the first thing to consider, as a labelled scope change.
+
+---
+
+## 12. Badges
+
+All badges are positive, personal and permanent. None compares players, ranks anyone or can be lost (CONFIRMED exclusions prompt.md:155). "Idempotent" means the award is a set-add of the badge id to the profile: applying it twice changes nothing (spine S7).
+
+{{T:badges}}
+
+Notes:
+
+- Every rule is a condition on data the server already receives in an accepted operation (a completed wave number, a wave-start or post-wave snapshot, a slot resolution, a learning-summary counter), so no badge depends on unverifiable events inside a wave.
+- `campaign-luna-1` is committed in the operation that completes wave 50, before the endless offer is shown (CONFIRMED prompt.md:435, AC-12). `boss-2` shares its event with next-planet eligibility (CONFIRMED prompt.md:419, 437).
+- "Keep Trying" rewards persistence after a wrong answer. Nothing rewards speed, because activities are untimed (CONFIRMED prompt.md:503).
+- All of them are permanent progression: they survive defeat, abandon and new runs. What "reset campaign progression" does to them is the lead's decision.
+
+---
+
+## 13. Standalone short challenges
+
+CONFIRMED: they reuse the same game and activity systems with a short configured wave set and must not become a sandbox or a second engine (prompt.md:443).
+
+{{T:challenges}}
+
+What a challenge **is**: a run whose wave list is a short list of references to authored campaign waves (the same spawn groups at the same toughness), with its own starting snapshot: credits, classes, open pads and, for two of them, astronauts already at their posts. Everything else is the campaign's machinery unchanged: the same simulation, shop, sell rule and caps; one normal activity per interval with three attempts; the same save, suspend and defeat rules.
+
+What a challenge **awards**: its own badge, the first time its last wave is completed; and learning-summary counts for each activity resolved in it, exactly as anywhere else (so those answers also count towards the Bright Spark badges).
+
+What a challenge **does not award or touch**: campaign best wave, boss badges, the campaign badge, next-planet eligibility, any credits or powers outside the challenge, any other run. It cannot continue into endless mode. Losing one costs nothing beyond the challenge itself.
+
+They are meant to be low-stakes. In the simulator the naive player cleared all three in every seed (SIM, 16.5). The two that start in mid-campaign begin with a ready-made board, because a child who places a single astronaut against wave 7 would otherwise lose at once.
+
+---
+
+## 14. Performance budget (feeds AC-42)
+
+CONFIRMED: aim for smooth 60 fps with a measured minimum under the busiest authored wave; define and cap or pool an enemy, projectile and particle budget; simulation independent of frame count; no React re-render per frame (prompt.md:1030-1048). No frame rate has been measured. These are budgets to test against.
+
+{{T:performance_budget}}
+
+- There are **no simulated projectiles** (2.4). What a player would call projectiles are render-only effects with fixed lifetimes, drawn from pools: a beam or comet streak (about 0.15 s), a blast or frost ring (about 0.3 s), a star burst of 8 particles (about 0.5 s), a floating "+4". When a pool is empty the oldest effect is recycled or the new one is skipped. The simulation never waits for, or reads, an effect.
+- Alien sprites and health bars are pooled too: 60 are created once per battle scene and reused.
+- The simulation itself is small: at most 16 astronauts checking at most 60 aliens when ready to fire.
+
+Busiest authored waves in the simulator (SIM):
+
+{{T:res_busiest}}
+
+- The highest peak for the competent player was {{F:c0PeakMax}} aliens (wave {{F:c0PeakWave}}); the highest in any campaign scenario was {{F:worstPeak}} (wave {{F:worstPeakWave}}), where a weak board lets aliens pile up. The most astronaut shots in any one second was {{F:maxShots}}.
+- **Proposed AC-42 measurement**: (a) play wave {{F:worstPeakWave}} at 2x on the reference laptop with a deliberately weak board, so the alien count is at its worst, and record the minimum and the 1%-low frame rate; (b) a synthetic scene with 60 aliens, 16 level-3 astronauts and every effect pool full, as the hard upper bound. The target figure is for the plan to set after the first prototype measurement.
+
+---
+
+## 15. Worked early-run example (waves 1-6)
+
+Executed by `example.py` through the simulator, so the arithmetic and the outcomes are the model's own (SIM); `selftest.py` recomputes the credit totals straight from the data tables and checks they agree. All values are proposals.
+
+**The same table applies to a five-year-old and to a seven-year-old.** Starting credits, class availability, aliens, bounties, prices and learning rewards are identical; the only difference is what is inside each activity slot (CONFIRMED Example A, prompt.md:1110-1124; AC-13).
+
+### 15.1 Every activity answered correctly (on any of the three attempts)
+
+{{T:example_all}}
+
+Board at the end: Nova on P04, P12 and P16 at level 1; Nova on P05 and P09 at level 2; Pip on P13. {{F:exampleEnd}} credits in hand going into the activity after wave 6.
+
+One line checked by hand: after wave 3 the player has 22 credits; the spelling activity pays 30, making 52; a Nova costs 50, leaving 2; wave 4 has 7 Moon Blobs at 4 credits and 4 Meteor Mites at 2, which is 28 + 8 = 36; and 2 + 36 = 38.
+
+### 15.2 The six activity slots
+
+| Slot | Shown after wave | Subject (rotation: maths, phonics, spelling) | Reward on success | Age-5 content | Age-7 content |
+|---|---|---|---|---|---|
+| N-001 | 1 | maths | 30 | supplied by the learning-content section | supplied by the learning-content section |
+| N-002 | 2 | phonics | 30 | supplied by the learning-content section | supplied by the learning-content section |
+| N-003 | 3 | spelling | 30 | supplied by the learning-content section | supplied by the learning-content section |
+| N-004 | 4 | maths | 30 | supplied by the learning-content section | supplied by the learning-content section |
+| N-005 | 5 | phonics | 30 | supplied by the learning-content section | supplied by the learning-content section |
+| N-006 | 6 | spelling | 30 | supplied by the learning-content section | supplied by the learning-content section |
+
+There is no activity before wave 1 (CONFIRMED prompt.md:519). The subject of the activity after wave w is `rotation[(w - 1) mod 3]`. A correct answer on the first, second or third attempt pays the same 30, once; three wrong answers pay nothing and cost nothing (CONFIRMED prompt.md:505-517).
+
+### 15.3 Variant: the activities after waves 2 and 4 are failed
+
+{{T:example_two_fails}}
+
+The child has 60 credits less than in 15.1 and therefore one level-2 upgrade fewer: the Nova on P09 stays at level 1. Nothing leaked and the colony is still at 20. Two failed activities delayed one purchase; they did not endanger the run (CONFIRMED need prompt.md:451).
+
+### 15.4 What the example does not show
+
+It is one sensible sequence, chosen by me. A child might put the first three Novas on any of the six open pads. The "minimal player" in 16.5, who puts three Novas on the three weakest starting pads and never buys anything again, still clears the first {{F:minimalCleared}} waves.
+
+---
+
+## 16. The simulator and what it found
+
+### 16.1 What the model is, and is not
+
+`sim.py` is a headless fixed-timestep model of the rules in sections 2 to 13: movement along the route polyline; range checks from pad coordinates; the four targeting modes; damage with buff, flying, bubble layers and armour in the stated order; slows with no stacking, the cap and the boss factor; full-radius blasts; colony shield and repair; Sol's strongest-wins buff; the shared heal pulse; splitters and carriers with queued releases; boss phases with their releases and bubble gifts; leaks; bounties; purchases, upgrades and sales before and during waves; meteor powers with their limits; the caps with waiting spawns; the endless generator; and the challenges.
+
+**It is a coarse model with heuristic players. It is not validation with real children.** It says nothing about whether the game is fun, whether a six-year-old can read the board at 2x, how long a child takes to notice the upgrade button, or how losing feels. It runs at 30 ticks per second with fractional timers where the game will use 60 whole ticks; the two were compared (16.5). Its one purpose is to stop the first playtest starting from numbers that are obviously broken.
+
+**The players.**
+
+- **Competent.** Has a plan for which class suits which pad: Juno on P05, P08, P13 and P14; Orion on P04, P09 and P12; Pip on P03 and P11; Sol on P10; Mira on P15 (and P01 if a second is needed); Nova elsewhere. It keeps a cheap Nova on a pad until the planned class unlocks, then sells it and places the planned class. It chooses what to buy next by test-playing the next two waves, made tougher, on a copy of the board and taking the affordable step that adds most damage per credit; it saves when a clearly better step is nearly affordable; it buys during waves; it buys Mira once the colony has leaked (or from wave 36); it uses default targeting; it keeps powers for bosses. It knows the next two waves exactly, which a child does not. Think of it as an attentive adult.
+- **Naive child.** Picks a random open pad; buys the newest class half the time, the cheapest 30% and a random one 20% (when it cannot afford its choice it waits half the time and otherwise buys something it can afford); makes one to three purchases per preparation phase while pads are free; does nothing at all in a quarter of preparation phases; upgrades rarely (15% of the time, 30% once every pad is full); never sells and never changes targeting; fires a power at a random moment of a boss wave 70% of the time. Twenty seeds.
+- **Learning success** of 0%, 60% and 100%: each normal activity pays with that probability. Competent runs use an evenly spread fixed pattern so they are repeatable, and five random-outcome seeds are reported too; naive runs use seeded random outcomes. With powers "used", a meteor challenge succeeds with the same probability in the random-outcome runs; in the fixed-pattern competent runs every meteor challenge succeeds at 60% and 100%. At 0% no power is ever earned, so the two 0% rows are the same by construction.
+
+### 16.2 Competent player
+
+{{T:res_competent}}
+
+| Design target | Result (SIM) |
+|---|---|
+| Competent, 0% learning, no powers: clears wave 50; a thin margin is fine | **Met.** Cleared {{F:c0.cleared}} with {{F:c0.health}} health and {{F:c0.leak}} leak damage. Margins in waves 41-49 lie between {{F:marginLate}}; the smallest of the campaign is {{F:marginMin}} at wave {{F:marginMinWave}}; the final boss wave has {{F:margin50}}. |
+| Competent, 60%: clears comfortably | **Met.** Cleared {{F:c60.cleared}} with {{F:c60.health}} health on the fixed pattern and on all five random-outcome seeds. |
+| Waves 1-5 very hard to lose | **Met.** Margins in waves 1-9 lie between {{F:marginEarly}}; the minimal player (three Novas on the three weakest starting pads, nothing bought afterwards) clears {{F:minimalCleared}} waves. |
+
+Margin before every wave:
+
+{{T:res_margins}}
+
+### 16.3 Naive child
+
+{{T:res_naive}}
+
+| Design target | Result (SIM) |
+|---|---|
+| Naive, 60%: clears at least wave 20 in most seeds | **Met.** {{F:naive60.ge20}} of {{F:naive60.n}} seeds. |
+| Ideally reaches 30 or more | **Met in this model.** {{F:naive60.ge30}} of {{F:naive60.n}} seeds; range {{F:naive60.min}} to {{F:naive60.max}}, median {{F:naive60.median}}. Only {{F:naive60.all50}} of {{F:naive60.n}} completed the campaign. |
+
+What this table shows that matters more than the headline:
+
+- **For this child the limit is spending, not income.** At 100% learning they get no further than at 60% (median {{F:naive100.median}} against {{F:naive60.median}}) and end with about {{F:naive100.unspent}} credits unspent on average. The same child who always upgrades once the pads are full completes the campaign in {{F:eager60.all50}} of {{F:eager60.n}} seeds at 60%. So the most valuable thing the interface can do for a young player is make spare credits obviously spendable: an unmistakable "you can upgrade me" cue on astronauts. That is a UX matter for section D, not a balance number.
+- **Staged pads help this child**: median {{F:naive60.median}} with staging against {{F:naivePads.median}} with all 16 pads open from the start.
+- **Powers help a little**: median {{F:naive60m.median}} with powers against {{F:naive60.median}} without.
+
+What happened at each boss for the naive child at 60%:
+
+{{T:res_naive_bosses}}
+
+The first two bosses are safe for this player. From Queen Bubbla onwards a boss sometimes reaches the colony, and the run nearly always survives it: the "heavy blow, not the end" behaviour intended in section 4. It also shows that the third boss is where an under-upgraded board starts to struggle.
+
+### 16.4 No boss requires a class or a power
+
+Each row is a whole campaign played by the competent player with one class removed (or all five non-Nova classes), with powers unused:
+
+{{T:res_ablation}}
+
+And the margin on each boss wave for those restricted boards, measured with no powers and no purchases during the wave. For this measurement only, the colony is treated as indestructible so that every boss wave is reached.
+
+{{T:res_boss_margins}}
+
+Reading these honestly:
+
+- With any **one** class removed the campaign is completed at 0% and at 60% learning (fewest waves cleared: {{F:banMinCleared0}} and {{F:banMinCleared60}}; lowest final health: {{F:banMinHealth0}} and {{F:banMinHealth60}}). Bosses that reached the colony in those campaigns: at 0%, {{F:banBossLeaks0}}; at 60%, {{F:banBossLeaks60}}. The lowest boss-wave margin of any single-class-removed board at 0% learning is {{F:bossMarginWorst.margin}} (wave {{F:bossMarginWorst.wave}}, without {{F:bossMarginWorst.banned}}). So no boss requires a particular class, and none requires a power.
+- **That was not true of my first tuned numbers.** Without Orion and with no learning income, the board's margin on the last three bosses was 0.93, 0.94 and 0.92: each got through. I lowered the health of those three bosses by between a tenth and a sixth, to the values in section 7. Orion is still the strongest single answer to a boss, as its role says it should be; it is now an advantage rather than a necessity, by a small margin. If bosses feel too soft in playtests, this is the trade to revisit.
+- A **Nova-only** player cleared {{F:novaOnlyCleared}} waves and ended with {{F:novaOnlyHealth}} health ({{F:novaOnlyBossLeaks}} bosses reached the colony). The starting class stays viable for the whole campaign, but only just: a board with no second class is at its limit in the last few waves.
+- Without Juno at 0% learning the campaign is completed but not cleanly (see the leak-damage column): swarms and dense groups get through a board with no area damage. At 60% every single-class-removed board finishes with full health.
+- A competent player who never sells ("no swaps") still completes the campaign at 0% learning.
+
+### 16.5 Other checks
+
+Wave durations and total combat time:
+
+{{T:res_durations}}
+
+Tick rate:
+
+{{T:res_tick}}
+
+Minimal player (three Novas on {{F:minimalPads}}, nothing bought afterwards):
+
+{{T:res_minimal}}
+
+Standalone challenges:
+
+{{T:res_challenges}}
+
+Endless continuation:
+
+{{T:res_endless}}
+
+Self-checks in `selftest.py`, all passing: bosses on waves 10, 20, 30, 40 and 50; each alien's first wave matches the catalogue; no pad within a tile of the route; shop actions never raise credits plus investment and never go negative; deployment caps hold; every spawned alien is resolved exactly once; bounty earned equals bounty available when nothing leaks; identical inputs give identical runs; slows never exceed the cap; the shield is trimmed at wave end; the endless generator is deterministic, capped and periodic after the caps; the worked example's credit totals equal an independent calculation from the data tables.
+
+### 16.6 Soft spots and misses, stated plainly
+
+1. **The competent player is strong.** It plans its pads, knows the next two waves exactly and never misclicks. "Thin margin at 0% learning" is thin for that player; a real child who answers nothing correctly should not be expected to finish. I think that is acceptable in a game about learning, but it is a judgement, not a result.
+2. **A few ordinary waves are shorter than the 25-second guide**: {{F:c0.short}} waves at 0% learning and {{F:c60.short}} at 60%, the shortest {{F:c60.minDur}} s. They are gentle introduction waves and early waves against a strong board. The longest ordinary wave is {{F:c0.maxDur}} s and the longest boss wave about 90 s, both inside the guide.
+3. **Nova alone only just finishes** (16.4), and Orion was close to required for the late bosses until I lowered three boss healths. Both results sit near their limits and could tip the other way with small changes.
+4. **The naive child rarely completes the campaign** ({{F:naive60.all50}} of {{F:naive60.n}} at 60%) and is held back by not upgrading. Whether real children behave like that is unknown; the "always upgrades" variant shows how much the answer matters.
+5. **Queen Bubbla (wave 30) is the first boss the naive board often fails to stop**: defeated in {{F:naiveBoss.u30}} runs. The run survives, but it may feel unfair. Candidates if so: fewer bubble layers, or less health.
+6. **Powers barely matter in the model.** The competent player never needs them. They may matter more to children than to the model, or they may need to be stronger to feel worth an extra challenge.
+7. **Credits have no use once the board is complete** (11.3).
+8. **The challenges are almost impossible to lose** for both simulated players. That is intended for this audience, but it makes them practice rather than a test.
+9. **The worst alien peak in the authored campaign ({{F:worstPeak}}) is within a few aliens of the scheduled-spawn soft cap (48).** A player weaker than my naive model could touch the cap in the busiest waves. The only effect is that a few spawns arrive a moment late.
+10. **Class balance is only roughly right.** In the reference runs Nova, Juno and Orion each do a large share of the damage and Pip's value is its slow. But that depends on the competent player's fixed plan, and I did not search for stronger plans. The deployment caps are doing real work in keeping the board mixed.
+11. **Results close to 1.0 are fragile.** A margin moves by several hundredths when an unrelated number changes, because the competent player then buys things in a slightly different order: wave 48 fell from 1.10 to 0.98 after I changed only boss health, and I eased it by hand. Read margins below about 1.15 as "about level", not as a guarantee.
+12. **The model has no misplacement, no accidental sale, no hesitation and no reading of the board.** All of those belong to the playtests in section I.
+
+### 16.7 How to re-run
+
+```
+cd /tmp/claude-1000/-home-jack-Documents-Projects-space-tower-defence/21e4d7b3-740a-407a-9ce4-b4a3156f1b6c/scratchpad/sim
+python3 make_data.py          # authored tables -> game_data.json
+python3 selftest.py           # invariants and the worked-example arithmetic
+python3 run_matrix.py         # about two and a half minutes on 8 cores -> results.json
+python3 tables.py --results   # tables.json and results.md
+python3 build_report.py       # this report
+```
+
+`python3 sim.py competent 0.6 1 1` prints one campaign wave by wave (policy, learning success, powers used 1 or 0, seed). `python3 tune.py` prints the margin before every wave; `python3 tune.py --adapt` re-tunes counts and boss health to the target curve and writes `tuned.json`, whose values are then pasted into `make_data.py`.
+
+`sim/results.md` holds every result table, including credits earned and spent per wave for the naive child at each learning level with powers used and unused, and for the competent player with powers used.
+
+---
+
+## 17. The numbers most likely to change in playtests
+
+| Number (current value) | Observation that would trigger a change | Likely direction |
+|---|---|---|
+| Toughness curve for waves 31-50 (x4.9 to x7) and the late wave counts | Most children who do upgrade still lose in the 30s or 40s; or nearly every child finishes a first run without a leak | Lower, or raise, the last two anchors, then re-run `tune.py --adapt` |
+| Counts in waves 1-9 | A child who places three Novas loses health before wave 6; or the first waves are over too quickly to watch | Fewer or more Moon Blobs; wider or tighter spacing |
+| Colony health (20) and boss leak damage ({{F:bossLeakList}}) | One boss leak ends runs that were otherwise going well; or leaks feel free | Health up or boss leaks down; or the reverse |
+| Boss health ({{F:bossHpList}}) and boss speeds | A boss dies before its phases can be seen; a boss reaches the colony for most children; boss waves drag | Each boss on its own; aim for 40 to 100 s |
+| Queen Bubbla's 8 bubble layers, three times | Children do not understand why their shots do nothing | Fewer layers, or a clearer layer counter |
+| Learning rewards ({{F:learnRewardList}}) | Children who answer well hardly notice the reward; or children who answer badly cannot keep up at all | Change the block values; keep one value per block |
+| Starting credits (150) | Children want a fourth astronaut at once; or wave 1 is trivial | 150 to 200 |
+| Deployment caps (Pip 3, Juno 4, Orion 3) | Children are upset at being refused a favourite; or boards turn into one class | Raise or lower by one |
+| Nova level-3 range (3.0) | The upgrade is too small to notice; or level-3 Novas cover everything | 2.75 to 3.25. Small changes matter because every pad is 2 tiles from the path. |
+| Pip's slow (30% then 40%, for 3 then 4 s) and its level-3 radius (1.0) | Slowed aliens do not look slower; or a level-3 Pip makes waves crawl | Strength first, then duration |
+| Juno's blast radius (1.0 then 1.4) and damage (16 then 26) | Juno seems useless outside swarm waves; or clears whole waves alone | Radius is the sensitive one |
+| Orion's period (2.4 s) and damage (50 then 90) | Orion's slow shot is dull to watch; or bosses melt | Shorter period with less damage |
+| Shellback armour (4) and Bubble Guard layers (4) | The traits go unnoticed in late waves | Armour could grow by block; layers to 5 |
+| Mira's pulses (1 or 2 points every 15 s, then every 12 s) and the shield cap (10) | Mira seems to do nothing; or two Miras make leaks irrelevant | Pulse size first, then the cap |
+| Sol (+15% then +25%; radius 4.5 then 6.0) | Children cannot tell that Sol does anything | Make the effect visible first; then the percentage |
+| Sell refund (70%) | Children are upset at losing credits when moving an astronaut | 80%, or a free undo for a purchase made in the same preparation phase |
+| Meteor powers (50% slow for 6 s; half of maximum health within 1.5 tiles, a tenth for bosses; +10 shield) | Powers are forgotten or feel weak | Stronger effects before more charges |
+| Spawn spacing and the 2x speed | Groups are unreadable at 2x; waves drag at 1x | Spacing; possibly 1.5x in place of 2x |
+| Staged pads (6, then 2 more five times) | Children ask why they cannot use the other pads, or do not notice new ones | Open more at the start; celebrate each opening |
+| Endless slope (+0.10 toughness per wave) | Endless runs end too soon to be worth choosing, or last for hours | Slope and caps |
+| Challenge presets and credits | Challenges are too easy to hold interest | Remove an astronaut from the preset |
+
+---
+
+## 18. Notes for the lead and the other sections
+
+1. **Snapshot (spine S4)**: sufficient as drafted: colony health and shield, credits, available classes, placements (pad, class, level, targeting mode), power charges. No timers. At a wave boundary the shield is at most {{F:shieldCap}} and each power count at most 2.
+2. **Derived, not stored**: which classes are available and which pads are open both follow from the highest completed wave (`unlockAfterWave` and `opensAfterWave` in the ruleset).
+3. **Server bounds (spine S6)**: rule 2 should also check that each placement's pad is open at k and that the deployment caps hold. `maxBounty[w]` is the "Total bounty available" column for waves 1-50, and the endless generator computes it for any later wave. Rule 1 survives selling because of the invariant in 5.7.
+4. **Slots (spine S3.3)**: a normal slot's reward is the block value for the wave it follows; a meteor slot's reward is one charge of the power given by the rotation. Both can be pinned when the run is created.
+5. **Repairs**: the client applies the boss-clear and Mira repairs before it reports the post-wave snapshot; the server needs only health <= maximum.
+6. **Challenges** need a run mode, or equivalent, carrying a challenge id, a short wave list of references to campaign waves, and a starting snapshot that may contain placements. Their slots can use the same N-001... ids within that run. They award only their badge and learning-summary counts.
+7. **Badges**: ids and rules in section 12; every rule is a condition on an accepted operation.
+8. **Ruleset contents**: `game_data.json` is shaped to become the first ruleset and campaign documents: classes, combat rules, aliens, caps, powers, economy and endless formulas in the ruleset; map, waves and bosses in the campaign. Where the line falls is the lead's call.
+9. **UX requests (section D)**: a two-picture targeting toggle; a token row for deployment caps; an unmistakable "affordable upgrade" cue (16.3); a "swap" affordance on an occupied pad; previews of range, blast radius, buff radius and slow strength; and a next-wave strip of alien pictures, which is how a real player would get the foresight the competent simulated player was simply given.
+10. **Learning section**: this design fixes only four things: one normal activity per interval; a reward that depends on the wave alone; the subject rotation index `(w - 1) mod 3`; and meteor slots after waves 9, 19, 29, 39 and 49 and before each endless boss.
+11. **Tests (section I)**: the checks in `selftest.py` translate directly into game-core unit tests: caps, exact resolution of every spawned alien, bounty accounting, the sell invariant, the slow cap, determinism, phase releases never skipped. The simulator's per-wave outputs are not golden values for the real engine, which handles ticks differently; the invariants are what carry over.
+
+---
+
+## 19. Acceptance criteria touched by this design
+
+| Criterion | How this design supports it | What tests or play still have to show |
+|---|---|---|
+| AC-07 pads only, stationary, cannot be damaged | Astronauts exist only on listed pads that are open; no rule lets an alien affect an astronaut or a pad (section 4) | Placement validation; a property test that only player commands change astronauts |
+| AC-08 six roles and three levels observable, with previews | Every level changes a visible value (5.2); preview shapes are exact circles (range, blast, buff radius) | Art for three visual levels; preview accuracy |
+| AC-09 purchases in combat, no negative balances | Commands applied one at a time at tick boundaries, each validated (2.3) | Interface race tests |
+| AC-10 descendants resolved before the wave completes; no duplicates | Completion rule and release queue (6.2); self-check equalities | The same checks in game-core; a reload during a wave |
+| AC-11 fifty waves, bosses at 10/20/30/40/50, fixed route | The table in section 8; one polyline | Data validation in CI |
+| AC-12 endless offered after completion; badge survives | Badge rule and its ordering (section 12); endless generator (section 11) | State-machine tests (lead) |
+| AC-13 same combat, funds and rewards at every age | No age input anywhere in the combat or economy data; worked example | A test that two runs with different age bands produce identical combat inputs |
+| AC-14 failure resets run resources, keeps permanent progress | Reset list in 9.1 | State-machine tests (lead) |
+| AC-42 busiest waves meet the measured target | Budget and busiest-wave table (section 14) | The measurement itself; no frame rate has been measured |
+
+---
+
+## 20. Claims I could not verify, and assumptions
+
+- **UNVERIFIED (from memory)**: that addition, subtraction, multiplication, division and square root on JavaScript numbers give identical results in every browser engine, while functions such as `Math.sin` are not guaranteed to. I lean on it only for the advice to keep such functions out of the simulation. The design needs none of them: health, damage, credits and timers are integers; positions are fractional but use only addition, multiplication and comparison (a range check can compare squared distances, so not even a square root is needed); and the route is made of horizontal and vertical segments, so there is no trigonometry.
+- **UNVERIFIED**: anything about Phaser's own timing options. The design assumes only that the scene can call the simulation zero or more times per rendered frame, which is ordinary application code.
+- **Not checked against the other specialists' reports**: the learning-content, UX and state sections were being written at the same time. Section 18 lists where they must agree with this one.
+- **Assumption**: a challenge is a kind of run. If the lead models it differently, the "awards / does not award" list in section 13 is what must be preserved.
+- **Assumption**: next-planet eligibility at wave 20 and all persistence rules are the lead's; I only attach a badge to the same event.
+- **Not evidence of balance**: every SIM number. They describe invented players in a simplified model.
+- **Tuning history is not preserved**: remarks about earlier tuning passes (uncapped boards, the first boss healths) are my record of intermediate runs. The saved files do not reproduce them.
+
+---
+
+## Appendix A. Credits earned and spent per wave: competent player (SIM)
+
+Powers unused. "Learning reward" is the reward received before that wave, for the activity after the previous wave. "Sell refunds" are credits returned when the player sold a holding Nova to place the planned class.
+
+{{T:res_credits_competent}}
+
+## Appendix B. Credits earned and spent per wave: naive child, 60% learning (SIM)
+
+Means over the runs still playing at each wave; powers unused.
+
+{{T:res_credits_naive60}}
+
+## Appendix C. Per-wave detail: competent player, 0% learning, no powers (SIM)
+
+Board notation is pad:class and level (No Nova, Pi Pip, Ju Juno, Or Orion, Mi Mira, So Sol).
+
+{{T:res_detail_c0}}

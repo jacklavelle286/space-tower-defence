@@ -1,0 +1,48 @@
+# Terraform working directories (providers, modules, backend pointer) — never commit
+.terraform/
+.terraform-*/
+# Local state and plan files (state lives in S3)
+*.tfstate
+*.tfstate.*
+*.tfplan
+tfplan
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+# NOTE: .terraform.lock.hcl IS committed (pins provider builds for plan/apply)
+# NOTE: infrastructure/envs/*.tfvars.json ARE committed (no secrets in them)
+
+# Node / web build output
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.vite/
+playwright-report/
+test-results/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Lambda build artefacts
+build/
+*.zip
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Editors / OS
+.DS_Store
+.idea/
+*.swp
