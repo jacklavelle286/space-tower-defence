@@ -14,6 +14,9 @@ Terraform layout, workflows, release order, monitoring and the DNS hand-off proc
 Spec anchors: architecture and trust-boundary diagrams including DNS (`prompt.md:1306`), dedicated TTS design and offline audio
 (`prompt.md:1304`), section E brief (`prompt.md:61-62`).
 
+Canon: names, states, keys, routes and rules come from the design spine, [00-spine.md](00-spine.md) (v0.3). Research evidence
+cited here is published under [sources/](sources/).
+
 ---
 
 ## E.1 Architecture at a glance
@@ -48,7 +51,7 @@ flowchart LR
     DG[("DynamoDB game")]
     DC[("DynamoDB content")]
     S3AU[("S3 audio-bucket<br/>clips")]
-    POL["Amazon Polly<br/>neural en-GB"]
+    POL["Amazon Polly<br/>generative en-GB, Amy"]
   end
 
   PA -->|"HTTPS"| CFP
@@ -71,7 +74,6 @@ flowchart LR
   LA --> DC
   LA -->|"HeadObject"| S3AU
   LT -->|"GetItem slot"| DG
-  LT --> DC
   LT --> S3AU
   LT --> POL
   LS -->|"sign-up counter"| DG
@@ -82,7 +84,9 @@ flowchart LR
 Reading the diagram: each app is a static build in its own private bucket behind its own CloudFront distribution. Both
 distributions also forward `/api/*` to the one HTTP API, so the browser only ever talks to its own hostname for API calls.
 The browser goes directly to two other places: the Cognito managed-login pages (a full-page redirect) and the audio bucket
-(a short-lived presigned GET). Four Lambda functions sit behind the API and the player pool; none calls another.
+(a short-lived presigned GET). Four Lambda functions sit behind the API and the player pool; none calls another. `tts`
+reads only the `game` table (one slot item) and the audio bucket; it has no `content` access (spine
+[S1](00-spine.md#s1-system-shape)).
 
 ### E.1.2 Component list
 
@@ -96,8 +100,8 @@ The browser goes directly to two other places: the Cognito managed-login pages (
 | Two Cognito user pools (players, operators), managed login on Essentials | Sign-up, sign-in, operator MFA | **[PROPOSAL]** (D-10; runner-up one pool + group) |
 | Four Python 3.14 arm64 zip Lambdas | `player-api`, `admin-api`, `tts`, `cognito-presignup` | Python Lambda **[CONFIRMED]** `prompt.md:809`; 3.14, arm64 and the split **[PROPOSAL]** |
 | DynamoDB `game` and `content` tables | Player-owned records; operator-owned content | DynamoDB **[CONFIRMED]** `prompt.md:811`; two tables **[PROPOSAL]** — see [F](F-state-and-data.md) |
-| S3 audio bucket + Amazon Polly (neural, en-GB) | Reviewed MP3 clips, content-addressed and never overwritten | Polly + private S3 **[CONFIRMED]** `prompt.md:563`, `prompt.md:813`; key scheme **[PROPOSAL]** |
-| S3 artifacts bucket | Lambda zips by content hash, release manifests, archived builds | **[PROPOSAL]** — see [H](H-infrastructure-and-delivery.md) |
+| S3 audio bucket + Amazon Polly (generative engine, en-GB, voice Amy; phonemes and letter names on `tts_phoneme_engine`, default neural) | Reviewed MP3 clips under `tts/v1/`, content-addressed, synthesised once ever and never overwritten | Polly + private S3 **[CONFIRMED]** `prompt.md:563`, `prompt.md:813`; engine and voice **[CONFIRMED by owner]** (E.4.1); key scheme **[PROPOSAL]** |
+| S3 artifacts bucket (created in the **bootstrap root**, beside the existing module call) | Lambda zips by content hash, release manifests, archived builds, saved plans under `plans/<run_id>/` | **[PROPOSAL]** — see [H §H.5](H-infrastructure-and-delivery.md#h5-bootstrap-changes-you-make-no-replacement-bootstrap) |
 | CloudWatch logs and alarms → SNS e-mail; AWS Backup | Operations | **[CONFIRMED]** `prompt.md:815-817`; details in [H](H-infrastructure-and-delivery.md) |
 
 Explicitly absent: VPC/NAT, containers, queues, streams, schedulers, WebSockets, GraphQL, Redis, a service worker, a Cognito
@@ -108,7 +112,7 @@ and so is "no AWS service credentials in the browser" (`prompt.md:589`). Leaving
 
 ### E.1.3 Names
 
-All names follow the reference conventions in spine S1.1 **[PROPOSAL]**: project `space-tower-defence`, environment `prod`,
+All names follow the reference conventions in spine [S1.1](00-spine.md#s11-naming-verified-reference-conventions-applied-as-proposal) **[PROPOSAL]**: project `space-tower-defence`, environment `prod`,
 region `eu-west-2`, account `263185198757` (**[VERIFIED]** [common.auto.tfvars.json:2-3](../../infrastructure/envs/common.auto.tfvars.json#L2-L3),
 [prod.tfvars.json:2-3](../../infrastructure/envs/prod.tfvars.json#L2-L3)). Examples: Lambda `space-tower-defence-prod-eu-west-2-tts`,
 tables `space-tower-defence-prod-game|content`, pools `space-tower-defence-prod-players|operators`, buckets
@@ -137,25 +141,28 @@ required **[CONFIRMED]** `prompt.md:109`.
 | Path rewrite | none — HTTP API route keys include `/api` (e.g. `POST /api/runs/{runId}/ops`) | No viewer-request function to keep in step with routes |
 | `x-origin-verify` secret header | not used | Authentication is the JWT at the gateway, not "came through CloudFront" |
 
-All **[PROPOSAL]** (spine S1), modelled on the reference.
+All **[PROPOSAL]** (spine [S1](00-spine.md#s1-system-shape)), modelled on the reference. In the reference, `/api/*` goes to a
+Lambda Function URL behind a prefix-stripping CloudFront Function; here it goes to the HTTP API default endpoint and the route
+keys keep `/api`. We borrow the same-origin idea, not the origin type.
 
 What this buys: no CORS on the API at all, builds that contain no environment values (the API base is always `/api`), and
 one CSP `connect-src` entry (`'self'`) for API calls. The trade-off: the `execute-api` endpoint stays reachable directly.
 That is acceptable because every route requires a valid access token with the right scope, and stage/route throttles apply
-either way. AWS WAF cannot be attached to an HTTP API stage (Terraform provider docs, research 05 §9, **[VERIFIED]** there),
+either way. AWS WAF cannot be attached to an HTTP API stage (Terraform provider docs, [sources/05-cognito-auth.md](sources/05-cognito-auth.md) §9, **[VERIFIED]** there),
 and HTTP APIs have no resource policy to close it either (**[VERIFIED]** API Gateway developer guide, "Choose between REST
 APIs and HTTP APIs", Authorization table: resource policies and AWS WAF are not supported for HTTP APIs). The endpoint cannot be disabled because CloudFront uses it.
 
 `AllViewerExceptHostHeader` forwarding `Authorization` is documented ("all headers except Host") and works in the reference,
-but has not been tested against API Gateway in this account **[UNVERIFIED]** — the release smoke check "`/api` returns 401
-without a token" plus a Milestone 1 authenticated call settles it.
+but has not been tested against API Gateway in this account **[UNVERIFIED]** — the release smoke check (it iterates
+`contracts/routes.json` and expects 401 without a token for every route on both distributions) plus a Milestone 1
+authenticated call settles it (see "Unverified items to check" at the end).
 
 ### E.2.2 Why custom error responses must not be distribution-wide
 
 The reference distribution maps origin `403 → 200 /index.html` (SPA deep links) and `502/503/504 → 503 /504.html`
 (maintenance page) using `custom_error_response` blocks **[VERIFIED]** `jacks-productivity-tool/infrastructure/modules/cloudfront/main.tf:223-249`.
-`CustomErrorResponses` belong to the whole distribution, not to a cache behaviour (research 02 §3.6, **[VERIFIED]** against
-the CloudFront `DistributionConfig` API reference). Copied here, they would also rewrite API responses:
+`CustomErrorResponses` belong to the whole distribution, not to a cache behaviour (**[VERIFIED]** against the CloudFront
+`DistributionConfig` API reference during planning research). Copied here, they would also rewrite API responses:
 
 | API response | What the browser would receive if copied | Damage |
 |---|---|---|
@@ -175,17 +182,19 @@ envelope-less 401 and 429 (error table in [G](G-api-contracts.md)).
 |---|---|---|
 | `/index.html`, `/config.json` | site bucket | no-cache; written last by the release |
 | `/assets/*` (hashed JS, CSS, images, atlases) | site bucket | immutable; never deleted, so an open old tab still finds its chunks |
-| `/game-data/<kind>/<version>.json`, bounds files | player site bucket | immutable paths **[PROPOSAL]** spine S5.1 |
-| `/game-data/current.json` | player site bucket | no-cache; names versions for new runs |
+| `/game-data/<kind>/<version>.json` (kinds `ruleset`, `campaign`, `asset-manifest`, `bounds`) | player site bucket | immutable paths **[PROPOSAL]** spine [S5.1](00-spine.md#s51-pins-and-game-data) |
+| `/game-data/current.json` | player site bucket | no-cache; names versions for new runs; invalidated by the release together with `index.html` and `config.json` **[PROPOSAL]** |
 | `/api/*` | HTTP API | never cached |
 
 `config.json` (`region`, `userPoolId`, `clientId`, `authDomain`, `scope`, `apiBase: "/api"`, `releaseId`; exact list in
 [H §H.8.5](H-infrastructure-and-delivery.md#h85-static-publish-order-step-6)) is written by the release from
-`terraform output -json` and fetched before the auth library is configured **[PROPOSAL]** spine S11.1.
+`terraform output -json` and fetched before the auth library is configured **[PROPOSAL]** spine [S11.1](00-spine.md#s111-workflows).
 
 An already-open older tab can read a newer `current.json`. Before it sends `POST /api/runs`, the client checks that
 `game-core` supports the named ruleset's `mechanics`; if not, it shows "Reload to update" instead of creating a run it
-cannot play (H §H.8.5) **[PROPOSAL]**.
+cannot play (H §H.8.5) **[PROPOSAL]**. If the server does not know the versions the client names (for example after a
+rollback), `POST /api/runs` returns `409 CONTENT_VERSION_UNSUPPORTED` and the client re-reads `current.json`
+([G](G-api-contracts.md)).
 
 ---
 
@@ -232,6 +241,7 @@ flowchart TB
   subgraph EXT["Outside the workload account"]
     X1["Owner's DNS account<br/>zone jackgl.com"]
     X2["GitHub Actions<br/>OIDC role (deploy only)"]
+    X3["Apex app jackgl.com<br/>(other account, untouched)"]
   end
 
   B1 -->|"access token"| E1
@@ -249,7 +259,6 @@ flowchart TB
   F2 --> D2
   F2 --> D3
   F3 --> D1
-  F3 --> D2
   F3 --> D3
   F3 --> D4
   F4 --> D1
@@ -262,7 +271,10 @@ Reading the diagram: each arrow that crosses a boundary carries one kind of cred
 user-pool tokens and, briefly, a presigned URL. The gateway decides "which pool and which app client issued this token"
 (boundary 3); the function decides "is this caller allowed this record" (boundary 4); IAM decides "which tables, prefixes and
 services can this function touch at all" (boundary 4→5). The DNS account and GitHub Actions only touch configuration, never
-runtime requests.
+runtime requests. GitHub Actions is the **only** deployment path for the main stack: no local `terraform apply`; local
+`fmt`/`validate`/`plan` and read-only AWS calls are fine; the bootstrap root is the one exception, applied locally by the owner
+**[CONFIRMED by owner]** (spine [S0.1](00-spine.md#s01-way-of-working-confirmed-by-owner-2026-11-14)). The existing app on the
+apex `jackgl.com` lives in another account and shares nothing with this design except the parent zone (E.3.3).
 
 ### E.3.2 What each boundary enforces
 
@@ -271,14 +283,15 @@ runtime requests.
 | 0 Browser | Local judging offline, one playing tab (`scd-play` Web Lock), one account per page load, reducer preconditions | Anything the server must rely on (all of it is inspectable and modifiable) | trust model **[CONFIRMED]** `prompt.md:745-759`; mechanisms **[PROPOSAL]** |
 | 1 Identity | Who the user is (`sub`); operator membership only by IAM-authorised admin APIs; operator MFA | Ownership of records; per-route permission | **[PROPOSAL]** |
 | 2 Edge | HTTPS, private origins via OAC, no caching of `/api/*` | Authentication (it forwards `Authorization` untouched) | **[PROPOSAL]** |
-| 3 Gateway | Signature, `iss`, audience (`client_id`), expiry, route scope; throttles | `token_use`, groups, ownership | **[VERIFIED]** authoriser checks — research 05 §3.2 |
-| 4 Functions | `token_use = access`, exact `admin` group, route-key allow-list, ownership by `sub`, schemas, limits, ordering, bounds, idempotency | — | **[PROPOSAL]** spine S2, S7.1 |
-| 4→5 IAM | Per-function table, key-prefix and action limits | Which voice/engine Polly uses (IAM cannot restrict it — code allow-list) | **[VERIFIED]** Polly IAM limits — research 06 §8.1 |
+| 3 Gateway | Signature, `iss`, audience (`client_id`), expiry, route scope; throttles | `token_use`, groups, ownership | **[VERIFIED]** authoriser checks — [sources/05-cognito-auth.md](sources/05-cognito-auth.md) §3.2 |
+| 4 Functions | `token_use = access`, exact `admin` group, route-key allow-list, ownership by `sub`, schemas, limits, ordering, bounds, idempotency | — | **[PROPOSAL]** spine [S2](00-spine.md#s2-trust-model-confirmed-family-level-trust-mechanisms-proposal), [S7.1](00-spine.md#s71-envelope-and-per-op-processing) |
+| 4→5 IAM | Per-function table, key-prefix and action limits | Which voice/engine Polly uses (IAM cannot restrict it — code allow-list, **[CONFIRMED by owner]**) | **[VERIFIED]** Polly IAM limits — [sources/06-polly-tts.md](sources/06-polly-tts.md) §8.1 |
 
 ### E.3.3 DNS integration points (no redesign)
 
 DNS stays in the owner's DNS account, and the owner integrates it **[CONFIRMED]** `prompt.md:27`, `prompt.md:822`. This plan
-adds no Route 53 zone and no DNS record of its own; it only exposes the inputs below **[PROPOSAL]** spine S1. The reference
+adds no Route 53 zone and no DNS record of its own; it only exposes the inputs below **[PROPOSAL]** spine
+[S1](00-spine.md#s1-system-shape). The reference
 project looks the zone up in the same account (`data "aws_route53_zone"` at `jacks-productivity-tool/infrastructure/main/data.tf:6-9`)
 and creates the records itself (`aws_route53_record` at `jacks-productivity-tool/infrastructure/modules/cloudfront/main.tf:83`,
 `:315`, `:328`) **[VERIFIED]**. That same-account lookup cannot work as-is, because the zone sits in another account.
@@ -292,13 +305,28 @@ owner applies their approach to the outputs below.
 | 3 | Admin hostname | `admin.aliens.jackgl.com` alias → admin distribution | same, for the admin distribution | After the admin distribution exists | hostname **[CONFIRMED]** `prompt.md:107`; alias **[PROPOSAL]** spine S1 |
 
 Points that need no DNS work: the API (same-origin, E.2), the Cognito managed-login pages (Cognito prefix domains on
-`amazoncognito.com`, **[PROPOSAL]** research 05 §11), and the audio bucket (regional S3 endpoint). Whether the aliases are
+`amazoncognito.com`, **[PROPOSAL]** [sources/05-cognito-auth.md](sources/05-cognito-auth.md) §11), and the audio bucket (regional S3 endpoint). Whether the aliases are
 A only or A + AAAA depends on enabling IPv6 on the distributions — a routine choice **[ASSUMPTION]**: enable IPv6 and
 create both. The owner creates all of these records in the DNS account from the Terraform outputs; the workload stack has
 no DNS-account provider alias (H §H.3.1, §H.15) **[PROPOSAL]**. If the owner later wires the DNS account into Terraform,
 the records become resources behind one extra provider alias, and the integration points above stay the same. The ordering
 consequence (a small foundation apply for the certificate first, then the normal release) and the exact hand-off steps are
 in [H §H.15](H-infrastructure-and-delivery.md#h15-dns-hand-off).
+
+### E.3.4 Coexisting with the existing apex app
+
+An HTTPS app (a separate app and API, in another account) already serves the apex `jackgl.com`; `aliens.jackgl.com` and
+`admin.aliens.jackgl.com` do not exist yet **[CONFIRMED by owner]** (spine
+[S1.0](00-spine.md#s10-dns-hand-off-facts-confirmed-by-owner-2026-11-14-unless-marked)). The two never collide at runtime:
+different hostnames are different browser origins, so storage, the `scd-play` Web Lock and IndexedDB are not shared.
+
+| Interaction with the apex | Effect on this design | Action | Label |
+|---|---|---|---|
+| CAA records on `jackgl.com`, if any | ACM can only issue the certificate if CAA allows `amazon.com` | Check CAA before requesting the certificate (H §H.15) | **[CONFIRMED by owner]** checklist item |
+| A wildcard alternate domain name `*.jackgl.com` on the apex CloudFront distribution | Could block adding `aliens.jackgl.com` to a distribution in another account | Inspect the apex distribution's alternate domain names before M1 | **[UNVERIFIED]** (see the final table) |
+| Apex cookies set with `Domain=jackgl.com` | The browser also sends them to our hostnames | None: our API authenticates with bearer tokens, never cookies | **[CONFIRMED by owner]** harmless |
+| HSTS `includeSubDomains` on the apex | Forces HTTPS on our hostnames | None: CloudFront serves HTTPS only | **[CONFIRMED by owner]** fine |
+| Apex and `www` records | Belong to the other app | Never touched; no record is ever created with `allow_overwrite` | **[CONFIRMED by owner]** |
 
 ---
 
@@ -313,8 +341,8 @@ audio to the browser (`prompt.md:561`); the API route plus that Lambda are "the 
 
 | Use | Route / caller | Calls Polly? | Writes | Label |
 |---|---|---|---|---|
-| Preview (operator) | `POST /api/admin/speech/preview` → `tts` | Yes, only if the clip object is absent | S3 `PutObject If-None-Match: *` only | **[PROPOSAL]** spine S5.2 |
-| Approve (operator) | `POST /api/admin/speech-definitions/{id}/approve` → `admin-api` | Never | `content`: speech version + header + audit (C7) | **[PROPOSAL]** spine S5.2 |
+| Preview (operator) | `POST /api/admin/speech/preview` → `tts` | Yes, only if the clip object is absent | S3 `PutObject If-None-Match: *` only | **[PROPOSAL]** spine [S5.2](00-spine.md#s52-activities-templates-speech) |
+| Approve (operator) | `POST /api/admin/speech-definitions/{id}/approve` → `admin-api` | Never | `content`: speech version (with clip key, `sha256` of the MP3 bytes, render date, review record, `fromDraftRevision`) + header + audit (C7) | **[PROPOSAL]** spine S5.2 |
 | Play / pack preparation (player) | `POST /api/speech` → `tts` | **Never** | nothing | **[PROPOSAL]** spine S5.2; narrows `prompt.md:577` (owner decision D-12) |
 
 The clip key is the SHA-256 of the canonical synthesis input (text/SSML, locale, voice, engine, output format, generation
@@ -324,12 +352,39 @@ objects are written with `If-None-Match: *` and never deleted, **the bytes the o
 the bytes children hear**. That is the reason Play never synthesises: a cache miss at play time would produce unreviewed
 audio.
 
+Content addressing also gives reuse for free: a clip is **synthesised once ever** and shared by every activity that uses the
+same text + voice + engine + settings, and the browser stores those bytes once per `clipKey` **[CONFIRMED by owner]**. Note the
+two different hashes: `clipKey` hashes the synthesis *input*; `sha256` hashes the MP3 *bytes* and lets the client check a
+download (E.9).
+
+### E.4.1a Voice and engine configuration
+
+| Setting | Value | Label |
+|---|---|---|
+| Engine for ordinary speech (`kind` WORD, INSTRUCTION, DICTATION) | Terraform variable `tts_engine`, default `generative` (Polly's newest engine) | **[CONFIRMED by owner]** |
+| Engine for isolated sounds (`kind` PHONEME, LETTER_NAME) | `tts_phoneme_engine`, default `neural`, because AWS documentation contradicts itself on `<phoneme>` support in the generative engine. The M0 listening bake-off decides; if generative passes, the variable is set to `generative` | **[CONFIRMED by owner]**; generative `<phoneme>` support **[UNVERIFIED]** |
+| Voice and locale | `tts_voice_id`, default `Amy`; en-GB | **[CONFIRMED by owner]** |
+| Where the variables go | Lambda environment of `tts` (renders) and `admin-api` (recomputes the key at approval) | **[CONFIRMED by owner]** |
+| Who chooses | Server configuration only; the request never names a voice or engine. The allow-list is code, because IAM cannot restrict Polly voice or engine | **[CONFIRMED by owner]** |
+| Speech definition fields | `kind` (WORD \| PHONEME \| LETTER_NAME \| INSTRUCTION \| DICTATION), `provider` (`"polly"`), `engine`, `voiceId`, text/SSML; the approved version also records the render date | **[CONFIRMED by owner]** |
+| Changing a variable | Affects **new previews only**: voice and engine are part of the clip identity, so a change produces new keys. Approved clips keep their bytes until an operator re-previews and re-approves them; there is no silent re-voicing | **[CONFIRMED by owner]** |
+| Sounds that fail the listening test | Human recordings are the fallback. A machine check refuses a PHONEME definition whose sound has a `word-only` verdict in `content/listening-verdicts.json` (to create) | fallback **[CONFIRMED by owner]**; check **[PROPOSAL]** |
+| Rejected alternative | Amazon Nova Sonic: conversational speech-to-speech, no SSML, not in eu-west-2, experimental Python SDK ([sources/11-voice-engine.md](sources/11-voice-engine.md)) | **[CONFIRMED by owner]** |
+
+Engine and voice evidence: [sources/06-polly-tts.md](sources/06-polly-tts.md) §2–§3. The review checklist and the listening
+workflow are in [D](D-ux-and-content-operations.md).
+
 Deviation to flag: the spec's proposed flow has the player path synthesise on a cache miss (`prompt.md:577`). Here a missing
 object on the player path returns `503 SPEECH_UNAVAILABLE`, logs at ERROR, and fires the `SPEECH_UNAVAILABLE` alarm
 **[PROPOSAL]**, recorded as owner decision D-12 in [B](B-scope-and-decisions.md). It can only happen if a clip was deleted or
 an approval was faked, both of which the design prevents.
 
 ### E.4.2 Online Play sequence
+
+The Play rule **[CONFIRMED by owner]** (spine [S5.2](00-spine.md#s52-activities-templates-speech)): if the bytes for the
+slot's pinned `clipKey` are already stored locally, playback starts **immediately** from those bytes and `POST /api/speech`
+is sent concurrently, so the authenticated TTS call is still made on every online Play (AC-19) without the child waiting for
+it. Only when the bytes are not stored does the client wait for the response, download, verify and store before playing.
 
 ```mermaid
 sequenceDiagram
@@ -344,8 +399,15 @@ sequenceDiagram
   participant S3 as S3 audio bucket
 
   Child->>UI: Play (click, Enter or Space)
-  UI->>UI: prime shared audio element, state Loading
-  UI->>CF: POST /api/speech runId, slotId, variant + Bearer access token
+  UI->>UI: prime shared audio element
+  UI->>IDB: look up pinned clipKey
+  alt stored locally
+    IDB-->>UI: bytes
+    UI->>Child: play now from Blob URL, state Stop/Replay
+  else not stored
+    UI->>UI: state Loading
+  end
+  UI->>CF: POST /api/speech runId, slotId, variant + Bearer token (concurrent if already playing)
   CF->>GW: forward unchanged, no caching
   GW->>GW: verify signature, iss, client_id, exp, scope
   GW->>T: invoke, payload 2.0 with claims
@@ -354,40 +416,45 @@ sequenceDiagram
   G-->>T: slot with pinned clips map (variant to clipKey)
   T->>T: variant must exist in the slot's clips, take stored clipKey
   T->>S3: HeadObject clip
-  alt object missing
+  alt 404 object missing
     T-->>UI: 503 SPEECH_UNAVAILABLE, ERROR log
-    UI->>Child: Retry, no attempt used
+    UI->>Child: Retry if not already playing, no attempt used
   else object present
     T->>T: presign GET, 300 s, SigV4 eu-west-2
-    T-->>UI: clipKey, url, expiresInSeconds, contentType, bytes
-    alt clipKey already in IDB
-      UI->>IDB: read bytes by clipKey
-    else not held
+    T-->>UI: clipKey, sha256, url, expiresInSeconds, contentType, bytes
+    alt not stored, or clipKey differs from local
       UI->>S3: GET presigned url, cache no-store
       S3-->>UI: MP3 bytes
-      UI->>UI: check length and type
+      UI->>UI: verify length, type and sha256
       UI->>IDB: put bytes by clipKey
+      UI->>Child: play (if it was waiting), state Stop/Replay
     end
-    UI->>Child: play from Blob URL, state Stop/Replay
   end
 ```
 
-Reading the diagram: every online Play reaches the service (`prompt.md:587`, AC-19) even when the bytes are already on the
-device; the service's answer (the current `clipKey`) decides whether the local copy is still the right clip. The browser
-downloads from S3 directly, never through the API. Any failure from step 3 onward leads to Retry and never to an attempt
-(`prompt.md:615`, AC-22).
+Reading the diagram: the local lookup comes first, so a prepared clip plays at once; the API call still happens on every
+online Play (`prompt.md:587`, AC-19). When nothing is stored, the child waits for the service and the download. If the
+response names a different `clipKey` from the stored one, the mismatch is logged, the server's clip is downloaded and stored,
+and it is used from the next Play; the current Play is not interrupted. The browser downloads from S3 directly, never through
+the API. Any failure leads to Retry (when nothing is playing) and never to an attempt (`prompt.md:615`, AC-22).
 
-Rules inside `tts` on the player path **[PROPOSAL]** spine S3.3, S9 / SEC-02; the field-level contract is
-[G R15](G-api-contracts.md#r15-post-apispeech-player):
+Rules inside `tts` on the player path **[PROPOSAL]** spine [S3.3](00-spine.md#s33-activity-slot), S9 / SEC-02 ("from the
+slot's pinned clips map"); the field-level contract is [G R15](G-api-contracts.md#r15-post-apispeech-player):
 - The request carries identifiers only: `{runId, slotId, variant}`. It never carries text or SSML (`prompt.md:589`, AC-20).
 - Ownership is the key: the slot is read under `U#<token sub>`, so another player's `runId` simply is not found.
 - The slot pin is the only authority: `variant` must be a key of the slot's pinned `clips` map (each entry
   `{speechId, speechVersion, clipKey}`, copied from the activity version at slot creation, [F §4.2](F-state-and-data.md#42-slot-fields-and-write-rules));
   the clip key signed is the one stored there, never one built from the request. So the player path is one `GetItem` on
-  `game` plus one `HeadObject` (which also supplies `bytes`), with no `content` read.
-- "Object missing" means HeadObject returned 404 **or** 403. With the spine's `tts` permissions (no `s3:ListBucket`), S3
-  answers a missing key with 403, so the handler must not try to tell the two apart: both give `503 SPEECH_UNAVAILABLE` and
-  the ERROR log (**[VERIFIED]** S3 API reference, HeadObject, Permissions). See the required amendment in E.6.4.
+  `game` plus one `HeadObject` (which also supplies `bytes`), with no `content` read — `tts` has no `content` permission at all.
+- "Object missing" means HeadObject returned 404. The `tts` role has `s3:ListBucket` scoped by `s3:prefix` `tts/v1/*`, so S3
+  answers a missing key with 404 rather than 403 (**[VERIFIED]** S3 API reference, HeadObject, Permissions). A 404 gives
+  `503 SPEECH_UNAVAILABLE` and the ERROR log; a 403 is a real permission fault and is handled as an internal error, not as
+  "missing" (E.6.4).
+- The response carries `sha256` of the MP3 bytes so the client can verify the download (E.9). Because `tts` has no `content`
+  access and the slot pin holds only `{speechId, speechVersion, clipKey}`, I'd suggest the value comes from S3 itself: preview
+  writes the object with `ChecksumAlgorithm = SHA256`, and the same `HeadObject` call (with `ChecksumMode = ENABLED`) returns
+  it, converted to hex. `admin-api` records the same value on the speech version at approval **[PROPOSAL]**; S3 returning the
+  stored checksum on HeadObject is **[UNVERIFIED]** here (final table).
 - Slot status is not checked (pack preparation fetches clips for future slots).
 - Every failure of ownership, slot or variant returns the same `404 NOT_FOUND`, so the route cannot be used to probe.
 - The URL is returned once and never logged; log lines carry the spine S2 allow-listed fields only.
@@ -409,13 +476,13 @@ sequenceDiagram
   Op->>AD: Preview audio on a speech draft
   AD->>GW: POST /api/admin/speech/preview text or ssml
   GW->>T: invoke, operator pool token
-  T->>T: token_use, exact group admin, 300 chars, tag allow-list, server voice/engine/format
-  T->>T: compute clipKey
+  T->>T: token_use, exact group admin, 300 chars, tag allow-list
+  T->>T: engine from kind, voice from config, compute clipKey
   T->>S3: HeadObject clipKey
-  alt absent
-    T->>P: SynthesizeSpeech neural en-GB mp3
+  alt 404 absent
+    T->>P: SynthesizeSpeech engine, Amy, en-GB, mp3
     P-->>T: audio stream
-    T->>S3: PutObject If-None-Match *
+    T->>S3: PutObject If-None-Match *, SHA-256 checksum
     Note over T,S3: 412 means another request stored it first - use that object
   end
   T-->>AD: clipKey, url 300 s
@@ -424,34 +491,39 @@ sequenceDiagram
   Op->>AD: Approve (draftRevision)
   AD->>GW: POST /api/admin/speech-definitions/id/approve
   GW->>A: invoke
-  A->>C: read draft, recompute clipKey from saved draft
+  A->>C: read draft, check draftRevision, recompute clipKey
   A->>S3: HeadObject clipKey
   alt missing
-    A-->>AD: 400 VALIDATION_FAILED not previewed
+    A-->>AD: 400 VALIDATION_FAILED not_previewed
   else present
-    A->>C: Put speech version + update header + audit (C7)
+    A->>C: Put version (clipKey, sha256, render date) + header + audit (C7)
     A-->>AD: approved version
   end
 ```
 
-Reading the diagram: only preview can create audio, and only an object that already exists can be approved. In `tts`,
-"absent" covers both 404 and 403 from HeadObject until the role gains prefix-scoped `s3:ListBucket` (E.6.4); a 403 caused by
-a real permission fault then surfaces as a failed `PutObject` or presign download rather than silently. `admin-api` already
-has `ListBucket`, so its "missing" branch sees a true 404. Approval binds
-the speech version to a clip key, and activity publication later ConditionChecks that every referenced speech version is
-approved (C4 in [F](F-state-and-data.md)). The review checklist and quality gate are in [D](D-ux-and-content-operations.md).
+Reading the diagram: only preview can create audio, and only an object that already exists can be approved. Both `tts` and
+`admin-api` hold prefix-scoped `s3:ListBucket`, so "absent" and "missing" are true 404s; a 403 is a real permission fault and
+surfaces as an error, never as "not previewed". The engine is chosen from the definition's `kind` (E.4.1a); because voice and
+engine are part of the key, a changed `tts_*` variable simply produces a new key on the next preview. Approval binds the
+speech version to a clip key and the bytes' `sha256`. A stale `draftRevision` returns `409 DRAFT_CONFLICT`; a repeat whose
+`draftRevision` equals the stored `fromDraftRevision` returns the existing version (safe retry). Activity publication later
+ConditionChecks that every referenced speech version is approved (C4 in [F](F-state-and-data.md)). The review checklist and
+quality gate are in [D](D-ux-and-content-operations.md).
 
 Preview validation is code, not IAM: Polly has no service-specific condition keys and `SynthesizeSpeech` without lexicons
-needs `Resource: "*"`, so voice, engine, length and tags can only be limited in the function **[VERIFIED]** research 06 §8.1.
-SSML is parsed with an XML parser that rejects DTDs and entities **[PROPOSAL]**. The preview route is throttled to 2 rps /
-burst 5 (spine S9.5, **[ASSUMPTION]** numbers).
+needs `Resource: "*"`, so voice, engine, length and tags can only be limited in the function **[VERIFIED]**
+[sources/06-polly-tts.md](sources/06-polly-tts.md) §8.1. SSML is parsed with an XML parser that rejects DTDs and entities
+**[PROPOSAL]**. The preview route is throttled to 2 rps / burst 5 (spine [S9.5](00-spine.md#s95-limits-one-shared-limits-file-read-by-client-and-handlers-numbers-assumption), **[ASSUMPTION]** numbers).
+
+In M0 the listening bake-off renders candidate clips with the AWS CLI from the same canonical inputs, before any of this
+exists; in M1 the approved clips are re-rendered through the real preview route ([J](J-execution-backlog.md)) **[PROPOSAL]**.
 
 ### E.4.4 Offline Play
 
 Offline, Play reads the bytes for the slot's pinned `clipKey` from IndexedDB and plays them; no request is attempted and the
 UI never claims to have reached the service (`prompt.md:707`, `prompt.md:717`) **[CONFIRMED]**. A missing clip offline is an
 availability problem (`prompt.md:713`): an audio-dependent activity whose clip is not held is not shown as ready
-(`prompt.md:617`) and the run stops at that boundary (`OFFLINE_PACK_INCOMPLETE`, spine S7.4).
+(`prompt.md:617`) and the run stops at that boundary (`OFFLINE_PACK_INCOMPLETE`, spine [S7.4](00-spine.md#s74-offline-rules)).
 
 ---
 

@@ -205,10 +205,14 @@ LOOK
 - Big clear silhouettes that still read when shrunk to 64-128 pixels. Few small details; no tiny patterns, no fine texture.
 - Cel-shaded flat colour: one base colour, one soft shade and one highlight per area. No photorealism, no grain, no painterly texture,
   no lens flare, no motion blur, no depth of field.
-- Uniform thick outline in dark plum #2A1E3D on every object, about 6 px thick on a 1024 px image; thinner inner lines in the same colour.
+- Uniform thick outline in dark plum #2A1E3D on every object, so that it is about 4 px thick once the image is shrunk to its final
+  size; thinner inner lines in the same colour. Each prompt states the thickness to draw on the 1024 px image; if it does not, draw
+  about 16 px.
 
 VIEW AND LIGHT
-- Three-quarter top-down view: the camera looks down at about 40 degrees, the same angle for characters, pads, the colony and the map.
+- Three-quarter top-down view: the camera looks down at about 50 degrees, the same angle for characters, pads, the colony and the map.
+- GROUND PLANE: anything lying flat on the ground (pads, rings, auras, shadows, dust puffs) is drawn as an ellipse exactly 4 wide : 3
+  tall. Path tiles are flat squares seen from above.
 - Characters and aliens face three-quarter towards the viewer, turned slightly to the viewer's RIGHT (the game mirrors them for left).
 - One light from the TOP-LEFT. Shade on the bottom-right of every form. No cast shadows on the ground unless asked; the game adds them.
 
@@ -219,14 +223,15 @@ PALETTE (stay close to these)
 - Astronaut signature colours: Nova orange #FF8A2A; Pip ice blue #8ED8FF; Juno sunshine yellow #FFD23F; Mira leaf green #3DBE6E;
   Orion navy #2E4A9E with star gold #FFD86B; Sol red #E2403A with gold #F5B700.
 - Aliens: blob blue #5AA9F0, lime #9BE564, magenta #E05FD0, bubble cyan #9FF3FF, lilac #B98AF0, peach #FFB38A,
-  rock orange #D08A55, shell teal #2FA39A.
+  rock orange #D08A55, shell teal #2FA39A, patch cream #F7F0E0 (with a lilac-pink cheek blush).
 - Effects: frost #CFF6FF, comet gold #FFC94A, shield cyan #5BE0F0, healing green #7BEA8C; star bursts use the palette colours.
 
 RULES (never break these)
 1. NO TEXT. No letters, words, numbers, digits, numerals, symbols that look like writing, logos, signatures, watermarks, captions,
    speech bubbles or user-interface elements anywhere in the image. Patches, flags, screens and signs are plain shapes and colours.
 2. FRIENDLY, NOT VIOLENT. No realistic weapons, guns, swords, blood, wounds, skulls, fire, smoke clouds of destruction or debris.
-   Astronaut equipment is toy-like science gear; "lasers" are soft glowing beams of light. Nothing is pointed at the viewer.
+   Astronaut equipment is toy-like science gear; "lasers" are soft glowing beams of light. Nothing is pointed at the viewer, and
+   nothing is held, shouldered or braced like a gun, rifle or bazooka.
 3. NOTHING SCARY. Aliens are cheeky and silly: rounded, big eyes, small smiles or grins, no fangs, no claws, no angry eyebrows,
    no slime dripping in a gross way. Bosses are big and funny, not menacing.
 4. ORIGINAL. No resemblance to any existing game, film, TV show, toy, mascot, brand, franchise or real person. No national flags,
@@ -250,15 +255,18 @@ appearances (skin, hair and so on) are proposals: change any of them before gene
 
 | Class | Signature colour | Silhouette and equipment (the thing you must see at 64 px) | Person (proposal) |
 |---|---|---|---|
-| **Nova** — Laser Scout | orange #FF8A2A on white | round bubble helmet with a big bright orange-tinted visor rim; compact toy laser held in both hands with a **round lens** at the front | young woman, deep brown skin, black curly hair in two puffs inside the helmet, big grin |
+| **Nova** — Laser Scout | orange #FF8A2A on white | round bubble helmet with a big bright orange-tinted visor rim; compact toy laser gadget held out in **one hand like a torch**, with a **round lens** at the front; a **diagonal orange chevron stripe** across the chest | young woman, deep brown skin, black curly hair in two puffs inside the helmet, big grin |
 | **Pip** — Frost Explorer | ice blue #8ED8FF | **two round cooling canisters** on the back like bubbles; snowflake emblems; short frost wand with a **snowflake tip** | young man, pale skin with freckles, tufty ginger hair, round cheeks |
-| **Juno** — Comet Engineer | sunshine yellow #FFD23F | **goggles** on top of the helmet; a chunky, toy-like **comet launcher tube carried on the shoulder**, with round fins and painted stars, clearly a toy | young woman, light-brown skin, straight black bob, confident smile |
-| **Orion** — Orbit Ranger | navy #2E4A9E with gold stars | **long telescope-like sight** held at the shoulder, much longer than any other kit; star pattern on the suit | young man, olive skin, wavy dark hair, thoughtful look, small bright hearing aid |
+| **Juno** — Comet Engineer | sunshine yellow #FFD23F | **goggles** on top of the helmet; a chunky round toy **comet popper mounted on her backpack**, a short fat **funnel pointing straight up** over her shoulder that lobs comets in a high arc; she presses a big round button on a hand controller | young woman, light-brown skin, straight black bob, confident smile |
+| **Orion** — Orbit Ranger | navy #2E4A9E with gold stars | **long telescope**, much longer than any other kit, held like a stargazer's telescope (tilted up, never shouldered or aimed level); star pattern on the suit | young man, olive skin, wavy dark hair, thoughtful look, small bright hearing aid |
 | **Mira** — Shield Specialist | leaf green #3DBE6E on white | **large shield emblem across the chest**; small handheld **dish emitter** like a mini satellite dish | woman, medium-brown skin, dark hair in a neat bun, round glasses, calm smile |
 | **Sol** — Beacon Commander | red #E2403A and gold #F5B700 | **tall antenna with a glowing beacon bulb rising from the backpack**, taller than the helmet; one hand raised in encouragement | older man, dark-brown skin, short grey beard, warm grin |
 
-Mira (green) and Sol (red) can look alike to a red-green colour-blind child, so their silhouettes must stay very different: a wide chest
-shield and a dish for Mira; a tall antenna for Sol.
+Under red-green colour blindness (deuteranopia) Nova, Juno, Mira and Sol all turn mustard or khaki (Nova #FF8A2A → about #C8B328,
+Juno #FFD23F → #F5DC48, Mira #3DBE6E → #AEA373, Sol #E2403A → #988934). Each must therefore be identified by a unique silhouette
+element: **Nova** the single torch-like gadget plus the diagonal chevron stripe on the chest; **Juno** the upward funnel on the backpack
+plus the goggles; **Mira** the chest-wide shield; **Sol** the tall antenna. Nova and Mira (colour panels on a white suit, small gadget
+in front) are the closest pair, so check them side by side (5.2).
 
 ### 3.2 Frame poses
 
@@ -273,7 +281,8 @@ by one of these two methods:
 [STYLE BIBLE]
 Attached is frame 01 of an animation. Make frame <NN> of <TOTAL>: <pose from the table below>.
 Keep EXACTLY the same character, colours, outline, size, scale and camera angle. The feet stay at the same spot at the
-bottom-centre of the canvas so the frames line up. Change only the pose described. Transparent background, 1024x1024.
+bottom-centre of the canvas so the frames line up. Change only the pose described. Transparent background, same canvas
+as frame 01. No text, letters or numbers.
 ```
 
 Then line up the frames in your editor using the feet (bottom-centre pivot) as the anchor.
@@ -281,8 +290,8 @@ Then line up the frames in your editor using the feet (bottom-centre pivot) as t
 | Animation | Frames | Pose for each frame (12 fps) |
 |---|---|---|
 | **Idle** (astronauts) | 4 | 01 neutral standing · 02 breathe in: body 2% lower, knees softly bent · 03 neutral · 04 small rise, head turns a touch to look along the path |
-| **Attack, 4 frames** (Nova, Pip) | 4 | 01 wind-up: tool raised and aimed · 02 fire: bright glow at the tip · 03 recoil: body leans back slightly, glow fading · 04 recover to ready |
-| **Attack, 6 frames** (Juno, Orion) | 6 | 01 ready · 02 aim (lift the tool) · 03 brace (knees bend) · 04 fire (glow at the tip) · 05 recoil (lean back) · 06 recover |
+| **Attack, 4 frames** (Nova, Pip) | 4 | 01 wind-up: tool lifted · 02 zap: bright glow at the tip · 03 a small happy bounce, glow fading · 04 recover to ready |
+| **Attack, 6 frames** (Juno, Orion) | 6 | 01 ready · 02 lift (Juno reaches for the button; Orion tilts the telescope up) · 03 knees bend a little · 04 zap / launch (glow at the lens or puff from the funnel) · 05 a small happy bounce · 06 recover |
 | **Emit** (Mira) | 4 | 01 emitter lowered · 02 emitter raised towards the colony · 03 dish glows cyan · 04 lower again |
 | **Pulse** (Sol) | 4 | 01 beacon dim · 02 beacon brightening, hand raised · 03 beacon at full glow · 04 dimming |
 | **Walk** (aliens) | 6 | 01 contact (stretched forward) · 02 down (squashed) · 03 passing (neutral) · 04 up (stretched tall) · 05 contact (the other side) · 06 passing |
@@ -303,11 +312,12 @@ other conversation. It is not shipped.
 [STYLE BIBLE]
 Make a STYLE ANCHOR reference image for this game. Landscape 1536x1024.
 Scene: a small patch of purple moon ground (regolith lavender and purple, a few soft round craters) seen in the three-quarter
-top-down view. On it, left of centre, a round metal build pad with soft glowing rim lights. Standing on the pad is a friendly
-young astronaut: a young woman with deep brown skin and black curly hair in two puffs, inside a round glass bubble helmet with an
-orange visor rim, white suit with orange #FF8A2A panels, holding a compact toy-like laser instrument with a round lens in both
-hands. Right of centre, walking along a smooth glowing moon-dust path towards the right, a round wobbling blue jelly alien
-(#5AA9F0) with big eyes and a cheeky grin. Light from the top-left. Uniform thick dark plum outline on everything.
+top-down view. On it, left of centre, a round metal build pad with soft glowing rim lights (an ellipse 4 wide : 3 tall). Standing
+on the pad is a friendly generic astronaut with an opaque mirrored orange visor (face not visible), white suit with orange
+#FF8A2A panels, holding a small toy-like gadget with a round lens out in one hand like a torch. Right of centre, walking along a
+smooth glowing moon-dust path towards the right, a wide, flat-bottomed dome-shaped blue jelly alien (#5AA9F0), clearly wider than
+tall, with two short stubby round-ended bobble antennae, three lighter crater-like spots on its back, big eyes and a cheeky grin.
+Light from the top-left. Uniform thick dark plum outline on everything, about 10 px thick.
 Plain deep space (#141633) sky band along the top edge with a few stars.
 No text, no letters, no numbers anywhere.
 ```
@@ -336,7 +346,8 @@ Six classes, each with three levels. Every level must **look upgraded at 128 px*
 insignia. Faster attacks are shown by animation timing, not art.
 
 Order in this section follows the unlock order in plan C5.9 (Nova at the start, then Pip after wave 5, Juno 10, Orion 15, Mira 20, Sol 25).
-Size for every astronaut sprite: **128 px frame, about 96 px footprint (author 256)**, transparent, pivot bottom-centre.
+Size for every astronaut sprite: **128 px frame, about 96 px footprint (author 256)**, transparent, pivot bottom-centre (Sol: a taller 128x192
+frame, author 256x384; see his section).
 
 The upgrade pattern is the same for every class:
 
@@ -356,18 +367,21 @@ The upgrade pattern is the same for every class:
 
 ```text
 [STYLE BIBLE]
-Character reference sheet for NOVA, the Laser Scout. Landscape 1536x1024, plain light background.
+Character reference sheet for this game's Laser Scout astronaut. Landscape 1536x1024, plain light background.
 Show the same character three times side by side at the same size: front view, three-quarter view facing the viewer's right,
-and back view. Match the style anchor image attached.
-Nova: enthusiastic young explorer; young woman with deep brown skin, black curly hair in two puffs, big grin, inside a round
-glass bubble helmet with a bright orange visor rim. White spacesuit with orange #FF8A2A panels on the chest, knees and boots,
-small backpack. She holds a compact, toy-like laser instrument in both hands: a short rounded orange and white body with a
-small round glowing lens at the front, like a science gadget, clearly not a real gun.
+and back view. Use the attached style anchor ONLY for style, outline, angle and height; the astronaut in it is a generic
+stand-in, and this character has the face, skin and hair described here.
+The character: enthusiastic young explorer; young woman with deep brown skin, black curly hair in two puffs, big grin, inside a
+round glass bubble helmet with a bright orange visor rim. White spacesuit with orange #FF8A2A panels on the knees and boots, a
+bold diagonal orange chevron stripe across the chest, small backpack. She holds a compact, toy-like laser gadget out in ONE hand
+like a torch, the other hand free: a short rounded orange and white body with a small round glowing lens at the front, like a
+science gadget, clearly not a gun.
 Chunky toy proportions, about 2.5 heads tall. Thick dark plum outline, light from the top-left.
 No text, letters or numbers anywhere, including on the suit.
 ```
 
-Reject if: the laser looks like a real gun, the face or hair changes between views, any writing or logo appears on the suit.
+Reject if: the laser looks like a real gun or is held in both hands like one, the chevron stripe is missing, the face or hair changes
+between views, any writing or logo appears on the suit.
 
 ##### `class.nova.l1.idle` — Nova L1 idle
 
@@ -378,8 +392,9 @@ Reject if: the laser looks like a real gun, the face or hair changes between vie
 [STYLE BIBLE]
 Using the attached Nova character sheet, draw Nova as a single game sprite. Square 1024x1024, transparent background.
 Level 1 Nova: exactly as on the sheet. Plain suit with no badges. Small round lens on the laser.
-Pose: relaxed ready stance, standing, feet together at the bottom-centre of the canvas, laser held across the body pointing
-slightly up and to the viewer's right. Three-quarter top-down view, facing three-quarter towards the viewer's right.
+Pose: relaxed ready stance, standing, feet together at the bottom-centre of the canvas, the laser gadget held in one hand at
+waist height, lens pointing slightly up and to the viewer's right, the other hand relaxed. Three-quarter top-down view, facing
+three-quarter towards the viewer's right.
 Full body visible, filling about 80% of the canvas height. No ground, no shadow, no text.
 ```
 
@@ -393,12 +408,13 @@ Reject if: the view is side-on, the feet are cut off, the laser points at the vi
 ```text
 [STYLE BIBLE]
 Same Nova as the attached level 1 sprite, same size and position on the canvas, feet in the same place.
-Pose (key frame, "fire"): Nova raises the laser to shoulder height aiming to the viewer's right and slightly away, lens glowing
-with a small soft orange-white light, body leaning back a little from the recoil. Do NOT draw the beam itself.
-Square 1024x1024, transparent background, no text.
+Pose (key frame, "zap"): Nova holds the laser gadget out in ONE hand like a torch, arm forward towards the viewer's right and
+slightly away, the other hand free, lens glowing with a small soft orange-white light, a small happy bounce in her stance. Do NOT
+draw the beam itself. Square 1024x1024, transparent background, no text.
 ```
 
-Reject if: a beam or explosion is drawn, the character changes size or shifts on the canvas, the glow looks like fire.
+Reject if: a beam or explosion is drawn, the character changes size or shifts on the canvas, the glow looks like fire, the gadget is
+held or braced like a gun, bazooka or rifle.
 
 ##### `class.nova.l2.idle` — Nova L2 idle
 
@@ -422,11 +438,11 @@ Reject if: the patch contains any letter or number, the pose changes, the upgrad
 ```text
 [STYLE BIBLE]
 Same LEVEL 2 Nova as the attached sprite (larger lens, gold star patch). Same size and feet position.
-Pose (key frame, "fire"): laser raised to shoulder height aiming to the viewer's right, lens glowing orange-white, slight recoil.
-Do not draw the beam. Square 1024x1024, transparent background, no text.
+Pose (key frame, "zap"): laser gadget held out in ONE hand like a torch towards the viewer's right, lens glowing orange-white,
+a small happy bounce. Do not draw the beam. Square 1024x1024, transparent background, no text.
 ```
 
-Reject if: the L2 details (lens size, star patch) are lost, a beam is drawn.
+Reject if: the L2 details (lens size, star patch) are lost, a beam is drawn, the gadget is held or braced like a gun.
 
 ##### `class.nova.l3.idle` — Nova L3 idle
 
@@ -450,11 +466,11 @@ Reject if: it no longer looks like the same person, any insignia contains letter
 ```text
 [STYLE BIBLE]
 Same LEVEL 3 Nova as the attached sprite (largest lens, shoulder stripes, arm badge, backpack fin). Same size and feet position.
-Pose (key frame, "fire"): laser raised aiming to the viewer's right, a BIGGER soft muzzle glow than before around the lens,
-slight recoil. Do not draw the beam. Square 1024x1024, transparent background, no text.
+Pose (key frame, "zap"): laser gadget held out in ONE hand like a torch towards the viewer's right, a BIGGER soft glow than
+before around the lens, a small happy bounce. Do not draw the beam. Square 1024x1024, transparent background, no text.
 ```
 
-Reject if: the glow looks like fire or an explosion, L3 details are missing.
+Reject if: the glow looks like fire or an explosion, L3 details are missing, the gadget is held or braced like a gun.
 
 ##### `class.nova.portrait` — Nova shop portrait
 
@@ -487,10 +503,11 @@ Reject if: any detail of the face shows through (it must be a single flat shape)
 
 ```text
 [STYLE BIBLE]
-Character reference sheet for PIP, the Frost Explorer. Landscape 1536x1024, plain light background. Match the attached style
-anchor; Pip is the same height and build as Nova on the attached Nova sheet.
+Character reference sheet for this game's Frost Explorer astronaut. Landscape 1536x1024, plain light background. Use the
+attached images ONLY for style, outline, angle and height (the plain silhouette shows the height and build to match); this is a
+DIFFERENT person with the face, skin and hair described here.
 Show the same character three times at the same size: front view, three-quarter view facing the viewer's right, back view.
-Pip: playful ice researcher; young man with pale skin, freckles, tufty ginger hair and round cheeks, inside a round glass bubble
+The character: playful ice researcher; young man with pale skin, freckles, tufty ginger hair and round cheeks, inside a round glass bubble
 helmet with an ice-blue rim. Pale ice-blue #8ED8FF suit with white panels and simple six-point snowflake emblems on the chest
 and knees. On his back, two ROUND cooling canisters like big frosted bubbles, joined to a small pack. He holds a short frost wand
 with a snowflake-shaped crystal tip.
@@ -523,7 +540,7 @@ Reject if: the canisters are hidden, the snowflake has letters or odd symbols, t
 ```text
 [STYLE BIBLE]
 Same level 1 Pip as the attached sprite, same size and feet position.
-Pose (key frame, "fire"): Pip points the wand forward to the viewer's right with a little hop, cheeks puffed, a small soft
+Pose (key frame, "zap"): Pip points the wand forward to the viewer's right with a little hop, cheeks puffed, a small soft
 frosty sparkle (#CFF6FF) at the wand tip. Do NOT draw the projectile. Square 1024x1024, transparent background, no text.
 ```
 
@@ -550,7 +567,7 @@ Reject if: the upgrade is not visible at 128 px, the character changes.
 ```text
 [STYLE BIBLE]
 Same LEVEL 2 Pip as the attached sprite (bigger glowing canisters, shoulder snowflakes). Same size and feet position.
-Pose (key frame, "fire"): wand pointed forward to the viewer's right, frosty sparkle at the tip. No projectile.
+Pose (key frame, "zap"): wand pointed forward to the viewer's right, frosty sparkle at the tip. No projectile.
 Square 1024x1024, transparent background, no text.
 ```
 
@@ -565,7 +582,7 @@ Reject if: L2 details are lost.
 [STYLE BIBLE]
 Edit the attached level 2 Pip sprite into LEVEL 3. Same character, face, pose, size and position.
 Change only: the canisters are the biggest yet, frosted with little icicles; add a thin flat ring of frost crystals on the
-ground around his feet (an ellipse seen from above, pale #CFF6FF, staying inside the canvas); add a small ice-blue star badge
+ground around his feet (an ellipse exactly 4 wide : 3 tall, pale #CFF6FF, staying inside the canvas); add a small ice-blue star badge
 shape on the chest (plain, no symbols). Square 1024x1024, transparent background, no text.
 ```
 
@@ -578,7 +595,7 @@ Reject if: the aura ring is cut off by the canvas edge, the ring hides the feet,
 ```text
 [STYLE BIBLE]
 Same LEVEL 3 Pip as the attached sprite (largest canisters, frost aura ring, chest badge). Same size and feet position.
-Pose (key frame, "fire"): wand pointed forward with a WIDER soft frosty puff at the tip (a small cloud of sparkles, not a blast).
+Pose (key frame, "zap"): wand pointed forward with a WIDER soft frosty puff at the tip (a small cloud of sparkles, not a blast).
 Square 1024x1024, transparent background, no text.
 ```
 
@@ -614,17 +631,19 @@ Reject if: the silhouette is not recognisably different from the other five.
 
 ```text
 [STYLE BIBLE]
-Character reference sheet for JUNO, the Comet Engineer. Landscape 1536x1024, plain light background. Match the attached style
-anchor; same height and build as Nova on the attached Nova sheet.
+Character reference sheet for this game's Comet Engineer astronaut. Landscape 1536x1024, plain light background. Use the
+attached images ONLY for style, outline, angle and height (the plain silhouette shows the height and build to match); this is a
+DIFFERENT person with the face, skin and hair described here.
 Show the same character three times at the same size: front view, three-quarter view facing the viewer's right, back view.
-Juno: inventive engineer; young woman with light-brown skin and a straight black bob, confident smile, inside a round glass
-bubble helmet with round engineer's GOGGLES pushed up on top of the helmet. Sunshine-yellow #FFD23F suit with white panels and
-a tool belt. She carries a chunky toy-like comet launcher on her shoulder: a short fat rounded tube, yellow and white, with
-three round fins at the back and little painted stars, like a toy from a play set, clearly not a real weapon.
+The character: inventive engineer; young woman with light-brown skin and a straight black bob, confident smile, inside a round
+glass bubble helmet with round engineer's GOGGLES pushed up on top of the helmet. Sunshine-yellow #FFD23F suit with white panels
+and a tool belt. A chunky round toy COMET POPPER is mounted on her backpack: a short fat yellow-and-white funnel pointing straight
+UP over her shoulder, with three round fins and little painted stars, that lobs comets high in the air. She works it with a big
+round button on a small hand controller held at her waist. Like a toy from a play set; nothing rests on her shoulder or is aimed.
 No text, letters or numbers anywhere.
 ```
 
-Reject if: the launcher resembles a real rocket launcher or bazooka (make it rounder, shorter and more toy-like), the goggles are missing.
+Reject if: the popper is held or braced like a gun, bazooka or rifle, or points forwards instead of straight up; the goggles are missing.
 
 ##### `class.juno.l1.idle` — Juno L1 idle
 
@@ -633,38 +652,41 @@ Reject if: the launcher resembles a real rocket launcher or bazooka (make it rou
 ```text
 [STYLE BIBLE]
 Using the attached Juno sheet, draw Juno as a single game sprite. Square 1024x1024, transparent background.
-Level 1 Juno: as on the sheet; small chunky launcher resting on her shoulder, pointing up and to the viewer's right.
+Level 1 Juno: as on the sheet; small comet popper on her backpack, its funnel pointing straight up over her shoulder; hand
+controller held at her waist.
 Pose: confident stance, feet at the bottom-centre. Three-quarter top-down view, facing three-quarter towards the viewer's right.
-Full body, about 80% of the canvas height. No ground, no shadow, no text.
+Full body filling only about 65% of the canvas height, leaving empty space above and at the top-right for the bigger popper at
+later levels. No ground, no shadow, no text.
 ```
 
-Reject if: the launcher points at the viewer, the goggles are missing.
+Reject if: the popper points at the viewer or forwards, the goggles are missing, the figure fills more than about 70% of the height.
 
 ##### `class.juno.l1.attack` — Juno L1 attack
 
 **File:** `juno-l1-attack-01.png` … `-06.png` · 128 (256) · transparent · 6 frames (Attack 6)
-**Purpose:** launcher recoils and lobs a comet; the comet is `fx.juno.comet`.
+**Purpose:** the popper bounces and lobs a comet in a high arc; the comet is `fx.juno.comet`.
 
 ```text
 [STYLE BIBLE]
-Same level 1 Juno as the attached sprite, same size and feet position.
-Pose (key frame, "fire"): Juno braces with knees bent, the launcher tilted up at about 45 degrees to the viewer's right, a soft
-gold sparkle puff (#FFC94A) at the open end, launcher recoiling slightly. Do NOT draw the comet.
+Same level 1 Juno as the attached sprite, same size and feet position, same framing (figure about 65% of the canvas height).
+Pose (key frame, "launch"): Juno presses the big round button on her hand controller with a happy grin; the funnel on her
+backpack bounces and puffs a soft gold sparkle puff (#FFC94A) out of its top opening, straight up. Do NOT draw the comet.
 Square 1024x1024, transparent background, no text.
 ```
 
-Reject if: flames, smoke clouds or an explosion appear, the comet is drawn.
+Reject if: flames, smoke clouds or an explosion appear, the comet is drawn, anything is held or braced like a gun, bazooka or rifle.
 
 ##### `class.juno.l2.idle` — Juno L2 idle
 
 **File:** `juno-l2-idle-01.png` … `-04.png` · 128 (256) · transparent · 4 frames
-**Purpose:** level 2: increased blast area. Chunkier launcher with a barrel band.
+**Purpose:** level 2: increased blast area. Chunkier popper with a band around the funnel.
 
 ```text
 [STYLE BIBLE]
-Edit the attached level 1 Juno sprite into LEVEL 2. Same character, face, pose, size and position.
-Change only: the launcher is chunkier (about 1.4 times thicker) with a bright orange band around the barrel, and a gold star
-patch appears on her chest (plain, no letters). Square 1024x1024, transparent background, no text.
+Edit the attached level 1 Juno sprite into LEVEL 2. Same character, face, pose, size and position; the figure still fills about
+65% of the canvas height. Change only: the backpack comet popper is chunkier (about 1.4 times thicker) with a bright orange band
+around the funnel, and a gold star patch appears on her chest (plain, no letters). Square 1024x1024, transparent background,
+no text.
 ```
 
 Reject if: the change is too small to see at 128 px.
@@ -675,9 +697,9 @@ Reject if: the change is too small to see at 128 px.
 
 ```text
 [STYLE BIBLE]
-Same LEVEL 2 Juno as the attached sprite (chunkier launcher with orange band, star patch). Same size and feet position.
-Pose (key frame, "fire"): knees bent, launcher tilted up at 45 degrees to the viewer's right, gold sparkle puff at the open end.
-No comet. Square 1024x1024, transparent background, no text.
+Same LEVEL 2 Juno as the attached sprite (chunkier popper with orange band, star patch). Same size, framing and feet position.
+Pose (key frame, "launch"): she presses the button on her hand controller, the funnel bounces and puffs a gold sparkle puff
+straight up out of its top opening. No comet. Square 1024x1024, transparent background, no text.
 ```
 
 Reject if: L2 details are lost.
@@ -685,16 +707,17 @@ Reject if: L2 details are lost.
 ##### `class.juno.l3.idle` — Juno L3 idle
 
 **File:** `juno-l3-idle-01.png` … `-04.png` · 128 (256) · transparent · 4 frames
-**Purpose:** level 3: more area damage and a clearer impact. Biggest launcher, glowing barrel.
+**Purpose:** level 3: more area damage and a clearer impact. Biggest popper, glowing tube opening.
 
 ```text
 [STYLE BIBLE]
-Edit the attached level 2 Juno sprite into LEVEL 3. Same character, face, pose, size and position.
-Change only: the launcher is the biggest yet, with a soft glowing gold ring inside the open end of the barrel and two bands;
-add yellow shoulder stripes; the goggles now have a small gold light. Square 1024x1024, transparent background, no text.
+Edit the attached level 2 Juno sprite into LEVEL 3. Same character, face, pose, size and position; the figure still fills about
+65% of the canvas height and the bigger popper uses the empty space above her. Change only: the popper is the biggest yet, with
+a soft glowing gold ring inside the top opening of the funnel and two bands; add yellow shoulder stripes; the goggles now have a
+small gold light. Square 1024x1024, transparent background, no text.
 ```
 
-Reject if: the launcher now dwarfs her so much that the silhouette is mostly launcher (it should still read as a person).
+Reject if: the popper now dwarfs her so much that the silhouette is mostly popper (it should still read as a person), it is cropped.
 
 ##### `class.juno.l3.attack` — Juno L3 attack
 
@@ -702,9 +725,9 @@ Reject if: the launcher now dwarfs her so much that the silhouette is mostly lau
 
 ```text
 [STYLE BIBLE]
-Same LEVEL 3 Juno as the attached sprite (biggest glowing launcher, shoulder stripes). Same size and feet position.
-Pose (key frame, "fire"): braced, launcher tilted up at 45 degrees to the viewer's right, a bright gold barrel flash with little
-stars around the open end. No comet. Square 1024x1024, transparent background, no text.
+Same LEVEL 3 Juno as the attached sprite (biggest glowing popper, shoulder stripes). Same size, framing and feet position.
+Pose (key frame, "launch"): she presses the button on her hand controller, the funnel bounces and a bright gold sparkle flash
+with little stars puffs straight up out of the tube opening. No comet. Square 1024x1024, transparent background, no text.
 ```
 
 Reject if: the flash looks like fire or an explosion.
@@ -716,17 +739,17 @@ Reject if: the flash looks like fire or an explosion.
 ```text
 [STYLE BIBLE]
 Head-and-shoulders portrait of Juno (level 1 look, from the attached sheet), facing the viewer, confident smile, goggles on the
-helmet, the end of the toy launcher visible over one shoulder. Centred, about 85% of the canvas. Square 1024x1024, transparent
-background. No text, no frame.
+helmet, the funnel of the backpack comet popper rising straight up over one shoulder. Centred, about 85% of the canvas. Square
+1024x1024, transparent background. No text, no frame.
 ```
 
-Reject if: goggles or launcher are missing (they carry the silhouette).
+Reject if: goggles or the upward funnel are missing (they carry the silhouette).
 
 ##### `class.juno.locked` — Juno locked silhouette
 
 **File:** `juno-card-locked.png` (proposed name) · 128 (256) · transparent
 **Not ChatGPT.** Flat night-blue fill of `juno-card.png` plus plum outline. Card text "Unlocks after wave 10" is DOM.
-Reject if: the goggles and launcher do not show in the outline shape.
+Reject if: the goggles and the upward funnel do not show in the outline shape.
 
 ---
 
@@ -738,13 +761,15 @@ Reject if: the goggles and launcher do not show in the outline shape.
 
 ```text
 [STYLE BIBLE]
-Character reference sheet for ORION, the Orbit Ranger. Landscape 1536x1024, plain light background. Match the attached style
-anchor; same height and build as Nova on the attached Nova sheet.
+Character reference sheet for this game's Orbit Ranger astronaut. Landscape 1536x1024, plain light background. Use the
+attached images ONLY for style, outline, angle and height (the plain silhouette shows the height and build to match); this is a
+DIFFERENT person with the face, skin and hair described here.
 Show the same character three times at the same size: front view, three-quarter view facing the viewer's right, back view.
-Orion: observant navigator; young man with olive skin and wavy dark hair, thoughtful friendly expression, a small bright
-hearing aid, inside a round glass bubble helmet with a navy rim. Navy #2E4A9E suit with a pattern of small gold #FFD86B
-four-point stars. He holds a LONG telescope-like targeting instrument at his shoulder: a slim brass-and-navy tube with a round
-lens at the front and a small eyepiece, longer than his arm, like an explorer's telescope, clearly not a rifle.
+The character: observant navigator; young man with olive skin and wavy dark hair, thoughtful friendly expression, a small
+bright hearing aid, inside a round glass bubble helmet with a navy rim. Navy #2E4A9E suit with a pattern of small gold #FFD86B
+four-point stars. He carries a LONG telescope in one hand: a slim brass-and-navy tube with a round lens at the front and a small
+eyepiece, longer than his arm, held like a stargazer's telescope, tilted upward, never shouldered or aimed level. Clearly an
+explorer's telescope.
 No text, letters or numbers anywhere; the stars are simple shapes.
 ```
 
@@ -757,28 +782,31 @@ Reject if: the instrument looks like a sniper rifle (no stock, no trigger, no ma
 ```text
 [STYLE BIBLE]
 Using the attached Orion sheet, draw Orion as a single game sprite. Square 1024x1024, transparent background.
-Level 1 Orion: as on the sheet; telescope instrument held upright against his shoulder, pointing up to the viewer's right.
+Level 1 Orion: as on the sheet; telescope held upright beside him in one hand, tilted up to the viewer's right.
 Pose: calm watchful stance, feet at the bottom-centre, free hand shading his visor as if looking far away. Three-quarter
 top-down view, facing three-quarter towards the viewer's right. The whole instrument must fit inside the canvas.
-Full body, about 80% of the canvas height. No ground, no shadow, no text.
+Full body filling only about 65% of the canvas height, leaving empty space above and at the top-right for the longer telescope
+at later levels. No ground, no shadow, no text.
 ```
 
-Reject if: the telescope is cropped, it looks like a gun.
+Reject if: the telescope is cropped, it looks like a gun, it rests on his shoulder, the figure fills more than about 70% of the height.
 
 ##### `class.orion.l1.attack` — Orion L1 attack
 
 **File:** `orion-l1-attack-01.png` … `-06.png` · 128 (256) · transparent · 6 frames (Attack 6)
-**Purpose:** aims through the scope and fires a long tracer (`fx.orion.shot`). Slow shot, every 2.4 s.
+**Purpose:** spots the target and sends a long star tracer (`fx.orion.shot`). Slow shot, every 2.4 s.
 
 ```text
 [STYLE BIBLE]
-Same level 1 Orion as the attached sprite, same size and feet position.
-Pose (key frame, "fire"): Orion looks through the eyepiece, the telescope levelled towards the viewer's right, a small gold
+Same level 1 Orion as the attached sprite, same size, framing and feet position.
+Pose (key frame, "zap"): Orion holds the telescope tilted UP at about 30 degrees with one hand, as if star-gazing, and POINTS
+with the other hand towards the viewer's right; his eye is away from the eyepiece, a cheerful "found it" look; a small gold
 star-shaped glint at the front lens. Do NOT draw the tracer. The whole instrument fits in the canvas.
 Square 1024x1024, transparent background, no text.
 ```
 
-Reject if: the pose looks like aiming a rifle (keep it a telescope at the eye, not a shoulder-stock firing stance).
+Reject if: the telescope is level, at his eye or on his shoulder, or the pose looks like aiming a rifle; anything is held or braced like a
+gun, bazooka or rifle.
 
 ##### `class.orion.l2.idle` — Orion L2 idle
 
@@ -787,8 +815,8 @@ Reject if: the pose looks like aiming a rifle (keep it a telescope at the eye, n
 
 ```text
 [STYLE BIBLE]
-Edit the attached level 1 Orion sprite into LEVEL 2. Same character, face, pose, size and position.
-Change only: the telescope is about 1.3 times longer with an extra extending section and a larger front lens; add a gold star
+Edit the attached level 1 Orion sprite into LEVEL 2. Same character, face, pose, size and position; the figure still fills
+about 65% of the canvas height and the longer telescope uses the empty space above him. Change only: the telescope is about 1.3 times longer with an extra extending section and a larger front lens; add a gold star
 patch on the chest. Keep the whole instrument inside the canvas. Square 1024x1024, transparent background, no text.
 ```
 
@@ -800,12 +828,13 @@ Reject if: the longer instrument is cropped.
 
 ```text
 [STYLE BIBLE]
-Same LEVEL 2 Orion as the attached sprite (longer telescope, chest star patch). Same size and feet position.
-Pose (key frame, "fire"): looking through the eyepiece, telescope levelled to the viewer's right, gold star glint at the lens.
-No tracer. Square 1024x1024, transparent background, no text.
+Same LEVEL 2 Orion as the attached sprite (longer telescope, chest star patch). Same size, framing and feet position.
+Pose (key frame, "zap"): telescope tilted UP at about 30 degrees in one hand as if star-gazing, the other hand POINTING towards
+the viewer's right, eye away from the eyepiece, gold star glint at the lens. No tracer. Square 1024x1024, transparent
+background, no text.
 ```
 
-Reject if: L2 details are lost.
+Reject if: L2 details are lost, the telescope is level or at his eye.
 
 ##### `class.orion.l3.idle` — Orion L3 idle
 
@@ -814,8 +843,8 @@ Reject if: L2 details are lost.
 
 ```text
 [STYLE BIBLE]
-Edit the attached level 2 Orion sprite into LEVEL 3. Same character, face, pose, size and position.
-Change only: the telescope is the longest yet with a glowing gold ring at the front; his helmet visor now shows a faint pattern
+Edit the attached level 2 Orion sprite into LEVEL 3. Same character, face, pose, size and position; the figure still fills
+about 65% of the canvas height. Change only: the telescope is the longest yet with a glowing gold ring at the front; his helmet visor now shows a faint pattern
 of dots joined by thin lines like a star chart (no letters, no numbers); add navy-and-gold shoulder stripes.
 Square 1024x1024, transparent background, no text.
 ```
@@ -828,12 +857,13 @@ Reject if: the visor pattern contains anything that reads as writing or numbers.
 
 ```text
 [STYLE BIBLE]
-Same LEVEL 3 Orion as the attached sprite (longest telescope, star-chart visor, shoulder stripes). Same size and feet position.
-Pose (key frame, "fire"): telescope levelled to the viewer's right, a stronger gold star flash at the lens. No tracer.
+Same LEVEL 3 Orion as the attached sprite (longest telescope, star-chart visor, shoulder stripes). Same size, framing and feet
+position. Pose (key frame, "zap"): telescope tilted UP at about 30 degrees in one hand as if star-gazing, the other hand
+POINTING towards the viewer's right, eye away from the eyepiece, a stronger gold star flash at the lens. No tracer.
 Square 1024x1024, transparent background, no text.
 ```
 
-Reject if: the flash looks like gunfire.
+Reject if: the flash looks like gunfire, the telescope is level or at his eye.
 
 ##### `class.orion.portrait` — Orion shop portrait
 
@@ -866,10 +896,11 @@ Mira does not attack. Her second animation is **emit** (a shield pulse sent to t
 
 ```text
 [STYLE BIBLE]
-Character reference sheet for MIRA, the Shield Specialist. Landscape 1536x1024, plain light background. Match the attached
-style anchor; same height and build as Nova on the attached Nova sheet.
+Character reference sheet for this game's Shield Specialist astronaut. Landscape 1536x1024, plain light background. Use the
+attached images ONLY for style, outline, angle and height (the plain silhouette shows the height and build to match); this is a
+DIFFERENT person with the face, skin and hair described here.
 Show the same character three times at the same size: front view, three-quarter view facing the viewer's right, back view.
-Mira: calm colony technician; woman with medium-brown skin, dark hair in a neat bun, round glasses, calm kind smile, inside a
+The character: calm colony technician; woman with medium-brown skin, dark hair in a neat bun, round glasses, calm kind smile, inside a
 round glass bubble helmet with a green rim. White suit with leaf-green #3DBE6E panels. A LARGE, obvious rounded shield emblem
 covers most of her chest (a plain green-and-white shield shape with no symbols inside). She holds a small handheld dish
 emitter, like a mini satellite dish on a short handle, with a cyan #5BE0F0 centre.
@@ -985,16 +1016,21 @@ Reject if: indistinguishable from Nova's silhouette (crop the portrait lower so 
 
 Sol supports nearby astronauts and does not attack. His second animation is **pulse**.
 
+**Canvas (fixed before L1):** all Sol sprites, every level and frame, use **1024x1536 portrait** and a **128x192 display frame (author
+256x384)**, pivot bottom-centre. The body fills about 55% of the canvas height at the bottom, leaving the top for the antenna as it grows.
+Tell whoever builds the atlas that Sol's frames are taller than the other classes' 128 px squares. (The portrait and locked card stay square.)
+
 ##### Master reference: Sol character sheet (not shipped)
 
 **File:** `art/source/astronauts/sol-sheet.png` · 1536x1024
 
 ```text
 [STYLE BIBLE]
-Character reference sheet for SOL, the Beacon Commander. Landscape 1536x1024, plain light background. Match the attached style
-anchor; same height and build as Nova on the attached Nova sheet (the antenna adds height).
+Character reference sheet for this game's Beacon Commander astronaut. Landscape 1536x1024, plain light background. Use the
+attached images ONLY for style, outline, angle and height (the plain silhouette shows the height and build to match; the antenna
+adds height); this is a DIFFERENT person with the face, skin and hair described here.
 Show the same character three times at the same size: front view, three-quarter view facing the viewer's right, back view.
-Sol: encouraging communications specialist; older man with dark-brown skin, a short grey beard and a warm grin, inside a round
+The character: encouraging communications specialist; older man with dark-brown skin, a short grey beard and a warm grin, inside a round
 glass bubble helmet with a gold rim. Red #E2403A suit with gold #F5B700 panels. A TALL thin antenna rises from his backpack,
 taller than his helmet, topped by a round glowing gold beacon bulb. One hand is raised in a friendly thumbs-up.
 No text, letters or numbers anywhere.
@@ -1004,84 +1040,86 @@ Reject if: the antenna is short or hidden behind the helmet, the pose looks like
 
 ##### `class.sol.l1.idle` — Sol L1 idle
 
-**File:** `sol-l1-idle-01.png` … `-04.png` · 128 (256) · transparent · 4 frames (method A)
+**File:** `sol-l1-idle-01.png` … `-04.png` · 128x192 frame (256x384) · transparent · 4 frames (method A)
 
 ```text
 [STYLE BIBLE]
-Using the attached Sol sheet, draw Sol as a single game sprite. Square 1024x1024, transparent background (use 1024x1536 if
-the antenna does not fit).
+Using the attached Sol sheet, draw Sol as a single game sprite. Portrait 1024x1536, transparent background.
 Level 1 Sol: as on the sheet; antenna with a small gold beacon bulb, gently lit.
 Pose: encouraging stance, feet at the bottom-centre, one hand giving a thumbs-up. Three-quarter top-down view, facing
-three-quarter towards the viewer's right. The whole antenna fits inside the canvas. No ground, no shadow, no text.
+three-quarter towards the viewer's right. The body fills about 55% of the canvas height at the bottom; the whole antenna fits
+inside the canvas with empty space above it. No ground, no shadow, no text.
 ```
 
 Reject if: the antenna is cropped, Sol looks like Mira with a different colour.
 
 ##### `class.sol.l1.pulse` — Sol L1 pulse
 
-**File:** `sol-l1-pulse-01.png` … `-04.png` · 128 (256) · transparent · 4 frames (guide 3.2, Pulse)
+**File:** `sol-l1-pulse-01.png` … `-04.png` · 128x192 frame (256x384) · transparent · 4 frames (guide 3.2, Pulse)
 **Purpose:** the beacon lights up and sends a pulse (`fx.sol.beacon`).
 
 ```text
 [STYLE BIBLE]
 Same level 1 Sol as the attached sprite, same size and feet position.
 Pose (key frame): Sol raises one arm high with an open hand, the beacon bulb at full bright gold glow with a soft halo just
-around the bulb. Do NOT draw the expanding ring. Square 1024x1024, transparent background, no text.
+around the bulb. Do NOT draw the expanding ring. Portrait 1024x1536, same framing as the idle sprite, transparent background,
+no text.
 ```
 
 Reject if: a large ring or rays fill the canvas.
 
 ##### `class.sol.l2.idle` — Sol L2 idle
 
-**File:** `sol-l2-idle-01.png` … `-04.png` · 128 (256) · transparent · 4 frames
+**File:** `sol-l2-idle-01.png` … `-04.png` · 128x192 frame (256x384) · transparent · 4 frames
 **Purpose:** level 2: improved support effect. Taller antenna.
 
 ```text
 [STYLE BIBLE]
 Edit the attached level 1 Sol sprite into LEVEL 2. Same character, face, pose, size and position.
 Change only: the antenna is about 1.3 times taller with a second small cross-bar, and the beacon bulb is larger; add a gold
-star patch on the chest (plain). Keep everything inside the canvas. Square 1024x1024, transparent background, no text.
+star patch on the chest (plain). Keep everything inside the canvas. Portrait 1024x1536, same framing (body about 55% of the
+height), transparent background, no text.
 ```
 
 Reject if: the taller antenna is cropped.
 
 ##### `class.sol.l2.pulse` — Sol L2 pulse
 
-**File:** `sol-l2-pulse-01.png` … `-04.png` · 128 (256) · transparent · 4 frames
+**File:** `sol-l2-pulse-01.png` … `-04.png` · 128x192 frame (256x384) · transparent · 4 frames
 
 ```text
 [STYLE BIBLE]
 Same LEVEL 2 Sol as the attached sprite (taller antenna with cross-bar, star patch). Same size and feet position.
 Pose (key frame): arm raised, beacon at full gold glow with a small halo. No ring.
-Square 1024x1024, transparent background, no text.
+Portrait 1024x1536, same framing, transparent background, no text.
 ```
 
 Reject if: L2 details are lost.
 
 ##### `class.sol.l3.idle` — Sol L3 idle
 
-**File:** `sol-l3-idle-01.png` … `-04.png` · 128 (256) · transparent · 4 frames
+**File:** `sol-l3-idle-01.png` … `-04.png` · 128x192 frame (256x384) · transparent · 4 frames
 **Purpose:** level 3: greater support radius. Tallest beacon with a double dish.
 
 ```text
 [STYLE BIBLE]
 Edit the attached level 2 Sol sprite into LEVEL 3. Same character, face, pose, size and position.
 Change only: the antenna is the tallest yet and carries two small round dishes facing left and right below the beacon bulb;
-the bulb has a gold ring around it; add red-and-gold shoulder stripes. Everything fits inside the canvas (use 1024x1536 if
-needed). Transparent background, no text.
+the bulb has a gold ring around it; add red-and-gold shoulder stripes. Everything fits inside the canvas. Portrait 1024x1536,
+same framing (body about 55% of the height), transparent background, no text.
 ```
 
 Reject if: the dishes look like Mira's emitter held in the hand (they must be on the antenna).
 
 ##### `class.sol.l3.pulse` — Sol L3 pulse
 
-**File:** `sol-l3-pulse-01.png` … `-04.png` · 128 (256) · transparent · 4 frames
+**File:** `sol-l3-pulse-01.png` … `-04.png` · 128x192 frame (256x384) · transparent · 4 frames
 
 ```text
 [STYLE BIBLE]
 Same LEVEL 3 Sol as the attached sprite (tallest antenna, double dish, shoulder stripes). Same size and feet position.
 Pose (key frame): arm raised, beacon and both dishes glowing gold. No ring.
-Transparent background, same canvas as the idle sprite, no text.
+Portrait 1024x1536, same canvas and framing as the idle sprite, transparent background, no text.
 ```
 
 Reject if: L3 details are lost.
@@ -1115,7 +1153,7 @@ selected pads. Check: visible on every class and on every pad colour, and not sh
 
 ---
 
-### 4.2 Aliens, carrier and descendants (conversation 7)
+### 4.2 Aliens, carrier and descendants (conversations 7a and 7b)
 
 Aliens walk along the route towards the colony. Draw them **facing three-quarter towards the viewer's right**; the game mirrors them. Each
 must be recognisable by **shape and motion**, colour second (C6.1). They are mischievous, never frightening, and nothing about them
@@ -1126,10 +1164,11 @@ Start the conversation with a quick **alien line-up reference** (not shipped) so
 ```text
 [STYLE BIBLE]
 Reference line-up of the game's aliens, side by side on a plain light background, landscape 1536x1024, all facing three-quarter
-towards the viewer's right, shown at their relative game sizes: a round blue jelly blob (medium); a tiny pointed orange rock
+towards the viewer's right, shown at their relative game sizes: a wide, flat-bottomed dome-shaped blue jelly blob, clearly wider than tall, with two short
+stubby round-ended bobble antennae and three lighter crater-like spots on its back (medium); a tiny pointed orange rock
 creature with little legs (small); a wide teal domed shell creature with stubby legs (medium); a tiny cyan bubble with a face
-(very small); a lilac winged disc creature (medium); a little peach alien inside nested soap bubbles (medium); a little peach
-alien carrying a flag with a sticking-plaster shape (medium); a lime two-lobed slime with a seam (medium); a toy flying saucer
+(very small); a lilac winged disc creature (medium); a little peach alien inside nested soap bubbles (medium); a little
+patch-cream (#F7F0E0) alien with a lilac-pink cheek blush carrying a BIG flag with a sticking-plaster shape (medium); a lime two-lobed slime with a seam (medium); a toy flying saucer
 with portholes (large). All cute, cheeky, big-eyed, rounded, not scary. No text.
 ```
 
@@ -1143,13 +1182,15 @@ Then make each alien as its own image using the line-up as reference.
 ```text
 [STYLE BIBLE]
 Game sprite of a MOON BLOB alien. Square 1024x1024, transparent background.
-A round, wobbly, translucent-looking blue (#5AA9F0) jelly alien with a lighter belly, two big shiny eyes, a cheeky
-lopsided grin and a tiny antenna nub on top. It has no legs; it moves by squashing and stretching.
+A wobbly, translucent-looking blue (#5AA9F0) jelly alien: a wide, flat-bottomed dome shape, clearly wider than tall, with
+two short stubby round-ended bobble antennae and three lighter crater-like spots on its back, a lighter belly, two big shiny
+eyes and a cheeky lopsided grin. It has no legs; it moves by squashing and stretching.
 Pose (frame 01, "contact"): leaning forward towards the viewer's right, slightly stretched. Three-quarter top-down view.
 Bottom of the blob at the bottom-centre of the canvas, filling about 75% of the canvas. No ground, no shadow, no text.
 ```
 
-Reject if: it looks gooey or gross, the face is angry, it resembles a known game's slime mascot.
+Reject if: it looks gooey or gross, the face is angry, it resembles a known game's slime mascot (a teardrop shape with a pointed tip is
+an automatic reject; it must be a wide dome with two bobble antennae).
 
 #### `alien.mite.walk` — Meteor Mite scurry
 
@@ -1162,8 +1203,10 @@ Game sprite of a METEOR MITE alien. Square 1024x1024, transparent background.
 A small, pointed, chunky rock creature (rock orange #D08A55 with darker speckles) shaped like a little meteor, with four short
 stubby legs, two big curious eyes and a mischievous grin. Behind it, a small puff of moon dust and two or three short speed
 lines to show it is fast.
-Pose (frame 01): mid-scurry towards the viewer's right, legs blurred into a cartoon run. Three-quarter top-down view.
+Pose (frame 01): legs in a clear mid-scurry stride towards the viewer's right, with small speed lines behind (no blur).
+Three-quarter top-down view.
 Feet at the bottom-centre, filling about 70% of the canvas. Simple enough to read at 64 px. No text.
+Outline: about 32 px thick on this 1024 px image (very thick, bold outline).
 ```
 
 Reject if: it has insect detail (antennae, many legs, mandibles) that could frighten a child, too much detail for 64 px.
@@ -1196,6 +1239,7 @@ A small round see-through bubble (bubble cyan #9FF3FF) with a bright highlight i
 mouth. Extremely simple shape, so it still reads at 32 px.
 Pose (frame 01): squashed slightly at the bottom as if it just landed from a hop. Centred low on the canvas, filling about 70%.
 No text.
+Outline: about 56 px thick on this 1024 px image (very thick, bold outline).
 ```
 
 Reject if: more than one bubble is drawn, too much detail for 32 px, the face is lost when shrunk.
@@ -1269,14 +1313,16 @@ Reject if: it looks like glass shattering (sharp shards).
 ```text
 [STYLE BIBLE]
 Game sprite of a PATCHLING alien. Square 1024x1024, transparent background.
-A friendly little round alien in soft healing green (#7BEA8C) with a lighter face, big kind eyes and a helpful smile. It
-carries a small flag on a pole; the flag is a plain cream sticking-plaster shape (a rounded rectangle with a darker square pad
-in the middle and a few dots), with no cross, no letters and no symbol.
+A friendly little round alien in patch cream (#F7F0E0) with a lilac-pink cheek blush, big kind eyes and a helpful smile. It
+carries a BIG flag on a pole, the flag about a third of the sprite's height; the flag is a plain soft-tan sticking-plaster shape
+(a rounded rectangle with a lighter square pad in the middle and a few dots), with no cross, no letters and no symbol.
+The alien itself is NOT green.
 Pose (frame 01): walking towards the viewer's right, waving the flag. Three-quarter top-down view. Feet at the bottom-centre,
 filling about 75% of the canvas. No text.
 ```
 
-Reject if: the flag has a red cross (a protected emblem) or any symbol, it looks like a medic character from an existing game.
+Reject if: the flag has a red cross (a protected emblem) or any symbol, it looks like a medic character from an existing game, the body
+is green (it would be confused with the lime slimes under colour blindness; healing green is only for its effects), the flag is small.
 
 #### `alien.patchling.heal-pulse` — Patchling heal pulse
 
@@ -1287,8 +1333,9 @@ Reject if: the flag has a red cross (a protected emblem) or any symbol, it looks
 ```text
 [STYLE BIBLE]
 Game effect seen from above at the three-quarter angle: a flat ring of soft healing-green (#7BEA8C) sparkles and little plus-
-shaped twinkles lying on the ground, like an ellipse slightly wider than tall. Empty centre. Square 1024x1024, transparent
+shaped twinkles lying on the ground, an ellipse exactly 4 wide : 3 tall. Empty centre. Square 1024x1024, transparent
 background, ring filling about 90% of the canvas. No text, no cross symbols.
+Outline: about 8 px thick on this 1024 px image.
 ```
 
 Reject if: the plus shapes look like red crosses or medical logos, the ring is a full disc.
@@ -1333,6 +1380,7 @@ Reject if: it looks like the slime is being torn or hurt (keep it a bouncy, happ
 Game sprite of a SLIMELET: one half of the attached Split Slime, now a small single round lime (#9BE564) slime lobe with ONE
 big eye and a small grin, no seam. Pose (frame 01): squashed, about to hop towards the viewer's right. Three-quarter top-down
 view. Bottom at the bottom-centre, filling about 70% of the canvas. Simple enough to read at 64 px. No text.
+Outline: about 32 px thick on this 1024 px image (very thick, bold outline).
 ```
 
 Reject if: it still has a seam (that would make it look like it splits again).
@@ -1350,6 +1398,7 @@ four round portholes around the rim; in each porthole a little blue Moon Blob fa
 lights around the bottom edge. Clearly a fun toy, not a warship.
 Pose (frame 01): hovering, tilted slightly towards the viewer's right. Three-quarter top-down view. Place it a little above
 the canvas centre (it hovers low over the path). No beam, no shadow, no text.
+Outline: about 8 px thick on this 1024 px image.
 ```
 
 Reject if: weapons, guns or a tractor beam appear, it resembles a famous film saucer, the portholes contain anything but blob faces.
@@ -1364,27 +1413,29 @@ Reject if: weapons, guns or a tractor beam appear, it resembles a famous film sa
 Same Alien Craft as the attached sprite, key frame of its RELEASE: a hatch underneath has dropped open and four little blue
 Moon Blobs tumble out happily, while the saucer starts to pop into a burst of colourful stars. Playful, no damage, no debris.
 Square 1024x1024, transparent background, no text.
+Outline: about 8 px thick on this 1024 px image.
 ```
 
 Reject if: it looks like a crash or explosion, the blobs look scared or hurt.
 
 ---
 
-### 4.3 Trait icons (conversation 7, after the aliens)
+### 4.3 Trait icons (conversation 7c)
 
 Shown small (32 px, author 64) above aliens and on the alien info panel. ChatGPT can sketch them, but tiny icons are usually cleaner when
 redrawn as SVG from the sketch (D10.8 lists them as "Generated"; the inventory allows either). Template:
 
 ```text
 [STYLE BIBLE]
-A simple flat game ICON of <SUBJECT>. Bold rounded shape, at most two colours plus the thick dark plum outline, no gradients,
+A simple flat game ICON of <SUBJECT>. Bold rounded shape, at most two colours plus a very thick dark plum outline (about
+56 px on this 1024 px image), no gradients,
 no tiny details, readable at 32 pixels. Centred, filling about 80% of the canvas. Square 1024x1024, transparent background.
 No text, no letters, no numbers.
 ```
 
 | Id | File | `<SUBJECT>` | Reject if |
 |---|---|---|---|
-| `icon.trait.armour` | `icon-armour.png` | a sturdy rounded shield-shaped armour plate with two bolts, teal #2FA39A | it looks like a heraldic crest or a brand logo |
+| `icon.trait.armour` | `icon-armour.png` | a chunky rounded dome-shaped shell plate with three big round bolts across it, like a slice of the Shellback's shell, teal #2FA39A; NOT a shield outline | it has a shield or crest outline (shields mean colony protection elsewhere in the game), it looks like a brand logo |
 | `icon.trait.flying` | `icon-flying.png` | a single soft rounded wing, lilac #B98AF0 | it looks like a bird or a known logo |
 | `icon.trait.bubbles` | `icon-bubbles.png` | three nested concentric bubble rings, cyan #9FF3FF | rings are not clearly separate |
 | `icon.trait.healer` | `icon-healer.png` | a cream sticking plaster with a darker centre pad, set at a slant, no cross | a cross or red-cross symbol appears |
@@ -1392,15 +1443,18 @@ No text, no letters, no numbers.
 | `icon.trait.carrier` | `icon-carrier.png` | a small flying saucer with three tiny round faces in its portholes | too detailed at 32 px |
 | `icon.lock` | `icon-lock.png` | a friendly rounded padlock, gold #F5B700 body, metal grey shackle, round keyhole | the keyhole or body carries a number or letter |
 
-`icon.lock` is owner SVG in the inventory (also used on closed pads); the sketch is only a starting point.
-
+`icon.lock` is listed as **Generated** in D10.8, with the trait icons. Because it is also used on closed pads and must stay crisp, this
+pack recommends redrawing it as SVG from the sketch; if you do, record the change of source in D10.8.
 ---
 
-### 4.4 Bosses (conversation 8)
+### 4.4 Bosses (conversations 8a to 8c)
 
 Bosses are **big and funny**, never menacing. They are 384 px (author 768): generate at 1024x1024 and downscale. Every phase change must be
 readable from shape and motion (C7), not a number. Boss health bars, phase names and bubble-layer counts are DOM text, never in the art.
 Attach the matching ordinary alien each time so the boss is clearly its "king" version.
+
+The boss **names stay in the card headings only**. The prompt bodies describe the boss instead, because a proper name in the prompt
+(Captain Clank in particular) can pull the model towards an existing character with a similar name.
 
 #### `boss.wobble.walk` — King Wobble, phase 1 (Royal stroll)
 
@@ -1409,11 +1463,13 @@ Attach the matching ordinary alien each time so the boss is clearly its "king" v
 
 ```text
 [STYLE BIBLE]
-Game sprite of KING WOBBLE, a boss: a GIANT version of the attached Moon Blob alien. Square 1024x1024, transparent background.
-A huge round wobbly blue (#5AA9F0) jelly king with the Moon Blob's big eyes and cheeky grin, a pompous raised chin, and a
+Game sprite of a BOSS: a GIANT version of the attached blue jelly alien. Square 1024x1024, transparent background.
+A huge wide-domed wobbly blue (#5AA9F0) jelly king with the attached alien's bobble antennae, crater spots, big eyes and cheeky
+grin, a pompous raised chin, and a
 simple yellow folded-paper crown sitting perfectly upright on top (three points, no jewels with symbols).
 Pose (frame 01): a slow royal stroll towards the viewer's right, body leaning forward and stretching. Three-quarter top-down
 view. Bottom at the bottom-centre, filling about 85% of the canvas with the crown inside the top edge. No text.
+Outline: about 6 px thick on this 1024 px image.
 ```
 
 Reject if: the crown has letters, numbers or symbols, the king looks angry or scary.
@@ -1425,9 +1481,10 @@ Reject if: the crown has letters, numbers or symbols, the king looks angry or sc
 
 ```text
 [STYLE BIBLE]
-Edit the attached King Wobble sprite. Same character, size and position. Change only: his body turns bright pink (#FF7FB8),
+Edit the attached boss sprite. Same character, size and position. Change only: his body turns bright pink (#FF7FB8),
 two small white steam puffs rise from his head like a cartoon kettle, his paper crown is tilted to one side, and his
 expression is flustered and determined (puffed cheeks, not angry). Square 1024x1024, transparent background, no text.
+Outline: about 6 px thick on this 1024 px image.
 ```
 
 Reject if: the steam looks like smoke from a fire, the shape changes.
@@ -1440,9 +1497,10 @@ six frames and add the steam burst below.
 
 ```text
 [STYLE BIBLE]
-Key frame of King Wobble (attached) changing colour: his body half blue and half pink in a swirl, a big burst of white cartoon
+Key frame of the attached crowned jelly boss changing colour: his body half blue and half pink in a swirl, a big burst of white cartoon
 steam puffs around his head, the crown popping up and tilting. Funny, surprised expression. Same size and position.
 Square 1024x1024, transparent background, no text.
+Outline: about 6 px thick on this 1024 px image.
 ```
 
 Reject if: it reads as an explosion.
@@ -1457,31 +1515,35 @@ Full plate (phase 1):
 
 ```text
 [STYLE BIBLE]
-Game sprite of CAPTAIN CLANK, a boss: a GIANT version of the attached Shellback alien. Square 1024x1024, transparent background.
+Game sprite of a BOSS: a GIANT version of the attached shell alien. Square 1024x1024, transparent background.
 A huge teal shell creature wearing extra bolted-on rounded metal armour plates (metal grey #A7B0C8 with big round bolts) over
 its shell, and a small navy captain's hat with a plain gold band (no badge, no emblem). Determined, slightly pompous face
 peeking out under the front. Pose (frame 01): heavy plod towards the viewer's right. Three-quarter top-down view. Feet at the
 bottom-centre, filling about 85% of the canvas. No text.
+Outline: about 6 px thick on this 1024 px image.
 ```
 
 Cracked shell (phase 2), as an edit:
 
 ```text
 [STYLE BIBLE]
-Edit the attached Captain Clank. Same character, size and position. Change only: most bolted plates are gone; the teal shell
+Edit the attached shell boss. Same character, size and position. Change only: most bolted plates are gone; the teal shell
 shows several cracks that glow soft gold from inside; the face looks surprised. No text.
+Outline: about 6 px thick on this 1024 px image.
 ```
 
 Shell off (phase 3), as an edit:
 
 ```text
 [STYLE BIBLE]
-Edit the attached Captain Clank. Same character, size and position, hat still on. Change only: the shell is completely off,
-showing his round body wearing funny spotty underpants (big polka dots), and he is running in a comic hurry with his legs
-blurred and his arms up. Embarrassed, giggly face. No text.
+Edit the attached shell boss. Same character, size and position, hat still on. Change only: the shell is completely off,
+showing his round body in funny spotty pants (big polka dots) on the same four stubby legs, scurrying in a comic hurry with a
+sheepish grin. Legs drawn clearly in a scurry stride, no blur. No arms. No text.
+Outline: about 6 px thick on this 1024 px image.
 ```
 
-Reject if: the hat has a badge or letters, the cracks look like wounds, the shell-off state is anything but silly.
+Reject if: the hat has a badge or letters, the cracks look like wounds, the shell-off state is anything but silly, arms or a new body
+plan appear (he has four stubby legs and no arms, like the Shellback), he looks frightened or as if surrendering.
 
 #### `boss.clank.plates-fall` — Captain Clank plates fall
 
@@ -1490,9 +1552,10 @@ Reject if: the hat has a badge or letters, the cracks look like wounds, the shel
 
 ```text
 [STYLE BIBLE]
-Key frame of the attached Captain Clank's armour plates clattering off: four or five rounded grey plates with bolts flying
-outward and down from his shell, with small cartoon impact stars (no letters, no "clang" word). Same size and position.
+Key frame of the attached shell boss's armour plates falling off: four or five rounded grey plates with bolts tumbling
+outward and down from his shell, with small cartoon impact stars. Same size and position.
 Square 1024x1024, transparent background, no text.
+Outline: about 6 px thick on this 1024 px image.
 ```
 
 Reject if: the effect contains a sound word or any letters.
@@ -1504,15 +1567,17 @@ Reject if: the effect contains a sound word or any letters.
 
 ```text
 [STYLE BIBLE]
-Game sprite of QUEEN BUBBLA, a boss: a GIANT, regal version of the attached Bubble Guard alien, drawn WITHOUT any bubble around
-her. Square 1024x1024, transparent background.
-A large round peach (#FFB38A) alien queen with a sparkly cyan tiara (plain gems, no symbols), long eyelashes and a grand,
-amused smile, holding a tall bubble-wand sceptre topped with a big ring that has a bubble forming in it.
+Game sprite of a BOSS: a GIANT, grand version of the attached peach bubble alien, drawn WITHOUT any bubble around her.
+Square 1024x1024, transparent background.
+A large round peach (#FFB38A) alien with a crown made of three soap bubbles stuck together (no tiara, no gems), a grand,
+amused smile, no eyelashes and no gown; she holds a chunky bubble-blowing hoop on a short stick.
 Pose (frame 01): a grand slow walk towards the viewer's right. Three-quarter top-down view. Feet at the bottom-centre, filling
 about 75% of the canvas (leave room for the bubble overlay). No text.
+Outline: about 6 px thick on this 1024 px image.
 ```
 
-Reject if: she resembles a known princess or queen character, a bubble surrounds her.
+Reject if: she has a witch, fairy or princess look (tiara, wand with a star, gown, long eyelashes), she resembles a known queen or "good
+witch" character, a bubble surrounds her.
 
 #### `boss.bubbla.wand` — Queen Bubbla wand wave
 
@@ -1522,8 +1587,9 @@ game plays this faster in phase 3.
 
 ```text
 [STYLE BIBLE]
-Key frame of the attached Queen Bubbla WAVING her bubble wand in a big flourish over her head, a ring of cyan sparkles and
-tiny bubbles spraying outward around her. Same size and position. Square 1024x1024, transparent background, no text.
+Key frame of the attached peach bubble boss WAVING her bubble hoop in a big flourish over her head, a ring of cyan sparkles
+and tiny bubbles spraying outward around her. Same size and position. Square 1024x1024, transparent background, no text.
+Outline: about 6 px thick on this 1024 px image.
 ```
 
 Reject if: the sparkles fill the canvas edges (keep a margin).
@@ -1533,88 +1599,170 @@ Reject if: the sparkles fill the canvas edges (keep a margin).
 **Files:** `boss-bubbla-bubble-full.png`, `-thin.png`, `-none.png` (proposed names) · 384 (768) · transparent
 **SVG / code — not ChatGPT.** A large translucent bubble enclosure over the queen: "full" is a thick, bright bubble; "thin" is a fainter,
 thinner one; "none" is empty (or simply not drawn). The layer count (8) is shown in the DOM.
+**Shared with The Great Glorp:** the same overlay, scaled to fit, is Glorp's phase-2 bubble (10 layers). Draw it so it scales cleanly over
+both bosses; full while many layers remain, thin when few remain, none when popped.
 Optional reference sketch: `One big translucent soap bubble, cyan rim, white highlight top-left, empty inside, transparent background, no text.`
 
 #### `boss.mothership.hover` — The Mothership
 
-**Files:** `boss-mothership-shut-hover-01..06.png`, `boss-mothership-bare-hover-01..06.png` · 384 (768) · transparent · 6 frames per state
-**Purpose:** wave 40 boss. "Doors shut" for phases 1 to 3; "plating off" in phase 4 (it hurries).
+**Files:** `boss-mothership-shut-hover-01..06.png`, `boss-mothership-door1open-hover-01..06.png`,
+`boss-mothership-door12open-hover-01..06.png`, `boss-mothership-bare-hover-01..06.png` · 384 (768) · transparent · 6 frames per state
+(proposed names for the two door-open states; update the D10.6 frame list to match)
+**Purpose:** wave 40 boss. Every phase must be readable from the boss's shape (C7), so a door that has opened **stays open** for the rest
+of the fight:
+
+| Phase | Hover state | What it shows |
+|---|---|---|
+| 1 (100% to 75%) | `shut` | all three doors shut, plating on |
+| 2 (75% to 50%) | `door1open` | door 1 hanging open and empty, its dot light dark; plating on |
+| 3 (50% to 25%) | `door12open` | doors 1 and 2 hanging open and empty, their dot lights dark; plating on |
+| 4 (25% to 0) | `bare` | all three doors hanging open and empty, all dot lights dark, plating off, tilting forward (it hurries) |
+
+Make `shut` first, then each later state as an edit of the one before it.
+
+Doors shut (phase 1):
 
 ```text
 [STYLE BIBLE]
-Game sprite of THE MOTHERSHIP, a boss: a GIANT, grander version of the attached Alien Craft. Square 1024x1024, transparent
+Game sprite of a BOSS: a GIANT, grander version of the attached toy flying saucer. Square 1024x1024, transparent
 background. A big round toy-like saucer with a glass dome on top where a tiny smug alien captain sits, silver-lilac hull with
 rounded hull plating panels, and THREE large cargo doors along the front rim. Above each door is a row of round lights showing
 a count with DOTS: one dot above the first door, two dots above the second, three dots above the third. Absolutely no digits.
 Pose (frame 01): hovering, tilted slightly towards the viewer's right. Three-quarter top-down view, a little above centre.
 No beams, no weapons, no text, no numbers.
+Outline: about 6 px thick on this 1024 px image.
 ```
 
-Plating off, as an edit:
+Door 1 open (phase 2), as an edit:
 
 ```text
 [STYLE BIBLE]
-Edit the attached Mothership. Same size and position. Change only: the rounded hull plating panels have fallen away showing a
-simpler frame with cartoon pipes, and it tilts forward as if hurrying. Keep the three doors and their 1-, 2- and 3-dot light
-rows. No text, no numbers.
+Edit the attached saucer boss. Same size and position. Change only: the FIRST cargo door (one dot light above it) hangs open
+like a ramp, the hold behind it empty, and its dot light is dark. The other two doors stay shut. No text, no numbers.
+Outline: about 6 px thick on this 1024 px image.
 ```
 
-Reject if: any digit appears (check the door lights very carefully), it looks like a warship or a famous film ship.
+Doors 1 and 2 open (phase 3), as an edit of the door-1-open sprite:
+
+```text
+[STYLE BIBLE]
+Edit the attached saucer boss. Same size and position. Change only: the SECOND cargo door (two dot lights above it) now also
+hangs open like a ramp, empty, and its dot lights are dark. The third door stays shut. No text, no numbers.
+Outline: about 6 px thick on this 1024 px image.
+```
+
+Bare (phase 4), as an edit of the doors-1-and-2-open sprite:
+
+```text
+[STYLE BIBLE]
+Edit the attached saucer boss. Same size and position. Change only: the rounded hull plating panels have fallen away showing a
+simpler frame with cartoon pipes; the THIRD cargo door now also hangs open and empty with its dot lights dark, so all three
+doors are open; it tilts forward as if hurrying. Keep the 1-, 2- and 3-dot light rows (all dark). No text, no numbers.
+Outline: about 6 px thick on this 1024 px image.
+```
+
+Reject if: any digit appears (check the door lights very carefully), it looks like a warship or a famous film ship, a state does not
+match the table (wrong door open, a spent door shown shut).
 
 #### `boss.mothership.door` — Mothership door open
 
 **Files:** `boss-mothership-door1-01..06.png`, `-door2-…`, `-door3-…` · 384 (768) · transparent · 6 frames each
 **Purpose:** at 75%, 50% and 25% one door drops open and aliens tumble out (door 1: Meteor Mites; door 2: Orbit Flutters; door 3:
-Shellbacks).
+Shellbacks). Each animation runs from the hover state **before** the opening (frame 01) to the hover state **after** it (frame 06): door 1
+goes `shut` → `door1open`, door 2 goes `door1open` → `door12open`, door 3 goes `door12open` → `bare` (the plating falls away in the same
+moment). The aliens that come out are separate sprites spawned by the game; the key frame only shows them leaving.
+
+Key frame for each door, as an edit of the hover state AFTER that door has opened (`door1open` for door 1, `door12open` for door 2, the
+BARE sprite for door 3):
 
 ```text
 [STYLE BIBLE]
-Edit the attached Mothership. Same size and position. Key frame: the <first | second | third> cargo door (the one with
-<one | two | three> dot lights above it) has dropped open like a ramp, and <four little Meteor Mites scurry | four Orbit Flutters
-flutter | two Shellbacks march> out happily. The other doors stay shut. No text, no numbers.
+Edit the attached saucer boss. Same size and position. Key frame: the <first | second | third> cargo door (the one with
+<one | two | three> dot lights above it) has just dropped open like a ramp, its dot lights flashing, and <four little rock-mite
+aliens scurry | four lilac winged disc aliens flutter | two teal shell aliens march> out happily. Doors that were already open
+stay open and empty; doors not yet opened stay shut. No text, no numbers.
+Outline: about 6 px thick on this 1024 px image.
 ```
 
 Make three images, choosing one option from each `< | >` group each time.
-Reject if: the wrong door opens, digits appear, the aliens look frightened.
+Reject if: the wrong door opens, a door that should already be open is drawn shut, digits appear, the aliens look frightened.
+
+#### `boss.mothership.release` — Mothership defeat release (optional, proposed)
+
+**File:** `boss-mothership-release-01..06.png` (proposed; not in D10) · 384 (768) · transparent · 6 frames
+**Purpose:** C7's end phase: when The Mothership is defeated it releases 4 Moon Blobs. **No new art is required:** play `fx.pop-stars` at
+boss scale (384) over the bare sprite and let the game spawn four `alien.blob.walk` Moon Blobs from the open cargo doors. Make this key
+frame only if you want a dedicated moment, built like `alien.craft.release`:
+
+```text
+[STYLE BIBLE]
+Same saucer boss as the attached BARE sprite (plating off, all doors open), key frame of its RELEASE: four little blue jelly
+aliens (as in the second attachment) tumble out of the open cargo doors happily, while the saucer starts to pop into a big burst
+of colourful stars. Playful, no damage, no debris. Same size and position. Square 1024x1024, transparent background, no text.
+Outline: about 6 px thick on this 1024 px image.
+```
+
+Reject if: it looks like a crash or explosion, the blobs look scared or hurt.
 
 #### `boss.glorp.walk` — The Great Glorp (four states)
 
 **Files:** `boss-glorp-armoured-walk-01..06.png`, `-bubbled-…`, `-cargo-…`, `-dash-…` · 384 (768) · transparent · 6 frames per state
 **Purpose:** wave 50 campaign boss that borrows one trick from each earlier boss. Make a **base Glorp** first (not shipped), then the four
-states as edits.
+states as edits. The walk states are **looping** sprites, so they never contain temporary events: the phase-2 bubble is the shared
+`boss.bubbla.bubble` overlay (it pops layer by layer and disappears while Glorp stays in phase 2), and the phase-3 cargo spill is the
+one-shot `boss.glorp.hatch` below (the released aliens are separate sprites spawned by the game).
 
 Base (reference only):
 
 ```text
 [STYLE BIBLE]
-Character design for THE GREAT GLORP, the final boss: a huge, round, friendly-goofy mega alien in magenta (#E05FD0) and lilac,
-with three big eyes in a row, a wide toothless grin, two short arms, two stubby legs and a round belly with a hatch door (a
-plain circle with a handle). It should look like the grand silly champion of all the other aliens. Facing three-quarter towards
-the viewer's right, three-quarter top-down view, feet at the bottom-centre, about 85% of the canvas. Square 1024x1024,
-transparent background, no text.
+Character design for the FINAL BOSS of the game: a huge, round, friendly-goofy mega alien in magenta (#E05FD0) and lilac,
+with two huge eyes plus one small extra eye on a stalk, a wide toothless grin, two short arms, two stubby legs and a round belly
+with a hatch door (a plain circle with a handle). It should look like the grand silly champion of all the other aliens. Facing
+three-quarter towards the viewer's right, three-quarter top-down view, feet at the bottom-centre, about 85% of the canvas.
+Square 1024x1024, transparent background, no text.
+Outline: about 6 px thick on this 1024 px image.
 ```
 
 Then one edit per state (attach the base and the boss it borrows from):
 
 | State | Edit prompt (after `[STYLE BIBLE]`) |
 |---|---|
-| armoured (phase 1) | `Edit the attached Great Glorp. Same size and position. Add Captain Clank's bolted-on rounded grey armour plates (second attachment) over his body and head. No text.` |
-| bubbled (phase 2) | `Edit the attached Great Glorp. Same size and position. Remove the plates; he is now inside one big translucent cyan bubble, looking pleased. No text.` |
-| cargo (phase 3) | `Edit the attached Great Glorp. Same size and position, no bubble. His belly hatch is open and two lime Split Slimes and some little Meteor Mites spill out happily. No text.` |
-| wobble-dash (phase 4) | `Edit the attached Great Glorp. Same size and position, hatch closed. He has turned pink with white steam puffs rising from his head like King Wobble's dash, and is running in a determined comic rush. No text.` |
+| armoured (phase 1) | `Edit the attached magenta boss. Same size and position. Add the bolted-on rounded grey armour plates from the second attachment over his body and head. No text.` |
+| bubbled (phase 2) | `Edit the attached magenta boss. Same size and position. Remove the plates; he looks pleased and puffs his cheeks. NO bubble drawn (the bubble is a separate overlay). No text.` |
+| cargo (phase 3) | `Edit the attached magenta boss. Same size and position, no bubble. His belly hatch hangs OPEN and EMPTY. Nothing comes out of it. No text.` |
+| wobble-dash (phase 4) | `Edit the attached magenta boss. Same size and position, hatch closed. He has turned pink with white steam puffs rising from his head like the attached blue jelly boss's dash, and is running in a determined comic rush. No text.` |
 
-Reject if: the four states do not look like the same character, the final rush looks angry.
+Reject if: the four states do not look like the same character, the final rush looks angry, a bubble or spilling aliens are drawn into a
+walk state.
+
+#### `boss.glorp.hatch` — Great Glorp cargo hatch (proposed)
+
+**File:** `boss-glorp-hatch-01..06.png` (proposed; not in D10) · 384 (768) · transparent · 6 frames, played **once** at the change to phase 3
+**Purpose:** the moment the slimes and mites tumble out. Frame 01 is the bubbled-state body, frame 06 the cargo state (hatch open and
+empty); the real released aliens then spawn as separate sprites.
+
+```text
+[STYLE BIBLE]
+Edit the attached magenta boss (cargo state, hatch open). Same size and position. Key frame: two lime two-lobed slimes and a few
+little rock-mite aliens tumble happily out of his open belly hatch, the boss looking surprised and amused. No text.
+Outline: about 6 px thick on this 1024 px image.
+```
+
+Reject if: the aliens look frightened or hurt, the boss changes shape or size.
 
 #### `boss.glorp.phase-change` — Great Glorp phase change
 
 **File:** `boss-glorp-phase-01.png` … `-06.png` · 384 (768) · transparent · 6 frames
-**Purpose:** transition burst at 70%, 40% and 15%.
+**Purpose:** transition burst at 70%, 40% and 15%. Where C7 says **a bubble swarm escapes** (6 Bubble Swarm released), the escaping
+bubbles are ordinary `alien.swarm.bob` sprites spawned by the game around this burst; do not paint them into the burst.
 
 ```text
 [STYLE BIBLE]
 Game effect: a big round transition burst of colourful cartoon stars and swirls in magenta, lilac and gold, with an empty-ish
 centre where the boss will be. Joyful, no debris, no fire. Centred, filling about 90% of the canvas. Square 1024x1024,
 transparent background, no text.
+Outline: about 6 px thick on this 1024 px image.
 ```
 
 Reject if: it looks like an explosion with smoke or fire.
@@ -1627,8 +1775,9 @@ Reject if: it looks like an explosion with smoke or fire.
 ```text
 [STYLE BIBLE]
 Game effect seen from the three-quarter top-down angle: a dramatic but friendly shockwave ring lying flat on the ground (an
-ellipse), made of bright magenta and lime stars and a soft glowing edge, with a few stars bouncing upward. Empty centre.
+ellipse exactly 4 wide : 3 tall), made of bright magenta and lime stars and a soft glowing edge, with a few stars bouncing upward. Empty centre.
 Exciting, not frightening. Square 1024x1024, transparent background, filling about 90%. No text.
+Outline: about 6 px thick on this 1024 px image.
 ```
 
 Reject if: dark, smoky or threatening.
@@ -1642,19 +1791,29 @@ Reject if: dark, smoky or threatening.
 [STYLE BIBLE]
 Game effect: a quick round flash of cream (#FFF4D6) light with four big soft star-shaped rays and a ring of small gold sparkles,
 centred, empty middle so the boss stays visible. Square 1024x1024, transparent background, filling about 85%. No text.
+Outline: about 6 px thick on this 1024 px image.
 ```
 
 Reject if: the flash is a solid disc that would hide the boss. (This can also be a code-drawn white flash.)
 
 ---
 
-### 4.5 Effects (conversation 9)
+### 4.5 Effects (conversations 9a and 9b)
 
 Effects are short animations. Generate **one image at the effect's fullest moment** and build the frames in the editor (scale up in early
 frames, fade and break up in late frames; guide 3.2). Pivot is centre. Every effect is cheerful and non-violent: sparkles, stars, soft
 light, frost; never fire, smoke, blood or debris.
 
 All effect prompts share this ending, already included below: *"Centred, transparent background, no text."*
+
+**Translucent effects need a black background, not transparency.** Glows, beams, rings, bubbles, frost haze and halos must stay see-through,
+which neither a fake transparent background nor a keyed flat colour can give you (1.5). For these, replace *"transparent background"* with
+*"on a flat pure black #000000 background"*, then render them in the game with additive or "screen" blending, or convert black to alpha in
+the editor. Solid effects (the wrench, coins, chevrons, stars) can use transparency or the green key as usual.
+
+**Rings lying on the ground** (slow ring, blast, heal pulse, beacon pulse, comet impact, place puff, boss arrival) are ellipses **exactly 4
+wide : 3 tall**, the GROUND PLANE ratio in the style bible. AI rarely gets the ratio exact, so squash the accepted ring to 4:3 in the editor,
+or draw the ring in code through the map projection so it lines up with `map.range-circle`.
 
 #### `fx.nova.beam` — Nova laser beam (L1, L2, L3)
 
@@ -1682,20 +1841,22 @@ Reject if: it looks like a weapon blast, the edges are not straight enough to st
 Game projectile: a small round icy puff ball, frost white and pale ice blue (#CFF6FF, #8ED8FF), with a little snowflake at its
 front tip and a short trail of sparkles behind it, flying to the right. Simple enough to read at 64 px. Square 1024x1024,
 centred, filling about 60% of the canvas. Transparent background, no text.
+Outline: about 32 px thick on this 1024 px image (very thick, bold outline).
 ```
 
 Reject if: it looks like a sharp icicle spear.
 
 #### `fx.pip.slow-ring` — Pip L3 area-slow ring
 
-**File:** `fx-pip-slow-ring-01.png` … `-06.png` · 128-192 (2x) · transparent · 6 frames
+**File:** `fx-pip-slow-ring-01.png` … `-06.png` · 192 display diameter (author 384) · transparent · 6 frames
 **Purpose:** frost ring spreading 1 tile around the target (scaled in code to exactly 1 tile).
 
 ```text
 [STYLE BIBLE]
 Game effect seen from the three-quarter top-down angle: a flat ring of frost crystals and small snowflakes lying on the ground
-(an ellipse slightly wider than tall), pale #CFF6FF with ice-blue edges, empty centre. Square 1024x1024, filling about 90%.
+(an ellipse exactly 4 wide : 3 tall), pale #CFF6FF with ice-blue edges, empty centre. Square 1024x1024, filling about 90%.
 Transparent background, no text.
+Outline: about 10 px thick on this 1024 px image.
 ```
 
 Reject if: it is a solid disc, the ellipse angle does not match the map.
@@ -1710,6 +1871,7 @@ Reject if: it is a solid disc, the ellipse angle does not match the map.
 Game overlay: a frosty crust along the bottom edge with a few small rounded icicles hanging down and two tiny snowflakes above,
 pale #CFF6FF and white with ice-blue shading, designed to sit at the feet of any creature. Empty above the crust. Square
 1024x1024, the crust spanning about 80% of the width in the lower third. Transparent background, no text.
+Outline: about 32 px thick on this 1024 px image (very thick, bold outline).
 ```
 
 For frame 02, ask: "Same image, the snowflakes twinkle in a slightly different place."
@@ -1723,20 +1885,24 @@ Reject if: it covers the whole creature, the icicles are sharp spikes.
 [STYLE BIBLE]
 Game projectile: a small toy-like comet, a round golden (#FFC94A) ball with a cheerful shine, trailing a short sparkly tail of
 little stars to the left as it flies to the right. Square 1024x1024, centred, filling about 70%. Transparent background, no text.
+Outline: about 32 px thick on this 1024 px image (very thick, bold outline).
 ```
 
 Reject if: it has flames.
 
 #### `fx.juno.blast` — Juno comet blast (L1, L2, L3)
 
-**Files:** `fx-juno-blast-l1-01..06.png`, `-l2-…`, `-l3-…` · 192-270 diameter (2x) · transparent · 6 frames each
+**Files:** `fx-juno-blast-l1-01..06.png`, `-l2-…`, `-l3-…` · display diameter 192 / 269 / 269 (author 384 / 538 / 538) · transparent ·
+6 frames each
 **Purpose:** impact ring matching each level's radius (1, 1.4, 1.4 tiles). Scale to the exact radius in code so the preview is the truth.
 
 ```text
 [STYLE BIBLE]
-Game effect seen from the three-quarter top-down angle: a starry impact ring lying flat on the ground (an ellipse), golden
+Game effect seen from the three-quarter top-down angle: a starry impact ring lying flat on the ground (an ellipse exactly 4
+wide : 3 tall), golden
 (#FFC94A) and cream stars bursting outward along the ring, with a soft gold glow, no smoke, no debris. Square 1024x1024,
 filling about 90%. Transparent background, no text.
+Outline: about 8 px thick on this 1024 px image.
 ```
 
 L2: the same image (only the code scale changes). L3: edit "Same ring, brighter and clearer, with bigger stars and a crisp
@@ -1791,7 +1957,7 @@ Reject if: it looks like a bullet.
 ```text
 [STYLE BIBLE]
 Game effect seen from the three-quarter top-down angle: a soft golden (#F5B700) ring of light lying flat on the ground (an
-ellipse), glowing, with a few tiny sparkles on it, empty centre. Square 1024x1024, filling about 90%. Transparent background,
+ellipse exactly 4 wide : 3 tall), glowing, with a few tiny sparkles on it, empty centre. Square 1024x1024, filling about 90%. Transparent background,
 no text.
 ```
 
@@ -1806,6 +1972,7 @@ Reject if: it is too bright to see the astronauts through.
 [STYLE BIBLE]
 A tiny game icon: one chunky upward-pointing chevron in gold (#F5B700) with a thick plum outline and a small sparkle at its
 tip. Readable at 32 px. Square 1024x1024, centred, filling about 70%. Transparent background, no text.
+Outline: about 56 px thick on this 1024 px image (very thick, bold outline).
 ```
 
 Reject if: it looks like a letter "A" or "V".
@@ -1830,7 +1997,7 @@ Reject if: the chevrons read as letters.
 ```text
 [STYLE BIBLE]
 Game effect seen from the three-quarter top-down angle: a soft landing puff of lavender moon dust spreading outward along the
-ground in a flat ellipse, with round cartoon cloud puffs and a few small sparkles. Square 1024x1024, centred low, filling
+ground in a flat ellipse exactly 4 wide : 3 tall, with round cartoon cloud puffs and a few small sparkles. Square 1024x1024, centred low, filling
 about 85% of the width. Transparent background, no text.
 ```
 
@@ -1857,12 +2024,12 @@ Reject if: the beam is opaque.
 
 ```text
 [STYLE BIBLE]
-Game effect: a small comic impact spark, a chunky cream and metal-grey star burst with five rounded points and two tiny
-sparkles beside it, like a cartoon "clonk". Absolutely no letters or sound words. Square 1024x1024, centred, filling about 70%.
-Transparent background, no text.
+Game effect: a small comic impact spark, a chunky five-point star burst in cream and metal grey with rounded points and two
+tiny sparkles beside it. Square 1024x1024, centred, filling about 70%. Transparent background, no text, no letters.
+Outline: about 32 px thick on this 1024 px image (very thick, bold outline).
 ```
 
-Reject if: the word "clonk" or any letters appear.
+Reject if: any word, sound word or letters appear.
 
 #### `fx.pop-stars` — Pop into stars
 
@@ -1885,9 +2052,8 @@ Reject if: it looks like an explosion or anything is hurt.
 
 ```text
 [STYLE BIBLE]
-Game effect: a springy cartoon "boing" puff, a round soft lilac cloud puff with a little coiled spring-shaped swoosh line above
-it and two small stars, cheeky rather than alarming. No letters or sound words. Square 1024x1024, centred, filling about 70%.
-Transparent background, no text.
+Game effect: a springy bounce puff, a round soft lilac cloud puff with a coiled swoosh line above it and two small stars,
+cheeky rather than alarming. Square 1024x1024, centred, filling about 70%. Transparent background, no text, no letters.
 ```
 
 Reject if: it reads as damage or an explosion, any word appears.
@@ -1901,6 +2067,7 @@ Reject if: it reads as damage or an explosion, any word appears.
 [STYLE BIBLE]
 Game effect: a small cluster of healing-green (#7BEA8C) sparkles and two small rounded plus-shaped twinkles rising upward.
 Readable at 64 px. Square 1024x1024, centred, filling about 70%. Transparent background, no text.
+Outline: about 32 px thick on this 1024 px image (very thick, bold outline).
 ```
 
 Reject if: a red cross or medical logo appears.
@@ -1935,7 +2102,8 @@ Reject if: a tick mark appears (the tick is a separate SVG icon), it is too busy
 
 ### 4.6 Meteor powers (conversation 10)
 
-Powers are earned in the optional meteor challenges and used on the battlefield. Icons need two states: **ready** (full colour) and
+Powers are earned in the optional meteor challenges and used on the battlefield. Translucent power effects (frost field, colony shield boost) follow
+the black-background rule in 4.5. Icons need two states: **ready** (full colour) and
 **used/empty** (make this yourself: desaturate, lighten to about 40% and add a dashed outline; do not regenerate).
 
 #### `power.frost-pulse.icon` — Frost Pulse icon
@@ -1954,7 +2122,8 @@ Reject if: it looks too similar to Pip's emblem at 64 px (make the ripple ring o
 #### `power.frost-pulse.fx` — Frost Pulse field effect
 
 **File:** `fx-frost-pulse-01.png` … `-08.png` · full canvas 1920x1056 overlay · transparent · 8 frames
-**AI or code.** A code tint plus a moving frost edge is often better. If using AI:
+**AI or code.** A code tint plus a moving frost edge is often better. If using AI, generate it on flat black and use screen
+blending or "colour to alpha" (1.5), because the haze must stay see-through:
 
 ```text
 [STYLE BIBLE]
@@ -1992,8 +2161,9 @@ Optional reference sketch: `Flat gold dashed targeting ring with four short inwa
 ```text
 [STYLE BIBLE]
 Game effect seen from the three-quarter top-down angle: a large comet impact made of a big burst of golden and cream stars
-spreading in a flat ring on the ground, a bright soft centre glow and stars bouncing upward. Exciting but friendly, no smoke,
+spreading in a flat ring on the ground (an ellipse exactly 4 wide : 3 tall), a bright soft centre glow and stars bouncing upward. Exciting but friendly, no smoke,
 no fire, no debris. Square 1024x1024, filling about 90%. Transparent background, no text.
+Outline: about 8 px thick on this 1024 px image.
 ```
 
 Reject if: it looks like an explosion.
@@ -2020,6 +2190,7 @@ Reject if: it is too detailed at 64 px, it looks like Mira's emblem.
 Game effect: an extra-bright cyan shield dome flaring over an empty space where the colony will be, hexagon pattern glowing,
 a ring of sparkles around its base and a burst of light at the top. Mostly transparent inside so the colony shows through.
 Square 1024x1024, filling about 90%. Transparent background, no text.
+Outline: about 6 px thick on this 1024 px image.
 ```
 
 Reject if: the dome is opaque.
@@ -2030,9 +2201,10 @@ Reject if: the dome is opaque.
 
 ```text
 [STYLE BIBLE]
-Exciting, friendly picture for a "meteor challenge" card: a big cheerful glowing meteor with a sparkly gold and cyan tail
-streaking diagonally past a small purple moon, a few stars around. The meteor has no face. Square 1024x1024, filling about 85%.
-Transparent background, no text.
+Exciting, friendly illustration: a big cheerful glowing meteor with a sparkly gold and cyan tail streaking diagonally past a
+small purple moon, a few stars around. The meteor has no face. Square 1024x1024, filling about 85%. Transparent background,
+no frame, no title, no text.
+Outline: about 8 px thick on this 1024 px image.
 ```
 
 Reject if: the meteor is about to hit the moon in a threatening way, any text appears.
@@ -2046,6 +2218,11 @@ decorations are **separate layers** placed on the grid by code, so the backdrop 
 Route: portal at tile (0, 2), colony gate at (19, 3), nine straight segments and eight bends, 40 tiles long. Pads sit at the 16 tiles
 listed in C3.2.
 
+**Projection:** route tiles are 96x96 squares seen from above; anything lying on the ground (pads, rings, shadows, auras, the range
+circle) is an ellipse exactly 4 wide : 3 tall (style bible, GROUND PLANE). The 4:3 ratio is this pack's proposal: confirm it with
+whoever writes the map code (sections C and E) before generating pads and rings, and change it here and in the style bible if the code
+uses another ratio.
+
 #### `map.luna.backdrop` — Moonbeam Colony lunar backdrop
 
 **File:** `luna-backdrop.webp` (+ `luna-backdrop.png` fallback) · 1920x1056 display (author 3840x2112) · **opaque**
@@ -2056,16 +2233,18 @@ listed in C3.2.
 Background painting for the game battlefield. Landscape 1536x1024, OPAQUE (no transparency).
 A colourful cartoon moon surface seen from the three-quarter top-down angle: gently rolling regolith in lavender (#9C8FD6) and
 purple (#6B5CA5) with soft teal (#3FB8AF) patches, a few shallow round craters and small pebbles scattered thinly near the
-edges. Along the top edge only, a narrow band of deep-space sky (#141633) with stars and two small distant cartoon planets.
-The middle of the image must be fairly calm and even, with NO path, NO road, NO buildings, NO landing pads and NO characters,
+edges. The moon ground fills the WHOLE image from edge to edge: no sky, no horizon. The middle of the image must be fairly calm and even, with NO path, NO road, NO buildings, NO landing pads and NO characters,
 because the game draws those on top. Light from the top-left. No text.
 ```
 
 Getting to the target size: ChatGPT's widest canvas is 1536x1024 (ratio 1.5) and the game needs 1.82. Crop the top and bottom to
 1536x845, then upscale 2.5x with a good upscaler to 3840x2112 (or accept a 1920x1056 author size at first). Export as WebP (quality about
 85) and PNG.
-Reject if: a path or structures are painted in, the centre is busy (it will fight the route and sprites), the sky takes more than about
-the top 12% (the route's top row is tile y=0), anything has writing on it.
+The playable grid uses every row: build pads reach the top row (P01 at tile (2, 0); P07 and P15 are at y=1) and the route reaches y=2.
+So the regolith must fill all 11 rows. If the model paints sky anyway, crop it off when you crop to 1536x845; if that leaves too little
+image, regenerate.
+Reject if: a path or structures are painted in, the centre is busy (it will fight the route and sprites), any sky shows behind row 0 (the
+top 96 px of the 1056 px canvas), anything has writing on it.
 
 #### `map.luna.route.straight` — Route tile, straight
 
@@ -2131,13 +2310,16 @@ Reject if: the left edge does not line up with the straight tile.
 
 ```text
 [STYLE BIBLE]
-Game sprite of a friendly cartoon wormhole portal sitting on the moon surface, seen from the three-quarter top-down angle: a
-round ring of smooth metal-grey stones standing upright, with a swirling spiral of magenta (#E05FD0) and lime (#9BE564) light
-inside, and a few sparkles floating out. Inviting and playful, not dark or scary. Square 1024x1024, base at the bottom-centre,
-filling about 85%. Transparent background, no text.
+Game sprite of a friendly cartoon arrival portal on the moon surface, seen from the three-quarter top-down angle: a flat, round
+swirling pool of magenta (#E05FD0) and lime (#9BE564) light lying ON the moon ground (an ellipse exactly 4 wide : 3 tall), edged
+with a low ring of rounded pebbles, with a few sparkles and small floating moon rocks bobbing just above it. Nothing stands
+upright. Inviting and playful, not dark or scary. Square 1024x1024, centred low, filling about 85% of the width. Transparent
+background, no text.
+Outline: about 8 px thick on this 1024 px image.
 ```
 
-Reject if: it looks like a black hole or a horror gateway, it resembles a portal from a known game.
+Reject if: it looks like a black hole or a horror gateway, it resembles a portal from a known game or film, it is an upright ring, gate
+or arch (it would also hide the start of the route at tile (0, 2)).
 
 #### `map.luna.colony.healthy` — Research colony, healthy
 
@@ -2151,6 +2333,7 @@ three white domed buildings with round windows glowing warm cream, joined by sho
 two antennas with gold tips, and a row of blue solar panels. A round doorway faces left towards where the path arrives.
 Friendly and safe-looking, like a toy play set. Same outline and light as the characters. Square 1024x1024, base at the
 bottom-centre, filling about 85%. Transparent background. No text, no flags, no logos on any building.
+Outline: about 6 px thick on this 1024 px image.
 ```
 
 Reject if: anything resembles a real space agency base or brand, any building carries signs, numbers or letters.
@@ -2163,8 +2346,10 @@ Reject if: anything resembles a real space agency base or brand, any building ca
 ```text
 [STYLE BIBLE]
 Edit the attached colony. Keep EXACTLY the same buildings, silhouette, size and position. Change only: two windows flicker
-(one dark, one half-lit), one antenna wobbles at a slight angle, and two small soft grey puffs rise from a tube joint.
-Playful, no damage, no cracks. Transparent background, no text.
+(one dark, one half-lit), one antenna wobbles at a slight angle, two small WHITE steam puffs shaped like little clouds rise from
+a tube joint, and a cartoon sweat drop appears beside the main dome. Playful, no damage, no cracks, no smoke. Transparent
+background, no text.
+Outline: about 6 px thick on this 1024 px image.
 ```
 
 Reject if: the silhouette changes (the states swap in place), anything looks broken or on fire.
@@ -2179,6 +2364,7 @@ Reject if: the silhouette changes (the states swap in place), anything looks bro
 Edit the attached colony. Keep EXACTLY the same buildings, silhouette, size and position. Change only: more windows flicker,
 both antennas droop like tired flowers, and a round amber alert light on top of the main dome glows with a cartoon sweat-drop
 shape beside it. Still friendly and intact, not destroyed. Transparent background, no text.
+Outline: about 6 px thick on this 1024 px image.
 ```
 
 Reject if: it looks destroyed or frightening, the alert light contains a symbol like "!".
@@ -2187,6 +2373,7 @@ Reject if: it looks destroyed or frightening, the alert light contains a symbol 
 
 **Files:** `colony-shield-on-01..04.png`, `colony-shield-hit.png`, `colony-shield-break-01..04.png` · 384 (768) · transparent
 **AI base, then animate yourself; or draw in code.** The hit flash can be a runtime tint.
+Translucent: generate on flat black and use screen blending or "colour to alpha" (1.5), replacing "Transparent background" in the prompt.
 
 ```text
 [STYLE BIBLE]
@@ -2194,6 +2381,7 @@ Game sprite of a translucent protective shield dome, seen from the three-quarter
 a soft hexagon pattern in cyan (#5BE0F0), very see-through in the middle, brighter along the rim and the hexagon lines, with a
 white highlight top-left. Empty inside (it will sit over a building). Sized to cover a 768 px building. Square 1024x1024, base
 at the bottom-centre, filling about 90%. Transparent background, no text.
+Outline: about 6 px thick on this 1024 px image.
 ```
 
 Shimmer frames: shift a highlight along the hexagons. Break frames: fade the dome while hexagon pieces float up and vanish.
@@ -2206,7 +2394,8 @@ Reject if: the dome is too opaque to see the colony through.
 
 ```text
 [STYLE BIBLE]
-Game sprite of a round metal BUILD PAD seen from the three-quarter top-down angle (so it looks like an ellipse): a low
+Game sprite of a round metal BUILD PAD seen from the three-quarter top-down angle (so its top is an ellipse exactly 4 wide :
+3 tall): a low
 circular platform in metal grey (#A7B0C8) with a raised rim, soft cream glowing rim lights spaced evenly around it, and a plain
 flat top for a character to stand on. No symbols on the top. Square 1024x1024, centred, filling about 85% of the width.
 Transparent background, no text.
@@ -2296,6 +2485,7 @@ Reject if: it resembles a real company's dish or carries a logo.
 Game sprite of a small path-side beacon lamp: a short rounded metal post with a round glass lamp on top glowing soft cream with
 a small halo, three-quarter top-down view. Square 1024x1024, base at the bottom-centre, filling about 70%. Transparent
 background, no text.
+Outline: about 32 px thick on this 1024 px image (very thick, bold outline).
 ```
 
 For "off", edit: "Same lamp, light off: the glass is pale grey with no glow."
@@ -2310,6 +2500,7 @@ Reject if: the on and off versions differ in shape or position.
 Game sprite of a small flag on a thin pole stuck in the ground, three-quarter top-down view. The flag is a single plain colour
 (Nova orange #FF8A2A) with a lighter wavy fold. No emblem, no stripes, no stars, no letters, no national design whatsoever.
 Square 1024x1024, base at the bottom-centre, filling about 75%. Transparent background, no text.
+Outline: about 32 px thick on this 1024 px image (very thick, bold outline).
 ```
 
 Reject if: any pattern on the flag could be read as a real country's flag or as a symbol.
@@ -2335,6 +2526,7 @@ gold dotted ring. Each differs by line style, not only colour.
 A round cartoon moon seen whole from space, purple and lavender with soft teal patches and a few round craters, a glowing cyan
 rim of light on the top-left edge, and a tiny visible cluster of white domed colony buildings with warm windows on its upper
 surface. Square 1024x1024, centred, filling about 85%. Transparent background, no text.
+Outline: about 8 px thick on this 1024 px image.
 ```
 
 Reject if: it looks like Earth's real Moon photo, any text.
@@ -2411,23 +2603,23 @@ must still be recognisable by shape, so the child knows what they are aiming for
 | Inventory id | File (earned) | Name (DOM text) | `<MOTIF>` | `<RIBBON COLOUR>` |
 |---|---|---|---|---|
 | `badge.first-steps` | `badge-first-steps.png` | First Steps | a single small boot print pressed into purple moon dust | lavender |
-| `badge.boss-1` | `badge-boss-1.png` | Wobble Stopper | King Wobble's yellow folded-paper crown, three points | blob blue |
+| `badge.boss-1` | `badge-boss-1.png` | Wobble Stopper | a yellow folded-paper crown with three points | blob blue |
 | `badge.boss-2` | `badge-boss-2.png` | Clank Cracker | a rounded grey armour plate with bolts and a zigzag crack glowing gold | shell teal |
 | `badge.boss-3` | `badge-boss-3.png` | Bubble Popper | a bubble wand with a bubble popping into droplets | bubble cyan |
 | `badge.boss-4` | `badge-boss-4.png` | Mothership Mover | a big toy saucer flying away into the distance with a little star trail | lilac |
 | `badge.campaign-luna-1` | `badge-campaign-luna-1.png` (+ 512 copy) | Colony Hero | a grand star shape behind the white domed colony, with small rays (make this rim grander: a double gold rim with tiny stars) | gold |
-| `badge.endless-60` | `badge-endless-60.png` | Star Voyager | a small rocket among many tiny stars | night blue |
+| `badge.endless-60` | `badge-endless-60.png` | Star Voyager | a ringed planet with a long dotted orbit path looping around it and three small stars along the path (no rocket: the rocket belongs to Keep Trying) | night blue |
 | `badge.safe-and-sound` | `badge-safe-and-sound.png` | Safe and Sound | the white domed colony under a cyan hexagon shield dome | shield cyan |
 | `badge.full-crew` | `badge-full-crew.png` | Full Crew | six little round astronaut helmets in a ring, rims in orange, ice blue, yellow, navy, green and red | rainbow of the six class colours |
 | `badge.top-team` | `badge-top-team.png` | Top Team | one astronaut helmet with three stacked upward chevrons above it | Nova orange |
 | `badge.meteor-catcher` | `badge-meteor-catcher.png` | Meteor Catcher | a glowing meteor caught in a soft net | comet gold |
-| `badge.keep-trying` | `badge-keep-trying.png` | Keep Trying | a small rocket that wobbled (a curly trail) and is now launching upward again | leaf green |
+| `badge.keep-trying` | `badge-keep-trying.png` | Keep Trying | a small rocket that wobbled and is now launching upward again; its big curly wobble trail is the defining shape | leaf green |
 | `badge.bright-spark-10` | `badge-bright-spark-10.png` | Bright Spark | ONE single big bright four-point spark | cream |
 | `badge.bright-spark-50` | `badge-bright-spark-50.png` | Brilliant Spark | a CLUSTER of five sparks of different sizes in a burst (clearly more than Bright Spark by shape, not only colour) | gold |
 | `badge.all-rounder` | `badge-all-rounder.png` | All-Rounder | three small motifs together: a row of counting beads, an ear with sound waves, and a pencil (no letters or numbers) | three bands: gold, cyan, orange |
 | `badge.challenge-blob-parade` | `badge-challenge-blob-parade.png` | Parade Marshal | a blue Moon Blob wearing a tall marching-band hat with a plume | blob blue |
 | `badge.challenge-bubble-trouble` | `badge-challenge-bubble-trouble.png` | Bubble Wrangler | three bubbles caught in a looped lasso rope | bubble cyan |
-| `badge.challenge-wobble-rematch` | `badge-challenge-wobble-rematch.png` | Boss Buddy | King Wobble (crowned blue blob) giving a friendly wave | pink |
+| `badge.challenge-wobble-rematch` | `badge-challenge-wobble-rematch.png` | Boss Buddy | a crowned, wide-domed blue jelly blob with bobble antennae giving a friendly wave | pink |
 
 Reject if: any letter, number or word appears (check the rim and ribbon closely), two badges look alike at 128 px, the medal frame changes
 between badges, a motif looks like a real military or sports medal.
@@ -2461,10 +2653,10 @@ Match the frame and style of the attached avatar if one is attached.
 | `avatar-04.png` | 04-comet | a comet with a sparkly tail across the helmet | astronaut with a comet |
 | `avatar-05.png` | 05-ringed-planet | a small ringed planet floating beside the helmet | astronaut with a ringed planet |
 | `avatar-06.png` | 06-robot | a friendly round robot face inside the helmet instead of a human face, with two antennae | a friendly robot astronaut |
-| `avatar-07.png` | 07-friendly-alien | a green friendly alien with three eyes inside the helmet | a friendly alien astronaut |
+| `avatar-07.png` | 07-friendly-alien | a lilac friendly alien with two big eyes and two curly antennae inside the helmet | a friendly alien astronaut |
 | `avatar-08.png` | 08-telescope | a small telescope held up beside the helmet | astronaut with a telescope |
 | `avatar-09.png` | 09-satellite | a little satellite orbiting the helmet | astronaut with a satellite |
-| `avatar-10.png` | 10-sun | a smiling sun shape behind the helmet like a halo | astronaut with a sun |
+| `avatar-10.png` | 10-sun | a big smiling sun shape behind the helmet, its rays poking out around the helmet edge | astronaut with a sun |
 | `avatar-11.png` | 11-meteor | a small round meteor with a short tail on the chest | astronaut with a meteor |
 | `avatar-12.png` | 12-astro-cat | a cat in a round helmet with ears inside the glass | a cat astronaut |
 
@@ -2500,12 +2692,14 @@ Upscale to 1920x1080 or more (as for the backdrop). Reject if: the middle is bus
 [STYLE BIBLE]
 A game logo EMBLEM with no lettering: a small cheerful astronaut in a round helmet (generic, not one of the six game astronauts)
 standing on a curved purple moon, with a white domed colony behind and a big gold star rising above, all inside a rounded
-badge shape with a gold rim. Bold and simple so it reads at 64 px. Square 1024x1024, centred, transparent background.
-Absolutely no text, letters or numbers; leave clear space below the emblem for a title to be added later.
+badge shape with a gold rim. Bold and simple so it reads at 64 px. Square 1024x1024, the emblem alone, centred with even
+padding on all sides, transparent background. Absolutely no text, letters or numbers, no banner and no ribbon.
 ```
 
+Add the space for the title yourself: extend the canvas in the editor, or let the SVG layout set the title beside or under the emblem.
+
 On-dark variant: same emblem with a cream outer stroke so it stands out on #141633.
-Reject if: any lettering, fake writing or a resemblance to an existing game logo.
+Reject if: any lettering, fake writing, a banner or ribbon (they invite placeholder lettering), or a resemblance to an existing game logo.
 
 #### `screen.landing.hero` — Landing hero art (optional)
 
@@ -2516,7 +2710,7 @@ Reject if: any lettering, fake writing or a resemblance to an existing game logo
 [STYLE BIBLE]
 A wide hero illustration, landscape 1536x1024, OPAQUE. The six astronauts from the attached character sheets standing proudly
 in a friendly group on the purple moon in front of the attached domed colony: Nova with her laser, Pip with his round canisters,
-Juno with her toy comet launcher, Orion with his long telescope, Mira with her shield emblem and dish, Sol with his tall beacon
+Juno with the comet popper on her backpack, Orion with his long telescope, Mira with her shield emblem and dish, Sol with his tall beacon
 antenna. In the background on the left, a swirling magenta-and-lime portal with a few cheeky aliens (a blue blob, a little rock
 mite, a bubble) peeking out. Starry sky above. Leave calm space at the top-centre for a logo. No text.
 ```
@@ -2533,6 +2727,7 @@ Reject if: any astronaut is off-model (compare to the sheets), the aliens look s
 Celebration illustration, square 1024x1024, transparent background. The six astronauts from the attached sheets cheering on
 the roof of the white domed colony under fireworks made of colourful stars, while a few cheeky aliens (blue blob, bubble, lilac
 flutter) wave goodbye from a toy saucer flying away. Joyful, no text.
+Outline: about 4 px thick on this 1024 px image.
 ```
 
 Reject if: the aliens look defeated or sad in a hurtful way (they should look cheerful about leaving).
@@ -2547,6 +2742,7 @@ Reject if: the aliens look defeated or sad in a hurtful way (they should look ch
 Gentle, funny illustration, square 1024x1024, transparent background. Cheeky cartoon aliens (blue blobs, a bubble, a little
 rock mite) doing a silly happy dance in a circle around the intact domed colony, while the six astronauts from the attached
 sheets shrug with smiles, roll up their sleeves and get ready to try again. Nothing broken, nobody sad or hurt. No text.
+Outline: about 4 px thick on this 1024 px image.
 ```
 
 Reject if: the colony looks damaged, anyone looks upset or frightened.
@@ -2562,7 +2758,8 @@ Wobble, a cluster of swarm bubbles); generate only if a composed picture is want
 [STYLE BIBLE]
 Small square picture for a challenge card, 1024x1024, transparent background, bold and readable at 128 px:
 <blob-parade: three blue Moon Blobs from the attached sprite marching in a line, the front one wearing a marching-band hat |
-wobble-rematch: King Wobble from the attached sprite grinning with his crown, one eyebrow raised as if saying "again?" |
+wobble-rematch: the crowned blue jelly boss from the attached sprite grinning with his crown, one eyebrow raised in a cheeky,
+playful challenge |
 bubble-trouble: a big tumbling cluster of small cyan Bubble Swarm bubbles with faces, with one Bubble Guard in the middle>.
 No text.
 ```
@@ -2640,7 +2837,7 @@ Match the style of the attached picture if one is attached.
 #### `activity.pic.age67-nouns` — Age 6-7 noun pictures (~15)
 
 **Files:** `pic-<word>.png` · 128 (256) · transparent · same template as above.
-Named so far in plan C; the rest are chosen while authoring the age 6-7 banks:
+Named so far in plan C, except where the table says "proposed"; the rest are chosen while authoring the age 6-7 banks:
 
 | File | `<THING>` | Watch out for |
 |---|---|---|
@@ -2650,7 +2847,7 @@ Named so far in plan C; the rest are chosen while authoring the age 6-7 banks:
 | `pic-knot.png` | a thick rope tied in a simple knot | |
 | `pic-football.png` | a classic black-and-white football | no brand marks |
 | `pic-bird.png` | a small garden bird, side view | |
-| `pic-foxes.png` | TWO orange foxes side by side (for the plural "two foxes") | exactly two, same fox as `pic-fox` |
+| `pic-foxes.png` (optional, proposed) | TWO orange foxes side by side (for the plural "two foxes") | exactly two, same fox as `pic-fox`. Not named in C: the C19 item `spelling-y1-plurals-s-es` has "None" in its picture column. Make it only if that item gains a picture. |
 | (about 8 more) | to be decided when the banks are authored | add a row each time |
 
 #### `activity.obj.counting` — Counting objects
@@ -2735,10 +2932,11 @@ and carries no text. Defined as concepts are authored; prefer composing from exi
 A simple teaching picture for young children showing <EXAMPLE> using the attached counting objects / pictures. Clear layout,
 plenty of space, objects in tidy rows or groups. Square 1024x1024, transparent background. No text, no numbers, no symbols
 such as plus or equals signs (the app adds words).
+Outline: about 8 px thick on this 1024 px image.
 ```
 
-Example `<EXAMPLE>`: "two groups of three stars being pushed together into one group of six" or "a cat and a cap shown side by side to
-compare their first sounds". Write one row in a list per concept when it is authored.
+Example `<EXAMPLE>`: "two groups of three stars being pushed together into one group of six" or "a cat and a cup shown side by side to
+compare their first sounds" (both pictures already exist in the age-5 list). Write one row in a list per concept when it is authored.
 Reject if: it shows the answer to the activity it introduces, any numeral or letter appears.
 
 ---
@@ -2766,7 +2964,13 @@ Do these for every accepted image before it goes into `web/player/public/assets/
 - [ ] **Downscale** with a good filter (Lanczos or "bicubic sharper"); never upscale sprites. Look at the result at **display size** next to
       the others: classes distinguishable, levels visibly different, aliens recognisable by shape.
 - [ ] **Colour-blind check:** view the set in greyscale (and, if you can, with a deuteranopia filter). Every class and alien should still be
-      told apart by shape.
+      told apart by shape. Compare these pairs side by side, in greyscale **and** with the deuteranopia filter: **Nova / Mira**, **Nova /
+      Juno**, **Nova / Sol**, **Pip / Orion**, and the aliens **Patchling / Split Slime / Bubble Guard**. The armour trait icon must not look
+      like the colony shield icons.
+- [ ] **Outline weight:** put one asset from each family (astronaut, alien, boss, pad, colony, effect, icon, badge) side by side at display
+      size. The plum outline should look the same thickness on all of them (about 2 px at display size, 4 px at author size). If one family
+      is thinner, regenerate it with the thicker outline from the table in 1.4 rather than painting over it.
+- [ ] **Ground ellipses:** pads, rings and auras are 4 wide : 3 tall (measure the bounding box) and line up with `map.range-circle`.
 
 ### 5.3 Export and compress
 
@@ -2813,7 +3017,7 @@ Do these for every accepted image before it goes into `web/player/public/assets/
 | Effects | `fx.nova.beam`, `fx.pip.bolt`, `fx.pip.slow-ring`, `fx.slowed`, `fx.juno.comet`, `fx.juno.blast`, `fx.mira.shield-pulse`, `fx.mira.repair`, `fx.orion.shot`, `fx.sol.beacon`, `fx.sol.buffed`, `fx.upgrade`, `fx.place`, `fx.sell`, `fx.armour.clonk`, `fx.pop-stars`, `fx.leak`, `fx.heal.received` | 4.5 |
 | Aliens | `alien.blob.walk`, `alien.mite.walk`, `alien.shellback.walk`, `alien.swarm.bob`, `alien.flutter.fly`, `alien.flutter.shadow`, `alien.guard.walk`, `alien.guard.bubble-layers`, `alien.guard.bubble-pop`, `alien.patchling.walk`, `alien.patchling.heal-pulse`, `alien.slime.walk`, `alien.slime.split`, `alien.slimelet.hop`, `alien.craft.hover`, `alien.craft.release` | 4.2 |
 | Trait icons | `icon.trait.armour`, `icon.trait.flying`, `icon.trait.bubbles`, `icon.trait.healer`, `icon.trait.splitter`, `icon.trait.carrier`, `icon.lock` | 4.3 |
-| Bosses | `boss.wobble.walk`, `boss.wobble.dash`, `boss.wobble.phase-change`, `boss.clank.walk`, `boss.clank.plates-fall`, `boss.bubbla.walk`, `boss.bubbla.wand`, `boss.bubbla.bubble`, `boss.mothership.hover`, `boss.mothership.door`, `boss.glorp.walk`, `boss.glorp.phase-change`, `fx.boss.arrive`, `fx.boss.phase` | 4.4 |
+| Bosses | `boss.wobble.walk`, `boss.wobble.dash`, `boss.wobble.phase-change`, `boss.clank.walk`, `boss.clank.plates-fall`, `boss.bubbla.walk`, `boss.bubbla.wand`, `boss.bubbla.bubble`, `boss.mothership.hover`, `boss.mothership.door`, `boss.glorp.walk`, `boss.glorp.phase-change`, `fx.boss.arrive`, `fx.boss.phase`; proposed extras (not in the inventory): `boss.mothership.release` (optional), `boss.glorp.hatch` | 4.4 |
 | Meteor powers | `power.frost-pulse.icon`, `power.frost-pulse.fx`, `power.comet-burst.icon`, `power.comet-burst.target`, `power.comet-burst.impact`, `power.colony-shield.icon`, `power.colony-shield.fx`, `meteor.offer.art` | 4.6 |
 | Planets | `planet.luna-1`, `planet.coming-later` | 4.8 |
 | Screens | `screen.galaxy.background`, `brand.logo`, `screen.landing.hero`, `screen.complete.illustration`, `screen.defeat.illustration`, `challenge.card.art` | 4.12 |
@@ -2832,3 +3036,13 @@ Do these for every accepted image before it goes into `web/player/public/assets/
 3. **Cast appearances** in 3.1 are proposals. Change them before generating the character sheets, not afterwards.
 4. **Activity picture counts** (D10.9 about 100 to 150 against B L-16 / C26.2 about 80) and the remaining age 6-7 nouns and demo cards are
    still open; this pack covers every picture named so far.
+5. **Ground projection ratio.** The pack fixes ground ellipses at 4 wide : 3 tall (about a 50-degree camera). Sections C and E must confirm
+   the ratio the map code and `map.range-circle` use; if it differs, change the style bible's GROUND PLANE line and the ring cards.
+6. **Changes to record in D10.** The Mothership now has four hover states (`shut`, `door1open`, `door12open`, `bare`), Glorp gains a
+   one-shot `boss-glorp-hatch` animation and reuses the Bubbla bubble overlay, an optional `boss-mothership-release` exists, Sol's frames
+   are 128x192, `icon.lock` may move from Generated to an owner SVG, and the Patchling's colour is patch cream #F7F0E0. Update the D10.6
+   frame list and D10.8 to match.
+7. **Design changes made for safety and originality.** Juno's launcher became a backpack comet popper, Orion star-gazes instead of
+   aiming level, Nova holds her gadget in one hand, the Moon Blob is a wide dome with two bobble antennae, Queen Bubbla wears a bubble
+   crown, the portal is a flat pool on the ground, and boss names are kept out of prompt bodies. Check these still match prompt.md and
+   plan C's descriptions, and update those if needed.

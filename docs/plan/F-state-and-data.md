@@ -7,7 +7,8 @@ after a release, what survives defeat or a reset, and the DynamoDB design undern
 Route shapes, request and response fields and the error envelope are owned by [G. API contracts](G-api-contracts.md). Offline pack
 preparation and audio caching are owned by [E. Architecture](E-architecture.md). Backup and restore *operations* (Terraform, runbook,
 drill) are owned by [H. Infrastructure and delivery](H-infrastructure-and-delivery.md). Test mapping is in [I. Validation](I-validation.md).
-Here we cover the data rules those sections rely on.
+Here we cover the data rules those sections rely on. Every name, state, key, route and code follows the canonical
+[design spine v0.3](00-spine.md); where this section adds detail, the spine wins on any conflict.
 
 Nothing in this section exists yet. The repository has no application code, no tables and no tests; the only project resources in AWS are
 the two Terraform state buckets (main stack and the bootstrap's own), the CI role and the GitHub OIDC provider (see
@@ -123,17 +124,19 @@ it lands in `BUILD` instead (§3.6).
 
 ### 3.3 Operations (the only ways run state changes)
 
+The canonical op table is spine [S3.2](00-spine.md#s32-operations-the-only-ways-run-state-changes); this section adds the reasoning.
+
 Two ops are **online-only**: they are never queued and never applied optimistically. They are `CREATE_RUN` (`POST /api/runs`) and
 `CHOOSE_ENDLESS` (`POST /api/runs/{runId}/endless`), because both need the server to select content. All other ops are queueable:
 the client's reducer applies them first. **[PROPOSAL]**
 
 | Op | Allowed when | Effect | Label |
 |---|---|---|---|
-| `CREATE_RUN` | profile exists; wave set available for the caller's age band; fewer than 5 IN_PROGRESS runs (soft cap); session free or held by this `sessionId` | run `IN_PROGRESS`, `stage=AUTHORED`, `phase=BUILD`, `wave=1`, snapshot from the wave set's start values; slots `N-001..N-(finalWave−1)` plus `M-<p>` for each `p` in `meteorAfter`, all `UNRESOLVED`; session claimed in the same transaction | **[PROPOSAL]** |
+| `CREATE_RUN` | profile exists; pinned `rulesetVersion`/`campaignVersion` released and loadable (else `409 CONTENT_VERSION_UNSUPPORTED`; the client re-reads `current.json` and retries); planet unlocked (else `CONTENT_UNAVAILABLE{reason: PLANET_LOCKED}`); wave set available for the caller's age band; fewer than 5 IN_PROGRESS runs (soft cap); session free or held by this `sessionId`, with the same takeover rule as the session claim (§5.3): a lapsed, unreleased lease held by another `sessionId` needs `takeover: true`, else `409 TAKEOVER_CONFIRM_REQUIRED` | run `IN_PROGRESS`, `stage=AUTHORED`, `phase=BUILD`, `wave=1`, snapshot from the wave set's start values; slots `N-001..N-(finalWave−1)` plus `M-<p>` for each `p` in `meteorAfter`, all `UNRESOLVED`; session claimed in the same transaction | **[PROPOSAL]** |
 | `SAVE_PREP` | phase `BUILD` or `IN_WAVE` | payload `{credits, placements[]}` replaces those snapshot fields; `phase=BUILD` | **[PROPOSAL]** |
 | `START_WAVE` | phase `BUILD` or `IN_WAVE`, `payload.wave == run.wave` | payload `{credits, placements[]}` → snapshot (this is the wave-start snapshot); `phase=IN_WAVE` | **[PROPOSAL]** |
-| `COMPLETE_WAVE` | phase `IN_WAVE`, `payload.wave == run.wave` | snapshot := payload `{credits, placements, colony, powers}` (after bounds, §6.3); `highestCompletedWave = wave`; PROFILE updated only if something changes (best wave, badge, milestone). Then: if `wave == finalWave` and `stage = AUTHORED`: CAMPAIGN → set `campaignCompletedAt`, `phase=COMPLETION_OFFER`; CHALLENGE → `status=COMPLETED`. Otherwise `wave += 1`; if `stage = ENDLESS`, plan blocks (§3.6); `phase` := next-phase rule for interval `wave − 1`. Wave 999 → `status=COMPLETED` | **[PROPOSAL]** |
-| `SUBMIT_ATTEMPT` | phase `ACTIVITY`/`METEOR`; `payload.slotId` is the current slot and `UNRESOLVED` | if the pinned version is withdrawn or missing → VOID (§4.3). Otherwise record attempt `{n, attemptId = opId, answer (canonical), correct, recordedAt}`. Correct → `SUCCEEDED` + reward + summary; 3rd incorrect → `FAILED` + summary. On resolution, `phase` := next-phase rule | **[CONFIRMED rules prompt.md:505-517; mechanism PROPOSAL]** |
+| `COMPLETE_WAVE` | phase `IN_WAVE`, `payload.wave == run.wave` | snapshot := payload `{credits, placements, colony, powers}` (after bounds, §6.3); `highestCompletedWave = wave`; PROFILE updated only if something changes (best wave, badge, milestone). Then: if `wave == finalWave` and `stage = AUTHORED`: CAMPAIGN → set `campaignCompletedAt`, `phase=COMPLETION_OFFER`; CHALLENGE → `status=COMPLETED`, and this final `COMPLETE_WAVE` may write PROFILE `badges` **only** (never `planets` or eligibility). Otherwise `wave += 1`; if `stage = ENDLESS`, plan blocks (§3.6); `phase` := next-phase rule for interval `wave − 1`. Wave 999 → `status=COMPLETED` | **[PROPOSAL]** |
+| `SUBMIT_ATTEMPT` | phase `ACTIVITY`/`METEOR`; `payload.slotId` is the current slot and `UNRESOLVED` | if the pinned version is withdrawn or missing → VOID (§4.4). Otherwise record attempt `{n, attemptId = opId, answer (canonical), correct, recordedAt}`. Correct → `SUCCEEDED` + reward + summary; 3rd incorrect → `FAILED` + summary. On resolution, `phase` := next-phase rule. A meteor success when that power is already at its cap (2): slot `SUCCEEDED` and counted, no charge added (endless only) | **[CONFIRMED rules prompt.md:505-517; mechanism PROPOSAL]** |
 | `DISMISS_SLOT` | current slot `UNRESOLVED` and (meteor slot **before any attempt**, or pinned version withdrawn) | withdrawn → `VOIDED` (+ reward); otherwise `DECLINED`; `phase` := next-phase rule | **[PROPOSAL; owner decision D-11]** |
 | `DEFEAT` | phase `IN_WAVE`, `payload.wave == run.wave` | `status=DEFEATED`; REMOVE snapshot | **[CONFIRMED terminal prompt.md:675]** |
 | `ABANDON` | `campaignCompletedAt` not set; any persisted phase | `status=ABANDONED`; REMOVE snapshot | **[PROPOSAL]** |
@@ -168,7 +171,7 @@ nextPhase(run, i):                      # i = the interval just reached (wave �
 - **Current slot** is derived and never stored: `N-<wave−1>` in `ACTIVITY`, `M-<wave−1>` in `METEOR`, none in any other phase.
   **[PROPOSAL]**
 - There is no "LOCKED/OPEN" slot status. Whether a slot can be answered follows only from `phase` and `wave`. This removes the class
-  of bug where a slot is never opened and the run is stuck (review finding SM-01). **[PROPOSAL]**
+  of bug where a slot is never opened and the run is stuck (a failure mode found in design review). **[PROPOSAL]**
 - The rule tolerates a missing or already-resolved slot: it simply falls through. That is how an endless interval with no content
   goes straight to `BUILD` (§3.6).
 - The normal activity must resolve (succeeded, failed or voided) before `BUILD`. It is untimed and may stay pending across sessions
@@ -228,22 +231,22 @@ slots ahead of the child. **[PROPOSAL]**
 - **Hard cap:** `COMPLETE_WAVE` at wave 999 sets `status=COMPLETED`, which keeps slot IDs at three digits. **[ASSUMPTION]**
   Planning must stop at interval 998 too: without a cap, the block planned when `wave` reaches 991 would cover intervals 1000–1009 and
   produce four-digit slot IDs that fail `^[NM]-[0-9]{3}$`. So no slot is planned for an interval above 998 (`N-999`/`M-999` are never
-  written, because wave 999 ends the run). **[PROPOSAL — clarification not stated in the spine; see open points]**
+  written, because wave 999 ends the run). **[PROPOSAL; spine [S5.3](00-spine.md) and S3.2]**
 
 ### 3.7 The Milestone 1 wave set (data view)
 
 [B](B-scope-and-decisions.md) fixes Milestone 1 at one short wave set with exactly one activity interval and no `meteorAfter` entry
 (two waves, slot `N-001` only), because one activity and the no-repeat rule cannot fill more. The state machine handles that set in
-either mode. I'd suggest `mode = CHALLENGE`. **[PROPOSAL; scheduling in [J](J-execution-backlog.md)]**
+either mode. The plan uses `mode = CHALLENGE`. **[PROPOSAL; recorded as J-1 in [J](J-execution-backlog.md)]**
 
-| | `CHALLENGE` (suggested) | `CAMPAIGN` |
+| | `CHALLENGE` (chosen) | `CAMPAIGN` |
 |---|---|---|
 | End of wave 2 | `COMPLETE_WAVE` sets `status = COMPLETED` directly | `phase = COMPLETION_OFFER`; Milestone 1 then also needs `FINISH_RUN`, and an offer screen whose `CHOOSE_ENDLESS` would find an exhausted bank |
 | Ops Milestone 1 must build | `SAVE_PREP`, `START_WAVE`, `COMPLETE_WAVE`, `SUBMIT_ATTEMPT`, `DEFEAT`, `ABANDON` | the same plus `FINISH_RUN` (and `CHOOSE_ENDLESS` or a hidden offer) |
-| `PROFILE` writes on `COMPLETE_WAVE` | none for the Milestone 1 set (best wave and campaign badges are `CAMPAIGN`-only, §10.2; a challenge can still earn its own badge and the mode-independent badges in [C §C12](C-game-and-learning-design.md#c12-badges)) | best wave and the completion badge |
+| `PROFILE` writes on `COMPLETE_WAVE` | no `planets` write (best wave and campaign badges are `CAMPAIGN`-only, §10.2); the final `COMPLETE_WAVE` may write PROFILE `badges` only, if the set carries a challenge badge ([C §C12](C-game-and-learning-design.md#c12-badges)) | best wave and the completion badge |
 | `CREATE_RUN` transaction (§12.3) | 4 actions (SESSION, RUN, one slot, PROFILE check) | 4 actions |
 
-The trade-off: `CHALLENGE` keeps Milestone 1 to the smallest set of ops but leaves the `PROFILE` update path for Milestone 2. The
+The trade-off: `CHALLENGE` keeps Milestone 1 to the smallest set of ops but leaves the `planets` (best wave) update path for Milestone 2. The
 planet document still uses the normal `waveSets` map; it simply holds one challenge set and no `campaign` entry until the campaign is authored.
 
 ---
@@ -280,9 +283,9 @@ VOIDED no-op, which changes nothing on the slot.
 | `resolved` | materialised template instance, or null for a hand-authored activity | **[PROPOSAL]** |
 | `presentation` | option/tile order fixed at creation, so a reload shows the same layout | **[PROPOSAL]** |
 | `intro` | `AUTO` \| `ON_REQUEST` | **[PROPOSAL]** |
-| `clips[]` | variant → speech ref `{speechId, speechVersion, clipKey}`. Copied from the pinned activity version at slot creation, so `tts` signs the URL for the `clipKey` stored here with one `GetItem` (G11) and reads no `content` item on the player path | **[PROPOSAL]** |
-| `reward` | from the pinned ruleset by `(kind, interval)`; never from content or the client | **[PROPOSAL]** |
-| `attempts[]` | `{n, attemptId (= opId), answer (canonical), correct, recordedAt}`; at most 3 | **[CONFIRMED ≤3 prompt.md:511]** |
+| `clips` (the clips map) | variant → speech ref `{speechId, speechVersion, clipKey}`. Copied from the pinned activity version at slot creation, so `tts` signs the URL for the `clipKey` stored here with one `GetItem` (G11) and reads no `content` item on the player path | **[PROPOSAL]** |
+| `reward` | from the pinned ruleset by `(kind, interval)`; never from content or the client. Challenge slots use the ruleset's campaign interval table (there is no per-wave-set reward table) | **[PROPOSAL]** |
+| `attempts[]` | `{n, attemptId (= opId), answer (canonical: one string ≤ 64 chars, §4.3), correct, recordedAt}`; at most 3 | **[CONFIRMED ≤3 prompt.md:511]** |
 | `status` | `UNRESOLVED` → `SUCCEEDED` \| `FAILED` \| `DECLINED` \| `VOIDED` | **[PROPOSAL]** |
 
 **Write rules [PROPOSAL]:**
@@ -301,8 +304,12 @@ VOIDED no-op, which changes nothing on the slot.
 - **Client-only "tried that" guard:** options already tried are greyed out, and an identical typed or arranged resubmission is blocked
   with a gentle message and creates no op. The server counts every `SUBMIT_ATTEMPT` it receives and has no identical-answer rule.
   Choice activities need ≥ 4 options (publish validation) so failure stays possible. **[PROPOSAL; owner decision D-8]**
-- **Answer judging:** the answer is canonicalised once, in TypeScript, and compared by exact equality with the pinned version's accepted
-  canonical answers. Python validates only the shape. There is no second normaliser that could disagree. **[PROPOSAL]**
+- **Answer judging:** the answer is canonicalised once, in TypeScript (in `web/shared`, used by both the player app and the admin
+  preview-solve), and compared by exact equality with the pinned version's accepted canonical answers. Python validates only the shape.
+  There is no second normaliser that could disagree. **[PROPOSAL]**
+- **Canonical answer shape:** a single string of at most 64 characters for every interaction type. ARRANGE uses tile values; two-step
+  answers are joined by `|`. The reserved separators `;` `=` `,` `|` are refused inside answer values at publish validation, so a joined
+  answer can never be ambiguous. There is no "array of option IDs" form. **[PROPOSAL; spine [S3.3](00-spine.md#s33-activity-slot)]**
 
 ### 4.4 VOID (exceptional invalid content)
 
@@ -322,13 +329,17 @@ failure (prompt.md:556). **[CONFIRMED requirement; mechanism PROPOSAL]**
   exactly like a withdrawn one and logged at ERROR.
 - **Limitation:** only UNRESOLVED slots are voided. A slot already SUCCEEDED or FAILED on that version stays as recorded
   (owner decision D-9). An offline branch that already moved past the slot keeps what it saw locally (§11.4).
+- **Speech is different.** Withdrawing a speech clip in v1 is a runbook, not a route, and there is no "used by" index
+  ([D §D9.6](D-ux-and-content-operations.md#d96-when-a-clip-turns-out-to-be-wrong-later)). It writes nothing to `game` either.
+  **[PROPOSAL]**
 
 ---
 
 ## 5. Play-session state machine (account-wide lease with fencing token)
 
 The spec requires one accepted account-wide game, blocking a second while the first is valid, deliberate recovery after a crash, and a
-generation token (prompt.md:725-741). **[CONFIRMED requirement; mechanism PROPOSAL]**
+generation token (prompt.md:725-741). **[CONFIRMED requirement; mechanism PROPOSAL]** The canonical summary is spine
+[S3.4](00-spine.md#s34-play-session-account-wide-lease-with-fencing-token); this section is the detail it points to.
 
 ### 5.1 The `SESSION` item
 
@@ -364,14 +375,18 @@ only after an explicit "Play here instead?" confirmation. A cleanly `RELEASED` l
 | Request | Conditions (tried in order) | Result | Label |
 |---|---|---|---|
 | `PUT /api/session {mode: claim, runId, sessionId, takeover?, deviceLabel}` | first a consistent `GetItem RUN` under the caller's pk: missing → `404 NOT_FOUND`, terminal → `409 RUN_TERMINAL` (status from [G](G-api-contracts.md) R13). Then (1) `sessionId = :s` → extend, set `runId`, `released = false`, generation unchanged. (2) `attribute_not_exists(sessionId) OR released = true OR leaseExpiresAt <= :now` (the last clause only with `takeover: true`) → take over: `ADD generation 1`, set holder | claim granted, returns `{generation, leaseExpiresAt}` | **[PROPOSAL]** |
-| (2) fails, item returned via `ReturnValuesOnConditionCheckFailure = ALL_OLD` | `leaseExpiresAt > now` | `409 ACTIVE_SESSION_ELSEWHERE {retryAfterSeconds, deviceLabel}` (`deviceLabel` added by G for the "Being played on <device>" copy) | **[PROPOSAL]** |
+| (2) fails, item returned via `ReturnValuesOnConditionCheckFailure = ALL_OLD` | `leaseExpiresAt > now` | `409 ACTIVE_SESSION_ELSEWHERE {retryAfterSeconds, deviceLabel}` (`deviceLabel` feeds the "Being played on <device>" copy) | **[PROPOSAL]** |
 | | expired, `released = false`, holder ≠ caller, no `takeover` | `409 TAKEOVER_CONFIRM_REQUIRED {deviceLabel, lastSeenSecondsAgo}`. The client asks "This game may have unsaved progress on <device>. Play here instead?" and repeats with `takeover: true` | **[PROPOSAL]** |
 | `PUT /api/session {mode: renew, sessionId, generation}` | `sessionId = :s AND generation = :g` (no clock check) | extend lease, `released = false`, set `runId` (as G R13); failure → `409 STALE_SESSION`. **A failed renew never falls back to a claim.** | **[PROPOSAL]** |
 | `DELETE /api/session {sessionId, generation}` | same as renew | `leaseExpiresAt = now, released = true`; G answers `204` even when the condition does not match (nothing of ours to release) | **[PROPOSAL]** |
 
 The exact condition expressions are a sketch. The splitting of (2)'s failure into the two 409s is done in the handler from the returned
 old item, which saves a second read. `ReturnValuesOnConditionCheckFailure` is available on single-item writes and on every
-transaction action **[VERIFIED research 08 §a.1, AWS API reference]**.
+transaction action **[VERIFIED [sources/08-aws-data-ops.md](sources/08-aws-data-ops.md) §a.1, AWS API reference]**.
+
+- **Interrupted reset holder.** A holder whose `sessionId` starts `RESET#` (a `WHOLE_PROFILE` reset that died before its release
+  step, §12.5) is treated as released by the claim: no takeover prompt naming a "device" that is really the reset. In condition (2)
+  this is one more clause, `begins_with(sessionId, :resetPrefix)`. **[PROPOSAL; spine S3.4]**
 
 - **Timing [ASSUMPTION; tune in playtest]:** lease 180 s. Renew every 60 s, **only while the page is visible and there was input in the
   last 5 minutes**, so an idle tab left open does not block a sibling forever.
@@ -380,10 +395,10 @@ transaction action **[VERIFIED research 08 §a.1, AWS API reference]**.
 - **Transient failures:** a heartbeat that hits `TransactionConflict` or throttling is retried in the handler. If it still fails, the
   answer is `503`, never `STALE_SESSION`, so a DynamoDB hiccup is never mistaken for a takeover. **[PROPOSAL]**
 - **`CREATE_RUN` and a lapsed lease.** The claim inside the create-run transaction (access pattern G7,
-  [§12.2](#122-game-entities-and-access-patterns)) follows spine S3.2: the session must be free or
-  held by this `sessionId`, and "free" includes a lease that lapsed without release. So, as written, starting a new game can fence
-  another device without the "Play here instead?" question. G suggests `POST /api/runs` accepts `takeover` and applies the same rule
-  as the claim above; I agree, but it is a spine change (see open points). **[PROPOSAL]**
+  [§12.2](#122-game-entities-and-access-patterns)) applies the same takeover rule as the claim above (spine
+  [S3.2](00-spine.md#s32-operations-the-only-ways-run-state-changes)). `POST /api/runs` accepts `takeover`. A lease that lapsed
+  without release and is held by another `sessionId` needs `takeover: true`, else `409 TAKEOVER_CONFIRM_REQUIRED`. Without this,
+  starting a new game could fence another device without the "Play here instead?" question. **[PROPOSAL]**
 
 ### 5.4 The fence, and why `runId` is not in it
 
@@ -393,7 +408,7 @@ Every op transaction includes `ConditionCheck SESSION: sessionId = :s AND genera
   run's ops.
 - **Why not `runId`?** An earlier draft also checked `SESSION.runId = :runId`. That produced a false conflict: a child plays run A
   offline, comes back online, opens run B, and the claim rebinds `runId` to B. The still-queued ops for A then fail the fence, and the
-  child is told "this game was continued somewhere else" although no other device exists (review finding SM-08). The spec's purpose is
+  child is told "this game was continued somewhere else" although no other device exists (a false conflict found in design review). The spec's purpose is
   "one accepted account-wide game" (prompt.md:725). Generation already proves the writer is the current tenure, and revision already
   orders each run, so `runId` added only failure modes. It stays on `SESSION` for display ("being played on <device>").
 - **Clocks.** Correctness never depends on clocks. The lease time only decides when *another* browser may claim. A holder whose lease
@@ -411,7 +426,7 @@ Without this rule, a superseded laptop that re-claims the session later (generat
 its old branch under generation 7, and the old branch would be silently merged. That is exactly what prompt.md:737 forbids. With the
 rule, the old ops carry generation 5 and fail the fence. The child then sees the divergence choice (§9) instead.
 
-### 5.6 What Milestone 1 needs (answer to B's question)
+### 5.6 What Milestone 1 needs
 
 [B](B-scope-and-decisions.md) assumes Milestone 1 already uses the real ops envelope with the session fence, while takeover handling
 and the offline queue wait for Milestone 5. From the data side that split works, with one condition. **[PROPOSAL]**
@@ -432,11 +447,12 @@ and the offline queue wait for Milestone 5. From the data side that split works,
 
 ```json
 { "credits": 120,
-  "placements": [{"padId": "p03", "classId": "blaster", "level": 2, "targeting": "FIRST"}],
+  "placements": [{"padId": "p03", "classId": "nova", "level": 2, "targeting": "FRONT"}],
   "colony": {"health": 20, "shield": 0},
   "powers": {"shield-burst": 1} }
 ```
-(illustrative values only)
+(illustrative values only; IDs follow the spine key-ID pattern `^[a-z0-9-]{1,40}$`, targeting is one of `FRONT` | `FAST` |
+`CROWD` | `STRONG`)
 
 | Phase | The snapshot means | Written by |
 |---|---|---|
@@ -458,7 +474,7 @@ and the offline queue wait for Milestone 5. From the data side that split works,
 
 - No timer or cooldown crosses a wave boundary. Wave randomness derives from `(run seed, wave number)`. That is why the snapshot needs
   no cooldown or RNG state, and why a restarted wave plays out the same way. If [C](C-game-and-learning-design.md) ever needs
-  otherwise, the snapshot gains those fields and the spine is amended. **[PROPOSAL]**
+  otherwise, the snapshot gains those fields and the spine ([S4](00-spine.md)) is amended. **[PROPOSAL]**
 
 ### 6.3 Preparation persistence
 
@@ -526,7 +542,7 @@ stateDiagram-v2
   PENDING --> SYNCED: queue empty
   PENDING --> OFFLINE_PENDING: no connection
   OFFLINE_PENDING --> PENDING: connection back
-  PENDING --> RETRYING: timeout, 5xx, 429
+  PENDING --> RETRYING: timeout, 5xx, 429, PROTOCOL_UNSUPPORTED
   RETRYING --> PENDING: back-off elapsed
   PENDING --> AUTH_REQUIRED: 401 after one refresh
   AUTH_REQUIRED --> PENDING: same sub signs in
@@ -540,8 +556,11 @@ How to read it: transient problems (`RETRYING`, `OFFLINE_PENDING`, `AUTH_REQUIRE
 **the same ops unchanged**. Only a definite answer from the server (`STALE_SESSION` or a per-op `REJECTED`) leads to `DIVERGED`, which is
 never retried automatically. Copy per state ("Saved to the cloud", "Saving…", "Saved on this device — waiting to sync", "Couldn't save —
 trying again", "Sign in again to finish saving", …) is in [D](D-ux-and-content-operations.md). `LOCAL_STORAGE_UNAVAILABLE` is a flag
-shown as a banner, not a state. **[PROPOSAL]**
+shown as a banner, not a state. **[PROPOSAL]** The state table with its copy is spine [S3.5](00-spine.md).
 
+- **`409 PROTOCOL_UNSUPPORTED`** (the server is older than the client's stored `protocolVersion`, which happens only after a rollback)
+  puts the queue in `RETRYING` with the copy "Saving paused while the game updates". The same ops are resent unchanged once the server
+  catches up; the queue is never marked `REJECTED` or `DIVERGED`. **[PROPOSAL]**
 - **One serial queue per account** carries op batches and claim, renew and release requests, with one request in flight. Only the tab
   holding `scd-play` runs it. Pending ops for any of the account's runs flush in the background whichever run is on screen.
   **[PROPOSAL]**
@@ -549,7 +568,7 @@ shown as a banner, not a state. **[PROPOSAL]**
   events, the token's `sub` is compared with `ownerSub`. On a mismatch the page sends nothing more and reloads. An identity change never
   marks a queue as diverged; the previous child's queue simply waits in that child's own database (prompt.md:723; AC-05, AC-33).
   **[PROPOSAL]**
-- **Re-sign-in from `AUTH_REQUIRED` (answer to D).** Managed login is a full-page redirect, so [D](D-ux-and-content-operations.md)
+- **Re-sign-in from `AUTH_REQUIRED`.** Managed login is a full-page redirect, so [D](D-ux-and-content-operations.md)
   offers it only at a preparation boundary. Before redirecting, the client lets the request in flight settle (acknowledgement, error
   or timeout) and sends nothing new. The request that produced the second 401 was refused at the gateway, so it applied nothing. With
   IndexedDB the queue survives the redirect unchanged. In online-only mode the unacknowledged ops live only in memory and are lost by
@@ -563,8 +582,10 @@ shown as a banner, not a state. **[PROPOSAL]**
 ### 8.1 Per-op processing order (server)
 
 One write path: `POST /api/runs/{runId}/ops`. The body is an ordered batch of 1–25 ops, ≤ 64 KB:
-`{protocolVersion, sessionId, generation, ops[]}`, where each op is `{opId, expectedRevision, type, payload, clientTime}`.
-Envelope-level problems (size, JSON, op count, unknown op type, `CHOOSE_ENDLESS`/`CREATE_RUN` sent to `/ops`, ops for another run)
+`{protocolVersion, sessionId, generation, ops[]}`, where each op is `{opId, expectedRevision, type, payload, clientTime}`
+(canonical in spine [S7.1](00-spine.md#s71-envelope-and-per-op-processing)).
+The `protocolVersion` is checked first, at batch level: newer than the server supports → `409 PROTOCOL_UNSUPPORTED` (§7); older than
+supported → `426 CLIENT_UPGRADE_REQUIRED` (§10.1). Other envelope-level problems (size, JSON, op count, unknown op type, `CHOOSE_ENDLESS`/`CREATE_RUN` sent to `/ops`, ops for another run)
 are refused before any op is looked at, with `400 VALIDATION_FAILED` ([G](G-api-contracts.md) §5.5). Each op's own payload schema is
 checked later, at step (g), so a bad op is a per-op `REJECTED` that stops the batch without discarding the ops before it. Then, **for
 each op in order** (every `game` read is `ConsistentRead`):
@@ -584,10 +605,12 @@ each op in order** (every `game` read is `ConsistentRead`):
 - The first `REJECTED` or `STALE_SESSION` stops the batch; later ops come back `NOT_PROCESSED`.
 - The response always contains the per-op list `[{opId, result, code?, outcome?, appliedRevision}]` plus the authoritative run view
   (including `recentOpIds`) after the last applied op.
-- HTTP status is 200 whenever the request was processed, even with a rejection. 409 means the *first* op failed the fence. 503 means
-  retries were exhausted. 409 and 503 still carry the results decided so far. **[PROPOSAL]**
+- HTTP status is 200 whenever the request was processed, even with a rejection. 409 means the *first* op failed the fence (or the batch
+  was refused as `PROTOCOL_UNSUPPORTED`). 503 means retries were exhausted. 409 and 503 still carry the results decided so far.
+  **[PROPOSAL]**
 
-`outcome` values (APPLIED only): `CORRECT`, `INCORRECT`, `RESOLVED_SUCCEEDED`, `RESOLVED_FAILED`, `VOIDED`, `NO_OP_VOIDED_SLOT`.
+`outcome` values (APPLIED only): `VOIDED`, `NO_OP_VOIDED_SLOT`, `INCORRECT`, `RESOLVED_SUCCEEDED`, `RESOLVED_FAILED`, `DECLINED`.
+There is no `CORRECT` outcome: a correct answer always resolves the slot, so it is `RESOLVED_SUCCEEDED`. **[PROPOSAL]**
 
 ### 8.2 Stable identities
 
@@ -626,7 +649,8 @@ slot for the life of the run.
 
 One boundary case: a batch is applied, the response is lost, *another* browser takes over and applies more than 32 ops to the same run,
 and then the first browser resends. The opIds have left the window, so step (a) misses and step (b) answers `STALE_SESSION`. Nothing is
-applied twice. The only imprecision is that the first browser's recovery store will hold ops that did in fact land. This is acceptable.
+applied twice. The only imprecision is that the first browser's recovery store will hold ops that did in fact land. This is acceptable,
+and the recovery panel's copy allows for it: "some of this may already be saved" (§9.2). **[PROPOSAL]**
 
 ---
 
@@ -640,10 +664,10 @@ applied twice. The only imprecision is that the first browser's recovery store w
 - **Offline attempts** are judged locally from pack data. The server judges the same canonical bytes on sync.
 - **Missing pack content offline:** the client stops at the first interval or wave whose content is missing (`OFFLINE_PACK_INCOMPLETE`,
   client-only) and never invents content.
-- **Connection-required actions:** sign-in, profile setup, new run, choose endless, resets, pack preparation and the first fetch of a
-  clip are disabled with the reason while offline. [E](E-architecture.md) also proposes disabling sign-out offline, because the
-  `/logout` redirect and the reload need the network; that is not yet in spine S7.4. It changes no data rule: the queue stays in
-  `scd-<sub>` either way.
+- **Connection-required actions:** sign-in/sign-up, sign-out, profile setup, new run, choose endless, resets, pack preparation and the
+  first fetch of a clip are disabled with the reason while offline (spine [S7.4](00-spine.md#s74-offline-rules)). Sign-out is on the
+  list because the Cognito `/logout` redirect and the reload need the network ([E](E-architecture.md)). It changes no data rule: the
+  queue stays in `scd-<sub>` either way. **[PROPOSAL]**
 
 ### 9.2 Divergence procedure (`STALE_SESSION` or any `REJECTED`)
 
@@ -663,24 +687,34 @@ applied twice. The only imprecision is that the first browser's recovery store w
      to recovery and returns to `SYNCED`.
 4. **Recovery store.** A "Progress that was not saved" panel shows run, wave reached, date and reason code, with "Download recovery file"
    (JSON). Entries are deleted only on explicit dismissal. The copy is honest that they cannot be replayed once the cloud run has advanced
-   (prompt.md:739).
+   (prompt.md:739), and that "some of this may already be saved" (a lost response followed by a takeover can leave ops in recovery that
+   did land, §8.4).
 5. **Logging.** One structured server log line per `REJECTED` op. A metric filter on `result=REJECTED` raises an alarm, because it
    always means a rule mismatch between the two reducers or tampering ([H](H-infrastructure-and-delivery.md)).
 
-All of the above is **[PROPOSAL]** satisfying the **[CONFIRMED]** rules at prompt.md:737-741.
+All of the above is **[PROPOSAL]** satisfying the **[CONFIRMED]** rules at prompt.md:737-741. The canonical procedure is spine
+[S7.5](00-spine.md#s75-divergence-procedure-stale_session-or-any-rejected).
 
 **Why (b) is safe.** Its eligibility test proves the cloud run is exactly where the frozen branch started. Replaying the branch is then
 indistinguishable from the branch having been flushed before the takeover. No other device's accepted work is overwritten or merged. If
 the test fails, (b) is not offered at all.
 
 - **Several runs:** when frozen ops exist for more than one run, (b) is offered only if every such run passes the check; otherwise (a)
-  only. One choice keeps the dialog child-simple. **[PROPOSAL — see open points]**
+  only. One choice keeps the dialog child-simple. (b) is therefore **all-or-nothing**. **[PROPOSAL; spine S7.5]**
 
 ### 9.3 Local database `scd-<sub>`
 
 IndexedDB stores: `ops` (pending, each with its stored generation and `protocolVersion`), `runs` (acknowledged view + revision), `packs`,
-`audio` (clip bytes by `clipKey`), `recovery` (frozen branches), `meta` (sessionId, schema version, cached nickname/avatar/ageBand,
-never DOB).
+`audio` (clip bytes, one entry per `clipKey`, verified against the `sha256` from `POST /api/speech`), `recovery` (frozen branches), `meta`
+(sessionId, schema version, cached nickname/avatar/ageBand, never DOB). Canonical list: spine
+[S7.3](00-spine.md#s73-local-database-scd-sub-indexeddb-schema-versioned).
+
+- **Audio is stored once per clip.** A clip is synthesised once ever (content-addressed key), and the browser keeps its bytes once per
+  `clipKey`, pre-fetched at run preparation, however many slots or activities use it. On Play, if the slot's pinned `clipKey` is stored
+  locally, playback starts at once from local bytes and `POST /api/speech` is sent concurrently (AC-19 is still met). If it is not
+  stored, the client waits for the response, downloads, verifies `sha256`, stores and plays. A response whose `clipKey` differs from the
+  stored one is logged, and the server's clip is downloaded and used from the next Play. Offline: local bytes only. The flow is owned by
+  [E](E-architecture.md); for data it means the `audio` store is keyed by `clipKey` alone, never by slot. **[CONFIRMED by owner]**
 
 - Sign-out never deletes the database, and another account never opens it (AC-05).
 - After a successful `WHOLE_PROFILE` reset the device deletes it.

@@ -9,6 +9,14 @@ Scope of this section (other sections own the detail):
 - The Terraform layout, workflows, release order and DNS hand-off are designed in [H. Infrastructure and delivery](H-infrastructure-and-delivery.md).
 - The architecture and trust-boundary diagrams, including where DNS plugs in, are in [E. Architecture](E-architecture.md).
 - The dependency-ordered tasks that act on these findings are in [J. Execution backlog](J-execution-backlog.md).
+- Every name, key, route and rule used here follows the canonical spine, [00-spine.md](00-spine.md) (v0.3). Where this section
+  cites "spine Sn", that is the matching section of that file.
+
+Way of working **[CONFIRMED by owner]**: Claude builds the app in sequential build phases and the owner reviews the code at each
+phase gate. Work happens on `main`; Claude or the owner commits and pushes. Deployment happens **only** through GitHub Actions
+pipelines: no local `terraform apply` on the main stack (local `fmt`/`validate`/`plan` and read-only AWS calls are fine). The one
+exception is the bootstrap root, which the owner applies locally because it creates the CI's own trust
+([spine S0.1](00-spine.md#s01-way-of-working-confirmed-by-owner-2026-11-14)).
 
 Spec anchors: the brief asks for "actual observed paths/configuration, reuse decisions and missing integration work"
 (prompt.md:49-50), "a short evidence table of what exists, what can be reused and what must be added" (prompt.md:972), and
@@ -21,14 +29,14 @@ are prompt.md:25, prompt.md:27, prompt.md:797-799, prompt.md:819-822 and prompt.
 
 | # | Finding | Consequence | Label |
 |---|---|---|---|
-| 1 | The repository holds one commit with a one-line `README.md`. `.github/`, `infrastructure/` and `prompt.md` are untracked. There is no `.gitignore`, no `CLAUDE.md` and no application code, tests or docs. | Repository hygiene is the first task. Without a `.gitignore`, a careless `git add .` would commit the local Terraform data directory. | **[VERIFIED]** `git status`, `ls` |
-| 2 | The bootstrap root calls the owner's external module at tag `v1.0.0` and **has been applied**. The main-stack state bucket, the bootstrap's own state bucket, the CI role and the GitHub OIDC provider exist in account `263185198757`. Apart from the organisation's baseline roles (OrganizationAccountAccessRole, CostScanningRole, an SSO role, a StackSets execution role), nothing else does. | We reuse the bootstrap and do not replace it (prompt.md:976). `infrastructure/main/` starts from an empty directory and an empty state bucket. | **[VERIFIED]** files + read-only AWS checks |
+| 1 | The repository holds one commit with a one-line `README.md`. `.github/`, `infrastructure/` and `prompt.md` are untracked. There is no `.gitignore`, no `CLAUDE.md` and no application code, tests or docs. | Repository hygiene opens the first build phase. Without a `.gitignore`, a careless `git add .` would commit the local Terraform data directory. | **[VERIFIED]** `git status`, `ls` |
+| 2 | The bootstrap root calls the owner's external module at tag `v1.0.0` and **has been applied**. The main-stack state bucket, the bootstrap's own state bucket, the CI role and the GitHub OIDC provider exist in account `263185198757`. Apart from the organisation's baseline roles (OrganizationAccountAccessRole, CostScanningRole, an SSO role, a StackSets execution role), nothing else does. | We reuse the bootstrap and do not replace it (prompt.md:976). `infrastructure/main/` starts from an empty directory and an empty state bucket. The bootstrap root gains one addition, the Lambda artefacts bucket, beside the existing module call (section 9.1) **[PROPOSAL]**. | **[VERIFIED]** files + read-only AWS checks |
 | 3 | The main-stack state bucket is `prod-state-bucket-space-tower-defence`, from the formula `<environment>-state-bucket-<project>`. The copied workflows compute `<account>-<region>-<project>-<environment>` instead. | Every workflow `terraform init` must use the real name. If it doesn't, init points at a bucket that does not exist. | **[VERIFIED]** |
 | 4 | Both workflow files are byte-identical copies of the reference product's workflows. They reference a role, Terraform version, lock table, app paths, secrets and jobs that do not exist here. | They are examples to learn from, not pipelines. Both are replaced (see section 4). | **[VERIFIED]** `cmp` against the reference |
 | 5 | The CI role trusts `repo:jacklavelle286/space-tower-defence:*` and has `AdministratorAccess`. | It is too broad for production. Section 5 gives the recommended narrowing. | **[VERIFIED]** IAM read |
 | 6 | GitHub repositories created after 15 July 2026 use an immutable OIDC subject format that the deployed trust pattern will not match. | This is **likely to block CI** until it is checked. It is the first thing to test (section 5.2). | Docs **[VERIFIED]**; this repository **[UNVERIFIED]** |
-| 7 | GitHub Environment required reviewers are available only on public repositories for Free/Pro/Team plans. | The release design must work with or without the review pause (section 5.4). | Docs **[VERIFIED]**; this repository **[UNVERIFIED]** |
-| 8 | The target repository contains no DNS, Route 53 or certificate code, although the brief expected "domain-related resources" to be present (prompt.md:960). The reference project looks up a hosted zone by name in its own account and writes its validation and alias records there with the default provider. | DNS stays the owner's integration (prompt.md:27, prompt.md:822). Section 7 lists the integration points only. | **[VERIFIED]** |
+| 7 | GitHub Environment required reviewers are available only on public repositories for Free/Pro/Team plans. | The release design must work with or without the review pause. The default is two dispatches (plan, then apply by run ID); section 5.4. | Docs **[VERIFIED]**; this repository **[UNVERIFIED]** |
+| 8 | The target repository contains no DNS, Route 53 or certificate code, although the brief expected "domain-related resources" to be present (prompt.md:960). The reference project looks up a hosted zone by name in its own account and writes its validation and alias records there with the default provider. | DNS stays the owner's integration (prompt.md:27, prompt.md:822). An HTTPS app in another account already serves the apex `jackgl.com`; `aliens` and `admin.aliens` do not exist yet, so there is no clash **[CONFIRMED by owner]**. Section 7 lists the integration points and the hand-off checks only. | **[VERIFIED]** |
 
 ---
 
@@ -91,9 +99,10 @@ Two details that are easy to miss:
   key from the common file so only one file sets it. **[ASSUMPTION]**
 - **The env files are shared by the bootstrap root, the main root and CI** (the bootstrap README describes this layout, but only
   in its uncommitted working copy; see section 8.1).
-  Any key added for the main stack (hostnames, e-mail) will make the bootstrap root warn about an undeclared variable, and the
+  Any key added for the main stack (hostnames, e-mail, the `tts_*` voice keys) will make the bootstrap root warn about an undeclared variable, and the
   reverse is also true. Terraform only warns about undeclared keys in a `-var-file`; it does not fail. That is
-  **[UNVERIFIED]** for the current version (it is from memory and from the bootstrap README's statement). The fix is cheap:
+  **[UNVERIFIED]** for the current version (it is from memory and from the bootstrap README's statement; see
+  [Unverified items to check](#unverified-items-to-check)). The fix is cheap:
   declare the foreign keys with defaults in each root. H adopts this: the main root declares the bootstrap keys
   ([H §H.3.2](H-infrastructure-and-delivery.md#h32-variablestf)) and the bootstrap root declares the main-stack keys
   ([H §H.5](H-infrastructure-and-delivery.md#h5-bootstrap-changes-you-make-no-replacement-bootstrap), B-5). **[PROPOSAL]**
@@ -124,13 +133,17 @@ flowchart LR
   P --> R
   R -->|future init/plan/apply| SB
   R -.->|future| APP[Application stack<br/>not yet created]
+  L -.->|future apply| AB[(…-artifacts-bucket<br/>not yet created)]
+  R -.->|future zips, plans| AB
 ```
 
 How to read the diagram: two Terraform stacks keep state in two places. The bootstrap stack is applied only from the owner's
 machine and keeps its state in the `…-bootstrap` bucket. The main stack will be applied only by CI through the OIDC role and
-will keep its state in `prod-state-bucket-space-tower-defence`. The dotted line is everything this plan still has to build.
+will keep its state in `prod-state-bucket-space-tower-defence`. The dotted lines are what this plan still has to build: the
+application stack, and the Lambda artefacts bucket, which the owner's next local bootstrap apply creates and CI then writes
+Lambda zips and saved plans into ([spine S11.1](00-spine.md#s111-workflows)). **[PROPOSAL]**
 
-The owner can repeat these checks read-only at any time:
+The owner can repeat these checks read-only at any time (read-only AWS calls stay allowed under the way of working):
 
 - `TF_DATA_DIR=infrastructure/bootstrap/.terraform-prod terraform -chdir=infrastructure/bootstrap output` shows `state_bucket_name` and `ci_role_arn`.
 - `aws iam get-role --role-name space-tower-defence-prod-github-oidc --query Role.AssumeRolePolicyDocument --profile space-tower-defence` shows the trust policy.
@@ -184,7 +197,11 @@ with `jq` and check that `aws sts get-caller-identity` returns the expected acco
 
 The replacement workflows are designed in [H §H.7](H-infrastructure-and-delivery.md#h7-workflows-what-replaces-the-two-copies):
 `release.yml` replaces `deploy.yml`, a plan-only `plan.yml` replaces `tf-apply-destroy-env.yml`, `apply.yml` applies a
-reviewed saved plan (section 5.4), and there is no destroy workflow. **[PROPOSAL]**
+reviewed saved plan (section 5.4), and there is no destroy workflow. The saved plan is stored in the artefacts bucket under
+`plans/<run_id>/`, never as a GitHub artefact (which could be public). `release.yml` takes an optional input
+`artefacts_from=<release_id>` for rollback: current `main` Terraform plus that release's archived manifest
+([spine S11.2](00-spine.md#s112-rollback)). The M0 OIDC smoke test, `oidc-smoke.yml`, is kept afterwards as a manual
+workflow ([spine S11.1](00-spine.md#s111-workflows)). **[PROPOSAL]**
 
 ---
 
@@ -204,9 +221,10 @@ and 102; uncommitted working copy, about 3 lines earlier at v1.0.0). **[VERIFIED
 
 - GitHub documents that repositories created after 15 July 2026 emit an immutable default subject of the form
   `repo:OWNER@OWNER-ID/REPO@REPO-ID:<context>`. Older repositories keep `repo:OWNER/REPO:<context>` unless they opt in.
-  **[VERIFIED]** in GitHub's OIDC reference documentation (three independent reads during research).
+  **[VERIFIED]** in GitHub's OIDC reference documentation (GitHub Docs, "OpenID Connect reference").
 - This repository's only commit is dated 2026-11-14, so it was very probably created after that cut-off. I could not check
-  this because the `gh` CLI was not authenticated in the planning session. **[UNVERIFIED]**
+  this because the `gh` CLI was not authenticated in the planning session. **[UNVERIFIED]**; the M0 OIDC smoke test settles it
+  ([spine S0](00-spine.md#s0-verified-starting-point)).
 - If the repository uses the immutable format, the trust pattern `repo:jacklavelle286/space-tower-defence:*` cannot match the
   token (the owner segment becomes `jacklavelle286@<id>`). Every `configure-aws-credentials` step would then fail with an
   `AssumeRoleWithWebIdentity` access-denied error. The reference product is older, which is why its pattern looks correct
@@ -216,24 +234,27 @@ and 102; uncommitted working copy, about 3 lines earlier at v1.0.0). **[VERIFIED
 
 | Method | What to look at | Notes |
 |---|---|---|
-| REST API | `GET /repos/{owner}/{repo}/actions/oidc/customization/sub`, e.g. `gh api repos/jacklavelle286/space-tower-defence/actions/oidc/customization/sub`. Check the field `use_immutable_subject` (field name **[UNVERIFIED]**; see the open points). | Read-only. `gh api repos/jacklavelle286/space-tower-defence --jq '.created_at, .visibility, .id, .owner.id'` gives the creation date, the visibility and the two numeric IDs that an immutable subject would contain. |
+| REST API | `GET /repos/{owner}/{repo}/actions/oidc/customization/sub`, e.g. `gh api repos/jacklavelle286/space-tower-defence/actions/oidc/customization/sub`. Check the field `use_immutable_subject` (field name **[UNVERIFIED]**; see [Unverified items to check](#unverified-items-to-check); if the field is absent, the throwaway workflow below is the definitive check). | Read-only. `gh api repos/jacklavelle286/space-tower-defence --jq '.created_at, .visibility, .id, .owner.id'` gives the creation date, the visibility and the two numeric IDs that an immutable subject would contain. |
 | Repository Settings | The repository's Settings pages, where GitHub exposes the OIDC subject option for the repository | The REST field above is the definitive answer if the UI does not show it |
-| Throwaway workflow | A `workflow_dispatch` workflow with `permissions: id-token: write`, one job with `environment: prod`, and a step that requests an ID token for audience `sts.amazonaws.com`, decodes **only the payload** and prints **only** the `sub` claim (optionally `repository_id` and `repository_owner_id`). A second step runs `configure-aws-credentials` and `aws sts get-caller-identity`. | **Never print, echo or upload the token itself.** This is also the Milestone 0 OIDC smoke test. It needs the repository pushed first, so `.gitignore` comes before it. |
+| Throwaway workflow | A `workflow_dispatch` workflow with `permissions: id-token: write`, one job with `environment: prod`, and a step that requests an ID token for audience `sts.amazonaws.com`, decodes **only the payload** and prints **only** the `sub` claim (optionally `repository_id` and `repository_owner_id`). A second step runs `configure-aws-credentials` and `aws sts get-caller-identity`. | **Never print, echo or upload the token itself.** This is also the Milestone 0 OIDC smoke test, `oidc-smoke.yml` (to create), which is kept afterwards as a manual workflow. It needs the repository pushed first, so `.gitignore` comes before it. Its result (which subject format, whether environments and required reviewers are available) is recorded as an ADR in `docs/decisions/` (to create). |
 
 **Fix (the owner applies it, using the existing bootstrap):** change `trusted_subs` in
 [common.auto.tfvars.json:4](../../infrastructure/envs/common.auto.tfvars.json#L4), then re-run
 `/home/jack/Documents/Projects/terraform-bootstrap/scripts/bootstrap.sh prod apply --dir <repo>/infrastructure/bootstrap`
 from the clone. This is an in-place update of the role's trust policy. It does not create a replacement bootstrap
-(prompt.md:976). **[PROPOSAL]**
+(prompt.md:976). The same local apply also adds the Lambda artefacts bucket beside the module call (section 9.1). This local
+bootstrap apply is the one permitted exception to "deploy only through GitHub Actions", because the pipeline cannot create its
+own trust ([spine S0.1](00-spine.md#s01-way-of-working-confirmed-by-owner-2026-11-14)). **[PROPOSAL]**
 
 ### 5.3 Recommended narrowing
 
 | Item | Today | Recommended | Label |
 |---|---|---|---|
-| Subject | `repo:jacklavelle286/space-tower-defence:*` | One entry for the environment context only: `repo:jacklavelle286/space-tower-defence:environment:prod`. If section 5.2 shows the immutable format, use `repo:jacklavelle286@<owner-id>/space-tower-defence@<repo-id>:environment:prod` instead. | **[PROPOSAL]** |
+| Subject | `repo:jacklavelle286/space-tower-defence:*` | One entry for the environment context only: `repo:jacklavelle286/space-tower-defence:environment:prod`. If section 5.2 shows the immutable format, use `repo:jacklavelle286@<owner-id>/space-tower-defence@<repo-id>:environment:prod` instead ([spine S11.1](00-spine.md#s111-workflows)). | **[PROPOSAL]** |
+| Second environment (only if required reviewers are available) | — | Add an environment `prod-apply` with required reviewers, used only by the apply job. Both subjects (`…:environment:prod` and `…:environment:prod-apply`) go into `trusted_subs`, in the immutable format if the repository uses it. Without reviewers, the two-dispatch design (section 5.4) stands alone. | **[PROPOSAL]** |
 | Workflow side | Only the terraform job declares an environment | **Every** job that assumes the role declares `environment: prod`, so its token's `sub` ends `:environment:prod`. Jobs without credentials (checks, builds) do not assume the role at all. | **[PROPOSAL]** |
-| Who can enter `prod` | Unrestricted | Give the `prod` environment a deployment-branch rule allowing only `main`. Without that rule, any branch can declare `environment: prod` and receive the narrowed subject, so the environment-only narrowing depends on it. H adopts this rule ([H §H.5](H-infrastructure-and-delivery.md#h5-bootstrap-changes-you-make-no-replacement-bootstrap), B-2). Availability on a private repository depends on the plan **[UNVERIFIED]**. | **[PROPOSAL]** |
-| Fallback subject | — | If environments are not available on this repository's plan, trust `repo:jacklavelle286/space-tower-defence:ref:refs/heads/main` (or its immutable-format equivalent) instead, and no job declares an environment. This departs from spine S11.1's `environment:prod` subject and is settled by the M0 OIDC smoke test ([H §H.5](H-infrastructure-and-delivery.md#h5-bootstrap-changes-you-make-no-replacement-bootstrap), B-3). | **[PROPOSAL]** |
+| Who can enter `prod` | Unrestricted | Give the `prod` environment a deployment-branch rule allowing only `main`. Without that rule, any branch can declare `environment: prod` and receive the narrowed subject, so the environment-only narrowing depends on it. The spine (S11.1) and H adopt this rule ([H §H.5](H-infrastructure-and-delivery.md#h5-bootstrap-changes-you-make-no-replacement-bootstrap), B-2). Availability on a private repository depends on the plan **[UNVERIFIED]**; the M0 smoke test settles it. | **[PROPOSAL]** |
+| Fallback subject | — | If environments are not available on this repository's plan, trust `repo:jacklavelle286/space-tower-defence:ref:refs/heads/main` (or its immutable-format equivalent) instead, and no job declares an environment. This is the spine's recorded fallback (S11.1); the M0 OIDC smoke test settles which applies and the result is recorded as an ADR in `docs/decisions/` ([H §H.5](H-infrastructure-and-delivery.md#h5-bootstrap-changes-you-make-no-replacement-bootstrap), B-3). | **[PROPOSAL]** |
 | Permissions | `AdministratorAccess` | Keep it while the module set is still changing (Milestones 0–1). Before the data-freeze point, replace it with a scoped policy through the module's `role_inline_policy_json` input: the services in use (S3, CloudFront, ACM, Cognito, DynamoDB, Lambda, API Gateway, Logs, CloudWatch, SNS, Backup, IAM). Limit IAM writes to `space-tower-defence-prod-*` role names. Add explicit denies on deleting the state buckets, the two tables and the user pools, and on changing the CI role's own trust. The policy outline is in [H §H.5.1](H-infrastructure-and-delivery.md#h51-scoped-ci-policy-outline-not-json) (change B-4). | **[PROPOSAL]** |
 | Session | 3600 s | Keep it. A release is well under an hour. If one ever runs longer, the apply job re-assumes the role rather than raising the maximum. | **[ASSUMPTION]** |
 
@@ -249,11 +270,12 @@ boundary condition on role creation or role-name scoping plus a deny on attachin
 - This repository's visibility and the account plan are **[UNVERIFIED]**. To check:
   `gh api repos/jacklavelle286/space-tower-defence --jq .visibility`, then look under Settings → Environments → `prod` to see
   whether "Required reviewers" can be ticked.
-- Consequence: the release design in [H](H-infrastructure-and-delivery.md) works either way. With reviewers, the release
-  pauses after the saved plan. Without them, `release.yml` stops after uploading the plan, and the owner dispatches `apply.yml`
-  with that run's ID (`plan_run_id`). This "two-dispatch fallback" gives the same guarantee that only a reviewed, saved plan
-  is applied, and H makes it the default ([H §H.7](H-infrastructure-and-delivery.md#h7-workflows-what-replaces-the-two-copies), W-4).
-  **[PROPOSAL]**
+- Consequence: the release design in [H](H-infrastructure-and-delivery.md) works either way. The **default is two dispatches**:
+  `release.yml` stops after storing the saved plan in the artefacts bucket under `plans/<run_id>/`, and the owner reviews it and
+  dispatches `apply.yml` with that run's ID (`plan_run_id`). This guarantees that only a reviewed, saved plan is applied, whatever
+  the repository's plan allows ([spine S11.1](00-spine.md#s111-workflows);
+  [H §H.7](H-infrastructure-and-delivery.md#h7-workflows-what-replaces-the-two-copies), W-4). If required reviewers turn out to be
+  available, the environment `prod-apply` (with reviewers) is added and used only by the apply job (section 5.3). **[PROPOSAL]**
 
 ---
 
@@ -282,11 +304,25 @@ clear message, so a future rename cannot silently create an empty state in the w
 settings and this guard in every job that runs Terraform
 ([H §H.8.4](H-infrastructure-and-delivery.md#h84-backend-initialisation-every-job-that-runs-terraform)). **[PROPOSAL]**
 
+This is the one deliberate exception to the spine rule that workflows learn names from `terraform output -json`
+([spine S1.1](00-spine.md#s11-naming-verified-reference-conventions-applied-as-proposal)): the backend bucket is needed before
+`terraform init`, so no output can supply it. The spine's backend settings name the bucket literally
+([spine S11.1](00-spine.md#s111-workflows)), and the formula plus `head-bucket` guard keeps the workflows honest against
+`locals.tf:2`. The alternative, a single `state_bucket_name` env key read by both roots, was not adopted. **[PROPOSAL]**
+
 ---
 
 ## 7. DNS: integration points only
 
-The owner will integrate DNS (prompt.md:27, prompt.md:822). The plan does not choose a mechanism. What the repositories show:
+The owner will integrate DNS (prompt.md:27, prompt.md:822). The plan does not choose a mechanism. The owner's facts about the
+domain are recorded in [spine S1.0](00-spine.md#s10-dns-hand-off-facts-confirmed-by-owner-2026-11-14-unless-marked):
+
+- An HTTPS app already serves the apex `jackgl.com` (a separate app and API, in another account). `aliens.jackgl.com` and
+  `admin.aliens.jackgl.com` do not exist yet. There is no clash: different hostnames and different origins. **[CONFIRMED by owner]**
+- Apex domain-wide cookies will be sent to our subdomains. That is harmless, because our apps use bearer tokens, not cookies.
+  HSTS `includeSubDomains` on the apex is also fine, since both our sites are HTTPS-only. **[CONFIRMED by owner]**
+
+What the repositories show:
 
 - **This repository** has no DNS, Route 53, ACM or provider-alias code. **[VERIFIED]**
 - **The reference product** looks up a public zone by name with the default provider, in its own workload account
@@ -301,14 +337,19 @@ The owner will integrate DNS (prompt.md:27, prompt.md:822). The plan does not ch
 |---|---|---|---|
 | Certificate validation | Two DNS-validation CNAMEs, for `aliens.jackgl.com` and `admin.aliens.jackgl.com`, from the us-east-1 ACM certificate's `domain_validation_options`. These are exposed as the Terraform output `acm_validation_records`. | Certificate module and `infrastructure/main/outputs.tf` (to create) | **[PROPOSAL]** |
 | Issue-before-use ordering | A distribution with aliases needs an issued certificate, so the first apply waits on validation. ACM times out after 72 h. | First release order in [H](H-infrastructure-and-delivery.md) | **[PROPOSAL]** |
-| Alias records | `aliens.jackgl.com` and `admin.aliens.jackgl.com` → their distributions' `domain_name`/`hosted_zone_id` (A + AAAA; IPv6 is on) | Outputs `player_distribution_domain`, `admin_distribution_domain`, `cloudfront_hosted_zone_id`, plus whatever mechanism the owner uses | **[PROPOSAL]** |
+| Alias records | `aliens.jackgl.com` and `admin.aliens.jackgl.com` → their distributions' `domain_name`/`hosted_zone_id` (A + AAAA; IPv6 is on). Both are needed in M1: the admin alias and a minimal admin app ship in M1 because clip approval needs them. | Outputs `player_distribution_domain`, `admin_distribution_domain`, `cloudfront_hosted_zone_id`, plus whatever mechanism the owner uses | **[PROPOSAL]** |
+| CAA check | If `jackgl.com` has CAA records, they must allow `amazon.com`, or ACM cannot issue the certificate | Owner's DNS hand-off checklist ([H §H.15](H-infrastructure-and-delivery.md#h15-dns-hand-off)) | **[CONFIRMED by owner]**; whether CAA records exist **[UNVERIFIED]** |
+| Wildcard-alias check | If the apex CloudFront distribution lists a wildcard alternate domain name `*.jackgl.com`, it could block adding `aliens.jackgl.com` to a distribution in another account | Owner checks the apex distribution's alternate domain names before M1 | **[CONFIRMED by owner]** as a check; the effect **[UNVERIFIED]** |
 | Zone lookup / record-writing provider | The equivalent of the reference `data.tf` zone lookup and record-writing provider | **None in the workload stack.** `infrastructure/main/data.tf` (to create) holds only the managed CloudFront policy lookups, and `provider.tf` (to create) has no DNS alias. The owner creates the records from the outputs; if the owner later wires the DNS account into Terraform, `provider.tf` is where that alias would go ([H §H.3.4](H-infrastructure-and-delivery.md#h34-datatf), [H §H.15](H-infrastructure-and-delivery.md#h15-dns-hand-off)). | **[CONFIRMED]** owner-owned |
 | Env keys | Hostnames (section 10.2) | `infrastructure/envs/prod.tfvars.json` | **[PROPOSAL]** |
-| Never touched | The `jackgl.com` apex and `www`, which belong to the other product. No `allow_overwrite` on any record in a shared zone. | n/a | **[PROPOSAL]** |
+| Never touched | The `jackgl.com` apex and `www`, which belong to the other product. No `allow_overwrite` on any record. | n/a | **[CONFIRMED by owner]** |
 
-The API gets **no hostname of its own**. Each site reaches it same-origin under `/api/*`, which is the reference pattern
-(`/home/jack/Documents/Projects/jacks-productivity-tool/infrastructure/modules/cloudfront/main.tf` lines 193-208). So no API
-certificate or API DNS record is needed (see [E](E-architecture.md)). **[PROPOSAL]**
+The API gets **no hostname of its own**. Each site reaches it same-origin under `/api/*`, an idea borrowed from the reference
+(`/home/jack/Documents/Projects/jacks-productivity-tool/infrastructure/modules/cloudfront/main.tf` lines 193-208). The origin
+type differs: in the reference, `/api/*` goes to a Lambda Function URL and a CloudFront Function strips the `/api` prefix
+(same file, line 33 and lines 204-207) **[VERIFIED]**. Ours goes to the HTTP API's default endpoint and keeps `/api` in the route
+keys ([spine S1](00-spine.md#s1-system-shape)). So no API certificate or API DNS record is needed (see
+[E](E-architecture.md)). **[PROPOSAL]**
 
 ---
 
@@ -338,7 +379,7 @@ script runs from the clone. It does mean a fresh clone of `v1.0.0` would not fin
 
 Path: `/home/jack/Documents/Projects/jacks-productivity-tool`. It is a different product: FastAPI in a container Lambda,
 Postgres, a VPC, a Vite SPA and native shells. It is where the env-file convention, the copied workflows and the
-CloudFront/ACM approach come from. The research reports read its root and modules in depth. I re-checked every line cited below.
+CloudFront/ACM approach come from. I re-checked every line cited below against the files themselves.
 
 | Pattern | Evidence (plain paths) | Label |
 |---|---|---|
@@ -350,7 +391,7 @@ CloudFront/ACM approach come from. The research reports read its root and module
 | OAC `<project>-<environment>-spa-oac` | same file, line 64 | **[VERIFIED]** |
 | us-east-1 certificate, DNS validation, `www` SAN, `create_before_destroy`; validation wait | same file, lines 71-81 and 100-104 | **[VERIFIED]** |
 | Distribution `comment = "<project>-<environment>"` | same file, line 141 | **[VERIFIED]** |
-| `/api/*` ordered behaviour to the backend origin | same file, lines 193-208 | **[VERIFIED]** |
+| `/api/*` ordered behaviour to the backend origin (a Lambda Function URL), with a viewer-request CloudFront Function that strips the `/api` prefix | same file, lines 193-208; function defined at line 33 | **[VERIFIED]** |
 | **Distribution-wide** `custom_error_response` 403 → 200 `/index.html` | same file, lines 244-249 | **[VERIFIED]** |
 | Route 53 alias records with `allow_overwrite = true` | same file, lines 92, 319, 332 | **[VERIFIED]** |
 | Container-image API Lambda pinned to `:latest`; Function URL with `authorization_type = "NONE"`; log group retention 7 days | `/home/jack/Documents/Projects/jacks-productivity-tool/infrastructure/modules/api_lambda/main.tf` lines 8, 155-158, 329-339 | **[VERIFIED]** |
@@ -373,17 +414,17 @@ own version, informed by the original. **DO-NOT-COPY** = leave it behind.
 
 | File | What it says | Decision | Label |
 |---|---|---|---|
-| [infrastructure/bootstrap/main.tf](../../infrastructure/bootstrap/main.tf) | Calls the module `v1.0.0` with the shared env inputs | **REUSE**. Don't bump the tag. Re-apply only for trust/permission changes, from the owner's machine. | **[PROPOSAL]** |
+| [infrastructure/bootstrap/main.tf](../../infrastructure/bootstrap/main.tf) | Calls the module `v1.0.0` with the shared env inputs | **REUSE**, with one addition: the Lambda artefacts bucket (`…-artifacts-bucket`, versioned; Lambda zips, release manifests, archived static builds, saved plans under `plans/<run_id>/`) is declared beside the module call. This is not a replacement bootstrap. It removes the chicken-and-egg of the main stack needing a bucket for its own Lambda zips, so the pipeline never needs a `-target` apply ([spine S1](00-spine.md#s1-system-shape), S11.1). Don't bump the tag. Re-apply only from the owner's machine, for trust/permission changes and this bucket. | **[PROPOSAL]** |
 | [infrastructure/bootstrap/locals.tf](../../infrastructure/bootstrap/locals.tf) | State-bucket formula | **REUSE**. This formula is the contract the workflows mirror. | **[PROPOSAL]** |
 | [infrastructure/bootstrap/variables.tf](../../infrastructure/bootstrap/variables.tf) | Typed, described inputs | **REUSE**, plus declaration-only entries (`default = null`) for the main-stack env keys so the shared env files load without warnings ([H §H.5](H-infrastructure-and-delivery.md#h5-bootstrap-changes-you-make-no-replacement-bootstrap), B-5). | **[PROPOSAL]** |
-| [infrastructure/bootstrap/outputs.tf](../../infrastructure/bootstrap/outputs.tf) | Role ARN, bucket, ECR URLs | **REUSE** | **[PROPOSAL]** |
+| [infrastructure/bootstrap/outputs.tf](../../infrastructure/bootstrap/outputs.tf) | Role ARN, bucket, ECR URLs | **REUSE**, plus an output for the artefacts bucket name | **[PROPOSAL]** |
 | `infrastructure/bootstrap/.terraform.lock.hcl` | aws 6.73.0 | **REUSE**: commit it | **[PROPOSAL]** |
 | `infrastructure/bootstrap/.terraform-prod/` | Local data directory | **DO-NOT-COPY**: git-ignore it | **[PROPOSAL]** |
 | [infrastructure/envs/common.auto.tfvars.json](../../infrastructure/envs/common.auto.tfvars.json) | project, region, broad trust | **ADAPT**: narrow `trusted_subs`; add `terraform_version`; drop the duplicate `role_policy_arns` | **[PROPOSAL]** |
 | [infrastructure/envs/prod.tfvars.json](../../infrastructure/envs/prod.tfvars.json) | env, account, Admin policy | **ADAPT**: add the keys in section 10.2; later replace Admin with a scoped policy | **[PROPOSAL]** |
 | `infrastructure/main/` | Empty | **ADAPT** the reference root's file layout into it (to create) | **[PROPOSAL]** |
 | [.github/workflows/deploy.yml](../../.github/workflows/deploy.yml) | Reference product release | **REPLACE** with `release.yml` (to create). Keep: manual trigger, permissions, `config` job + `jq`, account guard, `index.html` last. | **[PROPOSAL]** |
-| [.github/workflows/tf-apply-destroy-env.yml](../../.github/workflows/tf-apply-destroy-env.yml) | Plan/apply/destroy | **REPLACE** with `plan.yml` + `apply.yml` (to create); no destroy | **[PROPOSAL]** |
+| [.github/workflows/tf-apply-destroy-env.yml](../../.github/workflows/tf-apply-destroy-env.yml) | Plan/apply/destroy | **REPLACE** with `plan.yml` + `apply.yml` (to create); no destroy. `oidc-smoke.yml` (to create) is added in M0 and kept as a manual workflow. | **[PROPOSAL]** |
 | [README.md](../../README.md) | Title only | **ADAPT**: grows with local setup, build, test and release notes as work lands | **[PROPOSAL]** |
 | `prompt.md` | The approved brief and spec | **REUSE**: commit it unchanged. The plan cites it by line number, so moving or reflowing it would break every `prompt.md:<line>` reference. | **[PROPOSAL]** |
 
@@ -400,15 +441,15 @@ own version, informed by the original. **DO-NOT-COPY** = leave it behind.
 | Reference `infrastructure/main/data.tf` zone lookup | Same-account lookup by name | **DO-NOT-COPY** as is. The owner supplies the DNS equivalent. | **[CONFIRMED]** owner-owned |
 | Reference `modules/cloudfront` | OAC, managed-policy lookup, us-east-1 certificate, `/api/*` behaviour | **ADAPT** into H's `static_site` (called twice: player, admin) and `certificate` modules; one certificate with two exact names; SPA fallback through a CloudFront Function on the default behaviour. Drop the distribution-wide error responses, `www`, the maintenance origin, `force_destroy` and `allow_overwrite`. | **[PROPOSAL]** |
 | Reference `modules/cloudfront/providers.tf` | `configuration_aliases` | **REUSE** | **[PROPOSAL]** |
-| Reference `modules/lambda` (zip functions) | Terraform owns code through `source_code_hash` | **ADAPT**: Terraform still owns code, but from content-hashed zips in an artefact bucket (`s3_key` + hash from a release manifest), not `archive_file` at plan time | **[PROPOSAL]** |
+| Reference `modules/lambda` (zip functions) | Terraform owns code through `source_code_hash` | **ADAPT**: Terraform still owns code, but from content-hashed zips in the artefacts bucket created by the bootstrap root (`s3_key` + hash from a release manifest, passed through the variable `lambda_artifacts`), not `archive_file` at plan time | **[PROPOSAL]** |
 | Reference `modules/api_lambda` | Image Lambda, Function URL `NONE`, workflow-owned code | **DO-NOT-COPY**, except the "role beside the function" and explicit log-group habits (**ADAPT**) | **[PROPOSAL]** |
 | Reference `modules/monitoring` | SNS e-mail topic, us-east-1 mirror, `for_each` Lambda error alarms, `name_prefix` naming | **ADAPT**: drop the RDS/NAT/Step Functions parts; add API, DynamoDB and Backup alarms | **[PROPOSAL]** |
 | Reference `modules/api_gateway` | Unauthenticated HTTP API for Step Functions | **DO-NOT-COPY** beyond the `aws_apigatewayv2_api` + `$default` stage shape | **[PROPOSAL]** |
 | Reference `modules/s3` | Seven product buckets (`/home/jack/Documents/Projects/jacks-productivity-tool/infrastructure/modules/s3/main.tf`) with no public-access block or encryption | **DO-NOT-COPY**; borrow only the CORS block shape | **[PROPOSAL]** |
 | Reference `modules/{network,db,iam,eventbridge,step_functions,secrets_manager,sns_topic,bootstrap,gcp-*}` | VPC, RDS, central IAM, schedulers, old bootstrap | **DO-NOT-COPY** (prompt.md:826) | **[CONFIRMED]** exclusions |
 | Reference `infrastructure/envs/*.json` key names | `domain_name`, `notification_email` | **ADAPT** (section 10.2) | **[PROPOSAL]** |
-| Reference SPA `/api` relative base path | Same-origin API; the reference sets it at build time through `VITE_API_BASE_URL` (`"/api"` in production, per the comment in `/home/jack/Documents/Projects/jacks-productivity-tool/web/jacks-productivity-tool/src/lib/authFetch.ts` line 30) | **ADAPT**: keep the relative `/api` base, but bake nothing environment-specific into the build; the new apps fetch `config.json` at start-up (spine S11.1), which the reference does not do | **[PROPOSAL]** |
-| Reference `tests/run.sh` | One entry point for script tests | **ADAPT** the single-entry-point idea only. Runners are Vitest, Playwright and pytest (see [I](I-validation.md)). | **[PROPOSAL]** |
+| Reference SPA `/api` relative base path | Same-origin API; the reference sets it at build time through `VITE_API_BASE_URL` (`"/api"` in production, per the comment in `/home/jack/Documents/Projects/jacks-productivity-tool/web/jacks-productivity-tool/src/lib/authFetch.ts` line 30) | **ADAPT**: keep the relative `/api` base, but bake nothing environment-specific into the build; the new apps fetch `config.json` at start-up ([spine S11.1](00-spine.md#s111-workflows)), which the reference does not do | **[PROPOSAL]** |
+| Reference `tests/run.sh` | One entry point for script tests | **ADAPT** the single-entry-point idea only. Runners are Vitest, Playwright and pytest; DynamoDB Local integration tests run in CI as a service container and are optional locally (see [I](I-validation.md)). | **[PROPOSAL]** |
 | Reference `.github/workflows/shell-release.yml`, `gcp-tf-apply-destroy-env.yml` | APK/native shells, GCP | **DO-NOT-COPY** | **[PROPOSAL]** |
 
 ---
@@ -416,21 +457,22 @@ own version, informed by the original. **DO-NOT-COPY** = leave it behind.
 ## 10. Missing integration work
 
 This is everything that has to be added before the first release. The ordering and completion criteria are in
-[J. Execution backlog](J-execution-backlog.md); the designs are in the sections linked below.
+[J. Execution backlog](J-execution-backlog.md), and the build phases that carry them out (with a phase-gate code review by the
+owner) are in `docs/build-phases.md` (to create). The designs are in the sections linked below.
 
 ### 10.1 Checklist
 
 | # | Item | Notes | Owner of the design | Label |
 |---|---|---|---|---|
 | 1 | `.gitignore` (to create) | `.terraform/`, `.terraform-*/` (covers `infrastructure/bootstrap/.terraform-prod/`), `*.tfstate`, `*.tfstate.*`, `*.tfplan`, `crash.log`, the generated `release.tfvars.json`, `node_modules/`, `dist/`, `.venv/`, `__pycache__/`, local env files. **Do not** ignore `.terraform.lock.hcl` or `*.tfvars.json`. This must be committed **before** the first `git add` of `infrastructure/`. | [H §H.16](H-infrastructure-and-delivery.md#h16-gitignore-to-create-before-the-first-git-add-infrastructure) (full file) | **[PROPOSAL]** |
-| 2 | First commit and push | Commit `prompt.md`, `infrastructure/` (minus ignored paths) and `docs/`. The two copied workflows stay untracked and out of the first commit (J M0-01), so nobody dispatches a broken pipeline; they are deleted once `release.yml`/`plan.yml`/`apply.yml` exist. | [J](J-execution-backlog.md) | **[PROPOSAL]** |
-| 3 | OIDC subject check + trust narrowing | Section 5.2–5.3; the owner re-applies the bootstrap | [H §H.5](H-infrastructure-and-delivery.md#h5-bootstrap-changes-you-make-no-replacement-bootstrap) (B-1 to B-3) | **[PROPOSAL]** |
-| 4 | Repository instructions | A short `CLAUDE.md` (to create) or a README section stating the conventions (labels, layout, "the owner writes the code"). The brief expects instructions to exist (prompt.md:9). | [J](J-execution-backlog.md) | **[ASSUMPTION]** |
+| 2 | First commit and push | Part of the first build phase, on `main`; Claude or the owner commits and pushes. Commit `prompt.md`, `infrastructure/` (minus ignored paths), `docs/` and `tools/sim/`. The two copied workflows stay untracked and out of the first commit (J M0-01), so nobody dispatches a broken pipeline; they are deleted once `release.yml`/`plan.yml`/`apply.yml` exist. | [J](J-execution-backlog.md) | **[PROPOSAL]** |
+| 3 | OIDC subject check + trust narrowing | Section 5.2–5.3; the owner re-applies the bootstrap locally (the one permitted local apply) | [H §H.5](H-infrastructure-and-delivery.md#h5-bootstrap-changes-you-make-no-replacement-bootstrap) (B-1 to B-3) | **[PROPOSAL]** |
+| 4 | Repository instructions | A short `CLAUDE.md` (to create) or a README section stating the conventions: labels, layout, and the way of working (Claude builds in sequential phases, the owner reviews code at each gate, work on `main`, deploy only through GitHub Actions, local `fmt`/`validate`/`plan` and read-only AWS calls only). The brief expects instructions to exist (prompt.md:9). | [J](J-execution-backlog.md) | **[ASSUMPTION]**; way of working **[CONFIRMED by owner]** |
 | 5 | `infrastructure/main/` root | `provider.tf`, `variables.tf`, `locals.tf`, `data.tf` (managed CloudFront policy lookups only; no zone lookup), `main.tf`, `outputs.tf`, committed `.terraform.lock.hcl` (all to create). It declares the bootstrap-only env keys so the shared files load cleanly. | [H §H.3](H-infrastructure-and-delivery.md#h3-infrastructuremain-all-to-create) | **[PROPOSAL]** |
-| 6 | `infrastructure/modules/` | `certificate`, `static_site` (×2), `http_api`, `lambda_function` (×4), `cognito_pool` (×2), `dynamodb_table` (×2), `private_bucket` (audio, artefacts), `monitoring`, `backup` (all to create; names per H, which notes they differ from the brief's list) | [H §H.4](H-infrastructure-and-delivery.md#h41-module-summary), [E](E-architecture.md), [F](F-state-and-data.md) | **[PROPOSAL]** |
+| 6 | `infrastructure/modules/` | `certificate`, `static_site` (×2), `http_api`, `lambda_function` (×4), `cognito_pool` (×2), `dynamodb_table` (×2), `private_bucket` (audio), `monitoring`, `backup` (all to create; names per H, which notes they differ from the brief's list). The artefacts bucket is not in the main stack: it is created by the bootstrap root (item 16). | [H §H.4](H-infrastructure-and-delivery.md#h41-module-summary), [E](E-architecture.md), [F](F-state-and-data.md) | **[PROPOSAL]** |
 | 7 | Env keys | Section 10.2 | [H §H.6](H-infrastructure-and-delivery.md#h6-environment-file-keys) | **[PROPOSAL]** |
-| 8 | Workflows | `release.yml`, `plan.yml`, `apply.yml` (to create); remove the two copies in the same commit | [H §H.7](H-infrastructure-and-delivery.md#h7-workflows-what-replaces-the-two-copies) | **[PROPOSAL]** |
-| 9 | GitHub settings | `prod` environment with a `main`-only branch rule; required reviewers if available. If environments are unavailable, the `ref:refs/heads/main` fallback subject applies (section 5.3). No repository secrets are needed. | [H §H.5](H-infrastructure-and-delivery.md#h5-bootstrap-changes-you-make-no-replacement-bootstrap) | **[PROPOSAL]** |
+| 8 | Workflows | `release.yml` (with the optional rollback input `artefacts_from=<release_id>`), `plan.yml`, `apply.yml` and `oidc-smoke.yml` (all to create); remove the two copies in the same commit as the first three | [H §H.7](H-infrastructure-and-delivery.md#h7-workflows-what-replaces-the-two-copies) | **[PROPOSAL]** |
+| 9 | GitHub settings | `prod` environment with a `main`-only deployment-branch rule. If required reviewers are available, a second environment `prod-apply` with reviewers, used only by the apply job. If environments are unavailable, the `ref:refs/heads/main` fallback subject applies (section 5.3). The M0 smoke test decides; the outcome is an ADR in `docs/decisions/`. No repository secrets are needed. | [H §H.5](H-infrastructure-and-delivery.md#h5-bootstrap-changes-you-make-no-replacement-bootstrap) | **[PROPOSAL]** |
 | 10 | Application folders | `web/` npm workspaces `game-core`, `player`, `admin`, `shared`; `contracts/` for JSON Schemas and shared fixtures ([E §E.5.1](E-architecture.md#e51-workspace-layout-all-to-create)). Python Lambda source in a top-level `api/` (`functions/<key>/`, `shared/`, `tests/`), outside `infrastructure/`. Game-data JSON in a top-level `game-data/`; build and guard scripts in `scripts/` (all to create). | [E](E-architecture.md), [H §H.2](H-infrastructure-and-delivery.md#h2-repository-layout-after-this-plan) | **[PROPOSAL]** |
 | 11 | Tooling versions | Node 24 LTS via `.nvmrc` (not on the owner's PATH today), Python 3.14 via `.python-version` (3.12.3 local today), Terraform `1.17.2` exact in CI (the owner's local CLI) with `required_version = ">= 1.11, < 2.0"` | [H §H.17](H-infrastructure-and-delivery.md#h17-version-pins) | **[PROPOSAL]** |
 | 12 | Tests | Vitest, Playwright, pytest + moto, contract fixtures, Terraform `fmt -check`/`validate`, plan guard (to create) | [I](I-validation.md) | **[PROPOSAL]** |

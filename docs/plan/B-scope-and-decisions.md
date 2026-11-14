@@ -5,14 +5,21 @@ This section answers four questions:
 1. What exactly are we building (the confirmed requirements, in one place)?
 2. What are we deliberately *not* building?
 3. What is the difference between the **full first release** and the **first playable milestone**?
-4. Which choices did the planner make on your behalf, and which ones do you still need to make?
+4. Which choices did the planner make on your behalf, and which ones have you settled yourself?
 
 It does not re-open the discovery questionnaire. The approved specification (`prompt.md:81` onwards) is the authority for product
-behaviour. Everything else in this plan is a labelled proposal that you can change.
+behaviour. The canonical names, states, keys, routes and rules are in the [design spine](00-spine.md) (v0.3), which this section cites
+as "spine Sn". Everything else in this plan is a labelled proposal that you can change.
 
 **Labels used here** (same as every plan section):
-**[CONFIRMED]** fixed by the spec · **[PROPOSAL]** planner recommendation, yours to change · **[ASSUMPTION]** routine detail, cheap
-to change · **[VERIFIED]** checked directly (source given) · **[UNVERIFIED]** not checked (how to check is given).
+**[CONFIRMED]** fixed by the spec · **[CONFIRMED by owner]** decided by you in chat (date given) · **[PROPOSAL]** planner
+recommendation, yours to change · **[ASSUMPTION]** routine detail, cheap to change · **[VERIFIED]** checked directly (source given) ·
+**[UNVERIFIED]** not checked (how to check is given).
+
+**Way of working** **[CONFIRMED by owner, 2026-11-14]** ([spine S0.1](00-spine.md#s01-way-of-working-confirmed-by-owner-2026-11-14)):
+Claude builds the app in sequential build phases and you review the code at each phase gate; work happens on `main` and either of
+us commits and pushes; deployment happens **only** through GitHub Actions pipelines (local `fmt`/`validate`/`plan` and read-only AWS
+calls are fine; the bootstrap root, which creates the CI's own trust, is the one thing you still apply locally).
 
 **Ownership.** This section summarises and links. The detail lives elsewhere:
 game balance numbers, roster, waves and content bank → [C. Game and learning design](C-game-and-learning-design.md);
@@ -66,8 +73,8 @@ reward opportunities are identical at every age; only the questions differ. **[C
 | Astronaut safety | Astronauts and pads are never damaged, disabled or blocked | `prompt.md:297`, AC-07 |
 | Controls | Click astronaut then pad (drag optional); deploy, upgrade, sell, targeting, temporary powers, pause, speed | `prompt.md:271`, `prompt.md:283-295` |
 | Pause rule | Hidden page or interruption pauses combat; it stays paused until the player resumes | `prompt.md:273` |
-| Determinism | Frame rate must not change damage, movement or rewards | `prompt.md:303` |
-| Performance | Representative busiest waves meet a documented, measured performance target | AC-42, `prompt.md:1286` |
+| Determinism | Frame rate must not change damage, movement or rewards | `prompt.md:303`, AC-13 |
+| Performance | Representative busiest waves meet a documented, measured performance target (the target is set after the first prototype measurement in M2) | AC-42, `prompt.md:1286` |
 | Campaign | 50 authored waves; bosses on 10, 20, 30, 40, 50; predictable between attempts | `prompt.md:119`, `prompt.md:409`, AC-11 |
 | Enemies | Nine-entry alien catalogue incl. carrier and splitter; descendants resolve before wave end; no duplicate spawns/rewards | `prompt.md:363-405`, AC-10 |
 | Meteors | Optional extra activity before each boss (after waves 9, 19, 29, 39, 49); success gives a temporary power; declining never makes the boss unwinnable | `prompt.md:439-441` |
@@ -100,7 +107,7 @@ Numbers (prices, health, wave tables, rewards) are **not** confirmed; they are i
 
 | Area | Confirmed requirement | Source |
 |---|---|---|
-| Phonics Play | Visible Play → authenticated API → dedicated Python TTS Lambda → audio to the browser; Polly proposed; never browser speech synthesis | `prompt.md:560-563`, AC-19 |
+| Phonics Play | Visible Play → authenticated API → dedicated Python TTS Lambda → audio to the browser; Polly proposed (you have since confirmed Polly, generative engine, voice Amy: S-01); never browser speech synthesis | `prompt.md:560-563`, AC-19 |
 | Speech safety | Player endpoint takes identifiers of approved content only; admin preview separately authorised and validated | `prompt.md:589`, AC-20 |
 | Phonics quality | Listening check before publication; a sound that cannot be rendered stays unpublished | `prompt.md:593-611`, AC-21 |
 | Checkpoints | Wave-start snapshot on Ready; attempts persisted as they happen; mid-wave save-and-exit restarts the wave with partial gains rolled back | `prompt.md:657-673`, AC-24..26 |
@@ -115,7 +122,7 @@ Numbers (prices, health, wave tables, rewards) are **not** confirmed; they are i
 |---|---|---|
 | Stack | React + TypeScript, Phaser, Python Lambda, DynamoDB, Cognito, Terraform, GitHub Actions | `prompt.md:781-799` |
 | Account | Production only, existing London workload account, existing bootstrap/state/OIDC; keep support for more environments | `prompt.md:25`, `prompt.md:976` |
-| DNS | Stays in the owner's DNS account; the owner integrates it; plan lists integration points only | `prompt.md:27`, `prompt.md:822` |
+| DNS | Stays in the owner's DNS account; the owner integrates it; plan lists integration points only (an HTTPS app already serves the apex `jackgl.com` from another account; no clash, see BL-2) | `prompt.md:27`, `prompt.md:822` |
 | Release | One manually triggered, coordinated production release; one owner per deployed artefact | `prompt.md:980-1000` |
 | Data protection | Routine releases never recreate tables, pools or stores; seeding never overwrites operator content | `prompt.md:1002` |
 | Rollback | Restores compatible application versions; never reverts player data automatically | `prompt.md:1004`, AC-38 |
@@ -178,13 +185,16 @@ Numbers (prices, health, wave tables, rewards) are **not** confirmed; they are i
   **[CONFIRMED]** that it may be a subset (`prompt.md:175`, `prompt.md:1270-1271`); its exact contents are **[PROPOSAL]**
   ([J, M1](J-execution-backlog.md#m1--thin-vertical-slice-one-planet-two-waves-one-activity-with-play-cloud-save)).
 
-The point of M1 is learning, for you as much as for the system: you will touch every layer (Terraform, Cognito, a Lambda, DynamoDB
-transactions, React, Phaser, the release workflow) once, at small size, before any of them gets big.
+The point of M1 is learning, for you as much as for the system: Claude builds it and you review every layer (Terraform, Cognito, a
+Lambda, DynamoDB transactions, React, Phaser, the release workflow) once, at small size, at the phase gates, before any of them gets
+big ([spine S0.1](00-spine.md#s01-way-of-working-confirmed-by-owner-2026-11-14)). How the phases are cut and how to review one is
+in [J. Execution backlog](J-execution-backlog.md) and `docs/build-phases.md` (to create).
 
 Small in content does not mean quick. J counts about 24 M1 tasks
-([J §J.3.1](J-execution-backlog.md#j31-size-of-each-milestone-count-of-tasks-by-effort-assumption)), so expect weeks to months, not
-days. The battlefield task (M1-21) needs only the clock and the shared rules, not the deployed stack, so you can play a two-wave run
-locally in the browser, on fixture data, well before the first release. That is a good moment to show the children. **[PROPOSAL]**
+([J §J.3.1](J-execution-backlog.md#j31-size-of-each-milestone-count-of-tasks-by-effort-assumption)), so M1 spans several build
+phases and review gates. The battlefield task (M1-21) needs only the clock and the shared rules, not the deployed stack, so you can
+play a two-wave run locally in the browser, on fixture data, well before the first release. That is a good moment to show the
+children; M1 ends with child playtest P1 ([I. Validation](I-validation.md)). **[PROPOSAL]**
 
 ### B3.2 Side by side
 
@@ -199,14 +209,14 @@ locally in the browser, on fixture data, well before the first release. That is 
 | Learning content | **Exactly one** phonics multiple-choice activity with Play, and one approved clip | About 240 authored records (estimate, L-16), six interaction types, all three age bands eligible |
 | Content admin | Minimal admin app on `admin.aliens.jackgl.com` (operator sign-in; Speech page with Preview / Play / Approve; Activity page with Validate / Publish for seeded drafts), the first slice of the M3 admin app (J-3 in [J, M1](J-execution-backlog.md#m1--thin-vertical-slice-one-planet-two-waves-one-activity-with-play-cloud-save)). The one activity is seeded through the create-only seed path ([D §D8.6](D-ux-and-content-operations.md#d86-seeding-and-import)); its clip goes through the real preview → approve path | Admin app: drafts, validation, preview, publish, retire, withdraw, bank status |
 | Bank eligibility | Thresholds set to 1 as **milestone configuration**, labelled as such — not the product rule | Every slot fillable and each group ≥ 2× per-run need (server configuration) |
-| TTS | Real `POST /api/speech` → `tts` Lambda → signed URL → browser plays; Polly voice from the M0 listening spike | Same, plus admin preview, about 200 reviewed clips (estimate, L-16), offline audio cache |
+| TTS | Real `POST /api/speech` → `tts` Lambda → signed URL → browser plays; Polly generative, en-GB, voice Amy **[CONFIRMED by owner]**; the M0 listening bake-off (rendered with the AWS CLI) decides `tts_phoneme_engine`; the M1 clip is re-rendered through the real preview route | Same, plus admin preview, about 200 reviewed clips (estimate, L-16), offline audio cache |
 | Saving | Online ops through the real `/api/runs/{runId}/ops` endpoint with revision and session fence; cloud save; resume after refresh | Plus offline queue, readiness, divergence/recovery UX, takeover confirmation |
 | Run lifecycle | Create, BUILD → IN_WAVE → ACTIVITY → BUILD → IN_WAVE, complete the short set, defeat. The M1 wave set is `mode = CHALLENGE` (J-1), so completing wave 2 sets `status = COMPLETED` directly; no `COMPLETION_OFFER` or `FINISH_RUN` ([F §3.7](F-state-and-data.md#37-the-milestone-1-wave-set-data-view)) | All phases incl. METEOR, COMPLETION_OFFER, ENDLESS, abandon, finish, resets |
 | Progress | None. Challenges never change best wave; the first `PROFILE` write on `COMPLETE_WAVE` arrives in M2 (M2-06) | Badges, planet eligibility, learning summaries, progress screen |
 | Offline | Not supported (online only) | Prepared finite campaign continues offline (AC-30..34) |
 | Art and audio | Labelled placeholders | Generated art through the asset manifest; small combat sound set |
-| Infrastructure | The whole prod stack through the real release workflow ([H §H.8](H-infrastructure-and-delivery.md#h8-the-manual-release-spine-s111)): both distributions (both alias records in M1, J-3), API, all four Lambdas (`lambda_artifacts` requires all four keys; `admin-api` also serves the M1 clip approval), both tables, audio and artefacts buckets; plan guard in report mode | Admin app live, alarms confirmed, AWS Backup with a recorded restore drill, plan guard enforcing, data freeze |
-| Done when | A clip plays through the real speech service; three attempts and one reward work; a refresh keeps the attempts; leaving and returning resumes from the cloud save ([C §C26.3](C-game-and-learning-design.md#c263-authoring-sequence-and-sources) phase B) | AC-01..AC-43 demonstrated ([I. Validation](I-validation.md)) |
+| Infrastructure | The whole prod stack through the real release workflow ([H §H.8](H-infrastructure-and-delivery.md#h8-the-manual-release-spine-s111)): both distributions (both alias records in M1, J-3), API, all four Lambdas (`lambda_artifacts` requires all four keys; `admin-api` also serves the M1 clip approval), both tables, audio bucket (the artefacts bucket lives in the bootstrap root, B5.3 D-T7); protection flags on; plan guard in report mode | Admin app live, alarms confirmed, AWS Backup with a recorded restore drill, plan guard enforcing, data freeze |
+| Done when | A clip plays through the real speech service; three attempts and one reward work; a refresh keeps the attempts; leaving and returning resumes from the cloud save ([C §C26.3](C-game-and-learning-design.md#c263-authoring-sequence-and-sources) phase B); playtest P1 recorded | AC-01..AC-43 demonstrated ([I. Validation](I-validation.md)) |
 
 What M1 must **not** do: invent a shortcut that the full release would have to undo. In particular it uses the real op envelope, the
 real slot/attempt model and the real speech path, just with less content. **[PROPOSAL]**
@@ -226,23 +236,26 @@ flowchart LR
   M6 --> R[Full first release = data freeze]
 ```
 
-Reading the diagram: M0 removes the unknowns (OIDC, managed-login sign-up, Polly voice, toolchain). M1 joins every layer once.
-M2 (game systems) and M3 (content and admin) can then run in parallel because they meet only through the activity slot.
+Reading the diagram: M0 removes the unknowns (OIDC, managed-login sign-up, how Polly renders isolated phonemes, toolchain). M1 joins
+every layer once. M2 (game systems) and M3 (content and admin) are independent because they meet only through the activity slot.
 M4 needs both; M5 hardens persistence, so it needs M2's full op set as well as M4; M6 finishes art and proves performance, rollback and restore. The milestone order is a
-**[PROPOSAL]**; the spec labels its own list "SUGGESTED" (`prompt.md:1263-1265`). Task-level ordering is in
+**[PROPOSAL]** ([spine S12](00-spine.md#s12-milestones-proposal-the-spec-heads-them-suggested)); the spec labels its own list
+"SUGGESTED" (`prompt.md:1263-1265`). Because Claude builds in sequential build phases with your review at each gate
+**[CONFIRMED by owner, 2026-11-14]**, "parallel" here means "either order", not two people working at once. Task-level ordering is in
 [J. Execution backlog](J-execution-backlog.md).
 
 ### B3.4 The data-freeze point **[PROPOSAL]** (spine S11.4)
 
-A **data-freeze point** is the first release whose saves the children are allowed to keep. It exists because, while you are still
-learning and reshaping things, you will want to wipe tables, recreate pools and edit game-data files freely — and after children have
-real progress you must never do any of that casually.
+A **data-freeze point** is the first release whose saves the children are allowed to keep
+([spine S11.4](00-spine.md#s114-data-freeze-point)). It exists because, while the app is still being reshaped phase by phase, we will
+want to wipe tables, recreate pools and edit game-data files freely — and after children have real progress nobody may do any of that
+casually.
 
 | | Before the freeze | From the freeze onwards |
 |---|---|---|
-| Tables, user pools, buckets | `prevent_destroy` and native deletion protection are on from the first apply; a replacement or wipe is still possible, but only deliberately (a commit lifts the protection, a release applies it, a later release replaces). Plan guard reports only | Plan guard enforcing: the plan job fails on any delete/replace of a protected type (incl. Cognito app clients); no workflow input bypasses it |
+| Tables, user pools, buckets | `prevent_destroy` and native deletion protection are on from the first apply; a replacement or wipe is still possible, but only deliberately (a commit lifts the protection, a release applies it, a later release replaces). Plan guard reports only | Plan guard enforcing (`enforce: true` in `infrastructure/plan-guard.json`, to create): the plan job fails on any delete/replace of a protected type (incl. Cognito app clients); no workflow input bypasses it |
 | CI role | `AdministratorAccess` while the module set is changing | Scoped inline policy and narrowed trust (H-13, H-05) |
-| Game-data files (rulesets, planets, bounds) | May be edited in place | Only new files added; CI lock check (diff vs last release tag shows additions only) |
+| Game-data files (rulesets, campaigns, asset manifests, bounds) and `contracts/golden/` | May be edited in place | Only new files added; CI lock check (diff vs the last `release-*` tag shows additions only) |
 | Compatibility | Not enforced | Golden scenarios per `mechanics` number run in CI; "supported" is additive forever |
 | Release artefacts | Kept as convenient | Archive kept (manifests, zips, static builds) for rollback |
 | Backup | Configured | A restore test has been run and recorded |
@@ -265,11 +278,13 @@ Each is deliberate and each is yours to overturn.
 | N-2 | Suggested state names PREPARING … ABANDONED (`prompt.md:680`) | `status` + `stage` + `phase` fields ([F §3.1](F-state-and-data.md#31-persisted-run-fields)) with a mapping table | Fewer combined states; spec allows a simpler representation (`prompt.md:681`) | **[PROPOSAL]** |
 | N-3 | Error category "activity resolved or attempts exhausted" (`prompt.md:946`) | Covered by `PHASE_MISMATCH` (no answerable slot) rather than a separate code; no server identical-answer rule | The client never creates an op the shared reducer refuses, so a server rejection is always a divergence handled one way | **[PROPOSAL]** ([G](G-api-contracts.md)) |
 | N-4 | "Use expiry for temporary coordination records where useful" (`prompt.md:882`) | No TTL in the `game` table except tidying the sign-up counter; the session lease is checked by condition, never by TTL | Correctness must never depend on TTL timing (`prompt.md:693`) | **[PROPOSAL]** |
-| N-5 | Copied workflows `deploy.yml` and `tf-apply-destroy-env.yml` | Replaced by `release.yml`, `apply.yml` (applies a reviewed saved plan) and `plan.yml` (plan-only drift check), all to create; **no destroy workflow** | The copies point at another product (e.g. role `github-federation` at [deploy.yml:166](../../.github/workflows/deploy.yml#L166), Terraform 1.8.5 at [deploy.yml:312](../../.github/workflows/deploy.yml#L312), wrong state-bucket formula at [deploy.yml:317](../../.github/workflows/deploy.yml#L317)); a prod destroy path ([tf-apply-destroy-env.yml:178](../../.github/workflows/tf-apply-destroy-env.yml#L178)) conflicts with `prompt.md:1002` | **[PROPOSAL]** ([A](A-repository-findings.md), [H](H-infrastructure-and-delivery.md)) |
+| N-5 | Copied workflows `deploy.yml` and `tf-apply-destroy-env.yml` | Replaced by `release.yml`, `apply.yml` (applies a reviewed saved plan) and `plan.yml` (plan-only drift check), all to create; `oidc-smoke.yml` kept as a manual workflow; **no destroy workflow** for the real stack | The copies pointed at another product (role, Terraform version and state-bucket formula). Status at commit `dee3f51` **[VERIFIED]**: `deploy.yml` has been removed; `tf-apply-destroy-env.yml` was adapted to this repo for the Phase 0 pipeline test and still offers a `destroy` action, guarded by a typed `CONFIRM` in prod ([tf-apply-destroy-env.yml:56](../../.github/workflows/tf-apply-destroy-env.yml#L56)), which conflicts with `prompt.md:1002` once real data exists | **[PROPOSAL]** ([A](A-repository-findings.md), [H](H-infrastructure-and-delivery.md)) |
 | N-6 | Reference pipeline recomputes resource names in shell | Workflows read names and IDs from `terraform output -json`. One exception: the backend bucket is needed before `init`, so it is computed with the same formula as [locals.tf:2](../../infrastructure/bootstrap/locals.tf#L2) and checked with `head-bucket` first ([A §6](A-repository-findings.md#6-state-bucket-naming-mismatch), [H §H.8.4](H-infrastructure-and-delivery.md#h84-backend-initialisation-every-job-that-runs-terraform)) | One source of truth; the copied formula is already wrong for this repo | **[PROPOSAL]** |
 | N-7 | Milestone 1 "one astronaut … one activity, one TTS clip" (`prompt.md:1271`) | Bank eligibility thresholds set to 1 for M1, labelled as milestone configuration | Otherwise no run could be created with one activity | **[PROPOSAL]** |
 | N-8 | Cognito public clients "should use authorisation-code/PKCE" (`prompt.md:777`) | Managed login + PKCE. **Contingent:** if the M0 spike shows managed login cannot do username-only auto-confirmed sign-up, the fallback (in-app SRP form via the SDK) is a deviation you must approve | Managed-login sign-up for this pool shape is **[UNVERIFIED]** | **[PROPOSAL]**, contingent owner approval |
 | N-9 | The speech request identifies "the run, activity, published content version and audio variant" (`prompt.md:569`) | `POST /api/speech` sends `{runId, slotId, variant}` only; `tts` reads the slot under the caller's `sub` and takes the pinned activity version from it | The client cannot name a version it was not given; ownership and approval are checked in one read; any mismatch is `NOT_FOUND` | **[PROPOSAL]** ([G](G-api-contracts.md)) |
+| N-10 | "Select the exact en-GB voice through a listening check" and the cited neural voices (`prompt.md:563`) | Polly **generative** engine, en-GB, default voice **Amy**, set by Terraform variables. Isolated phonemes and letter names use `tts_phoneme_engine` (default `neural`); the M0 listening bake-off decides whether that can become `generative` and which sounds are published. Human recordings are the fallback for a sound that fails | You chose the newest engine; AWS documentation is contradictory on `<phoneme>` support in the generative engine, so the listening check still governs isolated sounds ([sources/06-polly-tts.md](sources/06-polly-tts.md), [sources/11-voice-engine.md](sources/11-voice-engine.md)) | **[CONFIRMED by owner, 2026-11-14]** (S-01) |
+| N-11 | Proposed online flow: request → response → download → play (`prompt.md:565-579`); "Normal online Play requests reach the service even when generated audio already exists" (`prompt.md:587`) | If the slot's pinned clip is stored locally, playback starts **immediately** from local bytes and `POST /api/speech` is sent concurrently; otherwise the browser waits for the response, downloads, verifies, stores and plays | No wait for a sound the device already holds; every online Play still reaches the service (AC-19) | **[CONFIRMED by owner, 2026-11-14]** (S-04) |
 
 ---
 
@@ -299,10 +314,14 @@ A few patterns recur in the "why" column. In one or two sentences each:
 | **ADR** | Architecture decision record: a short dated note of one decision and why ([J §J.6](J-execution-backlog.md#j6-decision-log-practice)). |
 
 Row IDs in the tables below (`E-01`, `I-01`, `D-T1`, `R-01`, `L-01`, `S-01`, `F-01`, `H-01`) group rows by topic inside B5 only. They
-are not references to plan sections E, I, F or H. Other IDs: owner decisions `D-1`…`D-13` are in B6, spec narrowings `N-1`…`N-9` in
-B4, blockers `BL-1`/`BL-2` in B7.
+are not references to plan sections E, I, F or H. Other IDs: owner decisions `D-1`…`D-13` and `O-1`…`O-4` are in B6, spec
+narrowings `N-1`…`N-11` in B4, blockers `BL-1`/`BL-2` in B7. The cross-plan ID legend is in
+[J §J.1.1](J-execution-backlog.md#j11-task-fields). Unless a row says otherwise, the canonical form of every name below is in the
+[spine](00-spine.md).
 
 ### B5.1 Hosting, API and compute
+
+Canonical form: [spine S1](00-spine.md#s1-system-shape).
 
 | # | Decision | Choice | Why | Main alternative | Label | Detail |
 |---|---|---|---|---|---|---|
@@ -311,9 +330,9 @@ B4, blockers `BL-1`/`BL-2` in B7.
 | E-03 | SPA deep links | CloudFront Function on the default behaviour only | Distribution-wide custom error responses would turn API 403/5xx into `index.html` | Custom error responses (reference pattern, 403 → `/index.html` at [cloudfront/main.tf:244](../../../jacks-productivity-tool/infrastructure/modules/cloudfront/main.tf#L244)) | **[PROPOSAL]** | [H](H-infrastructure-and-delivery.md) |
 | E-04 | API type | One HTTP API, payload 2.0, `$default` stage, access logs, route throttles | Native JWT authorisers with scopes (`prompt.md:777`); cheaper and simpler than REST API | REST API with Cognito authoriser | **[PROPOSAL]** | [E](E-architecture.md), [G](G-api-contracts.md) |
 | E-05 | Authorisers | Two JWT authorisers (player, operator); every route requires a scope (`game/play` for players, `ops/content` for the operator; names as in [E §E.6.3](E-architecture.md#e63-route--function--authoriser), Terraform variables `player_route_scope`/`operator_route_scope`); handlers also check `token_use = access` | Separate issuers make an admin route unreachable with a player token even before Lambda runs | One authoriser + group check in Lambda only | **[PROPOSAL]** | [E](E-architecture.md) |
-| E-06 | Lambda boundaries | Four functions: `player-api`, `admin-api`, `tts`, `cognito-presignup`; one IAM role each; no Lambda calls another | "A small number of cohesive boundaries" (`prompt.md:809`); `tts` is the dedicated speech Lambda the spec requires | One function per route | **[PROPOSAL]** | [E](E-architecture.md) |
+| E-06 | Lambda boundaries | Four functions: `player-api`, `admin-api`, `tts`, `cognito-presignup`; one IAM role each; no Lambda calls another; timeouts under the 30 s HTTP API integration limit (`player-api` 25 s) | "A small number of cohesive boundaries" (`prompt.md:809`); `tts` is the dedicated speech Lambda the spec requires | One function per route | **[PROPOSAL]** | [E](E-architecture.md) |
 | E-07 | Lambda packaging | Python 3.14, arm64, **zip** artefacts; source in a top-level `api/` folder (to create): one folder per function plus a `shared/` package, built into four reproducible zips | No Docker or ECR needed; small dependencies (Powertools); tests and packaging live with the code | Container images as in the reference project | **[PROPOSAL]** | [H](H-infrastructure-and-delivery.md) |
-| E-08 | Least privilege | `tts` never writes DynamoDB; `admin-api` never touches `game`; `cognito-presignup` may update only `SYS#SIGNUPS` | Smallest blast radius per function (`prompt.md:771`) | Shared role | **[PROPOSAL]** | [E](E-architecture.md) |
+| E-08 | Least privilege | `tts` never writes DynamoDB and has no `content` access (it resolves speech from the slot's pinned clips map), with S3 read/write on `tts/v1/*` plus `s3:ListBucket` conditioned on that prefix (so `HeadObject` on a missing key returns 404, not 403); `admin-api` never touches `game`; `cognito-presignup` may update only `SYS#SIGNUPS` | Smallest blast radius per function (`prompt.md:771`) | Shared role | **[PROPOSAL]** | [E](E-architecture.md) |
 | E-09 | Resource naming | Reference conventions: `space-tower-defence-prod-<thing>`, Lambdas `…-prod-eu-west-2-<key>`, buckets `<account>-<region>-<env>-<purpose>-bucket` | Reuse the owner's established conventions | Any other scheme | **[ASSUMPTION]** | [H](H-infrastructure-and-delivery.md) |
 | E-10 | Excluded infrastructure | No VPC, containers, queues, streams, schedulers, WebSockets, GraphQL, Redis | No requirement justifies them (`prompt.md:826`) | — | **[CONFIRMED]** | [E](E-architecture.md) |
 
@@ -335,6 +354,8 @@ B4, blockers `BL-1`/`BL-2` in B7.
 
 ### B5.3 Data and storage
 
+Canonical form: [spine S8](00-spine.md#s8-dynamodb-proposal) and [spine S5.1](00-spine.md#s51-pins-and-game-data).
+
 | # | Decision | Choice | Why | Main alternative | Label | Detail |
 |---|---|---|---|---|---|---|
 | D-T1 | Table layout | Two tables: `game` (player-owned + sign-up counter) and `content` (operator-owned) | Table-level IAM blast radius; `game` can be restored alone because content versions are never deleted | Single table | **[PROPOSAL]** | [F](F-state-and-data.md) |
@@ -343,13 +364,15 @@ B4, blockers `BL-1`/`BL-2` in B7.
 | D-T4 | TTL | None in `game` except tidying `SYS#SIGNUPS` | Never rely on TTL timing (`prompt.md:693`) | TTL on sessions | **[PROPOSAL]** | [F](F-state-and-data.md) |
 | D-T5 | Bounded growth | ≤ 5 IN_PROGRESS runs (soft cap), newest 50 terminal runs kept, older pruned best-effort; RUN item ≤ ~8 KB | No unbounded item or partition growth (`prompt.md:880`) | Keep everything | **[ASSUMPTION]** (numbers) | [F](F-state-and-data.md) |
 | D-T6 | Content version IDs | Non-reusable UTC timestamps (`V#20261114T100000Z`); "v3" display derived | A withdrawn or failed publish can never reuse a number | Integer counters | **[PROPOSAL]** | [F](F-state-and-data.md) |
-| D-T7 | Buckets | Player site, admin site, audio (never-overwrite keys), artefacts (versioned) | Separate lifecycles and permissions | Shared bucket with prefixes | **[PROPOSAL]** | [H](H-infrastructure-and-delivery.md) |
+| D-T7 | Buckets | Player site, admin site, audio (never-overwrite keys under `tts/v1/`), artefacts (versioned: Lambda zips, release manifests, archived static builds, saved plans under `plans/<run_id>/`, never a GitHub artefact). The artefacts bucket is created in the **bootstrap root**, beside the existing module call (not a replacement bootstrap), so the main stack never needs a `-target` apply to create the bucket its own Lambda zips live in | Separate lifecycles and permissions; you apply the bootstrap locally anyway for the `trusted_subs` fix | Shared bucket with prefixes | **[PROPOSAL]** | [H](H-infrastructure-and-delivery.md) |
 | D-T8 | Backup | AWS Backup daily, 7 recovery points, both tables; plus PITR | Seven daily points is the agreed retention (`prompt.md:1020-1022`) | PITR only | **[CONFIRMED]** retention / **[PROPOSAL]** PITR | [H](H-infrastructure-and-delivery.md) |
 | D-T9 | Restore approach | Restore to a new table; `game` cuts over via a Terraform variable or copy-back; `content` restored to scratch and needed items copied back | A restore never overwrites in place; content must never fall behind `game` | In-place overwrite | **[PROPOSAL]** | [F](F-state-and-data.md), [H](H-infrastructure-and-delivery.md) |
-| D-T10 | Game data location | Rulesets, planet documents and asset manifests authored as JSON in the repo, published to immutable `/game-data/<kind>/<version>.json` + a no-cache `current.json` | Versioned with the code that runs it; rollback-safe because files are never deleted | Game data in the `content` table | **[PROPOSAL]** | [F](F-state-and-data.md), [H](H-infrastructure-and-delivery.md) |
+| D-T10 | Game data location | Kinds `ruleset`, `campaign` (planet documents), `asset-manifest` and `bounds`, authored as JSON in `game-data/` (to create), published to immutable `/game-data/<kind>/<version>.json` + a no-cache `current.json` | Versioned with the code that runs it; rollback-safe because files are never deleted | Game data in the `content` table | **[PROPOSAL]** | [F](F-state-and-data.md), [H](H-infrastructure-and-delivery.md) |
 | D-T11 | Server-side bounds | A TypeScript build step emits a small numbers-only bounds file per version; Python reads numbers and never interprets waves | One implementation of the game rules (TypeScript) | Re-implement wave maths in Python | **[PROPOSAL]** | [F](F-state-and-data.md) |
 
 ### B5.4 Run state, saving and concurrency
+
+Canonical form: [spine S3](00-spine.md#s3-state-machines-proposal), [spine S4](00-spine.md#s4-snapshot-and-checkpoint-semantics-proposal) and [spine S7](00-spine.md#s7-operation-log-revisions-idempotency-proposal).
 
 | # | Decision | Choice | Why | Main alternative | Label | Detail |
 |---|---|---|---|---|---|---|
@@ -362,18 +385,18 @@ B4, blockers `BL-1`/`BL-2` in B7.
 | R-07 | Credit plausibility | `value = credits + invested`; build ops cannot increase value; a completed wave can add at most that wave's maximum bounty | The client's balance is never accepted as unquestionable (`prompt.md:956`) | Server combat simulation (excluded) | **[PROPOSAL]** | [F](F-state-and-data.md) |
 | R-08 | Session exclusivity | One account-wide lease with a `generation` fencing token; every op transaction checks it | One accepted writer (`prompt.md:725-741`); correctness never depends on clocks | Per-run locks | **[PROPOSAL]** | [F](F-state-and-data.md) |
 | R-09 | Lease timing | 180 s lease, renewed every 60 s only while the page is visible and there was input in the last 5 minutes | An idle tab should not block a sibling for ever | Fixed renew regardless of activity | **[ASSUMPTION]** | [F](F-state-and-data.md) |
-| R-10 | Takeover | Taking over a lease that lapsed **without** release asks "Play here instead?" first | A crashed device may hold unsynced progress; a clean exit needs no prompt | Silent takeover | **[PROPOSAL]** | [D](D-ux-and-content-operations.md), [F](F-state-and-data.md) |
+| R-10 | Takeover | Taking over a lease that lapsed **without** release asks "Play here instead?" first; the same rule applies to `POST /api/runs` (`takeover` flag, `409 TAKEOVER_CONFIRM_REQUIRED`); a holder left by a reset is treated as released | A crashed device may hold unsynced progress; a clean exit needs no prompt | Silent takeover | **[PROPOSAL]** | [D](D-ux-and-content-operations.md), [F](F-state-and-data.md) |
 | R-11 | Second tab | One playing tab per browser profile via an origin-wide Web Lock | Stops two tabs racing the same queue | Allow and fence only | **[PROPOSAL]** | [E](E-architecture.md) |
 | R-12 | Divergence | Never auto-merge; stale ops move to a `recovery` store with a "Progress that was not saved" panel and JSON download; replay only by explicit choice when revisions line up | `prompt.md:737-739` | Discard stale ops | **[PROPOSAL]** | [F](F-state-and-data.md), [D](D-ux-and-content-operations.md) |
 | R-13 | Local storage | IndexedDB database per account (`scd-<sub>`), never opened by another account; request persistent storage; online-only mode if unavailable or full | Account-scoped local data (`prompt.md:227`, AC-05); defined response to full storage (`prompt.md:719`) | localStorage | **[PROPOSAL]** | [E](E-architecture.md), [F](F-state-and-data.md) |
 | R-14 | Durability before feedback | Attempt feedback and advancement wait until the op is stored locally or acknowledged | Refresh after two wrong answers keeps one attempt even without IndexedDB (AC-17) | Show feedback immediately | **[PROPOSAL]** | [F](F-state-and-data.md) |
 | R-15 | Offline readiness | Per-run states NOT_PREPARED → PREPARING(n of m) → READY_OFFLINE / INCOMPLETE, or PREPARE_FAILED (retry); assets readiness is per page load (no service worker) | Honest offline claim (`prompt.md:701`, `prompt.md:719`) | Service worker cache (would be a PWA, later scope) | **[PROPOSAL]** | [E](E-architecture.md) |
 | R-16 | Challenges | Ordinary runs over a different pinned wave set (`mode = CHALLENGE`) | Same engine, cannot become a sandbox (`prompt.md:443`) | Separate challenge engine | **[PROPOSAL]** | [F](F-state-and-data.md) |
-| R-17 | Endless planning | Blocks of 10 intervals planned server-side, never repeating an activity within a run; hard cap at wave 999 | Finite buffer (`prompt.md:721`); 3-digit slot IDs | Unlimited | **[PROPOSAL]** / **[ASSUMPTION]** (999) | [F](F-state-and-data.md) |
+| R-17 | Endless planning | Blocks of 10 intervals planned server-side, never repeating an activity within a run; hard cap at wave 999, and no slot is ever planned for an interval above 998 | Finite buffer (`prompt.md:721`); 3-digit slot IDs | Unlimited | **[PROPOSAL]** / **[ASSUMPTION]** (999) | [F](F-state-and-data.md) |
 | R-18 | Next-planet eligibility | Derived from `bestCompletedWave ≥ 20`, not stored | Nothing to keep in sync; threshold is **[CONFIRMED]** (`prompt.md:437`) | Stored flag | **[PROPOSAL]** | [F](F-state-and-data.md) |
 | R-19 | Reset scopes | Campaign reset clears planets and badges but leaves runs (they re-earn by threshold); learning reset clears summaries only; whole-profile reset deletes runs, slots, summaries and profile but keeps the Cognito user and the session record | Distinct, non-overlapping categories (`prompt.md:231`) | Whole-profile reset also deletes the Cognito user | **[PROPOSAL]** | [F](F-state-and-data.md) |
 | R-20 | Version compatibility | Rulesets declare a `mechanics` number; supported numbers only ever grow; non-playable runs are kept untouched and flagged | No silent mid-run rebalance (`prompt.md:884`, AC-35) | Migrate old runs forward | **[PROPOSAL]** | [F](F-state-and-data.md) |
-| R-21 | Protocol versions | API accepts current and previous `protocolVersion`; older clients get "Reload to update" and keep their queue | Queued offline ops survive a release | Accept any version | **[PROPOSAL]** | [G](G-api-contracts.md) |
+| R-21 | Protocol versions | API accepts current and previous `protocolVersion`; older clients get "Reload to update" and keep their queue; a *newer* version (only possible after a rollback) gets `409 PROTOCOL_UNSUPPORTED` for the whole batch and the client holds its queue ("Saving paused while the game updates"), never marking ops rejected | Queued offline ops survive a release | Accept any version | **[PROPOSAL]** | [G](G-api-contracts.md) |
 
 ### B5.5 Learning content and selection
 
@@ -385,7 +408,7 @@ authoring and review workflow in [D](D-ux-and-content-operations.md).
 | L-01 | Age → bank mapping | Each band anchored on the *lower* of the two school years a child of that age could be in, stretching into the upper one (5: end of Reception + early Year 1; 6: Year 1; 7: Year 2) | Age is a proxy, not attainment (`prompt.md:475`); safer to under- than over-pitch | Anchor on the upper year | **[PROPOSAL]** | [C](C-game-and-learning-design.md) |
 | L-02 | Interaction grammar | One grammar for all six types: select, then press Check; only Check on a complete answer uses an attempt | Predictable for a 5-year-old; makes "what never costs an attempt" testable | Instant submit on click | **[PROPOSAL]** | [C](C-game-and-learning-design.md), [D](D-ux-and-content-operations.md) |
 | L-03 | Repeated wrong answers | Client greys out options already tried and blocks an identical resubmission (no op created); server counts every attempt it receives; choice activities need ≥ 4 options | Free repeats with only three options would make failure impossible | Server-side duplicate-answer rule | **[PROPOSAL]** (D-8) | [C](C-game-and-learning-design.md) |
-| L-04 | Judging | Canonicalise once in TypeScript (shared by player and admin); published versions store canonical accepted answers; both sides compare by exact equality | One normaliser means the offline and server judges cannot disagree | Fuzzy matching | **[PROPOSAL]** | [C](C-game-and-learning-design.md), [F](F-state-and-data.md) |
+| L-04 | Judging | Canonicalise once in TypeScript (shared by player and admin); published versions store canonical accepted answers; both sides compare by exact equality. A canonical answer is a single string of at most 64 characters for every interaction type (arranging uses tile values; two-step answers are joined by `\|`); `; = , \|` are refused inside values at publish | One normaliser means the offline and server judges cannot disagree | Fuzzy matching | **[PROPOSAL]** | [C](C-game-and-learning-design.md), [F](F-state-and-data.md) |
 | L-05 | Multi-step activities | One Check submits the whole answer; one attempt; one reward | Prevents multiplying the reward budget (`prompt.md:521`) | One attempt per sub-step | **[PROPOSAL]** | [C](C-game-and-learning-design.md) |
 | L-06 | Reward source | Content says only NORMAL or METEOR; the amount/power comes from the pinned ruleset by (kind, interval) | "Same reward at every age" becomes a unit-testable property (AC-13) | Reward per activity | **[PROPOSAL]** | [C](C-game-and-learning-design.md) |
 | L-07 | Templates | Maths multiplied by templates: an ordinary activity naming a generator kind and bounded domain; instances materialised server-side at run creation; exhaustive machine check (≤ 5,000 instances) plus human review of a sample | Large safe maths bank without per-item audio; the browser never runs a generator | Hand-author all maths | **[PROPOSAL]** | [C](C-game-and-learning-design.md) |
@@ -394,7 +417,7 @@ authoring and review workflow in [D](D-ux-and-content-operations.md).
 | L-10 | Subject rotation | Maths → phonics → spelling by interval; campaign = 17 maths, 16 phonics, 16 spelling normal slots + 5 meteors | Even mixture (`prompt.md:501`) | Random subject | **[PROPOSAL]** | [C](C-game-and-learning-design.md) |
 | L-11 | Selection | Seeded hash draws, topic round-robin, no repeat within a run, all slots pinned at run creation | Fresh runs differ; reload never changes a question (`prompt.md:523`) | Select on demand per interval | **[PROPOSAL]** | [C](C-game-and-learning-design.md), [F](F-state-and-data.md) |
 | L-12 | Band eligibility | Every slot fillable **and** each group ≥ 2× per-run need; thresholds are server configuration shown on bank status; otherwise an honest content-unavailable message | No silent other-age fallback (`prompt.md:219`) | Fill gaps from a neighbouring band | **[PROPOSAL]** | [C](C-game-and-learning-design.md) |
-| L-13 | Retire vs withdraw | Retire = not selected for new runs; withdraw = exceptional invalid content: unresolved pinned slots become VOIDED, reward granted once, not counted, child told honestly | Distinguishes routine retirement from invalid-content recovery (`prompt.md:556`) | Replace the question in place | **[PROPOSAL]** | [C](C-game-and-learning-design.md), [F](F-state-and-data.md) |
+| L-13 | Retire vs withdraw | Retire = not selected for new runs; withdraw = exceptional invalid content: unresolved pinned slots become VOIDED, reward granted once, not counted, child told honestly. Withdrawing a *speech* clip is a runbook in v1 ([D §D9.6](D-ux-and-content-operations.md#d96-when-a-clip-turns-out-to-be-wrong-later)), with no route | Distinguishes routine retirement from invalid-content recovery (`prompt.md:556`) | Replace the question in place | **[PROPOSAL]** | [C](C-game-and-learning-design.md), [F](F-state-and-data.md) |
 | L-14 | Summary counting | Counters change only on SUCCEEDED/FAILED, in the resolving transaction; DECLINED/VOIDED never count | Interrupted is not failed (`prompt.md:469`); exactly-once (AC-18) | Count at every attempt | **[PROPOSAL]** | [F](F-state-and-data.md) |
 | L-15 | Curriculum references | Every reference carries a framework identifier | A revised national curriculum is due (first teaching September 2028) | Plain text references | **[PROPOSAL]** | [C](C-game-and-learning-design.md) |
 | L-16 | First-release bank size | About 240 records (about 36 template rows), about 200 reviewed clips, about 80 text-free activity pictures | Enough for all three bands to pass L-12 | Smaller bank, fewer eligible bands | **[ASSUMPTION]** (estimate) | [C](C-game-and-learning-design.md), [D](D-ux-and-content-operations.md) |

@@ -18,10 +18,11 @@ waves 10/20/30/40/50, the meteor positions, three attempts, untimed activities a
 **[CONFIRMED]** by the spec and cited where used.
 
 **Where the numbers come from.** All combat and economy tables below were copied mechanically from the game-design research report
-(`/tmp/claude-1000/-home-jack-Documents-Projects-space-tower-defence/21e4d7b3-740a-407a-9ce4-b4a3156f1b6c/scratchpad/research/10-game-design.md`),
-whose tables are themselves printed from the machine-readable data file
-`/tmp/claude-1000/-home-jack-Documents-Projects-space-tower-defence/21e4d7b3-740a-407a-9ce4-b4a3156f1b6c/scratchpad/sim/game_data.json`.
-Both live in the planning session's scratchpad, which can be cleared; C17.6 proposes moving the data and the simulator into the repository.
+([sources/10-game-design.md](sources/10-game-design.md)), whose tables are themselves printed from the machine-readable data file
+[game_data.json](../../tools/sim/game_data.json) in the balance simulator, now kept in the repository under
+[tools/sim/](../../tools/sim/) (C17.8). The learning design draws on [sources/09-learning-design.md](sources/09-learning-design.md).
+Names, states, keys and rules come from the design spine, [00-spine.md](00-spine.md); where this section and the spine disagree, the
+spine wins.
 
 ---
 
@@ -52,12 +53,15 @@ Both live in the planning session's scratchpad, which can be cleared; C17.6 prop
 
 A *fixed timestep* means the game advances in equal, discrete steps ("ticks") whatever the screen's frame rate; the renderer only draws
 the latest state. That is what makes "browser frame rate must not change damage, movement or reward outcomes" (prompt.md:303) true by
-construction.
+construction; the same rule appears as AC-13. (AC-42 is only the busiest-wave performance target, C14.)
 
 - One tick = 1/60 simulation second. Durations in the data are seconds, converted once at load: `ticks = round(seconds × 60)`. Speeds are
   tiles per second; movement per tick is `speed / 60`. **[PROPOSAL]**
-- Battle speed 1x or 2x; the frame loop is the accumulator of spine S10 (`acc += min(frameDeltaMs, 250) × speed`, step while
-  `acc ≥ STEP`, at most MAX steps per frame). A slow laptop plays in slow motion rather than skipping. **[PROPOSAL]**
+- Battle speed 1x or 2x; the frame loop is the accumulator of spine S10: an **integer** accumulator in units of 1/60,000 s (one tick =
+  1,000 units, so no floating-point drift); each frame `acc += min(frameDeltaMs, 250) × speed` in those units, then step while
+  `acc ≥ STEP` with at most **MAX = 30 steps per frame**. If the cap is hit, the remaining accumulator is **discarded**, so the game slows
+  rather than spiralling into ever-longer catch-up frames. A slow laptop plays in slow motion rather than skipping. A test runs the same
+  wave with 30, 60 and 144 Hz frame deltas and expects an identical tick count and post-wave snapshot. **[PROPOSAL]**
 - Pause = zero ticks. A hidden page, an open dialog or the learning panel pauses; returning stays paused until Resume (prompt.md:273,
   **[CONFIRMED]**). Choosing a Comet Burst target also pauses, so aiming is untimed. **[PROPOSAL]**
 - Preparation runs no ticks and has no countdown; Ready starts the wave (prompt.md:503, **[CONFIRMED]**).
@@ -279,6 +283,10 @@ invented damage upgrades (prompt.md:355).
 | FAST | the alien in range with the highest current speed; ties -> FRONT |
 | CROWD | the alien in range with the most aliens inside the blast radius around it; ties -> FRONT |
 | STRONG | the alien in range with the highest current health; ties -> FRONT (Orion from level 3) |
+
+The targeting enum is exactly `FRONT | FAST | CROWD | STRONG` and the class IDs are `nova`, `pip`, `juno`, `mira`, `orion`, `sol`, as
+recorded in spine S9.5 and used by [G](G-api-contracts.md) (`placements[]` items look like `{"padId": "p03", "classId": "nova",
+"targeting": "FRONT"}`). **[PROPOSAL]**
 
 - At most two modes per class, shown as two picture buttons ([D](D-ux-and-content-operations.md) owns the control). Every attacking class
   defaults to a sensible mode if never touched. Orion gains STRONG at level 3 (prompt.md:346, **[CONFIRMED]** "useful target-priority option").
@@ -729,7 +737,9 @@ Decisions and reasons **[PROPOSAL]**:
   has shown what shields are. The mapping continues in endless (`M-059` is the sixth meteor → Colony Shield, and so on round).
 - **Unused charges are kept** up to two of each. A child who forgets to press the button has not lost the reward. If a success would take
   a power above 2, the slot still resolves SUCCEEDED (and counts in the summary) but no charge is added; the panel says the store is full.
-  In the campaign this cannot happen (Frost Pulse at most 2, Comet Burst at most 2, Colony Shield 1); it can in endless.
+  In the campaign this cannot happen (Frost Pulse at most 2, Comet Burst at most 2, Colony Shield 1); it can in endless. This rule is
+  recorded in spine S3.2 (`SUBMIT_ATTEMPT`): a success at the cap is accepted as SUCCEEDED with no reward rather than raising the cap in
+  endless. **[PROPOSAL]**
 - **Each power once per wave, with a 3 s shared lockout** (mostly a double-press guard). Because the limits are per wave, only charge
   counts are saved (`snapshot.powers`), and the server's bound "each power count ≤ stored count" holds (spine S6 rule 3) — charges enter
   only through the server's meteor grant.
@@ -815,8 +825,9 @@ Two rules from the spine shape this list (both **[PROPOSAL]** in the spine):
 - **Badges are thresholds re-evaluated on every `COMPLETE_WAVE`** (spine S8.1), not one-off events, so after a `CAMPAIGN_PROGRESS` reset
   (`badges = {}`) a still-running run re-earns what it reaches ([F](F-state-and-data.md) §10.2). Each rule below is therefore written as a
   condition on the run and its post-wave snapshot, which that op already reads (spine S7.1 step (a)).
-- **Campaign-progress badges only on `mode = CAMPAIGN` runs** (spine S3.1 `mode`; rationale SM-04 in the spine notes). Challenge runs earn only their own challenge badge and the
-  mode-independent ones marked "any".
+- **Campaign-progress badges only on `mode = CAMPAIGN` runs** (spine S3.1 `mode`). Challenge runs earn only their own challenge badge and
+  the mode-independent ones marked "any". The final `COMPLETE_WAVE` of a `CHALLENGE` run may write the PROFILE `badges` map **only** —
+  never planets, best wave or next-planet eligibility (spine S3.2). **[PROPOSAL]**
 
 | Badge id | Name (proposal) | Award condition (evaluated in the op named) | Mode | Label |
 |---|---|---|---|---|
@@ -843,8 +854,9 @@ Notes:
   spine S3.2 gives `SUBMIT_ATTEMPT` no PROFILE effect and S8.1 evaluates badges on `COMPLETE_WAVE`; three of them would need a Query of
   `SUM#` items that spine S7.1 step (a) does not allow; the `CAMPAIGN_PROGRESS` reset (`badges = {}`, S8.2) would wipe badges earned from
   learning, while `LEARNING_HISTORY` would leave them — one reset touching another category (prompt.md:231); and success-count badges sit
-  uneasily beside summaries that are not a scoring system (prompt.md:527). Adding them later needs a spine amendment (badge categories
-  per reset, a PROFILE update on the resolving `SUBMIT_ATTEMPT`) and is listed in Open points.
+  uneasily beside summaries that are not a scoring system (prompt.md:527). Adding them later is a labelled scope change that needs a
+  spine amendment: a PROFILE update on the resolving `SUBMIT_ATTEMPT`, a `SUM#` read in S7.1 step (a) for the summary-based ones, and a
+  badge `category` so `CAMPAIGN_PROGRESS` and `LEARNING_HISTORY` each clear only their own badges (prompt.md:231).
 - Badge IDs match the spine key-ID pattern `^[a-z0-9-]{1,40}$` (spine S9.5). Badge art is in [D](D-ux-and-content-operations.md).
 
 ---
@@ -852,7 +864,7 @@ Notes:
 ## C13. Standalone short challenges (wave sets)
 
 **[CONFIRMED]**: challenges reuse the same game and activity systems with a short configured wave set and must not become a sandbox or a
-second engine (prompt.md:443). Under spine S3.1 (wave sets; notes SM-04) a challenge is an ordinary run whose pinned wave set has `mode = CHALLENGE`; its slots use
+second engine (prompt.md:443). Under spine S3.1 (wave sets) a challenge is an ordinary run whose pinned wave set has `mode = CHALLENGE`; its slots use
 the same `N-001…` IDs within that run. **[PROPOSAL]**
 
 | Id | Name | Campaign waves reused (in order) | Classes available | Starting credits | Astronauts already placed | Pads | Meteor challenge | About |
@@ -905,7 +917,9 @@ the simulation never waits for an effect. Busiest authored waves (SIM):
 
 Proposed AC-42 measurement: (a) wave 37 at 2x with a deliberately weak board (worst alien count), recording minimum and 1%-low frame rate;
 (b) a synthetic scene with 60 aliens, 16 level-3 astronauts and every effect pool full. The target figure is set after the first prototype
-measurement ([I](I-validation.md)).
+measurement, scheduled in M2 on the children's laptop ([J](J-execution-backlog.md) task M2-13; method in [I](I-validation.md)), and is
+then written into this section through a decision record. AC-42 is only this performance target; frame-rate determinism is a separate
+rule (prompt.md:303, AC-13; C2.1). **[PROPOSAL]**
 
 ---
 
@@ -914,11 +928,25 @@ measurement ([I](I-validation.md)).
 | Document (spine S5.1) | Contents from this section | Notes |
 |---|---|---|
 | Ruleset `/game-data/ruleset/<version>.json` | `mechanics` integer; simulation constants; colony; classes and levels; targeting; combat rules (slow cap, buff rule, shield cap, rounding); aliens and traits; bosses and phases; caps; powers and power rules; economy (learning reward blocks, endless reward, sell rate, subject rotation); endless formulas; badge definitions | `game_data.json` is already shaped this way **[PROPOSAL]** |
-| Planet document `/game-data/campaign/<version>.json` | map, route polyline, pads with `opensAfterWave`; `waveSets{campaign:{mode CAMPAIGN, waves[50], meteorAfter[9,19,29,39,49], startCredits 150, unlocks}, blob-parade:{…}, wobble-rematch:{…}, bubble-trouble:{…}}` | spine S3.1 (notes SM-04) |
+| Planet document `/game-data/campaign/<version>.json` | map, route polyline, pads with `opensAfterWave`; `waveSets{campaign:{mode CAMPAIGN, waves[50], meteorAfter[9,19,29,39,49], startCredits 150, unlocks}, blob-parade:{…}, wobble-rematch:{…}, bubble-trouble:{…}}` | spine S3.1 |
 | Bounds file (generated by a TypeScript build script from `game-core`) | `maxBounty[w]` (the "Total bounty available" column; endless computed), prices and cumulative costs (for `invested`), unlock waves, pad opening, caps, power inventory cap, colony maxima | spine S5.1, S6; Python reads numbers only |
 
+All game data is authored in the repository under `game-data/` (to create) and published as `/game-data/<kind>/<version>.json` with the
+kinds `ruleset`, `campaign`, `asset-manifest` and `bounds`; `/game-data/current.json` names the versions for new runs (spine S5.1).
+
 `game-core` owns the formulas; the selftest invariants in C17.5 become its unit tests ([I](I-validation.md)). Any change to a rule (not a
-number) bumps `mechanics` (spine S5.1).
+number) bumps `mechanics` (spine S5.1). The game-data build refuses any wave set with `3 + (finalWave − 1) + len(meteorAfter) > 100`,
+the DynamoDB transaction limit for creating a run: the campaign is 3 + 49 + 5 = 57 actions and the three challenges are far below it.
+**[PROPOSAL]**
+
+When [game_data.json](../../tools/sim/game_data.json) seeds the first ruleset and planet document, align three things in it with this
+section **[VERIFIED]** by reading the file on 2026-11-14:
+
+- Its badge list still defines the five learning-outcome badges dropped in C12; remove them.
+- It describes `full-crew` and `top-team` on the **wave-start** snapshot and the boss badges as completion events; this section evaluates
+  every badge on `COMPLETE_WAVE` against the **post-wave** snapshot as `highestCompletedWave ≥ n` thresholds (C12).
+- `simulation.tickOrder` lists "boss phase checks" under step 3 (support timers); this section and `sim.py` resolve a phase change the
+  moment the damage lands (step 4 of C2.3). Correct the note.
 
 ---
 
@@ -931,9 +959,12 @@ AC-13). Only the question inside each slot differs (C16.2). All values are initi
 
 ### C16.1 Credits, purchases and upgrades, waves 1–10 (every activity answered correctly on one of its three attempts)
 
-Executed through the simulator (SIM): waves 1–6 are the report's scripted example (`example.py`); waves 7–10 extend the same script with
-"place Nova on P02", "upgrade P12", "upgrade P04", "upgrade P13", run in memory with the same `run()` function. Nothing leaked; the colony
-stayed at 20 health throughout.
+Executed through the simulator (SIM): waves 1–6 are the report's scripted example
+([example.py](../../tools/sim/example.py)); waves 7–10 extend the same script with "place Nova on P02", "upgrade P12", "upgrade P04",
+"upgrade P13", run in memory with the same `run()` function. Nothing leaked; the colony stayed at 20 health throughout. That extension
+was a one-off run during planning and is **not** in `example.py`, which still stops at wave 6 (its `run()` defaults to `waves=6`;
+**[VERIFIED]** by reading the file). Adding the four extra commands to the script, so the table can be regenerated, is a small follow-up
+for the first balance task. **[PROPOSAL]**
 
 | Wave | Credits at start of interval | Learning activity (identical reward for every age) | Purchases before Ready | Credits at Ready | Aliens | Bounty earned | Credits after wave | Leaks | Colony health |
 |---|---|---|---|---|---|---|---|---|---|
@@ -1223,27 +1254,37 @@ totals equal an independent calculation from the data tables. These invariants (
 | Staged pads (6, then 2 more five times) | Children ask why they cannot use the other pads, or do not notice new ones | Open more at the start; celebrate each opening |
 | Endless slope (+0.10 toughness per wave) | Endless runs end too soon to be worth choosing, or last for hours | Slope and caps |
 
-### C17.8 How to re-run it, and keeping it
+### C17.8 How to re-run it
 
-Today the simulator, its data and its results live only in the planning session's scratchpad
-(`/tmp/claude-1000/-home-jack-Documents-Projects-space-tower-defence/21e4d7b3-740a-407a-9ce4-b4a3156f1b6c/scratchpad/sim/`), which a
-reboot or clean-up can delete. To re-run from there:
+The simulator, its data and its saved results are kept in the repository under [tools/sim/](../../tools/sim/) (copied from the planning
+work), with [game_data.json](../../tools/sim/game_data.json) as the seed of the first ruleset and planet documents (C15) and
+[results.md](../../tools/sim/results.md) as the saved output behind the SIM tables. It is plain Python 3 with no dependencies, so it needs no
+packaging. It is a design tool, not product code: it is never deployed, and the TypeScript `game-core` (not the simulator) is the
+authority for rules. **[PROPOSAL]**
+
+To re-run after a balance change (`-B` stops Python writing `__pycache__/` folders into the repository):
 
 ```
-cd /tmp/claude-1000/-home-jack-Documents-Projects-space-tower-defence/21e4d7b3-740a-407a-9ce4-b4a3156f1b6c/scratchpad/sim
-python3 make_data.py          # authored tables -> game_data.json
-python3 selftest.py           # invariants and the worked-example arithmetic
-python3 run_matrix.py         # ~2.5 minutes on 8 cores -> results.json
-python3 tables.py --results   # tables.json and results.md
-python3 build_report.py       # regenerates the research report's tables
-python3 sim.py competent 0.6 1 1   # one campaign, wave by wave (policy, learning success, powers used, seed)
-python3 tune.py               # margin before every wave; --adapt re-tunes counts and boss health to the target curve
+cd tools/sim
+python3 -B make_data.py          # authored tables -> game_data.json
+python3 -B selftest.py           # invariants and the worked-example arithmetic
+python3 -B run_matrix.py         # ~2.5 minutes on 8 cores -> results.json
+python3 -B tables.py --results   # tables.json and results.md
+python3 -B sim.py competent 0.6 1 1   # one campaign, wave by wave (policy, learning success, powers used, seed)
+python3 -B tune.py               # margin before every wave; --adapt re-tunes counts and boss health to the target curve
 ```
 
-**Proposal:** copy the folder into the repository as `tools/sim/` (to create) in the first repo-hygiene task, with `game_data.json` as the
-seed of the first ruleset and planet documents (C15), so the owner keeps the evidence and can re-run it after every balance change. It is
-plain Python 3 with no dependencies, so it needs no packaging. It is a design tool, not product code: it is never deployed, and the
-TypeScript `game-core` (not the simulator) is the authority for rules. Scheduling is in [J](J-execution-backlog.md). **[PROPOSAL]**
+Checked on 2026-11-14 **[VERIFIED]**: `python3 -B tools/sim/selftest.py` prints "selftest: all checks passed". Two known rough edges,
+both verified by running or reading the files:
+
+- `python3 -I tools/sim/selftest.py` fails with `ModuleNotFoundError: No module named 'sim'`, because isolated mode drops the script's
+  folder from the import path. Plain `python3 -B` works. Making the scripts importable under `-I` is a small tidy-up, not a blocker.
+- `build_report.py` (which regenerated the research report's tables during planning) still writes to `tools/research/10-game-design.md`, a
+  path that does not exist in this repository. Do not run it until its output path is pointed at
+  [sources/10-game-design.md](sources/10-game-design.md) or the script is retired; the published report is a record of the planning-time
+  numbers, and C is where current numbers live.
+
+Every number change made during playtests goes through the simulator first ([J](J-execution-backlog.md) M4-07).
 
 ---
 
@@ -1293,7 +1334,11 @@ Types: PS picture selection · NS number selection · OM moving/counting/sorting
 choice · TY typed numeric or word (C20). Audio: *None* = no clip needed; *Optional* = a clip helps but a picture or text also identifies the
 target; *Required* = the answer depends on hearing (the answer area stays hidden until the clip bytes are local). Tiers: A = whole word,
 B = isolated continuant or vowel sound (needs a listening check), C = isolated stop and similar (risky; the bank works even if tier C
-fails the Milestone 0 listening spike — [D](D-ux-and-content-operations.md) D9). Source: T = template (generator kind, C25), H = hand-authored.
+fails the Milestone 0 listening spike — [D](D-ux-and-content-operations.md) D9). Tier B and C sounds are spoken with the engine in
+`tts_phoneme_engine` (default `neural`; the M0 bake-off may switch it to `generative`); a sound that fails the listening test is either
+authored at tier A or replaced by a human recording **[CONFIRMED by owner, 2026-11-14]**, and its `word-only` verdict is recorded in
+`content/listening-verdicts.json` (to create) so a machine check refuses an isolated-sound (`PHONEME`) definition for it (spine S5.2).
+Source: T = template (generator kind, C25), H = hand-authored.
 "(5–6)" / "(6–7)" marks a topic shared with the neighbouring band. Examples illustrate format only; every real item goes through review
 (C22.3). All rows **[PROPOSAL]**; the curriculum statements the codes point to were verified by the research.
 
@@ -1482,7 +1527,7 @@ is one fixed string form of an answer, so that "is this right?" becomes "is this
 accepted answers already in canonical form; the browser (offline) and the server (authoritative) both compare by exact string equality;
 Python validates only the shape (length ≤ 64, allowed characters). There is no second normaliser that could disagree. An answer that cannot
 be canonicalised (empty, wrong characters) never becomes an op; if a malformed one reaches the server it is `REJECTED VALIDATION_FAILED`
-(a client bug; spine S9.1 error table, rationale SM-06 in the spine notes). **[PROPOSAL]**
+(a client bug; spine S9.1 error table). **[PROPOSAL]**
 
 The normalisation rules deliberately avoid language built-ins (`Number()`, `trim()`, Unicode case folding) that behave differently across
 engines, and are expressed as a short list of named primitive steps. One shared vectors file (in `contracts/` (to create), per spine S10) will be run by Vitest
@@ -1531,7 +1576,7 @@ never fail. Four to six keeps "three incorrect = no reward" a real outcome. Natu
   Check on an incomplete answer (blocked client-side with a nudge); resubmitting an answer identical to an earlier one on that slot
   (client-only "You've tried that one"); a network failure (the op already exists locally and is retried under the same ID); Check on an
   audio-required activity before Play has ever been pressed (client nudge "Press Play to listen first").
-- The server counts every `SUBMIT_ATTEMPT` it receives; there is no server identical-answer rule (spine S3.3; notes SM-11).
+- The server counts every `SUBMIT_ATTEMPT` it receives; there is no server identical-answer rule (spine S3.3).
 
 ### C20.3 Multi-step activities (prompt.md:521)
 
@@ -1571,7 +1616,7 @@ this section defines only how an activity refers to clips. **[PROPOSAL]**
   `{variant → speechId, speechVersion, clipKey}` and publish ConditionChecks that every referenced speech version is approved (spine S5.2).
   The slot copies them into `clips[]`.
 - The player speech request carries only `{runId, slotId, variant}`; the service reads the caller's slot and signs the `clipKey` pinned
-  in its `clips` map ([F](F-state-and-data.md) §4.2, [G](G-api-contracts.md) R15; spine S9 `POST /api/speech`, notes SEC-02). It reads no
+  in its `clips` map ([F](F-state-and-data.md) §4.2, [G](G-api-contracts.md) R15; spine S2 and S9 `POST /api/speech`). It reads no
   `content` item. A player never sends text, SSML, a voice or a `speechId`.
 - `audioRequirement` (`NONE` | `OPTIONAL` | `REQUIRED`) on the activity: `REQUIRED` needs at least a `prompt` clip (or option/bin clips that
   carry the sound); **every phonics activity has at least one clip** (prompt or instruction), so "phonics gets a visible Play control"
@@ -2064,7 +2109,7 @@ preserves progress, never silently replaces a saved activity and never charges i
 | Writes | header `state = RETIRED` + audit | version `withdrawn{at, reason}` (+ retire if it is the published version) + audit; **writes nothing to the `game` table** |
 | Needs | one click | a written reason and a confirmation showing the effect on bank thresholds |
 
-How a slot is voided — **only by a run op, only if UNRESOLVED** (spine S3.2–S3.3; notes SM-03):
+How a slot is voided — **only by a run op, only if UNRESOLVED** (spine S3.2–S3.3):
 
 | Slot status when the withdrawal is discovered | What happens |
 |---|---|
