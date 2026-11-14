@@ -926,15 +926,18 @@ of two tables is justified in §12.1.
 **[PROPOSAL]** Names follow the reference convention `space-tower-defence-prod-<thing>` (project and environment from
 [common.auto.tfvars.json:2](../../infrastructure/envs/common.auto.tfvars.json#L2) and
 [prod.tfvars.json:2](../../infrastructure/envs/prod.tfvars.json#L2)). Terraform is in [H](H-infrastructure-and-delivery.md).
+Deletion protection and `prevent_destroy` are on from the first apply; the plan-guard CI check enforces them from the data-freeze point.
+**[PROPOSAL]**
 
 Why two tables rather than one:
 
 - **IAM blast radius at table level.** `admin-api` never gets `game`. `player-api` gets only read on `content`. `tts` gets only
-  `GetItem` on `game`.
+  `GetItem` on `game` and nothing on `content`: it resolves the clip from the slot's pinned clips map (G11).
 - **Independent restore.** `game` can be restored alone, because content versions are never deleted, so every pin still resolves.
 - **No relational need.** Nothing queries across the two tables.
 
-Transactions may span tables in the same account and Region **[VERIFIED research 08 §a.1]**, but none needs to.
+Transactions may span tables in the same account and Region **[VERIFIED [sources/08-aws-data-ops.md](sources/08-aws-data-ops.md)
+§a.1]**, but none needs to.
 
 ### 12.2 `game` entities and access patterns
 
@@ -952,22 +955,25 @@ returns `NOT_FOUND` (AC-03). **[PROPOSAL]**
 
 | # | Pattern (prompt.md:852-878) | Operation | Consistency |
 |---|---|---|---|
-| G1 | load profile and dashboard (`GET /api/me`) | GetItem PROFILE; GetItem SESSION; Query `pk = U#<sub> AND begins_with(sk, "RUN#")` with a projection of summary fields; loop `LastEvaluatedKey` | strong |
+| G1 | load profile and dashboard (`GET /api/me`; optional `?sessionId=` lets the handler compute `activeElsewhere` against this browser) | GetItem PROFILE; GetItem SESSION; Query `pk = U#<sub> AND begins_with(sk, "RUN#")` with a projection of summary fields; loop `LastEvaluatedKey` | strong |
 | G2 | list resumable runs and recent results, paginated | same Query; filter/sort by `lastPlayedAt` and slice in the handler; opaque offset cursor | strong |
 | G3 | load a run / its pack | GetItem RUN; Query `begins_with(sk, "SLOT#<runId>#")` (loop); de-duplicated BatchGetItem of pinned content versions in chunks of ≤ 100 keys, draining `UnprocessedKeys` and checking returned against requested | strong |
 | G4 | claim / renew / release the session | conditional UpdateItem SESSION (§5.3); retry `TransactionConflict`/throttle; failed heartbeat = 503 | strong |
 | G5 | apply one op (checkpoint, attempt, reward, milestone) | TransactWriteItems (§12.3) | strong reads before |
 | G6 | progress view | Query `begins_with(sk, "SUM#")` + PROFILE `planets`/`badges` | strong |
-| G7 | create run | consistent GetItem RUN (exists → return it as the original result); else one TransactWriteItems (§12.3); `CCF` on RUN → replay path; on SESSION → session error. Soft-cap count from the G1 Query | strong |
+| G7 | create run | consistent GetItem RUN (exists → return it as the original result); else one TransactWriteItems (§12.3): the SESSION claim with the §5.3 takeover rule, Put RUN, ConditionCheck PROFILE, slot Puts; `CCF` on RUN → replay path; on SESSION → session error (`ACTIVE_SESSION_ELSEWHERE` or `TAKEOVER_CONFIRM_REQUIRED`); on PROFILE → `PROFILE_NOT_FOUND`. Soft-cap count from the G1 Query | strong |
 | G8 | resets | §12.5 | strong |
 | G9 | prune | best effort after a terminal op commits: for runs beyond the 50 most recently ended, BatchWriteItem-delete their slots in 25s (retry `UnprocessedItems`), then the RUN item **last**; failures logged, never change the op result | — |
 | G10 | sign-up cap | conditional UpdateItem on `SYS#SIGNUPS`/`<date>`: `ADD #count :one` if `attribute_not_exists(#count) OR #count < :cap` | — |
-| G11 | speech ownership (`tts`) | consistent GetItem `U#<sub>` / `SLOT#<runId>#<slotId>` | strong |
+| G11 | speech ownership (`tts`) | consistent GetItem `U#<sub>` / `SLOT#<runId>#<slotId>`; the clip comes from the slot's clips map | strong |
+
+The canonical entity and pattern list is spine S8.1 in [00-spine.md](00-spine.md).
 
 **Rules [PROPOSAL]:**
 
 - **Every `game` read is `ConsistentRead = true`**, enforced in one data-access helper. Base-table strong reads are supported; strong
-  reads on a GSI are not, which is one more reason for having no GSI **[VERIFIED research 08 §a.4]**.
+  reads on a GSI are not, which is one more reason for having no GSI **[VERIFIED [sources/08-aws-data-ops.md](sources/08-aws-data-ops.md)
+  §a.4]**.
 - **The op path never Queries slots.** It reads one addressed slot by key.
 - **Why the per-op reads (SESSION, RUN, SLOT) need not be one snapshot:** they are separate strongly consistent `GetItem`s and are not
   isolated from each other. Correctness does not need them to be. The transaction re-asserts each fact it relies on as a condition
@@ -976,7 +982,8 @@ returns `NOT_FOUND` (AC-03). **[PROPOSAL]**
 
 ### 12.3 Transaction composition and action counts
 
-The limit is 100 actions and 4 MB aggregate per `TransactWriteItems`, with each item ≤ 400 KB **[VERIFIED research 08 §a.1]**.
+The limit is 100 actions and 4 MB aggregate per `TransactWriteItems`, with each item ≤ 400 KB **[VERIFIED
+[sources/08-aws-data-ops.md](sources/08-aws-data-ops.md) §a.1]**.
 
 | Op / route | Actions | Count |
 |---|---|---|
@@ -986,7 +993,7 @@ The limit is 100 actions and 4 MB aggregate per `TransactWriteItems`, with each 
 | `SUBMIT_ATTEMPT` / `DISMISS_SLOT` → VOIDED | fence · Update RUN (+ reward) · Update SLOT | 3 |
 | `DISMISS_SLOT` → DECLINED | fence · Update RUN · Update SLOT | 3 |
 | VOIDED-slot no-op | fence · Update RUN (revision, recentOps) | 2 |
-| `COMPLETE_WAVE` (authored) | fence · Update RUN · [Update PROFILE `attribute_exists(pk)` only if best/badge/milestone changes] | 2–3 |
+| `COMPLETE_WAVE` (authored) | fence · Update RUN · [Update PROFILE `attribute_exists(pk)` only if best/badge/milestone changes; for a `CHALLENGE` run only on the final wave and only `badges`] | 2–3 |
 | `COMPLETE_WAVE` (endless, block due) | fence · Update RUN (plannedThrough) · [PROFILE] · ≤ 11 × Put SLOT (`attribute_not_exists(pk)`) | ≤ 14 |
 | `CHOOSE_ENDLESS` | fence · Update RUN · ≤ 22 × Put SLOT (two blocks) | ≤ 24 |
 | `DEFEAT`, `ABANDON`, `FINISH_RUN` | fence · Update RUN (status, REMOVE snapshot; keep recentOps) | 2 |
@@ -995,26 +1002,32 @@ The limit is 100 actions and 4 MB aggregate per `TransactWriteItems`, with each 
 - Every op is **one transaction**, so a reward, its slot status and its summary counter commit together or not at all (prompt.md:691).
   Terminal ops are fixed-size, which is why pruning is a separate best-effort pass and never part of finalisation. **[PROPOSAL]**
 - **Wave-set limit.** Any wave set must satisfy `3 + (finalWave − 1) + len(meteorAfter) ≤ 100`. The campaign uses 57. The game-data build
-  (the TypeScript script that already emits the bounds files) should refuse a wave set that breaks it. H's gate table does not list
-  this check yet (see open points). **[PROPOSAL]**
+  (the TypeScript script that also emits the bounds files) refuses a wave set that breaks it, so an oversized set can never reach
+  `CREATE_RUN` (spine [S5.1](00-spine.md#s51-pins-and-game-data); the gate belongs with the quality gates in [H](H-infrastructure-and-delivery.md)).
+  **[PROPOSAL]**
+- **The PROFILE ConditionCheck in `CREATE_RUN`** (`attribute_exists(pk)`) stops a create racing a whole-profile reset from writing a
+  run under a deleted profile. It is what brings the campaign count to 57 (1 SESSION + 1 RUN + 1 PROFILE + 49 + 5). **[PROPOSAL]**
 - **Size.** The largest transaction (`CHOOSE_ENDLESS`, ~24 × ≤ 2 KB plus a RUN ≤ 8 KB) is far below 4 MB.
 - **`recentOps`** is written as `SET recentOps = :newList`. The handler builds and trims the list to 32 entries, under the revision
   condition. After creation, RUN is changed **only** by that revision-conditioned Update.
 - **PROFILE update shape.** The handler reads PROFILE consistently, computes the new best and any new badges in code, and adds the Update
   only when something changes. It uses `SET planets.#p = :planetMap, badges.#b = if_not_exists(badges.#b, :now)` with
   `attribute_exists(pk)`. Writing the whole per-planet sub-map, rather than `planets.#p.bestCompletedWave`, matters: after a
-  `CAMPAIGN_PROGRESS` reset `planets` is `{}`, and a nested path into a missing key would fail. **[PROPOSAL; covered by the M0
-  transaction fixtures]**
+  `CAMPAIGN_PROGRESS` reset `planets` is `{}`, and a nested path into a missing key would fail (a nested map cannot be updated when its
+  parent map does not exist, **[VERIFIED [sources/08-aws-data-ops.md](sources/08-aws-data-ops.md) §a.3]**). **[PROPOSAL; the exact
+  shape is confirmed by the M0 transaction fixtures, see the final table]**
 - **Cancellation handling.** `TransactionCanceledException.CancellationReasons` is ordered like the request
-  **[VERIFIED research 08 §a.1]**. For logging, the handler maps each reason to the failed action (SESSION → stale, RUN/SLOT → race).
+  **[VERIFIED [sources/08-aws-data-ops.md](sources/08-aws-data-ops.md) §a.1]**. For logging, the handler maps each reason to the failed action (SESSION → stale, RUN/SLOT → race).
   Behaviourally, *every* cancellation goes back to step (a) (§8.1), which keeps one code path. `ClientRequestToken` is not relied on:
-  its 10-minute window does not cover offline replays **[VERIFIED research 08 §a.1]**.
+  its 10-minute window does not cover offline replays **[VERIFIED [sources/08-aws-data-ops.md](sources/08-aws-data-ops.md) §a.1]**.
+- **Test level.** These transaction shapes are exercised against DynamoDB Local in CI (a service container); locally the integration
+  tests are optional, since no Docker or Java is assumed on the laptop ([I](I-validation.md)). **[PROPOSAL]**
 
 ### 12.4 Expression rules [PROPOSAL]
 
 - **Every attribute name goes through `ExpressionAttributeNames`.** Several of ours are reserved words: `status`, `state`, `level`,
-  `value`, `text`, `type`, `snapshot`, `session` as listed by the spine, and `count`/`ttl` should be treated the same. Using `#name`
-  everywhere removes the need to remember which.
+  `value`, `text`, `type`, `snapshot`, `session` as listed by spine S8.1 ([00-spine.md](00-spine.md)), and `count`/`ttl` should be
+  treated the same (list not re-checked; see the final table). Using `#name` everywhere removes the need to remember which.
 - Handlers write named attributes only. A request body is never merged into an item.
 - IDs used in keys match patterns without `#` (UUIDs; `^[NM]-[0-9]{3}$`; `^[a-z0-9-]{1,40}$`), so a crafted ID cannot forge a key
   prefix.
@@ -1041,6 +1054,9 @@ connection and an empty queue. `WHOLE_PROFILE` may discard pending progress afte
   limit and well inside the 60 s reset lease, so the lease always outlives the handler. A reset on an account at the bounds (§12.8)
   may not finish in one invocation. The client then sees an error and repeats; each repeat re-fences (generation + 1 again, which is
   harmless) and deletes what is left, and PROFILE goes last, so the work converges.
+- **If the handler dies before step (4)**, SESSION is left with `sessionId = RESET#<requestId>` and `released = false`. The next claim
+  treats a `RESET#` holder as released (§5.3), so the child is never asked "Play here instead?" about a device that is really the reset.
+  **[PROPOSAL]**
 - Offline devices still holding queued ops for a reset account get `NOT_FOUND`/`PROFILE_NOT_FOUND` on flush → recovery, option (a) only.
   The reset dialog says plainly that "a device that was offline may still add its saved progress when it reconnects" (for the partial
   resets). **[PROPOSAL]**
@@ -1049,34 +1065,43 @@ connection and an empty queue. `WHOLE_PROFILE` may discard pending progress afte
 
 | Entity | pk | sk | Notes |
 |---|---|---|---|
-| Activity header | `ACT` | `<activityId>` | title, subject, topicId, rewardCategory, minAge, maxAge, interactionType, authoringMode, domainSize, state, publishedVersion, updatedAt |
+| Activity header | `ACT` | `<activityId>` | title, subject, topicId, rewardCategory, minAge, maxAge, interactionType, authoringMode, domainSize, state, publishedVersion, fromDraftRevision, updatedAt |
 | Activity draft | `ACT#<activityId>` | `DRAFT` | working copy + `draftRevision` |
-| Activity version | `ACT#<activityId>` | `V#<UTC timestamp>` | immutable definition, resolved speech refs, review record, publishedBy, `withdrawn{at, reason}?` |
-| Speech header | `SPEECH` | `<speechId>` | title, kind, state, approvedVersion, updatedAt |
-| Speech draft / version | `SPEECH#<speechId>` | `DRAFT` / `V#<timestamp>` | text/SSML, voice, engine, clipKey, review record |
+| Activity version | `ACT#<activityId>` | `V#<UTC timestamp>` | immutable definition, resolved speech refs, review record `{checklist, previewSolvedDraftRevision}`, publishedBy, fromDraftRevision, `withdrawn{at, reason}?` |
+| Speech header | `SPEECH` | `<speechId>` | title, kind, state, approvedVersion, fromDraftRevision, updatedAt |
+| Speech draft / version | `SPEECH#<speechId>` | `DRAFT` / `V#<timestamp>` | `kind` (`WORD` \| `PHONEME` \| `LETTER_NAME` \| `INSTRUCTION` \| `DICTATION`), `provider` (`"polly"`), text/SSML, `voiceId`, `engine`, clipKey; versions add the `sha256` of the MP3 bytes, the render date, the review record and fromDraftRevision |
 | Audit | `AUDIT#<yyyy-mm>` | `<timestamp>#<id>` | publish / retire / withdraw / approve |
+
+The canonical table is spine [S8.3](00-spine.md#s83-table-content-no-gsi). **Speech fields [CONFIRMED by owner]:** `engine` and `voiceId`
+are copied from server configuration at preview time (`tts_engine`, default `generative`; `tts_voice_id`, default `Amy`, en-GB; and
+`tts_phoneme_engine`, default `neural`, for `PHONEME` and `LETTER_NAME`, until the M0 listening bake-off decides). Because both are part of the clip identity, changing a variable
+affects new previews only; an approved version keeps its bytes until it is re-previewed and re-approved. The voice/engine allow-list is
+enforced in code, because IAM cannot restrict Polly by voice or engine.
 
 | # | Pattern | Operation |
 |---|---|---|
 | C1 | selection, bank status, admin list (prompt.md:872-874) | Query `pk = ACT` (consistent, full partition, a few hundred items, loop pages) and filter in code |
 | C2 | read pinned versions | BatchGetItem (as G3) |
-| C3 | save draft | Update DRAFT with `draftRevision = :r` (+ header `updatedAt`, in one transaction) |
-| C4 | publish | Put `V#ts` `attribute_not_exists` + Update header + ConditionCheck DRAFT `draftRevision = :r` + ConditionCheck each referenced speech version is approved + Put audit |
+| C3 | save draft | Update DRAFT with `draftRevision = :r` (+ header `updatedAt`, in one transaction); mismatch → `409 DRAFT_CONFLICT` |
+| C4 | publish | (replay check on `fromDraftRevision`) Put `V#ts` `attribute_not_exists` + Update header + ConditionCheck DRAFT `draftRevision = :r` + ConditionCheck each referenced speech version is approved + Put audit |
 | C5 | retire (prompt.md:876) | Update header `state = RETIRED` + audit; versions untouched |
 | C6 | withdraw `{version, reason}` | Update `V#version` (`attribute_exists`) `withdrawn` + audit; if it is the published version, also retire |
-| C7 | approve speech | Put speech `V#ts` + Update speech header (draftRevision condition) + audit (after `HeadObject` on the clip) |
+| C7 | approve speech | (replay check on `fromDraftRevision`) Put speech `V#ts` (with `sha256` and render date) + Update speech header (draftRevision condition) + audit (after `HeadObject` on the clip) |
 | C8 | seed / import | create-only conditional Puts through the draft → publish path; never overwrites operator content |
 
 Version IDs are non-reusable timestamps; "v3" is derived for display by counting. **[PROPOSAL]**
 
-Header fields that the spine leaves open, settled here so D, G and the handlers use one set:
+Header fields and rules, as recorded in spine [S5.2](00-spine.md#s52-activities-templates-speech), so D, G and the handlers use one set:
 
 | Field / rule | Choice | Label |
 |---|---|---|
 | Activity header `state` | `DRAFT` (never published) · `PUBLISHED` · `RETIRED`. Withdrawal is recorded per version (`withdrawn{at, reason}`), not as a header state. Same values as [D](D-ux-and-content-operations.md). | **[PROPOSAL]** |
-| Speech header `state` | `DRAFT` (never approved) · `APPROVED` (`approvedVersion` set) | **[ASSUMPTION]** |
-| Immutable after the first published version | `subject`, `topicId`, `rewardCategory` (spine S5.2), plus `authoringMode` (already locked by [G](G-api-contracts.md) R25) and `interactionType`. Selection and the pack schema both branch on these two, so a header that changed them would describe old versions wrongly. | **[PROPOSAL]**; the last two extend the spine |
-| Publish and approve replay | C4 and C7 also write `fromDraftRevision` on the new version and the header. A repeat whose `draftRevision` equals the header's `fromDraftRevision` returns the existing version instead of writing a second one (G's suggestion), which makes R21/R27 safe to retry. | **[PROPOSAL]**; extends spine C4/C7 |
+| Speech header `state` | `DRAFT` (never approved) · `APPROVED` (`approvedVersion` set) | **[PROPOSAL]** |
+| Immutable after the first published version | `subject`, `topicId`, `rewardCategory`, `authoringMode` and `interactionType`; a change is `400 VALIDATION_FAILED` rule `locked_after_publish`. Selection and the pack schema both branch on the last two, so a header that changed them would describe old versions wrongly. | **[PROPOSAL]** |
+| Draft concurrency | every save, publish and approve names `draftRevision`; a stale one is `409 DRAFT_CONFLICT` | **[PROPOSAL]** |
+| Publish and approve replay | C4 and C7 also write `fromDraftRevision` on the new version and the header. A repeat whose `draftRevision` equals the header's `fromDraftRevision` returns the existing version instead of writing a second one, which makes R21/R27 safe to retry. | **[PROPOSAL]** |
+| Publish review record | the version stores `review{checklist, previewSolvedDraftRevision}` and `publishedBy` from the token | **[PROPOSAL]** |
+| Speech `PHONEME` guard | a machine check at approve/publish refuses a `PHONEME` definition whose sound has a `word-only` verdict in `content/listening-verdicts.json` (to create) | **[PROPOSAL]** |
 
 ### 12.7 Why no GSI (either table)
 
@@ -1115,7 +1140,8 @@ resumable runs remain until a reset; retention applies only to terminal runs bey
 - **Protection:** AWS Backup takes a daily snapshot of both tables and keeps 7 recovery points (prompt.md:1020-1022). PITR is enabled on
   both. **[CONFIRMED retention; PITR PROPOSAL]**
 - **A restore always creates a new table.** Tags, TTL, PITR, deletion protection, alarms and IAM are not restored
-  **[VERIFIED research 08 §b.4]**.
+  **[VERIFIED [sources/08-aws-data-ops.md](sources/08-aws-data-ops.md) §b.4]**. Canonical summary: spine
+  [S8.4](00-spine.md#s84-backup-and-restore).
 - **`game` restore:** restore to a new table, verify, then either copy the needed `U#<sub>` items back (H.13.3 A, the default) or cut
   over (Terraform variable `table_name_overrides`, which feeds the Lambdas' table-name environment; H.13.3 B). Data consequences to
   state honestly:
@@ -1129,7 +1155,7 @@ resumable runs remain until a reset; retention applies only to terminal runs bey
       it. **[PROPOSAL]**
     - *Whole-table cut-over:* before the override is released, set each restored `SESSION.generation` to the old table's value + 1
       (the old table is kept for forensics, so it can be read), or `ADD generation 1000` where it cannot. H.13.3 step B.4a does
-      this. **[PROPOSAL — not in spine S8.4; see open points]**
+      this. **[PROPOSAL; spine S8.4: either way, every `SESSION.generation` is bumped]**
 - **`content` restore:** never roll `content` back behind `game`. Restore to a scratch table and copy needed items back. Verification:
   every `activityId@version` pinned by an IN_PROGRESS run resolves (a Query of each account's runs and slots, then a BatchGet against the
   restored or live table). **[PROPOSAL]**
@@ -1157,45 +1183,13 @@ Test design for each is in [I. Validation](I-validation.md).
 
 ---
 
-## Open points for the planner
+## Unverified items to check
 
-- **G7 action count.** Spine S8.1 G7 says "≤ 57 actions" but lists no PROFILE action (1 + 1 + 49 + 5 = 56). This section adds
-  `ConditionCheck PROFILE attribute_exists(pk)` to reach 57 and to stop a create racing a whole-profile reset. Confirm or drop.
-- **`CREATE_RUN` over a lapsed, unreleased lease** (§5.3). Spine S3.2 counts an expired lease as free, so `POST /api/runs` can fence
-  another device without the takeover question. G's open point suggests a `takeover` field and `TAKEOVER_CONFIRM_REQUIRED` on R8;
-  F agrees. Needs a spine change to S3.2 and G7.
-- **Restoring `game` regresses `SESSION.generation` and `recentOps`** (§12.9). H's copy-back (A.4) and cut-over (B.4a) steps both
-  raise the generation and F agrees; add the cut-over bump to spine S8.4.
-- **Option (b) with frozen ops for several runs.** The spine does not say. This section proposes all-or-nothing (offer (b) only if every
-  affected run is eligible).
-- **`recentOps` boundary case** (lost response + takeover + more than 32 later ops on the same run). The result is `STALE_SESSION`, not
-  `ALREADY_APPLIED`: safe, but the recovery store then holds ops that did land. D's "Progress that was not saved" panel (P14) does not
-  mention this; its copy should allow for "some of this may already be saved".
-- **Offline VOID vs a locally FAILED branch** (§11.4 variant). The server grants the VOID reward, but the next `SAVE_PREP` overwrites
-  credits with the lower local value, so the cloud ends without it. Consistent with "keeps what it saw locally". The owner may prefer the
-  reward to stick (that would need the reducer to know about withdrawal, which it cannot offline). Pair with D-9.
-- **Wave-set action limit check** (§12.3). Nothing in H's quality gates (H.10) refuses a wave set with
-  `3 + (finalWave − 1) + len(meteorAfter) > 100`. Suggest adding it to the game-data build and listing it beside G-3.
-- **Content header extensions** (§12.6). The `state` enums, locking `authoringMode` and `interactionType`, and `fromDraftRevision`
-  replay protection for publish/approve are not in spine S5.2/S8.3. G still needs a code for a stale `draftRevision` (its open point).
-- **Milestone 1 wave-set mode** (§3.7). `CHALLENGE` is suggested; J and the owner should confirm, since it moves the first `PROFILE`
-  write on `COMPLETE_WAVE` to Milestone 2.
-- **Reserved-word list** (`status`, `state`, `level`, `value`, `text`, `type`, `snapshot`, `session`, plus `count`, `ttl`) was taken from
-  the spine and not re-checked in this run. Moot because every name goes through `ExpressionAttributeNames`, but check against the
-  DynamoDB reserved-words page if quoted elsewhere. **[UNVERIFIED]**
-- **Nested-map SET** after `planets = {}` (§12.3): the "write the whole sub-map" shape should be confirmed by an M0 DynamoDB transaction
-  fixture. **[UNVERIFIED in this run]**
-- **Item-collection size limit** (10 GB) applies only to tables with an LSI. Neither table has one, so it is not a constraint; not
-  re-verified in this run. **[UNVERIFIED]**
-- **Endless planning cap (added by checker).** Spine S5.3 plans blocks while `plannedThrough < (wave − 1) + K` with no upper bound, and
-  S3.2 ends the run at wave 999. Unbounded, the block planned at wave 991 would create four-digit slot IDs. §3.6 now states "no slot
-  for an interval above 998"; the spine should say the same.
-- **Claim condition (2) shape (added by checker).** Spine S3.4 writes (2) as `attribute_not_exists(sessionId) OR leaseExpiresAt <= :now`
-  and then says a lapsed-unreleased holder without `takeover` gets `TAKEOVER_CONFIRM_REQUIRED`. Since the update would already have
-  committed, §5.3 realises that rule by including the lapsed clause only when `takeover: true` (plus a redundant `released = true`
-  clause) and splitting the failure from the returned old item. G's R13 describes the same observable behaviour; only the spine
-  wording still needs aligning.
-- **Interrupted `WHOLE_PROFILE` reset and the next claim (added by checker).** If the reset handler dies before step (4) (now more
-  likely, with the 25 s timeout on a large account), SESSION holds `sessionId = RESET#<requestId>`, `released = false`; once its 60 s
-  lapses, the child's next claim would hit `TAKEOVER_CONFIRM_REQUIRED` naming a "device" that is the reset itself. Suggest the claim
-  path treats a `RESET#` holder as released (no prompt). Not in the spine.
+Everything else in this section is either settled in the [spine](00-spine.md) or a labelled proposal. These are the facts that could not
+be checked while writing it.
+
+| Item | Why it matters | How / when to check | Milestone |
+|---|---|---|---|
+| The DynamoDB reserved-word list used in §12.4 (`status`, `state`, `level`, `value`, `text`, `type`, `snapshot`, `session`, plus `count`, `ttl`) was taken from the spine and not re-checked **[UNVERIFIED]** | Low risk while every name goes through `ExpressionAttributeNames`, but the list should not be quoted elsewhere as fact until checked | Compare against the DynamoDB "Reserved words" page in the developer guide when writing the data-access helper | M0 |
+| Nested-map `SET planets.#p = :planetMap` after a `CAMPAIGN_PROGRESS` reset leaves `planets = {}` (§12.3) **[UNVERIFIED]** | If adding a key to an existing empty map behaves differently from the documented rule, the first `COMPLETE_WAVE` after a reset would cancel the whole op | A DynamoDB transaction fixture: create PROFILE with `planets = {}`, apply the `COMPLETE_WAVE` update shape, assert the map holds the new planet (DynamoDB Local in CI, then once against the real table) | M0 (fixtures); re-run in M4 when the reset ships |
+| The 10 GB item-collection size limit applies only to tables with a local secondary index, so it does not constrain `game` or `content` (§12.7, §12.8) **[UNVERIFIED]** | If it applied without an LSI, a heavy endless account (~6 MB estimate) would still be far below it, but the bound in §12.8 would need restating | Read the DynamoDB "Item collections" / LSI limits page; no test needed | M0 |

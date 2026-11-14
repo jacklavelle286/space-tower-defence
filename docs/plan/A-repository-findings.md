@@ -66,6 +66,9 @@ Absent **[VERIFIED]**: `.gitignore`, `CLAUDE.md` (or any other repository-instru
 `web/`, `package.json`, any Python source or Python dependency file, `tests/`, `contracts/`, and any staging environment file.
 So there is no build tooling, dependency file or output convention to reuse from this repository (prompt.md:970). The only
 output convention is the bootstrap's Terraform outputs, and the only deployment inputs are the two env JSON files.
+Added during planning: this plan in `docs/plan/` (with the spine [00-spine.md](00-spine.md) and evidence in
+[sources/](sources/)) and the balance simulator in [tools/sim/](../../tools/sim/) (`python3 -B tools/sim/selftest.py`
+passes, per [spine S0](00-spine.md#s0-verified-starting-point)).
 
 The brief asks me to "Read repository instructions" (prompt.md:9). There are none, so this plan's conventions come from the
 reference project and the bootstrap module README, as the brief directs (prompt.md:25).
@@ -525,22 +528,17 @@ declared in both roots.
 
 ---
 
-## Open points for the planner
+## Unverified items to check
 
-- **Repository creation date, OIDC subject format and visibility are UNVERIFIED** (the `gh` CLI was not authenticated). Section
-  5.2 treats the immutable subject as a likely blocker. Section 5.4 assumes the two-dispatch fallback.
-- **The REST field name `use_immutable_subject`** on `GET /repos/{owner}/{repo}/actions/oidc/customization/sub` came from the task
-  brief and research. I did not fetch the endpoint's documentation in this run, so section 5.2 says to treat the throwaway-workflow
-  `sub` print as the definitive check if the field is absent.
-- **Spine amendments to record** (A and H already agree; the spine text does not say so):
-  - The `main`-only deployment-branch rule on `prod` (section 5.3, H B-2) and the `ref:refs/heads/main` fallback subject
-    (H B-3) are not in spine S11.1. Whether environments exist on this repository's plan is still **[UNVERIFIED]** and is
-    settled by the M0 OIDC smoke test.
-  - Spine S1.1 says workflows learn names from `terraform output -json`. That cannot apply to the backend bucket, which is
-    needed before init. A §6 and H §H.8.4 both mirror the `locals.tf:2` formula plus a `head-bucket` guard. The alternative
-    (a single `state_bucket_name` env key read by both roots) was not adopted.
-  - Env keys `player_hostname`, `admin_hostname`, `terraform_version`, `player_signup_closed` and the two auth-domain
-    prefixes are used identically in A and H but are not named in the spine.
-- **Side finding, not for publication:** research 01 (item 24) noted a tracked script in the reference product that exports AWS
-  credentials (`/home/jack/Documents/Projects/jacks-productivity-tool/api/venv.sh`). I did not open it. It's worth telling the
-  owner privately; it is outside this plan's scope.
+Facts this section relies on that could not be checked during planning. Decisions that depend on them are already made
+(sections 5.3 and 5.4 work either way); these rows say how the owner or the first build phase confirms the fact.
+
+| Item | Why it matters | How / when to check | Milestone |
+|---|---|---|---|
+| Repository creation date and OIDC subject format (immutable `repo:OWNER@OWNER-ID/REPO@REPO-ID:…` or classic) **[UNVERIFIED]** | If the repository uses the immutable format, the deployed trust pattern cannot match and every `configure-aws-credentials` step fails (section 5.2) | `gh api repos/jacklavelle286/space-tower-defence --jq '.created_at, .id, .owner.id'`, then the `oidc-smoke.yml` run, which prints only the `sub` claim; record the result as an ADR in `docs/decisions/` | M0 |
+| REST field name `use_immutable_subject` on `GET /repos/{owner}/{repo}/actions/oidc/customization/sub` **[UNVERIFIED]** | Section 5.2 offers it as a quick read-only check; the field name came from planning notes, not from the endpoint's documentation | Read GitHub's REST documentation for that endpoint, or call it once; if the field is absent, the `oidc-smoke.yml` `sub` print is the definitive answer | M0 |
+| Repository visibility and account plan: are environments, deployment-branch rules and required reviewers available? **[UNVERIFIED]** | Decides between `environment:prod` subjects (plus optional `prod-apply` with reviewers) and the `ref:refs/heads/main` fallback (sections 5.3, 5.4) | `gh api repos/jacklavelle286/space-tower-defence --jq .visibility`; Settings → Environments → `prod`; confirmed by the `oidc-smoke.yml` run; recorded in the same ADR | M0 |
+| Terraform only warns (does not fail) on undeclared keys in a `-var-file` **[UNVERIFIED]** for 1.17.2 | The shared env files feed both roots (section 2.2); if it fails rather than warns, the cross-declarations become mandatory before the first plan | Local `terraform plan` of the bootstrap root with a test key added to a scratch copy of the env file (local plan is allowed) | M0 |
+| Wildcard alternate domain name `*.jackgl.com` on the apex CloudFront distribution **[UNVERIFIED]** | Could block adding `aliens.jackgl.com` to a distribution in this account (section 7) | Owner reads the apex distribution's alternate domain names in the other account | Before M1 (first apply with aliases) |
+| CAA records on `jackgl.com` **[UNVERIFIED]** | If they exist and do not allow `amazon.com`, ACM cannot issue the certificate and the first apply waits until the 72 h validation timeout | `dig CAA jackgl.com` (read-only) | Before M1 |
+| Whether a hosted zone for `jackgl.com` is visible from account `263185198757` **[UNVERIFIED]** | Decides how the owner writes the validation and alias records (section 7); the workload stack does not depend on it | Owner's DNS integration choice | Before M1 |

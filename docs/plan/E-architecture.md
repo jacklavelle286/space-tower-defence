@@ -100,7 +100,7 @@ reads only the `game` table (one slot item) and the audio bucket; it has no `con
 | Two Cognito user pools (players, operators), managed login on Essentials | Sign-up, sign-in, operator MFA | **[PROPOSAL]** (D-10; runner-up one pool + group) |
 | Four Python 3.14 arm64 zip Lambdas | `player-api`, `admin-api`, `tts`, `cognito-presignup` | Python Lambda **[CONFIRMED]** `prompt.md:809`; 3.14, arm64 and the split **[PROPOSAL]** |
 | DynamoDB `game` and `content` tables | Player-owned records; operator-owned content | DynamoDB **[CONFIRMED]** `prompt.md:811`; two tables **[PROPOSAL]** — see [F](F-state-and-data.md) |
-| S3 audio bucket + Amazon Polly (generative engine, en-GB, voice Amy; phonemes and letter names on `tts_phoneme_engine`, default neural) | Reviewed MP3 clips under `tts/v1/`, content-addressed, synthesised once ever and never overwritten | Polly + private S3 **[CONFIRMED]** `prompt.md:563`, `prompt.md:813`; engine and voice **[CONFIRMED by owner]** (E.4.1); key scheme **[PROPOSAL]** |
+| S3 audio bucket + Amazon Polly (generative engine, en-GB, voice Amy; phonemes and letter names on `tts_phoneme_engine`, default neural) | Reviewed MP3 clips under `tts/v1/`, content-addressed, synthesised once ever and never overwritten | Polly + private S3 **[CONFIRMED]** `prompt.md:563`, `prompt.md:813`; engine and voice **[CONFIRMED by owner]** (E.4.1a); key scheme **[PROPOSAL]** |
 | S3 artifacts bucket (created in the **bootstrap root**, beside the existing module call) | Lambda zips by content hash, release manifests, archived builds, saved plans under `plans/<run_id>/` | **[PROPOSAL]** — see [H §H.5](H-infrastructure-and-delivery.md#h5-bootstrap-changes-you-make-no-replacement-bootstrap) |
 | CloudWatch logs and alarms → SNS e-mail; AWS Backup | Operations | **[CONFIRMED]** `prompt.md:815-817`; details in [H](H-infrastructure-and-delivery.md) |
 
@@ -170,7 +170,7 @@ The reference distribution maps origin `403 → 200 /index.html` (SPA deep links
 | `503 SPEECH_UNAVAILABLE`, `503 THROTTLED` | `503` with maintenance HTML, no error envelope | Client cannot tell "retry" from "speech missing"; Retry/RETRYING logic breaks |
 | `502 SPEECH_SYNTHESIS_FAILED` (preview) | `503` maintenance page | Operator sees an outage instead of "try again" |
 
-So **[PROPOSAL]** (spine S1): no `custom_error_response` on either distribution. Deep-link fallback is done by a small
+So **[PROPOSAL]** (spine [S1](00-spine.md#s1-system-shape)): no `custom_error_response` on either distribution. Deep-link fallback is done by a small
 **CloudFront Function attached to the default behaviour only** (viewer request): a URI with no file extension, not under
 `/api/`, is rewritten to `/index.html`. Missing hashed assets then still return a real 403/404, which is what you want.
 `/api/*` responses reach the browser exactly as API Gateway or Lambda produced them, including the gateway's own
@@ -539,7 +539,7 @@ screen, the clock or the network, which is what makes it repeatable and unit-tes
 
 ### E.5.1 Workspace layout (all to create)
 
-**[PROPOSAL]** spine S10. The extra `web/shared` contents (audio playback module, API client) are a proposal from this section.
+**[PROPOSAL]** spine [S10](00-spine.md#s10-react--phaser-split-proposal). The extra `web/shared` contents (audio playback module, API client) are a proposal from this section.
 
 | Package | Contains | Must not import |
 |---|---|---|
@@ -572,12 +572,12 @@ player site. `web/` and `contracts/` are owned here.
 | Run rules (which op is legal now, next phase) | asks | | ✔ reducer |
 | Sync status, op queue, IndexedDB | ✔ (sync engine) | | creates ops via reducer |
 
-**[PROPOSAL]** spine S10. Nothing per-frame crosses into React, and nothing during combat is sent to the API (`prompt.md:824`,
+**[PROPOSAL]** spine [S10](00-spine.md#s10-react--phaser-split-proposal). Nothing per-frame crosses into React, and nothing during combat is sent to the API (`prompt.md:824`,
 spine S3.2 "Nothing is persisted during combat").
 
 ### E.5.3 The bridge
 
-`GameBridge` is a small typed command/event interface **[PROPOSAL]** spine S10. Commands go React → game; events are
+`GameBridge` is a small typed command/event interface **[PROPOSAL]** spine [S10](00-spine.md#s10-react--phaser-split-proposal). Commands go React → game; events are
 past-tense facts going game → React.
 
 | Commands | Events |
@@ -603,7 +603,7 @@ and dedicated speech" (`prompt.md:809`) **[CONFIRMED]**. The split follows data 
 |---|---|---|
 | `player-api` | Owns every write to player records; a run op's transaction (session fence + run + slot + summary + profile) must be decided in one place | Splitting profile/runs/session would duplicate the fence and ownership logic and need cross-function calls |
 | `admin-api` | Only writer of `content`; its role never touches `game`, so a bug in admin code cannot reach children's saves | Content lifecycle is one cohesive domain |
-| `tts` | Spec-mandated dedicated speech microservice; the only role with `polly:SynthesizeSpeech` and `s3:PutObject` on clips; never writes DynamoDB | Player Play and operator preview share the clip-key module and the render path; separate roles would be possible later (same package, two functions) |
+| `tts` | Spec-mandated dedicated speech microservice; the only role with `polly:SynthesizeSpeech` and `s3:PutObject` on clips; never writes DynamoDB and never reads `content` | Player Play and operator preview share the clip-key module and the render path; separate roles would be possible later (same package, two functions) |
 | `cognito-presignup` | Cognito triggers are invoked by Cognito, not by the API; it needs one conditional write and nothing else | — |
 
 ### E.6.2 Why no Lambda calls another
@@ -611,21 +611,22 @@ and dedicated speech" (`prompt.md:809`) **[CONFIRMED]**. The split follows data 
 | Reason | Detail |
 |---|---|
 | Spec | No forwarding Lambda that merely calls another Lambda (`prompt.md:585`) **[CONFIRMED]** |
-| Latency and timeouts | HTTP API integrations stop at 30 s (**[VERIFIED]** research 06 §10.2); a chained call stacks cold starts and timeouts inside that budget. Every API-facing function's timeout therefore sits below 30 s: `player-api` 25 s, `admin-api` and `tts` 15 s ([H §H.4.4](H-infrastructure-and-delivery.md#h44-lambda_function-called-four-times)), which also satisfies spine S8.2's "< 60 s" for the reset lease |
+| Latency and timeouts | HTTP API integrations stop at 30 s (**[VERIFIED]** [sources/06-polly-tts.md](sources/06-polly-tts.md) §10.2); a chained call stacks cold starts and timeouts inside that budget. Every API-facing function's timeout therefore sits below 30 s: `player-api` 25 s (spine [S1](00-spine.md#s1-system-shape), superseding the earlier "< 60 s"), `admin-api` and `tts` 15 s ([H §H.4.4](H-infrastructure-and-delivery.md#h44-lambda_function-called-four-times)). The 60 s WHOLE_PROFILE reset lease (spine [S8.2](00-spine.md#s82-resets-post-apimeresets-type-confirm-confirm-must-equal-type-idempotent-200-only-when-finished)) outlasts the 25 s timeout |
 | IAM clarity | Each role describes everything its function can do; `lambda:InvokeFunction` on another function would quietly extend it |
 | Failure modes | One request = one function = one log stream and one error code; no partial failure between two functions |
 | Sharing | Shared logic (clip key, generators, reducer, group check, limits, logging allow-list) is the Python package `api/shared/` (to create), bundled into each of the four zips at build time ([H §H.2](H-infrastructure-and-delivery.md#h2-repository-layout-after-this-plan)), not a network call |
 
 So `admin-api` never asks `tts` to synthesise, and `tts` never asks `player-api` about ownership: it reads the slot item
-itself (`GetItem` only). **[PROPOSAL]** spine S1.
+itself (`GetItem` only). **[PROPOSAL]** spine [S1](00-spine.md#s1-system-shape).
 
 ### E.6.3 Route → function → authoriser
 
-Full contracts are in [G](G-api-contracts.md). Summary **[PROPOSAL]** spine S9. The scope names are the resource-server
-scopes `game/play` (player pool) and `ops/content` (operator pool), set by the Terraform variables `player_route_scope` and
-`operator_route_scope` ([H §H.3.2](H-infrastructure-and-delivery.md#h32-variablestf)) and used the same way in
-[G §1.1](G-api-contracts.md#11-transport-base-path-and-authentication) **[PROPOSAL]** (names from research 05; the spine says
-only "every route requires a scope").
+Full contracts are in [G](G-api-contracts.md). Summary **[PROPOSAL]** spine
+[S9](00-spine.md#s9-api-surface-proposal-all-routes-under-api-json-authorization-bearer-access-token). The scope names are the
+resource-server scopes `game/play` (player pool) and `ops/content` (operator pool), set by the Terraform variables
+`player_route_scope` and `operator_route_scope` ([H §H.3.2](H-infrastructure-and-delivery.md#h32-variablestf)), recorded in
+spine [S1](00-spine.md#s1-system-shape) and used the same way in
+[G §1.1](G-api-contracts.md#11-transport-base-path-and-authentication) **[PROPOSAL]**.
 
 | Routes | Function | Authoriser | Scope required **[PROPOSAL]** | Extra checks in code |
 |---|---|---|---|---|
@@ -647,24 +648,28 @@ Shared handler rules **[PROPOSAL]** spine S2, S9.5:
   duration; the exact field names and the admin audit fields are in [G §15](G-api-contracts.md#15-logging-allow-list)). Never
   raw events, bodies, `Authorization`, presigned URLs, answers, nicknames or DOB.
 - Throttles: stage 20 rps / burst 40; `POST /api/runs` 1/5; `POST /api/speech` 20/40; admin speech 2/5 **[ASSUMPTION]** numbers.
-  HTTP API throttles are shared by all callers and best-effort, not per user (research 06 §10.2).
+  HTTP API throttles are shared by all callers and best-effort, not per user ([sources/06-polly-tts.md](sources/06-polly-tts.md) §10.2).
+- Access logs carry the same allow-listed fields plus the diagnostic fields `integrationLatency`, `integrationError` and
+  `authorizerError`, which hold no player data (spine S1).
+- The set of route keys in the Terraform plan must equal `contracts/routes.json`; a CI gate beside G-7 checks it, so a route
+  cannot exist without an authoriser and a contract ([H](H-infrastructure-and-delivery.md), [I](I-validation.md)).
 
 ### E.6.4 Per-function IAM
 
-One role per function, named `…-<component>-role` **[PROPOSAL]** spine S1, S1.1. Every role also gets write access to its own
-log group only.
+One role per function, named `…-<component>-role` **[PROPOSAL]** spine [S1](00-spine.md#s1-system-shape), S1.1. Every role
+also gets write access to its own log group only.
 
 | Function | DynamoDB | S3 | Other | Never |
 |---|---|---|---|---|
 | `player-api` | `game`: GetItem, Query, PutItem, UpdateItem, DeleteItem, ConditionCheckItem, BatchWriteItem with `dynamodb:LeadingKeys` limited to `U#*`; `content`: GetItem, Query, BatchGetItem | player site bucket: GetObject on `game-data/*` (bounds files; H §H.4.4) | — | `SYS#*` keys, `content` writes, Polly, audio bucket, any Cognito API |
-| `admin-api` | `content`: GetItem, Query, BatchGetItem, PutItem, UpdateItem, ConditionCheckItem | audio bucket: GetObject on `tts/v1/*` + ListBucket with `s3:prefix` `tts/v1/*` (so a missing key is 404, not 403) | — | `game` (any action), Polly, PutObject, DeleteObject, Cognito |
-| `tts` | `game`: GetItem only; `content`: GetItem, Query, BatchGetItem | audio bucket: GetObject, PutObject on the clip prefix `tts/v1/*` (H §H.4.6) | `polly:SynthesizeSpeech` on `*`, with `aws:RequestedRegion = eu-west-2` | any DynamoDB write, DeleteObject, other buckets, Cognito |
+| `admin-api` | `content`: GetItem, Query, BatchGetItem, PutItem, UpdateItem, ConditionCheckItem | audio bucket: GetObject on `tts/v1/*` + ListBucket with `s3:prefix` `tts/v1/*` (so a missing key is 404, not 403) | env `tts_voice_id`, `tts_engine`, `tts_phoneme_engine` (to recompute the key) | `game` (any action), Polly, PutObject, DeleteObject, Cognito |
+| `tts` | `game`: GetItem only; **no `content` access** | audio bucket: GetObject, PutObject on the clip prefix `tts/v1/*` (H §H.4.6) + ListBucket with `s3:prefix` `tts/v1/*` | `polly:SynthesizeSpeech` on `*`, with `aws:RequestedRegion = eu-west-2`; env `tts_voice_id`, `tts_engine`, `tts_phoneme_engine` | any DynamoDB write, `content`, DeleteObject, other buckets, Cognito |
 | `cognito-presignup` | `game`: UpdateItem with `dynamodb:LeadingKeys = SYS#SIGNUPS` | — | — | everything else, including all Cognito permissions |
 
 Notes:
 - The exact action list per function is **[PROPOSAL]**; the "Data access" column of spine S1 is the authority.
-- `tts` keeps the spine's `content` read permission, although neither of its paths needs it today: the player path reads
-  only the slot (E.4.2) and preview reads nothing. It could be dropped (see open points).
+- `tts` has no `content` permission: the player path resolves the clip from the slot's pinned clips map (E.4.2) and preview
+  reads nothing from DynamoDB (spine S1, SEC-02).
 - Reserved concurrency is not set at first; a new account's Lambda concurrency quota may be too low to reserve any, so H
   checks Service Quotas in Milestone 0 ([H §H.4.4](H-infrastructure-and-delivery.md#h44-lambda_function-called-four-times))
   **[PROPOSAL]**. Polly cost is capped instead by preview being the only Polly path and its 2/5 route throttle.
@@ -672,14 +677,16 @@ Notes:
   `TransactWriteItems` IAM action, so it is not listed (**[VERIFIED]** DynamoDB developer guide, "Using IAM with DynamoDB
   transactions"). The policy can optionally be tightened further with the `dynamodb:EnclosingOperation` condition key.
   The first transaction against the real table still proves the policy (moto does not enforce IAM).
-- **Required spine S1 amendment for `tts`:** add `s3:ListBucket` on the audio bucket ARN with `Condition StringLike
-  s3:prefix = "tts/v1/*"`, the same as `admin-api`. Without it, HeadObject on a missing key returns 403, not 404
-  (**[VERIFIED]** S3 API reference, HeadObject, Permissions), so E.4.2 and E.4.3 cannot distinguish "missing" from
-  "forbidden". The table above keeps the spine's list until the spine changes; E.4.2 and E.4.3 state the interim rule.
+- `s3:ListBucket` on the audio bucket ARN with `Condition StringLike s3:prefix = "tts/v1/*"` is granted to both `tts` and
+  `admin-api`. Without it, HeadObject on a missing key returns 403, not 404 (**[VERIFIED]** S3 API reference, HeadObject,
+  Permissions), and "missing" could not be told apart from "forbidden".
 - No role has `cognito-idp:AdminAddUserToGroup`, `AdminCreateUser`, `AdminSetUserPassword` or `UpdateUserPool*`; operator
-  creation and password resets are owner runbook steps with the owner's own credentials (research 05 §4.4) **[PROPOSAL]**.
-- The CI role (`space-tower-defence-prod-github-oidc`, AdministratorAccess) is a deploy-time identity, not a runtime one;
-  its trust narrowing is in [A](A-repository-findings.md) and [H](H-infrastructure-and-delivery.md).
+  creation and password resets are owner runbook steps with the owner's own credentials
+  ([sources/05-cognito-auth.md](sources/05-cognito-auth.md) §4.4) **[PROPOSAL]**.
+- The CI role (`space-tower-defence-prod-github-oidc`, AdministratorAccess) is a deploy-time identity, not a runtime one, and
+  the only identity that applies the main stack **[CONFIRMED by owner]**. Its trust narrowing (`trusted_subs`, the GitHub
+  environment design settled by the M0 OIDC smoke test) is in [A](A-repository-findings.md) and
+  [H](H-infrastructure-and-delivery.md).
 
 ---
 
@@ -691,18 +698,18 @@ Notes:
 |---|---|---|
 | Pools | Two: players (self sign-up) and operators (AdminCreateUser only, TOTP MFA required, group `admin`) | **[PROPOSAL]** D-10; runner-up one pool + `admin` group |
 | Sign-in flow | Cognito managed login, authorisation code + PKCE, public clients with no secret | **[CONFIRMED]** `prompt.md:777` |
-| Tier | Essentials (managed login needs it; first 10,000 MAU free) | **[VERIFIED]** research 05 §2.1 (price to re-check) |
-| Player identifier | Username + password only; `case_sensitive = false`; no e-mail/phone; auto-confirm by pre sign-up within a daily cap | **[PROPOSAL]** spine S1, S1.2 |
+| Tier | Essentials (managed login needs it; first 10,000 MAU free) | **[VERIFIED]** [sources/05-cognito-auth.md](sources/05-cognito-auth.md) §2.1 (price to re-check) |
+| Player identifier | Username + password only; `case_sensitive = false`; no e-mail/phone; auto-confirm by pre sign-up within a daily cap | **[PROPOSAL]** spine [S1](00-spine.md#s1-system-shape), [S1.2](00-spine.md#s12-sign-up-control-proposal-numbers-assumption) |
 | Sign-up control | `cognito-presignup` counts `PreSignUp_SignUp` events in `game` `SYS#SIGNUPS`/`<yyyy-mm-dd UTC>` against the Terraform variable `signup_daily_cap` (default 20); at the cap, or on a write failure, it raises a child-safe error (fails closed, never leaves an UNCONFIRMED user). Kill switch: the variable `player_signup_closed` drives `allow_admin_create_user_only`, changed only through a normal release ([H §H.3.2](H-infrastructure-and-delivery.md#h32-variablestf)) | **[PROPOSAL]** spine S1.2; cap value **[ASSUMPTION]** |
-| Password recovery | Owner runs `AdminSetUserPassword` (permanent) — no self-service, account recovery `admin_only` | **[CONFIRMED]** admin-managed `prompt.md:225`; **[VERIFIED]** `ForgotPassword` needs a verified contact (research 05 §0.2) |
+| Password recovery | Owner runs `AdminSetUserPassword` (permanent) — no self-service, account recovery `admin_only` | **[CONFIRMED]** admin-managed `prompt.md:225`; **[VERIFIED]** `ForgotPassword` needs a verified contact ([sources/05](sources/05-cognito-auth.md) §0.2) |
 | Token sent to the API | Access token only | **[CONFIRMED]** "intended access tokens" `prompt.md:777` |
-| Profile data | Never a Cognito attribute (attributes leak into ID tokens); identity = access-token `sub` | **[PROPOSAL]**; leak **[VERIFIED]** research 05 §3.1 |
-| Browser library | `aws-amplify` v6, `aws-amplify/auth` only, configured by hand from `config.json` | **[PROPOSAL]** research 05 §8 |
-| Token lifetimes | access/ID 60 min; refresh 90 days (player), 1 day (operator); revocation on; rotation off for players, on for operators | **[PROPOSAL]** research 05 §3.5 |
+| Profile data | Never a Cognito attribute (attributes leak into ID tokens); identity = access-token `sub` | **[PROPOSAL]**; leak **[VERIFIED]** [sources/05](sources/05-cognito-auth.md) §3.1 |
+| Browser library | `aws-amplify` v6, `aws-amplify/auth` only, configured by hand from `config.json` | **[PROPOSAL]** [sources/05](sources/05-cognito-auth.md) §8 |
+| Token lifetimes | access/ID 60 min; refresh 90 days (player), 1 day (operator); revocation on; rotation off for players, on for operators | **[PROPOSAL]** [sources/05](sources/05-cognito-auth.md) §3.5 |
 
 Why two pools: a player's token comes from a different issuer, so the operator authoriser rejects it at the gateway even if
 a handler forgot its group check; operator MFA comes from managed login with no app code; and the two login domains do not
-share the one-hour login cookie (research 05 §4.3).
+share the one-hour login cookie ([sources/05](sources/05-cognito-auth.md) §4.3).
 
 ### E.7.2 Sign-in sequence
 
@@ -729,7 +736,7 @@ Reading the diagram: the password is only ever typed on Cognito's page; the app 
 with the PKCE verifier, for tokens. `prompt=login` forces the password prompt even if a previous child's one-hour Cognito
 cookie is still in the browser. The callback is a fresh page load, which is when the page binds to one account.
 
-Verified protocol facts this relies on (research 05 §2.3, **[VERIFIED]**): only `S256` is accepted as challenge method; the
+Verified protocol facts this relies on ([sources/05](sources/05-cognito-auth.md) §2.3, **[VERIFIED]**): only `S256` is accepted as challenge method; the
 authorisation code lives five minutes; the token endpoint is CORS-enabled for browser SPAs; a public client sends
 `client_id` in the body with no secret; `prompt=login` is supported by managed login; `/logout` clears the Cognito session
 cookie but revokes no tokens. Cognito does not document a setting that makes PKCE mandatory, so "Cognito enforces PKCE" must
@@ -739,16 +746,16 @@ not be claimed — the library always sends it.
 
 | Check | Where | Why there |
 |---|---|---|
-| Signature, `iss` = the pool, `exp`/`nbf`/`iat` | JWT authoriser | Standard JWT validation **[VERIFIED]** research 05 §3.2 |
-| Audience: authoriser `audience` = app client ID, matched against `client_id` (access tokens have no `aud`) | JWT authoriser | **[VERIFIED]** research 05 §0.4, §3.2 |
-| Route scope (`game/play` or `ops/content`) | JWT authoriser | Rejects ID tokens and tokens from SDK sign-in (which carry only `aws.cognito.signin.user.admin`) **[VERIFIED]** research 05 §3.3 |
-| `token_use == "access"` | Every handler | An ID token has the same issuer and audience (`aud` = client ID), so only the route scope stops it at the gateway (ID tokens carry no `scope`). The handler check keeps that safe if a route ever loses its scope **[VERIFIED]** AWS advice, research 05 §3.2; check placement **[PROPOSAL]** |
-| `cognito:groups` contains exactly `admin` | `admin-api`, `tts` preview | Scopes are per app client, never per user; only group membership proves operator status **[VERIFIED]** research 05 §0.6 |
+| Signature, `iss` = the pool, `exp`/`nbf`/`iat` | JWT authoriser | Standard JWT validation **[VERIFIED]** [sources/05](sources/05-cognito-auth.md) §3.2 |
+| Audience: authoriser `audience` = app client ID, matched against `client_id` (access tokens have no `aud`) | JWT authoriser | **[VERIFIED]** [sources/05](sources/05-cognito-auth.md) §0.4, §3.2 |
+| Route scope (`game/play` or `ops/content`) | JWT authoriser | Rejects ID tokens and tokens from SDK sign-in (which carry only `aws.cognito.signin.user.admin`) **[VERIFIED]** [sources/05](sources/05-cognito-auth.md) §3.3 |
+| `token_use == "access"` | Every handler | An ID token has the same issuer and audience (`aud` = client ID), so only the route scope stops it at the gateway (ID tokens carry no `scope`). The handler check keeps that safe if a route ever loses its scope **[VERIFIED]** AWS advice, [sources/05](sources/05-cognito-auth.md) §3.2; check placement **[PROPOSAL]** |
+| `cognito:groups` contains exactly `admin` | `admin-api`, `tts` preview | Scopes are per app client, never per user; only group membership proves operator status **[VERIFIED]** [sources/05](sources/05-cognito-auth.md) §0.6 |
 | Ownership (`U#<sub>` key) | `player-api`, `tts` | A supplied run ID is not permission (`prompt.md:765`) **[CONFIRMED]** |
 
 `cognito:groups` serialisation in the payload 2.0 event is **[UNVERIFIED]** (AWS examples show only string claims; community
 reports describe a bracketed string). The group helper parses either a list or a string, compares whole names exactly and
-never substring-matches. The Milestone 0 auth spike captures a real event and keeps it as a test fixture (research 05 §12).
+never substring-matches. The Milestone 0 auth spike captures a real event and keeps it as a test fixture ([sources/05](sources/05-cognito-auth.md) §12).
 The status code for a missing scope (401 or 403) is also **[UNVERIFIED]**; the client treats it like a gateway 401
 (refresh once, then `AUTH_REQUIRED`; [G §1.3](G-api-contracts.md#13-responses-the-gateway-or-cloudfront-generate-no-envelope))
 and the spike records which one occurs.
@@ -756,7 +763,7 @@ and the spike records which one occurs.
 ### E.7.4 Sign-out, shared-laptop switching and "one page load = one account"
 
 The laptop is shared by siblings; one child's progress, queue, credentials or profile must never appear to another
-(`prompt.md:227`, AC-05) **[CONFIRMED]**. Mechanisms **[PROPOSAL]** spine S7.2, S7.3:
+(`prompt.md:227`, AC-05) **[CONFIRMED]**. Mechanisms **[PROPOSAL]** spine [S7.2](00-spine.md#s72-client-sync-engine), [S7.3](00-spine.md#s73-local-database-scd-sub-indexeddb-schema-versioned):
 
 1. **One page load = one account.** At start-up the page binds `ownerSub` from the access token and opens only the
    IndexedDB database `scd-<ownerSub>`. Another child's data lives in a database this page never opens, so a forgotten
@@ -768,20 +775,21 @@ The laptop is shared by siblings; one child's progress, queue, credentials or pr
 3. **Sign-out.** Warn if ops are pending (**[CONFIRMED]** warning, `prompt.md:227`) → flush if possible → `DELETE /api/session` → Amplify
    `signOut()`, which navigates to Cognito `/logout?client_id=…&logout_uri=…` → Cognito returns to `/` → fresh page load.
    Going through `/logout` matters: without it, the one-hour managed-login cookie lets the next child press Sign in and become
-   the previous child without a password (research 05 §7.6). `prompt=login` on every sign-in is the second guard.
+   the previous child without a password ([sources/05](sources/05-cognito-auth.md) §7.6). `prompt=login` on every sign-in is the second guard.
 4. **Sign-out never deletes `scd-<sub>`.** Pending progress stays for that child's next sign-in. Only a successful
    WHOLE_PROFILE reset deletes it.
 5. **One playing tab.** An origin-wide Web Lock `scd-play` is acquired before any network call; a second tab shows "already
-   open in another tab" (spine S3.4).
+   open in another tab" (spine [S3.4](00-spine.md#s34-play-session-account-wide-lease-with-fencing-token)).
 
-Redirect sign-in and sign-out unload the page (research 05 §7.4). Consequences **[PROPOSAL]**:
+Redirect sign-in and sign-out unload the page ([sources/05](sources/05-cognito-auth.md) §7.4). Consequences **[PROPOSAL]**:
 - Re-authentication is never started automatically during combat. On `AUTH_REQUIRED` the sync status shows "Sign in again to
   finish saving"; the redirect starts only from BUILD, an activity, or when the child chooses. A wave interrupted that way
   restarts from its wave-start snapshot, the same rule as Save and exit.
 - Every op is in IndexedDB before it matters (durability rule, spine S4), so the reload loses nothing durable.
 - The OAuth `state` carries only a short "where to return" hint, never game data.
 - Offline, sign-out is shown disabled with the reason "Connect to the internet to sign out", because the `/logout` redirect
-  and the reload both need the network and no offline cold start is promised (`prompt.md:719`).
+  and the reload both need the network and no offline cold start is promised (`prompt.md:719`). Sign-out is on the
+  connection-required list in spine [S7.4](00-spine.md#s74-offline-rules) and in D's copy.
 
 Expired authentication offline is harmless on its own: play continues and ops queue. On reconnect the library refreshes; if
 the refresh token has expired, the child signs in again, and the queue is uploaded only if the new `sub` equals the queue's
@@ -790,10 +798,10 @@ owner (`prompt.md:723`, AC-33) — guaranteed by point 1, since a different chil
 ### E.7.5 Main risk: managed-login sign-up
 
 Managed login's sign-up page for a username-only pool that auto-confirms through a pre sign-up trigger is undocumented
-**[UNVERIFIED]** (research 05 §2.2). The managed-login text is fixed adult English (**[VERIFIED]** research 05 §2.2) and may not
+**[UNVERIFIED]** ([sources/05](sources/05-cognito-auth.md) §2.2). The managed-login text is fixed adult English (**[VERIFIED]** [sources/05](sources/05-cognito-auth.md) §2.2) and may not
 suit five-year-olds. Both are settled by the Milestone 0 auth spike: a throwaway pool, sign-up with username + password only,
 token decoding, a captured authoriser event, scope/ID-token/other-pool negative calls, refresh with scopes, and sign-out/sign-in
-switching with and without `/logout` and `prompt=login` (full list in research 05 §12; task in [J](J-execution-backlog.md)).
+switching with and without `/logout` and `prompt=login` (full list in [sources/05](sources/05-cognito-auth.md) §12; task in [J](J-execution-backlog.md)).
 
 Fallbacks, in order:
 1. Keep managed login for sign-in; add an in-app sign-up form calling the public `SignUp` API, then start managed login with
@@ -809,7 +817,7 @@ Fallbacks, in order:
 Accepted offline scope: continue a previously authenticated, prepared finite campaign through a connection loss and sync
 later; no offline cold start (`prompt.md:697`, `prompt.md:719`) **[CONFIRMED]**. The pack is prepared while online and
 holds audio bytes, not URLs (`prompt.md:699`) **[CONFIRMED]**. There is no service worker, and everything the run needs is
-downloaded and loaded into the page in this page session **[PROPOSAL]** spine S3.6.
+downloaded and loaded into the page in this page session **[PROPOSAL]** spine [S3.6](00-spine.md#s36-offline-readiness-per-run-client-only).
 
 ### E.8.1 What "ready offline" means
 
@@ -817,7 +825,7 @@ downloaded and loaded into the page in this page session **[PROPOSAL]** spine S3
 |---|---|---|
 | Pack manifest (`GET /api/runs/{runId}/pack`) incl. `protocolVersion`, `packHash` and `packStatus` ([G R10](G-api-contracts.md#r10-get-apirunsrunidpack-content-pack--offline-readiness-manifest)) | IndexedDB `packs` | **[PROPOSAL]** |
 | Every planned slot definition, with local answer-checking data | IndexedDB `packs` | **[PROPOSAL]** |
-| Every clip's bytes, keyed by `clipKey` | IndexedDB `audio` | **[CONFIRMED]** bytes not URLs `prompt.md:699` |
+| Every clip's bytes, keyed by `clipKey`, stored once per key and `sha256`-verified | IndexedDB `audio` | **[CONFIRMED]** bytes not URLs `prompt.md:699`; once per key **[CONFIRMED by owner]** |
 | Pinned ruleset and campaign JSON | IndexedDB `packs` | **[PROPOSAL]** |
 | Every Phaser asset, activity image and code chunk for the run | **in memory** for this page session | **[CONFIRMED]** no offline cold start |
 
@@ -831,7 +839,7 @@ changes (a new `packHash`). Endless shows "Ready offline up to wave N". Online p
 flowchart LR
   A["GET pack manifest"] --> B["store manifest + slot defs<br/>(one IDB transaction)"]
   B --> C["fetch pinned game-data JSON<br/>store"]
-  C --> D["clip workers x3:<br/>POST /api/speech, GET S3,<br/>check, store bytes"]
+  C --> D["clip workers x3:<br/>POST /api/speech, GET S3,<br/>verify sha256, store bytes"]
   D --> E["load Phaser assets,<br/>activity images, code chunks"]
   E --> F{"all present?"}
   F -->|"yes"| G["READY_OFFLINE"]
@@ -842,22 +850,24 @@ Reading the diagram: data that must survive a reload (manifest, definitions, gam
 things that only need to survive a connection drop (assets, chunks) are loaded into memory. Only when both are complete is
 the run declared ready.
 
-Rules **[PROPOSAL]** (research 06 §11.2, research 07 §d.7):
+Rules **[PROPOSAL]** ([sources/06-polly-tts.md](sources/06-polly-tts.md) §11.2):
 - Clip work: three parallel pipelines, each "request URL → download immediately → check → store". On 429/503 back off with
   jitter and halve the concurrency for the rest of the pack. Skip clips whose `clipKey` is already stored. Resumable.
 - Interactive Play presses jump ahead of background pack work.
 - Order clips so the first waves' clips arrive first; the child can start playing while the rest downloads.
-- Never `await fetch()` inside an IndexedDB transaction: download first, then write (research 07 §d.2).
+- Never `await fetch()` inside an IndexedDB transaction: download first, then write. An IndexedDB transaction commits as soon
+  as the browser sees no pending request on it, so awaiting a network call inside one ends it early.
 - Code chunks: one "game" chunk, and every dynamic import the run can need is awaited during preparation.
 - Lazy loading by planet and mode (`prompt.md:1040`) **[PROPOSAL]**: Phaser and the battlefield scene are a dynamic-import
   "game" chunk, and each planet's atlas comes from that planet's asset manifest (`assetManifestVersion`, spine S5.1). Both
   are loaded only at P7 / Continue for the chosen run, so sign-in, Home, profile and the galaxy map never load Phaser. The
-  admin app is a separate build (`web/admin`, E.5.1) and ships no Phaser at all. "Initial load without the game chunk" is a
-  measurement to add to C14 and the AC-42 list in I (see open points).
+  admin app is a separate build (`web/admin`, E.5.1) and ships no Phaser at all. "Initial load without the game chunk" is
+  measured with the first prototype performance measurement in M2 (the same run that sets the AC-42 target), and the result
+  is recorded under `docs/validation/performance/` (to create); C14 and [I](I-validation.md) own the measurement list.
 - Call `navigator.storage.persist()` once after the first successful preparation; quota or open errors switch to online-only
   mode with the `LOCAL_STORAGE_UNAVAILABLE` banner (spine S3.5, S7.3).
-- Connection-required actions (shown disabled with the reason offline): sign-in/sign-up, profile setup, new run, choose
-  endless, resets, pack preparation, first fetch of a clip (spine S7.4).
+- Connection-required actions (shown disabled with the reason offline): sign-in/sign-up, sign-out, profile setup, new run,
+  choose endless, resets, pack preparation, first fetch of a clip (spine S7.4).
 
 ---
 
@@ -865,26 +875,31 @@ Rules **[PROPOSAL]** (research 06 §11.2, research 07 §d.7):
 
 | Aspect | Decision | Label |
 |---|---|---|
-| Local store | IndexedDB `audio` store inside `scd-<sub>`, keyed by `clipKey`: `{clipKey, contentType, byteLength, bytes}` | **[PROPOSAL]** spine S7.3 |
-| URL lifetime | Presigned GET, `ExpiresIn = 300` s; effective lifetime is the shorter of that and the signing credentials' remaining life | **[VERIFIED]** credential bound (research 06 §6.1); 300 s **[PROPOSAL]** |
+| Local store | IndexedDB `audio` store inside `scd-<sub>`, keyed by `clipKey`: `{clipKey, sha256, contentType, byteLength, bytes}`; one entry per clip however many activities use it | **[PROPOSAL]** spine [S7.3](00-spine.md#s73-local-database-scd-sub-indexeddb-schema-versioned); once per key **[CONFIRMED by owner]** |
+| Play rule | Pinned `clipKey` stored → play at once from local bytes and send `POST /api/speech` concurrently; not stored → wait, download, verify, store, play; response `clipKey` differs → log it, store the server's clip, use it from the next Play; offline → local bytes only (E.4.2, E.4.4) | **[CONFIRMED by owner]** |
+| Download integrity | Before storing, check length, `Content-Type` and the `sha256` from the response; a mismatch is a failed download (Retry), never stored | **[PROPOSAL]** |
+| URL lifetime | Presigned GET, `ExpiresIn = 300` s; effective lifetime is the shorter of that and the signing credentials' remaining life | **[VERIFIED]** credential bound ([sources/06-polly-tts.md](sources/06-polly-tts.md) §6.1); 300 s **[PROPOSAL]** |
 | URL handling | Used once, immediately; never stored, never logged, never put in React state or error messages | **[CONFIRMED]** `prompt.md:583`, `prompt.md:623` |
 | S3 403 on download | Re-request the URL once, then Retry | **[PROPOSAL]** |
 | Download call | `fetch(url, { cache: "no-store" })`, no custom headers (a simple CORS request) | **[PROPOSAL]** |
-| Bucket CORS | One rule: `AllowedOrigins` = `https://aliens.jackgl.com`, `https://admin.aliens.jackgl.com`; methods GET, HEAD; no allowed headers | **[CONFIRMED]** need `prompt.md:621`; rule **[PROPOSAL]** research 06 §6.4 |
-| Signing | SigV4, regional virtual-hosted endpoint `*.s3.eu-west-2.amazonaws.com` (a unit test asserts the host) | **[PROPOSAL]** research 06 §6.3 |
+| Bucket CORS | One rule: `AllowedOrigins` = `https://aliens.jackgl.com`, `https://admin.aliens.jackgl.com`; methods GET, HEAD; no allowed headers | **[CONFIRMED]** need `prompt.md:621`; rule **[PROPOSAL]** [sources/06](sources/06-polly-tts.md) §6.4 |
+| Signing | SigV4, regional virtual-hosted endpoint `*.s3.eu-west-2.amazonaws.com` (a unit test asserts the host) | **[PROPOSAL]** [sources/06](sources/06-polly-tts.md) §6.3 |
 | Object metadata | `Content-Type: audio/mpeg`, `Cache-Control: private, no-store`, SSE-S3, never overwritten (`If-None-Match: *`), no lifecycle expiry on the clip prefix | **[PROPOSAL]** |
-| Playback | **One shared `HTMLAudioElement`** per page, fed from a Blob object URL; Web Audio is the fallback if the spike shows Safari rejecting `play()` after an await | **[PROPOSAL]** research 06 §7.1 |
+| Playback | **One shared `HTMLAudioElement`** per page, fed from a Blob object URL; Web Audio is the fallback if the spike shows Safari rejecting `play()` after an await | **[PROPOSAL]** [sources/06](sources/06-polly-tts.md) §7.1 |
 
 Why CORS is needed even though the API needs none: an `<audio src>` can play a cross-origin URL without CORS, but script
-cannot read the bytes, and the bytes must be kept (research 06 §6.4).
+cannot read the bytes, and the bytes must be kept ([sources/06](sources/06-polly-tts.md) §6.4).
 
-Playback module rules **[PROPOSAL]** (research 06 §7.2–7.5; lives in `web/shared` so the admin preview uses it too):
+Playback module rules **[PROPOSAL]** ([sources/06](sources/06-polly-tts.md) §7.2–7.5; lives in `web/shared` so the admin preview uses it too):
 - In the click/keydown handler, prime the shared element **synchronously** before the first `await`; this keeps the gesture
   for Safari (whether Safari honours `play()` after an awaited fetch is **[UNVERIFIED]**; Milestone 0 tests it).
 - One element means a new clip ends the old one (`prompt.md:619`); a monotonically increasing play token drops a slow
   earlier load; an `AbortController` cancels in-flight requests on Stop, on leaving the activity, and on sign-out.
 - Revoke each object URL on `ended`, `error`, Stop and replacement; revoke all on sign-out.
 - Button states Play → Loading → Stop/Replay, and Retry (`prompt.md:587`); Loading ignores re-presses (that is the debounce).
+  When the clip is stored locally, Play goes straight to Stop/Replay; the concurrent `POST /api/speech` (debounced, so rapid
+  replays do not multiply calls) runs in the background, and its failure never stops a clip that is already playing — it is
+  logged, and Retry appears only when there was nothing local to play.
 - If `play()` rejects with `NotAllowedError`, the bytes are already held: show Play again; the second press plays at once.
 - Never auto-play on page load, activity display or tab return. Stop audio when the page is hidden.
 
@@ -898,7 +913,7 @@ permanent progress. It is not proof that every reported battle happened, and loc
 
 ### E.10.1 What the server guarantees regardless of the client
 
-The guarantees follow from the trust model **[CONFIRMED]** `prompt.md:751-753`; every mechanism below is **[PROPOSAL]** (spine S2, S3, S6, S7).
+The guarantees follow from the trust model **[CONFIRMED]** `prompt.md:751-753`; every mechanism below is **[PROPOSAL]** (spine [S2](00-spine.md#s2-trust-model-confirmed-family-level-trust-mechanisms-proposal), S3, S6, S7).
 
 | Guarantee | Mechanism | Owner section |
 |---|---|---|
@@ -914,7 +929,7 @@ The guarantees follow from the trust model **[CONFIRMED]** `prompt.md:751-753`; 
 
 ### E.10.2 Accepted tampering gains
 
-Stated so nobody mistakes the bounds for anti-cheat **[PROPOSAL]** spine S2: a modified client **can**, within its own account
+Stated so nobody mistakes the bounds for anti-cheat **[PROPOSAL]** spine [S2](00-spine.md#s2-trust-model-confirmed-family-level-trust-mechanisms-proposal): a modified client **can**, within its own account
 only, report the maximum bounty and full colony health every wave, answer activities from the pack data, and drop wrong
 attempts before they sync. There is no leaderboard, so nobody else is affected. It **cannot** touch another account, skip a
 phase, receive a reward twice, record a fourth attempt, or exceed the per-wave income ceilings. No server-side combat
@@ -924,7 +939,7 @@ simulation or anti-cheat is added (`prompt.md:759`) **[CONFIRMED]**.
 
 | Measure | Why | Label |
 |---|---|---|
-| Content-Security-Policy via a CloudFront response headers policy: `script-src 'self'`; `connect-src 'self'` + the pool's Cognito domain + the audio bucket host; no third-party scripts. Shipped as `Content-Security-Policy-Report-Only` first and enforced after M1; the admin variant also allows the audio host for previews | Tokens sit in `localStorage`, readable by any script on the page | **[PROPOSAL]** research 05 §8; Terraform in the `static_site` module ([H §H.4.2](H-infrastructure-and-delivery.md#h42-static_site-called-twice)) |
+| Content-Security-Policy via a CloudFront response headers policy: `script-src 'self'`; `connect-src 'self'` + the pool's Cognito domain + the audio bucket host; no third-party scripts. Shipped as `Content-Security-Policy-Report-Only` first and enforced after M1; the admin variant also allows the audio host for previews | Tokens sit in `localStorage`, readable by any script on the page | **[PROPOSAL]** [sources/05](sources/05-cognito-auth.md) §8; Terraform in the `static_site` module ([H §H.4.2](H-infrastructure-and-delivery.md#h42-static_site-called-twice)) |
 | Content strings rendered as plain text by React (never `dangerouslySetInnerHTML`) | Operator-entered content cannot inject script | **[PROPOSAL]** |
 | `Strict-Transport-Security`, `X-Content-Type-Options`, frame denial, `Referrer-Policy: no-referrer` | Standard headers; `no-referrer` also keeps URLs out of referrers | **[ASSUMPTION]**; same policy (H §H.4.2) |
 | Built-asset scan in the release: no `AKIA`, `ASIA`, `aws-sdk`, `polly` or `speechSynthesis` in `dist/` | Proves no AWS credentials or SDK, and no browser speech fallback, ship to the browser (`prompt.md:589`) | **[PROPOSAL]**; gate G-6 in [H §H.10](H-infrastructure-and-delivery.md#h10-quality-gates) |
@@ -940,31 +955,25 @@ simulation or anti-cheat is added (`prompt.md:759`) **[CONFIRMED]**.
 | AC-03 | `sub`-built keys; NOT_FOUND for others' IDs | [I](I-validation.md) |
 | AC-04 | Operator pool + scope + exact group; route allow-list | [I](I-validation.md) |
 | AC-05 | One page load = one account; `scd-<sub>`; `/logout` + `prompt=login` | [I](I-validation.md) |
-| AC-19, AC-20, AC-22 | Every online Play calls `tts`; identifiers only; failures never an attempt | [I](I-validation.md) |
+| AC-19, AC-20, AC-22 | Every online Play calls `tts` (concurrently when the clip is stored locally); identifiers only; failures never an attempt | [I](I-validation.md) |
 | AC-21 | Preview is the only Polly path; approve requires the reviewed object | [D](D-ux-and-content-operations.md) |
 | AC-30, AC-34 | Offline readiness; local bytes only offline; stop at the missing-content boundary | [I](I-validation.md) |
 | AC-33 | Refresh first; re-auth before upload; same-`sub` check | [I](I-validation.md) |
 
 ---
 
-## Open points for the planner
+## Unverified items to check
 
-- **`tts` needs prefix-scoped `s3:ListBucket` (required spine S1 amendment).** HeadObject on a missing key returns 403
-  without it (**[VERIFIED]** S3 API reference). E.6.4 records the amendment (`s3:prefix` `tts/v1/*`); E.4.2/E.4.3 carry the
-  interim "404 or 403 = missing" rule. Spine S1 and H §H.4.4 still need the change. Also record the clip prefix `tts/v1/`
-  (H §H.4.6) in the spine.
-- **Byte integrity check.** Research 06 recommends returning a SHA-256 of the MP3 bytes so the client can verify downloads;
-  G R15 also suggests it in its open points. The spine (and G's current contract) return `{clipKey, url, expiresInSeconds,
-  contentType, bytes}`, and `clipKey` hashes the synthesis input, not the bytes. E.9 uses a length/type check only. Decide
-  whether to add `sha256` to the response and the speech version.
-- **`tts` `content` read permission is unused.** With the slot pinning `clips` `{speechId, speechVersion, clipKey}` (spine
-  S3.3, F §4.2, G R15), neither `tts` path reads `content`. Spine S1 still grants "content: read only"; dropping it would
-  shrink the role. Spine notes SEC-02 ("from the pinned version's speech map") should be reworded to "from the slot's pinned
-  clips map" to match.
-- **Offline sign-out.** Spine S7.4's connection-required list (and D §D7.3, F §9.1) does not include sign-out; E.7.4
-  proposes disabling it offline because `/logout` and the reload need the network. If accepted, add it to S7.4 and D's copy.
-- **Names settled between sections but not in the spine** (record them in the spine): route scopes `game/play` and
-  `ops/content` (E.6.3, G §1.1, H §H.3.2); the CSP and security headers policy (E.10.3, owned by H §H.4.2); Lambda timeouts
-  under the 30 s gateway limit (`player-api` 25 s, H §H.4.4), which supersede the looser "< 60 s" in S8.2.
-- **Lazy-load measurement.** E.8.2 proposes per-planet and per-mode lazy loading (`prompt.md:1040`). C14 and I's AC-42
-  measurement list should add "initial load without the game chunk".
+Facts this section relies on that could not be checked during planning. Each has a planned check; until then the design
+already tolerates either answer.
+
+| Item | Why it matters | How / when to check | Milestone |
+|---|---|---|---|
+| `AllViewerExceptHostHeader` on the `/api/*` behaviour forwards `Authorization` to the HTTP API (E.2.1) | If not, every API call fails with 401 behind CloudFront | Release smoke check (every route in `contracts/routes.json` returns 401 without a token on both distributions) plus one authenticated call through each distribution | M1 |
+| A wildcard alternate domain name `*.jackgl.com` on the apex app's CloudFront distribution (E.3.4) | Could block adding `aliens.jackgl.com` to a distribution in this account | Owner inspects the apex distribution's alternate domain names (read-only) before the DNS hand-off; also confirm CAA allows `amazon.com` | before M1 |
+| `cognito:groups` serialisation in the payload 2.0 event (E.7.3) | The group helper must parse it correctly or operators are refused (or a substring match lets the wrong group in) | M0 auth spike captures a real authoriser event and keeps it as a test fixture | M0 |
+| Status code for a token without the route scope: 401 or 403 (E.7.3) | Client error handling and contract tests | M0 auth spike records it; client treats both like a gateway 401 meanwhile | M0 |
+| Managed-login sign-up for a username-only, auto-confirmed pool (E.7.5) | Main auth risk; fallbacks change the sign-up UX and possibly `prompt.md:777` | M0 auth spike with a throwaway pool | M0 |
+| Safari honours `play()` after an awaited fetch when the element was primed synchronously (E.9) | Decides `HTMLAudioElement` versus the Web Audio fallback for clips that are not yet stored | M0 IndexedDB/presigned-audio spike, on Safari and Chromium | M0 |
+| Generative engine support for `<phoneme>` and isolated sounds (E.4.1a) | Decides `tts_phoneme_engine` (`neural` or `generative`) | M0 listening bake-off, rendered with the AWS CLI from the same canonical inputs | M0 |
+| S3 returns the stored SHA-256 checksum on `HeadObject` with `ChecksumMode = ENABLED` for objects written with `ChecksumAlgorithm = SHA256` (E.4.2) | Lets `tts` return `sha256` without `content` access | M0 IndexedDB/presigned-audio spike: put one object with a checksum, head it, compare with a local hash; if it fails, store the hash as user metadata at `PutObject` instead | M0 |

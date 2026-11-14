@@ -31,7 +31,7 @@ spine wins.
 | # | Decision | Label |
 |---|---|---|
 | 1 | One fixed 60-tick-per-second simulation; 1x/2x = ticks per frame; pause = zero ticks. Combat uses **no random numbers**; attacks resolve in the tick they fire (no simulated projectiles). | **[PROPOSAL]** |
-| 2 | Every timer and cooldown starts again at wave start, so **nothing time-based crosses a wave boundary** — spine S4's rule holds without extra snapshot fields (C2.5). | **[PROPOSAL]**, checked against spine S4 |
+| 2 | Every timer and cooldown starts again at wave start, so **nothing time-based crosses a wave boundary** — [spine S4](00-spine.md#s4-snapshot-and-checkpoint-semantics-proposal)'s rule holds without extra snapshot fields (C2.5). | **[PROPOSAL]**, checked against spine S4 |
 | 3 | One 40-tile serpentine route; 16 pads, 6 open at the start and 2 more with each new class. | **[PROPOSAL]** (fallback: all 16 open) |
 | 4 | Unlock order Nova (start) → Pip (after 5) → Juno (after 10) → Orion (after 15) → Mira (after 20) → Sol (after 25): the first four unlocks all add firepower before the two non-attacking classes arrive. | **[PROPOSAL]**; pacing points **[CONFIRMED]** prompt.md:357 |
 | 5 | Deployment caps Pip 3, Juno 4, Orion 3, Mira 2, Sol 2; Nova uncapped. | **[PROPOSAL]** |
@@ -57,7 +57,7 @@ construction; the same rule appears as AC-13. (AC-42 is only the busiest-wave pe
 
 - One tick = 1/60 simulation second. Durations in the data are seconds, converted once at load: `ticks = round(seconds × 60)`. Speeds are
   tiles per second; movement per tick is `speed / 60`. **[PROPOSAL]**
-- Battle speed 1x or 2x; the frame loop is the accumulator of spine S10: an **integer** accumulator in units of 1/60,000 s (one tick =
+- Battle speed 1x or 2x; the frame loop is the accumulator of [spine S10](00-spine.md#s10-react--phaser-split-proposal): an **integer** accumulator in units of 1/60,000 s (one tick =
   1,000 units, so no floating-point drift); each frame `acc += min(frameDeltaMs, 250) × speed` in those units, then step while
   `acc ≥ STEP` with at most **MAX = 30 steps per frame**. If the cap is hit, the remaining accumulator is **discarded**, so the game slows
   rather than spiralling into ever-longer catch-up frames. A slow laptop plays in slow motion rather than skipping. A test runs the same
@@ -92,7 +92,7 @@ armour → health. **[PROPOSAL]**
 ### C2.3 Inside one tick
 
 1. Apply queued player commands (place, upgrade, sell, targeting, power) in arrival order, each validated against the state at that moment
-   (credits, pad open and free, class unlocked, cap) — so two quick clicks can never drive credits negative (AC-09). This is the spine S10
+   (credits, pad open and free, class unlocked, cap) — so two quick clicks can never drive credits negative (AC-09). This is the [spine S10](00-spine.md#s10-react--phaser-split-proposal)
    rule "economy mutations are simulation commands validated at tick boundaries".
 2. Scheduled spawns that are due, then due descendant releases (both respect the caps in C6.4).
 3. Support timers: Mira's shield pulses, the shared Patchling heal pulse.
@@ -124,7 +124,7 @@ upgrading does not reset an attack timer; a newly placed Mira starts a full rech
 | Power charges | integer counts in `snapshot.powers` | Carried, but they are counts, not timers |
 | Wave randomness | **none**: campaign waves are authored; endless waves are a pure function of the wave number | Complies trivially; the run `seed` is used only by content selection |
 
-**Verdict: the design complies with spine S4; the snapshot needs no timer fields.** Save-and-exit mid-wave therefore loses only the
+**Verdict: the design complies with [spine S4](00-spine.md#s4-snapshot-and-checkpoint-semantics-proposal); the snapshot needs no timer fields.** Save-and-exit mid-wave therefore loses only the
 current wave, as agreed (prompt.md:663-671 via spine S3.2).
 
 ---
@@ -161,7 +161,7 @@ exactly 2), so every attacker (shortest range 2.5) reaches the path from every p
 "Route in range r" is the length of route within r tiles of the pad centre; divide by an alien's speed for seconds in range.
 "Pads within 4.5 / 6.0" counts the other pads inside Sol's two buff radii. Range rule: an alien is in range when the distance from the pad
 centre to the alien's point on the route is ≤ the range; alien size is ignored. **[PROPOSAL]**
-Pad **data IDs** are lower case, `p01` … `p16`, so they match the spine key-ID pattern `^[a-z0-9-]{1,40}$` (spine S9.5) that
+Pad **data IDs** are lower case, `p01` … `p16`, so they match the spine key-ID pattern `^[a-z0-9-]{1,40}$` ([spine S9.5](00-spine.md#s95-limits-one-shared-limits-file-read-by-client-and-handlers-numbers-assumption)) that
 [G](G-api-contracts.md) §5.2 applies to `padId`; `P01` … `P16` are display labels only, used in this section's prose and tables.
 **[PROPOSAL]**
 
@@ -219,7 +219,7 @@ No alien damages, disables or blocks an astronaut or a pad; nothing in the rules
 astronaut (prompt.md:297, AC-07, **[CONFIRMED]**). Why 20 and these leaks **[PROPOSAL]**: a child can let nineteen Moon Blobs through over
 a run and still play on (the twentieth ends it), which is generous early; a boss leak of 8–14 leaves a healthy colony standing, so a missed boss is a setback rather
 than the end of a long run; the small boss-clear repair gives a struggling player something back. Repairs are applied by the client before
-it reports the post-wave snapshot; the server only checks `0 < health ≤ 20` and `0 ≤ shield ≤ 10` (spine S6 rule 3).
+it reports the post-wave snapshot; the server only checks `0 < health ≤ 20` and `0 ≤ shield ≤ 10` ([spine S6](00-spine.md#s6-plausibility-bounds-proposal-per-op-against-the-stored-snapshot) rule 3).
 
 ---
 
@@ -285,7 +285,7 @@ invented damage upgrades (prompt.md:355).
 | STRONG | the alien in range with the highest current health; ties -> FRONT (Orion from level 3) |
 
 The targeting enum is exactly `FRONT | FAST | CROWD | STRONG` and the class IDs are `nova`, `pip`, `juno`, `mira`, `orion`, `sol`, as
-recorded in spine S9.5 and used by [G](G-api-contracts.md) (`placements[]` items look like `{"padId": "p03", "classId": "nova",
+recorded in [spine S9.5](00-spine.md#s95-limits-one-shared-limits-file-read-by-client-and-handlers-numbers-assumption) and used by [G](G-api-contracts.md) (`placements[]` items look like `{"padId": "p03", "classId": "nova",
 "targeting": "FRONT"}`). **[PROPOSAL]**
 
 - At most two modes per class, shown as two picture buttons ([D](D-ux-and-content-operations.md) owns the control). Every attacking class
@@ -331,7 +331,7 @@ recorded in spine S9.5 and used by [G](G-api-contracts.md) (`placements[]` items
   a purchase.
 - **Why sell-then-rebuy can never create credits.** Let W = credits + the sum of `invested` over deployed astronauts. Placing and
   upgrading move credits into `invested` (W unchanged). Selling removes `invested` and returns at most 70% of it, so W falls by at least
-  30% of that astronaut's cost. No shop action raises W; only bounties and learning rewards do. W is exactly spine S6's
+  30% of that astronaut's cost. No shop action raises W; only bounties and learning rewards do. W is exactly [spine S6](00-spine.md#s6-plausibility-bounds-proposal-per-op-against-the-stored-snapshot)'s
   `value(s) = credits + invested(placements)`, which is why the server's BUILD-phase bound `value(new) ≤ value(stored)` is sound. The
   simulator's self-test runs 20,000 random shop actions and checks W never rises and credits never go negative (SIM: passes).
 
@@ -354,7 +354,7 @@ it as the designer's note rather than reproducible evidence. **[PROPOSAL]**
 ### C5.9 Unlock order, and why (prompt.md:357 asks for an order that supports early bosses)
 
 "After wave 5" means available while preparing wave 6 (prompt.md:357, **[CONFIRMED]**). Available classes are derived from
-`highestCompletedWave` and the pinned unlock schedule, never stored from the client (spine S4).
+`highestCompletedWave` and the pinned unlock schedule, never stored from the client ([spine S4](00-spine.md#s4-snapshot-and-checkpoint-semantics-proposal)).
 
 | Unlock | Arrives for | What it adds at that moment | How it supports the bosses |
 |---|---|---|---|
@@ -419,7 +419,7 @@ speed, leak, bounty and trait rules are **[PROPOSAL]**.
   boss release may contain Split Slimes. So descendants are never more than two generations deep.
 - **A wave is complete only when** the schedule is exhausted, no release is queued and no alien is active (AC-10).
 - **No duplication on pause, reload or retry**: pause runs zero ticks; nothing is saved during a wave; a reload or save-and-exit returns to
-  the wave-start snapshot and the whole wave, ids included, is generated again from the same definition (spine S3.2).
+  the wave-start snapshot and the whole wave, ids included, is generated again from the same definition ([spine S3.2](00-spine.md#s32-operations-the-only-ways-run-state-changes)).
 
 ### C6.4 Object caps (prompt.md:401, 405)
 
@@ -513,7 +513,7 @@ boss parameters (prompt.md:385, 405, 409-433). Everything in the table is **[PRO
   waves to x1.25.
 - **Aliens scheduled (with descendants)**: the bracketed number also counts everything a splitter, carrier or boss can release.
 - **Total bounty available**: credits on offer if nothing leaks. This column is `maxBounty[w]` in the bounds file the server uses for the
-  COMPLETE_WAVE bound (spine S5.1, S6 rule 3).
+  COMPLETE_WAVE bound ([spine S5.1](00-spine.md#s51-pins-and-game-data), S6 rule 3).
 - **Last scheduled spawn** is rounded half to even (Python `round`) to whole seconds for reading, so 12.5 s (wave 1) shows as 12 and 18.5 s (wave 4) as 18; the data file holds the exact value.
 - **Duration**, **peak concurrent aliens** and **margin** are SIM. *Margin* = the largest factor by which every health value in that wave
   could be multiplied before the competent player's board (0% learning, no powers, no purchases during the wave) lets its first alien
@@ -630,7 +630,7 @@ boss repairs the colony, and Mira exists. It also keeps the server bound to one 
 | Total |  | 49 | 2520 |  |  |
 
 The reward for the slot after wave `w` depends on `w` alone; it is looked up in the pinned ruleset by `(kind, interval)` when the slot is
-created and pinned on the slot (spine S3.3). Endless normal slots pay **75**; meteor slots pay a power (C10). Content never carries a reward
+created and pinned on the slot ([spine S3.3](00-spine.md#s33-activity-slot)). Endless normal slots pay **75**; meteor slots pay a power (C10). Content never carries a reward
 (C22.5). It is stepped by block rather than per wave so that it is easy to say ("30 credits for a right answer") and easy to check.
 **[PROPOSAL]**
 
@@ -733,7 +733,7 @@ definition; [D](D-ux-and-content-operations.md) owns the interaction.
 Decisions and reasons **[PROPOSAL]**:
 
 - **A fixed mapping, not a choice.** A choice screen is one more decision for a young child just before a boss, and a fixed reward can be
-  pinned on the slot at run creation (spine S3.3). Order: the power with no aiming first, then aiming, then the shield, by which time Mira
+  pinned on the slot at run creation ([spine S3.3](00-spine.md#s33-activity-slot)). Order: the power with no aiming first, then aiming, then the shield, by which time Mira
   has shown what shields are. The mapping continues in endless (`M-059` is the sixth meteor → Colony Shield, and so on round).
 - **Unused charges are kept** up to two of each. A child who forgets to press the button has not lost the reward. If a success would take
   a power above 2, the slot still resolves SUCCEEDED (and counts in the summary) but no charge is added; the panel says the store is full.
@@ -795,7 +795,7 @@ Decisions and reasons **[PROPOSAL]**:
 - Bounties are the catalogue values; an endless boss pays 100. The normal activity before each endless wave pays 75. A meteor challenge
   precedes each endless boss (`M-059`, `M-069`, …) and continues the power rotation. **[PROPOSAL]**
 - Slots are planned in blocks of K = 10 intervals by `CHOOSE_ENDLESS` and by each endless `COMPLETE_WAVE` while
-  `plannedThrough < (wave − 1) + K` (spine S5.3; mechanics in [F](F-state-and-data.md)). Selection is C24.6.
+  `plannedThrough < (wave − 1) + K` ([spine S5.3](00-spine.md); mechanics in [F](F-state-and-data.md)). Selection is C24.6.
 - Offline, the prepared buffer is finite; when it runs out the run waits at a preparation boundary — "Reconnect to get more activities"
   (prompt.md:721, AC-34, **[CONFIRMED]**).
 - Hard cap: `COMPLETE_WAVE` at wave 999 sets `status=COMPLETED` (spine S3.2; keeps three-digit slot IDs). **[ASSUMPTION]**
@@ -818,7 +818,7 @@ Decisions and reasons **[PROPOSAL]**:
 
 All badges are positive, personal and permanent. None compares players, ranks anyone or can be lost by playing (prompt.md:155 excludes
 rankings and sibling comparison). The server derives every badge from data in an accepted op; the client never sends a badge ID
-(spine S2). An award is a map set-add `SET badges.#b = if_not_exists(badges.#b, :now)`, so applying it twice changes nothing (spine S7.1).
+([spine S2](00-spine.md#s2-trust-model-confirmed-family-level-trust-mechanisms-proposal)). An award is a map set-add `SET badges.#b = if_not_exists(badges.#b, :now)`, so applying it twice changes nothing (spine S7.1).
 
 Two rules from the spine shape this list (both **[PROPOSAL]** in the spine):
 
@@ -864,7 +864,7 @@ Notes:
 ## C13. Standalone short challenges (wave sets)
 
 **[CONFIRMED]**: challenges reuse the same game and activity systems with a short configured wave set and must not become a sandbox or a
-second engine (prompt.md:443). Under spine S3.1 (wave sets) a challenge is an ordinary run whose pinned wave set has `mode = CHALLENGE`; its slots use
+second engine (prompt.md:443). Under [spine S3.1](00-spine.md#s31-run-persisted-fields) (wave sets) a challenge is an ordinary run whose pinned wave set has `mode = CHALLENGE`; its slots use
 the same `N-001…` IDs within that run. **[PROPOSAL]**
 
 | Id | Name | Campaign waves reused (in order) | Classes available | Starting credits | Astronauts already placed | Pads | Meteor challenge | About |
@@ -925,7 +925,7 @@ rule (prompt.md:303, AC-13; C2.1). **[PROPOSAL]**
 
 ## C15. Where these numbers live in the build
 
-| Document (spine S5.1) | Contents from this section | Notes |
+| Document ([spine S5.1](00-spine.md#s51-pins-and-game-data)) | Contents from this section | Notes |
 |---|---|---|
 | Ruleset `/game-data/ruleset/<version>.json` | `mechanics` integer; simulation constants; colony; classes and levels; targeting; combat rules (slow cap, buff rule, shield cap, rounding); aliens and traits; bosses and phases; caps; powers and power rules; economy (learning reward blocks, endless reward, sell rate, subject rotation); endless formulas; badge definitions | `game_data.json` is already shaped this way **[PROPOSAL]** |
 | Planet document `/game-data/campaign/<version>.json` | map, route polyline, pads with `opensAfterWave`; `waveSets{campaign:{mode CAMPAIGN, waves[50], meteorAfter[9,19,29,39,49], startCredits 150, unlocks}, blob-parade:{…}, wobble-rematch:{…}, bubble-trouble:{…}}` | spine S3.1 |
@@ -989,7 +989,7 @@ Arithmetic checks, by hand:
 - Wave 9 → 10: 85 + 30 (N-009) = 115; Pip level 2 costs 80 → 35; wave 10 pays 8 Moon Blobs × 4 + King Wobble 50 = 82 → 117.
 - Invested at Ready for wave 10: two level-1 Novas 2 × 50 = 100, four level-2 Novas 4 × 110 = 440, Pip at level 2 = 140; total 680.
   Cross-check: 150 start + bounties of waves 1–9 (24 + 32 + 16 + 36 + 46 + 15 + 34 + 18 + 74 = 295) + learning (9 × 30 = 270) = 715
-  credits ever held before wave 10's bounty; 715 − 35 in hand at Ready = 680 invested. The spine S6 value `credits + invested` is 715 at
+  credits ever held before wave 10's bounty; 715 − 35 in hand at Ready = 680 invested. The [spine S6](00-spine.md#s6-plausibility-bounds-proposal-per-op-against-the-stored-snapshot) value `credits + invested` is 715 at
   that moment, which is what the server's BUILD-phase bound compares against.
 
 ### C16.2 The questions in each slot (same slot, same subject, same reward; different content)
@@ -1023,7 +1023,7 @@ first attempt; the next wave's aliens are the same (prompt.md:1110-1124, 1156-11
 |---|---|---|---|
 | Wave 1 cleared | 24 credits; `phase = ACTIVITY` | 24 credits; `phase = ACTIVITY` | `COMPLETE_WAVE` applied; the next-phase rule finds `N-001` UNRESOLVED |
 | Panel opens | "How many stars?" — 8 stars, a 0–10 track; a skippable demonstration card shows the first time this concept appears (`intro: AUTO`) | "14 + ? = 20" — a 0–20 track | Untimed; nothing is consumed by opening, waiting or the demonstration |
-| Attempt 1 | selects 7, presses Check → "Not quite. Have another go." (7 marked tried, tries left 2) | selects 4, Check → same message | One `SUBMIT_ATTEMPT {slotId N-001, answer}` per Check; written locally before feedback (spine S4) |
+| Attempt 1 | selects 7, presses Check → "Not quite. Have another go." (7 marked tried, tries left 2) | selects 4, Check → same message | One `SUBMIT_ATTEMPT {slotId N-001, answer}` per Check; written locally before feedback ([spine S4](00-spine.md#s4-snapshot-and-checkpoint-semantics-proposal)) |
 | Refresh | same question, 7 still marked, tries left 2 | same question, 4 still marked | attempts live on the slot (AC-17) |
 | Attempt 2 | selects 8 → "You got it! +30 space credits" | selects 6 → "You got it! +30 space credits" | slot `SUCCEEDED`; +30 in the same transaction; `SUM#maths#<topic>` +1 completed, +1 succeeded |
 | Build | 54 credits; buys a Nova (−50) → 4; Ready | 54 credits; buys a Nova (−50) → 4; Ready | same board, same wave 2 |
@@ -1291,7 +1291,8 @@ Every number change made during playtests goes through the simulator first ([J](
 ## C18. Learning content: curriculum basis and age mapping
 
 England's national curriculum is the agreed reference (prompt.md:475, **[CONFIRMED]**). Sources read for the research (all on GOV.UK,
-checked 2026-11-14 by the learning-design research, **[VERIFIED]** there): the mathematics and English programmes of study (key stage 1),
+checked 2026-11-14 by the learning-design research,
+[sources/09-learning-design.md](sources/09-learning-design.md), **[VERIFIED]** there): the mathematics and English programmes of study (key stage 1),
 English Appendix 1 (spelling), the EYFS statutory framework effective 1 September 2026 (early learning goals), Development Matters, the
 national-curriculum overview table (age → year group), Letters and Sounds 2007 (phase progression), the reading framework (pronouncing
 phonemes), and the DfE validated-phonics list. A revised national curriculum is due for first teaching in September 2028, so every
@@ -1300,7 +1301,7 @@ curriculum reference carries a framework prefix (`NC14`, `EYFS26`, `DM23`, `LS07
 
 ### C18.1 Age band → bank
 
-- `ageBand` = age in completed years on the run-creation date (Europe/London), accepted only if 5, 6 or 7; pinned on the run (spine S5.1;
+- `ageBand` = age in completed years on the run-creation date (Europe/London), accepted only if 5, 6 or 7; pinned on the run ([spine S5.1](00-spine.md#s51-pins-and-game-data);
   prompt.md:219-221). A birthday affects new runs only (AC-06). **[CONFIRMED]** behaviour.
 - Bank for band N = every published, selectable activity with `minAge ≤ N ≤ maxAge`. **An activity may span at most two adjacent ages**
   (`maxAge − minAge ≤ 1`): shared 5–6 and 6–7 items cut authoring cost, and forbidding 5–7 keeps "questions differ by age" plainly true.
@@ -1326,7 +1327,7 @@ content with a school year, and never shows the child a level* (prompt.md:475). 
 
 **How to read them.** `topicId` is the stable key used by selection, the learning summary (`SUM#<subject>#<topicId>`) and the admin
 filter. Format `<subject>-<area>-<specific>`, lower case, at most 40 characters, matching the spine's key-ID pattern
-`^[a-z0-9-]{1,40}$` (spine S9.5). **Topic IDs are append-only: never renamed, never reused** — summaries are keyed on them; the
+`^[a-z0-9-]{1,40}$` ([spine S9.5](00-spine.md#s95-limits-one-shared-limits-file-read-by-client-and-handlers-numbers-assumption)). **Topic IDs are append-only: never renamed, never reused** — summaries are keyed on them; the
 child-facing title can change. The topic registry (ID, child-facing title, subject, bands, curriculum references) is one versioned JSON
 file in the repository shipped to both apps and both API Lambdas; adding a topic is a normal release. **[PROPOSAL]**
 
@@ -1528,7 +1529,7 @@ is one fixed string form of an answer, so that "is this right?" becomes "is this
 accepted answers already in canonical form; the browser (offline) and the server (authoritative) both compare by exact string equality;
 Python validates only the shape (length ≤ 64, allowed characters). There is no second normaliser that could disagree. An answer that cannot
 be canonicalised (empty, wrong characters) never becomes an op; if a malformed one reaches the server it is `REJECTED VALIDATION_FAILED`
-(a client bug; spine S9.1 error table). **[PROPOSAL]**
+(a client bug; [spine S9.1](00-spine.md#s91-error-table-source--http--client-action) error table). **[PROPOSAL]**
 
 The normalisation rules deliberately avoid language built-ins (`Number()`, `trim()`, Unicode case folding) that behave differently across
 engines, and are expressed as a short list of named primitive steps. One shared vectors file (in `contracts/` (to create), per spine S10) will be run by Vitest
@@ -1572,7 +1573,7 @@ never fail. Four to six keeps "three incorrect = no reward" a real outcome. Natu
 ### C20.2 What one attempt is
 
 > **One attempt = one press of Check on a complete answer for the whole activity**, recorded as one `SUBMIT_ATTEMPT` op whose `opId` is
-> the attempt ID (spine S3.2–S3.3).
+> the attempt ID ([spine S3.2](00-spine.md#s32-operations-the-only-ways-run-state-changes)–S3.3).
 
 - The op is written to the local op log before any feedback is shown (spine S4 durability rule); attempts are numbered 1–3 by the server.
 - First correct → `SUCCEEDED`, reward once; third incorrect → `FAILED`, no reward (prompt.md:513-515, **[CONFIRMED]**).
@@ -1590,7 +1591,7 @@ never fail. Four to six keeps "three incorrect = no reward" a real outcome. Natu
   activityPayload, answerSpecification}`.
 - All steps are on one panel with **one Check**; Check is complete only when every step is complete.
 - **One Check = one attempt for the whole activity**: correct only if every step is correct. Three attempts in total, one reward, one
-  slot, one summary update (spine S3.3: "one SUBMIT_ATTEMPT = the whole answer").
+  slot, one summary update ([spine S3.3](00-spine.md#s33-activity-slot): "one SUBMIT_ATTEMPT = the whole answer").
 - After an incorrect attempt the client (which holds the per-step answers in the pack) keeps steps that were right locked with a tick and
   marks wrong steps "Try this part again" — the same information a single-step activity gives. The server judges only the whole joined
   answer (step answers joined by `|`, still one string ≤ 64 characters); the client re-derives the per-step marks from the recorded canonical answer after a refresh.
@@ -1619,7 +1620,7 @@ this section defines only how an activity refers to clips. **[PROPOSAL]**
 
 - Variant names match `^(prompt|instruction|answer|option-[a-f]|bin-[a-z0-9]{1,8}|intro-[1-3])$`; one clip per variant in version one.
 - In a draft, `speechDefinitionReferences` maps variant → `{speechId, speechVersion}`. At publish, the version pins resolved refs
-  `{variant → speechId, speechVersion, clipKey}` and publish ConditionChecks that every referenced speech version is approved (spine S5.2).
+  `{variant → speechId, speechVersion, clipKey}` and publish ConditionChecks that every referenced speech version is approved ([spine S5.2](00-spine.md#s52-activities-templates-speech)).
   The slot copies them into its `clips` map (`{speechId, speechVersion, clipKey}` per variant).
 - The player speech request carries only `{runId, slotId, variant}`; the service resolves the speech **from the slot's pinned clips map**
   and signs that `clipKey` ([F](F-state-and-data.md) §4.2, [G](G-api-contracts.md) R15; spine S2 and S9 `POST /api/speech`). It reads no
@@ -1662,7 +1663,7 @@ What the speech definitions behind these references look like **[CONFIRMED by ow
 Fixed points: the suggested field list (prompt.md:547-548); drafts, validation, immutable published versions, retirement that preserves
 versions used by existing runs (prompt.md:531-545, 552); players never submit content, set rewards or send text to speech (prompt.md:550);
 human review before anything reaches the published bank (prompt.md:525). Storage layout (header, draft, versions in the `content` table) is
-spine S8.3; routes are [G](G-api-contracts.md); the editor UX is [D](D-ux-and-content-operations.md) D8.
+[spine S8.3](00-spine.md#s83-table-content-no-gsi); routes are [G](G-api-contracts.md); the editor UX is [D](D-ux-and-content-operations.md) D8.
 
 ### C22.1 Fields
 
@@ -1672,13 +1673,13 @@ The spec's suggested names are kept; additions are marked "(added)". **[PROPOSAL
 |---|---|---|
 | `schemaVersion` (added) | integer | 1 |
 | `activityId` | string | operator-chosen at creation (makes create idempotent, [G](G-api-contracts.md)); key-ID pattern `^[a-z0-9-]{1,40}$`; convention `ma-`, `ph-`, `sp-` + four digits (`ma-0101`). Immutable, never reused. Carries no age, topic or reward meaning. |
-| `version` | string | the non-reusable version ID = UTC publish timestamp, e.g. `20261114T100000Z` (content sort key `V#<id>`); the display "v3" is derived by counting (spine S8.3) |
+| `version` | string | the non-reusable version ID = UTC publish timestamp, e.g. `20261114T100000Z` (content sort key `V#<id>`); the display "v3" is derived by counting ([spine S8.3](00-spine.md#s83-table-content-no-gsi)) |
 | `state` (spec name `status`, prompt.md:548; renamed to match the spine S8.3 header attribute) | enum | header `state`: `DRAFT` (never published), `PUBLISHED`, `RETIRED`; per version: `withdrawn{at, reason}` (C22.4) |
 | `subject` | enum | `maths`, `phonics`, `spelling`. **Identity-level**: immutable once a version is published (spine S5.2) |
 | `topicId` | string | must exist in the topic registry under the same subject. Identity-level |
 | `minAge`, `maxAge` | integer | 5–7 in version one; `minAge ≤ maxAge`; `maxAge − minAge ≤ 1`. May change between versions |
 | `curriculumReference` | 1–4 strings | framework-prefixed codes (`NC14.Ma.Y2.AS-2`, `EYFS26.ELG.Number-1`, …); optional free-text `curriculumNote` |
-| `interactionType` | enum | type of the primary step (C20) |
+| `interactionType` | enum | type of the primary step (C20). Identity-level |
 | `prompt` | `{text}` | 3–120 characters plain text; British spelling; no markup, no names or personal data; guide: ≤8 words at age 5, ≤14 at age 7 |
 | `visualAssetReferences` | asset IDs | every asset used by prompt, payload or demonstration; each exists in the asset manifest with alt text and is flagged text-free (prompt.md:1090) |
 | `activityPayload`, `answerSpecification` | objects | per type (C20). Absent on template activities |
@@ -1692,27 +1693,31 @@ The spec's suggested names are kept; additions are marked "(added)". **[PROPOSAL
 | `title` (added) | string | operator-facing list title (spine S8.3 header) |
 | `source` (added) | enum | `HANDWRITTEN`, `TEMPLATE`, `IMPORT`, `AI_ASSISTED` — provenance for the audit trail only; never relaxes review |
 | author metadata | object | `{createdBy, createdAt, updatedBy, updatedAt}` set by the server from the token, never from the body |
-| review metadata | object | `{reviewedBy, reviewedAt, checklist, previewSolvedDraftRevision, notes}` set at publish |
+| review metadata | object | `review{checklist, previewSolvedDraftRevision}` plus `reviewedAt` and `notes`, recorded at publish; `publishedBy`/`reviewedBy` come from the token (spine S5.2) |
 | `definitionHash` (added) | SHA-256 | over the canonical definition at publish; proves immutability |
-| `draftRevision` (added) | integer | drafts only; optimistic concurrency (spine S8.3 pattern C3) |
+| `draftRevision` (added) | integer | drafts only; optimistic concurrency: every save, publish and approve names it, and a stale value is `409 DRAFT_CONFLICT` (spine S5.2, S8.3) |
+| `fromDraftRevision` (added) | integer | written on the new version and the header at publish; a repeated publish whose `draftRevision` equals it returns the existing version instead of a second one (safe retry) |
 
 A published definition is capped at 8 KB of JSON (well inside the 64 KB draft body limit, spine S9.5), which keeps packs and items small.
 The header item in the `ACT` partition carries `title, subject, topicId, rewardCategory, minAge, maxAge, interactionType, authoringMode,
-domainSize, state, publishedVersion, updatedAt` (spine S8.3) — exactly what selection and bank status need without reading versions.
+domainSize, state, publishedVersion, fromDraftRevision, updatedAt` (spine S8.3) — exactly what selection and bank status need without
+reading versions.
 
 ### C22.2 Publish-time validation common to every type
 
-Publishing fails with a per-field error list (`[{field, rule}]`, spine S9) unless all hold (plus the per-type rules in C20.1):
+Publishing fails with a per-field error list (`[{field, rule}]`, [spine S9](00-spine.md#s9-api-surface-proposal-all-routes-under-api-json-authorization-bearer-access-token)) unless all hold (plus the per-type rules in C20.1):
 
 1. The document matches the schema; unknown fields are rejected.
 2. Topic exists and belongs to the subject; ages in range and at most one year apart.
-3. Identity-level fields unchanged from the previous version.
+3. Identity-level fields unchanged from the previous version: `subject`, `topicId`, `rewardCategory`, `authoringMode` and `interactionType`
+   are locked once a version is published (rule `locked_after_publish`, spine S5.2). Only `minAge`/`maxAge` and content vary between versions.
 4. Every asset reference exists in the current asset manifest with alt text.
 5. Every speech reference uses a valid variant and points at an approved speech version with a stored clip; `REQUIRED` audio has at least
    a `prompt` (or option/bin) clip.
 6. Every phonics activity has at least one clip.
 7. The answer lies inside the payload (correct option exists, value in the number set, word buildable from the tiles, …); accepted answers
-   are stored in canonical form (computed by the shared TS package in the admin app; shape-checked by admin-api).
+   are stored in canonical form (computed by the shared TS package in the admin app; shape-checked by admin-api), each one string ≤ 64
+   characters; the reserved separators `;` `=` `,` `|` are refused inside option IDs, tile values, zone/bin/object IDs and answer values.
 8. Demonstration content, if any, is valid (C22.6).
 9. Template activities pass the exhaustive domain check (C25.3).
 10. The review checklist is complete and the preview-solve gate passed for this exact `draftRevision`.
@@ -1747,7 +1752,7 @@ AI-drafted items go through the same checklist and gate. **[PROPOSAL]**
 
 - `NORMAL` activities fill `N-…` slots; `METEOR` activities fill `M-…` slots. One value per activity, immutable.
 - **The activity never contains an amount, a power or a multiplier.** A slot's reward comes from the pinned ruleset by `(kind, interval)`
-  (spine S3.3): credits for that interval (C9.2), or the power for that meteor (C10). So nobody can set a reward through content
+  ([spine S3.3](00-spine.md#s33-activity-slot)): credits for that interval (C9.2), or the power for that meteor (C10). So nobody can set a reward through content
   (prompt.md:550) and reward opportunity cannot vary by age (prompt.md:449, AC-13).
 - Meteor authoring guidance: the same age pitch as normal items, never harder curriculum content; prefer the richer formats (sorting,
   arranging, a two-step activity) so it feels like a challenge.
@@ -1777,7 +1782,7 @@ Start and Skip only. **[PROPOSAL]**
 | Admin screens, draft editor, publish/retire/withdraw flows, bank-status view | [D](D-ux-and-content-operations.md) D8 |
 | Speech drafting, preview, listening checklist, approval, quality gate, Milestone 0 listening spike | [D](D-ux-and-content-operations.md) D9 |
 | Routes, request bodies, idempotent create, revision conflicts | [G](G-api-contracts.md) |
-| Content table keys, publish transaction, withdraw transaction | spine S8.3; [F](F-state-and-data.md) |
+| Content table keys, publish transaction, withdraw transaction | [spine S8.3](00-spine.md#s83-table-content-no-gsi); [F](F-state-and-data.md) |
 | Generated art: activity pictures (≈80 at the eligibility threshold, all text-free with alt text) | [D](D-ux-and-content-operations.md) D10 |
 
 ---
@@ -1792,7 +1797,7 @@ Subjects rotate automatically; topic and activity come from the run's age bank "
 performance-based adjustment (prompt.md:501). Every activity has a stable identifier within the run; reloading never selects a new
 question; normal and meteor activities have separate IDs (prompt.md:523). Age band and content versions are pinned at creation
 (prompt.md:221). Endless uses a finite prepared buffer and never silently repeats (prompt.md:721). Everything below is **[PROPOSAL]**
-(spine S5.3).
+([spine S5.3](00-spine.md)).
 
 ### C24.2 The slot plan
 
@@ -1810,7 +1815,7 @@ the same interval (checked by arithmetic for the first 60 bosses). `CREATE_RUN` 
 ### C24.3 Inputs
 
 - `ageBand` (5, 6 or 7) and `seed` (64 random bits from the server, pinned on the run; tests inject one). A retried `CREATE_RUN` with the
-  same `runId` returns the stored run, never a re-selection (spine S3.2).
+  same `runId` returns the stored run, never a re-selection ([spine S3.2](00-spine.md#s32-operations-the-only-ways-run-state-changes)).
 - The bank as read at that moment: one consistent Query of the `ACT` header partition (spine S8.3 C1), filtered in code to
   `state = PUBLISHED`, `minAge ≤ ageBand ≤ maxAge`, by `subject` and `rewardCategory`; each header gives `activityId`, `publishedVersion`,
   `topicId`, `authoringMode` and `domainSize`. No index is needed (a few hundred items).
@@ -1840,7 +1845,7 @@ Then for the chosen units:
 8. **Demonstration flags**: walking slots in play order, the first slot of each concept whose activity has a demonstration gets
    `intro: AUTO`; later ones `ON_REQUEST`.
 9. **Reward**: from the pinned ruleset by `(kind, interval)` (C9.2, C10).
-10. **Persist** every slot `UNRESOLVED` with its pins in the same transaction as the run (spine S3.2, G7).
+10. **Persist** every slot `UNRESOLVED` with its pins in the same transaction as the run ([spine S3.2](00-spine.md#s32-operations-the-only-ways-run-state-changes), G7).
 
 ### C24.5 Deterministic draws
 
@@ -1853,13 +1858,14 @@ labels: "topics:NORMAL:maths", "units:maths-bonds-to10", "params:N-001", "order:
 Labelled hash draws, rather than a library random generator, because each decision gets its own stream (adding a decision later does not
 disturb the others), the result is identical on any Python version (Python documents that most `random` algorithms may change between
 versions), and it is trivial to reproduce in a test. The stored slots are always the authority; the seed exists for tests, audit and
-endless planning (spine S5.3). Run-level pins: `seed`, `ageBand`, `selection{algorithmVersion, bankReadAt, packId}` with `packId` = hash of
-the ordered slot references (spine S3.1). **[PROPOSAL]**
+endless planning ([spine S5.3](00-spine.md)). Run-level pins: `seed`, `ageBand`, `selection{algorithmVersion, bankReadAt, packId}` with `packId` = hash of
+the ordered slot references (spine S3.1). The topic registry version is deliberately **not** pinned: topic IDs are append-only (C19),
+so a run's slots and summaries stay meaningful under any later registry. **[PROPOSAL]**
 
 ### C24.6 Endless blocks: a finite buffer, honestly
 
 - Blocks of K = 10 intervals (plus the meteor for the interval ending in 9) are planned inside `CHOOSE_ENDLESS` and each endless
-  `COMPLETE_WAVE` while `plannedThrough < (wave − 1) + K`, so 10–19 intervals are in hand (spine S5.3). Each block uses the same algorithm
+  `COMPLETE_WAVE` while `plannedThrough < (wave − 1) + K`, so 10–19 intervals are in hand ([spine S5.3](00-spine.md)). Each block uses the same algorithm
   with label `endless:<first interval>`, from the **bank published at that moment**, for the **pinned age band**, **excluding everything
   already used in the run**; each template may contribute up to two new instances per block. Slot writes are `attribute_not_exists` Puts
   (spine S3.3).
@@ -1867,6 +1873,8 @@ the ordered slot references (spine S3.1). **[PROPOSAL]**
   maths, phonics, spelling. Because the band's maths templates must offer ≥500 instances (C24.7), this gives hundreds of endless waves in
   hand at every age. **Everything used up:** no slot is written for that interval and the child sees "You have done every activity we have
   for now" — never a repeat (owner decision D-6; alternative: a deliberate second cycle).
+- **Never above interval 998:** endless planning never creates a slot for an interval above 998, so slot IDs stay three digits and the
+  wave-999 hard cap (C11.2) needs no slot (spine S5.3).
 - **Offline with the buffer used up:** the run pauses in BUILD — "Reconnect to get more activities" — and nothing is repeated or invented
   (prompt.md:721, AC-34). Readiness "Ready offline up to wave N" is [D](D-ux-and-content-operations.md)/[F](F-state-and-data.md).
 - The rewards of endless slots are the ruleset values (75 credits; the next power in the rotation), the same at every age.
@@ -1875,7 +1883,7 @@ the ordered slot references (spine S3.1). **[PROPOSAL]**
 
 A band is eligible when **both** hold: (1) **feasibility** — the algorithm can fill all 49 normal and 5 meteor slots; (2) **variety** —
 each group holds at least twice what one run uses, spread over enough topics. Thresholds are server configuration, shown on
-`GET /api/admin/bank-status` (spine S5.3, S9), and must never be set below the hard minimums. **[PROPOSAL]**
+`GET /api/admin/bank-status` ([spine S5.3](00-spine.md), S9), and must never be set below the hard minimums. **[PROPOSAL]**
 
 | Group | One campaign uses | Hard minimum (units) | Eligibility threshold, version one | Comfortable target |
 |---|---|---|---|---|
@@ -1903,7 +1911,7 @@ Milestone 1 sets the thresholds to 1 and declares one activity interval — labe
 | Band 5–7 but the bank is below a threshold or cannot fill the slots | `BANK_NOT_READY` | "Activities for your age are still being made. Please come back soon." |
 
 Checked when the planet list is shown (so Start is honest before it is pressed, `GET /api/planets` `available/reason`) and again inside run
-creation (`409 CONTENT_UNAVAILABLE{reason}`, spine S9.1). The account, profile, progress and existing runs stay usable; only new runs are
+creation (`409 CONTENT_UNAVAILABLE{reason}`, [spine S9.1](00-spine.md#s91-error-table-source--http--client-action)). The account, profile, progress and existing runs stay usable; only new runs are
 blocked. No nearest-age fallback, no partial run. Responses and logs carry `ageBand` or the reason code, never the date of birth.
 
 ### C24.9 Properties worth testing ([I](I-validation.md))
@@ -1968,7 +1976,7 @@ domain. A first release needs only eight kinds (`COUNT_OBJECTS`, `ORDER_NUMBERS`
 
 ### C25.3 What makes this safe
 
-1. **Bounded domain**: every parameter has explicit bounds; the whole domain is capped at 5,000 instances (spine S5.2); `domainSize` is
+1. **Bounded domain**: every parameter has explicit bounds; the whole domain is capped at 5,000 instances ([spine S5.2](00-spine.md#s52-activities-templates-speech)); `domainSize` is
    stored on the header for eligibility.
 2. **Exhaustive machine check at publish**: every instance is generated and checked — numbers in range, never negative, exactly one correct
    answer, the answer inside the payload, options distinct, prompt within length, answers already canonical. One failure blocks publication.
@@ -2066,7 +2074,7 @@ Other records referenced in C16.2 (one line each; full fields as above):
 ### C26.1 Learning summary model (prompt.md:469, 527)
 
 One counter item per player per topic: `SUM#<subject>#<topicId>` with `completed`, `succeeded`, `failed`, `lastResolvedAt`; invariant
-`completed = succeeded + failed`; subject totals are sums (spine S8.1). Not a mastery or scoring system. **[CONFIRMED]** scope;
+`completed = succeeded + failed`; subject totals are sums ([spine S8.1](00-spine.md#s81-table-game-pk-pk-sk-sk-both-strings-no-gsi-no-ttl-except-syssignups)). Not a mastery or scoring system. **[CONFIRMED]** scope;
 **[PROPOSAL]** mechanics.
 
 | Event | Effect |
@@ -2098,7 +2106,8 @@ Progress-screen design ("Activities done", "Stars", neutral "Still practising"; 
 | Spelling, meteor | 2 fixed | 1 + 1 | 4 |
 | **Total** | | | **≈240 records (≈36 template rows)** |
 
-Supporting material: ≈200 approved clips (≈80 phonics stimuli, 50 spelling words, 25 instruction stems, 20 demonstration clips, 25 others)
+Supporting material: ≈200 approved clips (≈80 phonics stimuli, 50 spelling words, 25 instruction stems, 20 demonstration clips, 25 others;
+an upper bound, because identical text in the same voice and engine is one shared clip, C21)
 and ≈80 activity pictures (35–40 nouns for age 5, 15 for ages 6–7, counting objects, shapes, frames, dice). Pictures are the hidden
 dependency for age-5 phonics and spelling. Rough operator effort ≈20–25 hours across the content phases. All **[UNVERIFIED]** estimates
 until a first batch is authored. Pack size ≈54 definitions + ≈55–90 distinct clips per campaign; budget 2 MB (measure clip sizes in
@@ -2106,10 +2115,12 @@ Milestone 0).
 
 ### C26.3 Authoring sequence and sources
 
-| Phase | Milestone | What | Done when |
+Content phases A–H below are authoring stages, not the build phases of [J](J-execution-backlog.md); each sits inside the milestone shown.
+
+| Content phase | Milestone | What | Done when |
 |---|---|---|---|
-| A | M0 | listening matrix as speech drafts; nothing published | a voice chosen; a list of sounds approved for isolated use |
-| B | M1 | one activity + one clip (`ph-0102` with `phoneme-sh`, or its tier-A twin) | Play works through the real service; three attempts and one reward; refresh keeps attempts |
+| A | M0 | listening matrix, rendered with the AWS CLI from the same canonical inputs the preview route will use (Polly, en-GB, Amy); nothing published | `tts_phoneme_engine` decided (`neural` unless `generative` passes); a list of sounds approved for isolated use, with `word-only` verdicts recorded in `content/listening-verdicts.json` (to create); human recordings listed for any sound that fails |
+| B | M1 | one activity + one clip (`ph-0102` with `phoneme-sh`, or its tier-A twin), re-rendered and approved through the real preview route in the minimal admin app | Play works through the real service; three attempts and one reward; refresh keeps attempts; playtest P1 |
 | C | start of M3 | the worked records of C25.5 (≈17 activities, 12 clips) | every type and mode works mouse-only and keyboard-only; shared vectors pass in both languages |
 | D | M3 | the first eight generator kinds and ≈30 template rows | maths groups at threshold in every band |
 | E | M3 | phonics items, age 5 first, then 6, then 7 | phonics groups at threshold; every clip reviewed |
@@ -2118,7 +2129,7 @@ Milestone 0).
 | H | after release | top up to comfortable targets; more generator kinds | two consecutive runs share about a third of hand-authored items |
 
 Imports and AI-assisted drafting are content *sources*, never around review (prompt.md:525, 554): an import creates **drafts only**, row by
-row, never publishes or approves a clip, and never overwrites operator-authored content (spine S8.3 C8). AI drafting happens outside the
+row, never publishes or approves a clip, and never overwrites operator-authored content ([spine S8.3](00-spine.md#s83-table-content-no-gsi) C8). AI drafting happens outside the
 product into the same spreadsheet columns; rows carry `source = AI_ASSISTED` and pass the same checklist, preview-solve gate and listening
 check. Never trust it for answer keys, pronunciation, curriculum claims or British spelling. Detailed import UX is
 [D](D-ux-and-content-operations.md) D8.6. **[PROPOSAL]**
@@ -2129,7 +2140,7 @@ check. Never trust it for answer keys, pronunciation, curriculum claims or Briti
 
 The spec requires the admin to prevent future selection of a critical content error, and existing-run handling that is deliberate,
 preserves progress, never silently replaces a saved activity and never charges it as a failed answer — distinct from ordinary retirement
-(prompt.md:556, **[CONFIRMED]**). Mechanism **[PROPOSAL]** per spine S3.3:
+(prompt.md:556, **[CONFIRMED]**). Mechanism **[PROPOSAL]** per [spine S3.3](00-spine.md#s33-activity-slot):
 
 | | Retirement (ordinary) | Withdrawal (exceptional) |
 |---|---|---|
@@ -2155,19 +2166,24 @@ How a slot is voided — **only by a run op, only if UNRESOLVED** (spine S3.2–
 - **Nothing is replaced**: the corrected item, if any, is published as a new version and enters the bank for future selections only.
 - A pinned version that cannot be found is treated exactly like a withdrawn one (VOID) and logged at ERROR (spine S8.3).
 - Limitation: an offline branch that already moved past the slot keeps what it saw locally until it syncs; the server then applies the
-  rules above.
+  rules above. If the server voids a slot that the offline branch had already resolved as FAILED, the cloud keeps what the child saw:
+  the VOID reward is granted, then the next queued `SAVE_PREP` carries the lower local credits, so the reward does not stick (spine S3.3;
+  pairs with D-9). **[PROPOSAL]**
 - Operator runbook: withdraw with a reason (the confirmation warns if a band drops below threshold, in which case new runs for that band
   are honestly blocked until topped up); if fixable, copy to draft, correct, review, preview-solve, publish; if the fault is a clip,
-  withdraw or retire every activity version using it; check bank status; record the fault in the decision log and add a checklist line if
+  withdraw or retire every activity version using it (v1 has no speech-withdrawal route and no "used by" index; the runbook finds the
+  activities, spine S5.2); check bank status; record the fault in the decision log and add a checklist line if
   it was a new kind of fault ([D](D-ux-and-content-operations.md) D9.6).
 
 ---
 
 ## C28. Owner decisions touching this section
 
-Recommendations in brackets; all are non-blocking (spine S13).
+The owner accepted every D-decision below as recommended **[CONFIRMED by owner, 2026-11-14]** ([spine S13](00-spine.md#s13-owner-decisions)). The three rows marked
+"(new)" are this section's own design choices; they are covered by the owner's approval of the plan's design decisions and stay
+**[PROPOSAL]** settings that playtests may revisit. The owner's voice and speech decisions are applied in C19 and C21.
 
-| # | Decision | Recommendation |
+| # | Decision | Accepted answer |
 |---|---|---|
 | D-1 | Clips beyond phonics stimuli (dictated spelling words, instruction stems) | yes |
 | D-2 | "Show me" still available after an incorrect attempt | yes |
@@ -2195,60 +2211,24 @@ Recommendations in brackets; all are non-blocking (spine S13).
 | AC-10 | completion rule, release queue, self-check equalities (C6.3) | same checks in `game-core`; reload during a wave |
 | AC-11 | 50-row schedule, bosses 10/20/30/40/50, one polyline (C8) | data validation in CI |
 | AC-12 | `campaign-luna-1` committed before the offer; endless generator (C11, C12) | state-machine tests ([F](F-state-and-data.md)) |
-| AC-13 | no age input in combat or economy data; rewards from ruleset by slot; worked example (C9, C16) | two runs with different age bands have identical combat inputs and `(slotId, kind, reward)` lists |
+| AC-13 | no age input in combat or economy data; rewards from ruleset by slot; worked example (C9, C16); fixed timestep with an integer accumulator, so frame rate cannot change outcomes (C2.1, prompt.md:303) | two runs with different age bands have identical combat inputs and `(slotId, kind, reward)` lists; the same wave at 30/60/144 Hz frame deltas gives an identical tick count and post-wave snapshot |
 | AC-14 | reset list (C9.1) | state-machine tests |
 | AC-15–AC-17 | one `N` slot per interval, separate `M` slots, attempts and presentation on the slot (C20.2, C24) | refresh after two wrong answers; ten minutes and ten plays change nothing |
 | AC-18 | attempt = opId; summary in the resolving transaction (C20.2, C26.1) | duplicate delivery; same wrong answer under a new ID (client-blocked) |
+| AC-19, AC-22 | every Play sends the authenticated speech request, even when playback starts at once from stored bytes; Play, Retry and Loading never cost an attempt (C20.2, C21) | network log shows one `POST /api/speech` per Play online; failure and Retry leave attempts and credits unchanged |
 | AC-23 | immutable versions; slots pin `activityId@version` and clips (C22.4) | publish v2 of a pinned activity; the run still shows v1 with its audio |
 | AC-34 | finite endless buffer (C24.6) | go offline in endless and use up the buffer |
 | AC-41 | every type defined with keyboard and mouse flows (C20; UX in [D](D-ux-and-content-operations.md)) | one activity of each type keyboard-only, then mouse-only |
-| AC-42 | budgets and busiest-wave list (C14) | the measurement itself |
+| AC-42 | budgets and busiest-wave list (C14) | the M2 measurement that sets the target, then the release measurement against it |
 
 ---
 
-## Open points for the planner
+## Unverified items to check
 
-- **Topic and speech ID format.** The research report's dotted topic IDs (`maths.count.objects-to10`) and dotted/upper-case activity and
-  speech IDs fail the spine key-ID pattern `^[a-z0-9-]{1,40}$` (spine S9.5) — topic IDs appear in the `SUM#` sort key. This section uses
-  hyphenated forms (`maths-count-objects-to10`, `ma-0101`, `phoneme-sh`). [G](G-api-contracts.md)'s example topic `ph-sh-ch` is
-  illustrative and should be aligned with C19.
-- **Canonical answer form vs [G](G-api-contracts.md).** G allows "a string ≤ 64 chars **or** an array of ≤ 20 option IDs". This section
-  defines every type's canonical answer as a single string (C20.1), including ARRANGE (tile *values*, not tile IDs, so duplicate letters
-  are interchangeable). The array form is unused in v1; G and the shared limits file should be aligned, and the reserved separators
-  (`; = , |`) added to publish validation.
-- **Learning-outcome badges removed pending a spine amendment.** C12 drops `meteor-catcher`, `keep-trying`, `bright-spark-10`,
-  `bright-spark-50` and `all-rounder` from v1. [F](F-state-and-data.md) §12.3/§12.5 and [D](D-ux-and-content-operations.md) §P13 need no
-  change for them. If the owner wants them back, the spine needs: a PROFILE update on the resolving `SUBMIT_ATTEMPT` (S3.2; G5 already
-  allows it), a `SUM#` read in S7.1 step (a) for the summary-based ones, and a badge `category` so `CAMPAIGN_PROGRESS` and
-  `LEARNING_HISTORY` each clear only their own badges (prompt.md:231); B §B6 would record it as an owner decision.
-- **Pad IDs vs [G](G-api-contracts.md).** C3.2 now fixes pad data IDs as `p01` … `p16` (key-ID pattern). G §5.1's example
-  (`"padId": "p-03", "classId": "laser", "targeting": "FIRST"`) should become `"padId": "p03", "classId": "nova", "targeting": "FRONT"`,
-  and G §5.2 should name C5.3's targeting enum (FRONT, FAST, CROWD, STRONG).
-- **Challenge badges vs [F](F-state-and-data.md).** F (its CAMPAIGN vs CHALLENGE table) says challenge runs make no PROFILE writes on COMPLETE_WAVE
-  ("challenges never change … badges"). This section keeps one badge per challenge (from the research), which needs a PROFILE write on the
-  final challenge wave. Either F allows it or the three challenge badges are dropped.
-- **Challenge learning reward (spine amendment, optional).** C13 now follows spine S3.3: challenge slots use the ruleset's
-  `(kind, interval)` table, so Bubble Trouble pays 30 rather than the research's 40. If a per-wave-set reward is wanted (still pinned game
-  data, never content or client), S3.3 must say the wave set may carry it.
-- **Meteor grant when the inventory is full** (2 of that power): proposed "slot SUCCEEDED and counted, no charge added". Only reachable in
-  endless. Confirm it is acceptable that a success then yields no reward; alternative: raise the cap to 3 in endless.
-- **Worked-example extension (waves 7–10) is a fresh in-memory simulator run**, not part of the saved research output; its script is
-  described in C16.1 and should be added to `example.py` when the simulator moves to `tools/sim/`.
-- `selection` pins: the research also pinned `topicRegistryVersion`; the spine's `selection{algorithmVersion, bankReadAt, packId}` omits it.
-  Topic IDs are append-only, so it is not needed for correctness; mention only if [F](F-state-and-data.md) wants it for audit.
-- Bank sizing, clip counts, pack sizes and effort are **[UNVERIFIED]** estimates until phase C authoring and the Milestone 0 clip
-  measurement.
-- Simulator files are only in the session scratchpad; if the scratchpad is cleared before the owner copies them to `tools/sim/`, the SIM
-  tables here become unreproducible (the data values in this section remain usable as the starting ruleset).
-- `python3 -I selftest.py` fails with `ModuleNotFoundError: No module named 'sim'` (isolated mode drops the script folder from the import
-  path); `python3 -B -E -s selftest.py` in the same folder prints "selftest: all checks passed" (checked 2026-11-14). C17.8's plain
-  `python3 selftest.py` works. When the simulator moves to `tools/sim/`, make it importable under `-I` too.
-- Badge wording differs from `game_data.json`: `full-crew` and `top-team` are evaluated on the post-wave snapshot here (spine: badges
-  re-evaluated on COMPLETE_WAVE), the data file says the wave-start snapshot; boss badges are written as `highestCompletedWave ≥ n`
-  thresholds here, as completion events in the data file; and the data file still defines the five learning-outcome badges dropped in C12.
-  Align `game_data.json` when it seeds the first ruleset.
-- The data file's `simulation.tickOrder` lists "boss phase checks" under step 3 (support timers); this section and `sim.py` resolve a
-  phase change the moment damage lands (step 4). Correct the data note when it becomes the ruleset.
-- The section is about 2,160 lines against the style guide's typical 400–900; the SIM tables (C17) and topic tables (C19) could move to
-  an appendix if the planner wants it shorter.
-
+| Item | Why it matters | How and when to check | Milestone |
+|---|---|---|---|
+| Which isolated sounds (tiers B and C, C19) Polly says acceptably, and whether the `generative` engine honours `<phoneme>` (AWS documentation is contradictory) **[UNVERIFIED]** | Decides `tts_phoneme_engine`, which phonics items can use isolated sounds, and which need a tier-A twin or a human recording | The M0 listening bake-off: render the listening matrix with the AWS CLI on both engines, listen, record verdicts in `content/listening-verdicts.json` (to create) ([D](D-ux-and-content-operations.md) D9) | M0 |
+| Clip sizes and the 2 MB per-campaign pack budget (C26.2) **[UNVERIFIED]** | Pack preparation time and offline storage on the children's laptop | Measure the M0 bake-off MP3 sizes; multiply by the 55–90 distinct clips per campaign | M0 |
+| Bank sizing, clip and picture counts and ≈20–25 hours of operator effort (C26.2) **[UNVERIFIED]** estimates | Whether every age band can reach eligibility (C24.7) in M3 as planned | Time the first authored batch (content phase C, the C25.5 records) and re-estimate | M3 |
+| Busiest-wave frame rate against the C14 budgets **[UNVERIFIED]**; nothing has been measured | AC-42 has no target until it is measured | Measure wave 37 and the synthetic full-pool scene at 2x on the children's laptop ([J](J-execution-backlog.md) M2-13) | M2 |
+| Balance numbers (all of C5–C11) suit real five- to seven-year-olds **[UNVERIFIED]**; the simulator's players are heuristics (C17.1, C17.6) | Too hard or too easy loses the children; the C17.7 list says which numbers move first | Child playtests P1 (M1), P2 (M2) and the balance playtests in M4, each number change re-run through [tools/sim/](../../tools/sim/) first ([I](I-validation.md)) | M1, M2, M4 |

@@ -157,6 +157,44 @@ Suggested folders (none exist yet; create them when the player app is scaffolded
 
 These paths are a proposal. Section E (architecture) owns the final layout and the asset manifest.
 
+### 1.6a Getting your images into the app
+
+**Your only job:** save every image you accept, at the full size ChatGPT gave you, as `art/source/<family>/<file>`. The exact path for
+each image is the `rawPath` in the catalogue (below). For animations, save each frame (`-01`, `-02`, …) next to frame 01. You do not need
+to trim, resize or export anything by hand once the build tool exists. (Until then, section 5 is the manual route.)
+
+**The catalogue** [`docs/art/asset-catalogue.json`](asset-catalogue.json) is the single list that the game and the tools read. It has one
+entry per image file you produce (an animation is one entry with a frame count), and for each one: the card it comes from, the
+ChatGPT conversation and canvas, the author and display size, the anchor point, how its background is removed, which atlas it goes in and
+whether it is in the first group to replace (`"required": "M1"`: art the Milestone 1 slice shows on screen; M1 itself ships with
+labelled placeholders, so this means "replace these placeholders first", not "blocks Milestone 1"). Its `rules` block explains every field. If you rename a file or add an
+asset, change the catalogue in the same commit.
+
+**The build tool** (`tools/art`, to be built in a later build phase) reads the catalogue and, for each file it finds in `art/source`:
+
+1. trims it and removes the background where the catalogue says so (green or magenta key, or black-to-alpha for glows). Where the
+   subject has both lime and magenta (`"transparency": "alpha-required"`), it does not key: it reports the file if it has no real
+   transparency, and you regenerate it or cut it out by hand;
+2. resizes it to `authorSize` (the 2x master the game ships);
+3. packs the sprites into `atlas-common` and `atlas-luna-1` and copies the rest into `web/player/public/assets/…`;
+4. writes the game's `asset-manifest.json`.
+
+**Art never blocks building.** Until an image exists, the game draws a labelled placeholder (a coloured shape with the id on it) of the
+same size and anchor, so the code works the same before and after the real art arrives.
+
+**Ticking progress:** an image is done when its file is in `art/source` (for an animation, every frame). The tool can list what is still
+missing; there is no separate checklist to keep up to date. Record each accepted image in `docs/art/provenance.csv` as well (section 6).
+
+**Git and `art/source`:** the originals are large (full-size PNGs, several hundred files with all the animation frames). Two options:
+
+| Option | Good | Cost |
+|---|---|---|
+| Commit with **Git LFS** | Originals versioned with the catalogue; a fresh clone can rebuild every asset | LFS storage and bandwidth quotas; **if the repo is public, every original becomes public**, including rejected-but-kept edits and reference sheets |
+| **Keep out of git** (add `art/source/` to `.gitignore`, back it up privately, for example to a private S3 bucket) | Nothing large or unreleased is published | A fresh clone cannot rebuild the art; the built files in `web/player/public/assets/` must then be committed or restored from the backup |
+
+The shipped (built) images are public anyway once the site is live. If the repo is or will be public, prefer keeping `art/source` out of
+git; otherwise Git LFS is the simpler choice.
+
 ### 1.7 Keeping characters consistent
 
 1. **Master reference first.** For each astronaut, generate the character sheet (front, three-quarter and back views on one image) before
@@ -255,7 +293,7 @@ appearances (skin, hair and so on) are proposals: change any of them before gene
 
 | Class | Signature colour | Silhouette and equipment (the thing you must see at 64 px) | Person (proposal) |
 |---|---|---|---|
-| **Nova** — Laser Scout | orange #FF8A2A on white | round bubble helmet with a big bright orange-tinted visor rim; compact toy laser gadget held out in **one hand like a torch**, with a **round lens** at the front; a **diagonal orange chevron stripe** across the chest | young woman, deep brown skin, black curly hair in two puffs inside the helmet, big grin |
+| **Nova** — Laser Scout | orange #FF8A2A on white | round bubble helmet with a big bright orange-tinted visor rim; compact toy laser gadget held out in **one hand like a torch**, with a **round lens** at the front; a **diagonal orange chevron stripe** across the chest | young woman, fair skin with rosy cheeks, black curly hair in two puffs inside the helmet, big grin |
 | **Pip** — Frost Explorer | ice blue #8ED8FF | **two round cooling canisters** on the back like bubbles; snowflake emblems; short frost wand with a **snowflake tip** | young man, pale skin with freckles, tufty ginger hair, round cheeks |
 | **Juno** — Comet Engineer | sunshine yellow #FFD23F | **goggles** on top of the helmet; a chunky round toy **comet popper mounted on her backpack**, a short fat **funnel pointing straight up** over her shoulder that lobs comets in a high arc; she presses a big round button on a hand controller | young woman, light-brown skin, straight black bob, confident smile |
 | **Orion** — Orbit Ranger | navy #2E4A9E with gold stars | **long telescope**, much longer than any other kit, held like a stargazer's telescope (tilted up, never shouldered or aimed level); star pattern on the suit | young man, olive skin, wavy dark hair, thoughtful look, small bright hearing aid |
@@ -371,7 +409,7 @@ Character reference sheet for this game's Laser Scout astronaut. Landscape 1536x
 Show the same character three times side by side at the same size: front view, three-quarter view facing the viewer's right,
 and back view. Use the attached style anchor ONLY for style, outline, angle and height; the astronaut in it is a generic
 stand-in, and this character has the face, skin and hair described here.
-The character: enthusiastic young explorer; young woman with deep brown skin, black curly hair in two puffs, big grin, inside a
+The character: enthusiastic young explorer; young woman with fair skin and rosy cheeks, black curly hair in two puffs, big grin, inside a
 round glass bubble helmet with a bright orange visor rim. White spacesuit with orange #FF8A2A panels on the knees and boots, a
 bold diagonal orange chevron stripe across the chest, small backpack. She holds a compact, toy-like laser gadget out in ONE hand
 like a torch, the other hand free: a short rounded orange and white body with a small round glowing lens at the front, like a
@@ -3003,6 +3041,9 @@ Do these for every accepted image before it goes into `web/player/public/assets/
 ---
 
 ## 7. Coverage index (every inventory id)
+
+The file-by-file list (one entry per image file, with sizes, anchors, paths and the Milestone 1 set) is the catalogue
+[`docs/art/asset-catalogue.json`](asset-catalogue.json); see 1.6a. This index lists the cards.
 
 | Group | Inventory ids | Section |
 |---|---|---|

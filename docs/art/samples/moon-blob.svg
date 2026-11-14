@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <g stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <!-- antennae -->
+    <path d="M100 92 Q92 66 84 52" fill="none" stroke-width="7"/>
+    <path d="M156 92 Q166 66 176 54" fill="none" stroke-width="7"/>
+    <circle cx="83" cy="48" r="11" fill="#9FF3FF" stroke-width="6"/>
+    <circle cx="177" cy="50" r="11" fill="#9FF3FF" stroke-width="6"/>
+    <!-- body dome -->
+    <path d="M30 196 Q30 88 128 86 Q226 88 226 196 Q226 212 208 212 L48 212 Q30 212 30 196 Z" fill="#5AA9F0" stroke-width="8"/>
+  </g>
+  <!-- shade bottom-right -->
+  <path d="M226 196 Q226 140 196 108 Q214 150 206 196 Q204 206 190 208 L208 208 Q222 206 226 196 Z" fill="#3F86CF"/>
+  <!-- highlight top-left -->
+  <path d="M60 130 Q72 104 104 98" fill="none" stroke="#BFE3FF" stroke-width="10" stroke-linecap="round"/>
+  <!-- belly -->
+  <ellipse cx="128" cy="184" rx="58" ry="22" fill="#8CC7F6"/>
+  <!-- crater spots -->
+  <g fill="#8CC7F6" stroke="#2A1E3D" stroke-width="3">
+    <ellipse cx="80" cy="150" rx="9" ry="7"/><ellipse cx="190" cy="140" rx="7" ry="5"/><ellipse cx="170" cy="112" rx="6" ry="4.5"/>
+  </g>
+  <!-- eyes -->
+  <g stroke="#2A1E3D" stroke-width="5">
+    <ellipse cx="104" cy="136" rx="17" ry="20" fill="#FFFFFF"/>
+    <ellipse cx="152" cy="136" rx="17" ry="20" fill="#FFFFFF"/>
+  </g>
+  <circle cx="108" cy="140" r="9" fill="#2A1E3D"/><circle cx="156" cy="140" r="9" fill="#2A1E3D"/>
+  <circle cx="111" cy="136" r="3.5" fill="#FFFFFF"/><circle cx="159" cy="136" r="3.5" fill="#FFFFFF"/>
+  <!-- cheeky lopsided grin -->
+  <path d="M110 170 Q132 186 156 166" fill="none" stroke="#2A1E3D" stroke-width="6" stroke-linecap="round"/>
+  <path d="M150 164 L160 162" stroke="#2A1E3D" stroke-width="5" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <g stroke="#2A1E3D" stroke-linejoin="round" stroke-linecap="round" stroke-width="7">
+    <!-- backpack -->
+    <rect x="70" y="118" width="38" height="58" rx="12" fill="#A7B0C8"/>
+    <!-- legs / boots -->
+    <rect x="98" y="186" width="26" height="38" rx="10" fill="#F4F1EA"/>
+    <rect x="132" y="186" width="26" height="38" rx="10" fill="#F4F1EA"/>
+    <path d="M94 222 h34 q6 0 6 8 v2 h-44 v-2 q0-8 4-8z" fill="#FF8A2A"/>
+    <path d="M128 222 h34 q6 0 6 8 v2 h-44 v-2 q0-8 4-8z" fill="#FF8A2A"/>
+    <!-- torso -->
+    <path d="M88 132 Q88 116 106 114 L150 114 Q168 116 168 132 L168 190 Q168 198 160 198 L96 198 Q88 198 88 190 Z" fill="#F4F1EA"/>
+    <!-- left arm (behind) -->
+    <path d="M92 130 Q72 150 80 176" fill="none" stroke-width="20"/>
+    <path d="M92 130 Q72 150 80 176" fill="none" stroke="#F4F1EA" stroke-width="8"/>
+    <circle cx="80" cy="180" r="10" fill="#FF8A2A"/>
+  </g>
+  <!-- chest chevron stripe (diagonal) -->
+  <path d="M94 150 L162 124 L166 140 L98 166 Z" fill="#FF8A2A" stroke="#2A1E3D" stroke-width="4" stroke-linejoin="round"/>
+  <!-- torso shade -->
+  <path d="M160 132 L166 132 L166 190 Q166 196 158 196 L150 196 Q160 170 160 132 Z" fill="#D9D3C6"/>
+  <g stroke="#2A1E3D" stroke-linejoin="round" stroke-linecap="round" stroke-width="7">
+    <!-- right arm holding gadget like a torch -->
+    <path d="M162 132 Q186 140 196 158" fill="none" stroke-width="20"/>
+    <path d="M162 132 Q186 140 196 158" fill="none" stroke="#F4F1EA" stroke-width="8"/>
+    <rect x="188" y="148" width="36" height="22" rx="8" fill="#A7B0C8" transform="rotate(18 206 159)"/>
+    <circle cx="226" cy="168" r="11" fill="#FFF4D6"/>
+    <circle cx="196" cy="160" r="10" fill="#FF8A2A"/>
+    <!-- helmet bubble -->
+    <circle cx="128" cy="78" r="56" fill="#CFE9FF" fill-opacity="0.55"/>
+  </g>
+  <!-- head inside helmet -->
+  <circle cx="102" cy="58" r="13" fill="#1E1A24"/><circle cx="154" cy="58" r="13" fill="#1E1A24"/>
+  <circle cx="128" cy="82" r="34" fill="#F6D2B8" stroke="#2A1E3D" stroke-width="5"/>
+  <path d="M100 70 Q128 46 156 70 Q146 58 128 56 Q110 58 100 70 Z" fill="#1E1A24"/>
+  <ellipse cx="116" cy="84" rx="5" ry="7" fill="#2A1E3D"/><ellipse cx="140" cy="84" rx="5" ry="7" fill="#2A1E3D"/>
+  <circle cx="118" cy="81" r="2" fill="#fff"/><circle cx="142" cy="81" r="2" fill="#fff"/>
+  <ellipse cx="108" cy="94" rx="6" ry="4" fill="#F2A7A0" opacity="0.8"/><ellipse cx="148" cy="94" rx="6" ry="4" fill="#F2A7A0" opacity="0.8"/><path d="M112 98 Q128 112 144 98" fill="#FFFFFF" stroke="#2A1E3D" stroke-width="4" stroke-linejoin="round"/>
+  <!-- visor rim + helmet highlight -->
+  <path d="M74 98 Q128 126 182 98" fill="none" stroke="#FF8A2A" stroke-width="10" stroke-linecap="round"/>
+  <path d="M90 50 Q104 34 124 30" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" opacity="0.9"/>
+  <circle cx="128" cy="78" r="56" fill="none" stroke="#2A1E3D" stroke-width="7"/>
+</svg>
