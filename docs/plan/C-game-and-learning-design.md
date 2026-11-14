@@ -1593,7 +1593,7 @@ never fail. Four to six keeps "three incorrect = no reward" a real outcome. Natu
   slot, one summary update (spine S3.3: "one SUBMIT_ATTEMPT = the whole answer").
 - After an incorrect attempt the client (which holds the per-step answers in the pack) keeps steps that were right locked with a tick and
   marks wrong steps "Try this part again" — the same information a single-step activity gives. The server judges only the whole joined
-  answer; the client re-derives the per-step marks from the recorded canonical answer after a refresh.
+  answer (step answers joined by `|`, still one string ≤ 64 characters); the client re-derives the per-step marks from the recorded canonical answer after a refresh.
 
 ### C20.4 Feedback after resolution
 
@@ -1620,16 +1620,40 @@ this section defines only how an activity refers to clips. **[PROPOSAL]**
 - Variant names match `^(prompt|instruction|answer|option-[a-f]|bin-[a-z0-9]{1,8}|intro-[1-3])$`; one clip per variant in version one.
 - In a draft, `speechDefinitionReferences` maps variant → `{speechId, speechVersion}`. At publish, the version pins resolved refs
   `{variant → speechId, speechVersion, clipKey}` and publish ConditionChecks that every referenced speech version is approved (spine S5.2).
-  The slot copies them into `clips[]`.
-- The player speech request carries only `{runId, slotId, variant}`; the service reads the caller's slot and signs the `clipKey` pinned
-  in its `clips` map ([F](F-state-and-data.md) §4.2, [G](G-api-contracts.md) R15; spine S2 and S9 `POST /api/speech`). It reads no
-  `content` item. A player never sends text, SSML, a voice or a `speechId`.
+  The slot copies them into its `clips` map (`{speechId, speechVersion, clipKey}` per variant).
+- The player speech request carries only `{runId, slotId, variant}`; the service resolves the speech **from the slot's pinned clips map**
+  and signs that `clipKey` ([F](F-state-and-data.md) §4.2, [G](G-api-contracts.md) R15; spine S2 and S9 `POST /api/speech`). It reads no
+  `content` item (the `tts` function has no read access to the content table). A player never sends text, SSML, a voice or a `speechId`.
+  The response carries the clip's `sha256`, which the browser checks after download.
+
+What the speech definitions behind these references look like **[CONFIRMED by owner, 2026-11-14]** (spine S5.2; pipeline in
+[D](D-ux-and-content-operations.md) D9 and [E](E-architecture.md); evidence in [sources/06-polly-tts.md](sources/06-polly-tts.md) and
+[sources/11-voice-engine.md](sources/11-voice-engine.md)):
+
+| Field | Values | How it is set |
+|---|---|---|
+| `kind` | `WORD`, `PHONEME`, `LETTER_NAME`, `INSTRUCTION`, `DICTATION` | chosen when the definition is drafted **[PROPOSAL]**; guides which variant it suits (a `prompt` for an isolated sound is a `PHONEME`, a dictated spelling word a `DICTATION`, a shared stem an `INSTRUCTION`) |
+| `provider` | `"polly"` | fixed in v1 |
+| `engine` | `generative` for most kinds; `tts_phoneme_engine` (default `neural`) for `PHONEME` and `LETTER_NAME` | server configuration, never the operator or the player |
+| `voiceId` | `Amy` (en-GB) by default | server configuration `tts_voice_id` |
+
+- **A clip is synthesised once, ever.** Its key is a hash of the text/SSML, voice, engine and settings, so every activity that uses the same
+  words in the same voice shares one clip (for example the instruction stem "Which letter is missing?" used by dozens of spelling items).
+  This keeps the clip counts in C26.2 an upper bound.
+- **Changing the voice or engine affects new previews only.** Approved clips keep their bytes until someone previews and approves again;
+  nothing is silently re-voiced, so an approved activity always plays what the operator listened to (C22.3 item 5).
+- **Play** (meets AC-19 and AC-22): the browser stores each clip's bytes once per `clipKey`, fetched while the run is prepared. If the
+  slot's pinned clip is already stored, playback starts **at once** from local bytes and `POST /api/speech` is sent at the same time, so the
+  authenticated speech call still happens on every Play. Otherwise the client waits for the response, downloads, checks `sha256`, stores
+  and plays. Offline, only local bytes are used. A failure offers Retry and never costs an attempt (C20.2).
+- Sounds that fail the listening test fall back to a **human recording** or a tier-A whole-word item (C19). Amazon Nova Sonic was
+  considered and rejected (conversational speech-to-speech, no SSML, not in eu-west-2; [sources/11-voice-engine.md](sources/11-voice-engine.md)).
 - `audioRequirement` (`NONE` | `OPTIONAL` | `REQUIRED`) on the activity: `REQUIRED` needs at least a `prompt` clip (or option/bin clips that
   carry the sound); **every phonics activity has at least one clip** (prompt or instruction), so "phonics gets a visible Play control"
   (prompt.md:271) holds for every phonics item.
 - Owner decision D-1: allow clips beyond phonics stimuli — dictated spelling words that cannot be pictured ("said", "because") and a small
   library of shared instruction stems, because a five-year-old may not be able to read "Which letter is missing?". Same approved pipeline.
-  Recommended: yes.
+  Accepted as recommended **[CONFIRMED by owner, 2026-11-14]**.
 
 ---
 
@@ -1739,7 +1763,7 @@ Start and Skip only. **[PROPOSAL]**
 1. **Automatically, once per concept per run, at its first appearance** — decided at slot planning and stored on the slot (`intro: AUTO`):
    in slot order, the first slot of each concept whose activity carries a demonstration. Skippable.
 2. **On request** on any slot whose activity carries one (`intro: ON_REQUEST`): a "Show me" button that behaves the same before and after an
-   incorrect attempt (owner decision D-2; if the owner disagrees, disable it once the first attempt is recorded).
+   incorrect attempt (owner decision D-2, accepted as recommended **[CONFIRMED by owner, 2026-11-14]**).
 3. Never opened by the system because of an incorrect attempt; never after resolution; never consumes an attempt; never timed.
 4. The demonstration works a *different* example and must not contain the activity's answer; template generators exclude the
    demonstration's example values from the domain.

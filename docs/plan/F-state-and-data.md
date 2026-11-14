@@ -737,15 +737,16 @@ IndexedDB stores: `ops` (pending, each with its stored generation and `protocolV
 | bounds file per `(rulesetVersion, campaignVersion)` | site bucket beside game data | numbers only (maxBounty per wave, prices, unlock waves, pads, caps), emitted from `game-core` by a build script; `player-api` reads it via `load_bounds(version)`; never deleted | **[PROPOSAL]** |
 | `activityId` + `activityVersion` per slot | slot | content versions are immutable and never deleted (`content` table) | **[CONFIRMED prompt.md:552; AC-23]** |
 | template instance | slot `resolved` | materialised at creation; the browser never runs a generator | **[PROPOSAL]** |
-| clip refs | slot `clips[]` | content-addressed, never-overwritten audio objects; `tts` has no S3 delete permission | **[PROPOSAL]** |
-| `protocolVersion` | run (creation) and every op envelope | API accepts the current and previous version (strict schema per version) | **[PROPOSAL]** |
+| clip refs | slot `clips` map | content-addressed, never-overwritten audio objects under `tts/v1/`; the approved speech version records the MP3's `sha256`; `tts` has no S3 delete permission. Changing `tts_voice_id`, `tts_engine` or `tts_phoneme_engine` affects new previews only, so a pinned clip never changes under a run (no silent re-voicing) | **[PROPOSAL]**; voice rule **[CONFIRMED by owner]** |
+| `protocolVersion` | run (creation) and every op envelope | API accepts the current and previous version (strict schema per version); newer than supported → `409 PROTOCOL_UNSUPPORTED` | **[PROPOSAL]** |
 
 **Mechanics compatibility [PROPOSAL].** The spec warns that "a changed rules file alone does not maintain compatibility if the new
 runtime cannot execute it" (prompt.md:884).
 
 - Each ruleset declares `mechanics` (an integer). `game-core` declares the mechanics numbers it supports.
 - Support is **additive forever**. "Supported" is separate from "used for new runs" (`/game-data/current.json`).
-- From the data-freeze point, golden scenarios (2–3 scripted per mechanics number) run in CI ([I](I-validation.md)).
+- From the data-freeze point, golden scenarios (2–3 scripted per mechanics number, in `contracts/golden/` (to create), additive-only like
+  game data) run in CI ([I](I-validation.md)).
 
 **`playable(run)`** = the server can load the run's bounds file **and** the client supports its ruleset's mechanics. A non-playable run:
 
@@ -755,12 +756,16 @@ runtime cannot execute it" (prompt.md:884).
 - refuses every op except `ABANDON`/`FINISH_RUN`.
 
 Runbook rule: never roll back past a mechanics or protocol addition while an IN_PROGRESS run pins it or a queued client needs it.
-Release mechanics are in [H](H-infrastructure-and-delivery.md).
+A rollback re-deploys an earlier release's archived artefacts (release workflow input `artefacts_from=<release_id>`) on top of current
+`main` Terraform; game-data files are never deleted, so every pin still resolves. Release mechanics are in
+[H](H-infrastructure-and-delivery.md). **[PROPOSAL]**
 
 **Protocol evolution [PROPOSAL].**
 
 - An older client gets a `426`-style `CLIENT_UPGRADE_REQUIRED`. This **never freezes the queue**: after reload, the stored ops are
   flushed with their stored `protocolVersion`.
+- A client *newer* than the server (possible only after a rollback) gets `409 PROTOCOL_UNSUPPORTED` at batch level. The queue waits in
+  `RETRYING` ("Saving paused while the game updates") and is never marked `REJECTED` (§7).
 - The IndexedDB schema is versioned.
 - CI replays a recorded previous-release batch against the new handler (AC-35).
 
@@ -782,8 +787,11 @@ credits, astronauts, upgrades, unlocked classes and powers (prompt.md:195-197, 4
 | Nickname, avatar, DOB | `PROFILE` | kept | kept | kept | kept | kept | kept | deleted |
 | Session lease | `SESSION` | unchanged | unchanged | unchanged | unchanged | unchanged | unchanged | kept; generation +1 |
 
-- **Best wave, eligibility and campaign badges are updated only for `mode = CAMPAIGN` runs.** Challenge runs may still write their own
-  challenge badge and the mode-independent badges ([C §C12](C-game-and-learning-design.md#c12-badges)). **[PROPOSAL]**
+- **Best wave, eligibility and campaign badges are updated only for `mode = CAMPAIGN` runs.** In a `CHALLENGE` run, only the final
+  `COMPLETE_WAVE` may write PROFILE, and only `badges` (its challenge badge), never `planets` or eligibility
+  ([C §C12](C-game-and-learning-design.md#c12-badges)). **[PROPOSAL]**
+- **Badges in v1** are the campaign/progress badges and the challenge badges. The five learning-outcome badges are dropped from v1, so no
+  badge is ever written from a slot resolution or a `SUM#` change. **[PROPOSAL]**
 - **Milestones and badges are thresholds re-evaluated on every `COMPLETE_WAVE`.** So after a `CAMPAIGN_PROGRESS` reset, a still-running
   run re-earns what it reaches; the reset dialog says so. **[PROPOSAL]**
 - **Learning summaries** change only on `SUCCEEDED`/`FAILED`, in the resolving transaction. `DECLINED` and `VOIDED` never count; meteor
@@ -831,7 +839,7 @@ Starting point: run R at `wave=17`, `phase=IN_WAVE`, `highestCompletedWave=16`, 
 | 6 | Child refreshes the defeat page | local and cloud both DEFEATED | any op → `RUN_TERMINAL`; Continue never revives it |
 
 Why the order matters: if the terminal check (c) or the revision check (d) ran before (a), step 4 would answer `REJECTED RUN_TERMINAL`
-or `STALE_REVISION`. That would send a perfectly healthy client into the divergence dialog (review finding SM-05). If another browser had
+or `STALE_REVISION`. That would send a perfectly healthy client into the divergence dialog (an ordering bug found in design review). If another browser had
 taken over between steps 2 and 4, (a) still answers first, so the result is the same. In online-only mode the defeat screen shows
 "Saving…" until step 5, so defeat is never shown as final before it is acknowledged. Best wave stays 16 (prompt.md:199). New runs start
 fresh (Example F).
@@ -876,7 +884,7 @@ case 4a as if nothing had happened. In case 4b it would have got `STALE_REVISION
 
 ### 11.4 Withdrawn activity reached offline (prompt.md:556; AC-23)
 
-Starting point: laptop L prepared run R's offline pack on Monday. Slot `N-012` (a spelling slot: (12 − 1) mod 3 = 2) pins activity `spell-ship@20261110T090000Z` (illustrative ID). On Tuesday
+Starting point: laptop L prepared run R's offline pack on Monday. Slot `N-012` (a spelling slot: (12 − 1) mod 3 = 2) pins activity `sp-0112@20261110T090000Z` (illustrative ID). On Tuesday
 the operator withdraws that version (`C6`), which writes only to the `content` table. L is offline and knows nothing about it.
 
 | # | What happens | Local | Server on sync |
@@ -897,7 +905,9 @@ Variant, online: on resume the run view shows `withdrawn: true` on `N-012`. The 
 
 Variant, three wrong answers offline: the local branch shows FAILED with no reward. The server voids on `u1` and grants +R, then `u2` and
 `u3` are no-ops. The next `SAVE_PREP` carries the lower local credits, which passes the bounds check (lower is always allowed), so the
-cloud ends with what the child saw. That fits "an offline branch keeps what it saw locally". See open points.
+cloud ends with what the child saw. That fits "an offline branch keeps what it saw locally", and it is the accepted rule: the local
+result is kept and the VOID reward does not stick (spine [S3.3](00-spine.md#s33-activity-slot); pairs with D-9). Making the reward stick
+would need the reducer to know about a withdrawal it cannot see offline. **[PROPOSAL]**
 
 ---
 

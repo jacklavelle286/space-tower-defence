@@ -530,7 +530,8 @@ availability problem (`prompt.md:713`): an audio-dependent activity whose clip i
 ## E.5 React, Phaser and game-core
 
 The spec splits responsibilities between React and Phaser (`prompt.md:824`) **[CONFIRMED]**. The plan adds a third piece, a
-pure TypeScript `game-core` package, so the rules can be tested without a browser and mirrored by Python **[PROPOSAL]** spine S10.
+pure TypeScript `game-core` package, so the rules can be tested without a browser and mirrored by Python **[PROPOSAL]** spine
+[S10](00-spine.md#s10-react--phaser-split-proposal).
 
 Why a pure core: the simulation and the rules reducer are the parts that must give the same answer every time (on any
 frame rate, in tests, and on the server). A "pure" module takes inputs and returns outputs with no hidden reads of the
@@ -542,11 +543,15 @@ screen, the clock or the network, which is what makes it repeatable and unit-tes
 
 | Package | Contains | Must not import |
 |---|---|---|
-| `web/game-core` (to create) | fixed-timestep simulation, rules reducer, next-phase rule, answer canonicaliser, seeded RNG | Phaser, React, DOM, `fetch`, IndexedDB |
-| `web/player` (to create) | React app + Phaser scene + sync engine + audio module | — |
-| `web/admin` (to create) | React admin app | Phaser |
-| `web/shared` (to create) | API types, limits file, test vectors, audio playback module, API client | Phaser |
-| `contracts/` (to create) | JSON Schemas, shared op-sequence and answer fixtures (run by Vitest and pytest) | — |
+| `web/game-core` (to create) | fixed-timestep simulation, rules reducer, next-phase rule, seeded RNG | Phaser, React, DOM, `fetch`, IndexedDB |
+| `web/player` (to create) | React app + Phaser scene + sync engine | — |
+| `web/admin` (to create) | React admin app (incl. preview-solve, which renders the shared learning panel) | Phaser |
+| `web/shared` (to create) | API types, limits file, answer canonicaliser, test vectors, the **shared learning panel** (React, the six interaction types), audio playback module, API client | Phaser |
+| `contracts/` (to create) | JSON Schemas, `routes.json` (the route list the release smoke check and the plan route-key gate compare against), `golden/` (additive-only), shared op-sequence and answer fixtures (run by Vitest and pytest) | — |
+
+Why the learning panel lives in `web/shared` **[PROPOSAL]**: the operator's preview-solve must show exactly what a child will
+see, so the admin app renders the same component instead of a look-alike. Keeping it free of Phaser lets the admin build stay
+small.
 
 The other top-level folders belong to [H §H.2](H-infrastructure-and-delivery.md#h2-repository-layout-after-this-plan): the
 Python Lambda source is `api/` (to create; `api/functions/{player_api,admin_api,tts,cognito_presignup}/` plus a shared
@@ -559,7 +564,7 @@ player site. `web/` and `contracts/` are owned here.
 |---|---|---|---|
 | Routing, sign-in/out, profile, run list | ✔ | | |
 | HUD, shop, upgrade/sell/targeting panels, dialogs | ✔ (HUD updates ≤ 10 Hz) | | |
-| Learning panels (six interaction types), Play button, audio | ✔ | | answer canonicalisation |
+| Learning panels (six interaction types), Play button, audio | ✔ (components and answer canonicaliser from `web/shared`) | | |
 | Keyboard shortcuts and accessible controls | ✔ (DOM) | keyboard capture disabled | |
 | Battlefield rendering, animation, pointer-to-pad mapping | | ✔ | |
 | Simulation tick (60 Hz fixed step), wave RNG from `(seed, wave)` | | drives the loop | ✔ logic |
@@ -580,8 +585,10 @@ past-tense facts going game → React.
 | `loadRun`, `startWave`, `pause`, `resume`, `setSpeed`, `place`, `upgrade`, `sell`, `setTargeting`, `usePower`, `selectPad` | `hud`, `selectionChanged`, `waveCleared{snapshot, stats}`, `defeated{wave}`, `commandRejected` |
 
 The simulation has its own pause flag: page hidden or a dialog open pauses it, and only an explicit Resume clears it, because
-Phaser auto-resumes on tab return otherwise (**[VERIFIED]** research 07 §a.4). Fixed-step details and the 30/60/144 Hz test
-are in spine S10 and [I](I-validation.md).
+Phaser auto-resumes on tab return otherwise (**[VERIFIED]** during planning research). Fixed-step details (integer
+accumulator in 1/60,000 s units, at most 30 steps per frame, the remainder discarded when the cap is hit) are in spine S10 and
+[C](C-game-and-learning-design.md). The 30/60/144 Hz determinism test follows from `prompt.md:303` and AC-13 and is in
+[I](I-validation.md); AC-42 is only the busiest-wave performance target.
 
 ---
 

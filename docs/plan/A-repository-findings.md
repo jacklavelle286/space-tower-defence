@@ -475,16 +475,19 @@ owner) are in `docs/build-phases.md` (to create). The designs are in the section
 | 9 | GitHub settings | `prod` environment with a `main`-only deployment-branch rule. If required reviewers are available, a second environment `prod-apply` with reviewers, used only by the apply job. If environments are unavailable, the `ref:refs/heads/main` fallback subject applies (section 5.3). The M0 smoke test decides; the outcome is an ADR in `docs/decisions/`. No repository secrets are needed. | [H §H.5](H-infrastructure-and-delivery.md#h5-bootstrap-changes-you-make-no-replacement-bootstrap) | **[PROPOSAL]** |
 | 10 | Application folders | `web/` npm workspaces `game-core`, `player`, `admin`, `shared`; `contracts/` for JSON Schemas and shared fixtures ([E §E.5.1](E-architecture.md#e51-workspace-layout-all-to-create)). Python Lambda source in a top-level `api/` (`functions/<key>/`, `shared/`, `tests/`), outside `infrastructure/`. Game-data JSON in a top-level `game-data/`; seed content in `content/seed/`; build and guard scripts in `scripts/`; Milestone 0 spikes in `spikes/` (all to create). The balance simulator already sits in [tools/sim/](../../tools/sim/) (added during planning). The full folder list is in [spine S1.3](00-spine.md#s13-configuration-names-and-repository-layout-proposal). | [E](E-architecture.md), [H §H.2](H-infrastructure-and-delivery.md#h2-repository-layout-after-this-plan) | **[PROPOSAL]** |
 | 11 | Tooling versions | Node 24 LTS via `.nvmrc` (Node 24 has been installed locally via nvm **[CONFIRMED by owner]**), Python 3.14 via `.python-version` (3.12.3 local today), Terraform `1.17.2` exact in CI (the owner's local CLI) with `required_version = ">= 1.11, < 2.0"` | [H §H.17](H-infrastructure-and-delivery.md#h17-version-pins) | **[PROPOSAL]** |
-| 12 | Tests | Vitest, Playwright, pytest + moto, contract fixtures, Terraform `fmt -check`/`validate`, plan guard (to create) | [I](I-validation.md) | **[PROPOSAL]** |
-| 13 | Docs | `docs/plan/` (this plan), with decisions, runbooks in `docs/runbooks/` (restore, operator password reset, sign-up kill switch, rollback) and a release log in `docs/releases/` (to create), added alongside the work, not as a separate phase | [J](J-execution-backlog.md) | **[PROPOSAL]** |
-| 14 | DNS hand-off | The owner wires the zone lookup/records (section 7) | Owner; points in [E](E-architecture.md), [H](H-infrastructure-and-delivery.md) | **[CONFIRMED]** |
+| 12 | Tests | Vitest, Playwright, pytest + moto, contract fixtures (`contracts/golden/` additive-only), DynamoDB Local integration tests (CI service container; optional locally), Terraform `fmt -check`/`validate`, plan guard against `infrastructure/plan-guard.json`, a gate that plan route keys equal `contracts/routes.json`, and a release smoke check that every route in `contracts/routes.json` returns 401 without a token on both distributions (all to create) | [I](I-validation.md) | **[PROPOSAL]** |
+| 13 | Docs | `docs/plan/` (this plan, with the spine [00-spine.md](00-spine.md) and evidence in [sources/](sources/)); `docs/build-phases.md`, ADRs in `docs/decisions/`, runbooks in `docs/runbooks/` (restore, operator password reset, sign-up kill switch, rollback, speech withdrawal), a release log in `docs/releases/` and evidence in `docs/validation/` (playtests, performance, acceptance, browsers) (all to create), added alongside the work, not as a separate phase | [J](J-execution-backlog.md) | **[PROPOSAL]** |
+| 14 | DNS hand-off | The owner wires the validation and alias records (section 7), after the CAA and wildcard-alias checks; never touches apex/`www`; never uses `allow_overwrite` | Owner; points in [E](E-architecture.md), [H](H-infrastructure-and-delivery.md) | **[CONFIRMED by owner]** |
 | 15 | CI permission narrowing | Replace `AdministratorAccess` before the data-freeze point (section 5.3) | [H](H-infrastructure-and-delivery.md) | **[PROPOSAL]** |
+| 16 | Lambda artefacts bucket | Declared in `infrastructure/bootstrap/` beside the module call (to create), applied locally by the owner together with the `trusted_subs` fix; versioned; holds zips, manifests, archived static builds and saved plans (`plans/<run_id>/`) | [H §H.5](H-infrastructure-and-delivery.md#h5-bootstrap-changes-you-make-no-replacement-bootstrap), [H §H.8.3](H-infrastructure-and-delivery.md#h83-artefacts-bucket-layout) | **[PROPOSAL]** |
+| 17 | Protection flags | `prevent_destroy` and native deletion protection on tables, pools and buckets **from the first apply**; the plan-guard check enforces from the data-freeze point | [H §H.11](H-infrastructure-and-delivery.md#h11-data-protection-spine-s113) | **[PROPOSAL]** |
 
 ### 10.2 Environment-file keys to add
 
 Values the owner has not given are left as placeholders. I have not invented them. The key names here and in
-[H §H.6](H-infrastructure-and-delivery.md#h6-environment-file-keys) are the same; H owns the full list and how each key
-is declared in both roots.
+[H §H.6](H-infrastructure-and-delivery.md#h6-environment-file-keys) are the same, and they are recorded in
+[spine S1.3](00-spine.md#s13-configuration-names-and-repository-layout-proposal). H owns the full list and how each key is
+declared in both roots.
 
 | File | Key | Value | Why | Label |
 |---|---|---|---|---|
@@ -492,9 +495,12 @@ is declared in both roots.
 | `prod.tfvars.json` | `player_hostname` | `aliens.jackgl.com` | Certificate name, distribution alias, Cognito callback/sign-out URLs, audio-bucket CORS origin | **[PROPOSAL]** key; value **[CONFIRMED]** prompt.md:105 |
 | `prod.tfvars.json` | `admin_hostname` | `admin.aliens.jackgl.com` | Same uses, for the admin app | **[PROPOSAL]** key; value **[CONFIRMED]** prompt.md:107 |
 | `prod.tfvars.json` | `notification_email` | owner to supply | SNS alert subscription (reference key name). It must be confirmed within 48 h of the first apply. | **[PROPOSAL]** |
-| `prod.tfvars.json` | `signup_daily_cap` | `20` | Pre-sign-up daily cap (spine S1.2; see [E](E-architecture.md)) | **[ASSUMPTION]** |
+| `prod.tfvars.json` | `signup_daily_cap` | `20` | Pre-sign-up daily cap ([spine S1.2](00-spine.md#s12-sign-up-control-proposal-numbers-assumption); see [E](E-architecture.md)) | **[ASSUMPTION]** |
 | `prod.tfvars.json` | `player_signup_closed` | `false` | Sign-up kill switch → `allow_admin_create_user_only`, changed only through a release (spine S1.2) | **[PROPOSAL]** |
 | `prod.tfvars.json` | `player_auth_domain_prefix`, `operator_auth_domain_prefix` | owner to choose | Cognito managed-login prefix domains | **[ASSUMPTION]** |
+| `prod.tfvars.json` | `tts_voice_id` | `Amy` | Polly voice (en-GB), passed to the `tts` and `admin-api` Lambda environment. Changing it affects new previews only; approved clips keep their bytes until re-previewed and re-approved. | **[CONFIRMED by owner]** |
+| `prod.tfvars.json` | `tts_engine` | `generative` | Polly engine for words, instructions and dictation (the newest engine) | **[CONFIRMED by owner]** |
+| `prod.tfvars.json` | `tts_phoneme_engine` | `neural` | Engine for isolated phonemes and letter names, because AWS documentation is contradictory on `<phoneme>` support in the generative engine. The M0 listening bake-off decides; if generative passes, set it to `generative`. Evidence: [sources/06-polly-tts.md](sources/06-polly-tts.md), [sources/11-voice-engine.md](sources/11-voice-engine.md). | **[CONFIRMED by owner]** |
 | `prod.tfvars.json` | `role_policy_arns` | `[]` once the scoped inline policy replaces `AdministratorAccess` (section 5.3) | Bootstrap only | **[PROPOSAL]** |
 | `common.auto.tfvars.json` | `terraform_version` | `1.17.2` (the owner's local CLI) | One source for CI's `setup-terraform`. The copied workflow already reads this key ([tf-apply-destroy-env.yml:86](../../.github/workflows/tf-apply-destroy-env.yml#L86)). | **[PROPOSAL]** |
 | `common.auto.tfvars.json` | `trusted_subs` | narrowed (section 5.3) | Production-only trust | **[PROPOSAL]** |
@@ -509,10 +515,13 @@ is declared in both roots.
 | Project / environment | `space-tower-defence` / `prod` (production only for now) | **[VERIFIED]**; **[CONFIRMED]** prompt.md:25 |
 | CI role | `space-tower-defence-prod-github-oidc` | **[VERIFIED]** |
 | Main state | `s3://prod-state-bucket-space-tower-defence/main/terraform.tfstate`, `use_lockfile` | Bucket **[VERIFIED]**; key **[PROPOSAL]** |
-| Terraform | `>= 1.10` required by the bootstrap root; local CLI 1.17.2; AWS provider 6.x (6.73.0 locked in bootstrap). The main stack's pin must be `>= 1.11` (S3 native locking is GA from 1.11; spine S11.1); H sets `required_version = ">= 1.11, < 2.0"` and `1.17.2` exact in CI. | **[VERIFIED]**; pin **[PROPOSAL]** |
+| Terraform | `>= 1.10` required by the bootstrap root; local CLI 1.17.2; AWS provider 6.x (6.73.0 locked in bootstrap). The main stack's pin must be `>= 1.11` (S3 native locking is GA from 1.11; [spine S11.1](00-spine.md#s111-workflows)); H sets `required_version = ">= 1.11, < 2.0"` and `1.17.2` exact in CI. | **[VERIFIED]**; pin **[PROPOSAL]** |
 | Additional environments | Production only now, but the per-environment layout (`<env>.tfvars.json`, the bootstrap's `environment` input, `<environment>` in every name) is kept so a later staging needs only a new env file and a bootstrap apply | **[CONFIRMED]** prompt.md:976; layout **[PROPOSAL]** |
 | ECR | None; `ecr_repos = []` | **[VERIFIED]** |
 | GitHub secrets needed | None. Configuration lives in committed env JSON, and nothing secret is passed to Terraform. | **[PROPOSAL]** |
+| Who applies what | Main stack: only GitHub Actions, from a reviewed saved plan. Bootstrap root (trust, artefacts bucket): only the owner, locally. Locally, anyone may run `fmt`/`validate`/`plan` and read-only AWS calls. | **[CONFIRMED by owner]** |
+| Artefacts bucket | `…-artifacts-bucket`, created by the bootstrap root, not the main stack; saved plans under `plans/<run_id>/` | **[PROPOSAL]** |
+| DNS boundaries | Apex `jackgl.com` and `www` belong to another app in another account and are never touched; no `allow_overwrite` | **[CONFIRMED by owner]** |
 
 ---
 
