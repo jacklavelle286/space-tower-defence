@@ -1508,7 +1508,8 @@ letters, so tiles are kinder. Typed *numbers* are fine.
 
 Fractions, measurement, money, time and statistics are statutory at key stage 1 but not in the spec's subject list; they are left out of
 version one and listed as later candidates. Accent: no sound-discrimination item may depend on the bath/trap split or on u-in-but versus
-oo-in-foot, because a single southern-British synthetic voice would mark some children's home accent as wrong. **[PROPOSAL]**
+oo-in-foot, because a single southern-British synthetic voice (the default is Amazon Polly's en-GB voice Amy, **[CONFIRMED by owner,
+2026-11-14]**) would mark some children's home accent as wrong. **[PROPOSAL]**
 
 ---
 
@@ -1532,7 +1533,12 @@ be canonicalised (empty, wrong characters) never becomes an op; if a malformed o
 The normalisation rules deliberately avoid language built-ins (`Number()`, `trim()`, Unicode case folding) that behave differently across
 engines, and are expressed as a short list of named primitive steps. One shared vectors file (in `contracts/` (to create), per spine S10) will be run by Vitest
 and pytest so the TS canonicaliser and the Python shape check agree, and so template generators (Python) are proven to emit
-already-canonical answers. Separators `;`, `=`, `,` and `|` are reserved and may not appear in option IDs, tile values or zone/bin/object IDs.
+already-canonical answers. Separators `;`, `=`, `,` and `|` are reserved and may not appear in option IDs, tile values or zone/bin/object IDs;
+publish validation refuses them (C22.2).
+
+The canonical answer is **one string of at most 64 characters for every interaction type** (spine S3.3, S9.5): ARRANGE uses tile
+*values*, and a two-step activity's answer is the two step answers joined by `|` (C20.3). There is no "array of option IDs" form.
+**[PROPOSAL]**
 
 | Type (mode) | Payload (authored) | `answerSpecification` (stored, canonical) | Canonical answer sent in `SUBMIT_ATTEMPT` | Complete when | Correct when |
 |---|---|---|---|---|---|
