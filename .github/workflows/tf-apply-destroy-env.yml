@@ -1,183 +1,129 @@
-  name: terraform-per-env
+name: terraform-per-env
 
-  on:
-    workflow_dispatch:
-      inputs:
-        env:
-          description: "Environment"
-          required: true
-          type: choice
-          options:
-            - staging
-            - prod
-          default: staging
+# Manual Terraform plan / apply / destroy for infrastructure/main.
+# Adapted from the owner's existing pattern (workflow_dispatch, env JSON files read with jq, OIDC role, account guard).
+# Changes: this repo's CI role and state bucket, S3 native locking, saved plan applied in the same job,
+# no application secrets, Terraform version from the env files.
 
-        action:
-          description: "Terraform action"
-          required: true
-          type: choice
-          options:
-            - plan
-            - apply
-            - destroy
-          default: apply
-
-        confirm:
-          description: "Type CONFIRM to allow destroy in prod"
-          required: false
-          default: ""
-
-  permissions:
-    id-token: write
-    contents: read
-
-  jobs:
-    terraform:
-      runs-on: ubuntu-latest
-
-      environment:
-        name: ${{ github.event.inputs.env }}
-
-      defaults:
-        run:
-          shell: bash
-
+on:
+  workflow_dispatch:
+    inputs:
       env:
-        TF_VAR_db_username: ${{ secrets.POSTGRES_USER }}
-        TF_VAR_db_password: ${{ secrets.POSTGRES_PASSWORD }}
-        TF_VAR_db_name: ${{ secrets.POSTGRES_DB }}
-        TF_VAR_ai_creds: ${{ secrets.AI_CREDS }}
-        TF_VAR_weather_api_key: ${{ secrets.WEATHER_API_KEY }}
-        TF_VAR_google_calendar_feeds: ${{ secrets.LAVELLEJ286_ICAL_SECRET }}
-        TF_VAR_auth_secret: ${{ secrets.AUTH_SECRET }}
-        # Optional: OpenAI Admin key for the dashboard spend widget (empty is fine).
-        TF_VAR_openai_admin_key: ${{ secrets.OPENAI_ADMIN_KEY }}
-        # Web-push signing key (empty is fine until push is used).
-        TF_VAR_vapid_private_key: ${{ secrets.VAPID_PRIVATE_KEY }}
-        # FCM service-account JSON for native Android push (empty is fine).
-        TF_VAR_fcm_credentials: ${{ secrets.FCM_CREDENTIALS }}
-        # Public iCal feed token for the shared Family calendar (empty = feed off).
-        TF_VAR_family_feed_token: ${{ secrets.FAMILY_FEED_TOKEN }}
-        TF_VAR_skylight_refresh_token: ${{ secrets.SKYLIGHT_REFRESH_TOKEN }}
-      steps:
-        - name: Checkout
-          uses: actions/checkout@v4
+        description: "Environment"
+        required: true
+        type: choice
+        options:
+          - prod
+        default: prod
+      action:
+        description: "Terraform action"
+        required: true
+        type: choice
+        options:
+          - plan
+          - apply
+          - destroy
+        default: plan
+      confirm:
+        description: "Type CONFIRM to allow destroy in prod"
+        required: false
+        default: ""
 
-        - name: Install tools (jq)
-          run: |
-            sudo apt-get update
-            sudo apt-get install -y jq
+permissions:
+  id-token: write # needed to request the GitHub OIDC token
+  contents: read
 
-        - name: Load shared and env-specific vars
-          id: vars
-          run: |
-            ENV="${{ github.event.inputs.env }}"
-            COMMON_FILE="infrastructure/envs/common.auto.tfvars.json"
-            ENV_FILE="infrastructure/envs/${ENV}.tfvars.json"
+concurrency:
+  group: terraform-${{ inputs.env }} # one Terraform run per environment at a time
+  cancel-in-progress: false
 
-            [[ -f "$COMMON_FILE" ]] || { echo "Missing $COMMON_FILE"; exit 1; }
-            [[ -f "$ENV_FILE" ]] || { echo "Missing $ENV_FILE"; exit 1; }
+jobs:
+  terraform:
+    runs-on: ubuntu-24.04
+    # The environment name becomes part of the OIDC subject (…:environment:prod), which the CI role trusts.
+    # Add required reviewers to this environment in GitHub to make every run wait for your approval.
+    environment:
+      name: ${{ inputs.env }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: infrastructure/main
 
-            REGION=$(jq -r '.region' "$COMMON_FILE")
-            ACCOUNT=$(jq -r '.aws_account_id' "$ENV_FILE")
-            ENVIRONMENT=$(jq -r '.environment' "$ENV_FILE")
-            DOMAIN_NAME=$(jq -r '.domain_name' "$ENV_FILE")
-            PROJECT=$(jq -r '.project' "$COMMON_FILE")
-            TF_VERSION=$(jq -r '.terraform_version // "1.8.5"' "$COMMON_FILE")
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
 
-            if [[ -z "$ACCOUNT" || "$ACCOUNT" == "null" ]]; then
-              echo "aws_account_id must be set in $ENV_FILE"
-              exit 1
-            fi
+      - name: Refuse destroy in prod without confirmation
+        if: ${{ inputs.action == 'destroy' && inputs.env == 'prod' }}
+        run: |
+          [[ "${{ inputs.confirm }}" == "CONFIRM" ]] || { echo "Destroy in prod requires confirm=CONFIRM"; exit 1; }
 
-            if [[ -z "$TF_VAR_db_username" || -z "$TF_VAR_db_password" || -z "$TF_VAR_db_name" ]]; then
-              echo "One or more required GitHub environment secrets are missing:"
-              echo "POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_DB"
-              exit 1
-            fi
+      - name: Load shared and env-specific vars
+        id: vars
+        run: |
+          COMMON_FILE="../envs/common.auto.tfvars.json"
+          ENV_FILE="../envs/${{ inputs.env }}.tfvars.json"
+          [[ -f "$COMMON_FILE" && -f "$ENV_FILE" ]] || { echo "Missing env files"; exit 1; }
 
-            BUCKET="${ACCOUNT}-${REGION}-${PROJECT}-${ENVIRONMENT}"
-            DDB="${ACCOUNT}-${REGION}-${PROJECT}-${ENVIRONMENT}"
-            KEY="terraform.tfstate"
+          PROJECT=$(jq -r '.project' "$COMMON_FILE")
+          REGION=$(jq -r '.region' "$COMMON_FILE")
+          TF_VERSION=$(jq -r '.terraform_version' "$COMMON_FILE")
+          ACCOUNT=$(jq -r '.aws_account_id' "$ENV_FILE")
+          ENVIRONMENT=$(jq -r '.environment' "$ENV_FILE")
+          for v in PROJECT REGION TF_VERSION ACCOUNT ENVIRONMENT; do
+            [[ -n "${!v}" && "${!v}" != "null" ]] || { echo "$v is not set in the env files"; exit 1; }
+          done
 
-            echo "region=$REGION" >> "$GITHUB_OUTPUT"
-            echo "project=$PROJECT" >> "$GITHUB_OUTPUT"
-            echo "domain_name=$DOMAIN_NAME" >> "$GITHUB_OUTPUT"
-            echo "tf_version=$TF_VERSION" >> "$GITHUB_OUTPUT"
-            echo "account_id=$ACCOUNT" >> "$GITHUB_OUTPUT"
-            echo "environment=$ENVIRONMENT" >> "$GITHUB_OUTPUT"
-            echo "bucket=$BUCKET" >> "$GITHUB_OUTPUT"
-            echo "dynamodb=$DDB" >> "$GITHUB_OUTPUT"
-            echo "key=$KEY" >> "$GITHUB_OUTPUT"
-            echo "env_file=$ENV_FILE" >> "$GITHUB_OUTPUT"
-            echo "common_file=$COMMON_FILE" >> "$GITHUB_OUTPUT"
+          # Must match infrastructure/bootstrap/locals.tf (state_bucket) and outputs.tf (CI role name).
+          echo "bucket=${ENVIRONMENT}-state-bucket-${PROJECT}" >> "$GITHUB_OUTPUT"
+          echo "role_arn=arn:aws:iam::${ACCOUNT}:role/${PROJECT}-${ENVIRONMENT}-github-oidc" >> "$GITHUB_OUTPUT"
+          echo "region=$REGION" >> "$GITHUB_OUTPUT"
+          echo "account=$ACCOUNT" >> "$GITHUB_OUTPUT"
+          echo "tf_version=$TF_VERSION" >> "$GITHUB_OUTPUT"
+          echo "var_files=-var-file=$COMMON_FILE -var-file=$ENV_FILE" >> "$GITHUB_OUTPUT"
 
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ steps.vars.outputs.role_arn }}
+          aws-region: ${{ steps.vars.outputs.region }}
 
-        - name: Configure AWS credentials (OIDC)
-          uses: aws-actions/configure-aws-credentials@v4
-          with:
-            role-to-assume: arn:aws:iam::${{ steps.vars.outputs.account_id }}:role/github-federation
-            aws-region: ${{ steps.vars.outputs.region }}
+      - name: Verify AWS account and state bucket
+        run: |
+          ACTUAL=$(aws sts get-caller-identity --query Account --output text)
+          [[ "$ACTUAL" == "${{ steps.vars.outputs.account }}" ]] || { echo "Account mismatch: $ACTUAL"; exit 1; }
+          aws s3api head-bucket --bucket "${{ steps.vars.outputs.bucket }}" \
+            || { echo "State bucket ${{ steps.vars.outputs.bucket }} not found"; exit 1; }
 
-        - name: Verify AWS account matches env tfvars
-          run: |
-            ACTUAL=$(aws sts get-caller-identity --query Account --output text)
-            EXPECTED="${{ steps.vars.outputs.account_id }}"
-            echo "Actual:   $ACTUAL"
-            echo "Expected: $EXPECTED"
-            [[ "$ACTUAL" == "$EXPECTED" ]] || { echo "Account mismatch"; exit 1; }
+      - name: Setup Terraform ${{ steps.vars.outputs.tf_version }}
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ steps.vars.outputs.tf_version }}
+          terraform_wrapper: false
 
-        - name: Setup Terraform ${{ steps.vars.outputs.tf_version }}
-          uses: hashicorp/setup-terraform@v3
-          with:
-            terraform_version: ${{ steps.vars.outputs.tf_version }}
+      - name: Terraform fmt check
+        run: terraform fmt -check -recursive
 
-        - name: Terraform FMT
-          working-directory: infrastructure/main
-          run: terraform fmt -recursive
+      - name: Terraform init (S3 backend, native locking)
+        run: |
+          terraform init -input=false -lockfile=readonly \
+            -backend-config="bucket=${{ steps.vars.outputs.bucket }}" \
+            -backend-config="key=main/terraform.tfstate" \
+            -backend-config="region=${{ steps.vars.outputs.region }}" \
+            -backend-config="use_lockfile=true" \
+            -backend-config="encrypt=true"
 
-        - name: Terraform Init (remote backend)
-          working-directory: infrastructure/main
-          run: |
-            terraform init \
-              -backend-config="bucket=${{ steps.vars.outputs.bucket }}" \
-              -backend-config="key=${{ steps.vars.outputs.key }}" \
-              -backend-config="region=${{ steps.vars.outputs.region }}" \
-              -backend-config="dynamodb_table=${{ steps.vars.outputs.dynamodb }}" \
-              -backend-config="encrypt=true"
+      - name: Terraform validate
+        run: terraform validate
 
-        - name: Terraform Validate
-          working-directory: infrastructure/main
-          run: terraform validate
+      - name: Terraform plan
+        run: |
+          DESTROY=""
+          [[ "${{ inputs.action }}" == "destroy" ]] && DESTROY="-destroy"
+          terraform plan -input=false $DESTROY ${{ steps.vars.outputs.var_files }} -out=tfplan
+          terraform show -no-color tfplan > plan.txt
+          { echo '### Terraform plan (${{ inputs.action }})'; echo '```'; tail -n 60 plan.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
-        - name: Terraform Plan
-          if: ${{ github.event.inputs.action == 'plan' || github.event.inputs.action == 'apply' }}
-          working-directory: infrastructure/main
-          run: |
-            terraform plan \
-              -var-file=../../infrastructure/envs/common.auto.tfvars.json \
-              -var-file=../../infrastructure/envs/${{ github.event.inputs.env }}.tfvars.json
-
-        - name: Apply confirmation for prod destroy
-          if: ${{ github.event.inputs.env == 'prod' && github.event.inputs.action == 'destroy' }}
-          run: |
-            [[ "${{ github.event.inputs.confirm }}" == "CONFIRM" ]] || {
-              echo "Destructive action in prod requires confirm=CONFIRM"
-              exit 1
-            }
-
-        - name: Terraform Apply
-          if: ${{ github.event.inputs.action == 'apply' }}
-          working-directory: infrastructure/main
-          run: |
-            terraform apply -auto-approve \
-              -var-file=../../infrastructure/envs/common.auto.tfvars.json \
-              -var-file=../../infrastructure/envs/${{ github.event.inputs.env }}.tfvars.json
-
-        - name: Terraform Destroy
-          if: ${{ github.event.inputs.action == 'destroy' }}
-          working-directory: infrastructure/main
-          run: |
-            terraform destroy -auto-approve \
-              -var-file=../../infrastructure/envs/common.auto.tfvars.json \
-              -var-file=../../infrastructure/envs/${{ github.event.inputs.env }}.tfvars.json
+      - name: Terraform apply (the exact saved plan)
+        if: ${{ inputs.action == 'apply' || inputs.action == 'destroy' }}
+        run: terraform apply -input=false tfplan

@@ -1,0 +1,48 @@
+name: oidc-smoke
+
+# Proves that GitHub can assume the CI role through OIDC, and shows which subject claim GitHub sends.
+# Prints only the decoded `sub` claim and the caller identity — never the token itself.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-24.04
+    environment:
+      name: prod
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Show the OIDC subject claim (not the token)
+        run: |
+          TOKEN=$(curl -sS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=sts.amazonaws.com" | jq -r '.value')
+          echo "::add-mask::$TOKEN"
+          PAYLOAD=$(echo "$TOKEN" | cut -d. -f2 | tr '_-' '/+')
+          while (( ${#PAYLOAD} % 4 )); do PAYLOAD="$PAYLOAD="; done
+          echo "$PAYLOAD" | base64 -d | jq -r '"sub: \(.sub)"'
+
+      - name: Read role from env files
+        id: vars
+        run: |
+          PROJECT=$(jq -r '.project' infrastructure/envs/common.auto.tfvars.json)
+          REGION=$(jq -r '.region' infrastructure/envs/common.auto.tfvars.json)
+          ACCOUNT=$(jq -r '.aws_account_id' infrastructure/envs/prod.tfvars.json)
+          ENVIRONMENT=$(jq -r '.environment' infrastructure/envs/prod.tfvars.json)
+          echo "role_arn=arn:aws:iam::${ACCOUNT}:role/${PROJECT}-${ENVIRONMENT}-github-oidc" >> "$GITHUB_OUTPUT"
+          echo "region=$REGION" >> "$GITHUB_OUTPUT"
+
+      - name: Assume the CI role
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ steps.vars.outputs.role_arn }}
+          aws-region: ${{ steps.vars.outputs.region }}
+
+      - name: Caller identity
+        run: aws sts get-caller-identity
