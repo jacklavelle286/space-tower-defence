@@ -39,17 +39,19 @@ bootstrap root (H.5), which creates the CI's own trust and which you apply from 
 
 ## H.1 Starting point in one table
 
+The state of `main` at commit `f88439c`, after the Phase 0 commits `8e669ff` and `dee3f51`. **[VERIFIED]** (`git log`, `git ls-files`)
+
 | Item | Today | Label |
 |---|---|---|
 | Bootstrap root | [main.tf](../../infrastructure/bootstrap/main.tf) calls the external module `terraform-bootstrap//modules/bootstrap?ref=v1.0.0` ([main.tf:19](../../infrastructure/bootstrap/main.tf#L19)). It is applied, and its state lives in `263185198757-eu-west-2-space-tower-defence-prod-bootstrap`. | **[VERIFIED]** |
 | Main-stack state bucket | `prod-state-bucket-space-tower-defence`, from [locals.tf:2](../../infrastructure/bootstrap/locals.tf#L2). It exists, is versioned and is empty. | **[VERIFIED]** |
-| CI role | `space-tower-defence-prod-github-oidc` with `AdministratorAccess` ([prod.tfvars.json:4](../../infrastructure/envs/prod.tfvars.json#L4)). Trust is `repo:jacklavelle286/space-tower-defence:*` ([common.auto.tfvars.json:4](../../infrastructure/envs/common.auto.tfvars.json#L4)). | **[VERIFIED]** |
-| `infrastructure/main/` | Empty directory | **[VERIFIED]** |
+| CI role | `space-tower-defence-prod-github-oidc` with `AdministratorAccess` ([prod.tfvars.json:4](../../infrastructure/envs/prod.tfvars.json#L4)). The env file now sets `trusted_subs` to the immutable `…:environment:prod` subject ([common.auto.tfvars.json:5](../../infrastructure/envs/common.auto.tfvars.json#L5)); the applied trust was `repo:jacklavelle286/space-tower-defence:*` at the start of planning, and whether the narrowed value has been re-applied is settled in J M0-03. | **[VERIFIED]** file; applied trust **[UNVERIFIED]** |
+| `infrastructure/main/` | Skeleton from `dee3f51`: [provider.tf](../../infrastructure/main/provider.tf), [variables.tf](../../infrastructure/main/variables.tf), the lock file, and an empty [main.tf](../../infrastructure/main/main.tf) (no resources) | **[VERIFIED]** |
 | `infrastructure/modules/` | Does not exist | **[VERIFIED]** |
-| Env files | `common.auto.tfvars.json` holds `project`, `region`, `trusted_subs`, `role_policy_arns`. `prod.tfvars.json` holds `environment`, `aws_account_id`, `role_policy_arns`. | **[VERIFIED]** |
+| Env files | `common.auto.tfvars.json` holds `project`, `region`, `trusted_subs`, `role_policy_arns`, `terraform_version` (`1.17.2`, [common.auto.tfvars.json:8](../../infrastructure/envs/common.auto.tfvars.json#L8)). `prod.tfvars.json` holds `environment`, `aws_account_id`, `role_policy_arns`. | **[VERIFIED]** |
 | Terraform | Local CLI 1.17.2. The bootstrap root requires `>= 1.10.0` ([main.tf:2](../../infrastructure/bootstrap/main.tf#L2)) and AWS provider `>= 6.0, < 7.0` ([main.tf:7](../../infrastructure/bootstrap/main.tf#L7)); its lock file has 6.73.0. | **[VERIFIED]** |
-| Workflows | [deploy.yml](../../.github/workflows/deploy.yml) and [tf-apply-destroy-env.yml](../../.github/workflows/tf-apply-destroy-env.yml) are verbatim copies from the reference product and do not work here | **[VERIFIED]** ([A §4](A-repository-findings.md#4-the-two-workflow-files-what-they-reference-that-does-not-exist-here)) |
-| `.gitignore` | None. `infrastructure/bootstrap/.terraform-prod/` would be committed by a careless `git add`. | **[VERIFIED]** |
+| Workflows | The verbatim copies from the reference product arrived in `8e669ff` ([deploy.yml](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml), [tf-apply-destroy-env.yml](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/tf-apply-destroy-env.yml); [A §4](A-repository-findings.md#4-the-two-workflow-files-what-they-reference-that-does-not-exist-here)). `dee3f51` deleted `deploy.yml`, rewrote [tf-apply-destroy-env.yml](../../.github/workflows/tf-apply-destroy-env.yml) as the interim Phase 0 plan/apply pipeline (it still offers `destroy` until J M0-01 removes it) and added [oidc-smoke.yml](../../.github/workflows/oidc-smoke.yml). | **[VERIFIED]** |
+| `.gitignore` | [.gitignore](../../.gitignore) exists (from `8e669ff`) and ignores `.terraform/` and `.terraform-*/`; H.16 is the checklist to review it against. | **[VERIFIED]** |
 
 ---
 
@@ -61,14 +63,15 @@ Only the `infrastructure/`, `.github/`, `scripts/` and root files are owned here
 ```
 space-tower-defence/
 ├── .github/workflows/
-│   ├── release.yml            (to create)  replaces deploy.yml
+│   ├── release.yml            (to create)  replaces the removed deploy.yml
 │   ├── apply.yml              (to create)  apply-a-reviewed-plan (second dispatch)
 │   ├── plan.yml               (to create)  plan-only drift check; replaces tf-apply-destroy-env.yml
-│   └── oidc-smoke.yml         (to create in M0)  OIDC smoke test; kept afterwards as a manual workflow
+│   ├── tf-apply-destroy-env.yml (exists)  interim Phase 0 pipeline; deleted by J M1-10
+│   └── oidc-smoke.yml         (exists)  OIDC smoke test; kept afterwards as a manual workflow
 ├── infrastructure/
 │   ├── bootstrap/             (exists; owner-applied only; small edits and the artefacts bucket in H.5)
 │   ├── envs/                  (exists; keys added in H.6)
-│   ├── main/                  (exists, empty; files in H.3)
+│   ├── main/                  (exists: provider.tf, variables.tf, lock file, empty main.tf; rest in H.3)
 │   ├── modules/               (to create; H.4)
 │   └── plan-guard.json        (to create; H.11)
 ├── api/                       (to create)  Python Lambda source and tests
@@ -87,7 +90,7 @@ space-tower-defence/
 ├── docs/releases/             (to create)  one short entry per production release
 ├── docs/decisions/            (to create)  ADRs, including the M0 OIDC outcome (H.5)
 ├── docs/validation/           (to create)  playtests/, performance/, acceptance/, browsers.md (owned by I)
-├── .gitignore                 (to create; H.16)
+├── .gitignore                 (exists; reviewed against H.16)
 ├── .nvmrc, .python-version    (to create; H.17)
 └── web/, contracts/           (to create; owned by E; contracts/routes.json feeds gates G-12 and the smoke test)
 ```
@@ -317,7 +320,7 @@ assets keep their real status codes.
 | Code | `s3_bucket = artifacts bucket`, `s3_key = var.lambda_artifacts[key].s3_key`, `source_code_hash = …sha256_b64` | same | same | same | **[PROPOSAL]** spine S11.1 |
 | Log group | `/aws/lambda/<name>`, created before the function, 7 days | 90 days (audit lines) | 7 days | 7 days | **[ASSUMPTION]** |
 | `logging_config` | `log_format = "JSON"` | same | same | same | **[PROPOSAL]** |
-| Environment | table names, player site bucket name + `game-data/` prefix (bounds files), `POWERTOOLS_SERVICE_NAME` | content table, audio bucket + clip prefix `tts/v1/`, `TTS_VOICE_ID`, `TTS_ENGINE`, `TTS_PHONEME_ENGINE` | game table (session check only), audio bucket + clip prefix `tts/v1/`, `TTS_VOICE_ID`, `TTS_ENGINE`, `TTS_PHONEME_ENGINE`, output format; **no** content table | game table, `SIGNUP_DAILY_CAP` | **[PROPOSAL]**; the three `TTS_*` values come from the `tts_*` variables (H.3.2) **[CONFIRMED by owner]** |
+| Environment | table names, player site bucket name + `game-data/` prefix (bounds files), `POWERTOOLS_SERVICE_NAME` | content table, audio bucket + clip prefix `tts/v1/`, `TTS_VOICE_ID`, `TTS_ENGINE`, `TTS_PHONEME_ENGINE` | game table (one GetItem on the caller's SLOT item for the pinned clips map), audio bucket + clip prefix `tts/v1/`, `TTS_VOICE_ID`, `TTS_ENGINE`, `TTS_PHONEME_ENGINE`, output format; **no** content table | game table, `SIGNUP_DAILY_CAP` | **[PROPOSAL]**; the three `TTS_*` values come from the `tts_*` variables (H.3.2) **[CONFIRMED by owner]** |
 | Role | `space-tower-defence-prod-player-api-role`, etc. Data access exactly as [spine S1](00-spine.md#s1-system-shape)'s table; logs limited to `CreateLogStream`/`PutLogEvents` on its own group; no `CreateLogGroup` | | | | **[PROPOSAL]** |
 | Extra on `player-api` role | `s3:GetObject` on `<player bucket>/game-data/*` (bounds files, spine S5.1) | | | | **[PROPOSAL]** |
 | Extra on `tts` role | `dynamodb:GetItem` on `game` only; **no** `content` access (slots pin `clips{speechId, speechVersion, clipKey}`, so `tts` never reads content); `s3:GetObject`/`PutObject` on `<audio bucket>/tts/v1/*` (no Delete); `s3:ListBucket` on the audio bucket conditioned on `s3:prefix` `tts/v1/*`, so `HeadObject` on a missing clip returns 404 rather than 403; `polly:SynthesizeSpeech`. IAM cannot restrict the voice or engine, so the allow-list stays in code. | | | | **[PROPOSAL]** spine S1; allow-list in code **[CONFIRMED by owner]** |
@@ -389,7 +392,7 @@ applied together in one local re-apply where the timing allows.
 
 | # | Change | Where | When | Label |
 |---|---|---|---|---|
-| B-1 | **Fix the OIDC subject.** Run the M0 smoke workflow `oidc-smoke.yml` (to create; a `workflow_dispatch` job with `environment: prod` that assumes the role and runs `aws sts get-caller-identity`; kept afterwards as a manual workflow). If it is denied, print the token's `sub` claim (never the token) and set `trusted_subs` to exactly that subject. Expect `repo:jacklavelle286@<owner-id>/space-tower-defence@<repo-id>:environment:prod` if the repository uses the immutable format ([spine S0](00-spine.md#s0-verified-starting-point)). | [common.auto.tfvars.json:4](../../infrastructure/envs/common.auto.tfvars.json#L4) | M0, before any release | **[PROPOSAL]**; risk **[VERIFIED]** in GitHub docs |
+| B-1 | **Fix the OIDC subject.** Run the M0 smoke workflow [oidc-smoke.yml](../../.github/workflows/oidc-smoke.yml) (exists since `dee3f51` **[VERIFIED]**; a `workflow_dispatch` job with `environment: prod` that assumes the role and runs `aws sts get-caller-identity`; kept afterwards as a manual workflow). If it is denied, print the token's `sub` claim (never the token) and set `trusted_subs` to exactly that subject. Expect `repo:jacklavelle286@<owner-id>/space-tower-defence@<repo-id>:environment:prod` if the repository uses the immutable format ([spine S0](00-spine.md#s0-verified-starting-point)). | [common.auto.tfvars.json:4](../../infrastructure/envs/common.auto.tfvars.json#L4) | M0, before any release | **[PROPOSAL]**; risk **[VERIFIED]** in GitHub docs |
 | B-2 | **Narrow the trust** in the same re-apply. Default: the `environment:prod` subject only, and give the GitHub `prod` environment a deployment-branch rule allowing only `main`; without it, any branch could claim the environment ([A §5.3](A-repository-findings.md#53-recommended-narrowing)). If required reviewers are available, add a second environment `prod-apply` (with reviewers and the same `main`-only rule), used only by the apply job, and put **both** subjects (`…:environment:prod` and `…:environment:prod-apply`) in `trusted_subs` ([spine S11.1](00-spine.md#s111-workflows)). | same file + GitHub settings | M0 | **[PROPOSAL]** spine S11.1 |
 | B-3 | **Fallback subject** if environments are not available for a private repository on your plan (**[UNVERIFIED]**; see the last section). Trust `repo:jacklavelle286/space-tower-defence:ref:refs/heads/main` instead (or, in the immutable format, `repo:jacklavelle286@<owner-id>/space-tower-defence@<repo-id>:ref:refs/heads/main`), and have **no** job declare an environment. Same wording as [A §5.3](A-repository-findings.md#53-recommended-narrowing). Spine S11.1 names this fallback; it is used only if the M0 smoke test shows environments are unavailable. Whichever of B-2 (with or without `prod-apply`) and B-3 applies is recorded as an ADR in `docs/decisions/` (to create). | same | only if needed | **[PROPOSAL]** spine S11.1 |
 | B-4 | **Scope the CI role** before the data-freeze point. Replace `AdministratorAccess` in [prod.tfvars.json:4](../../infrastructure/envs/prod.tfvars.json#L4) with an inline policy. The module already accepts `role_inline_policy_json` (`terraform-bootstrap/modules/bootstrap/variables.tf` line 96); the root does not pass it yet ([main.tf:18-30](../../infrastructure/bootstrap/main.tf#L18-L30)), so the root gains one variable and one line. Outline in H.5.1. | bootstrap root + env file | Before the data freeze | **[PROPOSAL]** |
@@ -417,7 +420,7 @@ left blank here.
 
 | File | Key | Value | Read by | Label |
 |---|---|---|---|---|
-| `common.auto.tfvars.json` | `terraform_version` | `1.17.2` (your local CLI) | CI `setup-terraform`. The copied workflow already reads this key ([tf-apply-destroy-env.yml:86](../../.github/workflows/tf-apply-destroy-env.yml#L86)). | **[PROPOSAL]** |
+| `common.auto.tfvars.json` | `terraform_version` | `1.17.2` (your local CLI) | CI `setup-terraform`. Already set ([common.auto.tfvars.json:8](../../infrastructure/envs/common.auto.tfvars.json#L8)); the interim workflow reads it at [tf-apply-destroy-env.yml:70](../../.github/workflows/tf-apply-destroy-env.yml#L70) and passes it to `setup-terraform` at [line 101](../../.github/workflows/tf-apply-destroy-env.yml#L101). | **[VERIFIED]** |
 | `common.auto.tfvars.json` | `trusted_subs` | narrowed (H.5 B-1, B-2) | bootstrap | **[PROPOSAL]** |
 | `prod.tfvars.json` | `domain_name` | `jackgl.com` | main | **[CONFIRMED]** value |
 | `prod.tfvars.json` | `player_hostname`, `admin_hostname` | `aliens.jackgl.com`, `admin.aliens.jackgl.com` | main | **[CONFIRMED]** values |
@@ -445,49 +448,51 @@ changes, which keeps "additional environments" possible (`prompt.md:976`). **[PR
 
 | # | Decision | Label |
 |---|---|---|
-| W-1 | `release.yml` replaces [deploy.yml](../../.github/workflows/deploy.yml); `plan.yml` replaces [tf-apply-destroy-env.yml](../../.github/workflows/tf-apply-destroy-env.yml); `apply.yml` applies a reviewed plan; `oidc-smoke.yml` (M0) stays as a manual workflow. **No destroy workflow exists.** These pipelines are the only way anything reaches production ([spine S11.1](00-spine.md#s111-workflows)). | **[PROPOSAL]** spine S11.1; pipelines-only **[CONFIRMED by owner]** |
-| W-2 | All four are `workflow_dispatch` only, with `permissions: id-token: write, contents: read` (the reference habit, [deploy.yml:50-52](../../.github/workflows/deploy.yml#L50-L52)). The job that pushes the release tag widens to `contents: write`. | **[PROPOSAL]** |
+| W-1 | `release.yml` takes over from the removed [deploy.yml](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml); `release.yml`, `apply.yml` and `plan.yml` together replace the interim [tf-apply-destroy-env.yml](../../.github/workflows/tf-apply-destroy-env.yml); `apply.yml` applies a reviewed plan; [oidc-smoke.yml](../../.github/workflows/oidc-smoke.yml) (M0) stays as a manual workflow. **No destroy workflow exists.** These pipelines are the only way anything reaches production ([spine S11.1](00-spine.md#s111-workflows)). | **[PROPOSAL]** spine S11.1; pipelines-only **[CONFIRMED by owner]** |
+| W-2 | All four are `workflow_dispatch` only, with `permissions: id-token: write, contents: read` (the reference habit, [deploy.yml:50-52](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml#L50-L52)). The job that pushes the release tag widens to `contents: write`. | **[PROPOSAL]** |
 | W-3 | Every job that assumes the CI role declares `environment: prod`, so its OIDC `sub` ends `:environment:prod` (spine S11.1). In the reviewer variant (W-5) only the apply job declares `prod-apply` instead. Under fallback B-3, no job declares an environment. Checks and builds that need no AWS access do not assume the role. | **[PROPOSAL]** spine S11.1 |
 | W-4 | **Default approval: two dispatches.** `release.yml` stops after the plan. You read the plan in the run summary, then dispatch `apply.yml` with `plan_run_id`; it fetches the saved plan from the artefacts bucket under `plans/<plan_run_id>/` (H.8.2 step 5). The plan is never a GitHub artefact, because on a public repository anyone with read access could download it, and it holds `notification_email` and the whole configuration ([sources/08-aws-data-ops.md](sources/08-aws-data-ops.md) §f.4). This works whatever the repository's visibility (D-13). | **[PROPOSAL]** spine S11.1 |
 | W-5 | If required reviewers are available and you want one dispatch, `release.yml` calls `apply.yml` as a reusable workflow (it has both `workflow_dispatch` and `workflow_call` triggers). Only the apply job uses the second environment `prod-apply`, which has the reviewers, so build, plan and publish never pause (H.5 B-2). The M0 OIDC smoke test settles whether this variant is available; the outcome is an ADR. | **[PROPOSAL]** spine S11.1 |
 | W-6 | One `concurrency: { group: prod-release, cancel-in-progress: false }` shared by `release.yml` and `apply.yml`; `plan.yml` uses `-lock-timeout=5m` | **[PROPOSAL]** |
 | W-7 | Same pinned runner image (`ubuntu-24.04`, not `ubuntu-latest`) and the same Terraform version in plan and apply, because a saved plan must be applied by the same Terraform, providers and OS ([sources/08-aws-data-ops.md](sources/08-aws-data-ops.md) §f.4) | **[PROPOSAL]** |
 | W-8 | Account guard in two layers: `allowed-account-ids` on `aws-actions/configure-aws-credentials` (v6) and `allowed_account_ids` in the provider (H.3.1) | **[PROPOSAL]** |
-| W-9 | Inputs reach shell through `env:`, never by interpolating `${{ inputs.* }}` into scripts (the reference does this at [deploy.yml:71-72](../../.github/workflows/deploy.yml#L71-L72), [334](../../.github/workflows/deploy.yml#L334) and elsewhere) | **[PROPOSAL]** |
+| W-9 | Inputs reach shell through `env:`, never by interpolating `${{ inputs.* }}` into scripts (the reference does this at [deploy.yml:71-72](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml#L71-L72), [334](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml#L334) and elsewhere) | **[PROPOSAL]** |
 
 ### H.7.2 What is deleted from the copies
 
 The full line-by-line findings are in [A §4](A-repository-findings.md#4-the-two-workflow-files-what-they-reference-that-does-not-exist-here).
-This is the disposal list.
+This is the disposal list. The line links point at the original copies as committed in `8e669ff` (the `deploy.yml` copy is
+byte-identical to the reference product's file), because `dee3f51` removed `deploy.yml` and rewrote `tf-apply-destroy-env.yml`. **[VERIFIED]**
 
 | Copied lines | Content | Fate | Why | Label |
 |---|---|---|---|---|
-| [deploy.yml:19-48](../../.github/workflows/deploy.yml#L19-L48) | `component`, `tag`, `also_tag_sha`, `run_terraform`, `deploy_backend`, `rebuild_apk` inputs | Delete | Partial deploys contradict one coordinated release; the rest are containers and an APK | **[VERIFIED]** lines |
-| [deploy.yml:86-98](../../.github/workflows/deploy.yml#L86-L98) | `refresh-apk` calling `shell-release.yml` | Delete | The called file does not exist here | **[VERIFIED]** |
-| [deploy.yml:121](../../.github/workflows/deploy.yml#L121), [128](../../.github/workflows/deploy.yml#L128) | Node 20, Python 3.12 | Replace | Node 24, Python 3.14 (H.17) | **[VERIFIED]** |
-| [deploy.yml:166](../../.github/workflows/deploy.yml#L166), [218](../../.github/workflows/deploy.yml#L218), [300](../../.github/workflows/deploy.yml#L300), [352](../../.github/workflows/deploy.yml#L352) | `role/github-federation` | Replace | The role is `space-tower-defence-prod-github-oidc` | **[VERIFIED]** |
-| [deploy.yml:185](../../.github/workflows/deploy.yml#L185) | `aws s3 sync … --delete` | Delete the flag | Old hashed assets must survive for open tabs and rollback | **[VERIFIED]** |
-| [deploy.yml:194-203](../../.github/workflows/deploy.yml#L194-L203) | Find the distribution by `Comment`, invalidate `/*`, **skip** if not found | Replace | IDs come from outputs; invalidate two paths; fail if an ID is missing | **[VERIFIED]** |
-| [deploy.yml:205-261](../../.github/workflows/deploy.yml#L205-L261) | ECR login, `docker build`, push | Delete | No containers | **[VERIFIED]** |
-| [deploy.yml:268](../../.github/workflows/deploy.yml#L268) | Terraform job `needs: config` only | Replace | Tests must gate everything | **[VERIFIED]** |
-| [deploy.yml:276-292](../../.github/workflows/deploy.yml#L276-L292) | `TF_VAR_*` secrets | Delete | No secrets in this stack | **[VERIFIED]** |
-| [deploy.yml:312](../../.github/workflows/deploy.yml#L312) | Terraform `1.8.5` | Replace | From `terraform_version` (H.6) | **[VERIFIED]** |
-| [deploy.yml:317](../../.github/workflows/deploy.yml#L317), [320](../../.github/workflows/deploy.yml#L320), [322](../../.github/workflows/deploy.yml#L322) | Wrong bucket formula, root key, `dynamodb_table` | Replace | H.8.4 | **[VERIFIED]** |
-| [deploy.yml:332-334](../../.github/workflows/deploy.yml#L332-L334) | `apply -auto-approve` with no saved plan | Replace | `plan -out` then `apply tfplan` | **[VERIFIED]** |
-| [deploy.yml:374-390](../../.github/workflows/deploy.yml#L374-L390) | `aws lambda update-function-code` | Delete | Terraform alone owns Lambda code (H.9) | **[VERIFIED]** |
-| [tf-apply-destroy-env.yml:15-28](../../.github/workflows/tf-apply-destroy-env.yml#L15-L28) | `action` (default **apply**) and `confirm` | Delete | Plan-only | **[VERIFIED]** |
-| [tf-apply-destroy-env.yml:93-97](../../.github/workflows/tf-apply-destroy-env.yml#L93-L97) | Fails without `POSTGRES_*` secrets | Delete | Would fail every run here | **[VERIFIED]** |
-| [tf-apply-destroy-env.yml:137](../../.github/workflows/tf-apply-destroy-env.yml#L137) | `terraform fmt -recursive` (rewrites, never fails) | Replace | `fmt -check -recursive` over `infrastructure/` | **[VERIFIED]** |
-| [tf-apply-destroy-env.yml:161-183](../../.github/workflows/tf-apply-destroy-env.yml#L161-L183) | Prod destroy behind typing `CONFIRM`; `apply -auto-approve` | Delete | No destroy path for children's data | **[VERIFIED]** |
+| [deploy.yml:19-48](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml#L19-L48) | `component`, `tag`, `also_tag_sha`, `run_terraform`, `deploy_backend`, `rebuild_apk` inputs | Delete | Partial deploys contradict one coordinated release; the rest are containers and an APK | **[VERIFIED]** lines |
+| [deploy.yml:86-98](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml#L86-L98) | `refresh-apk` calling `shell-release.yml` | Delete | The called file does not exist here | **[VERIFIED]** |
+| [deploy.yml:121](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml#L121), [128](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml#L128) | Node 20, Python 3.12 | Replace | Node 24, Python 3.14 (H.17) | **[VERIFIED]** |
+| [deploy.yml:166](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml#L166), [218](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml#L218), [300](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml#L300), [352](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml#L352) | `role/github-federation` | Replace | The role is `space-tower-defence-prod-github-oidc` | **[VERIFIED]** |
+| [deploy.yml:185](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml#L185) | `aws s3 sync … --delete` | Delete the flag | Old hashed assets must survive for open tabs and rollback | **[VERIFIED]** |
+| [deploy.yml:194-203](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml#L194-L203) | Find the distribution by `Comment`, invalidate `/*`, **skip** if not found | Replace | IDs come from outputs; invalidate `/index.html`, `/config.json` and `/game-data/current.json` on the player site (the first two on the admin site, H.8.5 h), the three entry points of [spine S11.1](00-spine.md#s111-workflows); fail if an ID is missing | **[VERIFIED]** |
+| [deploy.yml:205-261](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml#L205-L261) | ECR login, `docker build`, push | Delete | No containers | **[VERIFIED]** |
+| [deploy.yml:268](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml#L268) | Terraform job `needs: config` only | Replace | Tests must gate everything | **[VERIFIED]** |
+| [deploy.yml:276-292](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml#L276-L292) | `TF_VAR_*` secrets | Delete | No secrets in this stack | **[VERIFIED]** |
+| [deploy.yml:312](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml#L312) | Terraform `1.8.5` | Replace | From `terraform_version` (H.6) | **[VERIFIED]** |
+| [deploy.yml:317](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml#L317), [320](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml#L320), [322](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml#L322) | Wrong bucket formula, root key, `dynamodb_table` | Replace | H.8.4 | **[VERIFIED]** |
+| [deploy.yml:332-334](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml#L332-L334) | `apply -auto-approve` with no saved plan | Replace | `plan -out` then `apply tfplan` | **[VERIFIED]** |
+| [deploy.yml:374-390](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml#L374-L390) | `aws lambda update-function-code` | Delete | Terraform alone owns Lambda code (H.9) | **[VERIFIED]** |
+| [tf-apply-destroy-env.yml:15-28](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/tf-apply-destroy-env.yml#L15-L28) | `action` (default **apply**) and `confirm` | Delete | Plan-only | **[VERIFIED]** |
+| [tf-apply-destroy-env.yml:93-97](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/tf-apply-destroy-env.yml#L93-L97) | Fails without `POSTGRES_*` secrets | Delete | Would fail every run here | **[VERIFIED]** |
+| [tf-apply-destroy-env.yml:137](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/tf-apply-destroy-env.yml#L137) | `terraform fmt -recursive` (rewrites, never fails) | Replace | `fmt -check -recursive` over `infrastructure/` | **[VERIFIED]** |
+| [tf-apply-destroy-env.yml:161-183](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/tf-apply-destroy-env.yml#L161-L183) | Prod destroy behind typing `CONFIRM`; `apply -auto-approve` | Delete | No destroy path for children's data | **[VERIFIED]** |
 
-Kept as patterns: the `config` job that reads the env JSON with `jq` ([deploy.yml:67-80](../../.github/workflows/deploy.yml#L67-L80));
-the account check ([deploy.yml:303-307](../../.github/workflows/deploy.yml#L303-L307)), now in every job that assumes the role;
-`index.html` uploaded last with `no-cache` ([deploy.yml:188-190](../../.github/workflows/deploy.yml#L188-L190)); the two
-explicit `-var-file` arguments ([deploy.yml:333-334](../../.github/workflows/deploy.yml#L333-L334)); and the
-`terraform_version // default` read ([tf-apply-destroy-env.yml:86](../../.github/workflows/tf-apply-destroy-env.yml#L86)).
+Kept as patterns: the `config` job that reads the env JSON with `jq` ([deploy.yml:67-80](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml#L67-L80));
+the account check ([deploy.yml:303-307](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml#L303-L307)), now in every job that assumes the role;
+`index.html` uploaded last with `no-cache` ([deploy.yml:188-190](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml#L188-L190)); the two
+explicit `-var-file` arguments ([deploy.yml:333-334](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml#L333-L334)); and the
+`terraform_version // default` read ([tf-apply-destroy-env.yml:86](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/tf-apply-destroy-env.yml#L86)).
 
-The two copies are deleted in the same commit that adds `release.yml`, `apply.yml` and `plan.yml`. That way nobody can
-dispatch a broken pipeline. **[PROPOSAL]**
+`deploy.yml` is already gone (`dee3f51`) **[VERIFIED]**. The rewritten `tf-apply-destroy-env.yml` stays as the interim plan/apply
+pipeline, without its `destroy` action after J M0-01, and is deleted in the same commit that adds `release.yml`, `apply.yml` and
+`plan.yml` (J M1-10). That way there is always exactly one working pipeline and never a destroy path once real resources exist. **[PROPOSAL]**
 
 ---
 
@@ -682,7 +687,7 @@ The test content is in [I. Validation](I-validation.md). This table is only abou
 | G-15 | Game-data build check: refuse a wave set with `3 + (finalWave − 1) + len(meteorAfter) > 100`, because its create-run transaction would exceed DynamoDB's 100-action limit | checks | M1 | **[PROPOSAL]** |
 
 A red gate stops every later job. That is the opposite of the reference, where Terraform did not wait for tests
-([deploy.yml:268](../../.github/workflows/deploy.yml#L268)). **[VERIFIED]** reference
+([deploy.yml:268](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml#L268)). **[VERIFIED]** reference
 
 ---
 

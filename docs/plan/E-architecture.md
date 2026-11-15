@@ -438,8 +438,8 @@ response names a different `clipKey` from the stored one, the mismatch is logged
 and it is used from the next Play; the current Play is not interrupted. The browser downloads from S3 directly, never through
 the API. Any failure leads to Retry (when nothing is playing) and never to an attempt (`prompt.md:615`, AC-22).
 
-Rules inside `tts` on the player path **[PROPOSAL]** spine [S3.3](00-spine.md#s33-activity-slot), S9 / SEC-02 ("from the
-slot's pinned clips map"); the field-level contract is [G R15](G-api-contracts.md#r15-post-apispeech-player):
+Rules inside `tts` on the player path **[PROPOSAL]** spine [S3.3](00-spine.md#s33-activity-slot), S9, [S2](00-spine.md#s2-trust-model-confirmed-family-level-trust-mechanisms-proposal) ("Speech is resolved,
+never free text": the clip comes from the slot's pinned clips map); the field-level contract is [G R15](G-api-contracts.md#r15-post-apispeech-player):
 - The request carries identifiers only: `{runId, slotId, variant}`. It never carries text or SSML (`prompt.md:589`, AC-20).
 - Ownership is the key: the slot is read under `U#<token sub>`, so another player's `runId` simply is not found.
 - The slot pin is the only authority: `variant` must be a key of the slot's pinned `clips` map (each entry
@@ -651,7 +651,7 @@ Shared handler rules **[PROPOSAL]** spine S2, S9.5:
   HTTP API throttles are shared by all callers and best-effort, not per user ([sources/06-polly-tts.md](sources/06-polly-tts.md) §10.2).
 - Access logs carry the same allow-listed fields plus the diagnostic fields `integrationLatency`, `integrationError` and
   `authorizerError`, which hold no player data (spine S1).
-- The set of route keys in the Terraform plan must equal `contracts/routes.json`; a CI gate beside G-7 checks it, so a route
+- The set of route keys in the Terraform plan must equal `contracts/routes.json`; gate G-12 (H.10) checks it, so a route
   cannot exist without an authoriser and a contract ([H](H-infrastructure-and-delivery.md), [I](I-validation.md)).
 
 ### E.6.4 Per-function IAM
@@ -669,7 +669,7 @@ also gets write access to its own log group only.
 Notes:
 - The exact action list per function is **[PROPOSAL]**; the "Data access" column of spine S1 is the authority.
 - `tts` has no `content` permission: the player path resolves the clip from the slot's pinned clips map (E.4.2) and preview
-  reads nothing from DynamoDB (spine S1, SEC-02).
+  reads nothing from DynamoDB (spine S1, S2; G R15).
 - Reserved concurrency is not set at first; a new account's Lambda concurrency quota may be too low to reserve any, so H
   checks Service Quotas in Milestone 0 ([H §H.4.4](H-infrastructure-and-delivery.md#h44-lambda_function-called-four-times))
   **[PROPOSAL]**. Polly cost is capped instead by preview being the only Polly path and its 2/5 route throttle.

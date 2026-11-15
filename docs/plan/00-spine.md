@@ -148,7 +148,7 @@ Cap = Terraform variable `signup_daily_cap` (default 20). Kill switch = Terrafor
 | Environment-file keys | `domain_name`, `player_hostname`, `admin_hostname`, `notification_email`, `terraform_version`, `player_signup_closed`, `player_auth_domain_prefix`, `operator_auth_domain_prefix`, `signup_daily_cap`, `tts_voice_id` (default `Amy`), `tts_engine` (default `generative`), `tts_phoneme_engine` (default `neural`) |
 | Terraform variables (not in env files) | `player_route_scope` = `game/play`, `operator_route_scope` = `ops/content`, `lambda_artifacts`, `table_name_overrides`, `log_retention_days`, `audit_log_retention_days` |
 | Folders | `web/` (npm workspaces `game-core`, `player`, `admin`, `shared`), `api/` (Python Lambdas), `contracts/`, `game-data/`, `content/seed/`, `scripts/`, `tools/sim/`, `spikes/`, `docs/runbooks/`, `docs/releases/`, `docs/validation/` (`playtests/`, `performance/`, `acceptance/`, `browsers.md`), `docs/decisions/` |
-| Files | `infrastructure/plan-guard.json` (to create), `contracts/routes.json` (to create), `content/listening-verdicts.json` (to create) |
+| Files | `infrastructure/plan-guard.json` (to create), `contracts/routes.json` (to create), `content/listening-verdicts.json` (to create), `docs/build-phases.md` (to create), `CLAUDE.md` (to create) |
 | S3 prefixes | clips `tts/v1/`; saved plans `plans/<run_id>/` (artefacts bucket) |
 | Game-data kinds | `ruleset`, `campaign`, `asset-manifest`, `bounds` |
 | Release tag | `release-<release_id>` |
@@ -598,7 +598,7 @@ never values. The machine-readable route list is `contracts/routes.json` (to cre
 | `POST /api/runs/{runId}/endless` | player-api | owner + session | the online-only CHOOSE_ENDLESS op (same envelope, one op) |
 | `PUT /api/session` · `DELETE /api/session` | player-api | owner of runId | S3.4 |
 | `POST /api/speech` | tts | player | `{runId, slotId, variant}` → `{clipKey, sha256, url (300 s), contentType, bytes}`; any ownership/variant failure → NOT_FOUND |
-| `POST /api/admin/speech/preview` | tts | operator | `{speechId?, text\|ssml}` (validated) → `{clipKey, url}`; the only Polly path |
+| `POST /api/admin/speech/preview` | tts | operator | `{kind, speechId?, text\|ssml}` (validated); `kind` ∈ `WORD`\|`PHONEME`\|`LETTER_NAME`\|`INSTRUCTION`\|`DICTATION` selects the engine (S5.2), because `tts` has no `content` access to look the draft up → `{clipKey, url}`; the only Polly path |
 | `GET/POST /api/admin/speech-definitions`, `GET/PUT …/{id}`, `POST …/{id}/approve {draftRevision}` | admin-api | operator | speech lifecycle (no withdrawal route in v1) |
 | `GET/POST /api/admin/activities`, `GET …/{id}`, `PUT …/{id}/draft`, `POST …/{id}/validate`, `…/publish`, `…/retire`, `…/withdraw {version, reason}` | admin-api | operator | activity lifecycle |
 | `GET /api/admin/bank-status` | admin-api | operator | counts vs thresholds per age × subject × category |
@@ -717,12 +717,14 @@ CloudFront 5xx rate (us-east-1 mirror topic), AWS Backup job failures, DynamoDB 
 within 48 h.
 
 ### S11.6 Validation gates
-- Plan route keys must equal `contracts/routes.json` (a gate beside the other plan checks).
+Gate IDs are those of [H.10](H-infrastructure-and-delivery.md#h10-quality-gates).
+- G-12: plan route keys must equal `contracts/routes.json` (a gate beside the other plan checks).
 - Release smoke test iterates `contracts/routes.json`: every route returns 401 without a token on **both** distributions; site 200; `config.json`
   fetchable.
 - `contracts/golden/` is additive-only, like game data.
-- DynamoDB Local integration tests run in CI (service container) and are optional locally (no Docker/Java on the owner's machine).
-- Machine check on speech definitions against `content/listening-verdicts.json` (S5.2).
+- G-13: DynamoDB Local integration tests run in CI (service container) and are optional locally (no Docker/Java on the owner's machine).
+- G-14: machine check on speech definitions against `content/listening-verdicts.json` (S5.2).
+- G-15: game-data build gate refusing a wave set whose create-run transaction would exceed 100 actions (S5.1).
 - Evidence (playtests, performance, acceptance, browsers) lives under `docs/validation/`. Detail in [I](I-validation.md).
 
 ## S12. Milestones (**[PROPOSAL]**; the spec heads them "SUGGESTED")
@@ -807,3 +809,4 @@ Genuine blockers (need the owner's action, not a decision):
 | 33 | Validation gates: routes.json smoke and plan check, additive golden files, DynamoDB Local in CI, listening-verdict check, evidence folders | S11.6 |
 | 34 | Milestones: admin alias + minimal admin in M1; listening spike via AWS CLI; MAX 30 steps and integer accumulator; `oidc-smoke.yml` kept; AC-42 target from M2 measurement; playtests P1 (M1) and P2 (M2) | S10, S11.1, S12 |
 | 35 | D-1..D-13 accepted as recommended by the owner | S13 |
+| 36 | Speech preview body gains `kind` (selects `tts_engine` or `tts_phoneme_engine`, since `tts` cannot read the draft); validation gates cite H.10 IDs G-12–G-15; `docs/build-phases.md` and `CLAUDE.md` listed as files to create | S9, S11.6, S1.3 |
