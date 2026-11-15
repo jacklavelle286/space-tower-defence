@@ -22,8 +22,9 @@ backticks and are to be created.
 
 ## Overview of all phases
 
-"Owner" lists what only you can do. "Release" means you dispatch `release.yml` and then `apply.yml` in the GitHub UI after approving the
-gate; nothing deploys on push.
+"Owner" lists what only you can do. "Release" means you dispatch `release.yml` in the GitHub UI after approving the gate, read its
+plan and approve the run's `prod-apply` deployment (one run, one approval, [ADR-0019](decisions/0019-single-release-run-with-approval.md);
+until then it was `release.yml` then `apply.yml`, and older rows still say "dispatch apply"); nothing deploys on push.
 
 | # | Phase | M | J tasks | Observable at the gate | Owner |
 |---|---|---|---|---|---|
@@ -126,8 +127,12 @@ sequential, "M2 and M3 in parallel" becomes "M2 first, then M3". **[PROPOSAL]**
 
 Deployments are always **manual workflow dispatches** in the GitHub UI (`gh` is not authenticated on your machine; authenticating it
 later also works: `gh workflow run release.yml -f ref=main`). Until Phase 4, the interim pipeline
-[tf-apply-destroy-env.yml](https://github.com/jacklavelle286/space-tower-defence/blob/61160df0788cabc79f387f68e6713af878c172e3/.github/workflows/tf-apply-destroy-env.yml) (deleted in Phase 4) was the deployment path; from Phase 4, `release.yml` then
-`apply.yml` (two dispatches, [H §H.7.1](plan/H-infrastructure-and-delivery.md#h71-decisions) W-4). **[PROPOSAL]**
+[tf-apply-destroy-env.yml](https://github.com/jacklavelle286/space-tower-defence/blob/61160df0788cabc79f387f68e6713af878c172e3/.github/workflows/tf-apply-destroy-env.yml) (deleted in Phase 4) was the deployment path; in Phase 4, `release.yml` then
+`apply.yml` (two dispatches, [H §H.7.1](plan/H-infrastructure-and-delivery.md#h71-decisions) W-4). From the end of Phase 4
+([ADR-0019](decisions/0019-single-release-run-with-approval.md), backlog B-3, H.7.1 W-5) a release is **one** `release.yml` run:
+it plans, waits for your approval on the `prod-apply` environment (Review deployments, after reading the plan), then applies,
+publishes, smoke-checks and records in the same run. Wherever a later phase says "dispatch the release and apply", that means
+this one run and its approval. **[PROPOSAL]**
 
 **Push-triggered CI** (`.github/workflows/ci.yml`, to create in Phase 1): runs on `push` to `main`, with `permissions: contents: read`
 only, no `id-token`, no environment, so it cannot assume the CI role. It runs the same checks as the release's `checks` job that need no
@@ -410,7 +415,7 @@ is exactly one way to deploy from here on.
 | Out of scope | Any API or sign-in; alarms (Phase 9) |
 | Files | `.github/workflows/apply.yml` (apply, publish, smoke, record jobs); `.github/workflows/release.yml` (header and summary comments only); [tf-apply-destroy-env.yml](https://github.com/jacklavelle286/space-tower-defence/blob/61160df0788cabc79f387f68e6713af878c172e3/.github/workflows/tf-apply-destroy-env.yml) (deleted in Phase 4); `scripts/publish_static.py` or equivalent shell steps; `scripts/smoke.py`; `docs/releases/README.md`, `docs/releases/<release_id>.md` |
 | Depends on | Phase 3 |
-| Owner actions | Dispatch `release.yml`, read the plan, dispatch `apply.yml` with the plan's run ID. After the distributions exist, create A + AAAA alias records for both hostnames to the output distribution domains (alias target zone `Z2FDTNDATAQYW2`, CloudFront's; the records go in zone `Z015416730SXD3BLJNAR2`, profile `productivity-prod`), per the [runbook](runbooks/dns-hand-off.md#phase-4-alias-records-records-3-and-4); check the apex `jackgl.com` still answers as before |
+| Owner actions | Dispatch `release.yml`, read the plan, dispatch `apply.yml` with the plan's run ID (the first release). From the second release on, a release is one run with an approval ([ADR-0019](decisions/0019-single-release-run-with-approval.md)): dispatch `release.yml`, read the plan, approve `prod-apply` under Review deployments. After the distributions exist, create A + AAAA alias records for both hostnames to the output distribution domains (alias target zone `Z2FDTNDATAQYW2`, CloudFront's; the records go in zone `Z015416730SXD3BLJNAR2`, profile `productivity-prod`), per the [runbook](runbooks/dns-hand-off.md#phase-4-alias-records-records-3-and-4); check the apex `jackgl.com` still answers as before |
 | Tests and how to run | `python3 -m pytest scripts/tests` (smoke script against a recorded response set); the release's own smoke job |
 | Deployed / how to see | Both sites: open `https://aliens.jackgl.com` (the Phase 1 page with the rectangle) and `https://admin.aliens.jackgl.com`; check the certificate in the browser; `curl -I https://aliens.jackgl.com/index.html` shows `cache-control: no-cache` |
 | Exit criteria | Smoke green on both hostnames, not only `*.cloudfront.net`; tag `release-<release_id>` exists; `docs/releases/` has the entry; the interim workflow is gone; a stale plan (dispatch `apply.yml` with an old run ID after a newer apply) is refused |
@@ -2688,7 +2693,7 @@ in the named phase.
 
 Plan gates without a J task of their own ([H §H.10](plan/H-infrastructure-and-delivery.md#h10-quality-gates)):
 
-- **G-10** (human plan review) is the W-4 two-dispatch approval: you read the saved plan in the `release.yml` run summary before dispatching `apply.yml`. It exists from Phase 3 (plan side) and is used from Phase 4 (first apply) on every release.
+- **G-10** (human plan review) is the approval: you read the saved plan in the `release.yml` run summary before the apply. It exists from Phase 3 (plan side) and is used from Phase 4 (first apply) on every release: first as the W-4 two-dispatch approval (dispatching `apply.yml`), then, from [ADR-0019](decisions/0019-single-release-run-with-approval.md), as the `prod-apply` approval inside the release run (W-5).
 - **G-11** (smoke) is the release's smoke job: hostnames, deep link and 404 checks from Phase 4, extended in Phase 9 to every route in `contracts/routes.json` returning 401 without a token on both distributions.
 - **G-5** (repository invariants) is staged: workflow strings and `custom_error_response` in Phase 6, "every `lambda_function` has alarms" in Phase 9, "both tables in the backup selection" in Phase 33.
 

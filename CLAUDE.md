@@ -20,7 +20,7 @@ and [spine S0.1](docs/plan/00-spine.md#s01-way-of-working-confirmed-by-owner-202
 - **Deployment only through GitHub Actions**, by manual workflow dispatch in the GitHub UI. Never deploy from the laptop, except
   the owner's bootstrap apply (below).
 - **The owner dispatches every deploying workflow** (`release.yml`, `apply.yml`, spike runs) after approving
-  the gate. Claude does not dispatch them, even if `gh` is authenticated.
+  the gate, and approves every `prod-apply` deployment. Claude does neither, even if `gh` is authenticated.
 - **Never run `terraform apply` locally on [infrastructure/main](infrastructure/main/).** Fine locally: `terraform fmt`,
   `validate`, `init -backend=false`, `plan` with read-only credentials, and read-only AWS calls (`describe-*`, `get-*`,
   `head-bucket`, …).
@@ -66,7 +66,7 @@ Exists now:
 | [tools/art/](tools/art/) | Render, gallery and preview scripts |
 | [tools/sim/](tools/sim/) | Balance simulator |
 | [infrastructure/](infrastructure/) | `bootstrap/` (owner-applied), `main/` (pipeline-applied), `envs/` (tfvars JSON) |
-| [.github/workflows/](.github/workflows/) | `ci.yml` (push checks), `release.yml` then `apply.yml` (the two release dispatches), `plan.yml` (drift check), `oidc-smoke.yml`. The interim `tf-apply-destroy-env.yml` was deleted in Phase 4 |
+| [.github/workflows/](.github/workflows/) | `ci.yml` (push checks), `release.yml` (one release run: plan, owner approval on `prod-apply`, then it calls `apply.yml`; ADR-0019), `apply.yml` (also dispatchable for a chosen plan), `plan.yml` (drift check), `oidc-smoke.yml`. The interim `tf-apply-destroy-env.yml` was deleted in Phase 4 |
 | [scripts/](scripts/) | Release tooling (manifest, plan guard, asset scan, apply guard, publish, smoke) and its tests in `scripts/tests/` |
 | [docs/runbooks/](docs/runbooks/), [docs/releases/](docs/releases/) | Runbooks (DNS hand-off); one entry per production release |
 | [web/player/public/assets/](web/player/public/assets/) | Rendered game PNGs. Do not overwrite when scaffolding `web/` |

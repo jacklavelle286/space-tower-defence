@@ -28,6 +28,7 @@ The rules are in [J §J.6](../plan/J-execution-backlog.md#j6-decision-log-practi
 | [0010](0010-delivery-and-release.md) | Delivery: one manual release, pipelines only | Accepted |
 | [0011](0011-oidc-trust-environments-and-artefacts-bucket.md) | OIDC trust, GitHub environments and the artefacts bucket | Accepted |
 | [0013](0013-front-end-stack-versions.md) | Front-end stack versions | Accepted |
+| [0019](0019-single-release-run-with-approval.md) | One release run with a manual approval (supersedes in part 0010, 0011 once accepted) | Proposed |
 
 ## Next in line
 

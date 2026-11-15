@@ -1,19 +1,21 @@
 name: release
 
-# The manual release (plan H.8, spine S11.1), first of two dispatches (H.7.1 W-4):
-#   release.yml: 0 config -> 1 checks -> 2a build (no AWS) -> 2b upload -> 3 plan, then stop.
-#   4: you review the plan in this run's summary.
-#   apply.yml (plan_run_id = this run's ID): 5 apply the saved plan -> 6 publish -> 7 smoke -> record.
-# Nothing in production changes in this workflow: the only writes are create-only uploads to the artefacts bucket
-# (static archives, the build manifest, the saved plan).
+# The manual release (plan H.8, spine S11.1): one dispatch, one approval (H.7.1 W-5, ADR-0019).
+#   0 config -> 1 checks -> 2a build (no AWS) -> 2b upload -> 3 plan
+#   4 deploy: calls apply.yml with plan_run_id = this run's ID. Its apply job waits on environment prod-apply: you read
+#     the plan in this run's summary, then approve (Review deployments) or reject. After approval:
+#     5 apply the saved plan -> 6 publish -> 7 smoke -> record, all in this run.
+# Up to and including 3 nothing in production changes: the only writes are create-only uploads to the artefacts bucket
+# (static archives, the build manifest, the saved plan). Production changes only after the approval.
 #
 # Rollback (H.12): dispatch with artefacts_from=<release_id>. The build is skipped; upload writes this release's
 # manifest from the archived one (same static archives, checked by SHA-256), the plan uses current main Terraform,
 # and apply.yml then publishes that archived build with a config.json naming this new release.
 #
 # Rules this file keeps (H.7.1): workflow_dispatch only; inputs and other untrusted values reach shell only through
-# env: (W-9); only the jobs that assume the CI role have id-token: write and declare environment prod (W-3);
-# account guard in configure-aws-credentials and in the provider (W-8); runner and Terraform pinned (W-7).
+# env: (W-9); only the jobs that assume the CI role have id-token: write and declare an environment (W-3; the called
+# apply.yml's jobs declare their own); account guard in configure-aws-credentials and in the provider (W-8); runner
+# and Terraform pinned (W-7).
 
 on:
   workflow_dispatch:
@@ -32,7 +34,10 @@ on:
 permissions: {} # every job lists exactly what it needs
 
 # Shared with apply.yml (H.7.1 W-6 calls it prod-release; the Phase 3 name is kept): a plan and an apply never
-# overlap, which apply.yml's stale-plan check (scripts/apply_guard.py) relies on.
+# overlap, which apply.yml's stale-plan check (scripts/apply_guard.py) relies on. This run holds the group from config
+# to record, including the wait for approval: a release or apply.yml dispatched meanwhile waits (pending), and a newer
+# one replaces an older pending one. Approve or reject the waiting run before dispatching another. The called apply.yml
+# takes a group of its own (see its concurrency comment).
 concurrency:
   group: terraform-prod
   cancel-in-progress: false
@@ -592,11 +597,28 @@ jobs:
           {
             echo "### Saved plan"
             echo ""
-            echo "\`s3://$ARTEFACTS_BUCKET/plans/$GITHUB_RUN_ID/plan.tar.gz\`, SHA-256 \`$PLAN_SHA256\`"
+            echo "\`s3://$ARTEFACTS_BUCKET/plans/$GITHUB_RUN_ID/plan.tar.gz\`, SHA-256 \`$PLAN_SHA256\` (plan run ID \`$GITHUB_RUN_ID\`)"
             echo ""
-            echo "**Next: dispatch apply.yml with plan_run_id = $GITHUB_RUN_ID**"
+            echo "**Next: waiting for approval in this run (environment prod-apply)**"
             echo ""
-            echo "Read the plan above first. apply.yml applies exactly this plan, then publishes, smoke-checks and records"
-            echo "release \`$RELEASE_ID\`. It refuses this plan if another apply starts first; then dispatch release.yml again."
+            echo "Read the plan above, then use **Review deployments** at the top of this run: approve to apply exactly this"
+            echo "plan, publish, smoke-check and record release \`$RELEASE_ID\`; reject to stop with nothing applied."
           } >> "$GITHUB_STEP_SUMMARY"
-          echo "Next: dispatch apply.yml with plan_run_id = $GITHUB_RUN_ID"
+          echo "Next: waiting for approval in this run (environment prod-apply)"
+
+  # 4-7. deploy: apply.yml as a reusable workflow, with this run's own plan. Its apply job waits for the owner's
+  # approval on prod-apply before it starts (no credentials until then); publish, smoke and record follow in this run.
+  # A calling job cannot declare an environment and its permissions cap the called jobs' GITHUB_TOKEN, so this is the
+  # union of what apply.yml's jobs ask for: actions: read (config reads this run), id-token: write (apply, publish,
+  # record), contents: write (record: the release tag). Each called job narrows to its own list.
+  deploy:
+    needs: plan
+    # Same reason as plan's condition: a rollback skips 2a, and a skipped ancestor would otherwise skip this job too.
+    if: ${{ !cancelled() && needs.plan.result == 'success' }}
+    permissions:
+      actions: read
+      contents: write
+      id-token: write
+    uses: ./.github/workflows/apply.yml
+    with:
+      plan_run_id: ${{ github.run_id }}

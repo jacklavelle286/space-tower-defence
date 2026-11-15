@@ -1,21 +1,31 @@
 name: apply
 
-# The second dispatch of a release (plan H.7.1 W-4, H.8.2 steps 5-7, spine S11.1): applies the saved plan that a
+# The second half of a release (plan H.7.1 W-5, H.8.2 steps 4-7, spine S11.1, ADR-0019): applies the saved plan that a
 # release.yml run left under plans/<plan_run_id>/ in the artefacts bucket, then publishes the release's static build,
 # smoke-checks both sites and records the release.
 #
-#   0 config (no AWS) -> 5 apply -> 6 publish -> 7a smoke (no AWS) -> 7b record
+#   0 config (no AWS) -> [approval: prod-apply] 5 apply -> 6 publish -> 7a smoke (no AWS) -> 7b record
+#
+# Two ways in:
+#   - workflow_call (the normal release): release.yml's last job calls this file with plan_run_id = its own run ID,
+#     after its plan job. The run then waits for the owner's approval on environment prod-apply (step 4).
+#   - workflow_dispatch: apply the plan of a chosen release.yml run that finished successfully (in practice a
+#     plan-only run from before ADR-0019; a run whose approval was rejected ended as failed and is refused here: use
+#     "Re-run failed jobs" on that run, or dispatch release.yml again). It waits for the same approval.
+# Only the apply job uses prod-apply, so a release asks for approval exactly once, before any credentials exist.
 #
 # It never plans: the only Terraform change it can make is the reviewed tfplan inside the tarball. A plan is refused
 # unless (all of these):
-#   - plan_run_id is a successful release.yml run, dispatched on main, whose commit is on main (config);
+#   - called: plan_run_id is this very run, and this run is a release.yml run dispatched on main (config);
+#     dispatched: plan_run_id is a successful release.yml run, dispatched on main, whose commit is on main (config);
 #   - plans/<id>/plan-info.json (the completion marker, uploaded last by the plan job) exists and names that commit;
 #   - the tarball's SHA-256 matches its .sha256 file and S3's stored checksum, and no plans/<id>/ key was ever overwritten;
 #   - no apply has started since the plan was made, and this plan was never applied (scripts/apply_guard.py, below).
 # Terraform's own "Saved plan is stale" check (state changed since the plan) still applies on top.
 #
-# Rules this file keeps (H.7.1): workflow_dispatch only; inputs and other untrusted values reach shell only through
-# env: (W-9); only the jobs that assume the CI role have id-token: write and declare environment prod (W-3); account
+# Rules this file keeps (H.7.1): workflow_dispatch or a call from release.yml only; inputs and other untrusted values
+# reach shell only through env: (W-9); only the jobs that assume the CI role have id-token: write and declare an
+# environment: prod-apply for apply (reviewer), prod for publish and record (W-3, W-5); account
 # guard in configure-aws-credentials and in the provider (W-8); runner and Terraform pinned to what the plan used (W-7);
 # only the record job has contents: write (it pushes the release tag, W-2).
 
@@ -23,7 +33,13 @@ on:
   workflow_dispatch:
     inputs:
       plan_run_id:
-        description: "The release.yml run ID whose saved plan to apply (its summary ends 'dispatch apply.yml with plan_run_id = N')."
+        description: "The ID of a finished release.yml run whose saved plan to apply (shown in its 'Saved plan' summary)."
+        required: true
+        type: string
+  workflow_call:
+    inputs:
+      plan_run_id:
+        description: "Always the caller's own run ID (release.yml passes github.run_id)."
         required: true
         type: string
 
@@ -31,10 +47,12 @@ permissions: {} # every job lists exactly what it needs
 
 # Shared with release.yml (H.7.1 W-6; the group keeps release.yml's existing name): a plan and an apply never overlap,
 # which is what lets apply_guard.py compare the plan's time with the last apply's. GitHub keeps only one PENDING run
-# per group: a newer dispatch in the group (release or apply) cancels a waiting one. So dispatch apply.yml only after
-# release.yml has finished, and dispatch nothing else in the group while it waits.
+# per group: a newer dispatch in the group (release or apply) cancels a waiting one.
+# When release.yml calls this file, the github context is the caller's, so github.workflow_ref names release.yml. The
+# caller already holds terraform-prod for the whole run; taking the same group here would make GitHub cancel the run
+# (caller and called workflow waiting on each other). So a called run takes a group of its own, which nothing else uses.
 concurrency:
-  group: terraform-prod
+  group: ${{ contains(github.workflow_ref, '/.github/workflows/apply.yml@') && 'terraform-prod' || format('terraform-prod-called-{0}', github.run_id) }}
   cancel-in-progress: false
 
 defaults:
@@ -42,7 +60,8 @@ defaults:
     shell: bash # -eo pipefail
 
 jobs:
-  # 0. config: main only; plan_run_id must be a successful release.yml run on main whose commit is on main. No AWS.
+  # 0. config: main only; plan_run_id must be this release.yml run (called) or a successful release.yml run on main
+  # whose commit is on main (dispatched). No AWS.
   config:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
@@ -77,22 +96,40 @@ jobs:
           fi
           echo "plan_run_id=$PLAN_RUN_ID" >> "$GITHUB_OUTPUT"
 
-      - name: The plan run is a successful release.yml run on main
+      - name: The plan run is a release.yml run on main (this run when called; a finished, successful one when dispatched)
         id: run
         env:
           GH_TOKEN: ${{ github.token }}
           PLAN_RUN_ID: ${{ steps.input.outputs.plan_run_id }}
         run: |
+          # GITHUB_WORKFLOW_REF is the top-level workflow of this run: apply.yml when dispatched, release.yml when called
+          # (a called workflow sees its caller's github context). Anything else is refused.
+          case "$GITHUB_WORKFLOW_REF" in
+            "$GITHUB_REPOSITORY/.github/workflows/apply.yml@refs/heads/main") mode=dispatched ;;
+            "$GITHUB_REPOSITORY/.github/workflows/release.yml@refs/heads/main") mode=called ;;
+            *) echo "::error::apply.yml runs only when dispatched on main or called by release.yml on main (workflow $GITHUB_WORKFLOW_REF)."; exit 1 ;;
+          esac
+          if [[ "$mode" == called && "$PLAN_RUN_ID" != "$GITHUB_RUN_ID" ]]; then
+            echo "::error::Called by release.yml, plan_run_id must be this run ($GITHUB_RUN_ID), not $PLAN_RUN_ID."; exit 1
+          fi
           gh api "repos/$GITHUB_REPOSITORY/actions/runs/$PLAN_RUN_ID" > "$RUNNER_TEMP/run.json" \
             || { echo "::error::Run $PLAN_RUN_ID not found in this repository."; exit 1; }
-          jq -e --arg repo "$GITHUB_REPOSITORY" '
+          # Both modes: a release.yml run, dispatched on main, in this repository.
+          # Dispatched: that run has finished successfully (its plan job completed).
+          # Called: that run is this one, so it is still in progress at this commit; the caller's plan job succeeded,
+          # or this workflow would not have been called (release.yml: needs plan, result success).
+          jq -e --arg repo "$GITHUB_REPOSITORY" --arg mode "$mode" --arg sha "$GITHUB_SHA" '
               (.path | startswith(".github/workflows/release.yml")) and .head_branch == "main"
-              and .event == "workflow_dispatch" and .status == "completed" and .conclusion == "success"
-              and .repository.full_name == $repo and .head_repository.full_name == $repo' "$RUNNER_TEMP/run.json" > /dev/null \
-            || { echo "::error::Run $PLAN_RUN_ID is not a successful release.yml run dispatched on main ($(jq -r '"\(.path) on \(.head_branch): \(.status)/\(.conclusion)"' "$RUNNER_TEMP/run.json"))."; exit 1; }
+              and .event == "workflow_dispatch"
+              and .repository.full_name == $repo and .head_repository.full_name == $repo
+              and (if $mode == "called" then .status == "in_progress" and .head_sha == $sha
+                   else .status == "completed" and .conclusion == "success" end)' "$RUNNER_TEMP/run.json" > /dev/null \
+            || { echo "::error::Run $PLAN_RUN_ID is not a usable release.yml run dispatched on main (mode $mode; $(jq -r '"\(.path) on \(.head_branch): \(.status)/\(.conclusion)"' "$RUNNER_TEMP/run.json"))."; exit 1; }
           sha=$(jq -r '.head_sha' "$RUNNER_TEMP/run.json")
           [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::Run $PLAN_RUN_ID has no commit SHA."; exit 1; }
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "Plan run $PLAN_RUN_ID at $sha ($mode)."
 
       - name: Checkout main (full history, for the ancestry check)
         uses: actions/checkout@v7
@@ -141,13 +178,18 @@ jobs:
             echo "admin_hostname=$ADMIN_HOSTNAME"
           } >> "$GITHUB_OUTPUT"
 
-  # 5. apply: verify the saved plan, refuse a stale one, apply exactly tfplan, capture the outputs.
+  # 4-5. approval, then apply: verify the saved plan, refuse a stale one, apply exactly tfplan, capture the outputs.
+  # The ONLY job on prod-apply (required reviewer: the owner; deployment branch main). GitHub holds the job before it
+  # starts, so no runner, no OIDC token and no role session exist until the owner approves (up to 30 days; the
+  # timeout below counts from approval). Rejecting fails the job; publish, smoke and record are then skipped.
+  # Publish and record stay on prod: they run only after this job succeeds, and a second prod-apply job would ask
+  # for a second approval.
   apply:
     needs: config
     runs-on: ubuntu-24.04 # the same image as release.yml's plan job (W-7)
     timeout-minutes: 60 # within the one-hour role session (H.15.2 F2)
     environment:
-      name: prod
+      name: prod-apply
     permissions:
       contents: read
       id-token: write
@@ -515,7 +557,7 @@ jobs:
             echo "finished_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           } >> "$GITHUB_OUTPUT"
           if [[ "$(jq -r .hostnamesLive "$RUNNER_TEMP/smoke.json")" != "true" && "$rc" == 0 ]]; then
-            msg="Hostnames not checked (DNS not live). Create the alias records (docs/runbooks/dns-hand-off.md), then dispatch release.yml and apply.yml again: that release must pass on both hostnames, and every release after it requires them."
+            msg="Hostnames not checked (DNS not live). Create the alias records (docs/runbooks/dns-hand-off.md), then dispatch release.yml again and approve it: that release must pass on both hostnames, and every release after it requires them."
             echo "::warning::$msg"
             { echo ""; echo "> $msg"; } >> "$GITHUB_STEP_SUMMARY"
           fi
@@ -631,8 +673,12 @@ jobs:
             "| Commit | `\(.gitSha)` |\n" +
             "| Tag | `release-\(.releaseId)` |\n" +
             "| Build | \(if .artefactsFrom then "reused from `\(.artefactsFrom)` (rollback)" else "fresh" end) |\n" +
-            "| Release run (plan) | [\(.releaseRunId)](https://github.com/\($repo)/actions/runs/\(.releaseRunId)) |\n" +
-            "| Apply run | [\(.applyRunId)](https://github.com/\($repo)/actions/runs/\(.applyRunId)) |\n" +
+            (if .releaseRunId == .applyRunId then
+              "| Release run (plan, approval, apply) | [\(.releaseRunId)](https://github.com/\($repo)/actions/runs/\(.releaseRunId)) |\n"
+            else
+              "| Release run (plan) | [\(.releaseRunId)](https://github.com/\($repo)/actions/runs/\(.releaseRunId)) |\n" +
+              "| Apply run | [\(.applyRunId)](https://github.com/\($repo)/actions/runs/\(.applyRunId)) |\n"
+            end) +
             "| Plan | \(.plan.summary.add) to add, \(.plan.summary.change) to change, \(.plan.summary.delete) to delete; Terraform \(.plan.terraformVersion) |\n" +
             "| Smoke | \(smoke_line) |\n" +
             "| Finished | \(.finishedAt) |\n" +
