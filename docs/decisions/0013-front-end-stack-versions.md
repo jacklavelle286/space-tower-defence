@@ -37,4 +37,4 @@ Consequences:
 
 Evidence: local run on 2026-11-15: `npm ci`, `npm run lint`, `npm run typecheck`, `npm test` (3 passed), `npm run build`
 (player: index 221 kB + phaser chunk 1.37 MB; admin 220 kB). An `import "phaser"` and a `window` use added to `game-core`
-failed both the test and the lint rule, then were reverted. CI: [ci.yml](../../.github/workflows/ci.yml) pending its first push run.
+failed both the test and the lint rule, then were reverted. CI: [ci.yml](../../.github/workflows/ci.yml) run 43692712122 on `main` (commit `6ea00e4`): both jobs green.
