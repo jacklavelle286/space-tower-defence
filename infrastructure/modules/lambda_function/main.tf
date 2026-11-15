@@ -1,0 +1,95 @@
+# One Python Lambda function with its log group and its own role (plan H.4.4, E.6.4). Called four times.
+# The code is a content-addressed zip in the artefacts bucket: the release build uploads lambda/<key>/<sha256>.zip and
+# Terraform points the function at it (H.9.1), so the plan shows exactly which functions get new bytes.
+# Tags come from the provider's default_tags.
+#
+# Deliberately absent:
+# - reserved_concurrent_executions: the account's concurrency limit is 10 (register U-020); reserving any would fail
+#   or starve the other functions (E.6.4).
+# - publish / aliases: API Gateway and Cognito invoke $LATEST; rollback is an earlier zip through a release (H.12).
+# - logs:CreateLogGroup: the group is created here, before the function.
+# - Errors and Throttles alarms: they arrive with the monitoring module in Phase 9.
+
+# Created before the function, so Lambda never creates an unmanaged group with no retention.
+resource "aws_cloudwatch_log_group" "this" {
+  name              = "/aws/lambda/${var.function_name}"
+  retention_in_days = var.log_retention_days
+}
+
+data "aws_iam_policy_document" "assume" {
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "this" {
+  name               = var.role_name
+  assume_role_policy = data.aws_iam_policy_document.assume.json
+}
+
+data "aws_region" "current" {}
+
+data "aws_caller_identity" "current" {}
+
+locals {
+  # Built from the name rather than read from the log group, so the policy is known (and reviewable) at plan time.
+  log_group_arn = "arn:aws:logs:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:log-group:${aws_cloudwatch_log_group.this.name}"
+}
+
+# Write to its own log group only (the auth spike's proven shape: the group ARN plus ":*").
+data "aws_iam_policy_document" "logs" {
+  statement {
+    sid       = "WriteOwnLogGroup"
+    actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
+    resources = ["${local.log_group_arn}:*"]
+  }
+}
+
+resource "aws_iam_role_policy" "logs" {
+  name   = "logs"
+  role   = aws_iam_role.this.id
+  policy = data.aws_iam_policy_document.logs.json
+}
+
+# Everything else the function may do (E.6.4), written by the caller.
+resource "aws_iam_role_policy" "access" {
+  name   = "access"
+  role   = aws_iam_role.this.id
+  policy = var.policy_json
+}
+
+resource "aws_lambda_function" "this" {
+  function_name = var.function_name
+  description   = var.description
+  role          = aws_iam_role.this.arn
+
+  runtime       = "python3.14"
+  architectures = ["arm64"]
+  handler       = "handler.handler"
+  memory_size   = var.memory_size
+  timeout       = var.timeout
+
+  s3_bucket        = var.s3_bucket
+  s3_key           = var.s3_key
+  source_code_hash = var.source_code_sha256_b64
+
+  logging_config {
+    log_format = "JSON"
+    log_group  = aws_cloudwatch_log_group.this.name
+  }
+
+  environment {
+    variables = var.environment
+  }
+
+  # The role must be able to write logs before the first invocation.
+  depends_on = [
+    aws_iam_role_policy.logs,
+    aws_iam_role_policy.access,
+  ]
+}

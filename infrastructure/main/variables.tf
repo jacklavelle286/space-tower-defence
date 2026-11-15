@@ -55,11 +55,11 @@ variable "admin_hostname" {
 }
 
 # ---------------------------------------------------------------------------
-# Keys used from later phases (declared now so the env files load cleanly).
+# Sign-in, functions and (notification_email) monitoring.
 # ---------------------------------------------------------------------------
 
 variable "notification_email" {
-  description = "Alarm e-mail address for the SNS subscriptions (monitoring, Phase 9)."
+  description = "Alarm e-mail address for the SNS subscriptions (monitoring, Phase 9). Declared now so the env file loads cleanly."
   type        = string
 
   validation {
@@ -130,6 +130,83 @@ variable "tts_phoneme_engine" {
   validation {
     condition     = contains(["neural", "generative"], var.tts_phoneme_engine)
     error_message = "tts_phoneme_engine must be neural or generative."
+  }
+}
+
+# ---------------------------------------------------------------------------
+# Not in the env files: defaults, or generated per release (spine S1.3, plan H.3.2).
+# ---------------------------------------------------------------------------
+
+variable "lambda_artifacts" {
+  description = "Function code per key: s3_key (lambda/<key>/<sha256-hex>.zip in the artefacts bucket) and sha256_b64. Generated per release as release.tfvars.json from the build manifest (plan H.8.2); never committed."
+  type = map(object({
+    s3_key     = string
+    sha256_b64 = string
+  }))
+
+  validation {
+    condition     = toset(keys(var.lambda_artifacts)) == toset(["player-api", "admin-api", "tts", "cognito-presignup"])
+    error_message = "lambda_artifacts must have exactly the keys player-api, admin-api, tts and cognito-presignup."
+  }
+
+  validation {
+    condition     = alltrue([for k, a in var.lambda_artifacts : can(regex("^lambda/${k}/[0-9a-f]{64}\\.zip$", a.s3_key))])
+    error_message = "Each lambda_artifacts s3_key must be lambda/<its own key>/<64 lowercase hex digits>.zip."
+  }
+
+  validation {
+    condition     = alltrue([for a in values(var.lambda_artifacts) : can(regex("^[A-Za-z0-9+/]{43}=$", a.sha256_b64))])
+    error_message = "Each lambda_artifacts sha256_b64 must be a base64-encoded SHA-256 (44 characters ending in =)."
+  }
+}
+
+variable "player_route_scope" {
+  description = "Resource-server scope the player client carries and every player route requires (<server>/<scope>)."
+  type        = string
+  default     = "game/play"
+}
+
+variable "operator_route_scope" {
+  description = "Resource-server scope the admin client carries and every /api/admin route requires (<server>/<scope>)."
+  type        = string
+  default     = "ops/content"
+
+  validation {
+    condition     = split("/", var.operator_route_scope)[0] != split("/", var.player_route_scope)[0]
+    error_message = "operator_route_scope and player_route_scope must use different resource servers."
+  }
+}
+
+variable "table_name_overrides" {
+  description = "Restore cut-over only (plan H.13.3): point the functions at a restored table, e.g. { game = \"...\" }. The managed tables are unchanged."
+  type        = map(string)
+  default     = {}
+
+  validation {
+    condition     = length(setsubtract(keys(var.table_name_overrides), ["game", "content"])) == 0
+    error_message = "table_name_overrides may only have the keys game and content."
+  }
+}
+
+variable "log_retention_days" {
+  description = "Retention of the function log groups (spine S1)."
+  type        = number
+  default     = 7
+
+  validation {
+    condition     = contains([1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1096, 1827, 2192, 2557, 2922, 3288, 3653], var.log_retention_days)
+    error_message = "log_retention_days must be a CloudWatch Logs retention value (1, 3, 5, 7, 14, 30, 60, 90, ...)."
+  }
+}
+
+variable "audit_log_retention_days" {
+  description = "Retention of the admin-api log group, which holds the publication audit lines (spine S8.3)."
+  type        = number
+  default     = 90
+
+  validation {
+    condition     = contains([1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1096, 1827, 2192, 2557, 2922, 3288, 3653], var.audit_log_retention_days)
+    error_message = "audit_log_retention_days must be a CloudWatch Logs retention value (1, 3, 5, 7, 14, 30, 60, 90, ...)."
   }
 }
 

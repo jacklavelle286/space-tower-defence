@@ -57,3 +57,52 @@ output "artifacts_bucket" {
   description = "Artefacts bucket (bootstrap-owned), passed through from the data source for runbooks and the manifest cross-check."
   value       = data.aws_s3_bucket.artifacts.id
 }
+
+# Phase 8: data, sign-in and functions (plan H.3.6). Identifiers only; Cognito public clients have no secret.
+
+output "player_config" {
+  description = "Player sign-in settings for config.json (Phase 9 writes the file)."
+  value = {
+    region     = var.region
+    userPoolId = module.player_pool.user_pool_id
+    clientId   = module.player_pool.client_id
+    authDomain = module.player_pool.auth_domain
+    scope      = module.player_pool.scope
+  }
+}
+
+output "admin_config" {
+  description = "Operator sign-in settings for the admin site's config.json (Phase 9 writes the file)."
+  value = {
+    region     = var.region
+    userPoolId = module.operator_pool.user_pool_id
+    clientId   = module.operator_pool.client_id
+    authDomain = module.operator_pool.auth_domain
+    scope      = module.operator_pool.scope
+  }
+}
+
+output "audio_bucket" {
+  description = "Audio clip bucket (clips under tts/v1/)."
+  value       = module.audio_bucket.bucket_name
+}
+
+output "lambda_function_names" {
+  description = "Function name per key (smoke: CodeSha256 against the manifest)."
+  value = {
+    "player-api"        = module.player_api.function_name
+    "admin-api"         = module.admin_api.function_name
+    "tts"               = module.tts.function_name
+    "cognito-presignup" = module.cognito_presignup.function_name
+  }
+}
+
+output "game_table_name" {
+  description = "game table the functions use (runbooks)."
+  value       = local.table_names.game
+}
+
+output "content_table_name" {
+  description = "content table the functions use (runbooks)."
+  value       = local.table_names.content
+}
