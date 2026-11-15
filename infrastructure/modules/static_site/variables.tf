@@ -29,7 +29,7 @@ variable "cache_policy_id" {
 }
 
 variable "response_headers_policy_id" {
-  description = "Response headers policy (security headers and CSP) for the default behaviour. Owned by the root (plan H.4.2)."
+  description = "Response headers policy (security headers and CSP) for the default and /api/* behaviours. Owned by the root (plan H.4.2)."
   type        = string
 }
 
@@ -47,4 +47,24 @@ variable "price_class" {
     condition     = contains(["PriceClass_100", "PriceClass_200", "PriceClass_All"], var.price_class)
     error_message = "price_class must be PriceClass_100, PriceClass_200 or PriceClass_All."
   }
+}
+
+variable "api_origin_domain" {
+  description = "HTTP API default endpoint host name (<id>.execute-api.<region>.amazonaws.com, no scheme): the /api/* origin."
+  type        = string
+
+  validation {
+    condition     = can(regex("^[a-z0-9]+\\.execute-api\\.[a-z0-9-]+\\.amazonaws\\.com$", var.api_origin_domain))
+    error_message = "api_origin_domain must be an execute-api host name without https://."
+  }
+}
+
+variable "api_cache_policy_id" {
+  description = "Cache policy for /api/* (the managed CachingDisabled policy, looked up in the root)."
+  type        = string
+}
+
+variable "api_origin_request_policy_id" {
+  description = "Origin request policy for /api/* (the managed AllViewerExceptHostHeader policy: forwards Authorization)."
+  type        = string
 }

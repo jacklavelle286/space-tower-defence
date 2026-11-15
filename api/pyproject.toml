@@ -21,3 +21,6 @@ known-first-party = ["shared"]
 pythonpath = ["."]
 testpaths = ["tests"]
 addopts = ["-q", "--strict-markers"]
+markers = [
+  "ddblocal: needs DynamoDB Local at DDB_LOCAL_ENDPOINT (gate G-13); skipped when that is unset, so CI only",
+]

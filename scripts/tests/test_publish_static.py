@@ -21,6 +21,10 @@ HASHED = ["assets/index-DR5M5KOV.js", "assets/index-7Y7RtU1d.css", "assets/phase
           "assets/unkempt-latin-400-normal-xLPECJTk.woff2"]
 UNHASHED = ["assets/ui/logo.svg", "assets/common/tower-1.png", "assets/common/tower-2.png"]
 FILES = {"entry": ["index.html"], "hashed": HASHED, "unhashed": UNHASHED}
+# Shaped like `terraform output -json player_config` (made-up identifiers; a public client has no secret).
+AUTH = {"apiBase": "/api", "region": "eu-west-2", "userPoolId": "eu-west-2_AbCdEf123",
+        "clientId": "1a2b3c4d5e6f7g8h9i0j1k2l3m", "authDomain": "example-play.auth.eu-west-2.amazoncognito.com",
+        "scope": "game/play"}
 
 
 def make_archive(tmp_path: Path, names: list[str], extra: list[tarfile.TarInfo] | None = None) -> Path:
@@ -51,7 +55,7 @@ def published(tmp_path: Path):
     archive = make_archive(tmp_path, ["index.html", *HASHED, *UNHASHED])
     commands: list[list[str]] = []
     plan = ps.publish("player", manifest_for(archive), archive, "site-bucket", RELEASE_ID, tmp_path / "work",
-                      commands.append)
+                      commands.append, auth=AUTH)
     return plan, commands, tmp_path / "work"
 
 
@@ -108,7 +112,45 @@ def test_recursive_batches_hold_exactly_their_files(published):
 
 def test_config_json_content(published):
     _, _, work = published
-    assert json.loads((work / "site" / "config.json").read_text()) == {"apiBase": "/api", "releaseId": RELEASE_ID}
+    assert json.loads((work / "site" / "config.json").read_text()) == {
+        "apiBase": "/api", "releaseId": RELEASE_ID, "region": "eu-west-2", "userPoolId": "eu-west-2_AbCdEf123",
+        "clientId": "1a2b3c4d5e6f7g8h9i0j1k2l3m", "authDomain": "example-play.auth.eu-west-2.amazoncognito.com",
+        "scope": "game/play"}
+
+
+def test_config_json_without_api_base_in_output_still_gets_it():
+    auth = {k: v for k, v in AUTH.items() if k != "apiBase"}
+    assert json.loads(ps.config_json(RELEASE_ID, ps.site_config(auth)))["apiBase"] == "/api"
+
+
+@pytest.mark.parametrize(
+    ("change", "match"),
+    [
+        ({"clientSecret": "x" * 40}, "unexpected key"),  # nothing but identifiers may reach a public file
+        ({"apiBase": "https://abc.execute-api.eu-west-2.amazonaws.com"}, "apiBase"),
+        ({"userPoolId": ""}, "userPoolId"),
+        ({"clientId": None}, "clientId"),
+        ({"authDomain": "evil.example.com"}, "authDomain"),
+        ({"scope": "game play"}, "scope"),
+        ({"userPoolId": "us-east-1_AbCdEf123"}, "not in region"),
+        ({"authDomain": "x.auth.us-east-1.amazoncognito.com"}, "not in region"),
+    ],
+)
+def test_bad_site_config_refused_before_any_upload(tmp_path, change, match):
+    archive = make_archive(tmp_path, ["index.html", *HASHED, *UNHASHED])
+    commands: list[list[str]] = []
+    with pytest.raises(ps.PublishError, match=match):
+        ps.publish("player", manifest_for(archive), archive, "b", RELEASE_ID, tmp_path / "w", commands.append,
+                   auth={**AUTH, **change})
+    assert commands == []
+
+
+def test_missing_site_config_key_refused():
+    for key in ps.SITE_CONFIG_SHAPES:
+        with pytest.raises(ps.PublishError, match=key):
+            ps.site_config({k: v for k, v in AUTH.items() if k != key})
+    with pytest.raises(ps.PublishError, match="not a JSON object"):
+        ps.site_config(["eu-west-2"])
 
 
 def test_unknown_extension_stops_before_any_upload(tmp_path):
@@ -117,7 +159,7 @@ def test_unknown_extension_stops_before_any_upload(tmp_path):
     files = {"entry": ["index.html"], "hashed": HASHED, "unhashed": ["assets/data.bin"]}
     commands: list[list[str]] = []
     with pytest.raises(ps.PublishError, match="no Content-Type"):
-        ps.publish("player", manifest_for(archive, files), archive, "b", RELEASE_ID, tmp_path / "w", commands.append)
+        ps.publish("player", manifest_for(archive, files), archive, "b", RELEASE_ID, tmp_path / "w", commands.append, auth=AUTH)
     assert commands == []
 
 
@@ -126,27 +168,27 @@ def test_sha256_mismatch_refused(tmp_path):
     manifest = manifest_for(archive)
     manifest["static"]["player"]["sha256"] = "0" * 64
     with pytest.raises(ps.PublishError, match="SHA-256"):
-        ps.publish("player", manifest, archive, "b", RELEASE_ID, tmp_path / "w", lambda c: None)
+        ps.publish("player", manifest, archive, "b", RELEASE_ID, tmp_path / "w", lambda c: None, auth=AUTH)
 
 
 def test_file_not_in_manifest_refused(tmp_path):
     archive = make_archive(tmp_path, ["index.html", *HASHED, *UNHASHED, "assets/surprise.png"])
     with pytest.raises(ps.PublishError, match="not listed"):
-        ps.publish("player", manifest_for(archive), archive, "b", RELEASE_ID, tmp_path / "w", lambda c: None)
+        ps.publish("player", manifest_for(archive), archive, "b", RELEASE_ID, tmp_path / "w", lambda c: None, auth=AUTH)
 
 
 def test_build_with_own_config_json_refused(tmp_path):
     archive = make_archive(tmp_path, ["index.html", "config.json", *HASHED])
     files = {"entry": ["index.html"], "hashed": HASHED, "unhashed": ["config.json"]}
     with pytest.raises(ps.PublishError, match="config.json"):
-        ps.publish("player", manifest_for(archive, files), archive, "b", RELEASE_ID, tmp_path / "w", lambda c: None)
+        ps.publish("player", manifest_for(archive, files), archive, "b", RELEASE_ID, tmp_path / "w", lambda c: None, auth=AUTH)
 
 
 def test_wrong_release_refused(tmp_path):
     archive = make_archive(tmp_path, ["index.html", *HASHED, *UNHASHED])
     with pytest.raises(ps.PublishError, match="not"):
         ps.publish("player", manifest_for(archive), archive, "b", "20261116T0000Z-aaaaaaa", tmp_path / "w",
-                   lambda c: None)
+                   lambda c: None, auth=AUTH)
 
 
 @pytest.mark.parametrize("bad", ["../escape.txt", "/etc/passwd-like.txt"])
@@ -169,8 +211,11 @@ def test_cli_dry_run(tmp_path, capsys):
     manifest = tmp_path / "manifest.json"
     manifest.write_text(json.dumps(manifest_for(archive)))
     summary = tmp_path / "summary.json"
+    site_config = tmp_path / "player_config.json"
+    site_config.write_text(json.dumps(AUTH))
     rc = ps.main(["--app", "player", "--manifest", str(manifest), "--archive", str(archive), "--bucket", "b",
-                  "--release-id", RELEASE_ID, "--work", str(tmp_path / "w"), "--dry-run", "--summary", str(summary)])
+                  "--release-id", RELEASE_ID, "--site-config", str(site_config), "--work", str(tmp_path / "w"),
+                  "--dry-run", "--summary", str(summary)])
     assert rc == 0
     lines = [ln for ln in capsys.readouterr().out.splitlines() if ln.startswith("aws s3 cp")]
     assert lines[-1].split()[4] == "s3://b/index.html"
@@ -179,4 +224,4 @@ def test_cli_dry_run(tmp_path, capsys):
 
 def test_cli_empty_bucket_fails(tmp_path):
     assert ps.main(["--app", "player", "--manifest", "m", "--archive", "a", "--bucket", "", "--release-id", RELEASE_ID,
-                    "--work", str(tmp_path)]) == 1
+                    "--site-config", "c", "--work", str(tmp_path)]) == 1

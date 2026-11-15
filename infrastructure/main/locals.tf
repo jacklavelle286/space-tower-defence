@@ -47,4 +47,15 @@ locals {
     },
     var.extra_tags,
   )
+
+  # The route catalogue (G §2; ADR-0001: keys keep /api). Keyed by route key, "GET /api/me". A duplicate key fails here.
+  route_catalogue = jsondecode(file("${path.module}/../../contracts/routes.json"))
+  api_routes = {
+    for r in local.route_catalogue.routes : "${r.method} ${r.path}" => {
+      id         = r.id
+      function   = r.function
+      authoriser = r.authoriser
+      scope      = r.scope
+    }
+  }
 }

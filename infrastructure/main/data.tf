@@ -1,5 +1,5 @@
 # AWS-managed CloudFront policies, looked up by name rather than hard-coded IDs (plan H.3.4).
-# CachingOptimized is passed to both static_site calls; the other two wait for the /api/* behaviour (Phase 9).
+# CachingOptimized serves each site's default behaviour; CachingDisabled and AllViewerExceptHostHeader serve /api/*.
 # Nothing here reads the DNS account.
 
 data "aws_cloudfront_cache_policy" "caching_optimized" {

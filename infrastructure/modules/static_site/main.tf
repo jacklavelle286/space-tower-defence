@@ -1,4 +1,5 @@
-# One static single-page app: private S3 bucket behind a CloudFront distribution through Origin Access Control (plan H.4.2).
+# One static single-page app: private S3 bucket behind a CloudFront distribution through Origin Access Control (plan H.4.2),
+# plus the HTTP API as a second origin at /api/* (plan E.2.1).
 # Called twice (player, admin). The CloudFront Function and the response headers policy are shared by both sites, so the
 # root creates them once and passes them in. Tags come from the provider's default_tags.
 #
@@ -58,75 +59,50 @@ resource "aws_s3_bucket_versioning" "this" {
   }
 }
 
-data "aws_iam_policy_document" "bucket" {
-  # TLS only, for every principal.
-  statement {
-    sid     = "DenyInsecureTransport"
-    effect  = "Deny"
-    actions = ["s3:*"]
-    resources = [
-      aws_s3_bucket.this.arn,
-      "${aws_s3_bucket.this.arn}/*",
+# Written with jsonencode, not an aws_iam_policy_document data source: the data source is read only at apply time
+# whenever the distribution has pending changes, which made every distribution change show a phantom policy rewrite.
+# Here the distribution ARN comes from state, so the plan shows a policy change only when the policy really changes.
+locals {
+  bucket_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      # TLS only, for every principal.
+      {
+        Sid       = "DenyInsecureTransport"
+        Effect    = "Deny"
+        Principal = "*"
+        Action    = "s3:*"
+        Resource  = [aws_s3_bucket.this.arn, "${aws_s3_bucket.this.arn}/*"]
+        Condition = { Bool = { "aws:SecureTransport" = "false" } }
+      },
+      # Read through this distribution only (OAC signs as the CloudFront service principal; SourceArn pins the
+      # distribution).
+      {
+        Sid       = "AllowCloudFrontReadThisDistribution"
+        Effect    = "Allow"
+        Principal = { Service = "cloudfront.amazonaws.com" }
+        Action    = "s3:GetObject"
+        Resource  = "${aws_s3_bucket.this.arn}/*"
+        Condition = { StringEquals = { "AWS:SourceArn" = aws_cloudfront_distribution.this.arn } }
+      },
+      # Beyond H.4.2's read-only policy, on purpose: without ListBucket, S3 answers a missing key with 403, not 404, and
+      # the H.8.6 smoke check needs a real 404 for /missing.js. Not reachable as a listing: the SPA function rewrites
+      # "/" and extension-less paths to /index.html, and CachingOptimized forwards no query string to the origin.
+      {
+        Sid       = "AllowCloudFrontListThisDistribution"
+        Effect    = "Allow"
+        Principal = { Service = "cloudfront.amazonaws.com" }
+        Action    = "s3:ListBucket"
+        Resource  = aws_s3_bucket.this.arn
+        Condition = { StringEquals = { "AWS:SourceArn" = aws_cloudfront_distribution.this.arn } }
+      },
     ]
-
-    principals {
-      type        = "*"
-      identifiers = ["*"]
-    }
-
-    condition {
-      test     = "Bool"
-      variable = "aws:SecureTransport"
-      values   = ["false"]
-    }
-  }
-
-  # Read through this distribution only (OAC signs as the CloudFront service principal; SourceArn pins the distribution).
-  # s3:ListBucket makes a missing key return 404 instead of 403, which the release smoke check relies on
-  # (/missing.js must be a real 404, plan H.8.6). It lists nothing to viewers: "/" is served as index.html.
-  statement {
-    sid       = "AllowCloudFrontReadThisDistribution"
-    effect    = "Allow"
-    actions   = ["s3:GetObject"]
-    resources = ["${aws_s3_bucket.this.arn}/*"]
-
-    principals {
-      type        = "Service"
-      identifiers = ["cloudfront.amazonaws.com"]
-    }
-
-    condition {
-      test     = "StringEquals"
-      variable = "AWS:SourceArn"
-      values   = [aws_cloudfront_distribution.this.arn]
-    }
-  }
-
-  # Beyond H.4.2's read-only policy, on purpose: without ListBucket, S3 answers a missing key with 403, not 404, and
-  # the H.8.6 smoke check needs a real 404 for /missing.js. Not reachable as a listing: the SPA function rewrites "/"
-  # and extension-less paths to /index.html, and CachingOptimized forwards no query string to the origin.
-  statement {
-    sid       = "AllowCloudFrontListThisDistribution"
-    effect    = "Allow"
-    actions   = ["s3:ListBucket"]
-    resources = [aws_s3_bucket.this.arn]
-
-    principals {
-      type        = "Service"
-      identifiers = ["cloudfront.amazonaws.com"]
-    }
-
-    condition {
-      test     = "StringEquals"
-      variable = "AWS:SourceArn"
-      values   = [aws_cloudfront_distribution.this.arn]
-    }
-  }
+  })
 }
 
 resource "aws_s3_bucket_policy" "this" {
   bucket = aws_s3_bucket.this.id
-  policy = data.aws_iam_policy_document.bucket.json
+  policy = local.bucket_policy
 
   # The public access block must exist first, or S3 may evaluate the policy before the block is in place.
   depends_on = [aws_s3_bucket_public_access_block.this]
@@ -145,7 +121,8 @@ resource "aws_cloudfront_origin_access_control" "this" {
 }
 
 locals {
-  s3_origin_id = "s3-${var.bucket_name}"
+  s3_origin_id  = "s3-${var.bucket_name}"
+  api_origin_id = "api"
 }
 
 resource "aws_cloudfront_distribution" "this" {
@@ -163,9 +140,38 @@ resource "aws_cloudfront_distribution" "this" {
     origin_access_control_id = aws_cloudfront_origin_access_control.this.id
   }
 
-  # Seam for Phase 9 (M1-07 part 2): the HTTP API endpoint becomes a second origin and an ordered_cache_behavior
-  # "/api/*" goes here, with all methods, the managed CachingDisabled and AllViewerExceptHostHeader policies
-  # (already looked up in the root's data.tf) and NO function association (plan E.2.1).
+  # The HTTP API's default endpoint, same-origin at /api/* (plan E.2.1). HTTPS only, TLS 1.2. The read timeout stays at
+  # 30 s, the HTTP API integration limit, so the gateway (not CloudFront) answers a slow function.
+  origin {
+    origin_id   = local.api_origin_id
+    domain_name = var.api_origin_domain
+
+    custom_origin_config {
+      http_port                = 80
+      https_port               = 443
+      origin_protocol_policy   = "https-only"
+      origin_ssl_protocols     = ["TLSv1.2"]
+      origin_read_timeout      = 30
+      origin_keepalive_timeout = 5
+    }
+  }
+
+  # /api/* (plan H.4.2, E.2.1): all methods, nothing cached, every viewer header (Authorization included) except Host
+  # forwarded, so the gateway sees its own host name. NO function association: the SPA fallback must never rewrite an
+  # API path, and API errors keep their real status and JSON body. The security headers policy applies here too:
+  # HSTS, nosniff, frame denial and no-referrer are right for JSON, and a CSP on a JSON response is inert.
+  # https-only rather than redirect-to-https: a redirected POST would lose its body, so plain HTTP gets a 403.
+  ordered_cache_behavior {
+    path_pattern               = "/api/*"
+    target_origin_id           = local.api_origin_id
+    viewer_protocol_policy     = "https-only"
+    allowed_methods            = ["GET", "HEAD", "OPTIONS", "PUT", "POST", "PATCH", "DELETE"]
+    cached_methods             = ["GET", "HEAD"]
+    compress                   = false # CachingDisabled turns compression off anyway
+    cache_policy_id            = var.api_cache_policy_id
+    origin_request_policy_id   = var.api_origin_request_policy_id
+    response_headers_policy_id = var.response_headers_policy_id
+  }
 
   default_cache_behavior {
     target_origin_id           = local.s3_origin_id

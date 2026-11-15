@@ -1,5 +1,5 @@
 {
-  "_source": "Shaped on CloudFront + S3 (OAC, ListBucket) responses for the Phase 4 player build: security headers from the response headers policy in infrastructure/main/main.tf, S3's XML 404. Synthetic until the first live release; refresh with: python3 scripts/smoke.py ... --record <file>.",
+  "_source": "Shaped on CloudFront + S3 (OAC, ListBucket) responses for the Phase 4 player build: security headers from the response headers policy in infrastructure/main/main.tf, S3's XML 404. Synthetic until the first live release; refresh with: python3 scripts/smoke.py ... --record <file>. Phase 9: config.json carries the sign-in values (made-up identifiers); the /api/* answers are served by the test's gateway stand-in (test_smoke.py), with the status ADR-0012 verified (401) and the body AWS documents (G §1; the exact bodies are recorded by the first Phase 9 release).",
   "releaseId": "20261115T0905Z-101f353",
   "responses": {
     "/": {
@@ -36,7 +36,7 @@
       "status": 200
     },
     "/config.json": {
-      "body": "{\"apiBase\":\"/api\",\"releaseId\":\"20261115T0905Z-101f353\"}\n",
+      "body": "{\"apiBase\":\"/api\",\"authDomain\":\"example-play.auth.eu-west-2.amazoncognito.com\",\"clientId\":\"1a2b3c4d5e6f7g8h9i0j1k2l3m\",\"region\":\"eu-west-2\",\"releaseId\":\"20261115T0905Z-101f353\",\"scope\":\"game/play\",\"userPoolId\":\"eu-west-2_AbCdEf123\"}\n",
       "headers": {
         "cache-control": "no-cache",
         "content-security-policy-report-only": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",

@@ -59,8 +59,9 @@ variable "admin_hostname" {
 # ---------------------------------------------------------------------------
 
 variable "notification_email" {
-  description = "Alarm e-mail address for the SNS subscriptions (monitoring, Phase 9). Declared now so the env file loads cleanly."
+  description = "Alarm e-mail address subscribed to both SNS topics (monitoring). The owner confirms each within 48 h."
   type        = string
+  sensitive   = true # keeps the address out of plan text, which the run summary shows (H.7 W-4)
 
   validation {
     condition     = can(regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$", var.notification_email))

@@ -2,7 +2,12 @@
 """Publish one app's static build to its site bucket (plan H.8.5, step 6 of the release).
 
     python scripts/publish_static.py --app player --manifest manifest.json --archive player.tar.gz \
-        --bucket <site bucket> --release-id <release_id> --work <empty dir> [--dry-run] [--summary out.json]
+        --bucket <site bucket> --release-id <release_id> --site-config player_config.json --work <empty dir> \
+        [--dry-run] [--summary out.json]
+
+--site-config is the site's Terraform output object (`terraform output -json player_config`, or admin_config for the
+admin site): region, userPoolId, clientId, authDomain, scope and apiBase. The player site gets the player pool, the
+admin site the operator pool; the workflow passes the matching object.
 
 What it does, in this order:
   1. Checks the archive's SHA-256 against the release manifest (the build job recorded it; H.8.7).
@@ -13,7 +18,7 @@ What it does, in this order:
      rollback, H.7.2):
        a. content-hashed Vite output ("hashed")      Cache-Control: public, max-age=31536000, immutable
        b. unhashed files copied from public/          Cache-Control: no-cache   (ADR-0013, until Phase 64 hashes them)
-       c. config.json, generated here                 Cache-Control: no-cache   ({"apiBase": "/api", "releaseId": ...})
+       c. config.json, generated here                 Cache-Control: no-cache   (the site config + releaseId, H.8.5 f)
        d. index.html, LAST                            Cache-Control: no-cache
      so a browser that loads the new index.html finds every file it names. Every upload sets an explicit
      Content-Type from the table below; an extension that is not in the table stops the publish before any upload.
@@ -30,6 +35,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -147,9 +153,44 @@ def check_file_set(extracted: set[str], files: dict[str, list[str]]) -> None:
         )
 
 
-def config_json(release_id: str) -> str:
-    """Phase 4 content: the API base and the release ID only (H.8.5 f; auth values join in Phase 8)."""
-    return json.dumps({"apiBase": "/api", "releaseId": release_id}, sort_keys=True, separators=(",", ":")) + "\n"
+# config.json (H.8.5 f, E.2): identifiers only. A public Cognito client has no secret, so nothing here is one; any
+# other key is refused so a secret can never ride along from a Terraform output.
+API_BASE = "/api"
+SITE_CONFIG_SHAPES: dict[str, re.Pattern[str]] = {
+    "region": re.compile(r"^[a-z]{2}(?:-[a-z]+)+-\d$"),
+    "userPoolId": re.compile(r"^[a-z]{2}(?:-[a-z]+)+-\d_[A-Za-z0-9]+$"),
+    "clientId": re.compile(r"^[a-z0-9]{20,128}$"),
+    "authDomain": re.compile(r"^[a-z0-9-]+\.auth\.[a-z]{2}(?:-[a-z]+)+-\d\.amazoncognito\.com$"),
+    "scope": re.compile(r"^[a-z][a-z0-9-]*/[a-z][a-z0-9-]*$"),
+}
+
+
+def site_config(raw: Any) -> dict[str, str]:
+    """Check a site's Terraform output object and return the auth values (apiBase is added by config_json)."""
+    if not isinstance(raw, dict):
+        raise PublishError("the site config is not a JSON object (expected `terraform output -json player_config`)")
+    extra = sorted(set(raw) - set(SITE_CONFIG_SHAPES) - {"apiBase"})
+    if extra:
+        raise PublishError(f"the site config has unexpected key(s) {extra}; config.json carries identifiers only")
+    if raw.get("apiBase", API_BASE) != API_BASE:
+        raise PublishError(f"the site config's apiBase is {raw.get('apiBase')!r}, expected {API_BASE!r} (same origin)")
+    out: dict[str, str] = {}
+    for key, shape in SITE_CONFIG_SHAPES.items():
+        value = raw.get(key)
+        if not isinstance(value, str) or not shape.match(value):
+            raise PublishError(f"the site config's {key} is missing or malformed: {value!r}")
+        out[key] = value
+    if not out["userPoolId"].startswith(out["region"] + "_"):
+        raise PublishError(f"userPoolId {out['userPoolId']!r} is not in region {out['region']!r}")
+    if f".auth.{out['region']}." not in out["authDomain"]:
+        raise PublishError(f"authDomain {out['authDomain']!r} is not in region {out['region']!r}")
+    return out
+
+
+def config_json(release_id: str, auth: dict[str, str]) -> str:
+    """config.json: apiBase, releaseId and the site's sign-in settings (H.8.5 f, E.2)."""
+    body = {**auth, "apiBase": API_BASE, "releaseId": release_id}
+    return json.dumps(body, sort_keys=True, separators=(",", ":")) + "\n"
 
 
 def _grouped(label: str, cache_control: str, paths: Sequence[str]) -> list[Batch]:
@@ -199,8 +240,11 @@ def publish(
     release_id: str,
     work: Path,
     run: Callable[[list[str]], None],
+    *,
+    auth: Any,
 ) -> list[Batch]:
     entry = app_entry(manifest, app)
+    auth = site_config(auth)
     if manifest.get("releaseId") != release_id:
         raise PublishError(f"the manifest is for release {manifest.get('releaseId')!r}, not {release_id!r}")
     got = sha256_file(archive)
@@ -212,7 +256,7 @@ def publish(
         raise PublishError(f"{site_root} already exists; give an empty --work directory")
     safe_extract(archive, site_root)
     check_file_set(list_files(site_root), entry["files"])
-    (site_root / CONFIG_FILE).write_text(config_json(release_id), encoding="utf-8")
+    (site_root / CONFIG_FILE).write_text(config_json(release_id, auth), encoding="utf-8")
 
     plan = build_plan(entry["files"])
     for i, batch in enumerate(plan):
@@ -234,6 +278,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--archive", type=Path, required=True, help="the app's static archive (tar.gz)")
     parser.add_argument("--bucket", required=True)
     parser.add_argument("--release-id", required=True)
+    parser.add_argument("--site-config", type=Path, required=True,
+                        help="the site's Terraform output object as JSON (player_config or admin_config)")
     parser.add_argument("--work", type=Path, required=True, help="an empty working directory")
     parser.add_argument("--dry-run", action="store_true", help="print the upload commands instead of running them")
     parser.add_argument("--summary", type=Path, help="write the batches as JSON here")
@@ -248,8 +294,9 @@ def main(argv: list[str] | None = None) -> int:
 
     try:
         manifest = json.loads(args.manifest.read_text(encoding="utf-8"))
+        auth = json.loads(args.site_config.read_text(encoding="utf-8"))
         plan = publish(args.app, manifest, args.archive, args.bucket, args.release_id, args.work,
-                       dry if args.dry_run else run_cli)
+                       dry if args.dry_run else run_cli, auth=auth)
     except (OSError, json.JSONDecodeError, tarfile.TarError, PublishError) as exc:
         print(f"publish_static: error: {exc}", file=sys.stderr)
         return 1

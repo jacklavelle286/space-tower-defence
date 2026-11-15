@@ -78,3 +78,29 @@ variable "log_retention_days" {
   description = "Log group retention in days."
   type        = number
 }
+
+variable "alarm_name_prefix" {
+  description = "Alarm name prefix; the module appends -errors, -throttles and -duration (space-tower-defence-prod-lambda-<key>, plan H.14)."
+  type        = string
+}
+
+variable "alarm_topic_arn" {
+  description = "SNS topic (eu-west-2) for the alarm and OK actions. Required: every function has alarms (gate G-5)."
+  type        = string
+
+  validation {
+    condition     = can(regex("^arn:aws:sns:[a-z0-9-]+:[0-9]{12}:[A-Za-z0-9_-]+$", var.alarm_topic_arn))
+    error_message = "alarm_topic_arn must be an SNS topic ARN."
+  }
+}
+
+variable "duration_alarm_ratio" {
+  description = "Fraction of the timeout at which the duration alarm fires (Maximum Duration)."
+  type        = number
+  default     = 0.8
+
+  validation {
+    condition     = var.duration_alarm_ratio > 0 && var.duration_alarm_ratio < 1
+    error_message = "duration_alarm_ratio must be between 0 and 1."
+  }
+}

@@ -8,7 +8,9 @@
 #   or starve the other functions (E.6.4).
 # - publish / aliases: API Gateway and Cognito invoke $LATEST; rollback is an earlier zip through a release (H.12).
 # - logs:CreateLogGroup: the group is created here, before the function.
-# - Errors and Throttles alarms: they arrive with the monitoring module in Phase 9.
+#
+# Alarms (plan H.14, spine S11.5) live here, so every function has them by construction (gate G-5 checks each call
+# passes alarm_topic_arn). Shape: one 5-minute period, notBreaching, alarm and OK actions to the same topic.
 
 # Created before the function, so Lambda never creates an unmanaged group with no retention.
 resource "aws_cloudwatch_log_group" "this" {
@@ -92,4 +94,66 @@ resource "aws_lambda_function" "this" {
     aws_iam_role_policy.logs,
     aws_iam_role_policy.access,
   ]
+}
+
+# ---------------------------------------------------------------------------
+# Alarms (H.14): <alarm_name_prefix>-errors, -throttles, -duration.
+# ---------------------------------------------------------------------------
+
+locals {
+  alarm_dimensions = { FunctionName = aws_lambda_function.this.function_name }
+
+  # Duration near the timeout: a function that takes this long is about to time out (and API callers see a 5xx).
+  duration_alarm_ms = floor(var.timeout * 1000 * var.duration_alarm_ratio)
+}
+
+# Unhandled errors, including the pre-sign-up function's cap refusals (it raises by design).
+resource "aws_cloudwatch_metric_alarm" "errors" {
+  alarm_name          = "${var.alarm_name_prefix}-errors"
+  alarm_description   = "${var.function_name}: unhandled errors (Sum >= 1 in 5 min)."
+  namespace           = "AWS/Lambda"
+  metric_name         = "Errors"
+  dimensions          = local.alarm_dimensions
+  statistic           = "Sum"
+  period              = 300
+  evaluation_periods  = 1
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  threshold           = 1
+  treat_missing_data  = "notBreaching"
+  alarm_actions       = [var.alarm_topic_arn]
+  ok_actions          = [var.alarm_topic_arn]
+}
+
+# Concurrency refusals: the account limit is 10 and shared by all four functions (U-020).
+resource "aws_cloudwatch_metric_alarm" "throttles" {
+  alarm_name          = "${var.alarm_name_prefix}-throttles"
+  alarm_description   = "${var.function_name}: throttled invocations (Sum >= 1 in 5 min)."
+  namespace           = "AWS/Lambda"
+  metric_name         = "Throttles"
+  dimensions          = local.alarm_dimensions
+  statistic           = "Sum"
+  period              = 300
+  evaluation_periods  = 1
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  threshold           = 1
+  treat_missing_data  = "notBreaching"
+  alarm_actions       = [var.alarm_topic_arn]
+  ok_actions          = [var.alarm_topic_arn]
+}
+
+# Beyond H.14's list [PROPOSAL]: a timeout is reported as an error only once it happens; this warns while it is close.
+resource "aws_cloudwatch_metric_alarm" "duration" {
+  alarm_name          = "${var.alarm_name_prefix}-duration"
+  alarm_description   = "${var.function_name}: an invocation took >= ${local.duration_alarm_ms} ms of its ${var.timeout} s timeout (Maximum in 5 min)."
+  namespace           = "AWS/Lambda"
+  metric_name         = "Duration"
+  dimensions          = local.alarm_dimensions
+  statistic           = "Maximum"
+  period              = 300
+  evaluation_periods  = 1
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  threshold           = local.duration_alarm_ms
+  treat_missing_data  = "notBreaching"
+  alarm_actions       = [var.alarm_topic_arn]
+  ok_actions          = [var.alarm_topic_arn]
 }

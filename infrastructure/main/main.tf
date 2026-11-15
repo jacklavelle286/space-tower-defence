@@ -1,5 +1,5 @@
 # Module wiring (plan H.3.5). Phase 2: the certificate. Phase 3: the two static sites. Phase 8: tables, audio bucket,
-# Cognito pools and the four functions.
+# Cognito pools and the four functions. Phase 9: the HTTP API at /api/* on both sites, and monitoring.
 
 # One certificate in us-east-1 (CloudFront requires it there) for both hostnames.
 # Validation waits for the two CNAMEs the owner creates in the DNS account (docs/runbooks/dns-hand-off.md).
@@ -31,12 +31,20 @@ resource "aws_cloudfront_function" "spa_fallback" {
 }
 
 locals {
+  csp_connect_sources = [
+    "'self'",
+    "https://${module.player_pool.auth_domain}",
+    "https://${module.operator_pool.auth_domain}",
+  ]
+
   # Content Security Policy (plan H.4.2, E.10.3; outline in sources/08-aws-data-ops.md section c.4).
   # Shipped as Content-Security-Policy-Report-Only until M1 ends; then the header name changes to enforce it.
   # No report-uri/report-to yet (no endpoint exists): the M1 proof is a manual DevTools console check on both sites
   # (player game flow, admin), recorded before the switch to enforcing. Backlog B-2 adds a same-origin report route.
-  # connect-src is 'self' only for now: the API is same-origin, and the Cognito and audio-bucket hosts do not exist
-  # yet. When they arrive (Phase 8) the admin site needs the audio host too, and this policy splits into two.
+  # connect-src: 'self' (same-origin /api, config.json, Phaser's loader) plus both managed-login hosts, which the apps
+  # call with fetch for the token exchange and refresh (E.7). One policy serves both sites, so each site also allows
+  # the other pool's host: harmless while Report-Only. The audio bucket host joins when speech playback arrives
+  # (Phase 22), and that is when the policy splits into a player and an admin variant (E.10.3).
   csp_directives = [
     "default-src 'self'",
     "script-src 'self'", # no inline or eval: Vite emits only external module scripts
@@ -47,7 +55,7 @@ locals {
     "img-src 'self' data: blob:", # Phaser loads textures through blob: URLs and builds data: images
     "media-src 'self' blob:",     # audio played from locally stored bytes (plan E.9)
     "font-src 'self'",            # self-hosted woff2 in /assets
-    "connect-src 'self'",         # same-origin /api, config.json and Phaser's XHR loader
+    "connect-src ${join(" ", local.csp_connect_sources)}",
     "worker-src 'self' blob:",
     "object-src 'none'",
     "base-uri 'self'",
@@ -96,7 +104,7 @@ resource "aws_cloudfront_response_headers_policy" "security_headers" {
 }
 
 # ---------------------------------------------------------------------------
-# Static sites (plan H.4.2). The /api/* behaviour joins both in Phase 9.
+# Static sites (plan H.4.2), each with the HTTP API at /api/* (plan E.2.1).
 # ---------------------------------------------------------------------------
 
 module "player_site" {
@@ -109,6 +117,10 @@ module "player_site" {
   cache_policy_id             = data.aws_cloudfront_cache_policy.caching_optimized.id
   response_headers_policy_id  = aws_cloudfront_response_headers_policy.security_headers.id
   viewer_request_function_arn = aws_cloudfront_function.spa_fallback.arn
+
+  api_origin_domain            = module.api.endpoint_domain
+  api_cache_policy_id          = data.aws_cloudfront_cache_policy.caching_disabled.id
+  api_origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer_except_host_header.id
 }
 
 module "admin_site" {
@@ -121,6 +133,10 @@ module "admin_site" {
   cache_policy_id             = data.aws_cloudfront_cache_policy.caching_optimized.id
   response_headers_policy_id  = aws_cloudfront_response_headers_policy.security_headers.id
   viewer_request_function_arn = aws_cloudfront_function.spa_fallback.arn
+
+  api_origin_domain            = module.api.endpoint_domain
+  api_cache_policy_id          = data.aws_cloudfront_cache_policy.caching_disabled.id
+  api_origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer_except_host_header.id
 }
 
 # ---------------------------------------------------------------------------
@@ -151,6 +167,7 @@ module "audio_bucket" {
 # ---------------------------------------------------------------------------
 # Functions (plan H.4.4, E.6.4). One role each; code from the artefacts bucket by content hash (H.9.1).
 # Every role also writes to its own log group (added by the module). No reserved concurrency (account limit 10, U-020).
+# Each call passes alarm_topic_arn: the module adds the errors, throttles and duration alarms (H.14, gate G-5).
 # ---------------------------------------------------------------------------
 
 # player-api: every player route except speech. game items under U#<sub> only; content read-only; bounds files.
@@ -204,6 +221,9 @@ module "player_api" {
   s3_bucket              = data.aws_s3_bucket.artifacts.id
   s3_key                 = var.lambda_artifacts["player-api"].s3_key
   source_code_sha256_b64 = var.lambda_artifacts["player-api"].sha256_b64
+
+  alarm_name_prefix = "${local.name_prefix}-lambda-player-api"
+  alarm_topic_arn   = module.monitoring.alerts_topic_arn
 
   environment = {
     POWERTOOLS_SERVICE_NAME = "player-api"
@@ -264,6 +284,9 @@ module "admin_api" {
   s3_bucket              = data.aws_s3_bucket.artifacts.id
   s3_key                 = var.lambda_artifacts["admin-api"].s3_key
   source_code_sha256_b64 = var.lambda_artifacts["admin-api"].sha256_b64
+
+  alarm_name_prefix = "${local.name_prefix}-lambda-admin-api"
+  alarm_topic_arn   = module.monitoring.alerts_topic_arn
 
   environment = {
     POWERTOOLS_SERVICE_NAME = "admin-api"
@@ -339,6 +362,9 @@ module "tts" {
   s3_key                 = var.lambda_artifacts["tts"].s3_key
   source_code_sha256_b64 = var.lambda_artifacts["tts"].sha256_b64
 
+  alarm_name_prefix = "${local.name_prefix}-lambda-tts"
+  alarm_topic_arn   = module.monitoring.alerts_topic_arn
+
   environment = {
     POWERTOOLS_SERVICE_NAME = "tts"
     GAME_TABLE_NAME         = local.table_names.game
@@ -381,6 +407,9 @@ module "cognito_presignup" {
   s3_bucket              = data.aws_s3_bucket.artifacts.id
   s3_key                 = var.lambda_artifacts["cognito-presignup"].s3_key
   source_code_sha256_b64 = var.lambda_artifacts["cognito-presignup"].sha256_b64
+
+  alarm_name_prefix = "${local.name_prefix}-lambda-cognito-presignup"
+  alarm_topic_arn   = module.monitoring.alerts_topic_arn
 
   environment = {
     POWERTOOLS_SERVICE_NAME = "cognito-presignup"
@@ -467,5 +496,77 @@ module "operator_pool" {
   # Operator status = exact membership of "admin", checked in code too (E.7.3). Membership is a runbook step.
   groups = {
     admin = "Operators: content administration and speech approval"
+  }
+}
+
+# ---------------------------------------------------------------------------
+# HTTP API (plan H.4.3, E.2.1, E.6). Routes come straight from contracts/routes.json (locals.tf), so the deployed
+# route keys and the catalogue cannot drift; gate G-12 checks the plan against the same file.
+# ---------------------------------------------------------------------------
+
+module "api" {
+  source = "../modules/http_api"
+
+  name               = "${local.name_prefix}-api"
+  routes             = local.api_routes
+  log_retention_days = var.log_retention_days
+
+  functions = {
+    "player-api" = { function_name = module.player_api.function_name, invoke_arn = module.player_api.invoke_arn }
+    "admin-api"  = { function_name = module.admin_api.function_name, invoke_arn = module.admin_api.invoke_arn }
+    "tts"        = { function_name = module.tts.function_name, invoke_arn = module.tts.invoke_arn }
+  }
+
+  # Each pool's tokens are accepted only on its own routes: issuer = pool, audience = its one app client (E.7.3).
+  authorisers = {
+    player = {
+      issuer   = module.player_pool.issuer
+      audience = [module.player_pool.client_id]
+      scope    = module.player_pool.scope
+    }
+    operator = {
+      issuer   = module.operator_pool.issuer
+      audience = [module.operator_pool.client_id]
+      scope    = module.operator_pool.scope
+    }
+  }
+
+  # Spine S9.5 [ASSUMPTION]: stage 20 rps / burst 40; every route without an entry below gets that, set explicitly.
+  default_throttle = { rate_limit = 20, burst_limit = 40 }
+  route_throttles = {
+    "POST /api/runs"                 = { rate_limit = 1, burst_limit = 5 }
+    "POST /api/speech"               = { rate_limit = 20, burst_limit = 40 }
+    "POST /api/admin/speech/preview" = { rate_limit = 2, burst_limit = 5 }
+  }
+}
+
+# ---------------------------------------------------------------------------
+# Monitoring (plan H.14). Topics in eu-west-2 and a us-east-1 mirror for the CloudFront alarms. The Lambda alarms are
+# in each lambda_function call above.
+# ---------------------------------------------------------------------------
+
+module "monitoring" {
+  source = "../modules/monitoring"
+
+  providers = {
+    aws           = aws
+    aws.us_east_1 = aws.us_east_1
+  }
+
+  name_prefix        = local.name_prefix
+  notification_email = var.notification_email
+
+  api_id    = module.api.api_id
+  api_stage = module.api.stage_name
+
+  ops_log_group_name    = module.player_api.log_group_name
+  speech_log_group_name = module.tts.log_group_name
+
+  # The managed tables, not table_name_overrides: a restored table gets its alarm when it becomes managed (H.13.3).
+  table_names = local.managed_table_names
+
+  distribution_ids = {
+    player = module.player_site.distribution_id
+    admin  = module.admin_site.distribution_id
   }
 }

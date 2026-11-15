@@ -9,7 +9,7 @@ output "arn" {
 }
 
 output "invoke_arn" {
-  description = "Invoke ARN for an API Gateway integration (Phase 9)."
+  description = "Invoke ARN for the HTTP API integration."
   value       = aws_lambda_function.this.invoke_arn
 }
 
@@ -19,6 +19,15 @@ output "role_name" {
 }
 
 output "log_group_name" {
-  description = "Log group name (Phase 9 metric filters)."
+  description = "Log group name (monitoring metric filters)."
   value       = aws_cloudwatch_log_group.this.name
+}
+
+output "alarm_names" {
+  description = "The function's alarm names (errors, throttles, duration)."
+  value = [
+    aws_cloudwatch_metric_alarm.errors.alarm_name,
+    aws_cloudwatch_metric_alarm.throttles.alarm_name,
+    aws_cloudwatch_metric_alarm.duration.alarm_name,
+  ]
 }

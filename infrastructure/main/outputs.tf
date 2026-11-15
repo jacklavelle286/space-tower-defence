@@ -60,9 +60,11 @@ output "artifacts_bucket" {
 
 # Phase 8: data, sign-in and functions (plan H.3.6). Identifiers only; Cognito public clients have no secret.
 
+# config.json per site (H.8.5 f): identifiers only, no secrets. The publish step adds releaseId.
 output "player_config" {
-  description = "Player sign-in settings for config.json (Phase 9 writes the file)."
+  description = "Player site config.json values: API base and sign-in settings."
   value = {
+    apiBase    = "/api" # same-origin through the /api/* behaviour; route keys keep the prefix (ADR-0001)
     region     = var.region
     userPoolId = module.player_pool.user_pool_id
     clientId   = module.player_pool.client_id
@@ -72,8 +74,9 @@ output "player_config" {
 }
 
 output "admin_config" {
-  description = "Operator sign-in settings for the admin site's config.json (Phase 9 writes the file)."
+  description = "Admin site config.json values: API base and operator sign-in settings."
   value = {
+    apiBase    = "/api"
     region     = var.region
     userPoolId = module.operator_pool.user_pool_id
     clientId   = module.operator_pool.client_id
@@ -105,4 +108,42 @@ output "game_table_name" {
 output "content_table_name" {
   description = "content table the functions use (runbooks)."
   value       = local.table_names.content
+}
+
+# Phase 9: the API and monitoring (plan H.3.6).
+
+output "api_endpoint" {
+  description = "HTTP API default endpoint (smoke: optional direct check; the sites reach it at /api/*)."
+  value       = module.api.api_endpoint
+}
+
+output "api_id" {
+  description = "HTTP API ID (runbooks, alarm dimension)."
+  value       = module.api.api_id
+}
+
+output "api_route_keys" {
+  description = "Route keys deployed (equal to contracts/routes.json; G-12 checks the plan)."
+  value       = module.api.route_keys
+}
+
+output "alerts_topic_arn" {
+  description = "eu-west-2 alarm topic (runbook: test alarm with aws cloudwatch set-alarm-state)."
+  value       = module.monitoring.alerts_topic_arn
+}
+
+output "alerts_topic_use1_arn" {
+  description = "us-east-1 mirror alarm topic (CloudFront alarms)."
+  value       = module.monitoring.alerts_topic_use1_arn
+}
+
+output "alarm_names" {
+  description = "Every alarm this stack owns (runbooks, the test alarm)."
+  value = concat(
+    module.player_api.alarm_names,
+    module.admin_api.alarm_names,
+    module.tts.alarm_names,
+    module.cognito_presignup.alarm_names,
+    module.monitoring.alarm_names,
+  )
 }
