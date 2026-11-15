@@ -1,16 +1,92 @@
 """player-api: every player route except speech (plan G §2 R1-R14, E.6.3).
 
-Phase 7 skeleton: the router authorises by route key and every catalogued route answers 501 NOT_IMPLEMENTED until its
-phase adds a handler (profile routes in Phase 15, runs and session in Phase 16, ops in Phase 17).
+Phase 15 added the profile routes (G §3): `GET /api/me`, `PUT` and `PATCH /api/me/profile`, `GET /api/planets`.
+Phase 16 adds runs and the session lease (G §4, §7): `POST /api/runs`, `GET /api/runs/{runId}`,
+`GET /api/runs/{runId}/pack`, `PUT` and `DELETE /api/session`. Phase 17 adds the ops batch (G §5):
+`POST /api/runs/{runId}/ops`, applied by shared/ops.py. The other catalogued routes still answer 501 NOT_IMPLEMENTED
+until their phase adds a handler.
+
+The date of birth is write-only (spine S2): it enters in PUT/PATCH, is stored as PROFILE.dob, and is read back only to
+compute `age` and `ageBand`. No response is built from a stored item directly: every view names the fields it
+returns, so `dob` cannot slip into a body. The router's log line is an allow-list (shared/log.py), so it cannot reach
+a log line either.
+
+Ownership (AC-03): every key is built from the token's `sub`, so another player's `runId` is simply a missing key and
+answers the same 404 NOT_FOUND as a run that does not exist.
+
+Everything a test needs to control comes in through `Deps`: the clock ("now"), both tables, the game-data reader, the
+bounds loader, the seed, and the retry pause. `make_router(deps)` builds the router; the Lambda entry point uses
+`DEFAULT_DEPS`, whose factories create their AWS clients only when first called, after the router has authorised the
+request.
 """
 
 from __future__ import annotations
 
+import re
+import secrets
+import time
+from collections.abc import Callable, Mapping
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
+from decimal import Decimal
+from functools import cache
 from typing import Any
 
+from botocore.exceptions import ClientError
+
 from shared.auth import PLAYER
+from shared.body import invalid, json_object, query_param, raw_body
+from shared.bounds import KEY_ID, VERSION, BoundsUnavailable, load_bounds
+from shared.data import (
+    CONTENT_TABLE_ENV,
+    GAME_TABLE_ENV,
+    DynamoTable,
+    cancellation_reasons,
+    error_code,
+    failed_item,
+    is_transient,
+    table_from_env,
+)
+from shared.errors import ApiError, json_response
+from shared.game_data import GameDataReader, GameDataUnavailable, Planet, reader_from_env
 from shared.log import ApiLogger
-from shared.router import Router
+from shared.ops import OPS_MAX_BYTES, OpsBatch, check_envelope
+from shared.profile import age_band, stored_age, today_in_london, validate_profile
+from shared.router import Request, Router
+from shared.rules.contracts import LIMITS
+from shared.runs import (
+    RUN_PREFIX,
+    TERMINAL,
+    current_slot_of,
+    current_slot_view,
+    new_run_item,
+    new_slot_item,
+    pack_body,
+    plain,
+    run_sk,
+    run_summary,
+    run_view,
+    slot_entry,
+    slot_prefix,
+    slot_sk,
+    sorted_slots,
+)
+from shared.selection.bank import read_units, read_versions, version_key
+from shared.selection.plan import M1_CONFIG, BankNotReady, SelectionConfig, choose_units, plan_slots, slot_specs
+from shared.session import (
+    RESET_HOLDER_PREFIX,
+    SESSION_SK,
+    conflict,
+    generation_of,
+    iso_z,
+    jittered_pause,
+    lease_view,
+    parse_time,
+    release_update,
+    renew_update,
+    same_holder_update,
+    takeover_update,
+)
 
 # This function's allow-list. tests/unit/test_routes_contract.py checks it equals contracts/routes.json.
 ROUTES: dict[str, str] = {
@@ -30,7 +106,737 @@ ROUTES: dict[str, str] = {
     "DELETE /api/session": PLAYER,
 }
 
-ROUTER = Router(routes=ROUTES, handlers={}, logger=ApiLogger("player-api"))
+PROFILE_SK = "PROFILE"
+UNLOCK_AFTER_WAVE = 20  # the next planet unlocks at bestCompletedWave >= 20 on the one before (spine S8.1, G §3 R6)
+UUID = re.compile(LIMITS["ids"]["uuid"].removesuffix("$") + r"\Z")  # Python's $ also matches before a final newline
+DEVICE_LABEL_MAX: int = LIMITS["deviceLabelMaxLength"]
+INTEGER_MAX: int = LIMITS["integerMax"]
+IN_PROGRESS_CAP: int = LIMITS["inProgressRunsSoftCap"]
+ATTEMPTS = 3  # tries for a write that meets a transaction conflict, throttling or a raced lease, then 503 THROTTLED
+CCF = "ConditionalCheckFailed"  # a cancellation reason's code (the single-item error adds "Exception")
+_CONTROL = re.compile(r"[\x00-\x1f\x7f]")
+
+# RunSummary (G §4.1) is built from these RUN attributes (shared/runs.py names the item's fields).
+RUN_SUMMARY_ATTRIBUTES = (
+    "sk",
+    "planetId",
+    "waveSetId",
+    "mode",
+    "status",
+    "stage",
+    "phase",
+    "wave",
+    "finalWave",
+    "highestCompletedWave",
+    "campaignCompletedAt",
+    "lastPlayedAt",
+    "createdAt",
+    "revision",
+    "pins",
+)
+
+
+def _utc_now() -> datetime:
+    return datetime.now(UTC)
+
+
+def _new_seed() -> str:
+    """64 random bits from the server (spine S5.1), as 16 hex digits: a JSON number would lose bits in JavaScript."""
+    return f"{secrets.randbits(64):016x}"
+
+
+_container_reader = cache(reader_from_env)  # one game-data reader, and so one cache, per Lambda container
+_jitter = secrets.SystemRandom().random
+
+
+@dataclass(frozen=True)
+class Deps:
+    now: Callable[[], datetime] = _utc_now
+    game: Callable[[], DynamoTable] = lambda: table_from_env(GAME_TABLE_ENV)
+    game_data: Callable[[], GameDataReader] = _container_reader
+    bounds: Callable[[str, str], Any] = load_bounds
+    content: Callable[[], DynamoTable] = lambda: table_from_env(CONTENT_TABLE_ENV)
+    seed: Callable[[], str] = _new_seed
+    sleep: Callable[[float], None] = time.sleep
+    random: Callable[[], float] = _jitter
+    selection: SelectionConfig = field(default=M1_CONFIG)
+
+
+def _pk(request: Request) -> str:
+    return f"U#{request.caller.sub}"
+
+
+# --- Request checks (G §1.4: unknown fields refused; problems named by field and rule, never by value) --------------
+
+
+def _uuid_rule(value: Any) -> str | None:
+    return "type" if not isinstance(value, str) else None if UUID.match(value) else "pattern"
+
+
+def _pattern_rule(pattern: re.Pattern[str]) -> Callable[[Any], str | None]:
+    return lambda value: "type" if not isinstance(value, str) else None if pattern.match(value) else "pattern"
+
+
+def _bool_rule(value: Any) -> str | None:
+    return None if isinstance(value, bool) else "type"
+
+
+def _generation_rule(value: Any) -> str | None:
+    if isinstance(value, bool) or not isinstance(value, int):
+        return "type"
+    return "minimum" if value < 0 else "maximum" if value > INTEGER_MAX else None
+
+
+def _device_label_rule(value: Any) -> str | None:
+    if not isinstance(value, str):
+        return "type"
+    if not value.strip():
+        return "minLength"
+    if len(value) > DEVICE_LABEL_MAX:
+        return "maxLength"
+    return "pattern" if _CONTROL.search(value) else None
+
+
+def _mode_rule(value: Any) -> str | None:
+    return None if value in ("claim", "renew") else "enum"
+
+
+Rule = Callable[[Any], str | None]
+
+
+def _checked(body: Mapping[str, Any], fields: Mapping[str, tuple[bool, Rule]]) -> dict[str, Any]:
+    """The body's fields if every rule passes; else VALIDATION_FAILED listing every problem."""
+    problems: list[dict[str, str]] = []
+    if any(key not in fields for key in body):
+        problems.append({"field": "body", "rule": "additionalProperties"})
+    for name, (required, rule) in fields.items():
+        if name not in body:
+            if required:
+                problems.append({"field": name, "rule": "required"})
+            continue
+        problem = rule(body[name])
+        if problem is not None:
+            problems.append({"field": name, "rule": problem})
+    if problems:
+        raise ApiError("VALIDATION_FAILED", details=problems)
+    return {name: body[name] for name in fields if name in body}
+
+
+CREATE_RUN_FIELDS: dict[str, tuple[bool, Rule]] = {
+    "runId": (True, _uuid_rule),
+    "planetId": (True, _pattern_rule(KEY_ID)),
+    "waveSetId": (True, _pattern_rule(KEY_ID)),
+    "rulesetVersion": (True, _pattern_rule(VERSION)),
+    "campaignVersion": (True, _pattern_rule(VERSION)),
+    "sessionId": (True, _uuid_rule),
+    "deviceLabel": (True, _device_label_rule),
+    "takeover": (False, _bool_rule),
+}
+SESSION_FIELDS: dict[str, tuple[bool, Rule]] = {
+    "mode": (True, _mode_rule),
+    "runId": (True, _uuid_rule),
+    "sessionId": (True, _uuid_rule),
+    "generation": (False, _generation_rule),  # required for renew (checked after the mode is known)
+    "takeover": (False, _bool_rule),  # only meaningful for claim
+    "deviceLabel": (True, _device_label_rule),
+}
+RELEASE_FIELDS: dict[str, tuple[bool, Rule]] = {
+    "sessionId": (True, _uuid_rule),
+    "generation": (True, _generation_rule),
+}
+
+
+def _path_run_id(request: Request) -> str:
+    params = request.event.get("pathParameters")
+    value = params.get("runId") if isinstance(params, Mapping) else None
+    if _uuid_rule(value) is not None:
+        raise invalid("runId", "pattern")
+    return str(value)
+
+
+# --- Shared reads ---------------------------------------------------------------------------------------------------
+
+
+def _session_id(request: Request) -> str | None:
+    """The optional `?sessionId=` (G §3 R1): a UUID, or absent. Never logged, never returned."""
+    value = query_param(request.event, "sessionId")
+    if value is None:
+        return None
+    if not UUID.match(value):
+        raise invalid("sessionId", "pattern")
+    return value
+
+
+def _session_view(session: Mapping[str, Any] | None, session_id: str | None, now: datetime) -> dict[str, Any]:
+    """The four session fields R1 returns; never `sessionId` or `generation`."""
+    if session is None:
+        return {"activeElsewhere": False, "runId": None, "deviceLabel": None, "leaseExpiresAt": None}
+    holder = session.get("sessionId")
+    expires = parse_time(session.get("leaseExpiresAt"))
+    live = (
+        isinstance(holder, str)
+        and not holder.startswith(RESET_HOLDER_PREFIX)
+        and session.get("released") is not True
+        and expires is not None
+        and expires > now
+    )
+    # Without ?sessionId= any live lease counts as elsewhere (G §3 R1 [ASSUMPTION]).
+    elsewhere = bool(live) and (session_id is None or holder != session_id)
+    run_id, device_label = session.get("runId"), session.get("deviceLabel")
+    return {
+        "activeElsewhere": elsewhere,
+        "runId": run_id if isinstance(run_id, str) else None,
+        "deviceLabel": device_label if isinstance(device_label, str) else None,
+        "leaseExpiresAt": iso_z(expires) if expires is not None else None,
+    }
+
+
+class _Playability:
+    """Whether a pinned (ruleset, campaign) pair can be played: its bounds file loads (spine S5.1). Asked once per pair
+    per request."""
+
+    def __init__(self, bounds: Callable[[str, str], Any]) -> None:
+        self._bounds = bounds
+        self._seen: dict[tuple[str, str], bool] = {}
+
+    def __call__(self, ruleset: Any, campaign: Any) -> bool:
+        if not isinstance(ruleset, str) or not isinstance(campaign, str):
+            return False
+        key = (ruleset, campaign)
+        if key not in self._seen:
+            try:
+                self._bounds(ruleset, campaign)
+            except (BoundsUnavailable, ValueError):
+                self._seen[key] = False
+            else:
+                self._seen[key] = True
+        return self._seen[key]
+
+
+def _me_view(deps: Deps, table: DynamoTable, pk: str, profile: Mapping[str, Any], session_id: str | None) -> dict:
+    """The R1 body. Every field is named here; nothing is copied from the item wholesale."""
+    now = deps.now()
+    age = stored_age(profile, today_in_london(now))
+    session = table.get_item(pk, SESSION_SK)
+    runs = [
+        item
+        for item in table.query_prefix(pk, RUN_PREFIX, attributes=RUN_SUMMARY_ATTRIBUTES)
+        if item.get("status") == "IN_PROGRESS"
+    ]
+    runs.sort(key=lambda item: str(item["sk"]))  # ties by runId, then newest first (stable sort)
+    runs.sort(key=lambda item: str(item.get("lastPlayedAt") or ""), reverse=True)
+    playable = _Playability(deps.bounds)
+    planets, badges = profile.get("planets"), profile.get("badges")
+    return {
+        "nickname": profile.get("nickname"),
+        "avatarId": profile.get("avatarId"),
+        "age": age,
+        "ageBand": age_band(age),
+        "planets": plain(planets) if isinstance(planets, Mapping) else {},
+        "badges": plain(badges) if isinstance(badges, Mapping) else {},
+        "session": _session_view(session, session_id, now),
+        "runs": [run_summary(item, playable) for item in runs],
+    }
+
+
+def _profile_or_404(table: DynamoTable, pk: str) -> dict[str, Any]:
+    profile = table.get_item(pk, PROFILE_SK)
+    if profile is None:
+        raise ApiError("PROFILE_NOT_FOUND")
+    return profile
+
+
+def _with_unlocks(planets: list[Planet], profile: Mapping[str, Any]) -> list[tuple[Planet, bool]]:
+    """Each released planet and whether it is unlocked: the first always; each next one once the planet before it
+    has bestCompletedWave >= 20 (derived, never stored; spine S8.1)."""
+    progress = profile.get("planets") if isinstance(profile.get("planets"), Mapping) else {}
+    result: list[tuple[Planet, bool]] = []
+    previous_best: int | None = None
+    for index, planet in enumerate(planets):
+        result.append((planet, index == 0 or (previous_best is not None and previous_best >= UNLOCK_AFTER_WAVE)))
+        best = progress.get(planet.planet_id, {}) if isinstance(progress, Mapping) else {}
+        value = best.get("bestCompletedWave") if isinstance(best, Mapping) else None
+        previous_best = int(value) if isinstance(value, Decimal | int) and not isinstance(value, bool) else None
+    return result
+
+
+def _is_ccf(error: ClientError) -> bool:
+    return error_code(error) == "ConditionalCheckFailedException"
+
+
+def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
+    """The router with this phase's handlers bound to `deps`."""
+    logger = logger or ApiLogger("player-api")
+
+    def pause(attempt: int) -> None:
+        deps.sleep(jittered_pause(attempt, deps.random))
+
+    # --- Views that read slots and pinned versions ----------------------------------------------------------------
+
+    def current_slot(run: Mapping[str, Any], slots: list[dict[str, Any]] | None, table: DynamoTable, pk: str):
+        """`currentSlot` for a run: the slot the phase names, and whether its pinned version is withdrawn or missing
+        (one consistent read of that version; reads never act on it, spine S3.3)."""
+        slot_id = current_slot_of(run)
+        if slot_id is None:
+            return None
+        run_id = str(run["sk"]).removeprefix(RUN_PREFIX)
+        if slots is not None:
+            slot = next((s for s in slots if s.get("slotId") == slot_id), None)
+        else:
+            slot = table.get_item(pk, slot_sk(run_id, slot_id))
+        if slot is None:
+            return None
+        version = deps.content().get_item(
+            *version_key(str(slot.get("activityId")), str(slot.get("activityVersion"))), attributes=("pk", "withdrawn")
+        )
+        return current_slot_view(slot, withdrawn=version is None or bool(version.get("withdrawn")))
+
+    def view_of(run: Mapping[str, Any], table: DynamoTable, pk: str, slots: list[dict[str, Any]] | None = None):
+        return run_view(run, _Playability(deps.bounds), current_slot(run, slots, table, pk))
+
+    # --- The session claim (R13 steps 2-4; also R8's replay) -------------------------------------------------------
+
+    def claim(table: DynamoTable, pk: str, *, run_id: str, session_id: str, device_label: str, takeover: bool):
+        """Two conditional updates in order (spine S3.4): (1) same holder -> extend, generation unchanged; (2) free,
+        released, a RESET# holder, or lapsed with `takeover` -> generation + 1. If (2) is refused, the item DynamoDB
+        hands back decides between the two 409s. Returns (generation, now)."""
+        for attempt in range(ATTEMPTS):
+            now = deps.now()
+            try:
+                form = same_holder_update(session_id=session_id, run_id=run_id, device_label=device_label, now=now)
+                attributes = table.update_item(pk, SESSION_SK, **form, return_values="ALL_NEW")
+                return generation_of(attributes), now
+            except ClientError as error:
+                if not _is_ccf(error):
+                    if is_transient(error):
+                        pause(attempt + 1)
+                        continue
+                    raise
+            try:
+                form = takeover_update(
+                    session_id=session_id, run_id=run_id, device_label=device_label, now=now, takeover=takeover
+                )
+                attributes = table.update_item(
+                    pk, SESSION_SK, **form, return_values="ALL_NEW", return_old_on_failure=True
+                )
+                return generation_of(attributes), now
+            except ClientError as error:
+                if _is_ccf(error):
+                    old = failed_item(error) or table.get_item(pk, SESSION_SK)
+                    refusal = conflict(old, session_id, now, takeover)
+                    if refusal is not None:
+                        raise refusal from None
+                elif not is_transient(error):
+                    raise
+                pause(attempt + 1)  # the lease changed between the two updates, or DynamoDB was busy: try again
+        raise ApiError("THROTTLED")
+
+    def replay(table: DynamoTable, pk: str, run: Mapping[str, Any], body: Mapping[str, Any]) -> dict[str, Any]:
+        """R8 for a runId that already exists: the run as stored (never re-selected, never compared with the body),
+        and the lease claimed for this session exactly as R13's claim would (same holder: same generation). An ended
+        run is 409 RUN_TERMINAL, as for the R13 claim, and claims no lease ([PROPOSAL] in G R8, Phase 16 review)."""
+        if run.get("status") in TERMINAL:
+            raise ApiError("RUN_TERMINAL")
+        generation, now = claim(
+            table,
+            pk,
+            run_id=body["runId"],
+            session_id=body["sessionId"],
+            device_label=body["deviceLabel"],
+            takeover=body.get("takeover") is True,
+        )
+        return json_response(
+            200, {"run": view_of(run, table, pk), "session": lease_view(body["sessionId"], generation, now)}
+        )
+
+    # --- R8 POST /api/runs (G7) ------------------------------------------------------------------------------------
+
+    def post_runs(request: Request) -> dict[str, Any]:
+        body = _checked(json_object(request.event), CREATE_RUN_FIELDS)
+        run_id, session_id, takeover = body["runId"], body["sessionId"], body.get("takeover") is True
+        table = deps.game()
+        pk = _pk(request)
+
+        # Lookup first (G7): a repeat of a create returns the stored run without a second transaction.
+        existing = table.get_item(pk, run_sk(run_id))
+        if existing is not None:
+            return replay(table, pk, existing, body)
+
+        profile = _profile_or_404(table, pk)
+        try:
+            bounds = deps.bounds(body["rulesetVersion"], body["campaignVersion"])
+            planet = deps.game_data().planet(body["campaignVersion"])
+        except (BoundsUnavailable, GameDataUnavailable, ValueError):
+            raise ApiError("CONTENT_VERSION_UNSUPPORTED", "Unknown or unreleased game data version") from None
+        if planet.planet_id != body["planetId"]:
+            raise invalid("planetId", "campaignVersion")  # the campaign version is another planet's document
+        wave_set = next((ws for ws in planet.wave_sets if ws.wave_set_id == body["waveSetId"]), None)
+        ws_bounds = bounds["waveSets"].get(body["waveSetId"])
+        if wave_set is None or ws_bounds is None:
+            raise invalid("waveSetId", "enum")
+
+        now = deps.now()
+        band = age_band(stored_age(profile, today_in_london(now)))
+        if band is None:
+            raise ApiError("CONTENT_UNAVAILABLE", "No activities for this age", details={"reason": "AGE_OUT_OF_RANGE"})
+        released = deps.game_data().released_planets()
+        unlocks = {planet.planet_id: unlocked for planet, unlocked in _with_unlocks(released, profile)}
+        if body["planetId"] not in unlocks:
+            raise ApiError("CONTENT_VERSION_UNSUPPORTED", "Planet is not in the released game data")
+        if not unlocks[body["planetId"]]:
+            raise ApiError("CONTENT_UNAVAILABLE", "Planet is locked", details={"reason": "PLANET_LOCKED"})
+        statuses = [item.get("status") for item in table.query_prefix(pk, RUN_PREFIX, attributes=("status",))]
+        if statuses.count("IN_PROGRESS") >= IN_PROGRESS_CAP:  # the soft cap, from the G1 Query
+            raise ApiError("RUN_LIMIT_REACHED", "Too many games in progress")
+
+        # Selection (C24): pinned once, here; a replay never re-selects.
+        seed = deps.seed()
+        specs = slot_specs(
+            int(ws_bounds["finalWave"]), list(ws_bounds["meteorAfter"]), list(ws_bounds["normalRewardByInterval"])
+        )
+        content = deps.content()
+        try:
+            chosen = choose_units(specs, read_units(content, band), seed, deps.selection)
+            versions = read_versions(content, {(unit.activity_id, unit.version) for unit in chosen})
+            plans = plan_slots(specs, chosen, versions, seed)
+        except BankNotReady:
+            raise ApiError(
+                "CONTENT_UNAVAILABLE", "Activities for this age are not ready", details={"reason": "BANK_NOT_READY"}
+            ) from None
+        if 3 + len(plans) != int(ws_bounds["createRunActions"]):  # G-15 counted these actions at build time
+            raise RuntimeError("slot plan does not match the bounds file's createRunActions")
+
+        for attempt in range(ATTEMPTS):
+            now = deps.now()
+            stamp = iso_z(now)
+            session = table.get_item(pk, SESSION_SK)
+            refusal = conflict(session, session_id, now, takeover)
+            if refusal is not None:
+                raise refusal
+            common = {"session_id": session_id, "run_id": run_id, "device_label": body["deviceLabel"], "now": now}
+            if session is not None and session.get("sessionId") == session_id:
+                generation = generation_of(session)
+                form = same_holder_update(**common, generation=generation)
+            else:
+                generation = generation_of(session) + 1
+                form = takeover_update(**common, takeover=takeover, expected=session)
+            run_item = new_run_item(
+                pk=pk,
+                run_id=run_id,
+                planet_id=body["planetId"],
+                wave_set_id=body["waveSetId"],
+                wave_set_bounds=ws_bounds,
+                preset_placements=wave_set.preset_placements,
+                age_band=band,
+                seed=seed,
+                ruleset_version=body["rulesetVersion"],
+                campaign_version=body["campaignVersion"],
+                generation=generation,
+                plans=plans,
+                now=stamp,
+            )
+            new_only = {"condition": "attribute_not_exists(#pk)", "names": {"#pk": "pk"}}
+            # Action order is fixed: CancellationReasons come back in this order (F §12.3).
+            actions = [
+                table.update_action(pk, SESSION_SK, **form, return_old_on_failure=True),  # 0 SESSION: the claim
+                table.put_action(run_item, **new_only),  # 1 RUN
+                table.condition_check_action(  # 2 PROFILE: a reset racing the create
+                    pk, PROFILE_SK, condition="attribute_exists(#pk)", names={"#pk": "pk"}
+                ),
+                *(table.put_action(new_slot_item(pk=pk, run_id=run_id, plan=plan), **new_only) for plan in plans),
+            ]
+            try:
+                table.transact_write(actions)
+            except ClientError as error:
+                reasons = cancellation_reasons(error)
+                if reasons is None:
+                    if is_transient(error):
+                        pause(attempt + 1)
+                        continue
+                    raise
+                codes = [reason.code for reason in reasons] + ["None"] * (len(actions) - len(reasons))
+                if codes[1] == CCF:  # the same runId was created meanwhile: the replay path
+                    stored = table.get_item(pk, run_sk(run_id))
+                    if stored is None:
+                        raise RuntimeError("RUN condition failed but no RUN item exists") from None
+                    return replay(table, pk, stored, body)
+                if codes[2] == CCF:
+                    raise ApiError("PROFILE_NOT_FOUND") from None
+                if codes[0] == CCF:
+                    old = reasons[0].item or table.get_item(pk, SESSION_SK)
+                    refusal = conflict(old, session_id, now, takeover)
+                    if refusal is not None:
+                        raise refusal from None
+                    pause(attempt + 1)  # the lease moved between the read and the write but is ours to take: again
+                    continue
+                if CCF in codes[3:]:
+                    raise RuntimeError("a slot of a new run already exists") from None
+                if is_transient(error):
+                    pause(attempt + 1)
+                    continue
+                raise
+            return json_response(
+                201, {"run": view_of(run_item, table, pk, slots=[]), "session": lease_view(session_id, generation, now)}
+            )
+        raise ApiError("THROTTLED")
+
+    # --- R9 and R10 --------------------------------------------------------------------------------------------------
+
+    def get_run(request: Request) -> dict[str, Any]:
+        run_id = _path_run_id(request)
+        table = deps.game()
+        pk = _pk(request)
+        run = table.get_item(pk, run_sk(run_id))
+        if run is None:
+            raise ApiError("NOT_FOUND")
+        slots = table.query_prefix(pk, slot_prefix(run_id))
+        detail = view_of(run, table, pk, slots=slots)
+        detail["slots"] = [slot_entry(slot) for slot in sorted_slots(slots)]
+        return json_response(200, detail)
+
+    def get_pack(request: Request) -> dict[str, Any]:
+        run_id = _path_run_id(request)
+        table = deps.game()
+        pk = _pk(request)
+        run = table.get_item(pk, run_sk(run_id))
+        if run is None:
+            raise ApiError("NOT_FOUND")
+        slots = table.query_prefix(pk, slot_prefix(run_id))
+        planned = int(run.get("plannedThrough") or 0)
+        pins = {
+            (str(s.get("activityId")), str(s.get("activityVersion")))
+            for s in slots
+            if s.get("status") == "UNRESOLVED" and int(str(s.get("slotId"))[2:]) <= planned
+        }
+        versions = read_versions(deps.content(), pins) if pins else {}
+        pins_map = run.get("pins") if isinstance(run.get("pins"), Mapping) else {}
+        playable = _Playability(deps.bounds)(pins_map.get("rulesetVersion"), pins_map.get("campaignVersion"))
+        return json_response(200, pack_body(run, slots, versions, playable))
+
+    # --- R13 PUT /api/session, R14 DELETE /api/session ---------------------------------------------------------------
+
+    def put_session(request: Request) -> dict[str, Any]:
+        body = _checked(json_object(request.event), SESSION_FIELDS)
+        if body["mode"] == "renew" and "generation" not in body:
+            raise invalid("generation", "required")
+        table = deps.game()
+        pk = _pk(request)
+        run_id, session_id = body["runId"], body["sessionId"]
+
+        if body["mode"] == "renew":
+            # Only this exact tenure may extend; a failed renew never falls back to a claim (G §7 R13).
+            for attempt in range(ATTEMPTS):
+                now = deps.now()
+                form = renew_update(
+                    session_id=session_id,
+                    generation=body["generation"],
+                    run_id=run_id,
+                    device_label=body["deviceLabel"],
+                    now=now,
+                )
+                try:
+                    table.update_item(pk, SESSION_SK, **form)
+                except ClientError as error:
+                    if _is_ccf(error):
+                        raise ApiError("STALE_SESSION", "The session is held by another tenure") from None
+                    if not is_transient(error):
+                        raise
+                    pause(attempt + 1)
+                    continue
+                return json_response(200, {**lease_view(session_id, body["generation"], now), "runId": run_id})
+            raise ApiError("THROTTLED")  # never STALE_SESSION for a DynamoDB hiccup
+
+        run = table.get_item(pk, run_sk(run_id), attributes=("status",))
+        if run is None:
+            raise ApiError("NOT_FOUND")
+        if run.get("status") in TERMINAL:
+            raise ApiError("RUN_TERMINAL", "The run has ended")
+        generation, now = claim(
+            table,
+            pk,
+            run_id=run_id,
+            session_id=session_id,
+            device_label=body["deviceLabel"],
+            takeover=body.get("takeover") is True,
+        )
+        return json_response(200, {**lease_view(session_id, generation, now), "runId": run_id})
+
+    def delete_session(request: Request) -> dict[str, Any]:
+        # The body is the contract; the same two values as query parameters are the fallback while it is unverified
+        # that a DELETE body survives CloudFront and the HTTP API (G §7 R14, U-043).
+        if raw_body(request.event):
+            body = _checked(json_object(request.event), RELEASE_FIELDS)
+        else:
+            generation_text = query_param(request.event, "generation")
+            query: dict[str, Any] = {}
+            if query_param(request.event, "sessionId") is not None:
+                query["sessionId"] = query_param(request.event, "sessionId")
+            if generation_text is not None:
+                query["generation"] = int(generation_text) if generation_text.isdigit() else generation_text
+            body = _checked(query, RELEASE_FIELDS)
+        table = deps.game()
+        pk = _pk(request)
+        for attempt in range(ATTEMPTS):
+            form = release_update(session_id=body["sessionId"], generation=body["generation"], now=deps.now())
+            try:
+                table.update_item(pk, SESSION_SK, **form)
+            except ClientError as error:
+                if not _is_ccf(error):  # a mismatch means nothing of ours to release: still 204
+                    if not is_transient(error):
+                        raise
+                    pause(attempt + 1)
+                    continue
+            return {"statusCode": 204, "headers": {"cache-control": "no-store"}, "body": ""}
+        raise ApiError("THROTTLED")
+
+    # --- R11 POST /api/runs/{runId}/ops (G5; Phase 17) ---------------------------------------------------------------
+
+    def post_ops(request: Request) -> dict[str, Any]:
+        """Batch checks (400, 409 PROTOCOL_UNSUPPORTED) before any op; then the ops in order (shared/ops.py); then the
+        run as it now stands. 200 whenever ops were processed, even with a REJECTED; 409 STALE_SESSION only when the
+        first op failed the fence; 503 THROTTLED when an op's transaction was refused three times. 409 and 503 also
+        carry `results` and `run` (G §5.5)."""
+        run_id = _path_run_id(request)
+        envelope = check_envelope(json_object(request.event, max_bytes=OPS_MAX_BYTES))
+        table = deps.game()
+        pk = _pk(request)
+        route = {"requestId": request.request_id, "routeKey": request.caller.route_key, "sub": request.caller.sub}
+
+        def log(level: str, **fields: Any) -> None:
+            logger.line(level, **route, runId=run_id, **fields)  # one line per op (G §15)
+
+        batch = OpsBatch(
+            table=table,
+            content=deps.content,
+            bounds=deps.bounds,
+            now=deps.now,
+            sleep=deps.sleep,
+            random=deps.random,
+            log=log,
+        )
+        outcome = batch.apply(pk, run_id, envelope)
+        run = table.get_item(pk, run_sk(run_id))
+        if run is None:  # deleted after its ops were looked at (a whole-profile reset): nothing left to show
+            raise ApiError("NOT_FOUND")
+        body = {"results": outcome.results, "run": view_of(run, table, pk)}
+        if outcome.stop == "STALE_SESSION_FIRST":
+            raise ApiError("STALE_SESSION", "Session generation is no longer current", extra=body)
+        if outcome.stop == "THROTTLED":
+            raise ApiError("THROTTLED", extra=body)
+        return json_response(200, body)
+
+    # --- Profile routes (Phase 15) ---------------------------------------------------------------------------------
+
+    def get_me(request: Request) -> dict[str, Any]:
+        session_id = _session_id(request)
+        table = deps.game()
+        pk = _pk(request)
+        return json_response(200, _me_view(deps, table, pk, _profile_or_404(table, pk), session_id))
+
+    def put_profile(request: Request) -> dict[str, Any]:
+        session_id = _session_id(request)
+        now = deps.now()
+        fields = validate_profile(json_object(request.event), partial=False, today=today_in_london(now))
+        table = deps.game()
+        pk = _pk(request)
+        # The only write that creates PROFILE (spine S8.1): the three fields, then createdAt and the two maps only if
+        # missing. Repeating the same body leaves the same item.
+        profile = table.update_item(
+            pk,
+            PROFILE_SK,
+            update=(
+                "SET #nickname = :nickname, #avatarId = :avatarId, #dob = :dob, "
+                "#createdAt = if_not_exists(#createdAt, :now), "
+                "#planets = if_not_exists(#planets, :empty), #badges = if_not_exists(#badges, :empty)"
+            ),
+            names={
+                "#nickname": "nickname",
+                "#avatarId": "avatarId",
+                "#dob": "dob",
+                "#createdAt": "createdAt",
+                "#planets": "planets",
+                "#badges": "badges",
+            },
+            values={
+                ":nickname": fields["nickname"],
+                ":avatarId": fields["avatarId"],
+                ":dob": fields["dob"],
+                ":now": iso_z(now),
+                ":empty": {},
+            },
+            return_values="ALL_NEW",
+        )
+        return json_response(200, _me_view(deps, table, pk, profile, session_id))
+
+    def patch_profile(request: Request) -> dict[str, Any]:
+        session_id = _session_id(request)
+        now = deps.now()
+        fields = validate_profile(json_object(request.event), partial=True, today=today_in_london(now))
+        table = deps.game()
+        pk = _pk(request)
+        names = {"#pk": "pk", **{f"#{name}": name for name in fields}}
+        values = {f":{name}": value for name, value in fields.items()}
+        try:
+            profile = table.update_item(
+                pk,
+                PROFILE_SK,
+                update="SET " + ", ".join(f"#{name} = :{name}" for name in fields),
+                names=names,
+                values=values,
+                condition="attribute_exists(#pk)",
+                return_values="ALL_NEW",
+            )
+        except ClientError as exc:
+            if _is_ccf(exc):
+                raise ApiError("PROFILE_NOT_FOUND") from None
+            raise
+        return json_response(200, _me_view(deps, table, pk, profile, session_id))
+
+    def get_planets(request: Request) -> dict[str, Any]:
+        now = deps.now()
+        table = deps.game()
+        profile = table.get_item(_pk(request), PROFILE_SK, attributes=("dob", "planets"))
+        if profile is None:
+            raise ApiError("PROFILE_NOT_FOUND")
+        band = age_band(stored_age(profile, today_in_london(now)))
+        planets: list[dict[str, Any]] = []
+        for planet, unlocked in _with_unlocks(deps.game_data().released_planets(), profile):
+            wave_sets = []
+            for ws in planet.wave_sets:
+                entry: dict[str, Any] = {
+                    "waveSetId": ws.wave_set_id,
+                    "mode": ws.mode,
+                    "name": ws.name,
+                    "finalWave": ws.final_wave,
+                    "available": band is not None,
+                }
+                # BANK_NOT_READY is decided by selection inside POST /api/runs (Phase 16); this list does not run it
+                # yet, so only the age band decides here.
+                if band is None:
+                    entry["reason"] = "AGE_OUT_OF_RANGE"
+                wave_sets.append(entry)
+            planets.append(
+                {"planetId": planet.planet_id, "name": planet.name, "unlocked": unlocked, "waveSets": wave_sets}
+            )
+        return json_response(200, {"ageBand": band, "planets": planets})
+
+    handlers = {
+        "GET /api/me": get_me,
+        "PUT /api/me/profile": put_profile,
+        "PATCH /api/me/profile": patch_profile,
+        "GET /api/planets": get_planets,
+        "POST /api/runs": post_runs,
+        "GET /api/runs/{runId}": get_run,
+        "GET /api/runs/{runId}/pack": get_pack,
+        "POST /api/runs/{runId}/ops": post_ops,
+        "PUT /api/session": put_session,
+        "DELETE /api/session": delete_session,
+    }
+    return Router(routes=ROUTES, handlers=handlers, logger=logger)
+
+
+DEFAULT_DEPS = Deps()
+ROUTER = make_router(DEFAULT_DEPS)
 
 
 def handler(event: dict[str, Any], context: object) -> dict[str, Any]:

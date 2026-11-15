@@ -1,0 +1,21 @@
+{
+  "$comment": "Recorded by api/tests/integration/test_g5.py, scenario g5-duplicate-race; see README.md here.",
+  "source": "moto 5.2.5, written locally in Phase 17 with the same normalisation; to be confirmed by the first CI run against DynamoDB Local (compare mode)",
+  "Error": {
+    "Code": "TransactionCanceledException"
+  },
+  "CancellationReasons": [
+    {
+      "Code": "None"
+    },
+    {
+      "Code": "ConditionalCheckFailed"
+    },
+    {
+      "Code": "ConditionalCheckFailed"
+    },
+    {
+      "Code": "None"
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "$comment": "Recorded by api/tests/integration/test_g7_ddblocal.py, scenario g7-session-held-elsewhere; see README.md here.",
+  "source": "moto 5.2.5, written locally in Phase 16 with the same normalisation; to be confirmed by the first CI run against DynamoDB Local (compare mode)",
+  "Error": {
+    "Code": "TransactionCanceledException"
+  },
+  "CancellationReasons": [
+    {
+      "Code": "ConditionalCheckFailed",
+      "Item": {
+        "pk": {
+          "S": "U#a6c2b2b4-7051-70ef-b1e8-739ac38dd0cb"
+        },
+        "sk": {
+          "S": "SESSION"
+        },
+        "generation": {
+          "N": "1"
+        },
+        "sessionId": {
+          "S": "99999999-8888-4777-8666-555555555555"
+        },
+        "runId": {
+          "S": "7c2d1e0f-3a4b-4c5d-8e6f-7a8b9c0d1e2f"
+        },
+        "leaseExpiresAt": {
+          "S": "2026-11-20T10:02:30Z"
+        },
+        "released": {
+          "BOOL": false
+        },
+        "deviceLabel": {
+          "S": "Bedroom tablet"
+        },
+        "lastRenewedAt": {
+          "S": "2026-11-20T09:59:30Z"
+        }
+      }
+    },
+    {
+      "Code": "None"
+    },
+    {
+      "Code": "None"
+    },
+    {
+      "Code": "None"
+    }
+  ]
+}

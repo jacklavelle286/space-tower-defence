@@ -57,13 +57,17 @@ RESPONSE_HEADERS: Mapping[str, str] = {
 
 
 class ApiError(Exception):
-    """An error answered with the envelope. Raise it anywhere below a router; the router turns it into a response."""
+    """An error answered with the envelope. Raise it anywhere below a router; the router turns it into a response.
+
+    `extra` adds top-level members beside `error` (Phase 17: the ops route's 409 STALE_SESSION and 503 THROTTLED
+    also carry `results` and `run`, G §5.5)."""
 
     def __init__(
         self,
         code: str,
         message: str | None = None,
         details: Sequence[Mapping[str, Any]] | Mapping[str, Any] | None = None,
+        extra: Mapping[str, Any] | None = None,
     ) -> None:
         if code not in STATUS_BY_CODE:
             raise ValueError(f"unknown error code {code!r}")
@@ -71,6 +75,9 @@ class ApiError(Exception):
         self.status = STATUS_BY_CODE[code]
         self.message = message or _DEFAULT_MESSAGES.get(code, code.replace("_", " ").capitalize())
         self.details = details
+        self.extra = dict(extra) if extra is not None else {}
+        if "error" in self.extra:
+            raise ValueError("extra must not replace the error envelope")
         super().__init__(code)
 
 
@@ -88,4 +95,4 @@ def error_response(error: ApiError, request_id: str) -> dict[str, Any]:
     envelope: dict[str, Any] = {"code": error.code, "message": error.message, "requestId": request_id}
     if error.details is not None:
         envelope["details"] = error.details
-    return json_response(error.status, {"error": envelope})
+    return json_response(error.status, {**error.extra, "error": envelope})

@@ -1,0 +1,50 @@
+{
+  "$comment": "Recorded by api/tests/integration/test_g7_ddblocal.py, scenario g7-run-exists; see README.md here.",
+  "source": "moto 5.2.5, written locally in Phase 16 with the same normalisation; to be confirmed by the first CI run against DynamoDB Local (compare mode)",
+  "Error": {
+    "Code": "TransactionCanceledException"
+  },
+  "CancellationReasons": [
+    {
+      "Code": "ConditionalCheckFailed",
+      "Item": {
+        "pk": {
+          "S": "U#a6c2b2b4-7051-70ef-b1e8-739ac38dd0cb"
+        },
+        "sk": {
+          "S": "SESSION"
+        },
+        "leaseExpiresAt": {
+          "S": "2026-11-20T10:03:00Z"
+        },
+        "runId": {
+          "S": "4b1e0c7a-1d2e-4f30-8a4b-5c6d7e8f9a0b"
+        },
+        "released": {
+          "BOOL": false
+        },
+        "deviceLabel": {
+          "S": "Kitchen laptop"
+        },
+        "lastRenewedAt": {
+          "S": "2026-11-20T10:00:00Z"
+        },
+        "sessionId": {
+          "S": "11111111-2222-4333-8444-555555555555"
+        },
+        "generation": {
+          "N": "1"
+        }
+      }
+    },
+    {
+      "Code": "ConditionalCheckFailed"
+    },
+    {
+      "Code": "None"
+    },
+    {
+      "Code": "ConditionalCheckFailed"
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "$comment": "Test data only (Phase 16): the Milestone 1 bank as the content table would hold it once Phase 20 (M1-19) seeds and publishes it through the admin path. One header and one published version of ph-0102 (C25.5 Example B: hear /sh/, choose 'sh'), with the speech refs resolved at publish (C21). Item shapes are the ones api/shared/selection/bank.py reads [ASSUMPTION until Phase 20 writes them]. The clip keys and version IDs are made up; the review, publishedBy and definitionHash fields are here so the pack test can prove they never leave the server.",
+  "sources": [
+    "docs/plan/C-game-and-learning-design.md C21, C22.1, C25.5 (ph-0102)",
+    "docs/plan/00-spine.md S8.3",
+    "docs/plan/J-execution-backlog.md M1-19"
+  ],
+  "items": [
+    {
+      "pk": "ACT",
+      "sk": "ph-0102",
+      "title": "Which letters make /sh/?",
+      "subject": "phonics",
+      "topicId": "phonics-gpc-consonant-digraphs",
+      "rewardCategory": "NORMAL",
+      "minAge": 5,
+      "maxAge": 6,
+      "interactionType": "MULTIPLE_CHOICE",
+      "authoringMode": "FIXED",
+      "domainSize": 1,
+      "state": "PUBLISHED",
+      "publishedVersion": "20261120T120000Z",
+      "fromDraftRevision": 3,
+      "updatedAt": "2026-11-20T12:00:00Z"
+    },
+    {
+      "pk": "ACT#ph-0102",
+      "sk": "V#20261120T120000Z",
+      "schemaVersion": 1,
+      "activityId": "ph-0102",
+      "version": "20261120T120000Z",
+      "subject": "phonics",
+      "topicId": "phonics-gpc-consonant-digraphs",
+      "minAge": 5,
+      "maxAge": 6,
+      "rewardCategory": "NORMAL",
+      "authoringMode": "FIXED",
+      "interactionType": "MULTIPLE_CHOICE",
+      "audioRequirement": "REQUIRED",
+      "curriculumReference": ["EYFS26.ELG.WordReading-1", "LS07.Phase3"],
+      "prompt": { "text": "Listen. Which letters make this sound?" },
+      "visualAssetReferences": [],
+      "activityPayload": {
+        "optionStyle": "GRAPHEME",
+        "options": [
+          { "id": "a", "text": "s" },
+          { "id": "b", "text": "sh" },
+          { "id": "c", "text": "ch" },
+          { "id": "d", "text": "th" }
+        ]
+      },
+      "answerSpecification": { "accepted": ["b"] },
+      "speechDefinitionReferences": {
+        "prompt": {
+          "speechId": "phoneme-sh",
+          "speechVersion": "20261120T101400Z",
+          "clipKey": "5e88a7b0c3d14f2e9a6b7c8d9e0f1a2b3c4d5e6f708192a3b4c5d6e7f8091a2b"
+        },
+        "instruction": {
+          "speechId": "instruction-listen-which-letters",
+          "speechVersion": "20261120T101500Z",
+          "clipKey": "a01d2c3b4a5968778695a4b3c2d1e0f0e1d2c3b4a5968778695a4b3c2d1e0f0"
+        }
+      },
+      "review": { "checklist": ["age-pitch", "audio-matches"], "previewSolvedDraftRevision": 3 },
+      "publishedBy": "made-up-operator-sub",
+      "fromDraftRevision": 3,
+      "definitionHash": "0f0e0d0c0b0a09080706050403020100f0e0d0c0b0a090807060504030201000"
+    }
+  ]
+}

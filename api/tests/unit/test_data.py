@@ -5,9 +5,18 @@ from __future__ import annotations
 from typing import Any
 
 import pytest
+from botocore.exceptions import ClientError
 from conftest import TABLE, RecordingClient
 
-from shared.data import DynamoTable, ExpressionError, check_expressions
+from shared.data import (
+    BatchGetIncomplete,
+    DynamoTable,
+    ExpressionError,
+    Reason,
+    cancellation_reasons,
+    check_expressions,
+    is_transient,
+)
 
 
 @pytest.mark.parametrize(
@@ -96,3 +105,83 @@ def test_round_trip_on_moto(ddb: Any) -> None:
     assert table.get_item("U#x", "PROFILE") == {"pk": "U#x", "sk": "PROFILE", "nickname": "Nova", "planets": {}}
     assert table.get_item("U#x", "MISSING") is None
     assert [item["sk"] for item in table.query_prefix("U#x", "RUN#")] == ["RUN#1"]
+
+
+# --- Phase 16: whole-partition query, transactions, BatchGetItem -----------------------------------------------------
+
+
+def test_query_with_an_empty_prefix_reads_the_whole_partition(recording_client: RecordingClient) -> None:
+    DynamoTable(recording_client, "content").query_prefix("ACT", "")
+    [(operation, request)] = recording_client.calls
+    assert operation == "query"
+    assert request["KeyConditionExpression"] == "#pk = :pk"
+    assert request["ExpressionAttributeNames"] == {"#pk": "pk"}
+    assert request["ConsistentRead"] is True
+
+
+def test_transaction_actions_are_checked_before_anything_is_sent(recording_client: RecordingClient) -> None:
+    table = DynamoTable(recording_client, "game")
+    with pytest.raises(ExpressionError):
+        table.put_action({"pk": "U#x", "sk": "RUN#1"}, condition="attribute_not_exists(pk)", names={})
+    with pytest.raises(ValueError, match="1 to 100"):
+        table.transact_write([table.condition_check_action("U#x", "PROFILE", condition="attribute_exists(#pk)",
+                                                            names={"#pk": "pk"})] * 101)  # fmt: skip
+    assert recording_client.calls == []
+
+
+class PagedBatchClient:
+    """Answers BatchGetItem with one item per call and the rest as UnprocessedKeys, `stuck` times with nothing."""
+
+    def __init__(self, stuck: int = 0) -> None:
+        self.calls = 0
+        self.stuck = stuck
+
+    def batch_get_item(self, RequestItems: dict) -> dict:  # boto3's argument name
+        self.calls += 1
+        [(table, request)] = RequestItems.items()
+        assert request["ConsistentRead"] is True
+        keys = request["Keys"]
+        if self.stuck:
+            self.stuck -= 1
+            return {"Responses": {table: []}, "UnprocessedKeys": {table: {"Keys": keys}}}
+        first, rest = keys[0], keys[1:]
+        unprocessed = {table: {"Keys": rest}} if rest else {}
+        return {"Responses": {table: [{**first, "v": {"N": "1"}}]}, "UnprocessedKeys": unprocessed}
+
+
+def test_batch_get_drains_unprocessed_keys_and_matches_items_to_keys() -> None:
+    client = PagedBatchClient()
+    pauses: list[float] = []
+    keys = [("A", "1"), ("B", "2"), ("A", "1"), ("C", "3")]
+    found = DynamoTable(client, "content").batch_get(keys, sleep=pauses.append)
+    assert set(found) == {("A", "1"), ("B", "2"), ("C", "3")}  # the duplicate key is read once
+    assert found[("B", "2")]["v"] == 1
+    assert client.calls == 3 and len(pauses) == 2
+
+
+def test_batch_get_never_reports_unprocessed_keys_as_missing() -> None:
+    with pytest.raises(BatchGetIncomplete):
+        DynamoTable(PagedBatchClient(stuck=10), "content").batch_get([("A", "1")], max_rounds=3)
+
+
+def test_cancellation_reasons_in_action_order_with_old_items() -> None:
+    error = ClientError(
+        {
+            "Error": {"Code": "TransactionCanceledException", "Message": "x"},
+            "CancellationReasons": [
+                {"Code": "ConditionalCheckFailed", "Item": {"sessionId": {"S": "s"}, "generation": {"N": "3"}}},
+                {"Code": "None"},
+            ],
+        },
+        "TransactWriteItems",
+    )
+    assert cancellation_reasons(error) == [
+        Reason("ConditionalCheckFailed", {"sessionId": "s", "generation": 3}),
+        Reason("None", None),
+    ]
+    assert cancellation_reasons(ClientError({"Error": {"Code": "ValidationException"}}, "TransactWriteItems")) is None
+    conflict = ClientError(
+        {"Error": {"Code": "TransactionCanceledException"}, "CancellationReasons": [{"Code": "TransactionConflict"}]},
+        "TransactWriteItems",
+    )
+    assert is_transient(conflict) and not is_transient(error)

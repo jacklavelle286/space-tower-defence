@@ -1,4 +1,5 @@
-"""The router: unknown route keys are refused before any DynamoDB call; catalogued stubs answer 501 (E.6.3, G §1.2)."""
+"""The router: unknown route keys are refused before any DynamoDB call; catalogued routes without a handler answer
+501 (E.6.3, G §1.2)."""
 
 from __future__ import annotations
 
@@ -10,6 +11,7 @@ from conftest import CapturedLogger, RecordingClient, event_for, load_handler
 
 from shared.auth import OPERATOR, PLAYER
 from shared.data import DynamoTable
+from shared.errors import ApiError
 from shared.router import Request, Router
 
 REQUEST_ID = "G4SN2i3fLPEEPpQ="  # requestContext.requestId in the Phase 5 fixture
@@ -82,10 +84,12 @@ def test_real_handler_unknown_route_creates_no_client(
     assert created == []
 
 
-@pytest.mark.parametrize("function", ["player_api", "admin_api", "tts"])
-def test_every_catalogued_route_answers_501_envelope(player_event: dict, function: str) -> None:
+@pytest.mark.parametrize("function", ["player_api", "admin_api"])  # tts has every route since Phase 19
+def test_every_catalogued_route_without_a_handler_answers_501_envelope(player_event: dict, function: str) -> None:
     module = load_handler(function)
-    for route_key, authoriser in module.ROUTES.items():
+    stubs = {key: authoriser for key, authoriser in module.ROUTES.items() if key not in module.ROUTER.handlers}
+    assert stubs, "every route has a handler: delete this test"
+    for route_key, authoriser in stubs.items():
         groups = "[admin]" if authoriser == OPERATOR else None
         response = module.handler(event_for(player_event, route_key, cognito__groups=groups), None)
         assert response["statusCode"] == 501, route_key
@@ -143,3 +147,33 @@ def test_router_refuses_a_route_without_a_token() -> None:
 def test_router_refuses_a_handler_outside_the_allow_list() -> None:
     with pytest.raises(ValueError, match="allow-list"):
         Router(routes={"GET /api/me": PLAYER}, handlers={"GET /api/other": lambda r: {}}, logger=CapturedLogger())
+
+
+def test_handler_log_fields_join_the_line_and_cannot_replace_the_routers(
+    player_event: dict, captured_logger: CapturedLogger
+) -> None:
+    def get_me(request: Request) -> dict:
+        request.log.update(runId="r-1", status=999, sub="someone-else", nickname="Zed")
+        return {"statusCode": 200, "body": "{}"}
+
+    Router(routes={"GET /api/me": PLAYER}, handlers={"GET /api/me": get_me}, logger=captured_logger).handle(
+        event_for(player_event, "GET /api/me")
+    )
+    [line] = captured_logger.lines()
+    assert line["runId"] == "r-1"
+    assert (line["status"], line["sub"]) == (200, "a6c2b2b4-7051-70ef-b1e8-739ac38dd0cb")
+    assert line["droppedFields"] == 1 and "Zed" not in captured_logger.stream.getvalue()
+
+
+@pytest.mark.parametrize(("code", "level"), [("SPEECH_UNAVAILABLE", "ERROR"), ("NOT_FOUND", "INFO")])
+def test_operational_fault_codes_log_at_error(
+    player_event: dict, captured_logger: CapturedLogger, code: str, level: str
+) -> None:
+    def fail(request: Request) -> dict:
+        raise ApiError(code)
+
+    Router(routes={"GET /api/me": PLAYER}, handlers={"GET /api/me": fail}, logger=captured_logger).handle(
+        event_for(player_event, "GET /api/me")
+    )
+    [line] = captured_logger.lines()
+    assert (line["code"], line["level"]) == (code, level)

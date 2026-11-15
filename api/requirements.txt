@@ -8,3 +8,5 @@ annotated-types==0.8.0
 jmespath==1.1.0
 typing-extensions==4.16.0
 typing-inspection==0.4.5
+# tzdata: Europe/London for the age band even if the runtime has no system zone files (AC-06 case 6, Phase 15).
+tzdata==2025.2

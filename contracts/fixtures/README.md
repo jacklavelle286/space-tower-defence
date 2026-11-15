@@ -10,6 +10,7 @@ never copied from an implementation's output. Each file names the plan sections 
 |---|---|---|
 | `ops/*.json` | op sequences: a starting run state, ops, and the expected result after each | `web/game-core/src/rules/reducer.test.ts` |
 | `next-phase.json` | `(slots, interval) → ACTIVITY \| METEOR \| BUILD`, and slot ID formatting | `web/game-core/src/rules/next-phase.test.ts` |
+| `clipkey/vectors.json` | synthesis input → canonical JSON → clip key and object key (Phase 18, [ADR-0014](../../docs/decisions/0014-listening-bake-off.md)). The keys are computed, so the test re-derives each one with plain `json` + `hashlib`, independently of the spike code | `spikes/polly-listening/test_canonical.py`; `api/shared/clipkey.py`'s test from Phase 19 |
 | `answers/vectors.json` | raw input → canonical answer or refusal (MULTIPLE_CHOICE so far), and answer shape vectors | `web/shared/src/learning/canonical.test.ts` |
 
 ## Op sequence format

@@ -6,6 +6,7 @@ import copy
 import importlib.util
 import io
 import json
+import sys
 import uuid
 from pathlib import Path
 from types import ModuleType
@@ -30,6 +31,7 @@ def load_handler(function: str) -> ModuleType:
     spec = importlib.util.spec_from_file_location(f"handler_{function}", path)
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module  # as a real import would; dataclasses look their module up here
     spec.loader.exec_module(module)
     return module
 

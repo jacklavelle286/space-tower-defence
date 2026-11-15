@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import time
 from collections.abc import Callable, Mapping
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any
 
 from shared.auth import AUTHORISERS, Caller, authorise
@@ -24,6 +24,15 @@ class Request:
     event: Mapping[str, Any]
     caller: Caller
     request_id: str
+    # Extra fields a handler adds to the request's one log line (e.g. `speechId`, `runId`). The logger's allow-list
+    # still decides what is written; the router's own fields win on a clash (Phase 19).
+    log: dict[str, Any] = field(default_factory=dict)
+
+
+# Codes that mean an operational fault rather than a caller's mistake: their one line is written at ERROR, which the
+# metric filters count (the `speech-unavailable` filter matches `{ $.code = "SPEECH_UNAVAILABLE" }`, so exactly one
+# line per failure; G §11 R15, E §E.4.1a).
+ERROR_LEVEL_CODES: frozenset[str] = frozenset({"SPEECH_UNAVAILABLE", "SPEECH_SYNTHESIS_FAILED"})
 
 
 Handler = Callable[[Request], dict[str, Any]]
@@ -58,21 +67,27 @@ class Router:
         request_id = request_id_of(event)
         fields: dict[str, Any] = {"requestId": request_id}
         level = "INFO"
+        request: Request | None = None
         try:
             caller = authorise(event, self.routes)  # first: nothing is read before this passes
             fields.update(routeKey=caller.route_key, sub=caller.sub)
             handler = self.handlers.get(caller.route_key)
             if handler is None:
                 raise ApiError("NOT_IMPLEMENTED")
-            response = handler(Request(event=event, caller=caller, request_id=request_id))
+            request = Request(event=event, caller=caller, request_id=request_id)
+            response = handler(request)
             fields["result"] = "OK"
         except ApiError as error:
             response = error_response(error, request_id)
             fields.update(result="ERROR", code=error.code)
+            if error.code in ERROR_LEVEL_CODES:
+                level = "ERROR"
         except Exception as error:  # noqa: BLE001 - any other failure is answered as INTERNAL, never re-raised
             response = error_response(ApiError("INTERNAL"), request_id)
             fields.update(result="ERROR", code="INTERNAL", errorType=type(error).__name__)
             level = "ERROR"
         fields.update(status=response["statusCode"], durationMs=round((time.monotonic() - started) * 1000))
+        if request is not None:
+            fields = {**request.log, **fields}
         self.logger.line(level, **fields)
         return response
