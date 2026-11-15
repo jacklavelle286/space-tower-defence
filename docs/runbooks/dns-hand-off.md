@@ -32,7 +32,8 @@ they cannot be written down here in advance. Records 3 and 4 use outputs that Ph
 **Keep records 1 and 2 forever.** ACM renews the certificate automatically only while they resolve. Deleting them means the
 certificate expires at the end of its current validity period and both sites stop working. The exact date is the certificate's
 `NotAfter` (`aws acm describe-certificate ... --query Certificate.NotAfter`); public certificate lifetimes are shrinking under the
-CA/Browser Forum schedule, so expect months, not years **[UNVERIFIED]** until the certificate is issued and `NotAfter` is read.
+CA/Browser Forum schedule, so expect months, not years. Read 2026-11-15 (`aws acm list-certificates`, us-east-1): `NotAfter`
+2027-06-01 **[VERIFIED]** (register U-057).
 
 Nothing else needs DNS: the API is same-origin (`/api/*` on each site), the Cognito sign-in pages use
 `scd-aliens-play.auth.eu-west-2.amazoncognito.com` and `scd-aliens-admin.auth.eu-west-2.amazoncognito.com`, and the audio bucket

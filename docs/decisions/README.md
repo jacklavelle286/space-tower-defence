@@ -27,8 +27,10 @@ The rules are in [J §J.6](../plan/J-execution-backlog.md#j6-decision-log-practi
 | [0009](0009-speech-render-path-and-voice.md) | One speech render path; Polly generative en-GB Amy | Accepted |
 | [0010](0010-delivery-and-release.md) | Delivery: one manual release, pipelines only | Accepted |
 | [0011](0011-oidc-trust-environments-and-artefacts-bucket.md) | OIDC trust, GitHub environments and the artefacts bucket | Accepted |
+| [0012](0012-auth-spike.md) | Auth spike results: managed login for the player pool | Proposed |
 | [0013](0013-front-end-stack-versions.md) | Front-end stack versions | Accepted |
 | [0019](0019-single-release-run-with-approval.md) | One release run with a manual approval (supersedes in part 0010, 0011 once accepted) | Accepted |
+| [0020](0020-spike-workflow-destroy-path.md) | A separate spike workflow whose destroy reaches spike state only (amends H §H.7 W-1 and the J M0 order for Phases 5–6) | Proposed |
 
 ## Next in line
 
@@ -36,9 +38,12 @@ Reserved numbers, recorded when the work happens ([J §J.6.3](../plan/J-executio
 
 | ADR | Topic | Task |
 |---|---|---|
-| 0012 | Auth spike results | M0-10 |
 | 0014 | Listening bake-off: `tts_phoneme_engine`, per-sound verdicts and SSML templates | M0-11 |
 | 0015 | Browser audio storage and the `sha256` source | M0-12 |
 | 0016–0018 | M1 choices J-1, J-2, J-3 | M1-24 |
 
 After those: game data as immutable versioned files with `mechanics` compatibility, the fixed 60 Hz timestep, and the data-freeze point when it is named (M6-10).
+
+## Register
+
+[unverified.md](unverified.md): every unverified fact from the plan, the phase that settles it, and its status (M0-14).
