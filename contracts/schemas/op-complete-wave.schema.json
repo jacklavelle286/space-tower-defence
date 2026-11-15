@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "op-complete-wave.schema.json",
+  "title": "CompleteWavePayload",
+  "description": "COMPLETE_WAVE payload (G section 5.2): the full post-wave snapshot.",
+  "type": "object",
+  "properties": {
+    "wave": { "$ref": "common.schema.json#/$defs/wave" },
+    "credits": { "$ref": "common.schema.json#/$defs/count" },
+    "placements": { "$ref": "common.schema.json#/$defs/placements" },
+    "colony": { "$ref": "common.schema.json#/$defs/colony" },
+    "powers": { "$ref": "common.schema.json#/$defs/powers" }
+  },
+  "required": ["wave", "credits", "placements", "colony", "powers"],
+  "additionalProperties": false
+}

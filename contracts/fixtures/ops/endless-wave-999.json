@@ -1,0 +1,43 @@
+{
+  "name": "endless-wave-999",
+  "description": "The endless hard cap: COMPLETE_WAVE at wave 999 sets status COMPLETED (slot IDs stay three digits), and the terminal run loses phase and snapshot.",
+  "sources": ["spine S3.2 (wave 999 -> COMPLETED) [ASSUMPTION in the spine]", "F 3.6 (hard cap)", "G 14 (endless limit)"],
+  "start": {
+    "mode": "CAMPAIGN",
+    "status": "IN_PROGRESS",
+    "stage": "ENDLESS",
+    "phase": "IN_WAVE",
+    "wave": 999,
+    "finalWave": 50,
+    "highestCompletedWave": 998,
+    "campaignCompleted": true,
+    "plannedThrough": 998,
+    "revision": 5000,
+    "powerChargeCap": 2,
+    "snapshot": {
+      "credits": 40000,
+      "placements": [{ "padId": "p16", "classId": "sol", "level": 3, "targeting": "FRONT" }],
+      "colony": { "health": 3, "shield": 0 },
+      "powers": {}
+    },
+    "slots": []
+  },
+  "steps": [
+    {
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000a01", "expectedRevision": 5000, "type": "COMPLETE_WAVE", "clientTime": "2026-11-15T19:00:00Z",
+        "payload": {
+          "wave": 999, "credits": 40500,
+          "placements": [{ "padId": "p16", "classId": "sol", "level": 3, "targeting": "FRONT" }],
+          "colony": { "health": 1, "shield": 0 },
+          "powers": {}
+        }
+      },
+      "expect": {
+        "result": "APPLIED",
+        "state": { "revision": 5001, "status": "COMPLETED", "highestCompletedWave": 999 },
+        "removed": ["phase", "snapshot"]
+      }
+    }
+  ]
+}

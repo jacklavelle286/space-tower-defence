@@ -1,0 +1,262 @@
+{
+  "name": "campaign-meteor-and-offer",
+  "description": "A two-wave CAMPAIGN wave set with a meteor after wave 1 (synthetic: the real campaign has 50 waves, but the rules are the same for any length). After wave 1 the normal activity comes first, then the optional meteor; a correct meteor answer adds one power charge and never credits. Clearing the final wave of a CAMPAIGN set sets campaignCompleted and goes to COMPLETION_OFFER with wave staying at finalWave; from then on ABANDON is refused (FINISH_RUN and CHOOSE_ENDLESS are later ops).",
+  "sources": [
+    "F 3.4 (next-phase rule: ACTIVITY, then METEOR, then BUILD)",
+    "spine S3.2 (COMPLETE_WAVE final CAMPAIGN wave -> campaignCompletedAt, COMPLETION_OFFER; ABANDON needs campaignCompletedAt unset)",
+    "C 9.1 (meteor reward: one power charge, never credits), C 10"
+  ],
+  "start": {
+    "mode": "CAMPAIGN",
+    "status": "IN_PROGRESS",
+    "stage": "AUTHORED",
+    "phase": "IN_WAVE",
+    "wave": 1,
+    "finalWave": 2,
+    "highestCompletedWave": 0,
+    "campaignCompleted": false,
+    "plannedThrough": 1,
+    "revision": 2,
+    "powerChargeCap": 2,
+    "snapshot": {
+      "credits": 50,
+      "placements": [{ "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" }],
+      "colony": { "health": 20, "shield": 0 },
+      "powers": {}
+    },
+    "slots": [
+      { "slotId": "N-001", "kind": "NORMAL", "status": "UNRESOLVED", "attempts": [], "accepted": ["c"], "withdrawn": false, "reward": { "credits": 30 } },
+      { "slotId": "M-001", "kind": "METEOR", "status": "UNRESOLVED", "attempts": [], "accepted": ["7"], "withdrawn": false, "reward": { "credits": 0, "powerId": "frost-pulse" } }
+    ]
+  },
+  "steps": [
+    {
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000801", "expectedRevision": 2, "type": "COMPLETE_WAVE", "clientTime": "2026-11-15T17:00:00Z",
+        "payload": {
+          "wave": 1, "credits": 74,
+          "placements": [{ "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" }],
+          "colony": { "health": 18, "shield": 0 },
+          "powers": {}
+        }
+      },
+      "expect": {
+        "result": "APPLIED",
+        "state": {
+          "revision": 3,
+          "phase": "ACTIVITY",
+          "wave": 2,
+          "highestCompletedWave": 1,
+          "snapshot": {
+            "credits": 74,
+            "placements": [{ "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" }],
+            "colony": { "health": 18, "shield": 0 },
+            "powers": {}
+          }
+        }
+      }
+    },
+    {
+      "note": "The normal activity resolves first; M-001 is still open, so the next phase is METEOR.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000802", "expectedRevision": 3, "type": "SUBMIT_ATTEMPT", "clientTime": "2026-11-15T17:01:00Z",
+        "payload": { "slotId": "N-001", "answer": "c" }
+      },
+      "expect": {
+        "result": "APPLIED",
+        "outcome": "RESOLVED_SUCCEEDED",
+        "attempt": { "n": 1, "correct": true, "slotStatus": "SUCCEEDED", "rewardGranted": true },
+        "state": {
+          "revision": 4,
+          "phase": "METEOR",
+          "snapshot": {
+            "credits": 104,
+            "placements": [{ "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" }],
+            "colony": { "health": 18, "shield": 0 },
+            "powers": {}
+          },
+          "slots": [
+            {
+              "slotId": "N-001", "kind": "NORMAL", "status": "SUCCEEDED",
+              "attempts": [{ "n": 1, "attemptId": "00000000-0000-4000-8000-000000000802", "answer": "c", "correct": true }],
+              "accepted": ["c"], "withdrawn": false, "reward": { "credits": 30 }
+            },
+            { "slotId": "M-001", "kind": "METEOR", "status": "UNRESOLVED", "attempts": [], "accepted": ["7"], "withdrawn": false, "reward": { "credits": 0, "powerId": "frost-pulse" } }
+          ]
+        }
+      }
+    },
+    {
+      "note": "In METEOR the current slot is M-001.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000803", "expectedRevision": 4, "type": "SAVE_PREP", "clientTime": "2026-11-15T17:01:10Z",
+        "payload": { "credits": 104, "placements": [] }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "PHASE_MISMATCH",
+        "details": { "phase": "METEOR", "wave": 2, "currentSlotId": "M-001" }
+      }
+    },
+    {
+      "note": "The resolved normal slot cannot be answered again.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000804", "expectedRevision": 4, "type": "SUBMIT_ATTEMPT", "clientTime": "2026-11-15T17:01:15Z",
+        "payload": { "slotId": "N-001", "answer": "c" }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "PHASE_MISMATCH",
+        "details": { "phase": "METEOR", "wave": 2, "currentSlotId": "M-001" }
+      }
+    },
+    {
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000805", "expectedRevision": 4, "type": "SUBMIT_ATTEMPT", "clientTime": "2026-11-15T17:01:30Z",
+        "payload": { "slotId": "M-001", "answer": "8" }
+      },
+      "expect": {
+        "result": "APPLIED",
+        "outcome": "INCORRECT",
+        "attempt": { "n": 1, "correct": false, "slotStatus": "UNRESOLVED", "rewardGranted": false },
+        "state": {
+          "revision": 5,
+          "slots": [
+            {
+              "slotId": "N-001", "kind": "NORMAL", "status": "SUCCEEDED",
+              "attempts": [{ "n": 1, "attemptId": "00000000-0000-4000-8000-000000000802", "answer": "c", "correct": true }],
+              "accepted": ["c"], "withdrawn": false, "reward": { "credits": 30 }
+            },
+            {
+              "slotId": "M-001", "kind": "METEOR", "status": "UNRESOLVED",
+              "attempts": [{ "n": 1, "attemptId": "00000000-0000-4000-8000-000000000805", "answer": "8", "correct": false }],
+              "accepted": ["7"], "withdrawn": false, "reward": { "credits": 0, "powerId": "frost-pulse" }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "note": "Meteor answered: one Frost Pulse charge, no credits, then BUILD.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000806", "expectedRevision": 5, "type": "SUBMIT_ATTEMPT", "clientTime": "2026-11-15T17:01:45Z",
+        "payload": { "slotId": "M-001", "answer": "7" }
+      },
+      "expect": {
+        "result": "APPLIED",
+        "outcome": "RESOLVED_SUCCEEDED",
+        "attempt": { "n": 2, "correct": true, "slotStatus": "SUCCEEDED", "rewardGranted": true },
+        "state": {
+          "revision": 6,
+          "phase": "BUILD",
+          "snapshot": {
+            "credits": 104,
+            "placements": [{ "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" }],
+            "colony": { "health": 18, "shield": 0 },
+            "powers": { "frost-pulse": 1 }
+          },
+          "slots": [
+            {
+              "slotId": "N-001", "kind": "NORMAL", "status": "SUCCEEDED",
+              "attempts": [{ "n": 1, "attemptId": "00000000-0000-4000-8000-000000000802", "answer": "c", "correct": true }],
+              "accepted": ["c"], "withdrawn": false, "reward": { "credits": 30 }
+            },
+            {
+              "slotId": "M-001", "kind": "METEOR", "status": "SUCCEEDED",
+              "attempts": [
+                { "n": 1, "attemptId": "00000000-0000-4000-8000-000000000805", "answer": "8", "correct": false },
+                { "n": 2, "attemptId": "00000000-0000-4000-8000-000000000806", "answer": "7", "correct": true }
+              ],
+              "accepted": ["7"], "withdrawn": false, "reward": { "credits": 0, "powerId": "frost-pulse" }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "note": "START_WAVE replaces credits and placements and keeps colony and powers from the stored snapshot.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000807", "expectedRevision": 6, "type": "START_WAVE", "clientTime": "2026-11-15T17:02:00Z",
+        "payload": {
+          "wave": 2, "credits": 54,
+          "placements": [
+            { "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" },
+            { "padId": "p05", "classId": "nova", "level": 1, "targeting": "FRONT" }
+          ]
+        }
+      },
+      "expect": {
+        "result": "APPLIED",
+        "state": {
+          "revision": 7,
+          "phase": "IN_WAVE",
+          "snapshot": {
+            "credits": 54,
+            "placements": [
+              { "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" },
+              { "padId": "p05", "classId": "nova", "level": 1, "targeting": "FRONT" }
+            ],
+            "colony": { "health": 18, "shield": 0 },
+            "powers": { "frost-pulse": 1 }
+          }
+        }
+      }
+    },
+    {
+      "note": "Final wave of a CAMPAIGN set (the Frost Pulse was used): COMPLETION_OFFER, wave stays at finalWave.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000808", "expectedRevision": 7, "type": "COMPLETE_WAVE", "clientTime": "2026-11-15T17:03:30Z",
+        "payload": {
+          "wave": 2, "credits": 86,
+          "placements": [
+            { "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" },
+            { "padId": "p05", "classId": "nova", "level": 1, "targeting": "FRONT" }
+          ],
+          "colony": { "health": 18, "shield": 0 },
+          "powers": { "frost-pulse": 0 }
+        }
+      },
+      "expect": {
+        "result": "APPLIED",
+        "state": {
+          "revision": 8,
+          "phase": "COMPLETION_OFFER",
+          "highestCompletedWave": 2,
+          "campaignCompleted": true,
+          "snapshot": {
+            "credits": 86,
+            "placements": [
+              { "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" },
+              { "padId": "p05", "classId": "nova", "level": 1, "targeting": "FRONT" }
+            ],
+            "colony": { "health": 18, "shield": 0 },
+            "powers": { "frost-pulse": 0 }
+          }
+        }
+      }
+    },
+    {
+      "note": "ABANDON is refused once the campaign is complete.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000809", "expectedRevision": 8, "type": "ABANDON", "clientTime": "2026-11-15T17:04:00Z",
+        "payload": {}
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "PHASE_MISMATCH",
+        "details": { "phase": "COMPLETION_OFFER", "wave": 2, "currentSlotId": null }
+      }
+    },
+    {
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000810", "expectedRevision": 8, "type": "START_WAVE", "clientTime": "2026-11-15T17:04:10Z",
+        "payload": { "wave": 2, "credits": 86, "placements": [] }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "PHASE_MISMATCH",
+        "details": { "phase": "COMPLETION_OFFER", "wave": 2, "currentSlotId": null }
+      }
+    }
+  ]
+}

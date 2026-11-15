@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "op-start-wave.schema.json",
+  "title": "StartWavePayload",
+  "description": "START_WAVE payload (G section 5.2): the wave-start snapshot's credits and placements.",
+  "type": "object",
+  "properties": {
+    "wave": { "$ref": "common.schema.json#/$defs/wave" },
+    "credits": { "$ref": "common.schema.json#/$defs/count" },
+    "placements": { "$ref": "common.schema.json#/$defs/placements" }
+  },
+  "required": ["wave", "credits", "placements"],
+  "additionalProperties": false
+}

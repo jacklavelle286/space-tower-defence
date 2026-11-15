@@ -1,0 +1,104 @@
+{
+  "name": "m1-abandon",
+  "description": "The child is part-way through the activity after wave 1 (one wrong attempt recorded). Preparation, wave and other-slot ops are refused in ACTIVITY, with the current slot named in the details. An ABANDON computed against an old revision is STALE_REVISION; the correct one ends the run as ABANDONED and removes the snapshot.",
+  "sources": [
+    "F 3.5 (ACTIVITY row: SAVE_PREP, START_WAVE, DEFEAT PM; ABANDON allowed while the campaign is not complete)",
+    "spine S3.2 (ABANDON: status ABANDONED; REMOVE snapshot)",
+    "spine S7.1 (d) STALE_REVISION"
+  ],
+  "start": {
+    "mode": "CHALLENGE",
+    "status": "IN_PROGRESS",
+    "stage": "AUTHORED",
+    "phase": "ACTIVITY",
+    "wave": 2,
+    "finalWave": 2,
+    "highestCompletedWave": 1,
+    "campaignCompleted": false,
+    "plannedThrough": 1,
+    "revision": 4,
+    "powerChargeCap": 2,
+    "snapshot": {
+      "credits": 74,
+      "placements": [
+        { "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" },
+        { "padId": "p05", "classId": "nova", "level": 1, "targeting": "FRONT" }
+      ],
+      "colony": { "health": 20, "shield": 0 },
+      "powers": {}
+    },
+    "slots": [
+      {
+        "slotId": "N-001", "kind": "NORMAL", "status": "UNRESOLVED",
+        "attempts": [{ "n": 1, "attemptId": "00000000-0000-4000-8000-000000000500", "answer": "b", "correct": false }],
+        "accepted": ["c"], "withdrawn": false, "reward": { "credits": 30 }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000501", "expectedRevision": 4, "type": "SAVE_PREP", "clientTime": "2026-11-15T14:00:00Z",
+        "payload": { "credits": 74, "placements": [] }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "PHASE_MISMATCH",
+        "details": { "phase": "ACTIVITY", "wave": 2, "currentSlotId": "N-001" }
+      }
+    },
+    {
+      "note": "The activity must resolve before the next wave.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000502", "expectedRevision": 4, "type": "START_WAVE", "clientTime": "2026-11-15T14:00:05Z",
+        "payload": { "wave": 2, "credits": 74, "placements": [] }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "PHASE_MISMATCH",
+        "details": { "phase": "ACTIVITY", "wave": 2, "currentSlotId": "N-001" }
+      }
+    },
+    {
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000503", "expectedRevision": 4, "type": "DEFEAT", "clientTime": "2026-11-15T14:00:10Z",
+        "payload": { "wave": 2 }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "PHASE_MISMATCH",
+        "details": { "phase": "ACTIVITY", "wave": 2, "currentSlotId": "N-001" }
+      }
+    },
+    {
+      "note": "An attempt naming a slot that is not the current one.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000504", "expectedRevision": 4, "type": "SUBMIT_ATTEMPT", "clientTime": "2026-11-15T14:00:15Z",
+        "payload": { "slotId": "N-002", "answer": "c" }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "PHASE_MISMATCH",
+        "details": { "phase": "ACTIVITY", "wave": 2, "currentSlotId": "N-001" }
+      }
+    },
+    {
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000505", "expectedRevision": 3, "type": "ABANDON", "clientTime": "2026-11-15T14:00:20Z",
+        "payload": {}
+      },
+      "expect": { "result": "REJECTED", "code": "STALE_REVISION" }
+    },
+    {
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000506", "expectedRevision": 4, "type": "ABANDON", "clientTime": "2026-11-15T14:00:25Z",
+        "payload": {}
+      },
+      "expect": {
+        "result": "APPLIED",
+        "state": { "revision": 5, "status": "ABANDONED" },
+        "removed": ["phase", "snapshot"]
+      }
+    }
+  ]
+}

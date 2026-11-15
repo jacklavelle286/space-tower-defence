@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "op-result.schema.json",
+  "title": "OpResult",
+  "description": "Pieces of the per-op result (spine S7.1, G section 5.4) shared by the reducers and, from Phase 17, the ops response. Definitions only for now.",
+  "$defs": {
+    "resultKind": {
+      "type": "string",
+      "enum": ["APPLIED", "ALREADY_APPLIED", "REJECTED", "STALE_SESSION", "NOT_PROCESSED"]
+    },
+    "rejectCode": {
+      "type": "string",
+      "enum": [
+        "RUN_TERMINAL",
+        "STALE_REVISION",
+        "CONTENT_VERSION_UNSUPPORTED",
+        "PHASE_MISMATCH",
+        "VALIDATION_FAILED",
+        "CHECKPOINT_OUT_OF_BOUNDS"
+      ]
+    },
+    "outcome": {
+      "type": "string",
+      "enum": ["VOIDED", "NO_OP_VOIDED_SLOT", "INCORRECT", "RESOLVED_SUCCEEDED", "RESOLVED_FAILED", "DECLINED"]
+    },
+    "attemptResult": {
+      "type": "object",
+      "properties": {
+        "n": { "type": "integer", "minimum": 1, "maximum": 3 },
+        "correct": { "type": "boolean" },
+        "slotStatus": { "$ref": "run-state.schema.json#/$defs/slotStatus" },
+        "rewardGranted": { "type": "boolean" }
+      },
+      "required": ["n", "correct", "slotStatus", "rewardGranted"],
+      "additionalProperties": false
+    },
+    "phaseMismatchDetails": {
+      "type": "object",
+      "properties": {
+        "phase": { "$ref": "run-state.schema.json#/$defs/runPhase" },
+        "wave": { "$ref": "common.schema.json#/$defs/wave" },
+        "currentSlotId": { "type": ["string", "null"], "pattern": "^[NM]-[0-9]{3}$" }
+      },
+      "required": ["phase", "wave", "currentSlotId"],
+      "additionalProperties": false
+    },
+    "validationProblem": {
+      "description": "One problem: field is a path such as op.payload.placements[0].level; rule is the JSON Schema keyword that failed. Never the value.",
+      "type": "object",
+      "properties": {
+        "field": { "type": "string" },
+        "rule": { "type": "string" }
+      },
+      "required": ["field", "rule"],
+      "additionalProperties": false
+    }
+  }
+}

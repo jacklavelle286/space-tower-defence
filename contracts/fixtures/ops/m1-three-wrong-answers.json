@@ -1,0 +1,132 @@
+{
+  "name": "m1-three-wrong-answers",
+  "description": "After wave 1 the child answers N-001 wrong three times. The second answer repeats the first: the server has no identical-answer rule, so it still counts (the greyed-out guard is client-only). The third wrong answer resolves the slot FAILED with no reward and no penalty, and the run goes to BUILD for wave 2.",
+  "sources": [
+    "spine S3.3 (three attempts; third incorrect -> FAILED, no reward; server counts every SUBMIT_ATTEMPT)",
+    "F 4.3 (D-8 client-only guard)",
+    "F 3.4 (next-phase rule)"
+  ],
+  "start": {
+    "mode": "CHALLENGE",
+    "status": "IN_PROGRESS",
+    "stage": "AUTHORED",
+    "phase": "ACTIVITY",
+    "wave": 2,
+    "finalWave": 2,
+    "highestCompletedWave": 1,
+    "campaignCompleted": false,
+    "plannedThrough": 1,
+    "revision": 3,
+    "powerChargeCap": 2,
+    "snapshot": {
+      "credits": 74,
+      "placements": [
+        { "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" },
+        { "padId": "p05", "classId": "nova", "level": 1, "targeting": "FRONT" }
+      ],
+      "colony": { "health": 20, "shield": 0 },
+      "powers": {}
+    },
+    "slots": [
+      { "slotId": "N-001", "kind": "NORMAL", "status": "UNRESOLVED", "attempts": [], "accepted": ["c"], "withdrawn": false, "reward": { "credits": 30 } }
+    ]
+  },
+  "steps": [
+    {
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000201", "expectedRevision": 3, "type": "SUBMIT_ATTEMPT", "clientTime": "2026-11-15T11:00:00Z",
+        "payload": { "slotId": "N-001", "answer": "a" }
+      },
+      "expect": {
+        "result": "APPLIED",
+        "outcome": "INCORRECT",
+        "attempt": { "n": 1, "correct": false, "slotStatus": "UNRESOLVED", "rewardGranted": false },
+        "state": {
+          "revision": 4,
+          "slots": [
+            {
+              "slotId": "N-001", "kind": "NORMAL", "status": "UNRESOLVED",
+              "attempts": [{ "n": 1, "attemptId": "00000000-0000-4000-8000-000000000201", "answer": "a", "correct": false }],
+              "accepted": ["c"], "withdrawn": false, "reward": { "credits": 30 }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "note": "The same answer again still counts on the server.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000202", "expectedRevision": 4, "type": "SUBMIT_ATTEMPT", "clientTime": "2026-11-15T11:00:10Z",
+        "payload": { "slotId": "N-001", "answer": "a" }
+      },
+      "expect": {
+        "result": "APPLIED",
+        "outcome": "INCORRECT",
+        "attempt": { "n": 2, "correct": false, "slotStatus": "UNRESOLVED", "rewardGranted": false },
+        "state": {
+          "revision": 5,
+          "slots": [
+            {
+              "slotId": "N-001", "kind": "NORMAL", "status": "UNRESOLVED",
+              "attempts": [
+                { "n": 1, "attemptId": "00000000-0000-4000-8000-000000000201", "answer": "a", "correct": false },
+                { "n": 2, "attemptId": "00000000-0000-4000-8000-000000000202", "answer": "a", "correct": false }
+              ],
+              "accepted": ["c"], "withdrawn": false, "reward": { "credits": 30 }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "note": "Third wrong answer: FAILED, credits unchanged, next phase BUILD.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000203", "expectedRevision": 5, "type": "SUBMIT_ATTEMPT", "clientTime": "2026-11-15T11:00:20Z",
+        "payload": { "slotId": "N-001", "answer": "b" }
+      },
+      "expect": {
+        "result": "APPLIED",
+        "outcome": "RESOLVED_FAILED",
+        "attempt": { "n": 3, "correct": false, "slotStatus": "FAILED", "rewardGranted": false },
+        "state": {
+          "revision": 6,
+          "phase": "BUILD",
+          "slots": [
+            {
+              "slotId": "N-001", "kind": "NORMAL", "status": "FAILED",
+              "attempts": [
+                { "n": 1, "attemptId": "00000000-0000-4000-8000-000000000201", "answer": "a", "correct": false },
+                { "n": 2, "attemptId": "00000000-0000-4000-8000-000000000202", "answer": "a", "correct": false },
+                { "n": 3, "attemptId": "00000000-0000-4000-8000-000000000203", "answer": "b", "correct": false }
+              ],
+              "accepted": ["c"], "withdrawn": false, "reward": { "credits": 30 }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "note": "A fourth attempt, even the right answer, is refused: the slot is no longer current.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000204", "expectedRevision": 6, "type": "SUBMIT_ATTEMPT", "clientTime": "2026-11-15T11:00:30Z",
+        "payload": { "slotId": "N-001", "answer": "c" }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "PHASE_MISMATCH",
+        "details": { "phase": "BUILD", "wave": 2, "currentSlotId": null }
+      }
+    },
+    {
+      "note": "The run goes on: wave 2 can start without the reward.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000205", "expectedRevision": 6, "type": "START_WAVE", "clientTime": "2026-11-15T11:01:00Z",
+        "payload": { "wave": 2, "credits": 74, "placements": [
+        { "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" },
+        { "padId": "p05", "classId": "nova", "level": 1, "targeting": "FRONT" }
+      ] }
+      },
+      "expect": { "result": "APPLIED", "state": { "revision": 7, "phase": "IN_WAVE" } }
+    }
+  ]
+}

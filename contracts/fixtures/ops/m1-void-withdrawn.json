@@ -1,0 +1,115 @@
+{
+  "name": "m1-void-withdrawn",
+  "description": "The activity N-001 was withdrawn after the run was created (exceptional invalid content). The next SUBMIT_ATTEMPT is not judged and adds no attempt: the slot becomes VOIDED, the reward is granted once, and the run moves to BUILD. Later attempts that name the VOIDED slot (an offline device replaying its queue) are applied as no-ops that only advance the revision, in any phase, after their payload has passed the schema.",
+  "sources": [
+    "F 4.4 (VOID: no judging, no attempt counted, reward granted once, phase advances)",
+    "F 3.3 and G 5.3 (a replayed op naming a VOIDED slot is an APPLIED no-op, NO_OP_VOIDED_SLOT, in any IN_PROGRESS phase)",
+    "spine S7.1 (outcome VOIDED / NO_OP_VOIDED_SLOT)"
+  ],
+  "start": {
+    "mode": "CHALLENGE",
+    "status": "IN_PROGRESS",
+    "stage": "AUTHORED",
+    "phase": "ACTIVITY",
+    "wave": 2,
+    "finalWave": 2,
+    "highestCompletedWave": 1,
+    "campaignCompleted": false,
+    "plannedThrough": 1,
+    "revision": 4,
+    "powerChargeCap": 2,
+    "snapshot": {
+      "credits": 74,
+      "placements": [
+        { "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" },
+        { "padId": "p05", "classId": "nova", "level": 1, "targeting": "FRONT" }
+      ],
+      "colony": { "health": 20, "shield": 0 },
+      "powers": {}
+    },
+    "slots": [
+      {
+        "slotId": "N-001", "kind": "NORMAL", "status": "UNRESOLVED",
+        "attempts": [{ "n": 1, "attemptId": "00000000-0000-4000-8000-000000000600", "answer": "b", "correct": false }],
+        "accepted": ["c"], "withdrawn": true, "reward": { "credits": 30 }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "note": "Even a wrong answer voids a withdrawn slot: nothing is judged.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000601", "expectedRevision": 4, "type": "SUBMIT_ATTEMPT", "clientTime": "2026-11-15T15:00:00Z",
+        "payload": { "slotId": "N-001", "answer": "a" }
+      },
+      "expect": {
+        "result": "APPLIED",
+        "outcome": "VOIDED",
+        "state": {
+          "revision": 5,
+          "phase": "BUILD",
+          "snapshot": {
+            "credits": 104,
+            "placements": [
+        { "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" },
+        { "padId": "p05", "classId": "nova", "level": 1, "targeting": "FRONT" }
+      ],
+            "colony": { "health": 20, "shield": 0 },
+            "powers": {}
+          },
+          "slots": [
+            {
+              "slotId": "N-001", "kind": "NORMAL", "status": "VOIDED",
+              "attempts": [{ "n": 1, "attemptId": "00000000-0000-4000-8000-000000000600", "answer": "b", "correct": false }],
+              "accepted": ["c"], "withdrawn": true, "reward": { "credits": 30 }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "note": "A replayed attempt on the VOIDED slot, in BUILD: applied, nothing changes but the revision, no second reward.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000602", "expectedRevision": 5, "type": "SUBMIT_ATTEMPT", "clientTime": "2026-11-15T15:00:10Z",
+        "payload": { "slotId": "N-001", "answer": "c" }
+      },
+      "expect": { "result": "APPLIED", "outcome": "NO_OP_VOIDED_SLOT", "state": { "revision": 6 } }
+    },
+    {
+      "note": "The payload is still checked: an upper-case answer is not canonical.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000603", "expectedRevision": 6, "type": "SUBMIT_ATTEMPT", "clientTime": "2026-11-15T15:00:20Z",
+        "payload": { "slotId": "N-001", "answer": "C" }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "VALIDATION_FAILED",
+        "details": [{ "field": "op.payload.answer", "rule": "pattern" }]
+      }
+    },
+    {
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000604", "expectedRevision": 6, "type": "START_WAVE", "clientTime": "2026-11-15T15:01:00Z",
+        "payload": { "wave": 2, "credits": 104, "placements": [
+        { "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" },
+        { "padId": "p05", "classId": "nova", "level": 1, "targeting": "FRONT" }
+      ] }
+      },
+      "expect": {
+        "result": "APPLIED",
+        "state": {
+          "revision": 7,
+          "phase": "IN_WAVE"
+        }
+      }
+    },
+    {
+      "note": "In IN_WAVE too.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000605", "expectedRevision": 7, "type": "SUBMIT_ATTEMPT", "clientTime": "2026-11-15T15:01:10Z",
+        "payload": { "slotId": "N-001", "answer": "b" }
+      },
+      "expect": { "result": "APPLIED", "outcome": "NO_OP_VOIDED_SLOT", "state": { "revision": 8 } }
+    }
+  ]
+}

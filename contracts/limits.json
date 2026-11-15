@@ -1,0 +1,66 @@
+{
+  "$comment": "The one shared limits file (spine S9.5, G section 14). Numbers are [ASSUMPTION] unless the plan marks them [CONFIRMED] (attemptsPerSlot). Read directly by Python (api/, from Phase 12) and turned into TypeScript by web/game-core/scripts/gen-contracts.ts (web/shared/src/limits.ts and web/game-core/src/rules/contracts.generated.ts). Every number in contracts/schemas/ that is a limit must equal the value here; a Vitest test checks it. API Gateway throttles live in Terraform, not here.",
+  "version": 1,
+  "bodyMaxBytes": {
+    "ops": 65536,
+    "adminActivityDraft": 65536,
+    "default": 8192
+  },
+  "opsPerBatch": {
+    "min": 1,
+    "max": 25
+  },
+  "recentOpsWindow": 32,
+  "attemptsPerSlot": 3,
+  "inProgressRunsSoftCap": 5,
+  "retainedTerminalRuns": 50,
+  "endless": {
+    "finalWave": 999,
+    "maxPlannedInterval": 998
+  },
+  "runsListLimit": {
+    "min": 1,
+    "max": 50,
+    "default": 20
+  },
+  "adminListLimit": {
+    "min": 1,
+    "max": 200,
+    "default": 100
+  },
+  "nickname": {
+    "minLength": 1,
+    "maxLength": 20
+  },
+  "deviceLabelMaxLength": 40,
+  "previewTextMaxLength": 300,
+  "templateDomainMax": 5000,
+  "speechUrlSeconds": 300,
+  "lease": {
+    "seconds": 180,
+    "renewSeconds": 60
+  },
+  "answer": {
+    "maxLength": 64,
+    "pattern": "^[a-z0-9' ;=,|-]{1,64}$",
+    "reservedSeparators": [";", "=", ",", "|"],
+    "stepJoiner": "|"
+  },
+  "placementsMax": 32,
+  "placementLevel": {
+    "min": 1,
+    "max": 3
+  },
+  "targeting": ["FRONT", "FAST", "CROWD", "STRONG"],
+  "integerMax": 2147483647,
+  "clientTimeMaxLength": 40,
+  "gameData": {
+    "versionPattern": "^[a-z0-9.-]{1,40}$",
+    "createRunMaxActions": 100
+  },
+  "ids": {
+    "uuid": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
+    "slotId": "^[NM]-[0-9]{3}$",
+    "keyId": "^[a-z0-9-]{1,40}$"
+  }
+}

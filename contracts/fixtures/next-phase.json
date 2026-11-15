@@ -1,0 +1,49 @@
+{
+  "name": "next-phase",
+  "description": "The next-phase rule for interval i: ACTIVITY if N-<i> exists and is UNRESOLVED; else METEOR if M-<i> exists and is UNRESOLVED; else BUILD. Missing and already-resolved slots fall through. Also how slot IDs are written (three digits).",
+  "sources": ["F 3.4", "spine S3.2, S3.3", "I 2.3 (next-phase vectors)"],
+  "cases": [
+    { "name": "run created: no slot for interval 0", "interval": 0, "slots": [{ "slotId": "N-001", "status": "UNRESOLVED" }], "expected": "BUILD" },
+    { "name": "M1 after wave 1", "interval": 1, "slots": [{ "slotId": "N-001", "status": "UNRESOLVED" }], "expected": "ACTIVITY" },
+    { "name": "normal slot succeeded, no meteor", "interval": 1, "slots": [{ "slotId": "N-001", "status": "SUCCEEDED" }], "expected": "BUILD" },
+    { "name": "normal slot failed, no meteor", "interval": 1, "slots": [{ "slotId": "N-001", "status": "FAILED" }], "expected": "BUILD" },
+    { "name": "normal slot voided, no meteor", "interval": 1, "slots": [{ "slotId": "N-001", "status": "VOIDED" }], "expected": "BUILD" },
+    {
+      "name": "both open after a meteor wave: normal first",
+      "interval": 9,
+      "slots": [{ "slotId": "N-009", "status": "UNRESOLVED" }, { "slotId": "M-009", "status": "UNRESOLVED" }],
+      "expected": "ACTIVITY"
+    },
+    {
+      "name": "normal failed, meteor open",
+      "interval": 9,
+      "slots": [{ "slotId": "N-009", "status": "FAILED" }, { "slotId": "M-009", "status": "UNRESOLVED" }],
+      "expected": "METEOR"
+    },
+    {
+      "name": "normal voided, meteor declined",
+      "interval": 9,
+      "slots": [{ "slotId": "N-009", "status": "VOIDED" }, { "slotId": "M-009", "status": "DECLINED" }],
+      "expected": "BUILD"
+    },
+    {
+      "name": "meteor slot listed before the normal slot: order does not matter",
+      "interval": 19,
+      "slots": [{ "slotId": "M-019", "status": "UNRESOLVED" }, { "slotId": "N-019", "status": "UNRESOLVED" }],
+      "expected": "ACTIVITY"
+    },
+    { "name": "endless: no normal slot left, meteor planned", "interval": 59, "slots": [{ "slotId": "M-059", "status": "UNRESOLVED" }], "expected": "METEOR" },
+    { "name": "endless: nothing planned for the interval", "interval": 61, "slots": [{ "slotId": "N-060", "status": "SUCCEEDED" }, { "slotId": "N-062", "status": "UNRESOLVED" }], "expected": "BUILD" },
+    { "name": "open slots for other intervals only", "interval": 4, "slots": [{ "slotId": "N-003", "status": "UNRESOLVED" }, { "slotId": "N-005", "status": "UNRESOLVED" }, { "slotId": "M-040", "status": "UNRESOLVED" }], "expected": "BUILD" },
+    { "name": "after CHOOSE_ENDLESS: interval 50", "interval": 50, "slots": [{ "slotId": "N-050", "status": "UNRESOLVED" }], "expected": "ACTIVITY" },
+    { "name": "last plannable interval", "interval": 998, "slots": [{ "slotId": "N-998", "status": "UNRESOLVED" }], "expected": "ACTIVITY" },
+    { "name": "no slots at all", "interval": 12, "slots": [], "expected": "BUILD" }
+  ],
+  "slotIds": [
+    { "kind": "NORMAL", "interval": 1, "expected": "N-001" },
+    { "kind": "NORMAL", "interval": 50, "expected": "N-050" },
+    { "kind": "METEOR", "interval": 9, "expected": "M-009" },
+    { "kind": "METEOR", "interval": 49, "expected": "M-049" },
+    { "kind": "NORMAL", "interval": 998, "expected": "N-998" }
+  ]
+}

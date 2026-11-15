@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "op-submit-attempt.schema.json",
+  "title": "SubmitAttemptPayload",
+  "description": "SUBMIT_ATTEMPT payload (G section 5.2): the whole answer, already canonicalised in TypeScript (web/shared/src/learning/canonical.ts).",
+  "type": "object",
+  "properties": {
+    "slotId": { "$ref": "common.schema.json#/$defs/slotId" },
+    "answer": { "$ref": "common.schema.json#/$defs/answer" }
+  },
+  "required": ["slotId", "answer"],
+  "additionalProperties": false
+}

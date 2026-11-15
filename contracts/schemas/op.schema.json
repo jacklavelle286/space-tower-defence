@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "op.schema.json",
+  "title": "Op",
+  "description": "One queued op (spine S7.1, G section 5.1) for protocolVersion 1. The type list is the six Milestone 1 ops; DISMISS_SLOT and FINISH_RUN arrive with M2 (Phase 29), and CREATE_RUN and CHOOSE_ENDLESS never travel in /ops. The payload is checked by the branch for its type.",
+  "type": "object",
+  "properties": {
+    "opId": {
+      "$ref": "common.schema.json#/$defs/uuid"
+    },
+    "expectedRevision": {
+      "$ref": "common.schema.json#/$defs/count"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "SAVE_PREP",
+        "START_WAVE",
+        "COMPLETE_WAVE",
+        "SUBMIT_ATTEMPT",
+        "DEFEAT",
+        "ABANDON"
+      ]
+    },
+    "payload": {
+      "type": "object"
+    },
+    "clientTime": {
+      "$ref": "common.schema.json#/$defs/clientTime"
+    }
+  },
+  "required": [
+    "opId",
+    "expectedRevision",
+    "type",
+    "payload",
+    "clientTime"
+  ],
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "SAVE_PREP"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "op-save-prep.schema.json"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "START_WAVE"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "op-start-wave.schema.json"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "COMPLETE_WAVE"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "op-complete-wave.schema.json"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "SUBMIT_ATTEMPT"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "op-submit-attempt.schema.json"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "DEFEAT"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "op-defeat.schema.json"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "ABANDON"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "op-abandon.schema.json"
+          }
+        }
+      }
+    }
+  ]
+}

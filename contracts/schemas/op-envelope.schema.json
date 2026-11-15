@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "op-envelope.schema.json",
+  "title": "OpEnvelope",
+  "description": "Body of POST /api/runs/{runId}/ops (spine S7.1, G section 5.1): 1-25 ops in revision order, stamped with the session and generation they were queued under. The 64 KB body limit is checked on the raw body before this schema.",
+  "type": "object",
+  "properties": {
+    "protocolVersion": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2147483647
+    },
+    "sessionId": {
+      "$ref": "common.schema.json#/$defs/uuid"
+    },
+    "generation": {
+      "$ref": "common.schema.json#/$defs/count"
+    },
+    "ops": {
+      "type": "array",
+      "items": {
+        "$ref": "op.schema.json"
+      },
+      "minItems": 1,
+      "maxItems": 25
+    }
+  },
+  "required": [
+    "protocolVersion",
+    "sessionId",
+    "generation",
+    "ops"
+  ],
+  "additionalProperties": false
+}

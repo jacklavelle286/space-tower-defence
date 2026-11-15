@@ -1,0 +1,76 @@
+{
+  "name": "m1-defeat",
+  "description": "During wave 2 the colony falls. DEFEAT for the wrong wave is refused; DEFEAT for the current wave ends the run: status DEFEATED, snapshot removed, highestCompletedWave kept (best wave means the highest completed wave). Every later op is RUN_TERMINAL, checked before the revision.",
+  "sources": [
+    "spine S3.2 (DEFEAT: phase IN_WAVE, payload.wave == run.wave; status DEFEATED; REMOVE snapshot)",
+    "spine S7.1 (c) RUN_TERMINAL before (d) STALE_REVISION"
+  ],
+  "start": {
+    "mode": "CHALLENGE",
+    "status": "IN_PROGRESS",
+    "stage": "AUTHORED",
+    "phase": "IN_WAVE",
+    "wave": 2,
+    "finalWave": 2,
+    "highestCompletedWave": 1,
+    "campaignCompleted": false,
+    "plannedThrough": 1,
+    "revision": 6,
+    "powerChargeCap": 2,
+    "snapshot": {
+      "credits": 104,
+      "placements": [
+        { "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" },
+        { "padId": "p05", "classId": "nova", "level": 1, "targeting": "FRONT" }
+      ],
+      "colony": { "health": 20, "shield": 0 },
+      "powers": {}
+    },
+    "slots": [
+      {
+        "slotId": "N-001", "kind": "NORMAL", "status": "SUCCEEDED",
+        "attempts": [{ "n": 1, "attemptId": "00000000-0000-4000-8000-000000000400", "answer": "c", "correct": true }],
+        "accepted": ["c"], "withdrawn": false, "reward": { "credits": 30 }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000401", "expectedRevision": 6, "type": "DEFEAT", "clientTime": "2026-11-15T13:00:00Z",
+        "payload": { "wave": 1 }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "PHASE_MISMATCH",
+        "details": { "phase": "IN_WAVE", "wave": 2, "currentSlotId": null }
+      }
+    },
+    {
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000402", "expectedRevision": 6, "type": "DEFEAT", "clientTime": "2026-11-15T13:00:05Z",
+        "payload": { "wave": 2 }
+      },
+      "expect": {
+        "result": "APPLIED",
+        "state": { "revision": 7, "status": "DEFEATED" },
+        "removed": ["phase", "snapshot"]
+      }
+    },
+    {
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000403", "expectedRevision": 7, "type": "ABANDON", "clientTime": "2026-11-15T13:00:10Z",
+        "payload": {}
+      },
+      "expect": { "result": "REJECTED", "code": "RUN_TERMINAL" }
+    },
+    {
+      "note": "A stale revision on a terminal run is still RUN_TERMINAL: (c) comes before (d).",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000404", "expectedRevision": 2, "type": "DEFEAT", "clientTime": "2026-11-15T13:00:15Z",
+        "payload": { "wave": 2 }
+      },
+      "expect": { "result": "REJECTED", "code": "RUN_TERMINAL" }
+    }
+  ]
+}

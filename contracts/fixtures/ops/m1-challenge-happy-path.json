@@ -1,0 +1,229 @@
+{
+  "name": "m1-challenge-happy-path",
+  "description": "The whole Milestone 1 run (J-1): a two-wave CHALLENGE set with one activity slot N-001 and no meteor. Prepare, play wave 1, answer wrong once then right (+30 credits), play wave 2, and the final COMPLETE_WAVE completes the run. An attempt after the slot resolved and any op after completion are refused.",
+  "sources": [
+    "F 3.3 (SAVE_PREP, START_WAVE, COMPLETE_WAVE, SUBMIT_ATTEMPT)",
+    "F 3.7 (CHALLENGE: the final COMPLETE_WAVE sets status COMPLETED)",
+    "G 5.3 (an attempt on a resolved slot is PHASE_MISMATCH)",
+    "C 9.1 (150 starting credits), C 9.2 (30 credits after waves 1-9)"
+  ],
+  "start": {
+    "mode": "CHALLENGE",
+    "status": "IN_PROGRESS",
+    "stage": "AUTHORED",
+    "phase": "BUILD",
+    "wave": 1,
+    "finalWave": 2,
+    "highestCompletedWave": 0,
+    "campaignCompleted": false,
+    "plannedThrough": 1,
+    "revision": 0,
+    "powerChargeCap": 2,
+    "snapshot": { "credits": 150, "placements": [], "colony": { "health": 20, "shield": 0 }, "powers": {} },
+    "slots": [
+      { "slotId": "N-001", "kind": "NORMAL", "status": "UNRESOLVED", "attempts": [], "accepted": ["c"], "withdrawn": false, "reward": { "credits": 30 } }
+    ]
+  },
+  "steps": [
+    {
+      "note": "Buy one Nova (50) in preparation; SAVE_PREP replaces credits and placements and keeps colony and powers.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000101", "expectedRevision": 0, "type": "SAVE_PREP", "clientTime": "2026-11-15T10:00:00Z",
+        "payload": { "credits": 100, "placements": [{ "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" }] }
+      },
+      "expect": {
+        "result": "APPLIED",
+        "state": {
+          "revision": 1,
+          "snapshot": {
+            "credits": 100,
+            "placements": [{ "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" }],
+            "colony": { "health": 20, "shield": 0 },
+            "powers": {}
+          }
+        }
+      }
+    },
+    {
+      "note": "Buy a second Nova and press Ready: START_WAVE stores the wave-start snapshot and moves to IN_WAVE.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000102", "expectedRevision": 1, "type": "START_WAVE", "clientTime": "2026-11-15T10:00:30Z",
+        "payload": {
+          "wave": 1, "credits": 50,
+          "placements": [
+            { "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" },
+            { "padId": "p05", "classId": "nova", "level": 1, "targeting": "FRONT" }
+          ]
+        }
+      },
+      "expect": {
+        "result": "APPLIED",
+        "state": {
+          "revision": 2,
+          "phase": "IN_WAVE",
+          "snapshot": {
+            "credits": 50,
+            "placements": [
+              { "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" },
+              { "padId": "p05", "classId": "nova", "level": 1, "targeting": "FRONT" }
+            ],
+            "colony": { "health": 20, "shield": 0 },
+            "powers": {}
+          }
+        }
+      }
+    },
+    {
+      "note": "Wave 1 cleared (six Moon Blobs at 4 credits each). wave becomes 2 and the next-phase rule for interval 1 finds N-001 unresolved: ACTIVITY.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000103", "expectedRevision": 2, "type": "COMPLETE_WAVE", "clientTime": "2026-11-15T10:01:30Z",
+        "payload": {
+          "wave": 1, "credits": 74,
+          "placements": [
+            { "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" },
+            { "padId": "p05", "classId": "nova", "level": 1, "targeting": "FRONT" }
+          ],
+          "colony": { "health": 20, "shield": 0 },
+          "powers": {}
+        }
+      },
+      "expect": {
+        "result": "APPLIED",
+        "state": {
+          "revision": 3,
+          "phase": "ACTIVITY",
+          "wave": 2,
+          "highestCompletedWave": 1,
+          "snapshot": {
+            "credits": 74,
+            "placements": [
+              { "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" },
+              { "padId": "p05", "classId": "nova", "level": 1, "targeting": "FRONT" }
+            ],
+            "colony": { "health": 20, "shield": 0 },
+            "powers": {}
+          }
+        }
+      }
+    },
+    {
+      "note": "First attempt is wrong: recorded as attempt 1 with attemptId = opId; the slot stays UNRESOLVED; no reward, no penalty.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000104", "expectedRevision": 3, "type": "SUBMIT_ATTEMPT", "clientTime": "2026-11-15T10:02:00Z",
+        "payload": { "slotId": "N-001", "answer": "a" }
+      },
+      "expect": {
+        "result": "APPLIED",
+        "outcome": "INCORRECT",
+        "attempt": { "n": 1, "correct": false, "slotStatus": "UNRESOLVED", "rewardGranted": false },
+        "state": {
+          "revision": 4,
+          "slots": [
+            {
+              "slotId": "N-001", "kind": "NORMAL", "status": "UNRESOLVED",
+              "attempts": [{ "n": 1, "attemptId": "00000000-0000-4000-8000-000000000104", "answer": "a", "correct": false }],
+              "accepted": ["c"], "withdrawn": false, "reward": { "credits": 30 }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "note": "The same attempt delivered again (lost response). Only the handler runner checks this; the pure reducers skip it.",
+      "resend": 3,
+      "expect": {
+        "result": "ALREADY_APPLIED",
+        "attempt": { "n": 1, "correct": false, "slotStatus": "UNRESOLVED", "rewardGranted": false }
+      }
+    },
+    {
+      "note": "Second attempt is right: SUCCEEDED, the pinned reward (30) is added once, and the next-phase rule gives BUILD (no meteor slot).",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000105", "expectedRevision": 4, "type": "SUBMIT_ATTEMPT", "clientTime": "2026-11-15T10:02:20Z",
+        "payload": { "slotId": "N-001", "answer": "c" }
+      },
+      "expect": {
+        "result": "APPLIED",
+        "outcome": "RESOLVED_SUCCEEDED",
+        "attempt": { "n": 2, "correct": true, "slotStatus": "SUCCEEDED", "rewardGranted": true },
+        "state": {
+          "revision": 5,
+          "phase": "BUILD",
+          "snapshot": {
+            "credits": 104,
+            "placements": [
+              { "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" },
+              { "padId": "p05", "classId": "nova", "level": 1, "targeting": "FRONT" }
+            ],
+            "colony": { "health": 20, "shield": 0 },
+            "powers": {}
+          },
+          "slots": [
+            {
+              "slotId": "N-001", "kind": "NORMAL", "status": "SUCCEEDED",
+              "attempts": [
+                { "n": 1, "attemptId": "00000000-0000-4000-8000-000000000104", "answer": "a", "correct": false },
+                { "n": 2, "attemptId": "00000000-0000-4000-8000-000000000105", "answer": "c", "correct": true }
+              ],
+              "accepted": ["c"], "withdrawn": false, "reward": { "credits": 30 }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "note": "Another attempt after the slot resolved: it is no longer the current slot, so PHASE_MISMATCH (no ATTEMPTS_EXHAUSTED code).",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000106", "expectedRevision": 5, "type": "SUBMIT_ATTEMPT", "clientTime": "2026-11-15T10:02:30Z",
+        "payload": { "slotId": "N-001", "answer": "c" }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "PHASE_MISMATCH",
+        "details": { "phase": "BUILD", "wave": 2, "currentSlotId": null }
+      }
+    },
+    {
+      "note": "Ready for wave 2 with the reward in hand.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000107", "expectedRevision": 5, "type": "START_WAVE", "clientTime": "2026-11-15T10:03:00Z",
+        "payload": {
+          "wave": 2, "credits": 104,
+          "placements": [
+            { "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" },
+            { "padId": "p05", "classId": "nova", "level": 1, "targeting": "FRONT" }
+          ]
+        }
+      },
+      "expect": { "result": "APPLIED", "state": { "revision": 6, "phase": "IN_WAVE" } }
+    },
+    {
+      "note": "Wave 2 is the final wave of a CHALLENGE set: status COMPLETED; a terminal run keeps wave and loses phase and snapshot.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000108", "expectedRevision": 6, "type": "COMPLETE_WAVE", "clientTime": "2026-11-15T10:04:30Z",
+        "payload": {
+          "wave": 2, "credits": 136,
+          "placements": [
+            { "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" },
+            { "padId": "p05", "classId": "nova", "level": 1, "targeting": "FRONT" }
+          ],
+          "colony": { "health": 19, "shield": 0 },
+          "powers": {}
+        }
+      },
+      "expect": {
+        "result": "APPLIED",
+        "state": { "revision": 7, "status": "COMPLETED", "highestCompletedWave": 2 },
+        "removed": ["phase", "snapshot"]
+      }
+    },
+    {
+      "note": "Nothing leaves a terminal status.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000109", "expectedRevision": 7, "type": "SAVE_PREP", "clientTime": "2026-11-15T10:05:00Z",
+        "payload": { "credits": 0, "placements": [] }
+      },
+      "expect": { "result": "REJECTED", "code": "RUN_TERMINAL" }
+    }
+  ]
+}

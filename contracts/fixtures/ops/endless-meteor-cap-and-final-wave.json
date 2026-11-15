@@ -1,0 +1,162 @@
+{
+  "name": "endless-meteor-cap-and-final-wave",
+  "description": "Endless play after a completed campaign. At wave 60 the meteor M-059 (the sixth meteor, so Colony Shield in the C 10 rotation) is answered while Colony Shield is already at its cap of 2: the slot SUCCEEDED and counts, but no charge is added. Wave 60 then leads to the activity N-060 (75 credits in endless). Wave 61 has no planned slot (the bank was exhausted), so the next-phase rule falls straight through to BUILD. Finally COMPLETE_WAVE at wave 999 completes the run. ABANDON is refused throughout, because the campaign is complete.",
+  "sources": [
+    "spine S3.2 (meteor success at the power cap: SUCCEEDED, no charge added; wave 999 -> COMPLETED; ABANDON needs campaignCompletedAt unset)",
+    "F 3.4 (a missing slot falls through to BUILD), F 3.6 (exhausted bank: no slot written)",
+    "C 9.2 (endless normal slots pay 75), C 10 (inventory cap 2 per power)"
+  ],
+  "start": {
+    "mode": "CAMPAIGN",
+    "status": "IN_PROGRESS",
+    "stage": "ENDLESS",
+    "phase": "METEOR",
+    "wave": 60,
+    "finalWave": 50,
+    "highestCompletedWave": 59,
+    "campaignCompleted": true,
+    "plannedThrough": 69,
+    "revision": 300,
+    "powerChargeCap": 2,
+    "snapshot": {
+      "credits": 900,
+      "placements": [{ "padId": "p03", "classId": "nova", "level": 3, "targeting": "FAST" }],
+      "colony": { "health": 12, "shield": 4 },
+      "powers": { "colony-shield": 2, "frost-pulse": 1 }
+    },
+    "slots": [
+      { "slotId": "N-059", "kind": "NORMAL", "status": "SUCCEEDED", "attempts": [{ "n": 1, "attemptId": "00000000-0000-4000-8000-000000000900", "answer": "12", "correct": true }], "accepted": ["12"], "withdrawn": false, "reward": { "credits": 75 } },
+      { "slotId": "M-059", "kind": "METEOR", "status": "UNRESOLVED", "attempts": [], "accepted": ["ship"], "withdrawn": false, "reward": { "credits": 0, "powerId": "colony-shield" } },
+      { "slotId": "N-060", "kind": "NORMAL", "status": "UNRESOLVED", "attempts": [], "accepted": ["b"], "withdrawn": false, "reward": { "credits": 75 } }
+    ]
+  },
+  "steps": [
+    {
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000901", "expectedRevision": 300, "type": "ABANDON", "clientTime": "2026-11-15T18:00:00Z",
+        "payload": {}
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "PHASE_MISMATCH",
+        "details": { "phase": "METEOR", "wave": 60, "currentSlotId": "M-059" }
+      }
+    },
+    {
+      "note": "Correct, but Colony Shield is already at 2: SUCCEEDED and counted, no charge added.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000902", "expectedRevision": 300, "type": "SUBMIT_ATTEMPT", "clientTime": "2026-11-15T18:00:10Z",
+        "payload": { "slotId": "M-059", "answer": "ship" }
+      },
+      "expect": {
+        "result": "APPLIED",
+        "outcome": "RESOLVED_SUCCEEDED",
+        "attempt": { "n": 1, "correct": true, "slotStatus": "SUCCEEDED", "rewardGranted": true },
+        "state": {
+          "revision": 301,
+          "phase": "BUILD",
+          "slots": [
+            { "slotId": "N-059", "kind": "NORMAL", "status": "SUCCEEDED", "attempts": [{ "n": 1, "attemptId": "00000000-0000-4000-8000-000000000900", "answer": "12", "correct": true }], "accepted": ["12"], "withdrawn": false, "reward": { "credits": 75 } },
+            { "slotId": "M-059", "kind": "METEOR", "status": "SUCCEEDED", "attempts": [{ "n": 1, "attemptId": "00000000-0000-4000-8000-000000000902", "answer": "ship", "correct": true }], "accepted": ["ship"], "withdrawn": false, "reward": { "credits": 0, "powerId": "colony-shield" } },
+            { "slotId": "N-060", "kind": "NORMAL", "status": "UNRESOLVED", "attempts": [], "accepted": ["b"], "withdrawn": false, "reward": { "credits": 75 } }
+          ]
+        }
+      }
+    },
+    {
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000903", "expectedRevision": 301, "type": "START_WAVE", "clientTime": "2026-11-15T18:01:00Z",
+        "payload": { "wave": 60, "credits": 900, "placements": [{ "padId": "p03", "classId": "nova", "level": 3, "targeting": "FAST" }] }
+      },
+      "expect": { "result": "APPLIED", "state": { "revision": 302, "phase": "IN_WAVE" } }
+    },
+    {
+      "note": "Wave 60 cleared: wave 61, and N-060 is open, so ACTIVITY.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000904", "expectedRevision": 302, "type": "COMPLETE_WAVE", "clientTime": "2026-11-15T18:03:00Z",
+        "payload": {
+          "wave": 60, "credits": 1100,
+          "placements": [{ "padId": "p03", "classId": "nova", "level": 3, "targeting": "FAST" }],
+          "colony": { "health": 10, "shield": 0 },
+          "powers": { "colony-shield": 1, "frost-pulse": 1 }
+        }
+      },
+      "expect": {
+        "result": "APPLIED",
+        "state": {
+          "revision": 303,
+          "phase": "ACTIVITY",
+          "wave": 61,
+          "highestCompletedWave": 60,
+          "snapshot": {
+            "credits": 1100,
+            "placements": [{ "padId": "p03", "classId": "nova", "level": 3, "targeting": "FAST" }],
+            "colony": { "health": 10, "shield": 0 },
+            "powers": { "colony-shield": 1, "frost-pulse": 1 }
+          }
+        }
+      }
+    },
+    {
+      "note": "Endless normal reward: 75 credits.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000905", "expectedRevision": 303, "type": "SUBMIT_ATTEMPT", "clientTime": "2026-11-15T18:03:30Z",
+        "payload": { "slotId": "N-060", "answer": "b" }
+      },
+      "expect": {
+        "result": "APPLIED",
+        "outcome": "RESOLVED_SUCCEEDED",
+        "attempt": { "n": 1, "correct": true, "slotStatus": "SUCCEEDED", "rewardGranted": true },
+        "state": {
+          "revision": 304,
+          "phase": "BUILD",
+          "snapshot": {
+            "credits": 1175,
+            "placements": [{ "padId": "p03", "classId": "nova", "level": 3, "targeting": "FAST" }],
+            "colony": { "health": 10, "shield": 0 },
+            "powers": { "colony-shield": 1, "frost-pulse": 1 }
+          },
+          "slots": [
+            { "slotId": "N-059", "kind": "NORMAL", "status": "SUCCEEDED", "attempts": [{ "n": 1, "attemptId": "00000000-0000-4000-8000-000000000900", "answer": "12", "correct": true }], "accepted": ["12"], "withdrawn": false, "reward": { "credits": 75 } },
+            { "slotId": "M-059", "kind": "METEOR", "status": "SUCCEEDED", "attempts": [{ "n": 1, "attemptId": "00000000-0000-4000-8000-000000000902", "answer": "ship", "correct": true }], "accepted": ["ship"], "withdrawn": false, "reward": { "credits": 0, "powerId": "colony-shield" } },
+            { "slotId": "N-060", "kind": "NORMAL", "status": "SUCCEEDED", "attempts": [{ "n": 1, "attemptId": "00000000-0000-4000-8000-000000000905", "answer": "b", "correct": true }], "accepted": ["b"], "withdrawn": false, "reward": { "credits": 75 } }
+          ]
+        }
+      }
+    },
+    {
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000906", "expectedRevision": 304, "type": "START_WAVE", "clientTime": "2026-11-15T18:04:00Z",
+        "payload": { "wave": 61, "credits": 1175, "placements": [{ "padId": "p03", "classId": "nova", "level": 3, "targeting": "FAST" }] }
+      },
+      "expect": { "result": "APPLIED", "state": { "revision": 305, "phase": "IN_WAVE" } }
+    },
+    {
+      "note": "No slot N-061 or M-061 exists (exhausted bank): straight to BUILD for wave 62.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000907", "expectedRevision": 305, "type": "COMPLETE_WAVE", "clientTime": "2026-11-15T18:06:00Z",
+        "payload": {
+          "wave": 61, "credits": 1300,
+          "placements": [{ "padId": "p03", "classId": "nova", "level": 3, "targeting": "FAST" }],
+          "colony": { "health": 10, "shield": 0 },
+          "powers": { "colony-shield": 1, "frost-pulse": 1 }
+        }
+      },
+      "expect": {
+        "result": "APPLIED",
+        "state": {
+          "revision": 306,
+          "phase": "BUILD",
+          "wave": 62,
+          "highestCompletedWave": 61,
+          "snapshot": {
+            "credits": 1300,
+            "placements": [{ "padId": "p03", "classId": "nova", "level": 3, "targeting": "FAST" }],
+            "colony": { "health": 10, "shield": 0 },
+            "powers": { "colony-shield": 1, "frost-pulse": 1 }
+          }
+        }
+      }
+    }
+  ]
+}

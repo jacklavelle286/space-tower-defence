@@ -1,0 +1,131 @@
+{
+  "name": "m1-resume-in-wave",
+  "description": "The child left during wave 1, so the stored snapshot is the wave-start snapshot and the server still says IN_WAVE. On return the client is in preparation: pressing Ready again restarts wave 1 (START_WAVE from IN_WAVE), and a preparation change sends SAVE_PREP from IN_WAVE, which moves the run to BUILD. Ops for the wrong wave or phase are refused.",
+  "sources": [
+    "F 3.3 (save-and-exit mid-wave writes nothing; SAVE_PREP and START_WAVE accepted from IN_WAVE)",
+    "F 3.5 (phase x op matrix)",
+    "spine S6 (wave skips are PHASE_MISMATCH)"
+  ],
+  "start": {
+    "mode": "CHALLENGE",
+    "status": "IN_PROGRESS",
+    "stage": "AUTHORED",
+    "phase": "IN_WAVE",
+    "wave": 1,
+    "finalWave": 2,
+    "highestCompletedWave": 0,
+    "campaignCompleted": false,
+    "plannedThrough": 1,
+    "revision": 2,
+    "powerChargeCap": 2,
+    "snapshot": {
+      "credits": 50,
+      "placements": [
+        { "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" },
+        { "padId": "p05", "classId": "nova", "level": 1, "targeting": "FRONT" }
+      ],
+      "colony": { "health": 20, "shield": 0 },
+      "powers": {}
+    },
+    "slots": [
+      { "slotId": "N-001", "kind": "NORMAL", "status": "UNRESOLVED", "attempts": [], "accepted": ["c"], "withdrawn": false, "reward": { "credits": 30 } }
+    ]
+  },
+  "steps": [
+    {
+      "note": "Restart: START_WAVE from IN_WAVE with the same values; only the revision changes.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000301", "expectedRevision": 2, "type": "START_WAVE", "clientTime": "2026-11-15T12:00:00Z",
+        "payload": {
+          "wave": 1, "credits": 50,
+          "placements": [
+            { "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" },
+            { "padId": "p05", "classId": "nova", "level": 1, "targeting": "FRONT" }
+          ]
+        }
+      },
+      "expect": { "result": "APPLIED", "state": { "revision": 3 } }
+    },
+    {
+      "note": "Left again, came back, bought a third Nova and changed targeting: SAVE_PREP from IN_WAVE moves the run to BUILD.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000302", "expectedRevision": 3, "type": "SAVE_PREP", "clientTime": "2026-11-15T12:10:00Z",
+        "payload": {
+          "credits": 0,
+          "placements": [
+            { "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" },
+            { "padId": "p05", "classId": "nova", "level": 1, "targeting": "FAST" },
+            { "padId": "p09", "classId": "nova", "level": 1, "targeting": "FRONT" }
+          ]
+        }
+      },
+      "expect": {
+        "result": "APPLIED",
+        "state": {
+          "revision": 4,
+          "phase": "BUILD",
+          "snapshot": {
+            "credits": 0,
+            "placements": [
+              { "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" },
+              { "padId": "p05", "classId": "nova", "level": 1, "targeting": "FAST" },
+              { "padId": "p09", "classId": "nova", "level": 1, "targeting": "FRONT" }
+            ],
+            "colony": { "health": 20, "shield": 0 },
+            "powers": {}
+          }
+        }
+      }
+    },
+    {
+      "note": "COMPLETE_WAVE is only allowed in IN_WAVE.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000303", "expectedRevision": 4, "type": "COMPLETE_WAVE", "clientTime": "2026-11-15T12:11:00Z",
+        "payload": { "wave": 1, "credits": 24, "placements": [], "colony": { "health": 20, "shield": 0 }, "powers": {} }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "PHASE_MISMATCH",
+        "details": { "phase": "BUILD", "wave": 1, "currentSlotId": null }
+      }
+    },
+    {
+      "note": "A wave skip is a phase mismatch, not a bounds error.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000304", "expectedRevision": 4, "type": "START_WAVE", "clientTime": "2026-11-15T12:11:10Z",
+        "payload": { "wave": 2, "credits": 0, "placements": [] }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "PHASE_MISMATCH",
+        "details": { "phase": "BUILD", "wave": 1, "currentSlotId": null }
+      }
+    },
+    {
+      "note": "DEFEAT is only allowed in IN_WAVE.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000305", "expectedRevision": 4, "type": "DEFEAT", "clientTime": "2026-11-15T12:11:20Z",
+        "payload": { "wave": 1 }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "PHASE_MISMATCH",
+        "details": { "phase": "BUILD", "wave": 1, "currentSlotId": null }
+      }
+    },
+    {
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000306", "expectedRevision": 4, "type": "START_WAVE", "clientTime": "2026-11-15T12:12:00Z",
+        "payload": {
+          "wave": 1, "credits": 0,
+          "placements": [
+            { "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" },
+            { "padId": "p05", "classId": "nova", "level": 1, "targeting": "FAST" },
+            { "padId": "p09", "classId": "nova", "level": 1, "targeting": "FRONT" }
+          ]
+        }
+      },
+      "expect": { "result": "APPLIED", "state": { "revision": 5, "phase": "IN_WAVE" } }
+    }
+  ]
+}

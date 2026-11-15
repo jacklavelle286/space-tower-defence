@@ -1,9 +1,9 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    // Node types only for the tests (the purity test reads the source files from disk).
+    // Node types only for the tests and scripts/ (the purity test and the generator read files from disk).
     "types": ["node"]
   },
-  "include": ["src", "vitest.config.ts"],
+  "include": ["src", "scripts", "vitest.config.ts"],
   "exclude": []
 }

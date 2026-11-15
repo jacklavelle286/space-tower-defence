@@ -1,0 +1,243 @@
+{
+  "name": "m1-validation",
+  "description": "Schemas are strict: an unknown field, a value out of range, a wrong type or an op type outside the six Milestone 1 ops is VALIDATION_FAILED, with one {field, rule} per problem and never the value. Problems in the op's own fields are found first; payload problems come after the phase check, so an op in the wrong phase is PHASE_MISMATCH even if its payload is also bad. None of the refusals changes the run: the last op still applies at revision 0.",
+  "sources": [
+    "G 5.2 (strict schemas; unknown fields rejected), G 1.2 (details carry field and rule, never values)",
+    "G 5.3 and F 8.1 (two layers: envelope problems first, the payload at step (g) after (f))",
+    "spine S9.5 (limits)"
+  ],
+  "start": {
+    "mode": "CHALLENGE",
+    "status": "IN_PROGRESS",
+    "stage": "AUTHORED",
+    "phase": "BUILD",
+    "wave": 1,
+    "finalWave": 2,
+    "highestCompletedWave": 0,
+    "campaignCompleted": false,
+    "plannedThrough": 1,
+    "revision": 0,
+    "powerChargeCap": 2,
+    "snapshot": { "credits": 150, "placements": [], "colony": { "health": 20, "shield": 0 }, "powers": {} },
+    "slots": [
+      { "slotId": "N-001", "kind": "NORMAL", "status": "UNRESOLVED", "attempts": [], "accepted": ["c"], "withdrawn": false, "reward": { "credits": 30 } }
+    ]
+  },
+  "steps": [
+    {
+      "note": "An unknown field in a payload.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000701", "expectedRevision": 0, "type": "SAVE_PREP", "clientTime": "2026-11-15T16:00:00Z",
+        "payload": { "credits": 150, "placements": [], "bonus": 500 }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "VALIDATION_FAILED",
+        "details": [{ "field": "op.payload.bonus", "rule": "additionalProperties" }]
+      }
+    },
+    {
+      "note": "An unknown field on the op itself.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000702", "expectedRevision": 0, "type": "SAVE_PREP", "clientTime": "2026-11-15T16:00:01Z",
+        "payload": { "credits": 150, "placements": [] }, "sessionId": "00000000-0000-4000-8000-0000000007ff"
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "VALIDATION_FAILED",
+        "details": [{ "field": "op.sessionId", "rule": "additionalProperties" }]
+      }
+    },
+    {
+      "note": "Two problems in one placement, reported in schema order: level above 3, then a targeting outside the enum.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000703", "expectedRevision": 0, "type": "SAVE_PREP", "clientTime": "2026-11-15T16:00:02Z",
+        "payload": { "credits": 100, "placements": [{ "padId": "p04", "classId": "nova", "level": 4, "targeting": "NEAREST" }] }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "VALIDATION_FAILED",
+        "details": [
+          { "field": "op.payload.placements[0].level", "rule": "maximum" },
+          { "field": "op.payload.placements[0].targeting", "rule": "enum" }
+        ]
+      }
+    },
+    {
+      "note": "Negative credits.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000704", "expectedRevision": 0, "type": "SAVE_PREP", "clientTime": "2026-11-15T16:00:03Z",
+        "payload": { "credits": -1, "placements": [] }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "VALIDATION_FAILED",
+        "details": [{ "field": "op.payload.credits", "rule": "minimum" }]
+      }
+    },
+    {
+      "note": "Credits are integers only.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000705", "expectedRevision": 0, "type": "SAVE_PREP", "clientTime": "2026-11-15T16:00:04Z",
+        "payload": { "credits": 10.5, "placements": [] }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "VALIDATION_FAILED",
+        "details": [{ "field": "op.payload.credits", "rule": "type" }]
+      }
+    },
+    {
+      "note": "A pad ID outside the key-ID pattern.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000706", "expectedRevision": 0, "type": "SAVE_PREP", "clientTime": "2026-11-15T16:00:05Z",
+        "payload": { "credits": 100, "placements": [{ "padId": "P03", "classId": "nova", "level": 1, "targeting": "FRONT" }] }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "VALIDATION_FAILED",
+        "details": [{ "field": "op.payload.placements[0].padId", "rule": "pattern" }]
+      }
+    },
+    {
+      "note": "DISMISS_SLOT is not one of the six Milestone 1 ops yet (Phase 29).",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000707", "expectedRevision": 0, "type": "DISMISS_SLOT", "clientTime": "2026-11-15T16:00:06Z",
+        "payload": { "slotId": "N-001" }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "VALIDATION_FAILED",
+        "details": [{ "field": "op.type", "rule": "enum" }]
+      }
+    },
+    {
+      "note": "Missing clientTime and an opId that is not a UUID.",
+      "op": {
+        "opId": "op-1", "expectedRevision": 0, "type": "SAVE_PREP",
+        "payload": { "credits": 150, "placements": [] }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "VALIDATION_FAILED",
+        "details": [
+          { "field": "op.clientTime", "rule": "required" },
+          { "field": "op.opId", "rule": "pattern" }
+        ]
+      }
+    },
+    {
+      "note": "A payload that is not an object is an op-field problem.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000709", "expectedRevision": 0, "type": "SAVE_PREP", "clientTime": "2026-11-15T16:00:08Z",
+        "payload": []
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "VALIDATION_FAILED",
+        "details": [{ "field": "op.payload", "rule": "type" }]
+      }
+    },
+    {
+      "note": "Op-field problems are found before the payload's.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000710", "expectedRevision": -1, "type": "SAVE_PREP", "clientTime": "2026-11-15T16:00:09Z",
+        "payload": { "credits": -5, "placements": [] }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "VALIDATION_FAILED",
+        "details": [{ "field": "op.expectedRevision", "rule": "minimum" }]
+      }
+    },
+    {
+      "note": "A missing wave cannot be compared in the phase step, so the payload step refuses it.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000711", "expectedRevision": 0, "type": "START_WAVE", "clientTime": "2026-11-15T16:00:10Z",
+        "payload": { "credits": 150, "placements": [] }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "VALIDATION_FAILED",
+        "details": [{ "field": "op.payload.wave", "rule": "required" }]
+      }
+    },
+    {
+      "note": "A wave sent as a string is a type problem, not a phase mismatch.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000712", "expectedRevision": 0, "type": "START_WAVE", "clientTime": "2026-11-15T16:00:11Z",
+        "payload": { "wave": "1", "credits": 150, "placements": [] }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "VALIDATION_FAILED",
+        "details": [{ "field": "op.payload.wave", "rule": "type" }]
+      }
+    },
+    {
+      "note": "Wrong phase wins over a bad payload: the phase step comes first.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000713", "expectedRevision": 0, "type": "SUBMIT_ATTEMPT", "clientTime": "2026-11-15T16:00:12Z",
+        "payload": { "slotId": "N-001", "answer": "THIS IS NOT CANONICAL" }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "PHASE_MISMATCH",
+        "details": { "phase": "BUILD", "wave": 1, "currentSlotId": null }
+      }
+    },
+    {
+      "note": "ABANDON's payload is always empty.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000714", "expectedRevision": 0, "type": "ABANDON", "clientTime": "2026-11-15T16:00:13Z",
+        "payload": { "reason": "bored" }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "VALIDATION_FAILED",
+        "details": [{ "field": "op.payload.reason", "rule": "additionalProperties" }]
+      }
+    },
+    {
+      "note": "More placements than the limit (33 > 32).",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000715", "expectedRevision": 0, "type": "SAVE_PREP", "clientTime": "2026-11-15T16:00:14Z",
+        "payload": {
+          "credits": 0,
+          "placements": [
+            { "padId": "p01", "classId": "nova", "level": 1, "targeting": "FRONT" }, { "padId": "p02", "classId": "nova", "level": 1, "targeting": "FRONT" },
+            { "padId": "p03", "classId": "nova", "level": 1, "targeting": "FRONT" }, { "padId": "p04", "classId": "nova", "level": 1, "targeting": "FRONT" },
+            { "padId": "p05", "classId": "nova", "level": 1, "targeting": "FRONT" }, { "padId": "p06", "classId": "nova", "level": 1, "targeting": "FRONT" },
+            { "padId": "p07", "classId": "nova", "level": 1, "targeting": "FRONT" }, { "padId": "p08", "classId": "nova", "level": 1, "targeting": "FRONT" },
+            { "padId": "p09", "classId": "nova", "level": 1, "targeting": "FRONT" }, { "padId": "p10", "classId": "nova", "level": 1, "targeting": "FRONT" },
+            { "padId": "p11", "classId": "nova", "level": 1, "targeting": "FRONT" }, { "padId": "p12", "classId": "nova", "level": 1, "targeting": "FRONT" },
+            { "padId": "p13", "classId": "nova", "level": 1, "targeting": "FRONT" }, { "padId": "p14", "classId": "nova", "level": 1, "targeting": "FRONT" },
+            { "padId": "p15", "classId": "nova", "level": 1, "targeting": "FRONT" }, { "padId": "p16", "classId": "nova", "level": 1, "targeting": "FRONT" },
+            { "padId": "p17", "classId": "nova", "level": 1, "targeting": "FRONT" }, { "padId": "p18", "classId": "nova", "level": 1, "targeting": "FRONT" },
+            { "padId": "p19", "classId": "nova", "level": 1, "targeting": "FRONT" }, { "padId": "p20", "classId": "nova", "level": 1, "targeting": "FRONT" },
+            { "padId": "p21", "classId": "nova", "level": 1, "targeting": "FRONT" }, { "padId": "p22", "classId": "nova", "level": 1, "targeting": "FRONT" },
+            { "padId": "p23", "classId": "nova", "level": 1, "targeting": "FRONT" }, { "padId": "p24", "classId": "nova", "level": 1, "targeting": "FRONT" },
+            { "padId": "p25", "classId": "nova", "level": 1, "targeting": "FRONT" }, { "padId": "p26", "classId": "nova", "level": 1, "targeting": "FRONT" },
+            { "padId": "p27", "classId": "nova", "level": 1, "targeting": "FRONT" }, { "padId": "p28", "classId": "nova", "level": 1, "targeting": "FRONT" },
+            { "padId": "p29", "classId": "nova", "level": 1, "targeting": "FRONT" }, { "padId": "p30", "classId": "nova", "level": 1, "targeting": "FRONT" },
+            { "padId": "p31", "classId": "nova", "level": 1, "targeting": "FRONT" }, { "padId": "p32", "classId": "nova", "level": 1, "targeting": "FRONT" },
+            { "padId": "p33", "classId": "nova", "level": 1, "targeting": "FRONT" }
+          ]
+        }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "VALIDATION_FAILED",
+        "details": [{ "field": "op.payload.placements", "rule": "maxItems" }]
+      }
+    },
+    {
+      "note": "After all those refusals the run is unchanged: a valid op still applies at revision 0.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-000000000716", "expectedRevision": 0, "type": "SAVE_PREP", "clientTime": "2026-11-15T16:00:15Z",
+        "payload": { "credits": 150, "placements": [] }
+      },
+      "expect": { "result": "APPLIED", "state": { "revision": 1 } }
+    }
+  ]
+}

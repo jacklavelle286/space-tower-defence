@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "run-state.schema.json",
+  "title": "RunState",
+  "description": "What the pure rules reducers work on (web/game-core/src/rules, and the Python mirror from Phase 12): the run fields of spine S3.1 that the rules read, plus each slot with the pinned data the client holds for it (accepted answers from the pack, the withdrawn flag from the run view, the reward pinned at creation). Server-only fields (pins, recentOps, writerGeneration, timestamps) are not here: the pure reducers have no duplicate memory and no clock (I.2.3). campaignCompleted stands for campaignCompletedAt being set.",
+  "type": "object",
+  "properties": {
+    "mode": { "$ref": "#/$defs/runMode" },
+    "status": { "$ref": "#/$defs/runStatus" },
+    "stage": { "$ref": "#/$defs/runStage" },
+    "phase": { "$ref": "#/$defs/runPhase" },
+    "wave": { "$ref": "common.schema.json#/$defs/wave" },
+    "finalWave": { "$ref": "common.schema.json#/$defs/wave" },
+    "highestCompletedWave": { "type": "integer", "minimum": 0, "maximum": 999 },
+    "campaignCompleted": { "type": "boolean" },
+    "plannedThrough": { "type": "integer", "minimum": 0, "maximum": 998 },
+    "revision": { "$ref": "common.schema.json#/$defs/count" },
+    "powerChargeCap": { "$ref": "common.schema.json#/$defs/count" },
+    "snapshot": { "$ref": "common.schema.json#/$defs/snapshot" },
+    "slots": { "type": "array", "items": { "$ref": "#/$defs/slot" } }
+  },
+  "required": [
+    "mode",
+    "status",
+    "stage",
+    "wave",
+    "finalWave",
+    "highestCompletedWave",
+    "campaignCompleted",
+    "plannedThrough",
+    "revision",
+    "powerChargeCap",
+    "slots"
+  ],
+  "additionalProperties": false,
+  "$defs": {
+    "runMode": { "type": "string", "enum": ["CAMPAIGN", "CHALLENGE"] },
+    "runStatus": { "type": "string", "enum": ["IN_PROGRESS", "DEFEATED", "ABANDONED", "COMPLETED"] },
+    "runStage": { "type": "string", "enum": ["AUTHORED", "ENDLESS"] },
+    "runPhase": {
+      "description": "Present only while status is IN_PROGRESS.",
+      "type": "string",
+      "enum": ["ACTIVITY", "METEOR", "BUILD", "IN_WAVE", "COMPLETION_OFFER"]
+    },
+    "slotKind": { "type": "string", "enum": ["NORMAL", "METEOR"] },
+    "slotStatus": { "type": "string", "enum": ["UNRESOLVED", "SUCCEEDED", "FAILED", "DECLINED", "VOIDED"] },
+    "attempt": {
+      "description": "A recorded attempt (spine S3.3); recordedAt is server-only.",
+      "type": "object",
+      "properties": {
+        "n": { "type": "integer", "minimum": 1, "maximum": 3 },
+        "attemptId": { "$ref": "common.schema.json#/$defs/uuid" },
+        "answer": { "$ref": "common.schema.json#/$defs/answer" },
+        "correct": { "type": "boolean" }
+      },
+      "required": ["n", "attemptId", "answer", "correct"],
+      "additionalProperties": false
+    },
+    "reward": {
+      "description": "Pinned from the ruleset by (kind, interval) at slot creation (C9.2, C10): credits for a normal slot, one power charge for a meteor slot.",
+      "type": "object",
+      "properties": {
+        "credits": { "$ref": "common.schema.json#/$defs/count" },
+        "powerId": { "$ref": "common.schema.json#/$defs/keyId" }
+      },
+      "required": ["credits"],
+      "additionalProperties": false
+    },
+    "slot": {
+      "type": "object",
+      "properties": {
+        "slotId": { "$ref": "common.schema.json#/$defs/slotId" },
+        "kind": { "$ref": "#/$defs/slotKind" },
+        "status": { "$ref": "#/$defs/slotStatus" },
+        "attempts": { "type": "array", "items": { "$ref": "#/$defs/attempt" }, "maxItems": 3 },
+        "accepted": {
+          "description": "The pinned version's accepted canonical answers (exact equality, C20.1).",
+          "type": "array",
+          "items": { "$ref": "common.schema.json#/$defs/answer" },
+          "minItems": 1
+        },
+        "withdrawn": { "type": "boolean" },
+        "reward": { "$ref": "#/$defs/reward" }
+      },
+      "required": ["slotId", "kind", "status", "attempts", "accepted", "withdrawn", "reward"],
+      "additionalProperties": false
+    }
+  }
+}

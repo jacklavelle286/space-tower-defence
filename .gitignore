@@ -23,6 +23,8 @@ dist/
 coverage/
 *.tsbuildinfo
 .vite/
+# Vitest reporter output (e.g. a one-off --reporter=json run)
+.vitest/
 playwright-report/
 test-results/
 

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "op-save-prep.schema.json",
+  "title": "SavePrepPayload",
+  "description": "SAVE_PREP payload (G section 5.2): replaces credits and placements; colony and powers are carried forward.",
+  "type": "object",
+  "properties": {
+    "credits": { "$ref": "common.schema.json#/$defs/count" },
+    "placements": { "$ref": "common.schema.json#/$defs/placements" }
+  },
+  "required": ["credits", "placements"],
+  "additionalProperties": false
+}

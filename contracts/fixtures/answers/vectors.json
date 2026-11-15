@@ -1,0 +1,227 @@
+{
+  "name": "answer-vectors",
+  "description": "Answer canonicalisation (C 20.1). canonical: raw input from the learning panel -> the one canonical string sent in SUBMIT_ATTEMPT, or a refusal (no op is created). Only MULTIPLE_CHOICE so far (Phase 11); the other five types are added in Phases 37-38. shape: what the Python side checks (one string of at most 64 characters, allowed characters only); every canonical output above must also pass it.",
+  "sources": [
+    "C 20.1 (MULTIPLE_CHOICE: the option ID; no trim, Number() or case folding)",
+    "spine S3.3 and S9.5 (one string of at most 64 characters; reserved separators)",
+    "I 2.3 (answer vectors)"
+  ],
+  "canonical": [
+    {
+      "name": "selected option",
+      "interactionType": "MULTIPLE_CHOICE",
+      "optionIds": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "input": "c",
+      "expected": "c"
+    },
+    {
+      "name": "first option",
+      "interactionType": "MULTIPLE_CHOICE",
+      "optionIds": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "input": "a",
+      "expected": "a"
+    },
+    {
+      "name": "sixth option",
+      "interactionType": "MULTIPLE_CHOICE",
+      "optionIds": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f"
+      ],
+      "input": "f",
+      "expected": "f"
+    },
+    {
+      "name": "nothing selected",
+      "interactionType": "MULTIPLE_CHOICE",
+      "optionIds": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "input": null,
+      "refused": "INCOMPLETE"
+    },
+    {
+      "name": "empty string",
+      "interactionType": "MULTIPLE_CHOICE",
+      "optionIds": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "input": "",
+      "refused": "INCOMPLETE"
+    },
+    {
+      "name": "not one of this activity's options",
+      "interactionType": "MULTIPLE_CHOICE",
+      "optionIds": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "input": "e",
+      "refused": "NOT_AN_OPTION"
+    },
+    {
+      "name": "no case folding",
+      "interactionType": "MULTIPLE_CHOICE",
+      "optionIds": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "input": "C",
+      "refused": "NOT_AN_OPTION"
+    },
+    {
+      "name": "no trimming (leading space)",
+      "interactionType": "MULTIPLE_CHOICE",
+      "optionIds": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "input": " c",
+      "refused": "NOT_AN_OPTION"
+    },
+    {
+      "name": "no trimming (trailing newline)",
+      "interactionType": "MULTIPLE_CHOICE",
+      "optionIds": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "input": "c\n",
+      "refused": "NOT_AN_OPTION"
+    },
+    {
+      "name": "option text instead of the option ID",
+      "interactionType": "MULTIPLE_CHOICE",
+      "optionIds": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "input": "ship",
+      "refused": "NOT_AN_OPTION"
+    },
+    {
+      "name": "two options joined",
+      "interactionType": "MULTIPLE_CHOICE",
+      "optionIds": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "input": "a|c",
+      "refused": "NOT_AN_OPTION"
+    },
+    {
+      "name": "an authored option ID outside a-f is never sent",
+      "interactionType": "MULTIPLE_CHOICE",
+      "optionIds": [
+        "a",
+        "b",
+        "c",
+        "D"
+      ],
+      "input": "D",
+      "refused": "NOT_CANONICAL"
+    }
+  ],
+  "shape": [
+    {
+      "answer": "c",
+      "valid": true
+    },
+    {
+      "answer": "8",
+      "valid": true
+    },
+    {
+      "answer": "z1=3;z2=3",
+      "valid": true
+    },
+    {
+      "answer": "o1=ee;o2=e",
+      "valid": true
+    },
+    {
+      "answer": "30,38,80,83",
+      "valid": true
+    },
+    {
+      "answer": "foot ball",
+      "valid": true
+    },
+    {
+      "answer": "don't",
+      "valid": true
+    },
+    {
+      "answer": "c|30",
+      "valid": true
+    },
+    {
+      "answer": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "valid": true
+    },
+    {
+      "answer": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "valid": false
+    },
+    {
+      "answer": "",
+      "valid": false
+    },
+    {
+      "answer": "C",
+      "valid": false
+    },
+    {
+      "answer": "c\n",
+      "valid": false
+    },
+    {
+      "answer": "caf\u00e9",
+      "valid": false
+    },
+    {
+      "answer": "it\u2019s",
+      "valid": false
+    },
+    {
+      "answer": "a_b",
+      "valid": false
+    },
+    {
+      "answer": "a\tb",
+      "valid": false
+    }
+  ]
+}

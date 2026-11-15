@@ -1,4 +1,35 @@
-// Public entry point of the pure rules package. The clock arrives in Phase 10 and the reducer in Phase 11.
+// Public entry point of the pure rules package: the fixed-timestep clock (Phase 10), the rules (Phase 11), the game
+// data parsers (Phase 13) and the battle simulation (Phase 14).
 
-/** Bumped when the rules change in a way saved runs must know about (spine S5.1 `mechanics`). */
-export const MECHANICS_VERSION = 0;
+export {
+  advanceClock,
+  MAX_FRAME_MS,
+  MAX_STEPS_PER_FRAME,
+  STEP_UNITS,
+  STEPS_PER_SECOND,
+  UNITS_PER_MS,
+  type ClockFrame,
+  type ClockState,
+  type Speed,
+} from "./clock";
+
+export * from "./rules";
+
+// The mechanics numbers this game-core can run (spine S5.1) live with the data parsers; the old
+// MECHANICS_VERSION = 0 placeholder from Phase 1 is replaced by SUPPORTED_MECHANICS.
+export {
+  GameDataError,
+  learningReward,
+  parseCurrent,
+  parsePlanet,
+  parseRuleset,
+  SUPPORTED_MECHANICS,
+  type AuthoredWave,
+  type CurrentPointers,
+  type Pad,
+  type PlanetDocument,
+  type Ruleset,
+  type WaveSet,
+} from "./data/game-data";
+
+export * from "./sim";

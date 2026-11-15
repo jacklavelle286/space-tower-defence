@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "op-abandon.schema.json",
+  "title": "AbandonPayload",
+  "description": "ABANDON payload (G section 5.2): always empty.",
+  "type": "object",
+  "properties": {},
+  "additionalProperties": false
+}

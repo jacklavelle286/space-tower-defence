@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "op-defeat.schema.json",
+  "title": "DefeatPayload",
+  "description": "DEFEAT payload (G section 5.2).",
+  "type": "object",
+  "properties": {
+    "wave": { "$ref": "common.schema.json#/$defs/wave" }
+  },
+  "required": ["wave"],
+  "additionalProperties": false
+}
