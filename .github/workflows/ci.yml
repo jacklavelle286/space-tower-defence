@@ -55,7 +55,7 @@ jobs:
         run: python3 scripts/scan_dist.py web/player/dist web/admin/dist
 
   repo:
-    name: repo (terraform fmt, simulator self-test)
+    name: repo (terraform fmt, spike roots, simulator self-test)
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -76,6 +76,19 @@ jobs:
 
       - name: Terraform fmt
         run: terraform fmt -check -recursive infrastructure/
+
+      # Spike roots (Phases 5-6, ADR-0020): fmt and validate each one without a backend, against its own lock file.
+      # No AWS access; the step does nothing once spikes/ is deleted at the end of Phase 6.
+      - name: Spike roots (fmt, validate)
+        run: |
+          shopt -s nullglob
+          for dir in spikes/*/; do
+            [[ -n "$(find "$dir" -maxdepth 1 -name '*.tf' -print -quit)" ]] || continue
+            echo "== $dir"
+            terraform fmt -check -recursive "$dir"
+            terraform -chdir="$dir" init -input=false -backend=false -lockfile=readonly
+            terraform -chdir="$dir" validate
+          done
 
       - name: Setup Python (version from .python-version)
         uses: actions/setup-python@v7
