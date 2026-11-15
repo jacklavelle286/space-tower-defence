@@ -1,0 +1,104 @@
+{
+  "_source": "Shaped on CloudFront + S3 (OAC, ListBucket) responses for the Phase 4 player build: security headers from the response headers policy in infrastructure/main/main.tf, S3's XML 404. Synthetic until the first live release; refresh with: python3 scripts/smoke.py ... --record <file>.",
+  "releaseId": "20261115T0905Z-101f353",
+  "responses": {
+    "/": {
+      "body": "<!doctype html>\n<html lang=\"en-GB\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <link rel=\"icon\" type=\"image/svg+xml\" href=\"/assets/ui/logo.svg\" />\n    <title>Space Colony Defence</title>\n    <style>html,body{background:#141633;margin:0}</style>\n    <script type=\"module\" crossorigin src=\"/assets/index-DR5M5KOV.js\"></script>\n    <link rel=\"modulepreload\" crossorigin href=\"/assets/phaser-DxDHb1dC.js\">\n    <link rel=\"stylesheet\" crossorigin href=\"/assets/index-7Y7RtU1d.css\">\n  </head>\n  <body>\n    <div id=\"root\"></div>\n  </body>\n</html>\n",
+      "headers": {
+        "cache-control": "no-cache",
+        "content-security-policy-report-only": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+        "content-type": "text/html; charset=utf-8",
+        "etag": "\"e1\"",
+        "referrer-policy": "no-referrer",
+        "server": "AmazonS3",
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "via": "1.1 0123456789abcdef.cloudfront.net (CloudFront)",
+        "x-cache": "Miss from cloudfront",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY"
+      },
+      "status": 200
+    },
+    "/assets/index-DR5M5KOV.js": {
+      "body": "console.log('app');",
+      "headers": {
+        "cache-control": "public, max-age=31536000, immutable",
+        "content-security-policy-report-only": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+        "content-type": "text/javascript; charset=utf-8",
+        "referrer-policy": "no-referrer",
+        "server": "AmazonS3",
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "via": "1.1 0123456789abcdef.cloudfront.net (CloudFront)",
+        "x-cache": "Miss from cloudfront",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY"
+      },
+      "status": 200
+    },
+    "/config.json": {
+      "body": "{\"apiBase\":\"/api\",\"releaseId\":\"20261115T0905Z-101f353\"}\n",
+      "headers": {
+        "cache-control": "no-cache",
+        "content-security-policy-report-only": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+        "content-type": "application/json",
+        "referrer-policy": "no-referrer",
+        "server": "AmazonS3",
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "via": "1.1 0123456789abcdef.cloudfront.net (CloudFront)",
+        "x-cache": "Miss from cloudfront",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY"
+      },
+      "status": 200
+    },
+    "/index.html": {
+      "body": "<!doctype html>\n<html lang=\"en-GB\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <link rel=\"icon\" type=\"image/svg+xml\" href=\"/assets/ui/logo.svg\" />\n    <title>Space Colony Defence</title>\n    <style>html,body{background:#141633;margin:0}</style>\n    <script type=\"module\" crossorigin src=\"/assets/index-DR5M5KOV.js\"></script>\n    <link rel=\"modulepreload\" crossorigin href=\"/assets/phaser-DxDHb1dC.js\">\n    <link rel=\"stylesheet\" crossorigin href=\"/assets/index-7Y7RtU1d.css\">\n  </head>\n  <body>\n    <div id=\"root\"></div>\n  </body>\n</html>\n",
+      "headers": {
+        "cache-control": "no-cache",
+        "content-security-policy-report-only": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+        "content-type": "text/html; charset=utf-8",
+        "etag": "\"e1\"",
+        "referrer-policy": "no-referrer",
+        "server": "AmazonS3",
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "via": "1.1 0123456789abcdef.cloudfront.net (CloudFront)",
+        "x-cache": "Miss from cloudfront",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY"
+      },
+      "status": 200
+    },
+    "/missing.js": {
+      "body": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<Error><Code>NoSuchKey</Code><Message>The specified key does not exist.</Message><Key>missing.js</Key></Error>",
+      "headers": {
+        "content-security-policy-report-only": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+        "content-type": "application/xml",
+        "referrer-policy": "no-referrer",
+        "server": "AmazonS3",
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "via": "1.1 0123456789abcdef.cloudfront.net (CloudFront)",
+        "x-cache": "Error from cloudfront",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY"
+      },
+      "status": 404
+    },
+    "/smoke/deep/link-check": {
+      "body": "<!doctype html>\n<html lang=\"en-GB\">\n  <head>\n    <meta charset=\"UTF-8\" />\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" />\n    <link rel=\"icon\" type=\"image/svg+xml\" href=\"/assets/ui/logo.svg\" />\n    <title>Space Colony Defence</title>\n    <style>html,body{background:#141633;margin:0}</style>\n    <script type=\"module\" crossorigin src=\"/assets/index-DR5M5KOV.js\"></script>\n    <link rel=\"modulepreload\" crossorigin href=\"/assets/phaser-DxDHb1dC.js\">\n    <link rel=\"stylesheet\" crossorigin href=\"/assets/index-7Y7RtU1d.css\">\n  </head>\n  <body>\n    <div id=\"root\"></div>\n  </body>\n</html>\n",
+      "headers": {
+        "cache-control": "no-cache",
+        "content-security-policy-report-only": "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' blob:; font-src 'self'; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'",
+        "content-type": "text/html; charset=utf-8",
+        "etag": "\"e1\"",
+        "referrer-policy": "no-referrer",
+        "server": "AmazonS3",
+        "strict-transport-security": "max-age=31536000; includeSubDomains",
+        "via": "1.1 0123456789abcdef.cloudfront.net (CloudFront)",
+        "x-cache": "Miss from cloudfront",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY"
+      },
+      "status": 200
+    }
+  }
+}

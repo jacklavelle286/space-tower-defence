@@ -1,0 +1,654 @@
+name: apply
+
+# The second dispatch of a release (plan H.7.1 W-4, H.8.2 steps 5-7, spine S11.1): applies the saved plan that a
+# release.yml run left under plans/<plan_run_id>/ in the artefacts bucket, then publishes the release's static build,
+# smoke-checks both sites and records the release.
+#
+#   0 config (no AWS) -> 5 apply -> 6 publish -> 7a smoke (no AWS) -> 7b record
+#
+# It never plans: the only Terraform change it can make is the reviewed tfplan inside the tarball. A plan is refused
+# unless (all of these):
+#   - plan_run_id is a successful release.yml run, dispatched on main, whose commit is on main (config);
+#   - plans/<id>/plan-info.json (the completion marker, uploaded last by the plan job) exists and names that commit;
+#   - the tarball's SHA-256 matches its .sha256 file and S3's stored checksum, and no plans/<id>/ key was ever overwritten;
+#   - no apply has started since the plan was made, and this plan was never applied (scripts/apply_guard.py, below).
+# Terraform's own "Saved plan is stale" check (state changed since the plan) still applies on top.
+#
+# Rules this file keeps (H.7.1): workflow_dispatch only; inputs and other untrusted values reach shell only through
+# env: (W-9); only the jobs that assume the CI role have id-token: write and declare environment prod (W-3); account
+# guard in configure-aws-credentials and in the provider (W-8); runner and Terraform pinned to what the plan used (W-7);
+# only the record job has contents: write (it pushes the release tag, W-2).
+
+on:
+  workflow_dispatch:
+    inputs:
+      plan_run_id:
+        description: "The release.yml run ID whose saved plan to apply (its summary ends 'dispatch apply.yml with plan_run_id = N')."
+        required: true
+        type: string
+
+permissions: {} # every job lists exactly what it needs
+
+# Shared with release.yml (H.7.1 W-6; the group keeps release.yml's existing name): a plan and an apply never overlap,
+# which is what lets apply_guard.py compare the plan's time with the last apply's. GitHub keeps only one PENDING run
+# per group: a newer dispatch in the group (release or apply) cancels a waiting one. So dispatch apply.yml only after
+# release.yml has finished, and dispatch nothing else in the group while it waits.
+concurrency:
+  group: terraform-prod
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash # -eo pipefail
+
+jobs:
+  # 0. config: main only; plan_run_id must be a successful release.yml run on main whose commit is on main. No AWS.
+  config:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: read # read the release run's metadata
+    outputs:
+      plan_run_id: ${{ steps.input.outputs.plan_run_id }}
+      sha: ${{ steps.run.outputs.sha }}
+      environment: ${{ steps.vars.outputs.environment }}
+      account: ${{ steps.vars.outputs.account }}
+      region: ${{ steps.vars.outputs.region }}
+      tf_version: ${{ steps.vars.outputs.tf_version }}
+      role_arn: ${{ steps.vars.outputs.role_arn }}
+      state_bucket: ${{ steps.vars.outputs.state_bucket }}
+      artefacts_bucket: ${{ steps.vars.outputs.artefacts_bucket }}
+      player_hostname: ${{ steps.vars.outputs.player_hostname }}
+      admin_hostname: ${{ steps.vars.outputs.admin_hostname }}
+    steps:
+      - name: Refuse anything but main; check plan_run_id
+        id: input
+        env:
+          PLAN_RUN_ID: ${{ inputs.plan_run_id }}
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "::error::apply.yml runs only from main; this run was dispatched from $GITHUB_REF."
+            exit 1
+          fi
+          if [[ ! "$PLAN_RUN_ID" =~ ^[0-9]{1,20}$ ]]; then
+            echo "::error::plan_run_id must be the numeric run ID of a release.yml run."
+            exit 1
+          fi
+          echo "plan_run_id=$PLAN_RUN_ID" >> "$GITHUB_OUTPUT"
+
+      - name: The plan run is a successful release.yml run on main
+        id: run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PLAN_RUN_ID: ${{ steps.input.outputs.plan_run_id }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$PLAN_RUN_ID" > "$RUNNER_TEMP/run.json" \
+            || { echo "::error::Run $PLAN_RUN_ID not found in this repository."; exit 1; }
+          jq -e --arg repo "$GITHUB_REPOSITORY" '
+              (.path | startswith(".github/workflows/release.yml")) and .head_branch == "main"
+              and .event == "workflow_dispatch" and .status == "completed" and .conclusion == "success"
+              and .repository.full_name == $repo and .head_repository.full_name == $repo' "$RUNNER_TEMP/run.json" > /dev/null \
+            || { echo "::error::Run $PLAN_RUN_ID is not a successful release.yml run dispatched on main ($(jq -r '"\(.path) on \(.head_branch): \(.status)/\(.conclusion)"' "$RUNNER_TEMP/run.json"))."; exit 1; }
+          sha=$(jq -r '.head_sha' "$RUNNER_TEMP/run.json")
+          [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::Run $PLAN_RUN_ID has no commit SHA."; exit 1; }
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout main (full history, for the ancestry check)
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: The released commit is on main
+        env:
+          SHA: ${{ steps.run.outputs.sha }}
+        run: |
+          # The release's commit must be main's tip or an ancestor of it: nothing from another branch is applied.
+          # Commits after it on main (e.g. docs) are fine; they are not part of this release.
+          git merge-base --is-ancestor "$SHA" "$GITHUB_SHA" \
+            || { echo "::error::Release commit $SHA is not on main (tip $GITHUB_SHA)."; exit 1; }
+          echo "Release commit $SHA is on main ($(git rev-list --count "$SHA..$GITHUB_SHA") commit(s) behind the tip)."
+
+      - name: Read the env files (at the released commit)
+        id: vars
+        env:
+          SHA: ${{ steps.run.outputs.sha }}
+        run: |
+          # Same names as release.yml computed for this release (bootstrap locals.tf, artifacts.tf, outputs.tf).
+          git show "$SHA:infrastructure/envs/common.auto.tfvars.json" > "$RUNNER_TEMP/common.json"
+          git show "$SHA:infrastructure/envs/prod.tfvars.json" > "$RUNNER_TEMP/env.json"
+          PROJECT=$(jq -r '.project' "$RUNNER_TEMP/common.json")
+          REGION=$(jq -r '.region' "$RUNNER_TEMP/common.json")
+          TF_VERSION=$(jq -r '.terraform_version' "$RUNNER_TEMP/common.json")
+          ACCOUNT=$(jq -r '.aws_account_id' "$RUNNER_TEMP/env.json")
+          ENVIRONMENT=$(jq -r '.environment' "$RUNNER_TEMP/env.json")
+          PLAYER_HOSTNAME=$(jq -r '.player_hostname' "$RUNNER_TEMP/env.json")
+          ADMIN_HOSTNAME=$(jq -r '.admin_hostname' "$RUNNER_TEMP/env.json")
+          for v in PROJECT REGION TF_VERSION ACCOUNT ENVIRONMENT PLAYER_HOSTNAME ADMIN_HOSTNAME; do
+            [[ -n "${!v}" && "${!v}" != "null" ]] || { echo "::error::$v is not set in the env files"; exit 1; }
+          done
+          [[ "$ACCOUNT" =~ ^[0-9]{12}$ ]] || { echo "::error::aws_account_id is not a 12-digit account ID"; exit 1; }
+          {
+            echo "environment=$ENVIRONMENT"
+            echo "account=$ACCOUNT"
+            echo "region=$REGION"
+            echo "tf_version=$TF_VERSION"
+            echo "role_arn=arn:aws:iam::${ACCOUNT}:role/${PROJECT}-${ENVIRONMENT}-github-oidc"
+            echo "state_bucket=${ENVIRONMENT}-state-bucket-${PROJECT}"
+            echo "artefacts_bucket=${ACCOUNT}-${REGION}-${ENVIRONMENT}-artifacts-bucket"
+            echo "player_hostname=$PLAYER_HOSTNAME"
+            echo "admin_hostname=$ADMIN_HOSTNAME"
+          } >> "$GITHUB_OUTPUT"
+
+  # 5. apply: verify the saved plan, refuse a stale one, apply exactly tfplan, capture the outputs.
+  apply:
+    needs: config
+    runs-on: ubuntu-24.04 # the same image as release.yml's plan job (W-7)
+    timeout-minutes: 60 # within the one-hour role session (H.15.2 F2)
+    environment:
+      name: prod
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      release_id: ${{ steps.info.outputs.release_id }}
+      plan_sha256: ${{ steps.tarball.outputs.sha256 }}
+      manifest_sha256: ${{ steps.unpack.outputs.manifest_sha256 }}
+      player_bucket: ${{ steps.outputs.outputs.player_bucket }}
+      admin_bucket: ${{ steps.outputs.outputs.admin_bucket }}
+      player_distribution_id: ${{ steps.outputs.outputs.player_distribution_id }}
+      admin_distribution_id: ${{ steps.outputs.outputs.admin_distribution_id }}
+      player_distribution_domain: ${{ steps.outputs.outputs.player_distribution_domain }}
+      admin_distribution_domain: ${{ steps.outputs.outputs.admin_distribution_domain }}
+      hostname_mode: ${{ steps.previous.outputs.hostname_mode }}
+      previous_release: ${{ steps.previous.outputs.previous_release }}
+    env:
+      PLAN_RUN_ID: ${{ needs.config.outputs.plan_run_id }}
+      SHA: ${{ needs.config.outputs.sha }}
+      ACCOUNT: ${{ needs.config.outputs.account }}
+      ENV_TF_VERSION: ${{ needs.config.outputs.tf_version }}
+      STATE_BUCKET: ${{ needs.config.outputs.state_bucket }}
+      ARTEFACTS_BUCKET: ${{ needs.config.outputs.artefacts_bucket }}
+    steps:
+      - name: Work directory outside the workspace
+        run: |
+          # The workspace stays empty apart from _src/: the plan tarball unpacks into it at the same paths it was
+          # made from, so the saved plan sees the same directory layout.
+          echo "OUT=$RUNNER_TEMP/apply" >> "$GITHUB_ENV"
+          mkdir -p "$RUNNER_TEMP/apply"
+
+      - name: Checkout this workflow's own scripts (into _src/)
+        # Scripts come from the same commit as this apply.yml (github.sha), so workflow and scripts always match,
+        # whatever commit the release was planned at. Infrastructure comes only from the verified plan tarball.
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          path: _src
+          persist-credentials: false
+
+      - name: Setup Python (version from .python-version)
+        uses: actions/setup-python@v7
+        with:
+          python-version-file: _src/.python-version
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ needs.config.outputs.role_arn }}
+          aws-region: ${{ needs.config.outputs.region }}
+          allowed-account-ids: ${{ needs.config.outputs.account }}
+
+      - name: Verify AWS account and buckets
+        run: |
+          ACTUAL=$(aws sts get-caller-identity --query Account --output text)
+          [[ "$ACTUAL" == "$ACCOUNT" ]] || { echo "::error::Account mismatch: $ACTUAL"; exit 1; }
+          aws s3api head-bucket --bucket "$STATE_BUCKET" \
+            || { echo "::error::State bucket $STATE_BUCKET not found"; exit 1; }
+          aws s3api head-bucket --bucket "$ARTEFACTS_BUCKET" \
+            || { echo "::error::Artefacts bucket $ARTEFACTS_BUCKET not found"; exit 1; }
+
+      - name: The plan is complete and is for this commit (plan-info.json)
+        id: info
+        run: |
+          prefix="plans/$PLAN_RUN_ID"
+          # plan-info.json is uploaded LAST by the plan job: without it the plan is incomplete, expired (30 days) or unknown.
+          if ! aws s3api head-object --bucket "$ARTEFACTS_BUCKET" --key "$prefix/plan-info.json" > "$OUT/plan-info.head.json"; then
+            echo "::error::No completed plan for run $PLAN_RUN_ID: s3://$ARTEFACTS_BUCKET/$prefix/plan-info.json is missing (the plan job did not finish, the ID is wrong, or the plan expired after 30 days). Dispatch release.yml again."
+            exit 1
+          fi
+          aws s3api get-object --bucket "$ARTEFACTS_BUCKET" --key "$prefix/plan-info.json" "$OUT/plan-info.json" > /dev/null
+          jq -e --arg id "$PLAN_RUN_ID" --arg sha "$SHA" --arg tf "$ENV_TF_VERSION" '
+              .planRunId == $id and .gitSha == $sha and .planKey == ("plans/" + $id + "/plan.tar.gz")
+              and .terraformVersion == $tf and (.planExitCode == 0 or .planExitCode == 2)
+              and (.releaseId | test("^[0-9]{8}T[0-9]{4}Z-[0-9a-f]{7}$")) and (.releaseId | endswith("-" + $sha[0:7]))
+              and (.lockFileSha256 | test("^[0-9a-f]{64}$"))' "$OUT/plan-info.json" > /dev/null \
+            || { echo "::error::plan-info.json does not match this run (plan run, commit $SHA, Terraform $ENV_TF_VERSION):"; cat "$OUT/plan-info.json"; exit 1; }
+          {
+            echo "release_id=$(jq -r .releaseId "$OUT/plan-info.json")"
+            echo "tf_version=$(jq -r .terraformVersion "$OUT/plan-info.json")"
+            echo "created=$(jq -r .LastModified "$OUT/plan-info.head.json")"
+          } >> "$GITHUB_OUTPUT"
+          jq -r '"Plan \(.planRunId) for release \(.releaseId): \(.summary.add) to add, \(.summary.change) to change, \(.summary.delete) to delete."' "$OUT/plan-info.json"
+
+      - name: Refuse a stale or already-applied plan
+        env:
+          PLAN_CREATED: ${{ steps.info.outputs.created }}
+        run: |
+          aws s3api list-objects-v2 --bucket "$ARTEFACTS_BUCKET" --prefix applied/ --output json > "$OUT/markers.json"
+          python _src/scripts/apply_guard.py --plan-run-id "$PLAN_RUN_ID" --plan-created "$PLAN_CREATED" \
+            --markers "$OUT/markers.json"
+
+      - name: Download and verify the plan tarball
+        id: tarball
+        run: |
+          prefix="plans/$PLAN_RUN_ID"
+          aws s3api get-object --bucket "$ARTEFACTS_BUCKET" --key "$prefix/plan.tar.gz" "$OUT/plan.tar.gz" > /dev/null
+          aws s3api get-object --bucket "$ARTEFACTS_BUCKET" --key "$prefix/plan.tar.gz.sha256" "$OUT/plan.tar.gz.sha256" > /dev/null
+          # 1. the digest the plan job recorded
+          (cd "$OUT" && sha256sum --check --strict plan.tar.gz.sha256)
+          hex=$(cut -d' ' -f1 "$OUT/plan.tar.gz.sha256")
+          # 2. the checksum S3 stored (and verified) at upload
+          want=$(python -c 'import base64, sys; print(base64.b64encode(bytes.fromhex(sys.argv[1])).decode())' "$hex")
+          got=$(aws s3api head-object --bucket "$ARTEFACTS_BUCKET" --key "$prefix/plan.tar.gz" --checksum-mode ENABLED \
+            --query ChecksumSHA256 --output text)
+          [[ "$got" == "$want" ]] || { echo "::error::S3's stored SHA-256 for the tarball differs from plan.tar.gz.sha256"; exit 1; }
+          # 3. create-only means one version per key and no delete markers (the bucket is versioned)
+          aws s3api list-object-versions --bucket "$ARTEFACTS_BUCKET" --prefix "$prefix/" --output json > "$OUT/versions.json"
+          jq -e '((.DeleteMarkers // []) | length == 0)
+                 and ([(.Versions // [])[].Key] | group_by(.) | map(length) | all(. == 1))
+                 and ([(.Versions // [])[].Key] | length == 3)' "$OUT/versions.json" > /dev/null \
+            || { echo "::error::$prefix/ does not hold exactly one version of each of its three files"; exit 1; }
+          echo "sha256=$hex" >> "$GITHUB_OUTPUT"
+          echo "plan.tar.gz verified: SHA-256 $hex"
+
+      - name: Unpack the plan at the paths it was made from
+        id: unpack
+        env:
+          RELEASE_ID: ${{ steps.info.outputs.release_id }}
+        run: |
+          listing=$(tar -tzf "$OUT/plan.tar.gz")
+          outside=$(grep -vE '^(infrastructure|release)(/|$)' <<< "$listing" || true)
+          dotdot=$(grep -E '(^|/)\.\.(/|$)' <<< "$listing" || true)
+          if [[ -n "$outside" || -n "$dotdot" ]]; then
+            echo "::error::plan tarball has entries outside infrastructure/ and release/: $(head -c 300 <<< "$outside$dotdot")"; exit 1
+          fi
+          tar -xzf "$OUT/plan.tar.gz" -C "$GITHUB_WORKSPACE" --no-same-owner
+          # The tarball's own copy of plan-info.json is the one in S3, and its manifest and lock file match it.
+          cmp release/plan-info.json "$OUT/plan-info.json" \
+            || { echo "::error::plan-info.json inside the tarball differs from the completion marker"; exit 1; }
+          jq -e --arg rid "$RELEASE_ID" --arg sha "$SHA" '.releaseId == $rid and .gitSha == $sha' release/manifest.json > /dev/null \
+            || { echo "::error::release/manifest.json is not for release $RELEASE_ID at $SHA"; exit 1; }
+          lock=$(sha256sum infrastructure/main/.terraform.lock.hcl | cut -d' ' -f1)
+          [[ "$lock" == "$(jq -r .lockFileSha256 release/plan-info.json)" ]] \
+            || { echo "::error::.terraform.lock.hcl differs from the one the plan recorded"; exit 1; }
+          [[ -f infrastructure/main/tfplan && -d infrastructure/main/.terraform ]] \
+            || { echo "::error::tfplan or .terraform/ missing from the tarball"; exit 1; }
+          echo "manifest_sha256=$(sha256sum release/manifest.json | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Terraform ${{ steps.info.outputs.tf_version }} (the version that made the plan)
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ steps.info.outputs.tf_version }}
+          terraform_wrapper: false
+
+      - name: Mark the plan as applied (create-only, before apply)
+        env:
+          RELEASE_ID: ${{ steps.info.outputs.release_id }}
+        run: |
+          # From here on this plan, and every plan made before now, is refused (scripts/apply_guard.py): an apply
+          # that fails part-way may still have changed state. The answer to any failure below is a new release.
+          jq -n --arg id "$PLAN_RUN_ID" --arg rid "$RELEASE_ID" --arg sha "$SHA" --arg run "$GITHUB_RUN_ID" \
+            --arg attempt "$GITHUB_RUN_ATTEMPT" --arg actor "$GITHUB_ACTOR" \
+            '{planRunId: $id, releaseId: $rid, gitSha: $sha, applyRunId: $run, applyRunAttempt: $attempt, actor: $actor}' \
+            > "$OUT/applied.json"
+          _src/scripts/s3_put_create_only.sh "$ARTEFACTS_BUCKET" "applied/$PLAN_RUN_ID.json" "$OUT/applied.json"
+
+      - name: Terraform apply (the saved plan, nothing else)
+        working-directory: infrastructure/main
+        run: |
+          # A saved plan applies without a prompt and takes no variables. If state changed since the plan, Terraform
+          # stops with "Saved plan is stale"; dispatch release.yml again.
+          terraform apply -input=false -lock-timeout=5m tfplan
+
+      - name: Capture outputs
+        id: outputs
+        working-directory: infrastructure/main
+        run: |
+          terraform output -json > "$OUT/outputs.json"
+          # Every value the later jobs need must be present: a missing distribution ID must fail, never skip (H.7.2).
+          for k in player_bucket admin_bucket player_distribution_id admin_distribution_id \
+            player_distribution_domain admin_distribution_domain; do
+            v=$(jq -r --arg k "$k" '.[$k].value // empty' "$OUT/outputs.json")
+            case "$k" in
+              *_distribution_id) re='^E[A-Z0-9]{6,20}$' ;;
+              *_distribution_domain) re='^[a-z0-9]+\.cloudfront\.net$' ;;
+              *) re='^[a-z0-9][a-z0-9.-]{1,61}[a-z0-9]$' ;;
+            esac
+            [[ "$v" =~ $re ]] || { echo "::error::terraform output $k is missing or malformed: '$v'"; exit 1; }
+            echo "$k=$v" >> "$GITHUB_OUTPUT"
+          done
+          {
+            echo "### Applied plan $PLAN_RUN_ID"
+            echo ""
+            echo "| Output | Value |"
+            echo "|---|---|"
+            jq -r 'to_entries[] | select(.key | test("_bucket$|_distribution_(id|domain)$|^cloudfront_hosted_zone_id$"))
+                   | "| \(.key) | `\(.value.value)` |"' "$OUT/outputs.json"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Previous release (hostname smoke mode)
+        id: previous
+        run: |
+          # Hostname checks are "skipped: DNS not live" until a release has seen both hostnames pass; from then on
+          # they are required (plan H.8.6). releases/latest.json carries that fact forward.
+          mode=auto
+          previous=none
+          if aws s3api head-object --bucket "$ARTEFACTS_BUCKET" --key releases/latest.json > /dev/null 2> "$OUT/latest.err"; then
+            aws s3api get-object --bucket "$ARTEFACTS_BUCKET" --key releases/latest.json "$OUT/latest.json" > /dev/null
+            previous=$(jq -r '.releaseId' "$OUT/latest.json")
+            [[ "$(jq -r '.hostnamesLive == true' "$OUT/latest.json")" == "true" ]] && mode=require
+          elif ! grep -qE '\(404\)|Not Found' "$OUT/latest.err"; then
+            cat "$OUT/latest.err"; echo "::error::Could not read releases/latest.json"; exit 1
+          fi
+          echo "hostname_mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "previous_release=$previous" >> "$GITHUB_OUTPUT"
+          echo "Previous release: $previous; hostname smoke mode: $mode"
+
+  # 6. publish: each site's static build in the safe order (H.8.5), then a narrow invalidation. Never deletes.
+  publish:
+    needs: [config, apply]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    environment:
+      name: prod
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      SHA: ${{ needs.config.outputs.sha }}
+      ACCOUNT: ${{ needs.config.outputs.account }}
+      ARTEFACTS_BUCKET: ${{ needs.config.outputs.artefacts_bucket }}
+      RELEASE_ID: ${{ needs.apply.outputs.release_id }}
+      MANIFEST_SHA256: ${{ needs.apply.outputs.manifest_sha256 }}
+      PLAYER_BUCKET: ${{ needs.apply.outputs.player_bucket }}
+      ADMIN_BUCKET: ${{ needs.apply.outputs.admin_bucket }}
+      PLAYER_DISTRIBUTION_ID: ${{ needs.apply.outputs.player_distribution_id }}
+      ADMIN_DISTRIBUTION_ID: ${{ needs.apply.outputs.admin_distribution_id }}
+    steps:
+      - name: Work directory outside the checkout
+        run: |
+          echo "OUT=$RUNNER_TEMP/publish" >> "$GITHUB_ENV"
+          mkdir -p "$RUNNER_TEMP/publish"
+
+      - name: Checkout this workflow's scripts (nothing is built or installed)
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Setup Python (version from .python-version)
+        uses: actions/setup-python@v7
+        with:
+          python-version-file: .python-version
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ needs.config.outputs.role_arn }}
+          aws-region: ${{ needs.config.outputs.region }}
+          allowed-account-ids: ${{ needs.config.outputs.account }}
+
+      - name: Verify AWS account
+        run: |
+          ACTUAL=$(aws sts get-caller-identity --query Account --output text)
+          [[ "$ACTUAL" == "$ACCOUNT" ]] || { echo "::error::Account mismatch: $ACTUAL"; exit 1; }
+
+      - name: Fetch the release manifest (the one inside the applied plan)
+        run: |
+          aws s3api get-object --bucket "$ARTEFACTS_BUCKET" --key "releases/$RELEASE_ID/manifest.json" \
+            "$OUT/manifest.json" > /dev/null
+          echo "$MANIFEST_SHA256  $OUT/manifest.json" | sha256sum --check --strict
+          # With artefacts_from (rollback, H.12) the manifest names the archived build of that release; nothing differs here.
+          jq -r '"Static build: \(if .artefactsFrom then "reused from release \(.artefactsFrom) (rollback)" else "fresh" end)"' "$OUT/manifest.json"
+
+      - name: Publish player, then admin (assets, config.json, index.html last; invalidate entry points)
+        run: |
+          publish_site() {
+            local app=$1 bucket=$2 distribution=$3; shift 3
+            local paths=("$@")
+            # A missing ID or bucket fails here; the old workflow silently skipped the invalidation (H.7.2).
+            [[ -n "$bucket" && -n "$distribution" ]] || { echo "::error::$app: bucket or distribution ID missing"; exit 1; }
+
+            echo "::group::$app: wait for distribution $distribution to be Deployed"
+            aws cloudfront wait distribution-deployed --id "$distribution"
+            echo "::endgroup::"
+
+            local key
+            key=$(jq -r --arg a "$app" '.static[$a].archiveKey // empty' "$OUT/manifest.json")
+            [[ "$key" =~ ^static/[0-9a-f]{64}/${app}\.tar\.gz$ ]] || { echo "::error::$app: bad archive key '$key'"; exit 1; }
+            mkdir -p "$OUT/$app"
+            aws s3api get-object --bucket "$ARTEFACTS_BUCKET" --key "$key" "$OUT/$app/archive.tar.gz" > /dev/null
+
+            echo "::group::$app: upload to s3://$bucket"
+            python scripts/publish_static.py --app "$app" --manifest "$OUT/manifest.json" \
+              --archive "$OUT/$app/archive.tar.gz" --bucket "$bucket" --release-id "$RELEASE_ID" \
+              --work "$OUT/$app/work" --summary "$OUT/$app/summary.json"
+            echo "::endgroup::"
+
+            local id
+            id=$(aws cloudfront create-invalidation --distribution-id "$distribution" --paths "${paths[@]}" \
+              --query Invalidation.Id --output text)
+            [[ -n "$id" && "$id" != "None" ]] || { echo "::error::$app: invalidation was not created"; exit 1; }
+            echo "$app $distribution $id ${paths[*]}" >> "$OUT/invalidations.txt"
+            echo "$app: invalidation $id for ${paths[*]}"
+          }
+          # Exactly the entry points, never /* (H.8.5 h). /game-data/current.json exists from Phase 13 (P25).
+          publish_site player "$PLAYER_BUCKET" "$PLAYER_DISTRIBUTION_ID" /index.html /config.json /game-data/current.json
+          publish_site admin "$ADMIN_BUCKET" "$ADMIN_DISTRIBUTION_ID" /index.html /config.json
+
+      - name: Wait for the invalidations
+        run: |
+          # So the smoke job sees this release's config.json and index.html at the edge, not a cached older one.
+          while read -r app distribution id _; do
+            aws cloudfront wait invalidation-completed --distribution-id "$distribution" --id "$id"
+            echo "$app: invalidation $id completed"
+          done < "$OUT/invalidations.txt"
+
+      - name: Summary
+        run: |
+          {
+            echo "### Published release $RELEASE_ID"
+            echo ""
+            echo "| Site | # | Files | Content-Type | Cache-Control |"
+            echo "|---|---|---|---|---|"
+            for app in player admin; do
+              jq -r --arg a "$app" '.batches[] | "| \($a) | \(.order) \(.label) | \(.files) | `\(.contentType)` | `\(.cacheControl)` |"' "$OUT/$app/summary.json"
+            done
+            echo ""
+            echo "Invalidations:"
+            echo ""
+            while read -r app distribution id paths; do echo "- $app (\`$distribution\`): \`$id\` $paths"; done < "$OUT/invalidations.txt"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # 7a. smoke: read-only HTTPS checks (H.8.6). No AWS credentials: plain GETs against public URLs.
+  smoke:
+    needs: [config, apply, publish]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    outputs:
+      results: ${{ steps.smoke.outputs.results }}
+      finished_at: ${{ steps.smoke.outputs.finished_at }}
+    env:
+      RELEASE_ID: ${{ needs.apply.outputs.release_id }}
+      PLAYER_DOMAIN: ${{ needs.apply.outputs.player_distribution_domain }}
+      ADMIN_DOMAIN: ${{ needs.apply.outputs.admin_distribution_domain }}
+      PLAYER_HOSTNAME: ${{ needs.config.outputs.player_hostname }}
+      ADMIN_HOSTNAME: ${{ needs.config.outputs.admin_hostname }}
+      HOSTNAME_MODE: ${{ needs.apply.outputs.hostname_mode }}
+    steps:
+      - name: Checkout this workflow's scripts
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Setup Python (version from .python-version)
+        uses: actions/setup-python@v7
+        with:
+          python-version-file: .python-version
+
+      - name: Smoke checks (both *.cloudfront.net names; hostnames per DNS)
+        id: smoke
+        run: |
+          set +e
+          python scripts/smoke.py --release-id "$RELEASE_ID" --hostname-mode "$HOSTNAME_MODE" \
+            --site player "$PLAYER_DOMAIN" "$PLAYER_HOSTNAME" \
+            --site admin "$ADMIN_DOMAIN" "$ADMIN_HOSTNAME" \
+            --json-out "$RUNNER_TEMP/smoke.json" --markdown-out "$GITHUB_STEP_SUMMARY"
+          rc=$?
+          set -e
+          {
+            echo "results=$(jq -c . "$RUNNER_TEMP/smoke.json")"
+            echo "finished_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          } >> "$GITHUB_OUTPUT"
+          if [[ "$(jq -r .hostnamesLive "$RUNNER_TEMP/smoke.json")" != "true" && "$rc" == 0 ]]; then
+            msg="Hostnames not checked (DNS not live). Create the alias records (docs/runbooks/dns-hand-off.md), then dispatch release.yml and apply.yml again: that release must pass on both hostnames, and every release after it requires them."
+            echo "::warning::$msg"
+            { echo ""; echo "> $msg"; } >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit "$rc"
+
+  # 7b. record: the final manifest, releases/latest.json, the release tag, and the docs/releases/ entry text.
+  record:
+    needs: [config, apply, smoke]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment:
+      name: prod
+    permissions:
+      contents: write # the release tag; the only job with write access to the repository
+      id-token: write
+    env:
+      SHA: ${{ needs.config.outputs.sha }}
+      PLAN_RUN_ID: ${{ needs.config.outputs.plan_run_id }}
+      ACCOUNT: ${{ needs.config.outputs.account }}
+      ARTEFACTS_BUCKET: ${{ needs.config.outputs.artefacts_bucket }}
+      RELEASE_ID: ${{ needs.apply.outputs.release_id }}
+      MANIFEST_SHA256: ${{ needs.apply.outputs.manifest_sha256 }}
+      PLAN_SHA256: ${{ needs.apply.outputs.plan_sha256 }}
+      PREVIOUS_RELEASE: ${{ needs.apply.outputs.previous_release }}
+      PLAYER_DISTRIBUTION_ID: ${{ needs.apply.outputs.player_distribution_id }}
+      ADMIN_DISTRIBUTION_ID: ${{ needs.apply.outputs.admin_distribution_id }}
+      PLAYER_DOMAIN: ${{ needs.apply.outputs.player_distribution_domain }}
+      ADMIN_DOMAIN: ${{ needs.apply.outputs.admin_distribution_domain }}
+      SMOKE_RESULTS: ${{ needs.smoke.outputs.results }}
+      FINISHED_AT: ${{ needs.smoke.outputs.finished_at }}
+    steps:
+      - name: Work directory outside the checkout
+        run: |
+          echo "OUT=$RUNNER_TEMP/record" >> "$GITHUB_ENV"
+          mkdir -p "$RUNNER_TEMP/record"
+
+      - name: Checkout this workflow's scripts
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ needs.config.outputs.role_arn }}
+          aws-region: ${{ needs.config.outputs.region }}
+          allowed-account-ids: ${{ needs.config.outputs.account }}
+
+      - name: Verify AWS account
+        run: |
+          ACTUAL=$(aws sts get-caller-identity --query Account --output text)
+          [[ "$ACTUAL" == "$ACCOUNT" ]] || { echo "::error::Account mismatch: $ACTUAL"; exit 1; }
+
+      - name: Final manifest (create-only)
+        run: |
+          aws s3api get-object --bucket "$ARTEFACTS_BUCKET" --key "releases/$RELEASE_ID/manifest.json" "$OUT/manifest.json" > /dev/null
+          echo "$MANIFEST_SHA256  $OUT/manifest.json" | sha256sum --check --strict
+          aws s3api get-object --bucket "$ARTEFACTS_BUCKET" --key "plans/$PLAN_RUN_ID/plan-info.json" "$OUT/plan-info.json" > /dev/null
+          # H.8.7 says the build's manifest is "completed by record". Keys are create-only (H.9.1), so the build part
+          # stays as written and the complete record goes beside it: releases/<release_id>/record.json = the build
+          # manifest + plan + apply + smoke. Built only from earlier jobs' outputs, so a re-run writes the same bytes.
+          jq -n --slurpfile m "$OUT/manifest.json" --slurpfile p "$OUT/plan-info.json" --argjson smoke "$SMOKE_RESULTS" \
+            --arg plansha "$PLAN_SHA256" --arg run "$GITHUB_RUN_ID" --arg actor "$GITHUB_ACTOR" --arg fin "$FINISHED_AT" \
+            --arg msha "$MANIFEST_SHA256" --arg pdist "$PLAYER_DISTRIBUTION_ID" --arg adist "$ADMIN_DISTRIBUTION_ID" \
+            --arg pdom "$PLAYER_DOMAIN" --arg adom "$ADMIN_DOMAIN" '
+              $m[0] + {
+                buildManifest: {key: ("releases/" + $m[0].releaseId + "/manifest.json"), sha256: $msha},
+                plan: ($p[0] + {planSha256: $plansha}),
+                applyRunId: $run, applyActor: $actor, finishedAt: $fin,
+                sites: {player: {distributionId: $pdist, distributionDomain: $pdom},
+                        admin: {distributionId: $adist, distributionDomain: $adom}},
+                smoke: $smoke
+              }' > "$OUT/record.json"
+          jq -e --arg rid "$RELEASE_ID" --arg sha "$SHA" '.releaseId == $rid and .gitSha == $sha and .smoke.passed == true' \
+            "$OUT/record.json" > /dev/null || { echo "::error::record does not match this release or smoke did not pass"; exit 1; }
+          scripts/s3_put_create_only.sh "$ARTEFACTS_BUCKET" "releases/$RELEASE_ID/record.json" "$OUT/record.json"
+
+      - name: Tag release-${{ needs.apply.outputs.release_id }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="release-$RELEASE_ID"
+          if existing=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" --jq .object.sha 2> /dev/null); then
+            [[ "$existing" == "$SHA" ]] || { echo "::error::Tag $tag already points at $existing, not $SHA"; exit 1; }
+            echo "Tag $tag already exists at $SHA"
+          else
+            gh api -X POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$tag" -f sha="$SHA" > /dev/null
+            echo "Created tag $tag at $SHA"
+          fi
+
+      - name: releases/latest.json (the only key that is overwritten)
+        run: |
+          jq -n --slurpfile r "$OUT/record.json" '$r[0] | {
+              releaseId, gitSha, artefactsFrom, releaseRunId, planRunId: .plan.planRunId, applyRunId, finishedAt,
+              recordKey: ("releases/" + .releaseId + "/record.json"), manifestKey: .buildManifest.key,
+              hostnamesLive: .smoke.hostnamesLive }' > "$OUT/latest.json"
+          aws s3api put-object --bucket "$ARTEFACTS_BUCKET" --key releases/latest.json --body "$OUT/latest.json" \
+            --content-type application/json \
+            --checksum-sha256 "$(openssl dgst -sha256 -binary "$OUT/latest.json" | base64)" > /dev/null
+          cat "$OUT/latest.json"
+
+      - name: Run summary and the docs/releases/ entry
+        run: |
+          # The entry is committed to main by hand (Claude or the owner) in the next commit; this job never pushes
+          # commits. Format: docs/releases/README.md.
+          jq -r --arg prev "$PREVIOUS_RELEASE" --arg repo "$GITHUB_REPOSITORY" '
+            def smoke_line: if .smoke.hostnamesLive then "green on both *.cloudfront.net names and both hostnames"
+                            else "green on both *.cloudfront.net names; hostnames skipped (DNS not live)" end;
+            "# Release \(.releaseId)\n\n" +
+            "| Field | Value |\n|---|---|\n" +
+            "| Release ID | `\(.releaseId)` |\n" +
+            "| Commit | `\(.gitSha)` |\n" +
+            "| Tag | `release-\(.releaseId)` |\n" +
+            "| Build | \(if .artefactsFrom then "reused from `\(.artefactsFrom)` (rollback)" else "fresh" end) |\n" +
+            "| Release run (plan) | [\(.releaseRunId)](https://github.com/\($repo)/actions/runs/\(.releaseRunId)) |\n" +
+            "| Apply run | [\(.applyRunId)](https://github.com/\($repo)/actions/runs/\(.applyRunId)) |\n" +
+            "| Plan | \(.plan.summary.add) to add, \(.plan.summary.change) to change, \(.plan.summary.delete) to delete; Terraform \(.plan.terraformVersion) |\n" +
+            "| Smoke | \(smoke_line) |\n" +
+            "| Finished | \(.finishedAt) |\n" +
+            "| Previous release | \(if $prev == "none" then "none" else "`\($prev)`" end) |\n" +
+            "| Record | `releases/\(.releaseId)/record.json` in the artefacts bucket |\n\n" +
+            "## What changed\n\n- (fill in: the commits since the previous release, in one line each)\n"
+          ' "$OUT/record.json" > "$OUT/entry.md"
+          {
+            echo "### Release $RELEASE_ID recorded"
+            echo ""
+            echo "- Final manifest: \`releases/$RELEASE_ID/record.json\`; \`releases/latest.json\` updated"
+            echo "- Tag: \`release-$RELEASE_ID\` at \`$SHA\`"
+            echo ""
+            echo "**Commit this as \`docs/releases/$RELEASE_ID.md\`** (fill in \"What changed\"):"
+            echo ""
+            echo '````markdown'
+            cat "$OUT/entry.md"
+            echo '````'
+          } >> "$GITHUB_STEP_SUMMARY"

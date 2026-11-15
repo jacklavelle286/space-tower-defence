@@ -1,10 +1,15 @@
 name: release
 
-# The manual release (plan H.8, spine S11.1). Phase 3 builds the plan side only:
-#   0 config -> 1 checks -> 2a build (no AWS) -> 2b upload -> 3 plan, then stop.
-# Nothing in production changes: the only writes are create-only uploads to the artefacts bucket (static archives,
-# the build manifest, the saved plan). Step 4 is your review of the plan in this run's summary; step 5 is a second
-# dispatch, apply.yml with plan_run_id (H.7.1 W-4), which arrives in Phase 4 together with publish, smoke and record.
+# The manual release (plan H.8, spine S11.1), first of two dispatches (H.7.1 W-4):
+#   release.yml: 0 config -> 1 checks -> 2a build (no AWS) -> 2b upload -> 3 plan, then stop.
+#   4: you review the plan in this run's summary.
+#   apply.yml (plan_run_id = this run's ID): 5 apply the saved plan -> 6 publish -> 7 smoke -> record.
+# Nothing in production changes in this workflow: the only writes are create-only uploads to the artefacts bucket
+# (static archives, the build manifest, the saved plan).
+#
+# Rollback (H.12): dispatch with artefacts_from=<release_id>. The build is skipped; upload writes this release's
+# manifest from the archived one (same static archives, checked by SHA-256), the plan uses current main Terraform,
+# and apply.yml then publishes that archived build with a config.json naming this new release.
 #
 # Rules this file keeps (H.7.1): workflow_dispatch only; inputs and other untrusted values reach shell only through
 # env: (W-9); only the jobs that assume the CI role have id-token: write and declare environment prod (W-3);
@@ -26,8 +31,8 @@ on:
 
 permissions: {} # every job lists exactly what it needs
 
-# Shared with the interim Terraform workflow (its group is terraform-<env>), so a release plan never overlaps an
-# interim plan or apply. apply.yml joins this group in Phase 4, when the interim workflow is deleted.
+# Shared with apply.yml (H.7.1 W-6 calls it prod-release; the Phase 3 name is kept): a plan and an apply never
+# overlap, which apply.yml's stale-plan check (scripts/apply_guard.py) relies on.
 concurrency:
   group: terraform-prod
   cancel-in-progress: false
@@ -527,7 +532,7 @@ jobs:
             head -c 900000 "$OUT/plan.txt"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-          # The plan part of the manifest (H.8.7); the record job (Phase 4) merges it into the final manifest.
+          # The plan part of the manifest (H.8.7); apply.yml's record job merges it into releases/<id>/record.json.
           jq -n --arg rid "$RELEASE_ID" --arg sha "$SHA" --arg run "$GITHUB_RUN_ID" --arg tf "$TF_VERSION" \
             --arg lock "$(sha256sum .terraform.lock.hcl | cut -d' ' -f1)" --argjson rc "$PLAN_EXIT_CODE" \
             --argjson add "$add" --argjson change "$change" --argjson remove "$remove" \
@@ -573,7 +578,7 @@ jobs:
       - name: Upload the saved plan (create-only)
         run: |
           # Order matters: the tarball, then its checksum, then plan-info.json LAST as the completion marker. apply.yml
-          # (Phase 4) treats a plan as present only when plan-info.json exists. A tfplan is not byte-reproducible, so
+          # treats a plan as present only when plan-info.json exists, and uses its upload time to refuse a stale plan. A tfplan is not byte-reproducible, so
           # if an upload fails, "Re-run failed jobs" (same run ID, new plan) hits the create-only 412: dispatch again.
           prefix="plans/$GITHUB_RUN_ID"
           scripts/s3_put_create_only.sh "$ARTEFACTS_BUCKET" "$prefix/plan.tar.gz" "$OUT/plan.tar.gz"
@@ -591,6 +596,7 @@ jobs:
             echo ""
             echo "**Next: dispatch apply.yml with plan_run_id = $GITHUB_RUN_ID**"
             echo ""
-            echo "(apply.yml arrives in Phase 4; until then this release stops here and nothing is applied.)"
+            echo "Read the plan above first. apply.yml applies exactly this plan, then publishes, smoke-checks and records"
+            echo "release \`$RELEASE_ID\`. It refuses this plan if another apply starts first; then dispatch release.yml again."
           } >> "$GITHUB_STEP_SUMMARY"
           echo "Next: dispatch apply.yml with plan_run_id = $GITHUB_RUN_ID"
