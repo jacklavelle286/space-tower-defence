@@ -1,5 +1,5 @@
 # 0011. OIDC trust, GitHub environments and the artefacts bucket
-Status: Proposed · Date: 2026-11-15
+Status: Accepted · Date: 2026-11-15
 
 Context: Nothing can deploy until the CI role trusts the OIDC subject GitHub actually sends (blocker BL-1,
 [B §B7](../plan/B-scope-and-decisions.md#b7-genuine-blockers)). The plan expected the immutable subject format but could not check it
@@ -12,8 +12,8 @@ Decision:
    `repo:jacklavelle286@78485499/space-tower-defence@1457706183:environment:prod`
    (`trusted_subs` in [common.auto.tfvars.json](../../infrastructure/envs/common.auto.tfvars.json)). No wildcard.
 2. Environment: every job that assumes the role declares the GitHub environment `prod`, whose deployment branches must be
-   "selected: `main`". Branch 1c (no environments, `ref` subject, B-3) is not taken. Branch 1a (add `prod-apply` with a required
-   reviewer; two subjects in `trusted_subs`) or 1b (`prod` only; two-dispatch approval, H.7.1 W-4) is pending the owner's choice.
+   "selected: `main`". Branch **1b**: `prod` only, two-dispatch approval (H.7.1 W-4); no `prod-apply` for now (owner, 2026-11-15).
+   Branch 1c (no environments, `ref` subject, B-3) is not taken.
 3. Artefacts bucket: `263185198757-eu-west-2-prod-artifacts-bucket`, in
    [infrastructure/bootstrap/artifacts.tf](../../infrastructure/bootstrap/artifacts.tf) beside the module call, not inside it.
    Public access blocked, BucketOwnerEnforced, SSE-S3, versioning, TLS-only policy, `prevent_destroy`, no `force_destroy`;
@@ -39,9 +39,8 @@ Evidence:
   `arn:aws:sts::263185198757:assumed-role/space-tower-defence-prod-github-oidc/GitHubActions`; the log contains no `eyJ`. **[VERIFIED]**
 - Repository visibility `public` (`gh api repos/jacklavelle286/space-tower-defence --jq .visibility`, 2026-11-15). **[VERIFIED]**
   Whether required reviewers can be added: **[UNVERIFIED]**; the owner checks Settings → Environments.
-- `prod` has no deployment-branch policy and no protection rules (GitHub API read, 2026-11-15). **[VERIFIED]** Exposure open.
-- Test-bucket resource removed from code in commit `f88439c`. **[VERIFIED]**
-- Pending before `Accepted` (owner, [Phase 0 owner actions](../build-phases.md#phase-0--repository-hygiene-and-pipeline-trust)):
-  set `prod` deployment branches to "selected: `main`" (first); choose 1a or 1b; negative test from a throwaway branch refused;
-  bootstrap plan and apply, then `head-bucket` on the artefacts bucket; test bucket gone (404, or a break-glass delete recorded here);
-  re-run smoke and re-check the log for `eyJ`.
+- `prod` deployment branches: custom policy allowing only `main` (GitHub API read after the owner set it, 2026-11-15). **[VERIFIED]**
+- Test-bucket resource removed from code in commit `f88439c`; `head-bucket` returns 404 (2026-11-15). **[VERIFIED]**
+- Deferred by the owner at the Phase 0 gate (2026-11-15), not blocking: the negative test from a throwaway branch, and a
+  smoke re-run. Still due **before Phase 3** (the first release uploads to it): the owner's bootstrap plan and apply, then
+  `head-bucket` on `263185198757-eu-west-2-prod-artifacts-bucket` (absent on 2026-11-15).

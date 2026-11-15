@@ -26,7 +26,7 @@ The rules are in [J §J.6](../plan/J-execution-backlog.md#j6-decision-log-practi
 | [0008](0008-play-session-lease.md) | Account-wide play-session lease with a fencing generation | Accepted |
 | [0009](0009-speech-render-path-and-voice.md) | One speech render path; Polly generative en-GB Amy | Accepted |
 | [0010](0010-delivery-and-release.md) | Delivery: one manual release, pipelines only | Accepted |
-| [0011](0011-oidc-trust-environments-and-artefacts-bucket.md) | OIDC trust, GitHub environments and the artefacts bucket | Proposed |
+| [0011](0011-oidc-trust-environments-and-artefacts-bucket.md) | OIDC trust, GitHub environments and the artefacts bucket | Accepted |
 
 ## Next in line
 
