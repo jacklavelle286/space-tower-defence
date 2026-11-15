@@ -9,9 +9,11 @@ name: apply
 # Two ways in:
 #   - workflow_call (the normal release): release.yml's last job calls this file with plan_run_id = its own run ID,
 #     after its plan job. The run then waits for the owner's approval on environment prod-apply (step 4).
-#   - workflow_dispatch: apply the plan of a chosen release.yml run that finished successfully (in practice a
-#     plan-only run from before ADR-0019; a run whose approval was rejected ended as failed and is refused here: use
-#     "Re-run failed jobs" on that run, or dispatch release.yml again). It waits for the same approval.
+#   - workflow_dispatch: a fallback, not expected to succeed under ADR-0019. It applies the plan of a chosen release.yml
+#     run that finished successfully, but such a run has already applied its own plan (apply_guard refuses it), and a
+#     rejected, cancelled or timed-out run did not succeed (refused here). Rollback goes through release.yml
+#     artefacts_from; a rejected approval through "Re-run failed jobs"; anything else: dispatch release.yml again.
+#     It waits for the same approval.
 # Only the apply job uses prod-apply, so a release asks for approval exactly once, before any credentials exist.
 #
 # It never plans: the only Terraform change it can make is the reviewed tfplan inside the tarball. A plan is refused
@@ -641,12 +643,20 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           tag="release-$RELEASE_ID"
-          if existing=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" --jq .object.sha 2> /dev/null); then
+          if ref=$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" --jq '.object.type + " " + .object.sha' 2> /dev/null); then
+            read -r type existing <<< "$ref"
+            # An annotated tag points at a tag object: peel it to the commit.
+            [[ "$type" == "tag" ]] && existing=$(gh api "repos/$GITHUB_REPOSITORY/git/tags/$existing" --jq .object.sha)
             [[ "$existing" == "$SHA" ]] || { echo "::error::Tag $tag already points at $existing, not $SHA"; exit 1; }
             echo "Tag $tag already exists at $SHA"
-          else
-            gh api -X POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$tag" -f sha="$SHA" > /dev/null
+          elif gh api -X POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$tag" -f sha="$SHA" > /dev/null; then
             echo "Created tag $tag at $SHA"
+          else
+            # GitHub refuses (HTTP 403) when the released commit's workflow files differ from main's, e.g. main moved
+            # while the release waited for approval: the token may not "change workflows". The release itself is done
+            # (record.json is written), so warn and carry on to latest.json; create the tag by hand afterwards.
+            echo "::warning::Could not create tag $tag at $SHA (GitHub refused). Create it by hand: git tag $tag $SHA && git push origin $tag"
+            echo "- **Tag not created:** run \`git tag $tag $SHA && git push origin $tag\`" >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: releases/latest.json (the only key that is overwritten)
