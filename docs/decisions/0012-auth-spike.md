@@ -1,5 +1,5 @@
 # 0012. Auth spike results: managed login works for the player pool
-Status: Proposed · Date: 2026-11-15 (player runs P1–P7 done; the rest deferred by the owner)
+Status: Accepted · Date: 2026-11-15 (player runs P1–P7 done; the rest deferred by the owner)
 
 Context: Phase 8 builds both Cognito pools. Managed-login sign-up for a username-only pool that auto-confirms through a pre
 sign-up trigger is undocumented **[UNVERIFIED]** ([E §E.7.5](../plan/E-architecture.md#e75-main-risk-managed-login-sign-up)); if it

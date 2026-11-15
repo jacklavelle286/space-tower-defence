@@ -1,5 +1,5 @@
 # 0022. Operator and test accounts in Terraform
-Status: Proposed · Date: 2026-11-15
+Status: Accepted · Date: 2026-11-15
 
 Context: The Phase 8 plan made every Cognito user and group membership an owner runbook step
 ([H §H.9.1](../plan/H-infrastructure-and-delivery.md#h91-one-owner-per-artefact); `AdminCreateUser` rows in

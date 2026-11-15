@@ -1,5 +1,5 @@
 # 0020. A separate spike workflow whose destroy reaches spike state only
-Status: Proposed · Date: 2026-11-15
+Status: Accepted · Date: 2026-11-15
 
 Context: The M0 spikes (M0-10, M0-12, M0-13) need throwaway AWS stacks, applied and destroyed through GitHub Actions only
 (O-4, [spine S0.1](../plan/00-spine.md#s01-way-of-working-confirmed-by-owner-2026-11-14)). J M0 put them before any real

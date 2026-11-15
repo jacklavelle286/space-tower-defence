@@ -1,5 +1,5 @@
 # 0021. Skip the DynamoDB and browser-audio spikes
-Status: Proposed · Date: 2026-11-15
+Status: Accepted · Date: 2026-11-15
 
 Context: [Phase 6](../build-phases.md#phase-6--dynamodb-and-browser-audio-spikes-spike-tooling-removed) planned two more
 throwaway spikes, each run by hand by the owner: M0-13 (capture real `TransactWriteItems` cancellations as fixtures and compare
