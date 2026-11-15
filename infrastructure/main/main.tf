@@ -35,7 +35,16 @@ locals {
     "'self'",
     "https://${module.player_pool.auth_domain}",
     "https://${module.operator_pool.auth_domain}",
+    # Cognito's user-pool API: the browser library refreshes tokens there (GetTokensFromRefreshToken) and revokes
+    # the refresh token on sign-out, not on the managed-login domain (read from aws-amplify 6.22.2, Phase 21).
+    "https://cognito-idp.${var.region}.amazonaws.com",
+    # The audio bucket's regional virtual-hosted endpoint (E.9): the player fetches clip bytes from presigned URLs to
+    # check their sha256 and keep them (Phase 22).
+    local.audio_bucket_origin,
   ]
+
+  # Presigned clip URLs name the bucket on its regional endpoint (api/shared/audio.py s3_client).
+  audio_bucket_origin = "https://${local.audio_bucket_name}.s3.${var.region}.amazonaws.com"
 
   # Content Security Policy (plan H.4.2, E.10.3; outline in sources/08-aws-data-ops.md section c.4).
   # Shipped as Content-Security-Policy-Report-Only until M1 ends; then the header name changes to enforce it.
@@ -43,8 +52,9 @@ locals {
   # (player game flow, admin), recorded before the switch to enforcing. Backlog B-2 adds a same-origin report route.
   # connect-src: 'self' (same-origin /api, config.json, Phaser's loader) plus both managed-login hosts, which the apps
   # call with fetch for the token exchange and refresh (E.7). One policy serves both sites, so each site also allows
-  # the other pool's host: harmless while Report-Only. The audio bucket host joins when speech playback arrives
-  # (Phase 22), and that is when the policy splits into a player and an admin variant (E.10.3).
+  # the other pool's host: harmless while Report-Only. The audio bucket host is in connect-src (the player downloads
+  # clip bytes) and media-src (the admin plays previews straight from the presigned URL). Splitting the policy into a
+  # player and an admin variant (E.10.3) is left for the switch to enforcing.
   csp_directives = [
     "default-src 'self'",
     "script-src 'self'", # no inline or eval: Vite emits only external module scripts
@@ -52,9 +62,9 @@ locals {
     # element.style through the CSSOM, which CSP does not govern. Before enforcing: move those rules into the apps'
     # CSS (or use a 'sha256-...' source) so this becomes 'self' only.
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob:", # Phaser loads textures through blob: URLs and builds data: images
-    "media-src 'self' blob:",     # audio played from locally stored bytes (plan E.9)
-    "font-src 'self'",            # self-hosted woff2 in /assets
+    "img-src 'self' data: blob:",                          # Phaser loads textures through blob: URLs and builds data: images
+    "media-src 'self' blob: ${local.audio_bucket_origin}", # stored bytes (player, E.9); previews (admin)
+    "font-src 'self'",                                     # self-hosted woff2 in /assets
     "connect-src ${join(" ", local.csp_connect_sources)}",
     "worker-src 'self' blob:",
     "object-src 'none'",
