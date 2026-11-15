@@ -46,3 +46,80 @@ variable "ecr_repos" {
   default = []
 }
 
+
+# ---------------------------------------------------------------------------
+# Main-only keys (plan H.5 B-5, H.6). bootstrap.sh passes both env files to this
+# root, so every key in them must be declared here too. None is used here.
+# ---------------------------------------------------------------------------
+
+variable "terraform_version" {
+  description = "Pipeline only (CI setup-terraform); declared so bootstrap.sh's -var-file does not warn"
+  type        = string
+  default     = null
+}
+
+variable "domain_name" {
+  description = "Main-only; declared so bootstrap.sh's -var-file does not warn"
+  type        = string
+  default     = null
+}
+
+variable "player_hostname" {
+  description = "Main-only; declared so bootstrap.sh's -var-file does not warn"
+  type        = string
+  default     = null
+}
+
+variable "admin_hostname" {
+  description = "Main-only; declared so bootstrap.sh's -var-file does not warn"
+  type        = string
+  default     = null
+}
+
+variable "notification_email" {
+  description = "Main-only; declared so bootstrap.sh's -var-file does not warn"
+  type        = string
+  default     = null
+}
+
+variable "signup_daily_cap" {
+  description = "Main-only; declared so bootstrap.sh's -var-file does not warn"
+  type        = number
+  default     = null
+}
+
+variable "player_signup_closed" {
+  description = "Main-only; declared so bootstrap.sh's -var-file does not warn"
+  type        = bool
+  default     = null
+}
+
+variable "player_auth_domain_prefix" {
+  description = "Main-only; declared so bootstrap.sh's -var-file does not warn"
+  type        = string
+  default     = null
+}
+
+variable "operator_auth_domain_prefix" {
+  description = "Main-only; declared so bootstrap.sh's -var-file does not warn"
+  type        = string
+  default     = null
+}
+
+variable "tts_voice_id" {
+  description = "Main-only; declared so bootstrap.sh's -var-file does not warn"
+  type        = string
+  default     = null
+}
+
+variable "tts_engine" {
+  description = "Main-only; declared so bootstrap.sh's -var-file does not warn"
+  type        = string
+  default     = null
+}
+
+variable "tts_phoneme_engine" {
+  description = "Main-only; declared so bootstrap.sh's -var-file does not warn"
+  type        = string
+  default     = null
+}

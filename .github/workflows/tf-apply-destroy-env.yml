@@ -36,6 +36,9 @@ concurrency:
 jobs:
   terraform:
     runs-on: ubuntu-24.04
+    # Fits inside the one-hour role session. The certificate validation waits up to 30 minutes for the
+    # owner's DNS records (plan H.15.2, docs/runbooks/dns-hand-off.md).
+    timeout-minutes: 60
     # The environment name becomes part of the OIDC subject (…:environment:prod), which the CI role trusts.
     # Add required reviewers to this environment in GitHub to make every run wait for your approval.
     environment:

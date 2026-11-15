@@ -1,10 +1,11 @@
 terraform {
-  required_version = ">= 1.11.0"
+  # S3 native locking (use_lockfile) is GA from 1.11. CI installs the exact terraform_version from the env files.
+  required_version = ">= 1.11, < 2.0"
 
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = ">= 6.0, < 7.0"
+      version = ">= 6.73, < 7.0"
     }
   }
 
@@ -19,10 +20,19 @@ provider "aws" {
   allowed_account_ids = [var.aws_account_id]
 
   default_tags {
-    tags = {
-      project     = var.project
-      environment = var.environment
-      managed_by  = "terraform"
-    }
+    tags = local.default_tags
   }
 }
+
+# us-east-1: the CloudFront viewer certificate now; CloudFront alarms and their SNS mirror topic later (plan H.14).
+provider "aws" {
+  alias               = "us_east_1"
+  region              = "us-east-1"
+  allowed_account_ids = [var.aws_account_id]
+
+  default_tags {
+    tags = local.default_tags
+  }
+}
+
+# No DNS-account provider: this stack writes no DNS records (plan H.15, docs/runbooks/dns-hand-off.md).
