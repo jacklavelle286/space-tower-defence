@@ -1,5 +1,5 @@
 # 0013. Front-end stack versions
-Status: Proposed · Date: 2026-11-15
+Status: Accepted · Date: 2026-11-15
 
 Context: The plan pins the front-end stack (Vite 8, React 19, TypeScript ~7.0.2, Phaser 4.2.1, Vitest 5) but marked the
 combination **[UNVERIFIED]** until tried ([H §H.17](../plan/H-infrastructure-and-delivery.md#h17-version-pins),

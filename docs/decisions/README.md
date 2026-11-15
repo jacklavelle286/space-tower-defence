@@ -27,7 +27,7 @@ The rules are in [J §J.6](../plan/J-execution-backlog.md#j6-decision-log-practi
 | [0009](0009-speech-render-path-and-voice.md) | One speech render path; Polly generative en-GB Amy | Accepted |
 | [0010](0010-delivery-and-release.md) | Delivery: one manual release, pipelines only | Accepted |
 | [0011](0011-oidc-trust-environments-and-artefacts-bucket.md) | OIDC trust, GitHub environments and the artefacts bucket | Accepted |
-| [0013](0013-front-end-stack-versions.md) | Front-end stack versions | Proposed |
+| [0013](0013-front-end-stack-versions.md) | Front-end stack versions | Accepted |
 
 ## Next in line
 
