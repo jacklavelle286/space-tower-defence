@@ -55,7 +55,7 @@ jobs:
         run: python3 scripts/scan_dist.py web/player/dist web/admin/dist
 
   repo:
-    name: repo (terraform fmt, spike roots, simulator self-test)
+    name: repo (terraform fmt, simulator self-test)
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -77,19 +77,6 @@ jobs:
       - name: Terraform fmt
         run: terraform fmt -check -recursive infrastructure/
 
-      # Spike roots (Phases 5-6, ADR-0020): fmt and validate each one without a backend, against its own lock file.
-      # No AWS access; the step does nothing once spikes/ is deleted at the end of Phase 6.
-      - name: Spike roots (fmt, validate)
-        run: |
-          shopt -s nullglob
-          for dir in spikes/*/; do
-            [[ -n "$(find "$dir" -maxdepth 1 -name '*.tf' -print -quit)" ]] || continue
-            echo "== $dir"
-            terraform fmt -check -recursive "$dir"
-            terraform -chdir="$dir" init -input=false -backend=false -lockfile=readonly
-            terraform -chdir="$dir" validate
-          done
-
       - name: Setup Python (version from .python-version)
         uses: actions/setup-python@v7
         with:
@@ -99,7 +86,7 @@ jobs:
         run: python3 -B tools/sim/selftest.py
 
   scripts:
-    name: scripts (plan guard, asset scan, manifest, CloudFront Function tests)
+    name: scripts (G-5 invariants, plan guard, asset scan, manifest, CloudFront Function tests)
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -116,5 +103,51 @@ jobs:
       - name: Install pytest
         run: python -m pip install --disable-pip-version-check pytest==9.2.0
 
+      - name: G-5 repository invariants
+        run: python scripts/check_invariants.py
+
       - name: Script tests
         run: python -m pytest scripts/tests -q
+
+  api:
+    name: api (ruff, pytest + moto, reproducible Lambda zips)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Python (version from .python-version)
+        uses: actions/setup-python@v7
+        with:
+          python-version-file: .python-version
+          cache: pip
+          cache-dependency-path: api/requirements*.txt
+
+      - name: Install (exact pins)
+        run: python -m pip install --disable-pip-version-check -r api/requirements-dev.txt
+
+      # api/pyproject.toml holds the ruff settings; --config applies them to the two build-script files as well.
+      # The older scripts/ files are not yet ruff-clean, so they are not listed here.
+      - name: Ruff
+        run: ruff check --config api/pyproject.toml api scripts/build_lambdas.py scripts/tests/test_build_lambdas.py
+
+      - name: Pytest
+        run: python -m pytest api
+
+      # The build-script tests again, here where the runtime packages are installed, so the zip import test runs
+      # (it is skipped in the `scripts` job).
+      - name: Build-script tests (with runtime packages)
+        run: python -m pytest scripts/tests/test_build_lambdas.py -q
+
+      # H.9.2: two builds from the same commit must give byte-identical zips.
+      - name: Build Lambda zips twice and compare hashes
+        run: |
+          python scripts/build_lambdas.py --out "$RUNNER_TEMP/zips-1"
+          python scripts/build_lambdas.py --out "$RUNNER_TEMP/zips-2"
+          (cd "$RUNNER_TEMP/zips-1" && sha256sum ./*.zip) > "$RUNNER_TEMP/zips-1.sha256"
+          (cd "$RUNNER_TEMP/zips-2" && sha256sum ./*.zip) > "$RUNNER_TEMP/zips-2.sha256"
+          cat "$RUNNER_TEMP/zips-1.sha256"
+          diff "$RUNNER_TEMP/zips-1.sha256" "$RUNNER_TEMP/zips-2.sha256"

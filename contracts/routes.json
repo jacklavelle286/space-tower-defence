@@ -1,0 +1,246 @@
+{
+  "$comment": "Machine-readable copy of the route catalogue in docs/plan/G-api-contracts.md section 2 (R1-R30). Route key = method + ' ' + path; paths keep the /api prefix (ADR-0001). Read by the api unit tests (each function's allow-list must equal its rows), the plan gate G-12 and the release smoke test. scope is the value of the Terraform variable player_route_scope / operator_route_scope.",
+  "version": 1,
+  "routes": [
+    {
+      "id": "R1",
+      "method": "GET",
+      "path": "/api/me",
+      "function": "player-api",
+      "authoriser": "player",
+      "scope": "game/play"
+    },
+    {
+      "id": "R2",
+      "method": "GET",
+      "path": "/api/me/progress",
+      "function": "player-api",
+      "authoriser": "player",
+      "scope": "game/play"
+    },
+    {
+      "id": "R3",
+      "method": "PUT",
+      "path": "/api/me/profile",
+      "function": "player-api",
+      "authoriser": "player",
+      "scope": "game/play"
+    },
+    {
+      "id": "R4",
+      "method": "PATCH",
+      "path": "/api/me/profile",
+      "function": "player-api",
+      "authoriser": "player",
+      "scope": "game/play"
+    },
+    {
+      "id": "R5",
+      "method": "POST",
+      "path": "/api/me/resets",
+      "function": "player-api",
+      "authoriser": "player",
+      "scope": "game/play"
+    },
+    {
+      "id": "R6",
+      "method": "GET",
+      "path": "/api/planets",
+      "function": "player-api",
+      "authoriser": "player",
+      "scope": "game/play"
+    },
+    {
+      "id": "R7",
+      "method": "GET",
+      "path": "/api/runs",
+      "function": "player-api",
+      "authoriser": "player",
+      "scope": "game/play"
+    },
+    {
+      "id": "R8",
+      "method": "POST",
+      "path": "/api/runs",
+      "function": "player-api",
+      "authoriser": "player",
+      "scope": "game/play"
+    },
+    {
+      "id": "R9",
+      "method": "GET",
+      "path": "/api/runs/{runId}",
+      "function": "player-api",
+      "authoriser": "player",
+      "scope": "game/play"
+    },
+    {
+      "id": "R10",
+      "method": "GET",
+      "path": "/api/runs/{runId}/pack",
+      "function": "player-api",
+      "authoriser": "player",
+      "scope": "game/play"
+    },
+    {
+      "id": "R11",
+      "method": "POST",
+      "path": "/api/runs/{runId}/ops",
+      "function": "player-api",
+      "authoriser": "player",
+      "scope": "game/play"
+    },
+    {
+      "id": "R12",
+      "method": "POST",
+      "path": "/api/runs/{runId}/endless",
+      "function": "player-api",
+      "authoriser": "player",
+      "scope": "game/play"
+    },
+    {
+      "id": "R13",
+      "method": "PUT",
+      "path": "/api/session",
+      "function": "player-api",
+      "authoriser": "player",
+      "scope": "game/play"
+    },
+    {
+      "id": "R14",
+      "method": "DELETE",
+      "path": "/api/session",
+      "function": "player-api",
+      "authoriser": "player",
+      "scope": "game/play"
+    },
+    {
+      "id": "R15",
+      "method": "POST",
+      "path": "/api/speech",
+      "function": "tts",
+      "authoriser": "player",
+      "scope": "game/play"
+    },
+    {
+      "id": "R16",
+      "method": "POST",
+      "path": "/api/admin/speech/preview",
+      "function": "tts",
+      "authoriser": "operator",
+      "scope": "ops/content"
+    },
+    {
+      "id": "R17",
+      "method": "GET",
+      "path": "/api/admin/speech-definitions",
+      "function": "admin-api",
+      "authoriser": "operator",
+      "scope": "ops/content"
+    },
+    {
+      "id": "R18",
+      "method": "POST",
+      "path": "/api/admin/speech-definitions",
+      "function": "admin-api",
+      "authoriser": "operator",
+      "scope": "ops/content"
+    },
+    {
+      "id": "R19",
+      "method": "GET",
+      "path": "/api/admin/speech-definitions/{id}",
+      "function": "admin-api",
+      "authoriser": "operator",
+      "scope": "ops/content"
+    },
+    {
+      "id": "R20",
+      "method": "PUT",
+      "path": "/api/admin/speech-definitions/{id}",
+      "function": "admin-api",
+      "authoriser": "operator",
+      "scope": "ops/content"
+    },
+    {
+      "id": "R21",
+      "method": "POST",
+      "path": "/api/admin/speech-definitions/{id}/approve",
+      "function": "admin-api",
+      "authoriser": "operator",
+      "scope": "ops/content"
+    },
+    {
+      "id": "R22",
+      "method": "GET",
+      "path": "/api/admin/activities",
+      "function": "admin-api",
+      "authoriser": "operator",
+      "scope": "ops/content"
+    },
+    {
+      "id": "R23",
+      "method": "POST",
+      "path": "/api/admin/activities",
+      "function": "admin-api",
+      "authoriser": "operator",
+      "scope": "ops/content"
+    },
+    {
+      "id": "R24",
+      "method": "GET",
+      "path": "/api/admin/activities/{id}",
+      "function": "admin-api",
+      "authoriser": "operator",
+      "scope": "ops/content"
+    },
+    {
+      "id": "R25",
+      "method": "PUT",
+      "path": "/api/admin/activities/{id}/draft",
+      "function": "admin-api",
+      "authoriser": "operator",
+      "scope": "ops/content"
+    },
+    {
+      "id": "R26",
+      "method": "POST",
+      "path": "/api/admin/activities/{id}/validate",
+      "function": "admin-api",
+      "authoriser": "operator",
+      "scope": "ops/content"
+    },
+    {
+      "id": "R27",
+      "method": "POST",
+      "path": "/api/admin/activities/{id}/publish",
+      "function": "admin-api",
+      "authoriser": "operator",
+      "scope": "ops/content"
+    },
+    {
+      "id": "R28",
+      "method": "POST",
+      "path": "/api/admin/activities/{id}/retire",
+      "function": "admin-api",
+      "authoriser": "operator",
+      "scope": "ops/content"
+    },
+    {
+      "id": "R29",
+      "method": "POST",
+      "path": "/api/admin/activities/{id}/withdraw",
+      "function": "admin-api",
+      "authoriser": "operator",
+      "scope": "ops/content"
+    },
+    {
+      "id": "R30",
+      "method": "GET",
+      "path": "/api/admin/bank-status",
+      "function": "admin-api",
+      "authoriser": "operator",
+      "scope": "ops/content"
+    }
+  ]
+}

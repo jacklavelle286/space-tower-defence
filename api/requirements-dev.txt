@@ -1,0 +1,7 @@
+# Test and lint tools (plan H.17). Never bundled into a zip.
+-r requirements.txt
+boto3==1.44.3
+botocore==1.44.3
+moto[dynamodb]==5.2.5
+pytest==9.2.0
+ruff==0.17.5

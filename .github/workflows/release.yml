@@ -153,7 +153,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   # 1. checks: the gates that exist now (H.10): G-1 lint and type-check, G-2 unit tests, G-4 Terraform fmt and
-  # validate, plus the script tests (G-6/G-7 tooling) and the simulator self-test. No AWS.
+  # validate, G-5 repository invariants, plus the script tests (G-6/G-7 tooling) and the simulator self-test. No AWS.
   checks:
     needs: config
     runs-on: ubuntu-24.04
@@ -209,6 +209,9 @@ jobs:
         uses: actions/setup-python@v7
         with:
           python-version-file: .python-version
+
+      - name: G-5 repository invariants
+        run: python scripts/check_invariants.py
 
       - name: Script tests (plan guard, asset scan, manifest, CloudFront Function)
         run: |

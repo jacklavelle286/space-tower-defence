@@ -1,0 +1,23 @@
+# Tool settings for api/ (plan H.9.2, H.17). Not a packaging file: the Lambda zips are built by scripts/build_lambdas.py.
+
+[tool.ruff]
+# Local Python is 3.12, CI and Lambda are 3.14 (docs/build-phases.md "Local toolchain"). Targeting 3.12 keeps the code
+# runnable on both; move to "py314" once 3.14 is installed locally.
+target-version = "py312"
+line-length = 120
+extend-exclude = [".venv"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "BLE", "SIM", "RUF"]
+ignore = [
+  "S101", # assert is how pytest checks
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["shared"]
+
+[tool.pytest.ini_options]
+# The zips put shared/ next to each handler.py, so tests import it the same way: `import shared`.
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = ["-q", "--strict-markers"]

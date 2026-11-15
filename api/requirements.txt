@@ -1,0 +1,10 @@
+# Runtime dependencies bundled into every Lambda zip (plan H.9.2, H.17). Exact pins, including transitive ones, so a
+# rebuild resolves the same files. boto3/botocore are NOT listed: the python3.14 Lambda runtime provides them.
+# scripts/build_lambdas.py installs this file for cp314 manylinux aarch64 with --only-binary=:all:.
+aws-lambda-powertools==3.40.0
+pydantic==2.14.3
+pydantic-core==2.50.4
+annotated-types==0.8.0
+jmespath==1.1.0
+typing-extensions==4.16.0
+typing-inspection==0.4.5

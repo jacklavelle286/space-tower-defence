@@ -822,6 +822,7 @@ Logs are an **allow-list**: a field not in this table is never written by any of
 | `result`, error/rejection `code` | every line |
 | `revision`, `generation` | player-api |
 | admin audit: `action`, `activityId`/`speechId`, `versionId` | admin-api audit lines (an addition to the spine S2 list for audit lines only; no player data) **[PROPOSAL]** |
+| `level`, `droppedFields`, `errorType` | every function line: the log level; the count of fields the allow-list refused (never their names or values); an exception's class name only, never its message or stack trace, on `INTERNAL` errors and failed sign-up writes (added in Phase 7, `api/shared/log.py`) **[PROPOSAL]** |
 
 Never logged: raw events, request or response bodies, the `Authorization` header or any token, presigned URLs, answers,
 nicknames, date of birth, speech text/SSML, client IP addresses or user agents, cursors' decoded contents, the `sessionId` query parameter of R1. One structured
