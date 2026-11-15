@@ -1,4 +1,0 @@
-# Lambda zips made by archive_file at plan time
-build/
-# The owner's copy of the check_config output (pool and client IDs; not secret, but not evidence either)
-outputs.json
