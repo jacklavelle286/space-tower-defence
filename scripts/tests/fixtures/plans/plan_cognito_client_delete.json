@@ -1,0 +1,53 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.17.2",
+  "variables": { "environment": { "value": "prod" } },
+  "planned_values": { "root_module": {} },
+  "resource_drift": [],
+  "resource_changes": [
+    {
+      "address": "module.player_pool.aws_cognito_user_pool_client.web",
+      "module_address": "module.player_pool",
+      "mode": "managed",
+      "type": "aws_cognito_user_pool_client",
+      "name": "web",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["delete"],
+        "before": {
+          "name": "space-tower-defence-prod-player-web",
+          "user_pool_id": "eu-west-2_EXAMPLE11",
+          "allowed_oauth_flows": ["code"],
+          "generate_secret": false
+        },
+        "after": null,
+        "after_unknown": {},
+        "before_sensitive": { "client_secret": true },
+        "after_sensitive": false
+      },
+      "action_reason": "delete_because_no_resource_config"
+    },
+    {
+      "address": "module.player_pool.aws_cognito_user_pool.this",
+      "module_address": "module.player_pool",
+      "mode": "managed",
+      "type": "aws_cognito_user_pool",
+      "name": "this",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": { "name": "space-tower-defence-prod-player", "deletion_protection": "ACTIVE" },
+        "after": { "name": "space-tower-defence-prod-player", "deletion_protection": "ACTIVE" },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    }
+  ],
+  "prior_state": { "format_version": "1.0", "terraform_version": "1.17.2", "values": { "root_module": {} } },
+  "configuration": { "root_module": {} },
+  "timestamp": "2026-11-15T10:10:00Z",
+  "applyable": true,
+  "complete": true,
+  "errored": false
+}

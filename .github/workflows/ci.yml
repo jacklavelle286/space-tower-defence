@@ -18,6 +18,7 @@ jobs:
   web:
     name: web (lint, typecheck, test, build)
     runs-on: ubuntu-24.04
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: web
@@ -49,9 +50,14 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: G-6 built-asset scan
+        working-directory: .
+        run: python3 scripts/scan_dist.py web/player/dist web/admin/dist
+
   repo:
     name: repo (terraform fmt, simulator self-test)
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -78,3 +84,24 @@ jobs:
 
       - name: Simulator self-test
         run: python3 -B tools/sim/selftest.py
+
+  scripts:
+    name: scripts (plan guard, asset scan, manifest, CloudFront Function tests)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Python (version from .python-version)
+        uses: actions/setup-python@v7
+        with:
+          python-version-file: .python-version
+
+      - name: Install pytest
+        run: python -m pip install --disable-pip-version-check pytest==9.2.0
+
+      - name: Script tests
+        run: python -m pytest scripts/tests -q

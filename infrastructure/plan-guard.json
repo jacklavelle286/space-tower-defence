@@ -1,0 +1,14 @@
+{
+  "enforce": false,
+  "protected_types": [
+    "aws_dynamodb_table",
+    "aws_cognito_user_pool",
+    "aws_cognito_user_pool_client",
+    "aws_cognito_user_group",
+    "aws_cognito_user_pool_domain",
+    "aws_s3_bucket",
+    "aws_backup_vault",
+    "aws_cloudfront_distribution",
+    "aws_acm_certificate"
+  ]
+}

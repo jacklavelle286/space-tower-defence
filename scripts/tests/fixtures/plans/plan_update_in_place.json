@@ -1,0 +1,112 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.17.2",
+  "variables": {
+    "environment": { "value": "prod" },
+    "player_hostname": { "value": "aliens.jackgl.com" }
+  },
+  "planned_values": {
+    "root_module": {
+      "child_modules": [
+        {
+          "address": "module.player_site",
+          "resources": [
+            {
+              "address": "module.player_site.aws_cloudfront_distribution.this",
+              "mode": "managed",
+              "type": "aws_cloudfront_distribution",
+              "name": "this",
+              "provider_name": "registry.terraform.io/hashicorp/aws",
+              "schema_version": 1,
+              "values": { "comment": "space-tower-defence-prod-player", "enabled": true, "price_class": "PriceClass_100" },
+              "sensitive_values": {}
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "resource_drift": [],
+  "resource_changes": [
+    {
+      "address": "data.aws_cloudfront_cache_policy.caching_optimized",
+      "mode": "data",
+      "type": "aws_cloudfront_cache_policy",
+      "name": "caching_optimized",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["read"],
+        "before": null,
+        "after": { "name": "Managed-CachingOptimized" },
+        "after_unknown": { "id": true },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      },
+      "action_reason": "read_because_dependency_pending"
+    },
+    {
+      "address": "module.player_site.aws_cloudfront_distribution.this",
+      "module_address": "module.player_site",
+      "mode": "managed",
+      "type": "aws_cloudfront_distribution",
+      "name": "this",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["update"],
+        "before": { "comment": "space-tower-defence-prod-player", "enabled": true, "price_class": "PriceClass_All" },
+        "after": { "comment": "space-tower-defence-prod-player", "enabled": true, "price_class": "PriceClass_100" },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "module.player_site.aws_s3_bucket.this",
+      "module_address": "module.player_site",
+      "mode": "managed",
+      "type": "aws_s3_bucket",
+      "name": "this",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["no-op"],
+        "before": { "bucket": "263185198757-eu-west-2-prod-player-spa-bucket", "force_destroy": false },
+        "after": { "bucket": "263185198757-eu-west-2-prod-player-spa-bucket", "force_destroy": false },
+        "after_unknown": {},
+        "before_sensitive": {},
+        "after_sensitive": {}
+      }
+    },
+    {
+      "address": "module.player_site.aws_cloudfront_response_headers_policy.this",
+      "module_address": "module.player_site",
+      "mode": "managed",
+      "type": "aws_cloudfront_response_headers_policy",
+      "name": "this",
+      "provider_name": "registry.terraform.io/hashicorp/aws",
+      "change": {
+        "actions": ["create"],
+        "before": null,
+        "after": { "name": "space-tower-defence-prod-player" },
+        "after_unknown": { "etag": true, "id": true },
+        "before_sensitive": false,
+        "after_sensitive": {}
+      }
+    }
+  ],
+  "output_changes": {
+    "player_distribution_domain": {
+      "actions": ["no-op"],
+      "before": "d111111abcdef8.cloudfront.net",
+      "after": "d111111abcdef8.cloudfront.net",
+      "after_unknown": false,
+      "before_sensitive": false,
+      "after_sensitive": false
+    }
+  },
+  "prior_state": { "format_version": "1.0", "terraform_version": "1.17.2", "values": { "root_module": {} } },
+  "configuration": { "provider_config": { "aws": { "name": "aws", "full_name": "registry.terraform.io/hashicorp/aws" } }, "root_module": {} },
+  "timestamp": "2026-11-15T10:00:00Z",
+  "applyable": true,
+  "complete": true,
+  "errored": false
+}

@@ -1,0 +1,596 @@
+name: release
+
+# The manual release (plan H.8, spine S11.1). Phase 3 builds the plan side only:
+#   0 config -> 1 checks -> 2a build (no AWS) -> 2b upload -> 3 plan, then stop.
+# Nothing in production changes: the only writes are create-only uploads to the artefacts bucket (static archives,
+# the build manifest, the saved plan). Step 4 is your review of the plan in this run's summary; step 5 is a second
+# dispatch, apply.yml with plan_run_id (H.7.1 W-4), which arrives in Phase 4 together with publish, smoke and record.
+#
+# Rules this file keeps (H.7.1): workflow_dispatch only; inputs and other untrusted values reach shell only through
+# env: (W-9); only the jobs that assume the CI role have id-token: write and declare environment prod (W-3);
+# account guard in configure-aws-credentials and in the provider (W-8); runner and Terraform pinned (W-7).
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "What to release: main (or the SHA at the tip of main). Nothing else is accepted."
+        required: true
+        default: main
+        type: string
+      artefacts_from:
+        description: "Rollback only: a release_id (e.g. 20261115T1432Z-6b9e326) whose archived build is reused. Leave empty to build."
+        required: false
+        default: ""
+        type: string
+
+permissions: {} # every job lists exactly what it needs
+
+# Shared with the interim Terraform workflow (its group is terraform-<env>), so a release plan never overlaps an
+# interim plan or apply. apply.yml joins this group in Phase 4, when the interim workflow is deleted.
+concurrency:
+  group: terraform-prod
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash # -eo pipefail
+
+jobs:
+  # 0. config: main only, release_id, names from the env files. No AWS.
+  config:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      sha: ${{ steps.ref.outputs.sha }}
+      release_id: ${{ steps.ref.outputs.release_id }}
+      started_at: ${{ steps.ref.outputs.started_at }}
+      artefacts_from: ${{ steps.ref.outputs.artefacts_from }}
+      environment: ${{ steps.vars.outputs.environment }}
+      account: ${{ steps.vars.outputs.account }}
+      region: ${{ steps.vars.outputs.region }}
+      tf_version: ${{ steps.vars.outputs.tf_version }}
+      role_arn: ${{ steps.vars.outputs.role_arn }}
+      state_bucket: ${{ steps.vars.outputs.state_bucket }}
+      artefacts_bucket: ${{ steps.vars.outputs.artefacts_bucket }}
+    steps:
+      - name: Refuse anything but main
+        id: ref
+        env:
+          INPUT_REF: ${{ inputs.ref }}
+          INPUT_ARTEFACTS_FROM: ${{ inputs.artefacts_from }}
+        run: |
+          # The workflow must be dispatched from main (the prod environment also allows only main).
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "::error::release.yml runs only from main; this run was dispatched from $GITHUB_REF."
+            exit 1
+          fi
+          # ref must resolve to the commit this run was dispatched at: the tip of main.
+          case "$INPUT_REF" in
+            main | refs/heads/main) ;;
+            *)
+              if [[ ! "$INPUT_REF" =~ ^[0-9a-f]{7,40}$ || "$GITHUB_SHA" != "$INPUT_REF"* ]]; then
+                echo "::error::ref must be main or the SHA at the tip of main ($GITHUB_SHA). Older commits are not released: roll back with artefacts_from, or revert in a new commit (plan H.12)."
+                exit 1
+              fi
+              ;;
+          esac
+          if [[ -n "$INPUT_ARTEFACTS_FROM" && ! "$INPUT_ARTEFACTS_FROM" =~ ^[0-9]{8}T[0-9]{4}Z-[0-9a-f]{7}$ ]]; then
+            echo "::error::artefacts_from must be a release_id like 20261115T1432Z-6b9e326, or empty."
+            exit 1
+          fi
+          # release_id = <UTC yyyymmddThhmmZ>-<sha7> (plan H.8.2 step 0)
+          release_id="$(date -u +%Y%m%dT%H%MZ)-${GITHUB_SHA:0:7}"
+          {
+            echo "sha=$GITHUB_SHA"
+            echo "release_id=$release_id"
+            echo "started_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            echo "artefacts_from=$INPUT_ARTEFACTS_FROM"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ steps.ref.outputs.sha }}
+          persist-credentials: false
+
+      - name: Read the env files
+        id: vars
+        run: |
+          COMMON_FILE="infrastructure/envs/common.auto.tfvars.json"
+          ENV_FILE="infrastructure/envs/prod.tfvars.json"
+          [[ -f "$COMMON_FILE" && -f "$ENV_FILE" ]] || { echo "::error::Missing env files"; exit 1; }
+
+          PROJECT=$(jq -r '.project' "$COMMON_FILE")
+          REGION=$(jq -r '.region' "$COMMON_FILE")
+          TF_VERSION=$(jq -r '.terraform_version' "$COMMON_FILE")
+          ACCOUNT=$(jq -r '.aws_account_id' "$ENV_FILE")
+          ENVIRONMENT=$(jq -r '.environment' "$ENV_FILE")
+          for v in PROJECT REGION TF_VERSION ACCOUNT ENVIRONMENT; do
+            [[ -n "${!v}" && "${!v}" != "null" ]] || { echo "::error::$v is not set in the env files"; exit 1; }
+          done
+          [[ "$ACCOUNT" =~ ^[0-9]{12}$ ]] || { echo "::error::aws_account_id is not a 12-digit account ID"; exit 1; }
+
+          # Names computed, not read from outputs: both buckets are needed before any output exists (plan H.8.3, H.8.4).
+          # state bucket: infrastructure/bootstrap/locals.tf; artefacts bucket: infrastructure/bootstrap/artifacts.tf;
+          # role: infrastructure/bootstrap/outputs.tf.
+          {
+            echo "environment=$ENVIRONMENT"
+            echo "account=$ACCOUNT"
+            echo "region=$REGION"
+            echo "tf_version=$TF_VERSION"
+            echo "role_arn=arn:aws:iam::${ACCOUNT}:role/${PROJECT}-${ENVIRONMENT}-github-oidc"
+            echo "state_bucket=${ENVIRONMENT}-state-bucket-${PROJECT}"
+            echo "artefacts_bucket=${ACCOUNT}-${REGION}-${ENVIRONMENT}-artifacts-bucket"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Summary
+        env:
+          RELEASE_ID: ${{ steps.ref.outputs.release_id }}
+          ARTEFACTS_FROM: ${{ steps.ref.outputs.artefacts_from }}
+        run: |
+          {
+            echo "## Release $RELEASE_ID"
+            echo ""
+            echo "- Commit: \`$GITHUB_SHA\`"
+            if [[ -n "$ARTEFACTS_FROM" ]]; then
+              echo "- Build: reused from release \`$ARTEFACTS_FROM\` (rollback)"
+            else
+              echo "- Build: fresh"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # 1. checks: the gates that exist now (H.10): G-1 lint and type-check, G-2 unit tests, G-4 Terraform fmt and
+  # validate, plus the script tests (G-6/G-7 tooling) and the simulator self-test. No AWS.
+  checks:
+    needs: config
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.config.outputs.sha }}
+          persist-credentials: false
+
+      - name: Setup Node (version from .nvmrc)
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install (exact lockfile)
+        working-directory: web
+        run: npm ci
+
+      - name: G-1 lint
+        working-directory: web
+        run: npm run lint
+
+      - name: G-1 typecheck
+        working-directory: web
+        run: npm run typecheck
+
+      - name: G-2 unit tests
+        working-directory: web
+        run: npm test
+
+      - name: Setup Terraform ${{ needs.config.outputs.tf_version }}
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ needs.config.outputs.tf_version }}
+          terraform_wrapper: false
+
+      - name: G-4 terraform fmt
+        run: terraform fmt -check -recursive infrastructure/
+
+      - name: G-4 terraform validate
+        working-directory: infrastructure/main
+        run: |
+          terraform init -input=false -backend=false -lockfile=readonly
+          terraform validate
+
+      - name: Setup Python (version from .python-version)
+        uses: actions/setup-python@v7
+        with:
+          python-version-file: .python-version
+
+      - name: Script tests (plan guard, asset scan, manifest, CloudFront Function)
+        run: |
+          python -m pip install --disable-pip-version-check pytest==9.2.0
+          python -m pytest scripts/tests -q
+
+      - name: Simulator self-test
+        run: python -B tools/sim/selftest.py
+
+  # 2a. build: both apps (environment-free), G-6 scan, static archives and the build manifest.
+  # Deliberately NO id-token and NO environment: npm ci and the build run third-party code, and that code must
+  # never be able to request an OIDC token for the CI role. The outputs travel to 2b as a short-lived GitHub
+  # artefact (public static content plus a manifest; W-4 bans only the saved plan as a GitHub artefact), and 2b
+  # checks every file's SHA-256 against this job's outputs before anything reaches S3.
+  build:
+    needs: [config, checks]
+    if: needs.config.outputs.artefacts_from == ''
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    outputs:
+      player_sha256: ${{ steps.archives.outputs.player_sha256 }}
+      admin_sha256: ${{ steps.archives.outputs.admin_sha256 }}
+      manifest_sha256: ${{ steps.local_manifest.outputs.sha256 }}
+    env:
+      SHA: ${{ needs.config.outputs.sha }}
+      RELEASE_ID: ${{ needs.config.outputs.release_id }}
+      STARTED_AT: ${{ needs.config.outputs.started_at }}
+      INPUT_REF: ${{ inputs.ref }}
+    steps:
+      - name: Work directory outside the checkout
+        run: echo "OUT=$RUNNER_TEMP/release" >> "$GITHUB_ENV"
+
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.config.outputs.sha }}
+          persist-credentials: false
+
+      - name: Setup Python (version from .python-version)
+        uses: actions/setup-python@v7
+        with:
+          python-version-file: .python-version
+
+      - name: Setup Node (version from .nvmrc)
+        uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Build player and admin
+        working-directory: web
+        run: |
+          npm ci --ignore-scripts
+          npm run build
+
+      - name: G-6 built-asset scan
+        run: python scripts/scan_dist.py web/player/dist web/admin/dist
+
+      - name: Static archives (reproducible tar.gz, addressed by SHA-256)
+        id: archives
+        run: |
+          mkdir -p "$OUT"
+          for app in player admin; do
+            # Sorted names, fixed owner, mode and mtime, gzip without a timestamp: the same dist/ always gives the
+            # same bytes, so an unchanged build gets the same key.
+            tar --sort=name --owner=0 --group=0 --numeric-owner --mode='u+rwX,go+rX,go-w' \
+              --mtime='1970-01-01 00:00Z' --format=gnu -C "web/$app/dist" -cf - . | gzip -n -9 > "$OUT/$app.tar.gz"
+            hash=$(sha256sum "$OUT/$app.tar.gz" | cut -d' ' -f1)
+            echo "${app}_sha256=$hash" >> "$GITHUB_OUTPUT"
+            echo "$app: static/$hash/$app.tar.gz"
+          done
+
+      - name: Build manifest
+        env:
+          PLAYER_SHA256: ${{ steps.archives.outputs.player_sha256 }}
+          ADMIN_SHA256: ${{ steps.archives.outputs.admin_sha256 }}
+        run: |
+          python scripts/release_manifest.py build \
+            --release-id "$RELEASE_ID" --git-sha "$SHA" --ref "$INPUT_REF" --run-id "$GITHUB_RUN_ID" \
+            --actor "$GITHUB_ACTOR" --started-at "$STARTED_AT" --out "$OUT/manifest.json" \
+            --app player web/player/dist web/player/public "static/$PLAYER_SHA256/player.tar.gz" "$PLAYER_SHA256" \
+            --app admin web/admin/dist - "static/$ADMIN_SHA256/admin.tar.gz" "$ADMIN_SHA256"
+
+      - name: Manifest hash
+        id: local_manifest
+        run: echo "sha256=$(sha256sum "$OUT/manifest.json" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Hand the build to the upload job
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-build
+          path: |
+            ${{ runner.temp }}/release/player.tar.gz
+            ${{ runner.temp }}/release/admin.tar.gz
+            ${{ runner.temp }}/release/manifest.json
+          retention-days: 1
+          if-no-files-found: error
+
+  # 2b. upload: assumes the CI role, runs no npm and no build code. Fresh release: verifies the build job's files by
+  # SHA-256, then uploads them create-only. Rollback (artefacts_from): reuses an archived build instead.
+  upload:
+    needs: [config, build]
+    if: ${{ !cancelled() && needs.config.result == 'success' && (needs.build.result == 'success' || needs.build.result == 'skipped') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    environment:
+      name: prod
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      manifest_sha256: ${{ steps.manifest.outputs.sha256 }}
+    env:
+      SHA: ${{ needs.config.outputs.sha }}
+      RELEASE_ID: ${{ needs.config.outputs.release_id }}
+      STARTED_AT: ${{ needs.config.outputs.started_at }}
+      ARTEFACTS_FROM: ${{ needs.config.outputs.artefacts_from }}
+      ACCOUNT: ${{ needs.config.outputs.account }}
+      ARTEFACTS_BUCKET: ${{ needs.config.outputs.artefacts_bucket }}
+      INPUT_REF: ${{ inputs.ref }}
+      PLAYER_SHA256: ${{ needs.build.outputs.player_sha256 }}
+      ADMIN_SHA256: ${{ needs.build.outputs.admin_sha256 }}
+      BUILD_MANIFEST_SHA256: ${{ needs.build.outputs.manifest_sha256 }}
+    steps:
+      - name: Work directory outside the checkout
+        run: echo "OUT=$RUNNER_TEMP/release" >> "$GITHUB_ENV"
+
+      - name: Checkout (scripts only; nothing here is built or installed)
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.config.outputs.sha }}
+          persist-credentials: false
+
+      - name: Setup Python (version from .python-version)
+        uses: actions/setup-python@v7
+        with:
+          python-version-file: .python-version
+
+      - name: Receive the build
+        if: needs.config.outputs.artefacts_from == ''
+        uses: actions/download-artifact@v7
+        with:
+          name: release-build
+          path: ${{ runner.temp }}/release
+
+      - name: Verify the build's SHA-256 values
+        if: needs.config.outputs.artefacts_from == ''
+        run: |
+          check() { local got; got=$(sha256sum "$1" | cut -d' ' -f1); [[ "$got" == "$2" ]] || { echo "::error::$1 does not match the build job's SHA-256"; exit 1; }; }
+          check "$OUT/player.tar.gz" "$PLAYER_SHA256"
+          check "$OUT/admin.tar.gz" "$ADMIN_SHA256"
+          check "$OUT/manifest.json" "$BUILD_MANIFEST_SHA256"
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ needs.config.outputs.role_arn }}
+          aws-region: ${{ needs.config.outputs.region }}
+          allowed-account-ids: ${{ needs.config.outputs.account }}
+
+      - name: Verify AWS account and artefacts bucket
+        run: |
+          ACTUAL=$(aws sts get-caller-identity --query Account --output text)
+          [[ "$ACTUAL" == "$ACCOUNT" ]] || { echo "::error::Account mismatch: $ACTUAL"; exit 1; }
+          aws s3api head-bucket --bucket "$ARTEFACTS_BUCKET" \
+            || { echo "::error::Artefacts bucket $ARTEFACTS_BUCKET not found (bootstrap root, H.5 B-6)"; exit 1; }
+
+      - name: Rollback - reuse the archived build
+        if: needs.config.outputs.artefacts_from != ''
+        run: |
+          mkdir -p "$OUT"
+          aws s3api get-object --bucket "$ARTEFACTS_BUCKET" --key "releases/$ARTEFACTS_FROM/manifest.json" \
+            "$OUT/archived-manifest.json" > /dev/null \
+            || { echo "::error::No archived manifest for release $ARTEFACTS_FROM"; exit 1; }
+          python scripts/release_manifest.py reuse \
+            --artefacts-from "$ARTEFACTS_FROM" --archived "$OUT/archived-manifest.json" \
+            --release-id "$RELEASE_ID" --git-sha "$SHA" --ref "$INPUT_REF" --run-id "$GITHUB_RUN_ID" \
+            --actor "$GITHUB_ACTOR" --started-at "$STARTED_AT" --out "$OUT/manifest.json"
+          # Every archive the release names must still exist, with the bytes it recorded.
+          jq -r '.static | to_entries[] | "\(.value.archiveKey) \(.value.sha256)"' "$OUT/manifest.json" |
+            while read -r key hex; do
+              want=$(python -c 'import base64, sys; print(base64.b64encode(bytes.fromhex(sys.argv[1])).decode())' "$hex")
+              got=$(aws s3api head-object --bucket "$ARTEFACTS_BUCKET" --key "$key" --checksum-mode ENABLED \
+                --query ChecksumSHA256 --output text) || { echo "::error::Archived object $key is missing"; exit 1; }
+              [[ "$got" == "$want" ]] || { echo "::error::Archived object $key does not match its recorded SHA-256"; exit 1; }
+              echo "found s3://$ARTEFACTS_BUCKET/$key"
+            done
+
+      - name: Upload static archives (create-only)
+        if: needs.config.outputs.artefacts_from == ''
+        run: |
+          scripts/s3_put_create_only.sh "$ARTEFACTS_BUCKET" "static/$PLAYER_SHA256/player.tar.gz" "$OUT/player.tar.gz"
+          scripts/s3_put_create_only.sh "$ARTEFACTS_BUCKET" "static/$ADMIN_SHA256/admin.tar.gz" "$OUT/admin.tar.gz"
+
+      - name: Upload the manifest (create-only)
+        id: manifest
+        run: |
+          scripts/s3_put_create_only.sh "$ARTEFACTS_BUCKET" "releases/$RELEASE_ID/manifest.json" "$OUT/manifest.json"
+          hash=$(sha256sum "$OUT/manifest.json" | cut -d' ' -f1)
+          echo "sha256=$hash" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Build"
+            echo ""
+            echo "| App | Archive | Files (entry / hashed / unhashed) |"
+            echo "|---|---|---|"
+            jq -r '.static | to_entries[] | "| \(.key) | `\(.value.archiveKey)` | \(.value.files.entry | length) / \(.value.files.hashed | length) / \(.value.files.unhashed | length) |"' "$OUT/manifest.json"
+            echo ""
+            echo "Manifest: \`releases/$RELEASE_ID/manifest.json\` (SHA-256 \`$hash\`)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # 3. plan: saved plan, plan guard (G-7, report mode), and the plan tarball for apply.yml. Never a GitHub artefact.
+  plan:
+    needs: [config, upload]
+    # A rollback skips 2a; a skipped ancestor would otherwise skip this job too.
+    if: ${{ !cancelled() && needs.config.result == 'success' && needs.upload.result == 'success' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment:
+      name: prod
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      plan_sha256: ${{ steps.tarball.outputs.sha256 }}
+    env:
+      SHA: ${{ needs.config.outputs.sha }}
+      RELEASE_ID: ${{ needs.config.outputs.release_id }}
+      ENVIRONMENT: ${{ needs.config.outputs.environment }}
+      ACCOUNT: ${{ needs.config.outputs.account }}
+      REGION: ${{ needs.config.outputs.region }}
+      TF_VERSION: ${{ needs.config.outputs.tf_version }}
+      STATE_BUCKET: ${{ needs.config.outputs.state_bucket }}
+      ARTEFACTS_BUCKET: ${{ needs.config.outputs.artefacts_bucket }}
+      MANIFEST_SHA256: ${{ needs.upload.outputs.manifest_sha256 }}
+    steps:
+      - name: Work directory outside the checkout
+        run: echo "OUT=$RUNNER_TEMP/plan" >> "$GITHUB_ENV"
+
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.config.outputs.sha }}
+          persist-credentials: false
+
+      - name: Setup Terraform ${{ needs.config.outputs.tf_version }}
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ needs.config.outputs.tf_version }}
+          terraform_wrapper: false
+
+      - name: Setup Python (version from .python-version)
+        uses: actions/setup-python@v7
+        with:
+          python-version-file: .python-version
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ needs.config.outputs.role_arn }}
+          aws-region: ${{ needs.config.outputs.region }}
+          allowed-account-ids: ${{ needs.config.outputs.account }}
+
+      - name: Verify AWS account and buckets
+        run: |
+          ACTUAL=$(aws sts get-caller-identity --query Account --output text)
+          [[ "$ACTUAL" == "$ACCOUNT" ]] || { echo "::error::Account mismatch: $ACTUAL"; exit 1; }
+          aws s3api head-bucket --bucket "$STATE_BUCKET" \
+            || { echo "::error::State bucket $STATE_BUCKET not found"; exit 1; }
+          aws s3api head-bucket --bucket "$ARTEFACTS_BUCKET" \
+            || { echo "::error::Artefacts bucket $ARTEFACTS_BUCKET not found"; exit 1; }
+
+      - name: Fetch this release's manifest
+        run: |
+          mkdir -p release "$OUT"
+          aws s3api get-object --bucket "$ARTEFACTS_BUCKET" --key "releases/$RELEASE_ID/manifest.json" \
+            release/manifest.json > /dev/null
+          echo "$MANIFEST_SHA256  release/manifest.json" | sha256sum --check --strict
+
+      - name: Terraform init (S3 backend, native locking, committed lock file)
+        working-directory: infrastructure/main
+        run: |
+          terraform init -input=false -lockfile=readonly \
+            -backend-config="bucket=$STATE_BUCKET" \
+            -backend-config="key=main/terraform.tfstate" \
+            -backend-config="region=$REGION" \
+            -backend-config="use_lockfile=true" \
+            -backend-config="encrypt=true"
+
+      - name: Terraform plan (saved)
+        id: plan
+        working-directory: infrastructure/main
+        run: |
+          # Actions runs bash with -e; exit 2 means "changes", so capture the code: 0 and 2 pass, anything else fails.
+          set +e
+          terraform plan -input=false -lock-timeout=5m -detailed-exitcode -out=tfplan \
+            -var-file=../envs/common.auto.tfvars.json -var-file="../envs/$ENVIRONMENT.tfvars.json"
+          rc=$?
+          set -e
+          case "$rc" in
+            0) echo "changes=false" >> "$GITHUB_OUTPUT" ;;
+            2) echo "changes=true" >> "$GITHUB_OUTPUT" ;;
+            *) echo "::error::terraform plan failed (exit $rc)"; exit 1 ;;
+          esac
+          echo "exit_code=$rc" >> "$GITHUB_OUTPUT"
+
+      - name: Plan to the run summary
+        working-directory: infrastructure/main
+        env:
+          PLAN_EXIT_CODE: ${{ steps.plan.outputs.exit_code }}
+        run: |
+          terraform show -no-color tfplan > "$OUT/plan.txt"
+          terraform show -json tfplan > "$OUT/tfplan.json"
+          read -r add change remove < <(jq -r '[.resource_changes[]?.change.actions] |
+            [(map(select(index("create"))) | length), (map(select(index("update"))) | length),
+             (map(select(index("delete"))) | length)] | @tsv' "$OUT/tfplan.json")
+          {
+            echo "### Terraform plan"
+            echo ""
+            echo "**$add to add, $change to change, $remove to delete** (a replace counts as one add and one delete)."
+            echo ""
+            echo '```'
+            # The step summary is limited to 1 MiB; the full text is also in this step's log.
+            head -c 900000 "$OUT/plan.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          # The plan part of the manifest (H.8.7); the record job (Phase 4) merges it into the final manifest.
+          jq -n --arg rid "$RELEASE_ID" --arg sha "$SHA" --arg run "$GITHUB_RUN_ID" --arg tf "$TF_VERSION" \
+            --arg lock "$(sha256sum .terraform.lock.hcl | cut -d' ' -f1)" --argjson rc "$PLAN_EXIT_CODE" \
+            --argjson add "$add" --argjson change "$change" --argjson remove "$remove" \
+            '{releaseId: $rid, gitSha: $sha, planRunId: $run, terraformVersion: $tf, lockFileSha256: $lock,
+              planExitCode: $rc, planKey: ("plans/" + $run + "/plan.tar.gz"),
+              summary: {add: $add, change: $change, delete: $remove}}' \
+            > "$GITHUB_WORKSPACE/release/plan-info.json"
+
+      - name: G-7 plan guard (report mode until the data freeze)
+        run: |
+          set +e
+          python scripts/plan_guard.py "$OUT/tfplan.json" --config infrastructure/plan-guard.json > "$OUT/guard.md"
+          rc=$?
+          set -e
+          cat "$OUT/guard.md" >> "$GITHUB_STEP_SUMMARY"
+          cat "$OUT/guard.md"
+          exit "$rc"
+
+      - name: Plan tarball (.terraform/, lock file, tfplan, var files, manifest)
+        id: tarball
+        run: |
+          # Everything apply.yml needs to apply this exact plan with the same providers (plan H.8.2 step 3):
+          # the root with .terraform/ and the lock file, the local modules it calls, both var files and the release files.
+          files=(
+            infrastructure/main
+            infrastructure/modules
+            infrastructure/envs/common.auto.tfvars.json
+            "infrastructure/envs/$ENVIRONMENT.tfvars.json"
+            infrastructure/plan-guard.json
+            release
+          )
+          tar --dereference --sort=name -czf "$OUT/plan.tar.gz" "${files[@]}"
+          listing=$(tar -tzf "$OUT/plan.tar.gz")
+          for must in infrastructure/main/.terraform/ infrastructure/main/.terraform.lock.hcl infrastructure/main/tfplan \
+            release/manifest.json release/plan-info.json; do
+            grep -qxF "$must" <<< "$listing" || { echo "::error::plan tarball is missing $must"; exit 1; }
+          done
+          (cd "$OUT" && sha256sum plan.tar.gz > plan.tar.gz.sha256)
+          hash=$(cut -d' ' -f1 "$OUT/plan.tar.gz.sha256")
+          echo "sha256=$hash" >> "$GITHUB_OUTPUT"
+          echo "plan.tar.gz: $(du -h "$OUT/plan.tar.gz" | cut -f1), SHA-256 $hash"
+
+      - name: Upload the saved plan (create-only)
+        run: |
+          # Order matters: the tarball, then its checksum, then plan-info.json LAST as the completion marker. apply.yml
+          # (Phase 4) treats a plan as present only when plan-info.json exists. A tfplan is not byte-reproducible, so
+          # if an upload fails, "Re-run failed jobs" (same run ID, new plan) hits the create-only 412: dispatch again.
+          prefix="plans/$GITHUB_RUN_ID"
+          scripts/s3_put_create_only.sh "$ARTEFACTS_BUCKET" "$prefix/plan.tar.gz" "$OUT/plan.tar.gz"
+          scripts/s3_put_create_only.sh "$ARTEFACTS_BUCKET" "$prefix/plan.tar.gz.sha256" "$OUT/plan.tar.gz.sha256"
+          scripts/s3_put_create_only.sh "$ARTEFACTS_BUCKET" "$prefix/plan-info.json" release/plan-info.json
+
+      - name: Next step
+        env:
+          PLAN_SHA256: ${{ steps.tarball.outputs.sha256 }}
+        run: |
+          {
+            echo "### Saved plan"
+            echo ""
+            echo "\`s3://$ARTEFACTS_BUCKET/plans/$GITHUB_RUN_ID/plan.tar.gz\`, SHA-256 \`$PLAN_SHA256\`"
+            echo ""
+            echo "**Next: dispatch apply.yml with plan_run_id = $GITHUB_RUN_ID**"
+            echo ""
+            echo "(apply.yml arrives in Phase 4; until then this release stops here and nothing is applied.)"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "Next: dispatch apply.yml with plan_run_id = $GITHUB_RUN_ID"

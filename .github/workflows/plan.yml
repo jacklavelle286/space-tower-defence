@@ -1,0 +1,151 @@
+name: plan
+
+# Manual drift check (plan H.8.8): a plan of main against production, with the plan guard, in the run summary.
+# It never applies and never uploads a plan, so apply.yml can never use it. "No changes" means production matches main.
+# From Phase 8 it also reads the Lambda keys from releases/latest.json, so "no changes" then means "matches the last
+# release and main".
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+# A drift check never queues behind a release (H.7.1 W-6): it waits for the state lock instead (-lock-timeout=5m).
+concurrency:
+  group: plan-prod
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash # -eo pipefail
+
+jobs:
+  plan:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    environment:
+      name: prod
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Refuse anything but main
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "::error::plan.yml runs only from main; this run was dispatched from $GITHUB_REF."
+            exit 1
+          fi
+          echo "OUT=$RUNNER_TEMP/plan" >> "$GITHUB_ENV"
+          mkdir -p "$RUNNER_TEMP/plan"
+
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Read the env files
+        id: vars
+        run: |
+          COMMON_FILE="infrastructure/envs/common.auto.tfvars.json"
+          ENV_FILE="infrastructure/envs/prod.tfvars.json"
+          [[ -f "$COMMON_FILE" && -f "$ENV_FILE" ]] || { echo "::error::Missing env files"; exit 1; }
+
+          PROJECT=$(jq -r '.project' "$COMMON_FILE")
+          REGION=$(jq -r '.region' "$COMMON_FILE")
+          TF_VERSION=$(jq -r '.terraform_version' "$COMMON_FILE")
+          ACCOUNT=$(jq -r '.aws_account_id' "$ENV_FILE")
+          ENVIRONMENT=$(jq -r '.environment' "$ENV_FILE")
+          for v in PROJECT REGION TF_VERSION ACCOUNT ENVIRONMENT; do
+            [[ -n "${!v}" && "${!v}" != "null" ]] || { echo "::error::$v is not set in the env files"; exit 1; }
+          done
+
+          # Same names as release.yml (bootstrap locals.tf and outputs.tf).
+          {
+            echo "environment=$ENVIRONMENT"
+            echo "account=$ACCOUNT"
+            echo "region=$REGION"
+            echo "tf_version=$TF_VERSION"
+            echo "role_arn=arn:aws:iam::${ACCOUNT}:role/${PROJECT}-${ENVIRONMENT}-github-oidc"
+            echo "state_bucket=${ENVIRONMENT}-state-bucket-${PROJECT}"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Setup Terraform ${{ steps.vars.outputs.tf_version }}
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ steps.vars.outputs.tf_version }}
+          terraform_wrapper: false
+
+      - name: Setup Python (version from .python-version)
+        uses: actions/setup-python@v7
+        with:
+          python-version-file: .python-version
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ steps.vars.outputs.role_arn }}
+          aws-region: ${{ steps.vars.outputs.region }}
+          allowed-account-ids: ${{ steps.vars.outputs.account }}
+
+      - name: Verify AWS account and state bucket
+        env:
+          ACCOUNT: ${{ steps.vars.outputs.account }}
+          STATE_BUCKET: ${{ steps.vars.outputs.state_bucket }}
+        run: |
+          ACTUAL=$(aws sts get-caller-identity --query Account --output text)
+          [[ "$ACTUAL" == "$ACCOUNT" ]] || { echo "::error::Account mismatch: $ACTUAL"; exit 1; }
+          aws s3api head-bucket --bucket "$STATE_BUCKET" \
+            || { echo "::error::State bucket $STATE_BUCKET not found"; exit 1; }
+
+      - name: Terraform init (S3 backend, native locking, committed lock file)
+        working-directory: infrastructure/main
+        env:
+          STATE_BUCKET: ${{ steps.vars.outputs.state_bucket }}
+          REGION: ${{ steps.vars.outputs.region }}
+        run: |
+          terraform init -input=false -lockfile=readonly \
+            -backend-config="bucket=$STATE_BUCKET" \
+            -backend-config="key=main/terraform.tfstate" \
+            -backend-config="region=$REGION" \
+            -backend-config="use_lockfile=true" \
+            -backend-config="encrypt=true"
+
+      - name: Terraform plan
+        id: plan
+        working-directory: infrastructure/main
+        env:
+          ENVIRONMENT: ${{ steps.vars.outputs.environment }}
+        run: |
+          # The plan file stays on this runner; it is only read back for the summary and the guard.
+          set +e
+          terraform plan -input=false -lock-timeout=5m -detailed-exitcode -out=tfplan \
+            -var-file=../envs/common.auto.tfvars.json -var-file="../envs/$ENVIRONMENT.tfvars.json"
+          rc=$?
+          set -e
+          case "$rc" in
+            0) verdict="No changes: production matches main." ;;
+            2) verdict="Changes: production differs from main (drift, or a commit not yet released)."
+               echo "::warning::Production differs from main; read the plan in the run summary." ;;
+            *) echo "::error::terraform plan failed (exit $rc)"; exit 1 ;;
+          esac
+          terraform show -no-color tfplan > "$OUT/plan.txt"
+          terraform show -json tfplan > "$OUT/tfplan.json"
+          {
+            echo "## Drift check on \`$GITHUB_SHA\`"
+            echo ""
+            echo "**$verdict**"
+            echo ""
+            echo '```'
+            head -c 900000 "$OUT/plan.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: G-7 plan guard
+        run: |
+          set +e
+          python scripts/plan_guard.py "$OUT/tfplan.json" --config infrastructure/plan-guard.json > "$OUT/guard.md"
+          rc=$?
+          set -e
+          cat "$OUT/guard.md" >> "$GITHUB_STEP_SUMMARY"
+          cat "$OUT/guard.md"
+          exit "$rc"
