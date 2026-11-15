@@ -490,8 +490,6 @@ def test_player_token_on_preview_is_forbidden_before_any_call(api: Speech, playe
         ({"kind": "PHONEME", "ssml": "<!DOCTYPE x>s"}, {"field": "ssml", "rule": "declaration"}),
         ({"kind": "PHONEME", "ssml": '<phoneme ph="s">s</phoneme>'}, {"field": "ssml", "rule": "attribute"}),
         ({"kind": "PHONEME", "ssml": '<prosody rate="500%">s</prosody>'}, {"field": "ssml", "rule": "attribute"}),
-        # generative (WORD) refuses <phoneme> until the bake-off shows it works
-        ({"kind": "WORD", "ssml": PHONEME["ssml"]}, {"field": "ssml", "rule": "tag"}),
     ],
 )
 def test_preview_validation(api: Speech, player_event: dict, body: dict, problem: dict) -> None:
@@ -506,6 +504,9 @@ def test_ssml_allowed_on_each_engine(api: Speech, player_event: dict) -> None:
     generative = '<p><s><prosody rate="90%">Find the <sub alias="ship">shp</sub>.</prosody></s></p><break time="1s"/>'
     assert api.preview(player_event, {"kind": "PHONEME", "ssml": neural})[0] == 200
     assert api.preview(player_event, {"kind": "INSTRUCTION", "ssml": generative})[0] == 200
+    # ADR-0014: the bake-off passed <phoneme> on generative, so a pseudo-word like "chom" is SSML on generative.
+    chom = '<phoneme alphabet="x-sampa" ph="tSQm">chom</phoneme>.'
+    assert api.preview(player_event, {"kind": "WORD", "ssml": chom})[0] == 200
 
 
 def test_a_misconfigured_voice_is_internal(ddb: Any, player_event: dict) -> None:

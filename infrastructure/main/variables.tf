@@ -124,7 +124,7 @@ variable "tts_engine" {
 }
 
 variable "tts_phoneme_engine" {
-  description = "Polly engine for PHONEME and LETTER_NAME speech. neural until the M0 listening bake-off says generative is safe."
+  description = "Polly engine for PHONEME and LETTER_NAME speech. generative since the M0 listening bake-off (ADR-0014)."
   type        = string
   default     = "neural"
 

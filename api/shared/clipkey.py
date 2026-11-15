@@ -106,12 +106,13 @@ _REQUIRED_ATTRIBUTES: Mapping[str, frozenset[str]] = {
     "phoneme": frozenset({"alphabet", "ph"}),
     "sub": frozenset({"alias"}),
 }
-# G R16. `speak` is the wrapper's, so it never appears in a body. Generative refuses `phoneme` until the Phase 18
-# bake-off shows it works (then `tts_phoneme_engine` becomes generative and this list is widened). "prosody only around
-# whole sentences" for generative is not enforced structurally [ASSUMPTION]; the operator hears the result in preview.
+# G R16. `speak` is the wrapper's, so it never appears in a body. Generative accepts `phoneme` since the Phase 18
+# bake-off (ADR-0014: the owner judged generative phoneme renders publishable, so `tts_phoneme_engine` is generative).
+# "prosody only around whole sentences" for generative is not enforced structurally [ASSUMPTION]: the bake-off's
+# chosen forms wrap a single phoneme in prosody, and the operator hears the result in preview.
 SSML_TAGS: Mapping[str, frozenset[str]] = {
     "neural": frozenset({"break", "phoneme", "prosody", "s", "p", "sub", "w"}),
-    "generative": frozenset({"break", "prosody", "s", "p", "sub", "w"}),
+    "generative": frozenset({"break", "phoneme", "prosody", "s", "p", "sub", "w"}),
 }
 
 _SPACE_RUN = re.compile(r"\s+")

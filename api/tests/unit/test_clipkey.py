@@ -54,11 +54,7 @@ def test_drafts_build_the_vector_text(vector: dict[str, Any]) -> None:
         return
     body = given["text"].removeprefix(HEAD).removesuffix(TAIL)
     assert wrap(body) == given["text"]
-    if "<phoneme" in body and given["engine"] == "generative":
-        with pytest.raises(ClipInputError):  # G R16: phoneme refused on generative until the bake-off passes it
-            speech_ssml("generative", ssml=body)
-    else:
-        assert speech_ssml(given["engine"], ssml=body) == given["text"]
+    assert speech_ssml(given["engine"], ssml=body) == given["text"]  # G R16: phoneme allowed on both (ADR-0014)
 
 
 def test_object_key_is_flat_under_the_prefix() -> None:
@@ -93,7 +89,7 @@ def test_allow_list_is_in_code() -> None:
     assert ("Amy", "neural") in ALLOWED_VOICE_ENGINES
     assert all(engine in ("neural", "generative") for _, engine in ALLOWED_VOICE_ENGINES)
     assert set(SSML_TAGS) == {"neural", "generative"}
-    assert "phoneme" not in SSML_TAGS["generative"]
+    assert SSML_TAGS["generative"] == SSML_TAGS["neural"]  # widened after the Phase 18 bake-off (ADR-0014)
 
 
 @pytest.mark.parametrize(
