@@ -1,0 +1,43 @@
+# Decisions
+
+An architecture decision record (ADR) is one short file per decision: what we chose, what we rejected and why.
+Once accepted, an ADR is never rewritten. A change of mind is a new ADR that supersedes the old one, and both stay.
+The rules are in [J §J.6](../plan/J-execution-backlog.md#j6-decision-log-practice); new ADRs start from [0000-template.md](0000-template.md).
+
+## Status lifecycle
+
+`Proposed` (not yet agreed) → `Accepted` → `Superseded by NNNN` (or `Rejected`).
+
+- ADR-0001 to 0010 record decisions accepted with the plan on 2026-11-14, so they start as `Accepted`.
+- An ADR written during a build phase starts as `Proposed` and becomes `Accepted` when the owner approves that phase's gate.
+- A later change to a spine rule is made by an ADR first, then added to the spine change log ([S14](../plan/00-spine.md#s14-change-log-v02--v03)).
+
+## Index
+
+| ADR | Title | Status |
+|---|---|---|
+| [0001](0001-same-origin-api.md) | Same-origin API through CloudFront | Accepted |
+| [0002](0002-two-cognito-pools.md) | Two Cognito user pools with managed login and PKCE | Accepted |
+| [0003](0003-four-lambdas.md) | Four Python Lambdas, one role each, no Lambda calls another | Accepted |
+| [0004](0004-two-dynamodb-tables.md) | Two DynamoDB tables, no GSI, almost no TTL | Accepted |
+| [0005](0005-family-level-trust.md) | Family-level trust with per-op plausibility bounds | Accepted |
+| [0006](0006-run-state-and-snapshots.md) | Run state as status, stage and phase, with one snapshot | Accepted |
+| [0007](0007-one-write-path-op-batches.md) | One write path: ordered op batches through a shared pure reducer | Accepted |
+| [0008](0008-play-session-lease.md) | Account-wide play-session lease with a fencing generation | Accepted |
+| [0009](0009-speech-render-path-and-voice.md) | One speech render path; Polly generative en-GB Amy | Accepted |
+| [0010](0010-delivery-and-release.md) | Delivery: one manual release, pipelines only | Accepted |
+| [0011](0011-oidc-trust-environments-and-artefacts-bucket.md) | OIDC trust, GitHub environments and the artefacts bucket | Proposed |
+
+## Next in line
+
+Reserved numbers, recorded when the work happens ([J §J.6.3](../plan/J-execution-backlog.md#j63-the-first-ten-adrs-from-the-spine)):
+
+| ADR | Topic | Task |
+|---|---|---|
+| 0012 | Auth spike results | M0-10 |
+| 0013 | Front-end stack versions | M0-08b |
+| 0014 | Listening bake-off: `tts_phoneme_engine`, per-sound verdicts and SSML templates | M0-11 |
+| 0015 | Browser audio storage and the `sha256` source | M0-12 |
+| 0016–0018 | M1 choices J-1, J-2, J-3 | M1-24 |
+
+After those: game data as immutable versioned files with `mechanics` compatibility, the fixed 60 Hz timestep, and the data-freeze point when it is named (M6-10).
