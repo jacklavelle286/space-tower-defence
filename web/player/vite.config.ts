@@ -43,6 +43,9 @@ function localGameData(): Plugin {
 // Environment-free build: no hostnames, account IDs or pool IDs are baked in.
 // Runtime values come from /config.json, published by the release workflow (plan H.8).
 export default defineConfig({
+  // Fixed ports: the player is always 5173 (admin 5174); a busy port fails loudly instead of moving to the next one.
+  server: { port: 5173, strictPort: true },
+  preview: { port: 4173, strictPort: true },
   plugins: [react(), localGameData()],
   build: {
     // Phaser alone is about 1.2 MB minified; it gets its own long-cached chunk.
