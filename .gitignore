@@ -12,6 +12,8 @@ override.tf
 override.tf.json
 *_override.tf
 *_override.tf.json
+# Generated per release by the build job
+release.tfvars.json
 # NOTE: .terraform.lock.hcl IS committed (pins provider builds for plan/apply)
 # NOTE: infrastructure/envs/*.tfvars.json ARE committed (no secrets in them)
 
@@ -37,6 +39,8 @@ venv/
 build/
 *.zip
 
+*.local
+
 # Local environment and secrets
 .env
 .env.*
@@ -45,6 +49,7 @@ build/
 # Editors / OS
 .DS_Store
 .idea/
+.vscode/
 *.swp
 
 # Art review contact sheets (generated)
