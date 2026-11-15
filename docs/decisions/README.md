@@ -29,7 +29,7 @@ The rules are in [J §J.6](../plan/J-execution-backlog.md#j6-decision-log-practi
 | [0011](0011-oidc-trust-environments-and-artefacts-bucket.md) | OIDC trust, GitHub environments and the artefacts bucket | Accepted |
 | [0012](0012-auth-spike.md) | Auth spike results: managed login for the player pool | Accepted |
 | [0013](0013-front-end-stack-versions.md) | Front-end stack versions | Accepted |
-| [0014](0014-listening-bake-off.md) | Listening bake-off: `tts_phoneme_engine`, per-sound verdicts and SSML templates | Proposed |
+| [0014](0014-listening-bake-off.md) | Listening bake-off: `tts_phoneme_engine`, per-sound verdicts and SSML templates | Accepted |
 | [0019](0019-single-release-run-with-approval.md) | One release run with a manual approval (supersedes in part 0010, 0011 once accepted) | Accepted |
 | [0020](0020-spike-workflow-destroy-path.md) | A separate spike workflow whose destroy reaches spike state only (amends H §H.7 W-1 and the J M0 order for Phases 5–6) | Accepted |
 | [0021](0021-skip-remaining-spikes.md) | Skip the DynamoDB and browser-audio spikes (M0-13, M0-12); their questions move to Phases 17, 19 and 22 | Accepted |

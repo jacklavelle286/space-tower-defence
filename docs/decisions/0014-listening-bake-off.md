@@ -1,5 +1,5 @@
 # 0014. Listening bake-off: phoneme engine, per-sound verdicts, SSML templates
-Status: Proposed (owner listened 2026-11-15; Accepted when Gate C is approved) · Date: 2026-11-15
+Status: Accepted · Date: 2026-11-15
 
 Context: Phonemes and letter names use `tts_phoneme_engine` (default `neural`) because AWS documentation contradicts itself on
 `<phoneme>` in the generative engine ([ADR-0009](0009-speech-render-path-and-voice.md), U-048). Which isolated sounds Polly says
