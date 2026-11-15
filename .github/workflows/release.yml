@@ -660,19 +660,20 @@ jobs:
         run: |
           # Everything apply.yml needs to apply this exact plan with the same providers (plan H.8.2 step 3):
           # the root with .terraform/ and the lock file, the local modules it calls, both var files and the release files
-          # (manifest.json, release.tfvars.json, plan-info.json).
+          # (manifest.json, release.tfvars.json, plan-info.json), and contracts/routes.json, which the root reads with file().
           files=(
             infrastructure/main
             infrastructure/modules
             infrastructure/envs/common.auto.tfvars.json
             "infrastructure/envs/$ENVIRONMENT.tfvars.json"
             infrastructure/plan-guard.json
+            contracts/routes.json # read by infrastructure/main/locals.tf with file(); Terraform re-reads it at apply
             release
           )
           tar --dereference --sort=name -czf "$OUT/plan.tar.gz" "${files[@]}"
           listing=$(tar -tzf "$OUT/plan.tar.gz")
           for must in infrastructure/main/.terraform/ infrastructure/main/.terraform.lock.hcl infrastructure/main/tfplan \
-            release/manifest.json release/release.tfvars.json release/plan-info.json; do
+            release/manifest.json release/release.tfvars.json release/plan-info.json contracts/routes.json; do
             grep -qxF "$must" <<< "$listing" || { echo "::error::plan tarball is missing $must"; exit 1; }
           done
           (cd "$OUT" && sha256sum plan.tar.gz > plan.tar.gz.sha256)

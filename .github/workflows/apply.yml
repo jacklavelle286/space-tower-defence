@@ -318,10 +318,11 @@ jobs:
           RELEASE_ID: ${{ steps.info.outputs.release_id }}
         run: |
           listing=$(tar -tzf "$OUT/plan.tar.gz")
-          outside=$(grep -vE '^(infrastructure|release)(/|$)' <<< "$listing" || true)
+          # Only infrastructure/, release/ and the one catalogue file the root reads with file().
+          outside=$(grep -vE '^(infrastructure|release)(/|$)' <<< "$listing" | grep -vxE 'contracts/?|contracts/routes\.json' || true)
           dotdot=$(grep -E '(^|/)\.\.(/|$)' <<< "$listing" || true)
           if [[ -n "$outside" || -n "$dotdot" ]]; then
-            echo "::error::plan tarball has entries outside infrastructure/ and release/: $(head -c 300 <<< "$outside$dotdot")"; exit 1
+            echo "::error::plan tarball has entries outside infrastructure/, release/ and contracts/routes.json: $(head -c 300 <<< "$outside$dotdot")"; exit 1
           fi
           tar -xzf "$OUT/plan.tar.gz" -C "$GITHUB_WORKSPACE" --no-same-owner
           # The tarball's own copy of plan-info.json is the one in S3, and its manifest and lock file match it.
