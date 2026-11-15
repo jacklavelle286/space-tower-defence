@@ -138,8 +138,9 @@ resource "aws_cognito_user_pool_client" "this" {
 
   # Set explicitly either way, so the plan shows the choice (E.7.1: off for players, on for operators).
   refresh_token_rotation {
-    feature                    = var.refresh_token_rotation ? "ENABLED" : "DISABLED"
-    retry_grace_period_seconds = var.refresh_token_rotation ? var.refresh_token_rotation_grace_seconds : null
+    feature = var.refresh_token_rotation ? "ENABLED" : "DISABLED"
+    # 0 when off: AWS returns 0, and null makes provider 6.73 fail with "inconsistent result after apply".
+    retry_grace_period_seconds = var.refresh_token_rotation ? var.refresh_token_rotation_grace_seconds : 0
   }
 }
 
