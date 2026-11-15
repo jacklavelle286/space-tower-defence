@@ -21,7 +21,8 @@ Decision:
   Anything else is refused.
 - Concurrency: `release.yml` keeps `terraform-prod` for the whole run, approval wait included. `apply.yml` takes `terraform-prod`
   only when it is the top-level workflow; when called it takes `terraform-prod-called-<run_id>`, because a called workflow in its
-  caller's group makes GitHub cancel the run.
+  caller's group makes GitHub cancel the run (GitHub's docs state this for job-level groups; workflow-level assumed the same
+  **[ASSUMPTION]** until the first one-run release; a per-run group cannot deadlock either way).
 - The calling job grants `actions: read`, `contents: write`, `id-token: write` (the union apply.yml's jobs need; a caller caps the
   called token). Each called job still narrows to its own list; only `record` has `contents: write`.
 

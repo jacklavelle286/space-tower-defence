@@ -27,10 +27,13 @@ One dispatch, one approval ([ADR-0019](../decisions/0019-single-release-run-with
 A release that fails before `record` gets no entry and no tag. If it failed after the apply started, its plan can no longer be
 applied (`scripts/apply_guard.py`): dispatch `release.yml` again. If the approval was rejected (nothing applied), either use
 "Re-run failed jobs" on that run (it asks for approval again, and the guard still refuses the plan if another apply ran since)
-or dispatch `release.yml` again.
+or dispatch `release.yml` again. If the run was cancelled or the approval timed out, nothing was applied; dispatch `release.yml`
+again.
 
-`apply.yml` can still be dispatched by hand with `plan_run_id` = a finished, successful `release.yml` run (in practice a plan-only
-run from before ADR-0019). It asks for the same approval, then applies only if the stale-plan guard allows it.
+`apply.yml` can still be dispatched by hand with `plan_run_id` = a finished, successful `release.yml` run, but this is a fallback
+that is not expected to succeed: a successful one-run release has already applied its own plan (the stale-plan guard refuses it),
+and a rejected, cancelled or timed-out run did not succeed (the `config` check refuses it). Roll back through `release.yml`'s
+`artefacts_from`; recover a rejected approval with "Re-run failed jobs".
 
 ## Format
 
