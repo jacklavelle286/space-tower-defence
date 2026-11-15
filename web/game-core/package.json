@@ -1,0 +1,14 @@
+{
+  "name": "@scd/game-core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Pure game rules: fixed-timestep simulation, run reducer, seeded RNG. No Phaser, React, DOM or network.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json",
+    "test": "vitest run"
+  }
+}

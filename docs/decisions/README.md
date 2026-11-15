@@ -27,6 +27,7 @@ The rules are in [J §J.6](../plan/J-execution-backlog.md#j6-decision-log-practi
 | [0009](0009-speech-render-path-and-voice.md) | One speech render path; Polly generative en-GB Amy | Accepted |
 | [0010](0010-delivery-and-release.md) | Delivery: one manual release, pipelines only | Accepted |
 | [0011](0011-oidc-trust-environments-and-artefacts-bucket.md) | OIDC trust, GitHub environments and the artefacts bucket | Accepted |
+| [0013](0013-front-end-stack-versions.md) | Front-end stack versions | Proposed |
 
 ## Next in line
 
@@ -35,7 +36,6 @@ Reserved numbers, recorded when the work happens ([J §J.6.3](../plan/J-executio
 | ADR | Topic | Task |
 |---|---|---|
 | 0012 | Auth spike results | M0-10 |
-| 0013 | Front-end stack versions | M0-08b |
 | 0014 | Listening bake-off: `tts_phoneme_engine`, per-sound verdicts and SSML templates | M0-11 |
 | 0015 | Browser audio storage and the `sha256` source | M0-12 |
 | 0016–0018 | M1 choices J-1, J-2, J-3 | M1-24 |

@@ -1,0 +1,26 @@
+{
+  "name": "space-colony-defence-web",
+  "private": true,
+  "description": "Front-end workspaces: game-core (pure rules), shared (React learning panel, API types), player and admin apps.",
+  "workspaces": [
+    "game-core",
+    "shared",
+    "player",
+    "admin"
+  ],
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "lint": "oxlint --deny-warnings",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "build": "npm run build --workspaces --if-present"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "oxlint": "1.93.0",
+    "typescript": "7.0.2",
+    "vitest": "5.1.0"
+  }
+}

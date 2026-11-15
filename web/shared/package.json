@@ -1,0 +1,13 @@
+{
+  "name": "@scd/shared",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Code shared by the player and admin apps: API types, limits, answer canonicaliser, learning panel, audio, API client. No Phaser.",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json"
+  }
+}
