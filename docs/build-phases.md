@@ -244,6 +244,28 @@ Both are settled.
 | `art/` and `web/player/public/assets/` were untracked | **Settled** | Committed as `bc454c2`: `art/` (minus `review/`, which [.gitignore](../.gitignore) ignores), `web/player/public/assets/`, the gallery and `tools/art/`. All 352 catalogue entries are drawn in-repo as SVG ([asset catalogue](art/asset-catalogue.json)); the ChatGPT prompt route is superseded. Phase 1 must not overwrite `web/player/public/assets/`. |
 
 ---
+## Gate bundles (owner decision, 2026-11-15)
+
+From Phase 7 on, phases are reviewed in bundles, not one by one. Each bundle ends with one gate: a gate-log row, a release
+through the one-run pipeline ([ADR-0019](decisions/0019-single-release-run-with-approval.md)) and the owner's review. Inside a
+bundle Claude carries on from phase to phase and stops only when an owner action or decision is needed. Each phase's own
+entry below still says what it builds, how to test it and what to look at.
+
+| Gate | Phases | What the owner reviews |
+|---|---|---|
+| A | 7–9 | API skeleton, tables, sign-in pools and functions deployed; API live behind sign-in at `/api/*` |
+| B | 10–14 | The game engine locally: clock, rules reducer (TypeScript and Python), first planet data, a playable battlefield slice |
+| C | 15–19 | Server side of a run: profiles, runs and the session lease, the ops endpoint, Polly checks, speech service |
+| D | 20–23 | First playable slice live: admin seed, player shell, learning panel with Play; playtest P1 |
+| E | 24–28 | Roster, targeting, aliens, bosses, meteor powers |
+| F | 29–34 | Run lifecycle, plausibility bounds, HUD and shop, saved games, backup runbook; playtest P2 |
+| G | 35–39 | Admin shell, activity API, the six interaction types, editor and preview-solve |
+| H | 40–44 | Speech lifecycle, templates, selection, learning summaries, withdrawal |
+| I | 45–49 | Content: worked records, maths, phonics, spelling, optional import |
+| J | 50–56 | Campaign, meteor offers, badges, challenges, endless, resets; playtest P3 |
+| K | 57–63 | Offline: local database, queue, audio cache, divergence, takeover, versions, hard cases |
+| L | 64–74 | Art and sound polish, performance, accessibility, scoped CI role, drills, monitoring, acceptance P4, data freeze |
+
 ## How each phase is described
 
 Every phase has the same fields: **Goal** (one sentence) · **Why now** · a field table (J tasks, in scope, out of scope, files, depends on,
