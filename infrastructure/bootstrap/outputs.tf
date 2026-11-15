@@ -11,3 +11,8 @@ output "state_bucket_name" {
 output "ecr_repository_urls" {
   value = module.bootstrap.ecr_repository_urls
 }
+
+output "artifacts_bucket_name" {
+  description = "Release artefacts bucket (Lambda zips, static archives, manifests, saved plans)"
+  value       = aws_s3_bucket.artifacts.bucket
+}
