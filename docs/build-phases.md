@@ -261,6 +261,7 @@ entry below still says what it builds, how to test it and what to look at.
 | D | 20–23 | First playable slice live: admin seed, player shell, learning panel with Play; playtest P1 |
 | G | 35–39 | Admin shell, activity API, the six interaction types, editor and preview-solve |
 | H1 | 40–42 | Speech lifecycle, templates, selection |
+| P | 42a–42b | Picture library: upload, and generate in the house style with Claude on Bedrock; approve before use ([ADR-0026](decisions/0026-picture-library-generate-and-upload.md)) |
 | I | 45–48 | Content: worked records, maths, phonics, spelling (49, spreadsheet import, only if the owner asks) |
 | E | 24–28 | Roster, targeting, aliens, bosses, meteor powers |
 | F | 29–34, 43–44 | Run lifecycle, plausibility bounds, HUD and shop, saved games, backup runbook, learning summaries, withdrawal; playtest P2 |
@@ -1648,6 +1649,34 @@ review (`prompt.md:1276-1277`). D-1, D-2, D-4, D-5, D-7 and D-9 are built in her
 5. `CONTENT_UNAVAILABLE` carries a reason.
 
 *Concept:* **seeded selection** — random-looking but reproducible, so a bug report can be replayed.
+
+---
+
+### Phase 42a — Picture library and upload
+
+**Goal.** Operators upload PNG or JPEG pictures, approve them, and pick approved pictures in the activity editor.
+**Why now.** Content (Gate I) needs pictures beyond the repo art ([ADR-0026](decisions/0026-picture-library-generate-and-upload.md)).
+
+| Field | Detail |
+|---|---|
+| In scope | Presigned PUT to a private `uploads/` prefix; type check by magic bytes; re-encode to PNG, strip metadata, cap size; content-addressed key; draft → approved lifecycle; editor picker shows approved pictures; served as PNG from the site origin |
+| Out of scope | Generation (Phase 42b); SVG uploads (refused) |
+| Depends on | Phase 39 |
+| Owner actions | Dispatch the release and apply; upload and approve one picture |
+| Exit criteria | A non-image or SVG is refused; an approved picture appears in the picker and plays in an activity; unapproved pictures are never served to players |
+
+### Phase 42b — Generate pictures with Claude
+
+**Goal.** "Generate picture" draws a picture in the house style from a description, for approval.
+**Why now.** As Phase 42a.
+
+| Field | Detail |
+|---|---|
+| In scope | Bedrock `anthropic.claude-opus-5-5` in eu-west-2 via the function's IAM role; fixed cached system prompt (STYLE.md + example SVGs); one SVG out; allow-list sanitiser; render to PNG; Try again / Approve / Discard; daily cap; budget alarm |
+| Out of scope | Game art (towers, aliens, UI stay repo-only) |
+| Depends on | Phase 42a |
+| Owner actions | Enable Anthropic model access in the Bedrock console (eu-west-2) once; dispatch the release and apply; generate and approve a few pictures |
+| Exit criteria | A malicious SVG (script, foreignObject, external href, event handler) is neutralised by the sanitiser tests; the cap refuses the next generation; an approved generated picture works in an activity |
 
 ---
 
