@@ -23,6 +23,8 @@ Phaser is imported by name (`import { Game } from "phaser"`) and split into its 
 
 Global font: Unkempt (owner's choice), self-hosted from `@fontsource/unkempt` 5.3.0 (Apache-2.0, Latin subset), never
 loaded from Google, so no third-party request and a `font-src 'self'` CSP works.
+Reading font: Andika (owner, 2026-11-15) for the letters and words children read in learning activities (single-storey
+`a` and `g`, made for early readers), self-hosted the same way; Unkempt stays for titles, buttons and labels. Added in Phase 22.
 
 Alternatives:
 - TypeScript 5.x: the plan pins 7; 7.0.2 type-checks all four packages cleanly, so no reason to fall back.

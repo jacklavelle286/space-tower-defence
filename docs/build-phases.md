@@ -999,7 +999,7 @@ combinations impossible ([F §7](plan/F-state-and-data.md#7-client-sync-state-ma
 | Field | Detail |
 |---|---|
 | J tasks | M1-22 |
-| In scope | Learning panel in `web/shared` (no Phaser), greyed tries (D-8), feedback, reward, resume per phase; audio module with the Play rule **[CONFIRMED by owner, 2026-11-14]** (O-2: stored clip plays at once while `POST /api/speech` runs concurrently; otherwise wait, download, verify `sha256`, store, play; a different `clipKey` is logged and used next time); battlefield wired to the real run and ops |
+| In scope | Learning panel in `web/shared` (no Phaser), letters and words set in the self-hosted Andika reading font ([ADR-0013](decisions/0013-front-end-stack-versions.md)), greyed tries (D-8), feedback, reward, resume per phase; audio module with the Play rule **[CONFIRMED by owner, 2026-11-14]** (O-2: stored clip plays at once while `POST /api/speech` runs concurrently; otherwise wait, download, verify `sha256`, store, play; a different `clipKey` is logged and used next time); battlefield wired to the real run and ops |
 | Out of scope | Other interaction types; offline |
 | Files | `web/shared/src/learning/`, `web/shared/src/audio/`; `web/player/src/` (run screen) |
 | Depends on | Phases 14, 19, 20, 21 |
