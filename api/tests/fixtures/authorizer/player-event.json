@@ -1,0 +1,61 @@
+{
+  "headers": {
+    "accept-encoding": "identity",
+    "authorization": "<redacted>",
+    "content-length": "0",
+    "host": "92xyrywds8.execute-api.eu-west-2.amazonaws.com",
+    "user-agent": "Python-urllib/3.12",
+    "x-amzn-trace-id": "Root=1-6af99724-331fbf3c30bb4c4928547428",
+    "x-forwarded-for": "203.0.113.10",
+    "x-forwarded-port": "443",
+    "x-forwarded-proto": "https"
+  },
+  "isBase64Encoded": false,
+  "rawPath": "/spike/player",
+  "rawQueryString": "",
+  "requestContext": {
+    "accountId": "263185198757",
+    "apiId": "92xyrywds8",
+    "authorizer": {
+      "jwt": {
+        "claims": {
+          "acr": "urn:cognito:loa:1",
+          "amr": "[pwd]",
+          "auth_time": "1794742052",
+          "client_id": "1cnr0p1eb9jtbhb1f2lg29lij4",
+          "event_id": "<redacted>",
+          "exp": "1794745652",
+          "iat": "1794742052",
+          "iss": "https://cognito-idp.eu-west-2.amazonaws.com/eu-west-2_xqfe0dJPM",
+          "jti": "<redacted>",
+          "origin_jti": "<redacted>",
+          "scope": "openid scd-spike/play",
+          "sub": "a6c2b2b4-7051-70ef-b1e8-739ac38dd0cb",
+          "token_use": "access",
+          "username": "spikechild1",
+          "version": "2"
+        },
+        "scopes": [
+          "openid",
+          "scd-spike/play"
+        ]
+      }
+    },
+    "domainName": "92xyrywds8.execute-api.eu-west-2.amazonaws.com",
+    "domainPrefix": "92xyrywds8",
+    "http": {
+      "method": "GET",
+      "path": "/spike/player",
+      "protocol": "HTTP/1.1",
+      "sourceIp": "203.0.113.10",
+      "userAgent": "Python-urllib/3.12"
+    },
+    "requestId": "G4SN2i3fLPEEPpQ=",
+    "routeKey": "GET /spike/player",
+    "stage": "$default",
+    "time": "15/Nov/2026:11:27:32 +0000",
+    "timeEpoch": 1794742052943
+  },
+  "routeKey": "GET /spike/player",
+  "version": "2.0"
+}

@@ -1,0 +1,270 @@
+{
+  "access_token_claims": {
+    "acr": "urn:cognito:loa:1",
+    "amr": [
+      "pwd"
+    ],
+    "auth_time": 1794741793,
+    "client_id": "1cnr0p1eb9jtbhb1f2lg29lij4",
+    "event_id": "<redacted>",
+    "exp": 1794745393,
+    "iat": 1794741793,
+    "iss": "https://cognito-idp.eu-west-2.amazonaws.com/eu-west-2_xqfe0dJPM",
+    "jti": "<redacted>",
+    "origin_jti": "<redacted>",
+    "scope": "openid scd-spike/play",
+    "sub": "a6c2b2b4-7051-70ef-b1e8-739ac38dd0cb",
+    "token_use": "access",
+    "username": "spikechild1",
+    "version": 2
+  },
+  "access_token_has_aud": false,
+  "api_calls": {
+    "other_pool_route_access_token": {
+      "body": {
+        "message": "Unauthorized"
+      },
+      "content_type": "application/json",
+      "status": 401,
+      "www_authenticate": "Bearer scope=\"scd-spike/admin\" error=\"invalid_token\" error_description=\"unable to find an appropriate key in the JWKS. Ensure a \"kid\" is provided in the JWT, and that your JWKS has a supported cert available for this ID\""
+    },
+    "own_route_access_token": {
+      "body": {
+        "authorizer": {
+          "jwt": {
+            "claims": {
+              "acr": "urn:cognito:loa:1",
+              "amr": "[pwd]",
+              "auth_time": "1794741793",
+              "client_id": "1cnr0p1eb9jtbhb1f2lg29lij4",
+              "event_id": "<redacted>",
+              "exp": "1794745393",
+              "iat": "1794741793",
+              "iss": "https://cognito-idp.eu-west-2.amazonaws.com/eu-west-2_xqfe0dJPM",
+              "jti": "<redacted>",
+              "origin_jti": "<redacted>",
+              "scope": "openid scd-spike/play",
+              "sub": "a6c2b2b4-7051-70ef-b1e8-739ac38dd0cb",
+              "token_use": "access",
+              "username": "spikechild1",
+              "version": "2"
+            },
+            "scopes": [
+              "openid",
+              "scd-spike/play"
+            ]
+          }
+        },
+        "routeKey": "GET /spike/player",
+        "runtime": {
+          "europe_london": {
+            "now": "2026-11-15T11:23:14.069465+00:00",
+            "ok": true,
+            "tzname": "GMT",
+            "utcoffset": "0:00:00"
+          },
+          "python": "3.14.10 (main, Oct 29 2026, 15:00:39) [GCC 11.5.0 20240719 (Red Hat 11.5.0-5)]",
+          "tzdata_package": false,
+          "tzpath": [
+            "/usr/share/zoneinfo",
+            "/usr/lib/zoneinfo",
+            "/usr/share/lib/zoneinfo",
+            "/etc/zoneinfo"
+          ]
+        }
+      },
+      "content_type": "application/json",
+      "status": 200,
+      "www_authenticate": null
+    },
+    "own_route_id_token": {
+      "body": {
+        "message": "Forbidden"
+      },
+      "content_type": "application/json",
+      "status": 403,
+      "www_authenticate": "Bearer scope=\"scd-spike/play\" error=\"insufficient_scope\" error_description=\"expected scopes within the token\""
+    },
+    "own_route_no_token": {
+      "body": {
+        "message": "Unauthorized"
+      },
+      "content_type": "application/json",
+      "status": 401,
+      "www_authenticate": "Bearer"
+    }
+  },
+  "client": "player",
+  "event_shapes": {
+    "jwt.claims.cognito:groups": {
+      "type": "NoneType",
+      "value": null
+    },
+    "jwt.claims.scope": {
+      "type": "str",
+      "value": "openid scd-spike/play"
+    },
+    "jwt.scopes": {
+      "type": "list",
+      "value": [
+        "openid",
+        "scd-spike/play"
+      ]
+    }
+  },
+  "id_token_claims": {
+    "acr": "urn:cognito:loa:1",
+    "amr": [
+      "pwd"
+    ],
+    "at_hash": "jMA50whslH9sCW6fyhiViA",
+    "aud": "1cnr0p1eb9jtbhb1f2lg29lij4",
+    "auth_time": 1794741793,
+    "cognito:username": "spikechild1",
+    "event_id": "<redacted>",
+    "exp": 1794745393,
+    "iat": 1794741793,
+    "iss": "https://cognito-idp.eu-west-2.amazonaws.com/eu-west-2_xqfe0dJPM",
+    "jti": "<redacted>",
+    "origin_jti": "<redacted>",
+    "sub": "a6c2b2b4-7051-70ef-b1e8-739ac38dd0cb",
+    "token_use": "id"
+  },
+  "label": "case",
+  "logout_redirect_reached": null,
+  "page": "authorize",
+  "prompt_login": true,
+  "refresh": {
+    "GetTokensFromRefreshToken": {
+      "new_refresh_token_issued": false,
+      "own_route_with_refreshed_token": {
+        "body": {
+          "authorizer": {
+            "jwt": {
+              "claims": {
+                "acr": "urn:cognito:loa:1",
+                "amr": "[pwd]",
+                "auth_time": "1794741793",
+                "client_id": "1cnr0p1eb9jtbhb1f2lg29lij4",
+                "event_id": "<redacted>",
+                "exp": "1794745395",
+                "iat": "1794741795",
+                "iss": "https://cognito-idp.eu-west-2.amazonaws.com/eu-west-2_xqfe0dJPM",
+                "jti": "<redacted>",
+                "origin_jti": "<redacted>",
+                "scope": "openid scd-spike/play",
+                "sub": "a6c2b2b4-7051-70ef-b1e8-739ac38dd0cb",
+                "token_use": "access",
+                "username": "spikechild1",
+                "version": "2"
+              },
+              "scopes": [
+                "openid",
+                "scd-spike/play"
+              ]
+            }
+          },
+          "routeKey": "GET /spike/player",
+          "runtime": {
+            "europe_london": {
+              "now": "2026-11-15T11:23:15.278260+00:00",
+              "ok": true,
+              "tzname": "GMT",
+              "utcoffset": "0:00:00"
+            },
+            "python": "3.14.10 (main, Oct 29 2026, 15:00:39) [GCC 11.5.0 20240719 (Red Hat 11.5.0-5)]",
+            "tzdata_package": false,
+            "tzpath": [
+              "/usr/share/zoneinfo",
+              "/usr/lib/zoneinfo",
+              "/usr/share/lib/zoneinfo",
+              "/etc/zoneinfo"
+            ]
+          }
+        },
+        "content_type": "application/json",
+        "status": 200,
+        "www_authenticate": null
+      },
+      "scopes_after": [
+        "openid",
+        "scd-spike/play"
+      ],
+      "scopes_before": [
+        "openid",
+        "scd-spike/play"
+      ],
+      "scopes_kept": true
+    },
+    "token_endpoint": {
+      "new_refresh_token_issued": false,
+      "own_route_with_refreshed_token": {
+        "body": {
+          "authorizer": {
+            "jwt": {
+              "claims": {
+                "acr": "urn:cognito:loa:1",
+                "amr": "[pwd]",
+                "auth_time": "1794741793",
+                "client_id": "1cnr0p1eb9jtbhb1f2lg29lij4",
+                "event_id": "<redacted>",
+                "exp": "1794745394",
+                "iat": "1794741794",
+                "iss": "https://cognito-idp.eu-west-2.amazonaws.com/eu-west-2_xqfe0dJPM",
+                "jti": "<redacted>",
+                "origin_jti": "<redacted>",
+                "scope": "openid scd-spike/play",
+                "sub": "a6c2b2b4-7051-70ef-b1e8-739ac38dd0cb",
+                "token_use": "access",
+                "username": "spikechild1",
+                "version": "2"
+              },
+              "scopes": [
+                "openid",
+                "scd-spike/play"
+              ]
+            }
+          },
+          "routeKey": "GET /spike/player",
+          "runtime": {
+            "europe_london": {
+              "now": "2026-11-15T11:23:14.865685+00:00",
+              "ok": true,
+              "tzname": "GMT",
+              "utcoffset": "0:00:00"
+            },
+            "python": "3.14.10 (main, Oct 29 2026, 15:00:39) [GCC 11.5.0 20240719 (Red Hat 11.5.0-5)]",
+            "tzdata_package": false,
+            "tzpath": [
+              "/usr/share/zoneinfo",
+              "/usr/lib/zoneinfo",
+              "/usr/share/lib/zoneinfo",
+              "/etc/zoneinfo"
+            ]
+          }
+        },
+        "content_type": "application/json",
+        "status": 200,
+        "www_authenticate": null
+      },
+      "scopes_after": [
+        "openid",
+        "scd-spike/play"
+      ],
+      "scopes_before": [
+        "openid",
+        "scd-spike/play"
+      ],
+      "scopes_kept": true
+    }
+  },
+  "scopes_requested": "openid scd-spike/play",
+  "time_utc": "2026-11-15T11:23:14+00:00",
+  "token_response_keys": [
+    "access_token",
+    "expires_in",
+    "id_token",
+    "refresh_token",
+    "token_type"
+  ]
+}
