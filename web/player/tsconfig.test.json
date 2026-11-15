@@ -1,9 +1,10 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    // Node types for the tests (they read docs/art/asset-catalogue.json from disk) and for vite.config.ts.
+    // Node types for the tests (they read docs/art/asset-catalogue.json from disk), vite.config.ts and the deployed
+    // Playwright journeys (e2e/, run by hand, never by Vitest).
     "types": ["vite/client", "node"]
   },
-  "include": ["src", "vite.config.ts", "vitest.config.ts"],
+  "include": ["src", "e2e", "vite.config.ts", "vitest.config.ts", "playwright.config.ts"],
   "exclude": []
 }

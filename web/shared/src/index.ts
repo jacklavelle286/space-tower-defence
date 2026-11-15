@@ -10,3 +10,4 @@ export {
   type MultipleChoiceSpec,
   type RefusalReason,
 } from "./learning/canonical";
+export * from "./api";

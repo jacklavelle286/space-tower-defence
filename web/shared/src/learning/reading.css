@@ -1,0 +1,9 @@
+/* The reading font (ADR-0013): Andika for letters and words children read, self-hosted from @fontsource (no
+   third-party request; `font-src 'self'` holds). Imported by the learning panel, and by the admin app so its
+   "Preview and solve" box shows the activity in the same font the child sees. */
+@import "@fontsource/andika/latin-400.css";
+@import "@fontsource/andika/latin-700.css";
+
+.lp-reading {
+  font-family: "Andika", "Andika New Basic", system-ui, sans-serif;
+}

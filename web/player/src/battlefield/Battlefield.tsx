@@ -1,55 +1,44 @@
-// The battlefield page for the local slice (Phase 14): the Phaser canvas with React overlays on top (HUD, pad
-// panel, activity placeholder, completion and defeat). React talks to the game only through GameBridge, and to the
-// run rules only through LocalRun (the stand-in for the sync engine of Phase 21).
-import { compileBattleConfig, initialRunState, type BattleConfig, type RunState } from "@scd/game-core";
+// The battlefield page: the Phaser canvas with React overlays on top. React talks to the game only through
+// GameBridge, and to the run rules only through a RunPort: LocalRun in the development slice (Phase 14, saves
+// nothing) and SyncedRun on the real run screen (Phase 22, saved through the op queue). The overlays differ (the local
+// slice has a placeholder activity, the real run the learning panel), so the caller passes them as children.
+import { compileBattleConfig } from "@scd/game-core";
 import { AUTO, Game, Scale } from "phaser";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { BridgeContext } from "./bridgeContext";
 import { BattleScene } from "../game/BattleScene";
 import { GameBridge } from "../game/GameBridge";
 import type { GameData } from "../game/gameData";
 import { CANVAS_HEIGHT, CANVAS_WIDTH } from "../game/layout";
-import { LocalRun } from "../game/localRun";
-import { ActivityPlaceholder, PLACEHOLDER_ANSWER } from "./ActivityPlaceholder";
-import { EndScreen } from "./EndScreen";
-import { Hud } from "./Hud";
-import { PadPanel } from "./PadPanel";
-import { useAutoPlay, type AutoPlayMode } from "./useAutoPlay";
-import { useHud } from "./useBridge";
+import type { RunPort } from "../game/runPort";
 import "./battlefield.css";
 
 /** The M1 wave set (J-1). */
 export const WAVE_SET_ID = "first-contact";
 
-export interface LocalOptions {
-  /** The run seed (the server makes 64 random bits in the real game, spine S5.1). */
+export interface BattlefieldProps {
+  readonly data: GameData;
+  readonly waveSetId: string;
+  readonly run: RunPort;
+  /** The run seed (from the server for a saved run, spine S5.1). */
   readonly seed: string;
-  /** Development only: start with less colony health (with autoPlay "lose", or no Novas placed, defeat comes quickly). */
-  readonly colonyHealth: number | null;
-  /**
-   * Development only (for screenshots and smoke checks): "play" places Novas, presses Ready and answers by itself;
-   * "lose" does the same but places nothing, so the run reaches the defeat screen; null is a normal game.
-   */
-  readonly autoPlay: AutoPlayMode | null;
   readonly speed: 1 | 2;
+  /** The overlays; they read the bridge with useGameBridge(). */
+  readonly children: ReactNode;
+  /** Called once the bridge exists (the run screen needs it for Save and exit), and with null when it goes. */
+  readonly onBridge?: (bridge: GameBridge | null) => void;
 }
 
-function startingRun(data: GameData, config: BattleConfig, options: LocalOptions): RunState {
-  const run = initialRunState(data.ruleset, config, [PLACEHOLDER_ANSWER]);
-  if (options.colonyHealth === null || run.snapshot === undefined) return run;
-  return { ...run, snapshot: { ...run.snapshot, colony: { ...run.snapshot.colony, health: options.colonyHealth } } };
-}
-
-export function Battlefield({ data, options, onNewGame }: { data: GameData; options: LocalOptions; onNewGame: () => void }) {
+export function Battlefield({ data, waveSetId, run, seed, speed, children, onBridge }: BattlefieldProps) {
   const container = useRef<HTMLDivElement>(null);
-  const config = useMemo(() => compileBattleConfig(data.ruleset, data.planet, WAVE_SET_ID), [data]);
-  const [session, setSession] = useState<{ bridge: GameBridge; run: LocalRun } | null>(null);
+  const config = useMemo(() => compileBattleConfig(data.ruleset, data.planet, waveSetId), [data, waveSetId]);
+  const [bridge, setBridge] = useState<GameBridge | null>(null);
 
   useEffect(() => {
     const parent = container.current;
     if (!parent) return;
-    const run = new LocalRun(startingRun(data, config, options));
-    const bridge = new GameBridge(config, run, options.seed);
-    bridge.setSpeed(options.speed);
+    const created = new GameBridge(config, run, seed);
+    created.setSpeed(speed);
     // Created inside the effect and destroyed in its cleanup (React StrictMode mounts twice in development).
     const game = new Game({
       type: AUTO,
@@ -58,56 +47,34 @@ export function Battlefield({ data, options, onNewGame }: { data: GameData; opti
       height: CANVAS_HEIGHT,
       backgroundColor: "#141633",
       scale: { mode: Scale.FIT, autoCenter: Scale.CENTER_HORIZONTALLY },
-      scene: [new BattleScene(bridge)],
+      scene: [new BattleScene(created)],
       // Keyboard shortcuts and accessible controls live in the React DOM (plan E.5.2).
       input: { keyboard: false },
     });
-    setSession({ bridge, run });
+    setBridge(created);
+    onBridge?.(created);
 
     // A hidden page pauses the simulation; coming back stays paused until Resume (C2.1, spine S10).
     const onVisibility = () => {
-      if (document.visibilityState === "hidden") bridge.pause();
+      if (document.visibilityState === "hidden") created.pause();
     };
     document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
       document.removeEventListener("visibilitychange", onVisibility);
       game.destroy(true);
-      bridge.destroy();
-      setSession(null);
+      created.destroy();
+      setBridge(null);
+      onBridge?.(null);
     };
-  }, [data, config, options]);
+  }, [config, run, seed, speed, onBridge]);
 
   return (
     <div className="bf">
       <div className="bf-stage">
         <div ref={container} className="bf-canvas" />
-        {session !== null && <Overlays bridge={session.bridge} run={session.run} autoPlay={options.autoPlay} onNewGame={onNewGame} />}
+        {bridge !== null && <BridgeContext.Provider value={bridge}>{children}</BridgeContext.Provider>}
       </div>
     </div>
-  );
-}
-
-function Overlays({ bridge, run, autoPlay, onNewGame }: { bridge: GameBridge; run: LocalRun; autoPlay: AutoPlayMode | null; onNewGame: () => void }) {
-  const hud = useHud(bridge);
-  useAutoPlay(bridge, run, hud, autoPlay);
-  const ended = hud.runStatus !== "IN_PROGRESS";
-  return (
-    <>
-      <Hud bridge={bridge} hud={hud} />
-      {!ended && hud.runPhase !== "ACTIVITY" && <PadPanel bridge={bridge} credits={hud.credits} />}
-      {hud.runPhase === "ACTIVITY" && <ActivityPlaceholder run={run} afterWave={hud.wave - 1} />}
-      {hud.paused && !ended && hud.battle === "IN_WAVE" && (
-        <div className="bf-overlay">
-          <div className="bf-card">
-            <h2>Paused</h2>
-            <button type="button" className="bf-big" onClick={() => bridge.resume()} autoFocus>
-              Resume
-            </button>
-          </div>
-        </div>
-      )}
-      {ended && <EndScreen hud={hud} onNewGame={onNewGame} />}
-    </>
   );
 }

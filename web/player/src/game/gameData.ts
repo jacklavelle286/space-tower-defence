@@ -4,7 +4,8 @@
 // battlefield always plays the data in the working tree (Phase 14 local development entry [ASSUMPTION]).
 //
 // Everything fetched is untrusted until game-core's strict parsers accept it.
-import { parseCurrent, parsePlanet, parseRuleset, SUPPORTED_MECHANICS, type PlanetDocument, type Ruleset } from "@scd/game-core";
+import { parseCurrent, parsePlanet, parseRuleset, SUPPORTED_MECHANICS, type CurrentPointers, type PlanetDocument, type Ruleset } from "@scd/game-core";
+import { LIMITS } from "@scd/shared";
 
 export interface GameData {
   readonly ruleset: Ruleset;
@@ -17,10 +18,22 @@ async function getJson(path: string): Promise<unknown> {
   return response.json() as Promise<unknown>;
 }
 
-export async function loadGameData(): Promise<GameData> {
-  const current = parseCurrent(await getJson("/game-data/current.json"));
-  const ruleset = parseRuleset(await getJson(`/game-data/ruleset/${current.rulesetVersion}.json`));
+/** The released versions (/game-data/current.json); a new run pins these (spine S5.1). */
+export async function loadCurrent(): Promise<CurrentPointers> {
+  return parseCurrent(await getJson("/game-data/current.json"));
+}
+
+/** The ruleset and planet document of given versions: a saved run plays the versions it pinned, not current.json. */
+export async function loadGameDataVersions(rulesetVersion: string, campaignVersion: string): Promise<GameData> {
+  const pattern = new RegExp(LIMITS.gameData.versionPattern);
+  if (!pattern.test(rulesetVersion) || !pattern.test(campaignVersion)) throw new Error("game data version is malformed");
+  const ruleset = parseRuleset(await getJson(`/game-data/ruleset/${rulesetVersion}.json`));
   if (!SUPPORTED_MECHANICS.includes(ruleset.mechanics)) throw new Error(`ruleset ${ruleset.version}: mechanics ${ruleset.mechanics} not supported`);
-  const planet = parsePlanet(await getJson(`/game-data/campaign/${current.campaignVersion}.json`), ruleset);
+  const planet = parsePlanet(await getJson(`/game-data/campaign/${campaignVersion}.json`), ruleset);
   return { ruleset, planet };
+}
+
+export async function loadGameData(): Promise<GameData> {
+  const current = await loadCurrent();
+  return loadGameDataVersions(current.rulesetVersion, current.campaignVersion);
 }

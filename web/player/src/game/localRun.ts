@@ -4,12 +4,13 @@
 // the op is built, reduce() decides, and only an APPLIED result changes the state. Nothing is saved or sent: signing
 // in, the op queue and IndexedDB are later phases. A refused op here is a bug in the slice, so it throws.
 import { currentSlotId, reduce, type Op, type Placements, type RunState, type Snapshot } from "@scd/game-core";
+import type { RunPort } from "./runPort";
 
 type Listener = (state: RunState) => void;
 
 type OpPayload<T extends Op["type"]> = Extract<Op, { type: T }>["payload"];
 
-export class LocalRun {
+export class LocalRun implements RunPort {
   #state: RunState;
   readonly #listeners = new Set<Listener>();
   readonly #newId: () => string;

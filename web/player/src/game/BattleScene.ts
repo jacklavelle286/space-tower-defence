@@ -6,9 +6,10 @@
 // tower and per alien with the battle, and plays cosmetic effects (stars, leak puffs) for the events since the
 // last frame. Beams are drawn from the tower's last shot (tick and landing point), so they are state, not timers.
 import { routePoint, type Battle, type BattleEvent } from "@scd/game-core";
-import { GameObjects, Scene } from "phaser";
+import { GameObjects, Scene, type Input } from "phaser";
 import { allFrames, ART, astronautArt, beamArt, frameKey, type ArtAsset } from "./assets";
 import type { GameBridge } from "./GameBridge";
+import { pressedOnCanvas } from "./pointer";
 import { colonyArt, routeTiles, TILE_PX, tileToPx, unitsToPx } from "./layout";
 
 /** Animation speed for every looped and one-shot animation, frames per second (cosmetic). */
@@ -103,7 +104,12 @@ export class BattleScene extends Scene {
       const image = this.add.image(tileToPx(pad.x), tileToPx(pad.y), frameKey(pad.open ? ART.padEmpty : ART.padClosed, 1));
       place(image, ART.padEmpty);
       image.setDepth(4).setInteractive({ useHandCursor: pad.open });
-      image.on("pointerdown", () => this.#bridge.selectPad(this.#bridge.selectedPad === pad.id ? null : pad.id));
+      image.on("pointerdown", (pointer: Input.Pointer) => {
+        // Phaser also listens on window and hit-tests presses that land on DOM overlays above the canvas (the
+        // learning panel, the end screen, dialogs). Only a press on the canvas itself is a press on a pad.
+        if (!pressedOnCanvas(pointer, this.game.canvas)) return;
+        this.#bridge.selectPad(this.#bridge.selectedPad === pad.id ? null : pad.id);
+      });
       image.on("pointerover", () => (this.#hoverPad = pad.id));
       image.on("pointerout", () => (this.#hoverPad = this.#hoverPad === pad.id ? null : this.#hoverPad));
       this.#pads.set(pad.id, image);

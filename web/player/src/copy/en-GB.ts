@@ -1,0 +1,137 @@
+// Every child-facing string of the player shell in one place, so the owner and playtesters can check them together
+// (D7.3 [ASSUMPTION]). Sync-chip lines are D7.1 verbatim; lines marked [PROPOSAL] are new wording for the owner to check.
+// The learning panel's lines live with the shared panel (web/shared/src/learning/copy.ts) and are repeated here as
+// COPY.learning, so this file still shows every word the player app says.
+import { PANEL_COPY } from "@scd/shared/learning";
+
+export const COPY = {
+  title: "Space Colony Defence",
+  landing: {
+    tagline: "Defend the moon colony from silly aliens!", // D3 J1 step 1
+    imNew: "I'm new",
+    signIn: "Sign in",
+    grownUp: "Ask a grown-up to help you make your account.", // D3 J1 step 1
+  },
+  callback: {
+    working: "Getting your astronaut…", // [PROPOSAL]
+    failed: "That didn't work. Please try signing in again.", // [PROPOSAL]
+  },
+  setup: {
+    heading: "Let's set up your astronaut!", // D3 J1 step 3
+    nameLabel: "Your name",
+    nameHint: "This is the name you'll see in the game.", // D4 P3
+    nameInvalid: "Use letters, numbers, spaces or hyphens (up to 20).", // [PROPOSAL]
+    pictureLabel: "Pick your picture",
+    birthdayLabel: "Your birthday",
+    birthdayHint: "Only used to choose activities for your age. Nobody else sees it.", // D4 P3
+    birthdayInvalid: "Please choose a real date.", // [PROPOSAL]
+    day: "Day",
+    month: "Month",
+    year: "Year",
+    done: "Done",
+    saving: "Saving…",
+    failed: "We couldn't save that. Please try again.", // [PROPOSAL]
+  },
+  home: {
+    greeting: (name: string) => `Hi, ${name}!`, // D4 P4
+    continueHeading: "Continue",
+    continueButton: "Continue",
+    wave: (n: number) => `Wave ${n}`,
+    newGame: "New game",
+    starting: "Starting…", // [PROPOSAL]
+    noWaveSet: "There is no game you can start yet.", // [PROPOSAL]
+    planetsHeading: "Planets",
+    comingLater: "Coming later",
+    ageOutOfRange: "We don't have activities for your age yet.", // D7.3 AGE_OUT_OF_RANGE
+    bankNotReady: "Activities for your age are still being made. Please come back soon.", // D7.3 BANK_NOT_READY
+    activeElsewhere: (device: string) => `You're playing on ${device} right now.`, // D4 P4
+    signOut: "Sign out",
+    practice: "Practice battle (development only)",
+  },
+  signOut: {
+    // J9 / E.7.4 [CONFIRMED] warning; online-only variant per F §7 (no local database yet, Phase 57) [PROPOSAL]
+    pendingWarning: "Some progress hasn't been saved yet. If you sign out now, your last change may need doing again.",
+    stay: "Stay signed in",
+    anyway: "Sign out anyway",
+    offline: "Connect to the internet to sign out", // J9
+  },
+  run: {
+    loading: "Getting your game ready…", // [PROPOSAL]
+    failed: "We couldn't open this game. Please check the internet and try again.", // [PROPOSAL]
+    notFound: "We couldn't find that game.", // [PROPOSAL]
+    waveRestart: (wave: number) => `Wave ${wave} will start again from the beginning.`, // D7.3, spine S3.2
+    elsewhere: (device: string, minutes: number) =>
+      `You're already playing on ${device}. Finish there first, or try again in ${minutes} ${minutes === 1 ? "minute" : "minutes"}.`, // D7.3
+    takeover: (device: string) => `This game may have unsaved progress on ${device}. Play here instead?`, // D7.3
+    takeoverGrownUp: "Progress there that hasn't reached the cloud won't be added.", // D7.3
+    playHere: "Play here",
+    notNow: "Not now",
+    stale: "This game was continued somewhere else.", // D7.3 DIVERGED after STALE_SESSION (options come in Phase 60)
+    limit: "You have 5 games on the go. Finish or give up one first.", // D7.3 RUN_LIMIT_REACHED
+    planetLocked: "This planet isn't open yet.", // D7.3 CONTENT_UNAVAILABLE PLANET_LOCKED
+    upgrade: "Reload to update the game", // D7.1 UPGRADE_REQUIRED
+    ended: "This game has finished.", // [PROPOSAL] RUN_TERMINAL: the final screen, not an error (D7.3)
+    complete: "Challenge complete!",
+    defeat: "The aliens got through this time.",
+    wavesCleared: (n: number) => `Waves cleared: ${n}`,
+    saveAndExit: "Save and exit",
+    saving: "Saving…",
+    home: "Home",
+    learning: "Learning time", // [PROPOSAL] heading of the panel when the activity cannot be shown
+    voidedContinue: "Continue",
+  },
+  learning: PANEL_COPY,
+  offline: "You need the internet for this.", // D7.3
+  loading: "Loading…",
+  startFailed: "We couldn't start the game. Please check the internet and try again.", // [PROPOSAL]
+  tryAgain: "Try again",
+  signInAgain: {
+    heading: "Sign in again to keep playing", // [PROPOSAL]
+    button: "Sign in",
+  },
+  otherPlayer: {
+    // P15 blocking screen (spine S7.2 "a different player is signed in") [PROPOSAL] wording
+    heading: "A different player signed in on this computer.",
+    signedOut: "You signed out in another tab.",
+    reloading: "Starting again…",
+    reload: "Start again",
+  },
+  sync: {
+    SYNCED: { line: "Saved to the cloud", icon: "icon-sync-saved" },
+    PENDING: { line: "Saving…", icon: "icon-sync-saving" },
+    RETRYING: { line: "Couldn't save — trying again", icon: "icon-sync-retrying" },
+    RETRYING_PROTOCOL: {
+      line: "Saving paused while the game updates",
+      grownUp: "Nothing is lost. Saving starts again by itself after the update.",
+      icon: "icon-sync-retrying",
+    },
+    AUTH_REQUIRED: {
+      line: "Sign in again to finish saving",
+      // Online-only mode: unsaved steps live only in memory and the sign-in redirect loses them (F §7, D7.1).
+      grownUp: "Your last change may need doing again.",
+      button: "Sign in",
+      icon: "icon-sync-signin",
+    },
+    DIVERGED_STALE: { line: "This game was continued somewhere else", icon: "icon-sync-warning" },
+    DIVERGED_REJECTED: { line: "We couldn't save some progress", icon: "icon-sync-warning" },
+    UPGRADE_REQUIRED: { line: "Reload to update the game", grownUp: "Your progress is kept.", button: "Reload", icon: "icon-sync-reload" },
+  },
+  months: [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December",
+  ],
+  avatars: {
+    "avatar-01": "astronaut with a rocket",
+    "avatar-02": "astronaut with a star",
+    "avatar-03": "astronaut with a moon",
+    "avatar-04": "astronaut with a comet",
+    "avatar-05": "astronaut with a ringed planet",
+    "avatar-06": "robot astronaut",
+    "avatar-07": "friendly alien astronaut",
+    "avatar-08": "astronaut with a telescope",
+    "avatar-09": "astronaut with a satellite",
+    "avatar-10": "astronaut with a sun",
+    "avatar-11": "astronaut with a meteor",
+    "avatar-12": "astro-cat",
+  } as Record<string, string>,
+} as const;

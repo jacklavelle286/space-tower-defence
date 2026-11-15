@@ -1,0 +1,50 @@
+/* The run screen (Phase 22): the battlefield with a slim bar above it for the sync chip and Save and exit.
+   It is exactly one window tall and never scrolls: top bar, then the HUD, then the canvas in whatever height is
+   left (Phaser's Scale.FIT fits the 1920x1056 canvas to that box by width and height), so the bottom row of pads
+   and the pad card stay on screen at 1280x800, 1366x768 and 1024x768. */
+.run-screen {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background: #141633;
+  color: #fff4d6;
+}
+
+.run-screen > .bf {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.run-screen .bf-stage {
+  flex: 1;
+  min-height: 0;
+}
+
+.run-screen .bf-canvas {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.run-top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 16px;
+}
+
+.run-notice {
+  margin: 0 16px 8px;
+}
+
+.run-ended {
+  position: relative;
+  flex: 1;
+}

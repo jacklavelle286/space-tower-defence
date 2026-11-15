@@ -12,3 +12,13 @@ body {
   margin: 0;
   font-family: var(--font-ui);
 }
+
+/* Form controls do not inherit the page font by default (browsers give buttons their own system font), so every
+   button, field and list in the game uses Unkempt wherever it is rendered, not only inside .bf or .screen. Classes that
+   set their own font (the learning panel's .lp-reading, Andika) still win. */
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}

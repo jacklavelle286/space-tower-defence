@@ -6,7 +6,7 @@
 //
 // Who decides what:
 // - game-core decides everything about the battle (Battle, step, the commands' rules) and the run (the reducer,
-//   through LocalRun). The bridge only routes.
+//   through a RunPort: LocalRun locally, SyncedRun for a saved run). The bridge only routes.
 // - The Phaser scene calls frame(deltaMs) once per rendered frame and then draws `battle` as it finds it. It never
 //   changes the battle; pointer input comes back in as selectPad.
 // - React never re-renders per frame: `hud` and `selectionChanged` are sent at most once per HUD_INTERVAL_MS of
@@ -37,7 +37,7 @@ import {
   type Speed,
   type Targeting,
 } from "@scd/game-core";
-import type { LocalRun } from "./localRun";
+import type { RunPort } from "./runPort";
 
 /** HUD events at most 10 per second (spine S10, E.5.2). */
 export const HUD_INTERVAL_MS = 100;
@@ -94,7 +94,7 @@ function sameShallow(a: object | null, b: object | null): boolean {
 
 export class GameBridge {
   readonly config: BattleConfig;
-  readonly #run: LocalRun;
+  readonly #run: RunPort;
   readonly #seed: string;
   #battle: Battle | null = null;
   #clock: ClockState = { accumulator: 0 };
@@ -116,7 +116,7 @@ export class GameBridge {
   };
   readonly #unsubscribeRun: () => void;
 
-  constructor(config: BattleConfig, run: LocalRun, seed: string) {
+  constructor(config: BattleConfig, run: RunPort, seed: string) {
     this.config = config;
     this.#run = run;
     this.#seed = seed;
@@ -286,6 +286,17 @@ export class GameBridge {
     const start = battleSnapshot(b);
     this.#run.startWave(start.credits, start.placements);
     beginWave(b);
+  }
+
+  /**
+   * Credits and placements while the battle is being prepared (PREP), for SAVE_PREP on Save and exit; null during a
+   * wave (save-and-exit mid-wave writes nothing, spine S3.2) or when there is no battle.
+   */
+  prepSnapshot(): Pick<Snapshot, "credits" | "placements"> | null {
+    const b = this.#battle;
+    if (b === null || b.status !== "PREP") return null;
+    const { credits, placements } = battleSnapshot(b);
+    return { credits, placements };
   }
 
   pause(): void {

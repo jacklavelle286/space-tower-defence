@@ -2,12 +2,42 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./global.css";
 import { App } from "./App";
+import { loadConfig } from "./config";
+import { COPY } from "./copy/en-GB";
+import type { Services } from "./shell/services";
 
 const root = document.getElementById("root");
 if (!root) throw new Error("index.html is missing #root");
+const reactRoot = createRoot(root);
 
-createRoot(root).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
+async function services(): Promise<Services> {
+  // `npm run dev` has no config.json and its origin is not a registered callback URL, so development uses a fake
+  // sign-in and an in-memory API (src/dev/). The production build drops this branch and never contains that code.
+  if (import.meta.env.DEV) {
+    const { createDevServices } = await import("./dev/devServices");
+    return createDevServices();
+  }
+  const config = await loadConfig();
+  const { createAmplifyAuth } = await import("./auth/amplifyAuth");
+  return { config, auth: createAmplifyAuth(config), reload: () => window.location.reload(), localPractice: false };
+}
+
+services().then(
+  (s) =>
+    reactRoot.render(
+      <StrictMode>
+        <App services={s} />
+      </StrictMode>,
+    ),
+  () =>
+    reactRoot.render(
+      <main className="screen screen-message">
+        <div className="panel">
+          <p className="message-line">{COPY.startFailed}</p>
+          <button type="button" className="btn btn-big" onClick={() => window.location.reload()}>
+            {COPY.tryAgain}
+          </button>
+        </div>
+      </main>,
+    ),
 );
