@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-sock: a single cream sock with red and blue stripes, ribbed cuff, coloured heel and toe. Foot points right.
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+  <defs>
+    <clipPath id="sock-clip"><path d="M70 50 H138 V140 Q138 152 150 158 L192 178 Q218 190 210 212 Q200 234 172 226 L94 194 Q70 184 70 160 Z"/></clipPath>
+  </defs>
+  <g id="sock" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <g id="foot-leg">
+      <path d="M70 50 H138 V140 Q138 152 150 158 L192 178 Q218 190 210 212 Q200 234 172 226 L94 194 Q70 184 70 160 Z" fill="#F4F1EA"/>
+      <g clip-path="url(#sock-clip)" stroke="none">
+        <rect id="stripe-1" x="60" y="72" width="90" height="16" fill="#E2403A"/>
+        <rect id="stripe-2" x="60" y="100" width="90" height="16" fill="#5AA9F0"/>
+        <rect id="stripe-3" x="60" y="128" width="90" height="16" fill="#E2403A"/>
+        <circle id="heel" cx="82" cy="190" r="28" fill="#5AA9F0"/>
+        <circle id="toe" cx="210" cy="214" r="30" fill="#E2403A"/>
+        <path id="sock-shade" d="M126 50 H150 V150 Q170 170 220 180 V240 H180 Q200 200 150 176 Q124 164 126 50 Z" fill="#2A1E3D" opacity="0.13"/>
+      </g>
+      <g fill="none" stroke-width="4">
+        <path d="M58 168 Q78 160 102 196" clip-path="url(#sock-clip)"/>
+        <path d="M186 174 Q170 196 180 230" clip-path="url(#sock-clip)"/>
+      </g>
+      <path d="M70 50 H138 V140 Q138 152 150 158 L192 178 Q218 190 210 212 Q200 234 172 226 L94 194 Q70 184 70 160 Z" fill="none"/>
+      <path id="sock-highlight" d="M80 150 V164" fill="none" stroke="#FFFFFF" stroke-width="5"/>
+    </g>
+    <g id="cuff">
+      <rect x="64" y="28" width="80" height="30" rx="10" fill="#F4F1EA"/>
+      <path d="M84 34 V52 M104 34 V52 M124 34 V52" fill="none" stroke="#D8D2C4" stroke-width="4"/>
+      <rect x="64" y="28" width="80" height="30" rx="10" fill="none"/>
+    </g>
+  </g>
+</svg>

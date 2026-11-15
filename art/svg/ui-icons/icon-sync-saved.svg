@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- icon-sync-saved: Sync saved: a cream cloud with a plum tick. Single frame. Anchor centre (32,32).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="sync-saved" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+  <clipPath id="cloud-clip"><path d="M15 50 Q5 50 5 41 Q5 32 14 31 Q14 17 27 15 Q37 14 41 22 Q45 18 51 20 Q57 23 56 30 Q61 33 60 41 Q59 50 50 50 Z"/></clipPath>
+  <g id="cloud-fill" clip-path="url(#cloud-clip)" stroke="none">
+    <path d="M15 50 Q5 50 5 41 Q5 32 14 31 Q14 17 27 15 Q37 14 41 22 Q45 18 51 20 Q57 23 56 30 Q61 33 60 41 Q59 50 50 50 Z" fill="#E6D9B5"/>
+    <path d="M15 50 Q5 50 5 41 Q5 32 14 31 Q14 17 27 15 Q37 14 41 22 Q45 18 51 20 Q57 23 56 30 Q61 33 60 41 Q59 50 50 50 Z" fill="#FFF4D6" transform="translate(-3 -3)"/>
+  </g>
+  <path id="cloud-highlight" d="M11 39 Q11 34 16 34" fill="none" stroke="#FFFFFF" stroke-width="2.5" opacity="0.85"/>
+  <path id="cloud-outline" d="M15 50 Q5 50 5 41 Q5 32 14 31 Q14 17 27 15 Q37 14 41 22 Q45 18 51 20 Q57 23 56 30 Q61 33 60 41 Q59 50 50 50 Z" fill="none"/>
+  <path id="tick" d="M22 36 L29 42 L41 29" fill="none" stroke-width="4.5"/>
+</g>
+</svg>

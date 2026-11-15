@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- group-frame: Number picture, a plain group frame: an empty rounded square that holds a group of counters.
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+<g id="group-frame" stroke="#2A1E3D" stroke-linejoin="round" stroke-linecap="round">
+  <path id="group-fill" d="M78 24 H178 Q232 24 232 78 V178 Q232 232 178 232 H78 Q24 232 24 178 V78 Q24 24 78 24 Z" fill="#FFF4D6" fill-opacity="0.35" stroke="none"/>
+  <path id="group-outline" d="M78 24 H178 Q232 24 232 78 V178 Q232 232 178 232 H78 Q24 232 24 178 V78 Q24 24 78 24 Z" fill="none" stroke-width="7"/>
+  <path id="group-inner" d="M80 40 H176 Q216 40 216 80 V176 Q216 216 176 216 H80 Q40 216 40 176 V80 Q40 40 80 40 Z" fill="none" stroke="#FFF4D6" stroke-width="4" stroke-dasharray="1 12" opacity="0.9"/>
+</g>
+</svg>

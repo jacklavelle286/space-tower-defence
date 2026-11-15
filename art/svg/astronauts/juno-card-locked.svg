@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Juno locked silhouette (class.juno.locked): flat night-blue #23295E fill of juno-card.svg's outer shape plus a
+       plum outline. Keeps the upward funnel and the goggles bump on the helmet. Anchor centre (128,128).
+       Same transform as the portrait. -->
+  <g id="juno-locked" transform="translate(0.3 3.1) scale(1.13)" stroke-linejoin="round" stroke-linecap="round">
+    <g id="outline-pass" fill="#23295E" stroke="#2A1E3D" stroke-width="12.4">
+      <rect x="58" y="62" width="24" height="60" rx="7"/>
+<path d="M58 64 L48 34 H92 L82 64 Z"/>
+<ellipse cx="70" cy="30" rx="24" ry="13"/>
+<path d="M78 196 V170 Q78 136 112 134 H144 Q178 136 178 170 V196 Q178 204 170 204 H86 Q78 204 78 196 Z"/>
+<circle cx="128" cy="94" r="50"/>
+<rect x="97" y="32" width="62" height="27" rx="13.5"/>
+      <path d="M85 68 Q93 55 106 48 M150 48 Q163 55 171 68" fill="none" stroke-width="26.4"/>
+    </g>
+    <g id="fill-pass" fill="#23295E" stroke="none">
+      <rect x="58" y="62" width="24" height="60" rx="7"/>
+<path d="M58 64 L48 34 H92 L82 64 Z"/>
+<ellipse cx="70" cy="30" rx="24" ry="13"/>
+<path d="M78 196 V170 Q78 136 112 134 H144 Q178 136 178 170 V196 Q178 204 170 204 H86 Q78 204 78 196 Z"/>
+<circle cx="128" cy="94" r="50"/>
+<rect x="97" y="32" width="62" height="27" rx="13.5"/>
+      <path d="M85 68 Q93 55 106 48 M150 48 Q163 55 171 68" fill="none" stroke="#23295E" stroke-width="14"/>
+    </g>
+  </g>
+</svg>

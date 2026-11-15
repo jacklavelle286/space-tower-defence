@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- deco-crater-1: a small shallow moon crater lying flat on the ground (4:3 ellipse): lit lavender rim, dark bowl with the shade on the top-left inner wall. Single frame. Anchor centre (128,128).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="crater" stroke="#2A1E3D" stroke-linejoin="round" stroke-linecap="round">
+  <clipPath id="rim-clip"><ellipse cx="128" cy="128" rx="60" ry="45"/></clipPath>
+  <clipPath id="bowl-clip"><ellipse cx="131.6" cy="131.6" rx="43.2" ry="32.4"/></clipPath>
+  <g id="rim">
+    <ellipse cx="128" cy="128" rx="60" ry="45" fill="#9C8FD6" stroke="none"/>
+    <ellipse clip-path="url(#rim-clip)" cx="123.8" cy="123.8" rx="60" ry="45" fill="#B3A8E3" stroke="none"/>
+    <path id="rim-highlight" d="M76.4 113.6 A55.2 41.4 0 0 1 110 89.3" fill="none" stroke="#C9C0F0" stroke-width="5"/>
+  </g>
+  <g id="bowl">
+    <ellipse cx="131.6" cy="131.6" rx="43.2" ry="32.4" fill="#4A3F7A" stroke="none"/>
+    <ellipse clip-path="url(#bowl-clip)" cx="137.4" cy="137.4" rx="43.2" ry="32.4" fill="#6B5CA5" stroke="none"/>
+    <ellipse cx="131.6" cy="131.6" rx="43.2" ry="32.4" fill="none" stroke-width="5"/>
+  </g>
+  <ellipse id="rim-outline" cx="128" cy="128" rx="60" ry="45" fill="none" stroke-width="8"/>
+</g>
+</svg>

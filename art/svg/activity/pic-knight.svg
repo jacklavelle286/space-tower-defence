@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-knight: a friendly cartoon knight in grey armour, open-face helmet with a red plume, holding a plain
+       navy shield with a gold rim (no emblem, no heraldry). No sword, no weapon.
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+  <defs>
+    <clipPath id="helmet-clip"><path d="M82 120 V86 Q82 42 128 42 Q174 42 174 86 V120 Q174 132 162 132 H94 Q82 132 82 120 Z"/></clipPath>
+    <clipPath id="torso-clip"><rect x="84" y="128" width="88" height="72" rx="18"/></clipPath>
+  </defs>
+  <g id="knight" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" transform="translate(-6 0)">
+    <path id="plume" d="M124 48 Q126 18 100 14 Q82 12 72 28 Q92 26 100 36 Q106 44 106 54 Z" fill="#E2403A"/>
+    <g id="legs" fill="#A7B0C8">
+      <rect x="98" y="190" width="24" height="36" rx="8"/>
+      <rect x="134" y="190" width="24" height="36" rx="8"/>
+    </g>
+    <g id="boots" fill="#7F89A6">
+      <path d="M92 240 V228 Q92 218 102 218 H116 Q126 218 128 228 V240 Z"/>
+      <path d="M128 240 V228 Q128 218 138 218 H152 Q162 218 164 228 V240 Z"/>
+    </g>
+    <g id="arm-back">
+      <path d="M92 146 Q74 166 80 190" fill="none" stroke-width="26"/>
+      <path d="M92 146 Q74 166 80 190" fill="none" stroke="#A7B0C8" stroke-width="12"/>
+      <circle cx="80" cy="194" r="10.5" fill="#7F89A6"/>
+    </g>
+    <g id="torso">
+      <rect x="84" y="128" width="88" height="72" rx="18" fill="#A7B0C8"/>
+      <g clip-path="url(#torso-clip)" stroke="none">
+        <rect x="80" y="178" width="96" height="12" fill="#D08A55"/>
+        <path id="torso-shade" d="M160 128 H176 V204 H146 Q162 176 160 128 Z" fill="#2A1E3D" opacity="0.13"/>
+      </g>
+      <path d="M84 178 H172 M84 190 H172" fill="none" stroke-width="4"/>
+      <rect x="84" y="128" width="88" height="72" rx="18" fill="none"/>
+      <path id="torso-highlight" d="M94 164 V150 Q94 142 102 140" fill="none" stroke="#C9D0E2" stroke-width="5"/>
+    </g>
+    <g id="helmet">
+      <path d="M82 120 V86 Q82 42 128 42 Q174 42 174 86 V120 Q174 132 162 132 H94 Q82 132 82 120 Z" fill="#A7B0C8"/>
+      <path id="helmet-shade" clip-path="url(#helmet-clip)" d="M160 50 Q172 100 160 136 H180 V50 Z" fill="#2A1E3D" opacity="0.13" stroke="none"/>
+      <path d="M82 120 V86 Q82 42 128 42 Q174 42 174 86 V120 Q174 132 162 132 H94 Q82 132 82 120 Z" fill="none"/>
+      <path id="crest" d="M128 46 V68" fill="none" stroke-width="4"/>
+      <path id="helmet-highlight" d="M92 92 Q92 66 108 54" fill="none" stroke="#C9D0E2" stroke-width="5"/>
+      <rect id="face-opening" x="98" y="72" width="60" height="46" rx="16" fill="#D9A27A" stroke-width="5"/>
+      <g id="face-features" stroke="none">
+        <ellipse cx="118" cy="93" rx="4" ry="5.2" fill="#2A1E3D"/>
+        <ellipse cx="140" cy="92" rx="4" ry="5.2" fill="#2A1E3D"/>
+        <circle cx="119.4" cy="90.6" r="1.6" fill="#FFFFFF"/>
+        <circle cx="141.4" cy="89.6" r="1.6" fill="#FFFFFF"/>
+        <ellipse cx="110" cy="104" rx="5.5" ry="3.6" fill="#F48A9A" opacity="0.75"/>
+        <ellipse cx="148" cy="103" rx="5" ry="3.4" fill="#F48A9A" opacity="0.75"/>
+      </g>
+      <path id="mouth" d="M120 104 Q130 112 140 103" fill="none" stroke-width="3.5"/>
+    </g>
+    <g id="arm-front">
+      <path d="M160 146 Q148 162 142 174" fill="none" stroke-width="26"/>
+      <path d="M160 146 Q148 162 142 174" fill="none" stroke="#A7B0C8" stroke-width="12"/>
+    </g>
+    <g id="shield">
+      <path d="M140 140 H212 V172 Q212 210 176 226 Q140 210 140 172 Z" fill="#2E4A9E"/>
+      <path id="shield-rim" d="M150 150 H202 V172 Q202 202 176 214 Q150 202 150 172 Z" fill="none" stroke="#FFD86B" stroke-width="5"/>
+      <path d="M140 140 H212 V172 Q212 210 176 226 Q140 210 140 172 Z" fill="none"/>
+      <path id="shield-highlight" d="M158 160 V176" fill="none" stroke="#5C78C8" stroke-width="5"/>
+      <circle id="mitten-front" cx="140" cy="176" r="10.5" fill="#7F89A6"/>
+    </g>
+  </g>
+</svg>

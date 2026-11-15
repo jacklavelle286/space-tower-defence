@@ -1,0 +1,82 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Pip (Frost Explorer) shop portrait (L1 look): head and shoulders facing the viewer, playful grin, helmet on,
+       the tops of the two round canisters showing behind his shoulders. Anchor centre (128,128). See art/STYLE.md. -->
+  <defs>
+    <clipPath id="torso-clip"><path d="M38 246 V218 Q38 184 76 178 H180 Q218 184 218 218 V246 Z"/></clipPath>
+    <clipPath id="face-clip"><circle cx="128" cy="113" r="46"/></clipPath>
+    <clipPath id="canister-left-clip"><circle cx="60" cy="150" r="31"/></clipPath>
+    <clipPath id="canister-right-clip"><circle cx="196" cy="150" r="31"/></clipPath>
+  </defs>
+  <g id="pip-card" stroke="#2A1E3D" stroke-width="8" stroke-linejoin="round" stroke-linecap="round">
+    <g id="canisters">
+      <g id="canister-left">
+        <rect x="49" y="111" width="22" height="13" rx="5" fill="#A7B0C8" stroke-width="5"/>
+        <circle cx="60" cy="150" r="31" fill="#8ED8FF"/>
+        <path clip-path="url(#canister-left-clip)" d="M86 132 Q88 176 44 180 L94 190 Z" fill="#5FB4E6" stroke="none"/>
+        <circle cx="60" cy="150" r="31" fill="none"/>
+        <path d="M41 151 Q41 134 56 129" fill="none" stroke="#FFFFFF" stroke-width="5.5"/>
+      </g>
+      <g id="canister-right">
+        <rect x="185" y="111" width="22" height="13" rx="5" fill="#A7B0C8" stroke-width="5"/>
+        <circle cx="196" cy="150" r="31" fill="#8ED8FF"/>
+        <path clip-path="url(#canister-right-clip)" d="M222 132 Q224 176 180 180 L230 190 Z" fill="#5FB4E6" stroke="none"/>
+        <circle cx="196" cy="150" r="31" fill="none"/>
+        <path d="M177 151 Q177 134 192 129" fill="none" stroke="#FFFFFF" stroke-width="5.5"/>
+      </g>
+    </g>
+    <g id="torso">
+      <path d="M38 246 V218 Q38 184 76 178 H180 Q218 184 218 218 V246 Z" fill="#8ED8FF"/>
+      <g clip-path="url(#torso-clip)" stroke="none">
+        <!-- white shoulder panels -->
+        <path d="M30 256 V214 Q34 190 66 186 Q80 200 80 256 Z" fill="#F4F1EA" stroke="#2A1E3D" stroke-width="5"/>
+        <path d="M226 256 V214 Q222 190 190 186 Q176 200 176 256 Z" fill="#F4F1EA" stroke="#2A1E3D" stroke-width="5"/>
+        <path d="M200 178 H226 V256 H186 Q206 222 200 178 Z" fill="#2A1E3D" opacity="0.13"/>
+      </g>
+      <path d="M38 246 V218 Q38 184 76 178 H180 Q218 184 218 218 V246 Z" fill="none"/>
+      <path d="M48 226 V214 Q50 198 62 194" fill="none" stroke="#FFFFFF" stroke-width="5"/>
+      <g id="emblem">
+        <circle cx="128" cy="222" r="17" fill="#F4F1EA" stroke-width="4.5"/>
+        <path d="M128 211 V233 M118.5 216.5 L137.5 227.5 M118.5 227.5 L137.5 216.5" fill="none" stroke="#5FB4E6" stroke-width="4"/>
+        <circle cx="128" cy="222" r="3.4" fill="#5FB4E6" stroke="none"/>
+      </g>
+    </g>
+    <ellipse id="collar" cx="128" cy="181" rx="54" ry="13" fill="#A7B0C8" stroke-width="7"/>
+    <g id="helmet">
+      <circle id="glass" cx="128" cy="104" r="78" fill="#CFE9FF" fill-opacity="0.6" stroke="none"/>
+      <g id="head" stroke-width="5">
+        <circle id="face" cx="128" cy="113" r="46" fill="#FBE4D5"/>
+        <path clip-path="url(#face-clip)" d="M172 98 Q168 150 116 160 L180 162 Z" fill="#EFC6AE" stroke="none"/>
+        <circle cx="128" cy="113" r="46" fill="none"/>
+        <!-- tufty ginger hair, same cut as the sprite -->
+        <g transform="translate(128 113) scale(1.55) translate(-128 -98)">
+          <path id="fringe" d="M99 93 Q97 74 110 68 Q106 59 115 55 Q117 63 124 64 Q126 53 137 53 Q134 61 140 65 Q148 60 153 64 Q148 68 150 72 Q158 79 157 91 Q152 82 144 85 Q140 77 132 82 Q125 76 118 82 Q110 77 99 93 Z" fill="#E07A3C" stroke-width="3"/>
+          <path d="M108 77 Q113 70 121 69" fill="none" stroke="#F4A673" stroke-width="2.2"/>
+        </g>
+        <g id="face-features" stroke="none">
+          <ellipse cx="112" cy="118" rx="6.5" ry="8.5" fill="#2A1E3D"/>
+          <ellipse cx="144" cy="118" rx="6.5" ry="8.5" fill="#2A1E3D"/>
+          <circle cx="114.3" cy="114.5" r="2.6" fill="#FFFFFF"/>
+          <circle cx="146.3" cy="114.5" r="2.6" fill="#FFFFFF"/>
+          <ellipse cx="98" cy="132" rx="10" ry="6.5" fill="#F48A9A" opacity="0.7"/>
+          <ellipse cx="158" cy="132" rx="10" ry="6.5" fill="#F48A9A" opacity="0.7"/>
+          <g id="freckles" fill="#B5653F">
+            <circle cx="92" cy="126" r="2.6"/><circle cx="100" cy="124.5" r="2.6"/><circle cx="96" cy="131" r="2.6"/>
+            <circle cx="156" cy="124.5" r="2.6"/><circle cx="164" cy="126" r="2.6"/><circle cx="160" cy="131" r="2.6"/>
+          </g>
+        </g>
+        <!-- playful grin with a little tongue -->
+        <path id="mouth" d="M113 133 Q128 141 143 132 Q141 150 128 150 Q115 150 113 133 Z" fill="#FFFFFF" stroke-width="4.5"/>
+        <path d="M119 145 Q128 140 137 145 Q133 148.5 128 148.5 Q123 148.5 119 145 Z" fill="#F27C8C" stroke="none"/>
+      </g>
+      <g id="visor-rim">
+        <path d="M61 146 Q128 194 195 146" fill="none" stroke-width="22"/>
+        <path d="M61 146 Q128 194 195 146" fill="none" stroke="#8ED8FF" stroke-width="11"/>
+      </g>
+      <g id="helmet-highlight" stroke="#FFFFFF" fill="none">
+        <path d="M69 67 Q84 42 112 34" stroke-width="9" opacity="0.9"/>
+        <circle cx="61" cy="88" r="2" stroke-width="7" opacity="0.9"/>
+      </g>
+      <circle id="helmet-outline" cx="128" cy="104" r="78" fill="none"/>
+    </g>
+  </g>
+</svg>

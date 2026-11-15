@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Pop into stars, frame 03/08: cream puff and colourful stars burst outward (spread 0.9, scale 0.95), last frames fade. Anchor centre (128,128).
+       See art/STYLE.md. -->
+  <g id="pop-stars" stroke-linecap="round" stroke-linejoin="round">
+    <g id="glow" opacity="0.9"><path d="M128 96 A14.7 14.7 0 0 1 150.6 105.4 A14.7 14.7 0 0 1 160 128 A14.7 14.7 0 0 1 150.6 150.6 A14.7 14.7 0 0 1 128 160 A14.7 14.7 0 0 1 105.4 150.6 A14.7 14.7 0 0 1 96 128 A14.7 14.7 0 0 1 105.4 105.4 A14.7 14.7 0 0 1 128 96 Z" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="4"/><circle cx="118.4" cy="118.4" r="8" fill="#FFFFFF" stroke="none"/></g>
+    <g id="stars">
+    <path d="M0 -19.9 L5.3 -7.3 L19 -6.2 L8.5 2.8 L11.7 16.1 L0 9 L-11.7 16.1 L-8.5 2.8 L-19 -6.2 L-5.3 -7.3 Z" fill="#5AA9F0" stroke="#2A1E3D" stroke-width="4" stroke-linejoin="round" transform="translate(128 61.4) rotate(-25.5)"/>
+    <path d="M0 -17 L4.5 -6.2 L16.1 -5.2 L7.3 2.4 L10 13.7 L0 7.6 L-10 13.7 L-7.3 2.4 L-16.1 -5.2 L-4.5 -6.2 Z" fill="#9BE564" stroke="#2A1E3D" stroke-width="4" stroke-linejoin="round" transform="translate(180.5 87) rotate(6.3)"/>
+    <path d="M0 -18 L4.7 -6.5 L17.1 -5.5 L7.7 2.5 L10.6 14.5 L0 8.1 L-10.6 14.5 L-7.7 2.5 L-17.1 -5.5 L-4.7 -6.5 Z" fill="#E05FD0" stroke="#2A1E3D" stroke-width="4" stroke-linejoin="round" transform="translate(193.1 141.8) rotate(-10.2)"/>
+    <path d="M0 -19.9 L5.3 -7.3 L19 -6.2 L8.5 2.8 L11.7 16.1 L0 9 L-11.7 16.1 L-8.5 2.8 L-19 -6.2 L-5.3 -7.3 Z" fill="#FFD23F" stroke="#2A1E3D" stroke-width="4" stroke-linejoin="round" transform="translate(159.3 186.8) rotate(21.3)"/>
+    <path d="M0 -16 L4.2 -5.8 L15.2 -4.9 L6.8 2.2 L9.4 12.9 L0 7.2 L-9.4 12.9 L-6.8 2.2 L-15.2 -4.9 L-4.2 -5.8 Z" fill="#9FF3FF" stroke="#2A1E3D" stroke-width="4" stroke-linejoin="round" transform="translate(103.1 189.8) rotate(4.8)"/>
+    <path d="M0 -18 L4.7 -6.5 L17.1 -5.5 L7.7 2.5 L10.6 14.5 L0 8.1 L-10.6 14.5 L-7.7 2.5 L-17.1 -5.5 L-4.7 -6.5 Z" fill="#B98AF0" stroke="#2A1E3D" stroke-width="4" stroke-linejoin="round" transform="translate(64.7 148.6) rotate(36.3)"/>
+    <path d="M0 -15 L4 -5.4 L14.2 -4.6 L6.4 2.1 L8.8 12.1 L0 6.7 L-8.8 12.1 L-6.4 2.1 L-14.2 -4.6 L-4 -5.4 Z" fill="#FFD23F" stroke="#2A1E3D" stroke-width="4" stroke-linejoin="round" transform="translate(71.5 92.7) rotate(19.8)"/>
+    <circle cx="161.1" cy="60.1" r="5" fill="#E05FD0" stroke="#2A1E3D" stroke-width="2.5" opacity="1"/>
+    <circle cx="201.9" cy="112.3" r="6" fill="#FFD23F" stroke="#2A1E3D" stroke-width="2.5" opacity="1"/>
+    <circle cx="187.6" cy="174.5" r="5" fill="#9FF3FF" stroke="#2A1E3D" stroke-width="2.5" opacity="1"/>
+    <circle cx="130.6" cy="203.6" r="6" fill="#9BE564" stroke="#2A1E3D" stroke-width="2.5" opacity="1"/>
+    <circle cx="71.8" cy="178.6" r="5" fill="#5AA9F0" stroke="#2A1E3D" stroke-width="2.5" opacity="1"/>
+    <circle cx="53.1" cy="117.5" r="6" fill="#E05FD0" stroke="#2A1E3D" stroke-width="2.5" opacity="1"/>
+    <circle cx="90.2" cy="62.5" r="5" fill="#9BE564" stroke="#2A1E3D" stroke-width="2.5" opacity="1"/>
+    </g>
+  </g>
+</svg>

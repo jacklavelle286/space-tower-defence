@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-shop: a small shop front with a striped awning, window and door. Plain blank sign board, NO writing.
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+  <defs>
+    <clipPath id="facade-clip"><rect x="44" y="44" width="168" height="182" rx="10"/></clipPath>
+    <clipPath id="awning-clip"><path d="M34 100 Q34 94 40 94 H216 Q222 94 222 100 V124 a11.75 11.75 0 0 1 -23.5 0 a11.75 11.75 0 0 1 -23.5 0 a11.75 11.75 0 0 1 -23.5 0 a11.75 11.75 0 0 1 -23.5 0 a11.75 11.75 0 0 1 -23.5 0 a11.75 11.75 0 0 1 -23.5 0 a11.75 11.75 0 0 1 -23.5 0 a11.75 11.75 0 0 1 -23.5 0 Z"/></clipPath>
+  </defs>
+  <g id="shop" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <g id="facade">
+      <rect x="44" y="44" width="168" height="182" rx="10" fill="#FFB38A"/>
+      <path id="facade-shade" clip-path="url(#facade-clip)" d="M194 40 H216 V230 H176 Q196 150 194 40 Z" fill="#2A1E3D" opacity="0.13" stroke="none"/>
+      <rect x="44" y="44" width="168" height="182" rx="10" fill="none"/>
+    </g>
+    <g id="cornice">
+      <rect x="34" y="34" width="188" height="20" rx="10" fill="#D08A55"/>
+      <path d="M46 41 H90" fill="none" stroke="#FFF4D6" stroke-width="4" opacity="0.7"/>
+    </g>
+    <g id="sign">
+      <rect x="72" y="62" width="112" height="24" rx="8" fill="#FFF4D6" stroke-width="5"/>
+    </g>
+    <g id="window">
+      <rect x="58" y="148" width="82" height="60" rx="8" fill="#CFE9FF"/>
+      <path d="M99 148 V208 M58 178 H140" fill="none" stroke-width="4"/>
+      <path d="M68 170 L82 156 M70 194 L76 188" fill="none" stroke="#FFFFFF" stroke-width="4.5"/>
+      <rect x="52" y="206" width="94" height="10" rx="5" fill="#A7B0C8" stroke-width="5"/>
+    </g>
+    <g id="door">
+      <rect x="154" y="146" width="44" height="80" rx="8" fill="#2FA39A"/>
+      <rect x="162" y="156" width="28" height="22" rx="6" fill="#CFE9FF" stroke-width="4"/>
+      <circle cx="188" cy="194" r="4.5" fill="#FFD23F" stroke-width="3"/>
+      <rect x="146" y="222" width="60" height="10" rx="5" fill="#A7B0C8" stroke-width="5"/>
+    </g>
+    <g id="awning">
+      <g clip-path="url(#awning-clip)" stroke="none">
+        <rect x="34" y="88" width="188" height="52" fill="#F4F1EA"/>
+        <rect x="34" y="88" width="23.5" height="52" fill="#E2403A"/>
+        <rect x="81" y="88" width="23.5" height="52" fill="#E2403A"/>
+        <rect x="128" y="88" width="23.5" height="52" fill="#E2403A"/>
+        <rect x="175" y="88" width="23.5" height="52" fill="#E2403A"/>
+        <rect x="34" y="122" width="188" height="20" fill="#2A1E3D" opacity="0.13"/>
+      </g>
+      <path d="M34 100 Q34 94 40 94 H216 Q222 94 222 100 V124 a11.75 11.75 0 0 1 -23.5 0 a11.75 11.75 0 0 1 -23.5 0 a11.75 11.75 0 0 1 -23.5 0 a11.75 11.75 0 0 1 -23.5 0 a11.75 11.75 0 0 1 -23.5 0 a11.75 11.75 0 0 1 -23.5 0 a11.75 11.75 0 0 1 -23.5 0 a11.75 11.75 0 0 1 -23.5 0 Z" fill="none"/>
+    </g>
+  </g>
+</svg>

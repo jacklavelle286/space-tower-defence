@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-van: a small teal delivery van, side view facing right, no logo or plate. Single frame. Anchor centre (128,128).
+       Activity picture: text-free, one object, no background. Light from the top-left. See art/STYLE.md. -->
+<g id="van" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" transform="translate(0 -6)">
+<g id="body">
+  <clipPath id="body-clip"><path d="M30 70 H160 Q172 70 178 80 L204 122 Q232 126 234 148 V182 Q234 194 222 194 H36 Q24 194 24 182 V78 Q24 70 30 70 Z"/></clipPath>
+  <g clip-path="url(#body-clip)" stroke="none">
+    <path d="M30 70 H160 Q172 70 178 80 L204 122 Q232 126 234 148 V182 Q234 194 222 194 H36 Q24 194 24 182 V78 Q24 70 30 70 Z" fill="#2E918A"/>
+    <path d="M30 70 H160 Q172 70 178 80 L204 122 Q232 126 234 148 V182 Q234 194 222 194 H36 Q24 194 24 182 V78 Q24 70 30 70 Z" fill="#3FB8AF" transform="translate(-8 -8)"/>
+  </g>
+  <path d="M30 70 H160 Q172 70 178 80 L204 122 Q232 126 234 148 V182 Q234 194 222 194 H36 Q24 194 24 182 V78 Q24 70 30 70 Z" fill="none"/>
+</g>
+<path id="window" d="M166 86 L190 124 H156 Q150 124 150 118 V92 Q150 86 156 86 Z" fill="#CFE9FF" stroke-width="5"/>
+<path d="M158 112 L162 94" fill="none" stroke="#FFFFFF" stroke-width="4" opacity="0.9"/>
+<path id="stripe" d="M24 146 H234" fill="none" stroke="#FFF4D6" stroke-width="10"/>
+<path id="door" d="M142 86 V188" fill="none" stroke-width="4"/>
+<path id="handle" d="M128 128 H136" fill="none" stroke-width="5"/>
+<path id="rear-door" d="M70 76 V188" fill="none" stroke-width="4"/>
+<ellipse id="headlight" cx="226" cy="160" rx="6" ry="8" fill="#FFE79A" stroke-width="4"/>
+<path id="bumper" d="M206 192 H236" fill="none" stroke-width="8"/>
+<path d="M34 132 V86 Q34 80 42 80 H60" fill="none" stroke="#FFFFFF" stroke-width="6" opacity="0.85"/>
+<g id="wheels">
+  <circle cx="70" cy="194" r="24" fill="#2A1E3D"/>
+  <circle cx="70" cy="194" r="10" fill="#A7B0C8" stroke="none"/>
+  <circle cx="192" cy="194" r="24" fill="#2A1E3D"/>
+  <circle cx="192" cy="194" r="10" fill="#A7B0C8" stroke="none"/>
+</g>
+</g>
+</svg>

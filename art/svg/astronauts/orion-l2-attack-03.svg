@@ -1,0 +1,154 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Orion (Orbit Ranger) L2 attack, frame 03 of 06: 03 knees bend a little; front hand lets go and starts to point.
+       Anchor bottom-centre (128,256): boot soles sit on y=250. Light from the top-left. See art/STYLE.md. L2: longer telescope with an extending draw-tube and a bigger lens; gold star patch on the chest.
+       Generated from the Orion L1 idle drawing (same parts, same scale: outline 7, bands 26/12, visor 16/9). -->
+  <defs>
+    <clipPath id="torso-clip"><path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z"/></clipPath>
+    <clipPath id="face-clip"><circle cx="128" cy="98" r="29"/></clipPath>
+    <clipPath id="tube-clip"><rect x="188" y="130" width="16" height="84" rx="5"/></clipPath>
+    <clipPath id="brass-clip"><rect x="184" y="82" width="24" height="44" rx="6"/></clipPath>
+    <clipPath id="hood-clip"><path d="M183 88 L177 54 Q176 48 182 48 H210 Q216 48 215 54 L209 88 Z"/></clipPath>
+  </defs>
+  <g id="orion" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <g id="body-back" transform="translate(129 228) scale(1.02 0.965) translate(-129 -228)">
+      <g id="backpack">
+        <rect x="68" y="138" width="36" height="60" rx="13" fill="#A7B0C8"/>
+        <path d="M74 184 Q74 192 84 192 H98" fill="none" stroke="#7F89A6" stroke-width="5"/>
+      </g>
+      <g id="legs">
+        <rect x="97" y="190" width="25" height="42" rx="10" fill="#F4F1EA"/>
+        <rect x="130" y="190" width="25" height="42" rx="10" fill="#F4F1EA"/>
+        <rect x="101" y="210" width="17" height="10" rx="4" fill="#2E4A9E" stroke-width="4"/>
+        <rect x="134" y="210" width="17" height="10" rx="4" fill="#2E4A9E" stroke-width="4"/>
+      </g>
+    </g>
+    <g id="boots">
+      <path d="M93 250 V236 Q93 226 103 226 H114 Q124 226 125 234 Q133 237 133 244 V250 Z" fill="#2E4A9E"/>
+      <path d="M126 250 V236 Q126 226 136 226 H147 Q157 226 158 234 Q166 237 166 244 V250 Z" fill="#2E4A9E"/>
+      <g stroke="none">
+        <rect x="97" y="242" width="33" height="5" rx="2" fill="#FFD86B"/>
+        <rect x="130" y="242" width="33" height="5" rx="2" fill="#FFD86B"/>
+      </g>
+      <path d="M99 236 Q99 231 104 231" fill="none" stroke="#5C78C8" stroke-width="3.52"/>
+      <path d="M132 236 Q132 231 137 231" fill="none" stroke="#5C78C8" stroke-width="3.52"/>
+    </g>
+    <g id="body" transform="translate(129 228) scale(1.02 0.965) translate(-129 -228)">
+      <g id="torso">
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="#2E4A9E"/>
+        <g clip-path="url(#torso-clip)" stroke="none">
+          <g id="emblem" fill="#FFD86B">
+            <path transform="translate(104.0 156.0)" d="M0 -9.0 Q2.5 -2.5 9.0 0 Q2.5 2.5 0 9.0 Q-2.5 2.5 -9.0 0 Q-2.5 -2.5 0 -9.0 Z" fill="#FFD86B"/>
+            <path transform="translate(140.0 148.0)" d="M0 -6.0 Q1.7 -1.7 6.0 0 Q1.7 1.7 0 6.0 Q-1.7 1.7 -6.0 0 Q-1.7 -1.7 0 -6.0 Z" fill="#FFD86B"/>
+            <path transform="translate(128.0 176.0)" d="M0 -7.5 Q2.1 -2.1 7.5 0 Q2.1 2.1 0 7.5 Q-2.1 2.1 -7.5 0 Q-2.1 -2.1 0 -7.5 Z" fill="#FFD86B"/>
+            <path transform="translate(153.0 186.0)" d="M0 -6.0 Q1.7 -1.7 6.0 0 Q1.7 1.7 0 6.0 Q-1.7 1.7 -6.0 0 Q-1.7 -1.7 0 -6.0 Z" fill="#FFD86B"/>
+          </g>
+          <path id="torso-shade" d="M156 132 H170 V214 H140 Q158 186 156 132 Z" fill="#22377A" opacity="0.85"/>
+        </g>
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="none"/>
+        <path id="torso-highlight" d="M95 168 V152 Q95 143 103 141" fill="none" stroke="#5C78C8" stroke-width="4.48"/>
+        <g id="star-patch">
+          <circle cx="114" cy="190" r="12" fill="#22377A" stroke-width="4"/>
+          <path transform="translate(114 191) scale(0.5)" d="M0.0 -20.0 L5.3 -7.3 L19.0 -6.2 L8.6 2.8 L11.8 16.2 L0.0 9.0 L-11.8 16.2 L-8.6 2.8 L-19.0 -6.2 L-5.3 -7.3 Z" fill="#FFD86B" stroke-width="6"/>
+        </g>
+      </g>
+      <ellipse id="collar" cx="127" cy="141" rx="33" ry="9" fill="#A7B0C8" stroke-width="6"/>
+      <g id="arm-back">
+        <!-- back arm reaches across the chest; its mitten now holds the telescope alone -->
+        <path d="M94 154 Q118 188 182 162" fill="none" stroke-width="26"/>
+        <path d="M94 154 Q118 188 182 162" fill="none" stroke="#F4F1EA" stroke-width="12"/>
+        
+      </g>
+      <g id="arm-front">
+        <g id="gadget" transform="rotate(-4 196 150) rotate(10 196 174) translate(0 12)">
+          <circle id="lens-glow" cx="196" cy="24.1" r="14" fill="#FFE79A" opacity="0.7" stroke="none"/>
+          <rect id="eyepiece" x="191" y="212" width="10" height="16" rx="4" fill="#A7B0C8" stroke-width="5"/>
+          <g id="tube">
+            <rect x="188" y="130" width="16" height="84" rx="5" fill="#2E4A9E"/>
+            <rect clip-path="url(#tube-clip)" x="198" y="130" width="7" height="84" fill="#22377A" stroke="none"/>
+            <rect x="188" y="130" width="16" height="84" rx="5" fill="none"/>
+            <path d="M193 140 V202" fill="none" stroke="#5C78C8" stroke-width="3.52"/>
+          </g>
+          <g id="drawtube">
+          <rect x="189" y="102" width="14" height="26" rx="4" fill="#A7B0C8" stroke-width="6"/>
+          <rect x="197" y="105" width="4" height="20" rx="2" fill="#7F89A6" stroke="none"/>
+          <path d="M193 108 V122" fill="none" stroke="#C9D0E2" stroke-width="3"/>
+          </g>
+          <g id="brass" transform="translate(0 -18)">
+            <rect x="184" y="82" width="24" height="44" rx="6" fill="#FFD86B"/>
+            <rect clip-path="url(#brass-clip)" x="200" y="82" width="9" height="44" fill="#E0AE1F" stroke="none"/>
+            <rect x="184" y="82" width="24" height="44" rx="6" fill="none"/>
+            <path d="M189 92 V110" fill="none" stroke="#FFFFFF" stroke-width="3.52"/>
+          </g>
+          <rect id="ring" x="185" y="122" width="22" height="10" rx="4" fill="#FFD86B" stroke-width="5"/>
+          <rect id="ring-2" x="186" y="104" width="20" height="9" rx="4" fill="#FFD86B" stroke-width="5"/>
+          <g id="hood" transform="translate(0 -18) translate(196 88) scale(1.1) translate(-196 -88)" stroke-width="6.36">
+            <path d="M183 88 L177 54 Q176 48 182 48 H210 Q216 48 215 54 L209 88 Z" fill="#2E4A9E"/>
+            <path clip-path="url(#hood-clip)" d="M204 48 H218 V90 H200 Z" fill="#22377A" stroke="none"/>
+            <path d="M183 88 L177 54 Q176 48 182 48 H210 Q216 48 215 54 L209 88 Z" fill="none"/>
+            <path d="M178 60 H214" fill="none" stroke="#FFD86B" stroke-width="4.07" stroke-linecap="butt"/>
+            <path d="M184 70 L186 82" fill="none" stroke="#5C78C8" stroke-width="3.20"/>
+          </g>
+          <ellipse id="lens" cx="196" cy="27.1" rx="19.8" ry="7.7" fill="#FFF4D6" stroke-width="5"/>
+          <path d="M185.1 26.1 Q188.1 22.5 194.0 22.5" fill="none" stroke="#FFFFFF" stroke-width="3"/>
+        </g>
+        <g id="mitten-back" fill="#2E4A9E">
+          <circle cx="196" cy="150" r="10.5"/>
+          <ellipse cx="190" cy="141" rx="4" ry="5" stroke-width="4"/>
+        </g>
+        <g id="arm-point" transform="rotate(8 158 148)">
+        <!-- front arm lets go of the tube and POINTS towards the viewer's right: "found it!" -->
+        <path d="M158 148 Q186 178 216 170" fill="none" stroke-width="26"/>
+        <path d="M158 148 Q186 178 216 170" fill="none" stroke="#F4F1EA" stroke-width="12"/>
+        
+        <g id="mitten-front">
+          <!-- pointing mitten: one rounded pointing finger towards the viewer's right -->
+          <path d="M224 166 L237 161" fill="none" stroke-width="13"/>
+          <path d="M224 166 L237 161" fill="none" stroke="#2E4A9E" stroke-width="6"/>
+          <circle cx="221" cy="168" r="10.5" fill="#2E4A9E"/>
+          <ellipse cx="218" cy="158" rx="4" ry="5" fill="#2E4A9E" stroke-width="4"/>
+        </g>
+        </g>
+      </g>
+      <g id="helmet">
+        <circle id="glass" cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none"/>
+        
+        <g id="head" stroke-width="4">
+          <!-- wavy dark hair: a back mass behind the face with a wavy edge -->
+          <path id="hair-back" d="M97 108 Q88 96 94 84 Q90 72 101 66 Q104 56 117 57 Q126 50 137 56 Q150 54 155 64 Q166 70 162 84 Q166 95 158 104 Z" fill="#3B2A24"/>
+          <circle id="face" cx="128" cy="98" r="29" fill="#D6AE84"/>
+          <path id="face-shade" clip-path="url(#face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#B88F66" stroke="none"/>
+          <!-- side-swept wavy fringe -->
+          <path id="fringe" d="M99 96 Q96 68 126 66 Q156 66 158 90 Q152 80 144 82 Q138 74 128 80 Q118 74 110 82 Q104 84 99 96 Z" fill="#3B2A24"/>
+          <path d="M112 72 Q120 68 128 71" fill="none" stroke="#5A463C" stroke-width="3"/>
+          <!-- bright teal hearing aid on the near cheek edge -->
+          <g id="hearing-aid">
+            <path d="M102 92 Q98 95 100 99" fill="none" stroke-width="3"/>
+            <circle cx="101" cy="104" r="5" fill="#3FB8AF" stroke="#2A1E3D" stroke-width="3"/>
+            <circle cx="99.5" cy="102.5" r="1.3" fill="#FFFFFF" stroke="none"/>
+          </g>
+          <g id="face-features" stroke="none">
+            <ellipse cx="120" cy="101" rx="4.6" ry="6" fill="#2A1E3D"/>
+            <ellipse cx="142" cy="100" rx="4.6" ry="6" fill="#2A1E3D"/>
+            <circle cx="121.6" cy="98.3" r="1.9" fill="#FFFFFF"/>
+            <circle cx="143.6" cy="97.3" r="1.9" fill="#FFFFFF"/>
+            <ellipse cx="111" cy="110" rx="6" ry="3.8" fill="#F48A9A" opacity="0.6"/>
+            <ellipse cx="152" cy="109" rx="4.5" ry="3.4" fill="#F48A9A" opacity="0.6"/>
+          </g>
+          <g id="mouth">
+            <path d="M124 110 H144 Q142 121 134 121 Q126 121 124 110 Z" fill="#FFFFFF" stroke-width="3.5"/>
+            <path d="M128.5 117.5 Q134 114.5 139.5 117.5 Q137 120 134 120 Q131 120 128.5 117.5 Z" fill="#F27C8C" stroke="none"/>
+          </g>
+        </g>
+        <g id="visor-rim">
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke-width="16"/>
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke="#2E4A9E" stroke-width="9"/>
+        </g>
+        <g id="helmet-highlight" stroke="#FFFFFF" fill="none">
+          <path d="M88 70 Q98 54 116 49" stroke-width="7" opacity="0.9"/>
+          <circle cx="83" cy="84" r="1.5" stroke-width="5" opacity="0.9"/>
+        </g>
+        <circle id="helmet-outline" cx="126" cy="94" r="50" fill="none"/>
+      </g>
+    </g>
+  </g>
+</svg>

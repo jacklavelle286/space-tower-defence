@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- icon-speed-1: HUD speed 1x: one bold cream chevron pointing right (the button label carries 1x). Single frame. Anchor centre (32,32).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="speed-1" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+  <g id="chevron" fill="none">
+    <path d="M25 14 L42 32 L25 50" stroke="#2A1E3D" stroke-width="17"/>
+    <path d="M25 14 L42 32 L25 50" stroke="#FFF4D6" stroke-width="9"/>
+  </g>
+  <path d="M24 16.5 L29 22" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round"/>
+</g>
+</svg>

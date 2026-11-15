@@ -1,0 +1,133 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Juno (Comet Engineer) L1 attack, frame 01 of 6: 01 ready.
+       plain L1 kit.
+       Anchor bottom-centre (128,256): boot soles sit on y=250. Light from the top-left. See art/STYLE.md.
+       Built from juno-l1-idle-01.svg (same construction); funnel points straight up over the left shoulder. -->
+  <defs>
+    <clipPath id="torso-clip"><path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z"/></clipPath>
+    <clipPath id="face-clip"><circle cx="128" cy="98" r="29"/></clipPath>
+    <clipPath id="ball-clip"><circle cx="70" cy="128" r="22"/></clipPath>
+  </defs>
+<g id="juno" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+<g id="body-back">
+<g id="backpack">
+<rect x="68" y="138" width="36" height="60" rx="13" fill="#A7B0C8"/>
+<path d="M74 184 Q74 192 84 192 H98" fill="none" stroke="#7F89A6" stroke-width="5"/>
+</g>
+<g id="popper">
+<g id="funnel">
+<rect id="funnel-neck" x="60" y="62" width="24" height="46" rx="7" fill="#F4F1EA"/>
+<path d="M60 64 L50 34 H94 L84 64 Z" fill="#FFD23F"/>
+<path d="M78 62 L87 37" fill="none" stroke="#E0AE1F" stroke-width="4"/>
+<path d="M59 56 L55 43" fill="none" stroke="#FFEA99" stroke-width="4"/>
+<ellipse cx="72" cy="30" rx="24" ry="13" fill="#FFD23F"/>
+<ellipse id="funnel-hole" cx="72" cy="30.5" rx="15" ry="7.5" fill="#2A1E3D" stroke="none"/>
+</g>
+<g id="popper-ball">
+<circle cx="70" cy="128" r="22" fill="#FFD23F"/>
+<path clip-path="url(#ball-clip)" d="M88 114 Q90 142 64 152 L96 156 L96 112 Z" fill="#E0AE1F" stroke="none"/>
+<path id="ball-star" d="M0 -20 L5.3 -7.3 L19 -6.2 L8.6 2.8 L11.8 16.2 L0 9 L-11.8 16.2 L-8.6 2.8 L-19 -6.2 L-5.3 -7.3 Z" transform="translate(68 130) scale(0.36)" fill="#FFF4D6" stroke="none"/>
+<path d="M55 126 Q56 115 65 111" fill="none" stroke="#FFEA99" stroke-width="4"/>
+<circle cx="70" cy="128" r="22" fill="none"/>
+</g></g>
+<g id="legs">
+<rect x="97" y="190" width="25" height="42" rx="10" fill="#F4F1EA"/>
+<rect x="130" y="190" width="25" height="42" rx="10" fill="#F4F1EA"/>
+<rect x="101" y="210" width="17" height="10" rx="4" fill="#FFD23F" stroke-width="4"/>
+<rect x="134" y="210" width="17" height="10" rx="4" fill="#FFD23F" stroke-width="4"/>
+</g>
+</g>
+<g id="boots">
+<path d="M93 250 V236 Q93 226 103 226 H114 Q124 226 125 234 Q133 237 133 244 V250 Z" fill="#FFD23F"/>
+<path d="M126 250 V236 Q126 226 136 226 H147 Q157 226 158 234 Q166 237 166 244 V250 Z" fill="#FFD23F"/>
+<g stroke="none">
+<rect x="97" y="241" width="33" height="5.5" rx="2" fill="#E0AE1F"/>
+<rect x="130" y="241" width="33" height="5.5" rx="2" fill="#E0AE1F"/>
+</g>
+<path d="M99 236 Q99 231 104 231" fill="none" stroke="#FFEA99" stroke-width="3.5"/>
+<path d="M132 236 Q132 231 137 231" fill="none" stroke="#FFEA99" stroke-width="3.5"/>
+</g>
+<g id="body">
+<g id="torso">
+<path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="#FFD23F"/>
+<g clip-path="url(#torso-clip)">
+<path id="torso-shade" d="M156 132 H170 V214 H140 Q158 186 156 132 Z" fill="#E0AE1F" stroke="none"/>
+<rect id="chest-panel" x="102" y="145" width="40" height="30" rx="10" fill="#F4F1EA" stroke-width="4"/>
+<g id="emblem" stroke="none"><path d="M117 166 L130 153" fill="none" stroke="#FFD23F" stroke-width="5" stroke-linecap="round"/><circle cx="117" cy="165" r="6" fill="#FFD23F"/></g>
+<rect id="tool-belt" x="80" y="183" width="92" height="12" fill="#A7B0C8" stroke-width="4"/>
+</g>
+<path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="none"/>
+<path id="torso-highlight" d="M94 172 V152 Q94 143 102 141" fill="none" stroke="#FFEA99" stroke-width="4.5"/>
+</g>
+<g id="arm-back">
+<path d="M92 147 Q70 160 82 182" fill="none" stroke-width="26"/>
+<path d="M92 147 Q70 160 82 182" fill="none" stroke="#F4F1EA" stroke-width="12"/>
+<g id="mitten-back" fill="#FFD23F">
+<circle cx="88" cy="185" r="10.5"/>
+</g>
+</g>
+<ellipse id="collar" cx="127" cy="141" rx="33" ry="9" fill="#A7B0C8" stroke-width="6"/>
+<g id="arm-front">
+<path d="M158 148 Q178 158 176 178" fill="none" stroke-width="26"/>
+<path d="M158 148 Q178 158 176 178" fill="none" stroke="#F4F1EA" stroke-width="12"/>
+<g id="mitten-front" fill="#FFD23F">
+<circle cx="172" cy="190" r="10.5"/>
+</g>
+<g id="controller" transform="rotate(-8 184 184)">
+<rect x="166" y="171" width="40" height="26" rx="11" fill="#A7B0C8" stroke-width="6"/>
+<path d="M172 192 H200" fill="none" stroke="#7F89A6" stroke-width="3"/>
+<circle id="button-glow" cx="190" cy="181" r="12" fill="#FFE79A" opacity="0.6" stroke="none"/>
+<g id="button">
+<circle cx="190" cy="181" r="8.5" fill="#FFD23F" stroke-width="4"/>
+<circle cx="187.5" cy="178.5" r="2.6" fill="#FFFFFF" stroke="none"/>
+</g>
+</g>
+<ellipse id="mitten-thumb" cx="174" cy="178" rx="4.5" ry="5.5" fill="#FFD23F" stroke-width="4"/>
+</g>
+<g id="helmet">
+<circle id="glass" cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none"/>
+<g id="head" stroke-width="4">
+<path id="hair-bob" d="M94 113 Q88 62 128 61 Q168 62 162 113 Q162 119 155 119 H101 Q94 119 94 113 Z" fill="#1E1A24"/>
+<circle id="face" cx="128" cy="98" r="29" fill="#D9A27A"/>
+<path id="face-shade" clip-path="url(#face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#BC855F" stroke="none"/>
+<path id="fringe" d="M99 95 Q96 64 128 63 Q160 64 157 93 Q156 84 149 84 H107 Q100 84 99 95 Z" fill="#1E1A24"/>
+<path id="hair-sheen" d="M108 76 Q116 70 126 70" fill="none" stroke="#3B2A24" stroke-width="3.5"/>
+<g id="face-features" stroke="none">
+<ellipse cx="120" cy="101" rx="4.6" ry="6" fill="#2A1E3D"/>
+<ellipse cx="142" cy="100" rx="4.6" ry="6" fill="#2A1E3D"/>
+<circle cx="121.6" cy="98.3" r="1.9" fill="#FFFFFF"/>
+<circle cx="143.6" cy="97.3" r="1.9" fill="#FFFFFF"/>
+<ellipse cx="111" cy="110" rx="6" ry="3.8" fill="#E8806E" opacity="0.6"/>
+<ellipse cx="152" cy="109" rx="4.6" ry="3.4" fill="#E8806E" opacity="0.6"/>
+</g>
+<g id="mouth" fill="none" stroke-width="3.5">
+<path d="M123 111 Q134 120 146 108"/>
+<path d="M143.5 106 L148 104.5" stroke-width="4"/>
+</g>
+</g>
+<g id="visor-rim">
+<path d="M83 121 Q126 152 169 121" fill="none" stroke-width="16"/>
+<path d="M83 121 Q126 152 169 121" fill="none" stroke="#FFD23F" stroke-width="9"/>
+</g>
+<g id="helmet-highlight" stroke="#FFFFFF" fill="none">
+<path d="M86 78 Q92 64 102 57" stroke-width="7" opacity="0.9"/>
+<circle cx="83" cy="90" r="1.5" stroke-width="5" opacity="0.9"/>
+</g>
+<circle id="helmet-outline" cx="126" cy="94" r="50" fill="none"/>
+<g id="goggles">
+<path id="goggle-strap" d="M83 68 Q91 55 104 48 M148 46 Q161 52 169 66" fill="none" stroke-width="14"/>
+<path d="M83 68 Q91 55 104 48 M148 46 Q161 52 169 66" fill="none" stroke="#E0AE1F" stroke-width="6"/>
+<g id="goggle-frame" transform="rotate(-4 126 45)">
+<rect x="95" y="32" width="62" height="27" rx="13.5" fill="#FFD23F"/>
+<circle cx="111" cy="45.5" r="8" fill="#8ED8FF" stroke-width="3.5"/>
+<circle cx="141" cy="45.5" r="8" fill="#8ED8FF" stroke-width="3.5"/>
+<circle cx="108.5" cy="43" r="2.6" fill="#FFFFFF" stroke="none"/>
+<circle cx="138.5" cy="43" r="2.6" fill="#FFFFFF" stroke="none"/>
+<path d="M101 40 Q101 36 105 35" fill="none" stroke="#FFEA99" stroke-width="3.5"/>
+
+</g>
+</g>
+</g>
+</g>
+</g>
+</svg>

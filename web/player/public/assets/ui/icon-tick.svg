@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- icon-tick: Activity selected: a bold lime tick. Single frame. Anchor centre (32,32).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="tick" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+  <g id="tick" fill="none">
+    <path d="M13 33 L27 47 L52 18" stroke="#2A1E3D" stroke-width="18"/>
+    <path d="M13 33 L27 47 L52 18" stroke="#9BE564" stroke-width="9.5"/>
+  </g>
+  <path d="M12.5 31 L16 34.5 M48.5 19 L50.5 16.8" fill="none" stroke="#D2F5B8" stroke-width="2.5"/>
+</g>
+</svg>

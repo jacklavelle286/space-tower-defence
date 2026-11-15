@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-foxes: TWO orange foxes side by side (plural "two foxes"), the same fox as pic-fox.svg drawn at half size,
+       outline widths x1.8 so the line weight matches the family at display size. Optional entry.
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+  <defs>
+<g id="fox-shape" stroke="#2A1E3D" stroke-width="12.6" stroke-linejoin="round" stroke-linecap="round">
+<g id="tail">
+  <clipPath id="tail-clip"><path d="M80 140 Q34 150 22 112 Q14 78 44 70 Q58 104 96 120 Z"/></clipPath>
+  <path d="M80 140 Q34 150 22 112 Q14 78 44 70 Q58 104 96 120 Z" fill="#FF8A2A" stroke="none"/>
+  <g clip-path="url(#tail-clip)" stroke="none"><path d="M0 60 Q30 106 60 74 L60 40 L0 40 Z" fill="#F7F0E0"/></g>
+  <path d="M80 140 Q34 150 22 112 Q14 78 44 70 Q58 104 96 120 Z" fill="none"/>
+  <path d="M22 98 Q36 100 50 86" fill="none" stroke-width="7.2"/>
+</g>
+<g id="legs-far">
+  <path d="M105 150 H107 Q114 150 114 157 V213 Q114 220 107 220 H105 Q98 220 98 213 V157 Q98 150 105 150 Z" fill="#553424"/>
+  <path d="M177 150 H179 Q186 150 186 157 V213 Q186 220 179 220 H177 Q170 220 170 213 V157 Q170 150 177 150 Z" fill="#553424"/>
+</g>
+<g id="body">
+  <clipPath id="body-clip"><path d="M68 144 A64 34 0 1 1 196 144 A64 34 0 1 1 68 144 Z"/></clipPath>
+  <g clip-path="url(#body-clip)" stroke="none">
+    <path d="M68 144 A64 34 0 1 1 196 144 A64 34 0 1 1 68 144 Z" fill="#D9661A"/>
+    <path d="M68 144 A64 34 0 1 1 196 144 A64 34 0 1 1 68 144 Z" fill="#FF8A2A" transform="translate(-8 -8)"/>
+  </g>
+  <path d="M68 144 A64 34 0 1 1 196 144 A64 34 0 1 1 68 144 Z" fill="none"/>
+</g>
+<path d="M84 138 Q90 120 112 114" fill="none" stroke="#FFFFFF" stroke-width="10.8" opacity="0.85"/>
+<g id="legs-near">
+  <path d="M88 154 H90 Q98 154 98 162 V216 Q98 224 90 224 H88 Q80 224 80 216 V162 Q80 154 88 154 Z" fill="#553424"/>
+  <path d="M160 154 H162 Q170 154 170 162 V216 Q170 224 162 224 H160 Q152 224 152 216 V162 Q152 154 160 154 Z" fill="#553424"/>
+</g>
+<path id="ear-back" d="M168 92 L170 50 L196 80 Z" fill="#D9661A"/>
+<g id="head">
+  <clipPath id="head-clip"><path d="M156 104 Q160 72 192 72 Q212 74 218 92 L242 110 Q244 120 234 122 L210 128 Q186 140 166 128 Q154 118 156 104 Z"/></clipPath>
+  <g clip-path="url(#head-clip)" stroke="none">
+    <path d="M156 104 Q160 72 192 72 Q212 74 218 92 L242 110 Q244 120 234 122 L210 128 Q186 140 166 128 Q154 118 156 104 Z" fill="#D9661A"/>
+    <path d="M156 104 Q160 72 192 72 Q212 74 218 92 L242 110 Q244 120 234 122 L210 128 Q186 140 166 128 Q154 118 156 104 Z" fill="#FF8A2A" transform="translate(-6 -6)"/>
+  </g>
+  <path d="M156 104 Q160 72 192 72 Q212 74 218 92 L242 110 Q244 120 234 122 L210 128 Q186 140 166 128 Q154 118 156 104 Z" fill="none"/>
+</g>
+<g id="cheek">
+  <clipPath id="cheek-clip"><path d="M156 104 Q160 72 192 72 Q212 74 218 92 L242 110 Q244 120 234 122 L210 128 Q186 140 166 128 Q154 118 156 104 Z"/></clipPath>
+  <path clip-path="url(#cheek-clip)" d="M170 116 Q196 104 214 112 L246 116 V150 H150 Z" fill="#F7F0E0" stroke="none"/>
+  <path d="M156 104 Q160 72 192 72 Q212 74 218 92 L242 110 Q244 120 234 122 L210 128 Q186 140 166 128 Q154 118 156 104 Z" fill="none"/>
+</g>
+<path id="ear-front" d="M180 80 L198 42 L212 88 Z" fill="#FF8A2A"/>
+<path d="M190 76 L198 58 L204 80 Z" fill="#553424" stroke="none"/>
+<ellipse id="nose" cx="239" cy="114" rx="6" ry="5" fill="#2A1E3D" stroke="none"/>
+<g id="eye" stroke="none"><ellipse cx="204" cy="98" rx="5.5" ry="7" fill="#2A1E3D"/><circle cx="206" cy="95" r="2.2" fill="#FFFFFF"/></g>
+<path id="mouth" d="M214 122 Q222 128 230 122" fill="none" stroke-width="6.3"/>
+<path id="bib" d="M168 124 Q164 150 180 160 Q190 140 186 126 Z" fill="#F7F0E0" stroke-width="7.2"/>
+</g>
+  </defs>
+  <g id="foxes">
+    <use id="fox-right" href="#fox-shape" transform="translate(110 64) scale(0.54)"/>
+    <use id="fox-left" href="#fox-shape" transform="translate(1 52) scale(0.54)"/>
+  </g>
+</svg>

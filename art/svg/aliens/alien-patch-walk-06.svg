@@ -1,0 +1,76 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Patchling walk, frame 06 of 06: passing: front foot lifted, flag back.
+       Anchor bottom-centre (128,256): feet sit on y=250. Faces three-quarter to the viewer's right.
+       Light from the top-left. See art/STYLE.md. -->
+  <defs>
+    <clipPath id="ball-clip"><path d="M58 182 Q58 120 124 119 Q190 120 190 182 Q190 244 124 245 Q58 244 58 182 Z"/></clipPath>
+    <clipPath id="flag-clip"><path d="M190 50 Q168 40 145 50 Q122 60 104 52 Q96 49 96 58 L96 102 Q96 111 104 110 Q122 117 145 107 Q168 97 190 106 Z"/></clipPath>
+  </defs>
+  <g id="patchling" stroke="#2A1E3D" stroke-width="7" stroke-linecap="round" stroke-linejoin="round">
+    <g id="feet" fill="#F7F0E0">
+      <g id="foot-back" transform="translate(0 0)">
+        <path d="M84 243 Q84 234 100 234 Q118 234 118 243 Q118 250 108 250 L92 250 Q84 250 84 243 Z"/>
+      </g>
+      <g id="foot-front" transform="translate(0 -6)">
+        <path d="M134 243 Q134 234 152 234 Q170 234 170 243 Q170 250 160 250 L142 250 Q134 250 134 243 Z"/>
+        <path d="M146 241 Q154 238 162 241" fill="none" stroke="#FFFFFF" stroke-width="3" />
+      </g>
+    </g>
+    <g id="body" transform="translate(128 250) skewX(0) scale(1.02 0.97) translate(-128 -250)">
+      <g id="flag" transform="rotate(-4 194 196)">
+        <g id="pole">
+          <path d="M194 214 L194 48" fill="none" stroke-width="13"/>
+          <path d="M194 214 L194 48" fill="none" stroke="#A7B0C8" stroke-width="5"/>
+          <circle cx="194" cy="42" r="8" fill="#A7B0C8" stroke-width="5"/>
+          <circle cx="191.5" cy="39.5" r="2.5" fill="#FFFFFF" stroke="none"/>
+        </g>
+        <g id="cloth" transform="translate(190 78) skewY(4) translate(-190 -78)">
+          <path d="M190 50 Q168 40 145 50 Q122 60 104 52 Q96 49 96 58 L96 102 Q96 111 104 110 Q122 117 145 107 Q168 97 190 106 Z" fill="#E6BF94" stroke="none"/>
+          <g clip-path="url(#flag-clip)" stroke="none">
+            <path d="M80 104 Q120 122 150 112 Q172 104 200 112 L200 130 L80 130 Z" fill="#CFA273"/>
+          </g>
+          <path id="pad" d="M130 66 Q145 61 160 64 Q163 64 163 68 L162 92 Q162 96 158 96 Q145 99 131 97 Q127 96 127 92 L127 70 Q127 67 130 66 Z" fill="#FAE8CF" stroke-width="4"/>
+          <g id="dots" fill="#C08E62" stroke="none">
+            <circle cx="108" cy="68" r="3.2"/><circle cx="117" cy="82" r="3.2"/><circle cx="108" cy="96" r="3.2"/>
+            <circle cx="176" cy="62" r="3.2"/><circle cx="182" cy="78" r="3.2"/><circle cx="176" cy="94" r="3.2"/>
+          </g>
+          <path d="M190 50 Q168 40 145 50 Q122 60 104 52 Q96 49 96 58 L96 102 Q96 111 104 110 Q122 117 145 107 Q168 97 190 106 Z" fill="none"/>
+        </g>
+      </g>
+      <g id="ball">
+        <path id="ball-fill" d="M58 182 Q58 120 124 119 Q190 120 190 182 Q190 244 124 245 Q58 244 58 182 Z" fill="#F7F0E0" stroke="none"/>
+        <g clip-path="url(#ball-clip)" stroke="none">
+          <path id="ball-shade" d="M200 130 Q170 160 176 210 Q168 236 120 250 L200 256 Z" fill="#DDD2BA"/>
+          <ellipse id="belly" cx="126" cy="226" rx="44" ry="15" fill="#FFFFFF"/>
+        </g>
+        <path id="ball-highlight" d="M74 168 Q82 142 108 132" fill="none" stroke="#FFFFFF" stroke-width="9"/>
+        <circle cx="70" cy="186" r="3.5" fill="#FFFFFF" stroke="none"/>
+        <path id="ball-outline" d="M58 182 Q58 120 124 119 Q190 120 190 182 Q190 244 124 245 Q58 244 58 182 Z" fill="none"/>
+      </g>
+      <g id="arm-front">
+        <path d="M176 196 Q186 196 192 190" fill="none" stroke-width="20"/>
+        <path d="M176 196 Q186 196 192 190" fill="none" stroke="#F7F0E0" stroke-width="7"/>
+        <circle cx="194" cy="189" r="10" fill="#F7F0E0" stroke-width="5"/>
+      </g>
+      <g id="face" transform="translate(1 1)">
+        <g id="eyes">
+          <ellipse cx="116" cy="168" rx="15" ry="18" fill="#FFFFFF" stroke-width="5"/>
+          <ellipse cx="156" cy="167" rx="14" ry="17" fill="#FFFFFF" stroke-width="5"/>
+          <g stroke="none">
+            <circle cx="120" cy="171" r="8.5" fill="#2A1E3D"/>
+            <circle cx="160" cy="170" r="8" fill="#2A1E3D"/>
+            <circle cx="123" cy="167" r="3.4" fill="#FFFFFF"/>
+            <circle cx="163" cy="166" r="3.2" fill="#FFFFFF"/>
+            <circle cx="117" cy="175" r="1.6" fill="#FFFFFF"/>
+            <circle cx="157" cy="174" r="1.5" fill="#FFFFFF"/>
+          </g>
+        </g>
+        <g id="blush" stroke="none" fill="#E79AD0" opacity="0.8">
+          <ellipse cx="98" cy="194" rx="10" ry="6"/>
+          <ellipse cx="174" cy="192" rx="8" ry="5.5"/>
+        </g>
+        <path id="mouth" d="M122 198 Q140 214 158 196" fill="none" stroke-width="5.5"/>
+      </g>
+    </g>
+  </g>
+</svg>

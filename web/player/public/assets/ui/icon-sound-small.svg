@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- icon-sound-small: Sound, small: a plain cream speaker with one short sound arc on a cyan button. Single frame. Anchor centre (64,64).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="sound-small" stroke="#2A1E3D" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+  <clipPath id="button-clip"><path d="M64 8 A56 56 0 1 1 63.9 8 Z"/></clipPath>
+  <g id="button-fill" clip-path="url(#button-clip)" stroke="none">
+    <path d="M64 8 A56 56 0 1 1 63.9 8 Z" fill="#34B9CC"/>
+    <path d="M64 8 A56 56 0 1 1 63.9 8 Z" fill="#5BE0F0" transform="translate(-5 -5)"/>
+  </g>
+  <path id="button-highlight" d="M22 58 Q24 32 46 20" fill="none" stroke="#FFFFFF" stroke-width="5" opacity="0.85"/>
+  <path id="button-outline" d="M64 8 A56 56 0 1 1 63.9 8 Z" fill="none"/>
+  <g id="speaker" transform="translate(6 0)">
+  <clipPath id="speaker-clip"><path d="M22 52 H35 L53 36 Q59 32 59 39 V89 Q59 96 53 92 L35 76 H22 Q18 76 18 72 V56 Q18 52 22 52 Z"/></clipPath>
+  <g id="speaker-fill" clip-path="url(#speaker-clip)" stroke="none">
+    <path d="M22 52 H35 L53 36 Q59 32 59 39 V89 Q59 96 53 92 L35 76 H22 Q18 76 18 72 V56 Q18 52 22 52 Z" fill="#E6D9B5"/>
+    <path d="M22 52 H35 L53 36 Q59 32 59 39 V89 Q59 96 53 92 L35 76 H22 Q18 76 18 72 V56 Q18 52 22 52 Z" fill="#FFF4D6" transform="translate(-3 -3)"/>
+  </g>
+  <path id="speaker-outline" d="M22 52 H35 L53 36 Q59 32 59 39 V89 Q59 96 53 92 L35 76 H22 Q18 76 18 72 V56 Q18 52 22 52 Z" fill="none"/>
+  </g>
+  <g id="sound-arc" fill="none">
+    <path d="M78 50 Q86 64 78 78" stroke="#2A1E3D" stroke-width="13"/>
+    <path d="M78 50 Q86 64 78 78" stroke="#FFF4D6" stroke-width="5"/>
+  </g>
+</g>
+</svg>

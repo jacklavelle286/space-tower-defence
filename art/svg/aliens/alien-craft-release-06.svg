@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Alien Craft release, frame 06 of 06: all four blobs have landed, happy; the last stars are nearly gone.
+       Anchor bottom-centre (256,512). Playful pop, no damage or debris.
+       Light from the top-left. See art/STYLE.md. -->
+  <g id="stars" opacity="0.4">
+    <path d="M0 -16 Q4.5 -4.5 16 0 Q4.5 4.5 0 16 Q-4.5 4.5 -16 0 Q-4.5 -4.5 0 -16 Z" transform="translate(196 150)" fill="#FFF4D6" stroke="none"/>
+    <path d="M0 -11 Q3.1 -3.1 11 0 Q3.1 3.1 0 11 Q-3.1 3.1 -11 0 Q-3.1 -3.1 0 -11 Z" transform="translate(330 120)" fill="#FFF4D6" stroke="none"/>
+    <path d="M0 -8 Q2.2 -2.2 8 0 Q2.2 2.2 0 8 Q-2.2 2.2 -8 0 Q-2.2 -2.2 0 -8 Z" transform="translate(268 200)" fill="#9FF3FF" stroke="none"/>
+  </g>
+    <g id="blob-1" transform="translate(136 500) rotate(0) scale(0.36) translate(-128 -250)"
+       stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+      <clipPath id="blob-1-clip"><path d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z"/></clipPath>
+      <g stroke-width="12">
+        <path d="M104 130 Q98 108 92 96" fill="none"/><circle cx="90" cy="88" r="15" fill="#9FF3FF" stroke-width="9"/>
+        <path d="M158 130 Q166 108 174 97" fill="none"/><circle cx="177" cy="89" r="15" fill="#9FF3FF" stroke-width="9"/>
+      </g>
+      <path d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z" fill="#5AA9F0" stroke="none"/>
+      <g clip-path="url(#blob-1-clip)" stroke="none">
+        <path d="M236 120 Q206 150 212 236 Q208 246 186 252 L240 256 Z" fill="#3F86CF"/>
+        <ellipse cx="132" cy="228" rx="62" ry="22" fill="#8CC7F6"/>
+      </g>
+      <path d="M58 176 Q70 146 104 136" fill="none" stroke="#BFE3FF" stroke-width="14"/>
+      <path d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z" fill="none" stroke-width="16"/>
+      <ellipse cx="110" cy="172" rx="21" ry="24" fill="#FFFFFF" stroke-width="9"/>
+      <ellipse cx="162" cy="171" rx="20" ry="23" fill="#FFFFFF" stroke-width="9"/>
+      <circle cx="116" cy="177" r="11" fill="#2A1E3D" stroke="none"/><circle cx="168" cy="176" r="10.5" fill="#2A1E3D" stroke="none"/>
+      <circle cx="120" cy="172" r="4.5" fill="#FFFFFF" stroke="none"/><circle cx="172" cy="171" r="4.3" fill="#FFFFFF" stroke="none"/>
+      <path d="M112 206 Q138 226 166 200" fill="none" stroke-width="11"/>
+    </g>
+    <g id="blob-2" transform="translate(376 500) rotate(0) scale(0.36) translate(-128 -250)"
+       stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+      <clipPath id="blob-2-clip"><path d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z"/></clipPath>
+      <g stroke-width="12">
+        <path d="M104 130 Q98 108 92 96" fill="none"/><circle cx="90" cy="88" r="15" fill="#9FF3FF" stroke-width="9"/>
+        <path d="M158 130 Q166 108 174 97" fill="none"/><circle cx="177" cy="89" r="15" fill="#9FF3FF" stroke-width="9"/>
+      </g>
+      <path d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z" fill="#5AA9F0" stroke="none"/>
+      <g clip-path="url(#blob-2-clip)" stroke="none">
+        <path d="M236 120 Q206 150 212 236 Q208 246 186 252 L240 256 Z" fill="#3F86CF"/>
+        <ellipse cx="132" cy="228" rx="62" ry="22" fill="#8CC7F6"/>
+      </g>
+      <path d="M58 176 Q70 146 104 136" fill="none" stroke="#BFE3FF" stroke-width="14"/>
+      <path d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z" fill="none" stroke-width="16"/>
+      <ellipse cx="110" cy="172" rx="21" ry="24" fill="#FFFFFF" stroke-width="9"/>
+      <ellipse cx="162" cy="171" rx="20" ry="23" fill="#FFFFFF" stroke-width="9"/>
+      <circle cx="116" cy="177" r="11" fill="#2A1E3D" stroke="none"/><circle cx="168" cy="176" r="10.5" fill="#2A1E3D" stroke="none"/>
+      <circle cx="120" cy="172" r="4.5" fill="#FFFFFF" stroke="none"/><circle cx="172" cy="171" r="4.3" fill="#FFFFFF" stroke="none"/>
+      <path d="M112 206 Q138 226 166 200" fill="none" stroke-width="11"/>
+    </g>
+    <g id="blob-3" transform="translate(216 500) rotate(0) scale(0.36) translate(-128 -250)"
+       stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+      <clipPath id="blob-3-clip"><path d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z"/></clipPath>
+      <g stroke-width="12">
+        <path d="M104 130 Q98 108 92 96" fill="none"/><circle cx="90" cy="88" r="15" fill="#9FF3FF" stroke-width="9"/>
+        <path d="M158 130 Q166 108 174 97" fill="none"/><circle cx="177" cy="89" r="15" fill="#9FF3FF" stroke-width="9"/>
+      </g>
+      <path d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z" fill="#5AA9F0" stroke="none"/>
+      <g clip-path="url(#blob-3-clip)" stroke="none">
+        <path d="M236 120 Q206 150 212 236 Q208 246 186 252 L240 256 Z" fill="#3F86CF"/>
+        <ellipse cx="132" cy="228" rx="62" ry="22" fill="#8CC7F6"/>
+      </g>
+      <path d="M58 176 Q70 146 104 136" fill="none" stroke="#BFE3FF" stroke-width="14"/>
+      <path d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z" fill="none" stroke-width="16"/>
+      <ellipse cx="110" cy="172" rx="21" ry="24" fill="#FFFFFF" stroke-width="9"/>
+      <ellipse cx="162" cy="171" rx="20" ry="23" fill="#FFFFFF" stroke-width="9"/>
+      <circle cx="116" cy="177" r="11" fill="#2A1E3D" stroke="none"/><circle cx="168" cy="176" r="10.5" fill="#2A1E3D" stroke="none"/>
+      <circle cx="120" cy="172" r="4.5" fill="#FFFFFF" stroke="none"/><circle cx="172" cy="171" r="4.3" fill="#FFFFFF" stroke="none"/>
+      <path d="M112 206 Q138 226 166 200" fill="none" stroke-width="11"/>
+    </g>
+    <g id="blob-4" transform="translate(298 500) rotate(0) scale(0.36) translate(-128 -250)"
+       stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+      <clipPath id="blob-4-clip"><path d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z"/></clipPath>
+      <g stroke-width="12">
+        <path d="M104 130 Q98 108 92 96" fill="none"/><circle cx="90" cy="88" r="15" fill="#9FF3FF" stroke-width="9"/>
+        <path d="M158 130 Q166 108 174 97" fill="none"/><circle cx="177" cy="89" r="15" fill="#9FF3FF" stroke-width="9"/>
+      </g>
+      <path d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z" fill="#5AA9F0" stroke="none"/>
+      <g clip-path="url(#blob-4-clip)" stroke="none">
+        <path d="M236 120 Q206 150 212 236 Q208 246 186 252 L240 256 Z" fill="#3F86CF"/>
+        <ellipse cx="132" cy="228" rx="62" ry="22" fill="#8CC7F6"/>
+      </g>
+      <path d="M58 176 Q70 146 104 136" fill="none" stroke="#BFE3FF" stroke-width="14"/>
+      <path d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z" fill="none" stroke-width="16"/>
+      <ellipse cx="110" cy="172" rx="21" ry="24" fill="#FFFFFF" stroke-width="9"/>
+      <ellipse cx="162" cy="171" rx="20" ry="23" fill="#FFFFFF" stroke-width="9"/>
+      <circle cx="116" cy="177" r="11" fill="#2A1E3D" stroke="none"/><circle cx="168" cy="176" r="10.5" fill="#2A1E3D" stroke="none"/>
+      <circle cx="120" cy="172" r="4.5" fill="#FFFFFF" stroke="none"/><circle cx="172" cy="171" r="4.3" fill="#FFFFFF" stroke="none"/>
+      <path d="M112 206 Q138 226 166 200" fill="none" stroke-width="11"/>
+    </g>
+</svg>

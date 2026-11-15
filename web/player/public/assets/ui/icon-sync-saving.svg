@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- icon-sync-saving: Sync saving: a cream cloud with a plum circular arrow inside. Single frame. Anchor centre (32,32).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="sync-saving" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+  <clipPath id="cloud-clip"><path d="M15 50 Q5 50 5 41 Q5 32 14 31 Q14 17 27 15 Q37 14 41 22 Q45 18 51 20 Q57 23 56 30 Q61 33 60 41 Q59 50 50 50 Z"/></clipPath>
+  <g id="cloud-fill" clip-path="url(#cloud-clip)" stroke="none">
+    <path d="M15 50 Q5 50 5 41 Q5 32 14 31 Q14 17 27 15 Q37 14 41 22 Q45 18 51 20 Q57 23 56 30 Q61 33 60 41 Q59 50 50 50 Z" fill="#E6D9B5"/>
+    <path d="M15 50 Q5 50 5 41 Q5 32 14 31 Q14 17 27 15 Q37 14 41 22 Q45 18 51 20 Q57 23 56 30 Q61 33 60 41 Q59 50 50 50 Z" fill="#FFF4D6" transform="translate(-3 -3)"/>
+  </g>
+  <path id="cloud-highlight" d="M11 39 Q11 34 16 34" fill="none" stroke="#FFFFFF" stroke-width="2.5" opacity="0.85"/>
+  <path id="cloud-outline" d="M15 50 Q5 50 5 41 Q5 32 14 31 Q14 17 27 15 Q37 14 41 22 Q45 18 51 20 Q57 23 56 30 Q61 33 60 41 Q59 50 50 50 Z" fill="none"/>
+  <path id="arrow-arc" d="M40 33 A8.5 8.5 0 1 1 33 26.5" fill="none" stroke-width="3.5"/>
+  <path id="arrow-head" d="M31 22 L37 26.5 L31 31 Z" fill="#2A1E3D" stroke-width="2"/>
+</g>
+</svg>

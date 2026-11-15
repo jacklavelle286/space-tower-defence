@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-boat: a small sailing dinghy, side view, with two sails. No water, no funnel (differs from pic-ship).
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+  <defs>
+    <clipPath id="hull-clip"><path d="M30 162 H226 Q218 212 180 216 H82 Q42 212 30 162 Z"/></clipPath>
+    <clipPath id="sail-clip"><path d="M138 36 Q186 90 212 154 H138 Z"/></clipPath>
+  </defs>
+  <g id="boat" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <g id="mast">
+      <path d="M128 30 V166" fill="none" stroke-width="20"/>
+      <path d="M128 30 V166" fill="none" stroke="#D08A55" stroke-width="6"/>
+    </g>
+    <g id="sail-main">
+      <path d="M138 36 Q186 90 212 154 H138 Z" fill="#F4F1EA"/>
+      <path id="sail-shade" clip-path="url(#sail-clip)" d="M190 100 Q196 130 200 160 H220 V90 Z" fill="#2A1E3D" opacity="0.13" stroke="none"/>
+      <path d="M138 36 Q186 90 212 154 H138 Z" fill="none"/>
+      <path d="M146 64 V96" fill="none" stroke="#FFFFFF" stroke-width="5"/>
+    </g>
+    <g id="sail-front">
+      <path d="M118 52 Q90 108 60 154 H118 Z" fill="#FFD23F"/>
+      <path d="M108 80 Q98 100 88 116" fill="none" stroke="#FFEA99" stroke-width="5"/>
+    </g>
+    <g id="hull">
+      <path d="M30 162 H226 Q218 212 180 216 H82 Q42 212 30 162 Z" fill="#E2403A"/>
+      <g clip-path="url(#hull-clip)" stroke="none">
+        <rect x="20" y="172" width="220" height="12" fill="#F4F1EA"/>
+        <path id="hull-shade" d="M20 204 Q128 214 236 196 V230 H20 Z" fill="#2A1E3D" opacity="0.15"/>
+      </g>
+      <path d="M30 162 H226 Q218 212 180 216 H82 Q42 212 30 162 Z" fill="none"/>
+    </g>
+  </g>
+</svg>

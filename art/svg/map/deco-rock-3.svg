@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- deco-rock-3: a small teal crystal formation: three chunky round-tipped crystals with soft glowing facets growing from a purple rock mound. Single frame. Anchor bottom-centre (128,256), base on y 250.
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="rock" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+  <g id="crystals">
+  <g id="crystal-left" transform="rotate(-16 93 224)">
+    <clipPath id="crystal-left-clip"><path d="M74 224 V137.1 Q74 131.4 80.8 126.8 L89 122 Q93.0 119 97 122 L105.2 126.8 Q112 131.4 112 137.1 V224 Z"/></clipPath>
+    <path d="M74 224 V137.1 Q74 131.4 80.8 126.8 L89 122 Q93.0 119 97 122 L105.2 126.8 Q112 131.4 112 137.1 V224 Z" fill="#3FB8AF" stroke="none"/>
+    <path clip-path="url(#crystal-left-clip)" d="M64 234 V110 H90 V234 Z" fill="#8FE3DB" stroke="none"/>
+    <path clip-path="url(#crystal-left-clip)" d="M103 120 H122 V234 H103 Z" fill="#2F8F88" stroke="none"/>
+    <path d="M90 126 V218" fill="none" stroke-width="4" opacity="0.5"/>
+    <path d="M81 200 V139" fill="none" stroke="#E0FBF8" stroke-width="5"/>
+    <path d="M74 224 V137.1 Q74 131.4 80.8 126.8 L89 122 Q93.0 119 97 122 L105.2 126.8 Q112 131.4 112 137.1 V224 Z" fill="none"/>
+  </g>
+  <g id="crystal-right" transform="rotate(18 163 224)">
+    <clipPath id="crystal-right-clip"><path d="M146 224 V147.3 Q146 142.2 152.1 138.1 L159 134 Q163.0 131 167 134 L173.9 138.1 Q180 142.2 180 147.3 V224 Z"/></clipPath>
+    <path d="M146 224 V147.3 Q146 142.2 152.1 138.1 L159 134 Q163.0 131 167 134 L173.9 138.1 Q180 142.2 180 147.3 V224 Z" fill="#3FB8AF" stroke="none"/>
+    <path clip-path="url(#crystal-right-clip)" d="M136 234 V122 H160 V234 Z" fill="#8FE3DB" stroke="none"/>
+    <path clip-path="url(#crystal-right-clip)" d="M171 132 H190 V234 H171 Z" fill="#2F8F88" stroke="none"/>
+    <path d="M160 138 V218" fill="none" stroke-width="4" opacity="0.5"/>
+    <path d="M153 200 V149" fill="none" stroke="#E0FBF8" stroke-width="5"/>
+    <path d="M146 224 V147.3 Q146 142.2 152.1 138.1 L159 134 Q163.0 131 167 134 L173.9 138.1 Q180 142.2 180 147.3 V224 Z" fill="none"/>
+  </g>
+  <g id="crystal-mid" transform="rotate(0)">
+    <clipPath id="crystal-mid-clip"><path d="M104 226 V79.6 Q104 72.4 112.6 66.6 L124 60 Q128.0 57 132 60 L143.4 66.6 Q152 72.4 152 79.6 V226 Z"/></clipPath>
+    <path d="M104 226 V79.6 Q104 72.4 112.6 66.6 L124 60 Q128.0 57 132 60 L143.4 66.6 Q152 72.4 152 79.6 V226 Z" fill="#3FB8AF" stroke="none"/>
+    <path clip-path="url(#crystal-mid-clip)" d="M94 236 V48 H125 V236 Z" fill="#8FE3DB" stroke="none"/>
+    <path clip-path="url(#crystal-mid-clip)" d="M143 58 H162 V236 H143 Z" fill="#2F8F88" stroke="none"/>
+    <path d="M125 64 V220" fill="none" stroke-width="4" opacity="0.5"/>
+    <path d="M111 202 V82" fill="none" stroke="#E0FBF8" stroke-width="5"/>
+    <path d="M104 226 V79.6 Q104 72.4 112.6 66.6 L124 60 Q128.0 57 132 60 L143.4 66.6 Q152 72.4 152 79.6 V226 Z" fill="none"/>
+  </g>
+  </g>
+  <clipPath id="mound-clip"><path d="M44 240 Q44 214 76 206 Q128 194 180 206 Q212 214 212 240 Q212 250 198 250 H58 Q44 250 44 240 Z"/></clipPath>
+  <g id="mound">
+    <path d="M44 240 Q44 214 76 206 Q128 194 180 206 Q212 214 212 240 Q212 250 198 250 H58 Q44 250 44 240 Z" fill="#6B5CA5" stroke="none"/>
+    <path clip-path="url(#mound-clip)" d="M220 200 Q210 240 150 246 H100 V256 H220 Z" fill="#4A3F7A" stroke="none"/>
+    <path d="M58 228 Q64 214 84 210" fill="none" stroke="#9C8FD6" stroke-width="6"/>
+    <path d="M44 240 Q44 214 76 206 Q128 194 180 206 Q212 214 212 240 Q212 250 198 250 H58 Q44 250 44 240 Z" fill="none" stroke-width="8"/>
+  </g>
+  <g id="sparkles">
+    <path d="M0 -12 Q3.4 -3.4 12 0 Q3.4 3.4 0 12 Q-3.4 3.4 -12 0 Q-3.4 -3.4 0 -12 Z" transform="translate(92 92) rotate(0)" fill="#FFFFFF" stroke="none"/>
+    <path d="M0 -9 Q2.5 -2.5 9 0 Q2.5 2.5 0 9 Q-2.5 2.5 -9 0 Q-2.5 -2.5 0 -9 Z" transform="translate(196 116) rotate(0)" fill="#E0FBF8" stroke="none"/>
+  </g>
+</g>
+</svg>

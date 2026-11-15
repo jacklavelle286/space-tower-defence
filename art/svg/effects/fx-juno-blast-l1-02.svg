@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 384" width="384" height="384">
+  <!-- Juno comet blast L1, frame 02/06: flat 4:3 starry impact ring; stars burst outward and fade. Drawn on a 384 grid. Anchor centre (192,192).
+       See art/STYLE.md. -->
+  <g id="juno-blast" stroke-linecap="round" stroke-linejoin="round">
+      <g id="glow" stroke="none"><ellipse cx="192" cy="192" rx="105" ry="78.8" fill="#FFE79A" opacity="0.1"/>
+      <ellipse cx="192" cy="192" rx="57.8" ry="43.3" fill="#FFF4D6" opacity="0.5"/>
+      </g>
+      <g id="ring" fill="none" opacity="1"><ellipse cx="192" cy="192" rx="105" ry="78.8" stroke="#2A1E3D" stroke-width="16"/><ellipse cx="192" cy="192" rx="105" ry="78.8" stroke="#FFC94A" stroke-width="9"/>
+      </g>
+      <g id="stars">
+      <path d="M0 -21.6 L6.3 -8.7 L20.5 -6.7 L10.3 3.3 L12.7 17.5 L0 10.8 L-12.7 17.5 L-10.3 3.3 L-20.5 -6.7 L-6.3 -8.7 Z" fill="#FFD23F" stroke="#2A1E3D" stroke-width="4.3" stroke-linejoin="round" transform="translate(226.8 111.8) rotate(18)"/>
+      <path d="M0 -17.3 L5.1 -7 L16.4 -5.3 L8.2 2.7 L10.2 14 L0 8.6 L-10.2 14 L-8.2 2.7 L-16.4 -5.3 L-5.1 -7 Z" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" transform="translate(283 142.4) rotate(54)"/>
+      <path d="M0 -21.6 L6.3 -8.7 L20.5 -6.7 L10.3 3.3 L12.7 17.5 L0 10.8 L-12.7 17.5 L-10.3 3.3 L-20.5 -6.7 L-6.3 -8.7 Z" fill="#FFD23F" stroke="#2A1E3D" stroke-width="4.3" stroke-linejoin="round" transform="translate(304.5 192) rotate(90)"/>
+      <path d="M0 -17.3 L5.1 -7 L16.4 -5.3 L8.2 2.7 L10.2 14 L0 8.6 L-10.2 14 L-8.2 2.7 L-16.4 -5.3 L-5.1 -7 Z" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" transform="translate(283 241.6) rotate(126)"/>
+      <path d="M0 -21.6 L6.3 -8.7 L20.5 -6.7 L10.3 3.3 L12.7 17.5 L0 10.8 L-12.7 17.5 L-10.3 3.3 L-20.5 -6.7 L-6.3 -8.7 Z" fill="#FFD23F" stroke="#2A1E3D" stroke-width="4.3" stroke-linejoin="round" transform="translate(226.8 272.2) rotate(162)"/>
+      <path d="M0 -17.3 L5.1 -7 L16.4 -5.3 L8.2 2.7 L10.2 14 L0 8.6 L-10.2 14 L-8.2 2.7 L-16.4 -5.3 L-5.1 -7 Z" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" transform="translate(157.2 272.2) rotate(198)"/>
+      <path d="M0 -21.6 L6.3 -8.7 L20.5 -6.7 L10.3 3.3 L12.7 17.5 L0 10.8 L-12.7 17.5 L-10.3 3.3 L-20.5 -6.7 L-6.3 -8.7 Z" fill="#FFD23F" stroke="#2A1E3D" stroke-width="4.3" stroke-linejoin="round" transform="translate(101 241.6) rotate(234)"/>
+      <path d="M0 -17.3 L5.1 -7 L16.4 -5.3 L8.2 2.7 L10.2 14 L0 8.6 L-10.2 14 L-8.2 2.7 L-16.4 -5.3 L-5.1 -7 Z" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" transform="translate(79.5 192) rotate(270)"/>
+      <path d="M0 -21.6 L6.3 -8.7 L20.5 -6.7 L10.3 3.3 L12.7 17.5 L0 10.8 L-12.7 17.5 L-10.3 3.3 L-20.5 -6.7 L-6.3 -8.7 Z" fill="#FFD23F" stroke="#2A1E3D" stroke-width="4.3" stroke-linejoin="round" transform="translate(101 142.4) rotate(306)"/>
+      <path d="M0 -17.3 L5.1 -7 L16.4 -5.3 L8.2 2.7 L10.2 14 L0 8.6 L-10.2 14 L-8.2 2.7 L-16.4 -5.3 L-5.1 -7 Z" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" transform="translate(157.2 111.8) rotate(342)"/>
+      <circle cx="192" cy="120" r="4.5" fill="#FFF4D6" stroke="none" opacity="1"/>
+      <circle cx="248.4" cy="133.8" r="4.5" fill="#FFF4D6" stroke="none" opacity="1"/>
+      <circle cx="283.3" cy="169.8" r="4.5" fill="#FFF4D6" stroke="none" opacity="1"/>
+      <circle cx="283.3" cy="214.2" r="4.5" fill="#FFF4D6" stroke="none" opacity="1"/>
+      <circle cx="248.4" cy="250.2" r="4.5" fill="#FFF4D6" stroke="none" opacity="1"/>
+      <circle cx="192" cy="264" r="4.5" fill="#FFF4D6" stroke="none" opacity="1"/>
+      <circle cx="135.6" cy="250.2" r="4.5" fill="#FFF4D6" stroke="none" opacity="1"/>
+      <circle cx="100.7" cy="214.2" r="4.5" fill="#FFF4D6" stroke="none" opacity="1"/>
+      <circle cx="100.7" cy="169.8" r="4.5" fill="#FFF4D6" stroke="none" opacity="1"/>
+      <circle cx="135.6" cy="133.8" r="4.5" fill="#FFF4D6" stroke="none" opacity="1"/>
+      </g>
+  </g>
+</svg>

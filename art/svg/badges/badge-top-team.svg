@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- badge-top-team: Top Team: one astronaut helmet with three stacked upward chevrons. earned (full colour). Single frame. Anchor centre (128,128).
+       Medal: gold rim, cream ring, night-blue disc, ribbon tab at the bottom. Light from the top-left. See art/STYLE.md. -->
+
+<g id="badge-top-team" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+  <g id="ribbon">
+    <clipPath id="badge-top-team-tail-right"><path d="M158 176 L126 186 L142 245 L157 233 L176 240 Z"/></clipPath>
+    <g id="tail-right">
+      <g clip-path="url(#badge-top-team-tail-right)" stroke="none">
+        <path d="M158 176 L126 186 L145.2 256.8 L179.6 252.8 Z" fill="#FF8A2A"/>
+        <path d="M136.2 182.8 L126 186 L145.2 256.8 L156.2 255.5 Z" fill="#2A1E3D" opacity="0.18"/>
+      </g>
+      <path d="M158 176 L126 186 L142 245 L157 233 L176 240 Z" fill="none"/>
+    </g>
+    <clipPath id="badge-top-team-tail-left"><path d="M98 176 L130 186 L114 245 L99 233 L80 240 Z"/></clipPath>
+    <g id="tail-left">
+      <g clip-path="url(#badge-top-team-tail-left)" stroke="none">
+        <path d="M98 176 L130 186 L110.8 256.8 L76.4 252.8 Z" fill="#FF8A2A"/>
+        <path d="M119.8 182.8 L130 186 L110.8 256.8 L99.8 255.5 Z" fill="#2A1E3D" opacity="0.18"/>
+      </g>
+      <path d="M98 176 L130 186 L114 245 L99 233 L80 240 Z" fill="none"/>
+    </g>
+  </g>
+  <g id="rim">
+    <clipPath id="badge-top-team-rim-clip"><circle cx="128" cy="114" r="96"/></clipPath>
+    <circle id="rim-gold" cx="128" cy="114" r="96" fill="#D09A00" stroke="none"/>
+    <circle clip-path="url(#badge-top-team-rim-clip)" cx="122" cy="108" r="96" fill="#F5B700" stroke="none"/>
+    <path id="rim-highlight" d="M43.4 89.7 A88 88 0 0 1 97.9 31.3" fill="none" stroke="#FFE79A" stroke-width="5"/>
+    <circle id="rim-outline" cx="128" cy="114" r="96" fill="none"/>
+    <circle id="cream-ring" cx="128" cy="114" r="80" fill="#FFF4D6" stroke-width="4"/>
+    <circle id="disc" cx="128" cy="114" r="70" fill="#23295E" stroke-width="4"/>
+  </g>
+  <g id="motif" transform="translate(128 114)" stroke-width="4">
+    <path d="M-22 -18 L0 -30 L22 -18" fill="none" stroke-width="15" />
+    <path d="M-22 -18 L0 -30 L22 -18" fill="none" stroke="#FFD23F" stroke-width="8" />
+    <path d="M-19 -30 L0 -42 L19 -30" fill="none" stroke-width="15" />
+    <path d="M-19 -30 L0 -42 L19 -30" fill="none" stroke="#FFD23F" stroke-width="8" />
+    <path d="M-16 -42 L0 -54 L16 -42" fill="none" stroke-width="15" />
+    <path d="M-16 -42 L0 -54 L16 -42" fill="none" stroke="#FFD23F" stroke-width="8" />
+    <clipPath id="badge-top-team-c1"><ellipse cx="0" cy="50" rx="24" ry="7" /></clipPath>
+    <g clip-path="url(#badge-top-team-c1)" stroke="none" >
+      <rect x="-300" y="-300" width="900" height="900" fill="#7F89A6"/>
+      <g transform="translate(-3 -3)"><ellipse cx="0" cy="50" rx="24" ry="7" fill="#A7B0C8"/></g>
+    </g>
+    <ellipse cx="0" cy="50" rx="24" ry="7" fill="none" stroke-width="4" />
+    <g id="helmet" transform="translate(0 18) scale(1.9)">
+      <rect x="-20" y="-5" width="6" height="10" rx="3" fill="#A7B0C8" stroke-width="2.2" />
+      <clipPath id="badge-top-team-c2"><rect x="14" y="-5" width="6" height="10" rx="3" /></clipPath>
+      <g clip-path="url(#badge-top-team-c2)" stroke="none" >
+        <rect x="-300" y="-300" width="900" height="900" fill="#7F89A6"/>
+        <g transform="translate(-1.5 -1.5)"><rect x="14" y="-5" width="6" height="10" rx="3" fill="#A7B0C8"/></g>
+      </g>
+      <rect x="14" y="-5" width="6" height="10" rx="3" fill="none" stroke-width="2.2" />
+      <clipPath id="badge-top-team-c3"><circle cx="0" cy="0" r="17" /></clipPath>
+      <g clip-path="url(#badge-top-team-c3)" stroke="none" >
+        <rect x="-300" y="-300" width="900" height="900" fill="#D8D2C4"/>
+        <g transform="translate(-3 -3)"><circle cx="0" cy="0" r="17" fill="#F4F1EA"/></g>
+      </g>
+      <circle cx="0" cy="0" r="17" fill="none" stroke-width="2.5" />
+      <clipPath id="badge-top-team-c4"><ellipse cx="1" cy="1" rx="12.5" ry="8.5" /></clipPath>
+      <g clip-path="url(#badge-top-team-c4)" stroke="none" >
+        <rect x="-300" y="-300" width="900" height="900" fill="#D9661A"/>
+        <g transform="translate(-2.5 -2.5)"><ellipse cx="1" cy="1" rx="12.5" ry="8.5" fill="#FF8A2A"/></g>
+      </g>
+      <ellipse cx="1" cy="1" rx="12.5" ry="8.5" fill="none" stroke-width="2.2" />
+      <path d="M-6 -2 Q-2 -5 3 -5" fill="none" stroke="#FFF4D6" stroke-width="2"/>
+      <path d="M4 5 Q8 4 9.5 1" fill="none" stroke="#FFF4D6" stroke-width="1.6"/>
+      <path d="M-12 -8 Q-9 -13 -3 -14.5" fill="none" stroke="#FFFFFF" stroke-width="2.4"/>
+    </g>
+  </g>
+</g>
+</svg>

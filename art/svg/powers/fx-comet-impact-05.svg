@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- fx-comet-impact frame 05 of 08: friendly star burst in a flat 4:3 ground ring, soft centre glow, stars bouncing up. Drawn with real alpha (no black screen). Anchor centre (256,256); ring centre (256,300).
+       Light from the top-left. See art/STYLE.md. -->
+<g id="burst" stroke-linejoin="round" stroke-linecap="round">
+  <g id="ring" opacity="0.75">
+    <ellipse cx="256" cy="300" rx="212" ry="159" fill="#FFE79A" fill-opacity="0.25" stroke="none"/>
+    <ellipse cx="256" cy="300" rx="212" ry="159" fill="none" stroke="#2A1E3D" stroke-width="16"/>
+    <ellipse cx="256" cy="300" rx="212" ry="159" fill="none" stroke="#FFC94A" stroke-width="7"/>
+    <path d="M61 242.8 Q124.6 153.7 230.6 142.6" fill="none" stroke="#FFF4D6" stroke-width="4"/>
+  </g>
+  <g id="glow">
+    <ellipse cx="256" cy="300" rx="108" ry="81.0" fill="#FFE79A" opacity="0.25"/>
+    <ellipse cx="256" cy="300" rx="72" ry="54.0" fill="#FFF4D6" opacity="0.55"/>
+  </g>
+  <g id="puff" opacity="0.4">
+    <circle cx="256" cy="294.4" r="14" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="6"/>
+    <circle cx="251.1" cy="289.5" r="3.1" fill="#FFFFFF"/>
+  </g>
+  <g id="stars" opacity="1">
+    <path d="M0 -39.5 L10.5 -14.4 L37.6 -12.2 L16.9 5.5 L23.2 32 L0 17.8 L-23.2 32 L-16.9 5.5 L-37.6 -12.2 L-10.5 -14.4 Z" transform="translate(256 103.6) rotate(22)" fill="#FFC94A" stroke="#2A1E3D" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M0 -33.4 L8.8 -12.2 L31.8 -10.3 L14.3 4.7 L19.7 27.1 L0 15 L-19.7 27.1 L-14.3 4.7 L-31.8 -10.3 L-8.8 -12.2 Z" transform="translate(410.8 169.3) rotate(44)" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M0 -36.5 L9.6 -13.3 L34.7 -11.3 L15.6 5.1 L21.4 29.5 L0 16.4 L-21.4 29.5 L-15.6 5.1 L-34.7 -11.3 L-9.6 -13.3 Z" transform="translate(438.6 305.6) rotate(18)" fill="#FFC94A" stroke="#2A1E3D" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M0 -30.4 L8 -11.1 L28.9 -9.4 L13 4.2 L17.9 24.6 L0 13.7 L-17.9 24.6 L-13 4.2 L-28.9 -9.4 L-8 -11.1 Z" transform="translate(317.4 407.7) rotate(40)" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M0 -33.4 L8.8 -12.2 L31.8 -10.3 L14.3 4.7 L19.7 27.1 L0 15 L-19.7 27.1 L-14.3 4.7 L-31.8 -10.3 L-8.8 -12.2 Z" transform="translate(176.1 409.6) rotate(14)" fill="#FFC94A" stroke="#2A1E3D" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M0 -36.5 L9.6 -13.3 L34.7 -11.3 L15.6 5.1 L21.4 29.5 L0 16.4 L-21.4 29.5 L-15.6 5.1 L-34.7 -11.3 L-9.6 -13.3 Z" transform="translate(73.4 305.6) rotate(38)" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M0 -33.4 L8.8 -12.2 L31.8 -10.3 L14.3 4.7 L19.7 27.1 L0 15 L-19.7 27.1 L-14.3 4.7 L-31.8 -10.3 L-8.8 -12.2 Z" transform="translate(111.2 159.5) rotate(48)" fill="#FFC94A" stroke="#2A1E3D" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M0 -24.3 L6.4 -8.9 L23.1 -7.5 L10.4 3.4 L14.3 19.7 L0 10.9 L-14.3 19.7 L-10.4 3.4 L-23.1 -7.5 L-6.4 -8.9 Z" transform="translate(304.8 150.7) rotate(30)" fill="#FFE79A" stroke="#2A1E3D" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M0 -22.8 L6 -8.3 L21.7 -7 L9.8 3.2 L13.4 18.4 L0 10.3 L-13.4 18.4 L-9.8 3.2 L-21.7 -7 L-6 -8.3 Z" transform="translate(202.8 144.4) rotate(50)" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="6" stroke-linejoin="round"/>
+  </g>
+  <g id="sparkles">
+    <path d="M0 -13.3 Q3.7 -3.7 13.3 0 Q3.7 3.7 0 13.3 Q-3.7 3.7 -13.3 0 Q-3.7 -3.7 0 -13.3 Z" transform="translate(196 112.8) rotate(0)" fill="#FFFFFF" stroke="none"/>
+    <path d="M0 -10.4 Q2.9 -2.9 10.4 0 Q2.9 2.9 0 10.4 Q-2.9 2.9 -10.4 0 Q-2.9 -2.9 0 -10.4 Z" transform="translate(366 142.8) rotate(0)" fill="#FFFFFF" stroke="none"/>
+    <path d="M0 -9.5 Q2.7 -2.7 9.5 0 Q2.7 2.7 0 9.5 Q-2.7 2.7 -9.5 0 Q-2.7 -2.7 0 -9.5 Z" transform="translate(326 372.8) rotate(0)" fill="#FFFFFF" stroke="none"/>
+    <path d="M0 -11.4 Q3.2 -3.2 11.4 0 Q3.2 3.2 0 11.4 Q-3.2 3.2 -11.4 0 Q-3.2 -3.2 0 -11.4 Z" transform="translate(106 322.8) rotate(0)" fill="#FFFFFF" stroke="none"/>
+  </g>
+</g>
+</svg>

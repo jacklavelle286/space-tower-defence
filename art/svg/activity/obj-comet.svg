@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- obj-comet: a round gold comet head with a short wavy glow tail streaming to the left. No face.
+       Counting object. Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+  <defs>
+    <clipPath id="head-clip"><circle cx="164" cy="128" r="62"/></clipPath>
+  </defs>
+  <g id="comet" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <g id="tail">
+      <path d="M160 66 Q100 62 26 90 Q60 108 34 128 Q64 146 28 166 Q100 192 160 190 Z" fill="#FFE79A"/>
+      <path id="tail-inner" d="M160 90 Q114 90 74 110 Q106 122 78 140 Q118 166 160 166 Z" fill="#FFC94A" stroke="none"/>
+    </g>
+    <g id="head">
+      <circle cx="164" cy="128" r="62" fill="#FFC94A"/>
+      <path id="head-shade" clip-path="url(#head-clip)" d="M216 92 A62 62 0 0 1 140 186 Q220 180 216 92 Z" fill="#E0AE1F" stroke="none"/>
+      <circle cx="164" cy="128" r="62" fill="none"/>
+      <path id="head-highlight" d="M120 118 Q124 88 150 76" fill="none" stroke="#FFFFFF" stroke-width="6"/>
+      <circle cx="162" cy="74" r="4" fill="#FFFFFF" stroke="none"/>
+    </g>
+  </g>
+</svg>

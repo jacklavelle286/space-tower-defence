@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- deco-antenna: a small white satellite dish tilted up-right on a short three-legged metal stand, with a gold-tipped antenna. No logos. Single frame. Anchor bottom-centre (128,256), feet on y 250.
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="antenna" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+  <g id="legs">
+    <path d="M128 196 L132 230" fill="none" stroke="#2A1E3D" stroke-width="16"/><path d="M128 196 L132 230" fill="none" stroke="#A7B0C8" stroke-width="7"/>
+    <ellipse cx="132" cy="232" rx="9" ry="6.75" fill="#7F89A6" stroke-width="5"/>
+    <path d="M122 198 L82 242" fill="none" stroke="#2A1E3D" stroke-width="16"/><path d="M122 198 L82 242" fill="none" stroke="#A7B0C8" stroke-width="7"/>
+    <path d="M134 198 L176 242" fill="none" stroke="#2A1E3D" stroke-width="16"/><path d="M134 198 L176 242" fill="none" stroke="#A7B0C8" stroke-width="7"/>
+    <ellipse cx="80" cy="244" rx="12" ry="9" fill="#A7B0C8" stroke-width="6"/>
+    <ellipse cx="178" cy="244" rx="12" ry="9" fill="#A7B0C8" stroke-width="6"/>
+  </g>
+  <g id="mast">
+    <path d="M128 196 V136" fill="none" stroke="#2A1E3D" stroke-width="22"/><path d="M128 196 V136" fill="none" stroke="#A7B0C8" stroke-width="11"/>
+    <rect x="108" y="180" width="40" height="26" rx="10" fill="#A7B0C8"/>
+    <path d="M140 186 V198" fill="none" stroke="#7F89A6" stroke-width="5"/>
+    <path d="M115 190 Q115 186 119 185" fill="none" stroke="#C9D0E2" stroke-width="4"/>
+  </g>
+  <g id="dish" transform="rotate(-28 120 108)">
+    <ellipse id="dish-back" cx="126" cy="122" rx="70" ry="38" fill="#D8D2C4"/>
+    <ellipse id="dish-rim" cx="120" cy="108" rx="74" ry="40" fill="#F4F1EA"/>
+    <clipPath id="bowl-clip"><ellipse cx="122" cy="110" rx="58" ry="29"/></clipPath>
+    <ellipse id="bowl" cx="122" cy="110" rx="58" ry="29" fill="#F4F1EA" stroke-width="4"/>
+    <ellipse clip-path="url(#bowl-clip)" cx="110" cy="102" rx="58" ry="29" fill="#D8D2C4" stroke="none"/>
+    <path id="dish-highlight" d="M56 104 Q62 82 96 72" fill="none" stroke="#FFFFFF" stroke-width="5"/>
+  </g>
+  <g id="feed">
+    <path d="M124 112 L158 52" fill="none" stroke="#2A1E3D" stroke-width="14"/><path d="M124 112 L158 52" fill="none" stroke="#A7B0C8" stroke-width="5"/>
+    <circle cx="124" cy="112" r="9" fill="#A7B0C8" stroke-width="5"/>
+    <circle cx="161" cy="46" r="13" fill="#FFD86B" stroke-width="6"/>
+    <path d="M165 50 A7 7 0 0 1 156 54" fill="none" stroke="#E0AE1F" stroke-width="4"/>
+    <circle cx="156.5" cy="41.5" r="3.5" fill="#FFFFFF" stroke="none"/>
+  </g>
+</g>
+</svg>

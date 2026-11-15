@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-bed: a single bed, side view: wooden head and foot boards, white pillow, lilac blanket. Single frame. Anchor centre (128,128).
+       Activity picture: text-free, one object, no background. Light from the top-left. See art/STYLE.md. -->
+<g id="bed" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" transform="translate(0 -10)">
+<g id="legs">
+  <path d="M36 190 H42 Q48 190 48 196 V214 Q48 220 42 220 H36 Q30 220 30 214 V196 Q30 190 36 190 Z" fill="#A86A3C" stroke-width="6"/>
+  <path d="M216 190 H222 Q228 190 228 196 V214 Q228 220 222 220 H216 Q210 220 210 214 V196 Q210 190 216 190 Z" fill="#A86A3C" stroke-width="6"/>
+</g>
+<g id="headboard">
+  <clipPath id="headboard-clip"><path d="M24 206 V74 Q24 52 44 52 Q60 52 60 74 V206 Z"/></clipPath>
+  <g clip-path="url(#headboard-clip)" stroke="none">
+    <path d="M24 206 V74 Q24 52 44 52 Q60 52 60 74 V206 Z" fill="#A86A3C"/>
+    <path d="M24 206 V74 Q24 52 44 52 Q60 52 60 74 V206 Z" fill="#D08A55" transform="translate(-6 -6)"/>
+  </g>
+  <path d="M24 206 V74 Q24 52 44 52 Q60 52 60 74 V206 Z" fill="none"/>
+</g>
+<g id="footboard">
+  <clipPath id="footboard-clip"><path d="M198 206 V118 Q198 102 214 102 Q230 102 230 118 V206 Z"/></clipPath>
+  <g clip-path="url(#footboard-clip)" stroke="none">
+    <path d="M198 206 V118 Q198 102 214 102 Q230 102 230 118 V206 Z" fill="#A86A3C"/>
+    <path d="M198 206 V118 Q198 102 214 102 Q230 102 230 118 V206 Z" fill="#D08A55" transform="translate(-6 -6)"/>
+  </g>
+  <path d="M198 206 V118 Q198 102 214 102 Q230 102 230 118 V206 Z" fill="none"/>
+</g>
+<g id="rail">
+  <clipPath id="rail-clip"><path d="M58 168 H200 Q206 168 206 174 V192 Q206 198 200 198 H58 Q52 198 52 192 V174 Q52 168 58 168 Z"/></clipPath>
+  <g clip-path="url(#rail-clip)" stroke="none">
+    <path d="M58 168 H200 Q206 168 206 174 V192 Q206 198 200 198 H58 Q52 198 52 192 V174 Q52 168 58 168 Z" fill="#A86A3C"/>
+    <path d="M58 168 H200 Q206 168 206 174 V192 Q206 198 200 198 H58 Q52 198 52 192 V174 Q52 168 58 168 Z" fill="#D08A55" transform="translate(-4 -6)"/>
+  </g>
+  <path d="M58 168 H200 Q206 168 206 174 V192 Q206 198 200 198 H58 Q52 198 52 192 V174 Q52 168 58 168 Z" fill="none"/>
+</g>
+<path id="mattress" d="M66 134 H192 Q202 134 202 144 V162 Q202 172 192 172 H66 Q56 172 56 162 V144 Q56 134 66 134 Z" fill="#F4F1EA"/>
+<g id="pillow">
+  <clipPath id="pillow-clip"><path d="M66 136 Q60 108 82 106 H112 Q128 108 124 136 Z"/></clipPath>
+  <g clip-path="url(#pillow-clip)" stroke="none">
+    <path d="M66 136 Q60 108 82 106 H112 Q128 108 124 136 Z" fill="#D8D2C4"/>
+    <path d="M66 136 Q60 108 82 106 H112 Q128 108 124 136 Z" fill="#FFFFFF" transform="translate(-5 -5)"/>
+  </g>
+  <path d="M66 136 Q60 108 82 106 H112 Q128 108 124 136 Z" fill="none"/>
+</g>
+<g id="blanket">
+  <clipPath id="blanket-clip"><path d="M110 124 Q156 116 204 124 V184 Q204 192 196 192 H118 Q110 192 110 184 Z"/></clipPath>
+  <g clip-path="url(#blanket-clip)" stroke="none">
+    <path d="M110 124 Q156 116 204 124 V184 Q204 192 196 192 H118 Q110 192 110 184 Z" fill="#9A6BD2"/>
+    <path d="M110 124 Q156 116 204 124 V184 Q204 192 196 192 H118 Q110 192 110 184 Z" fill="#B98AF0" transform="translate(-8 -8)"/>
+  </g>
+  <path d="M110 124 Q156 116 204 124 V184 Q204 192 196 192 H118 Q110 192 110 184 Z" fill="none"/>
+</g>
+<path id="fold" d="M110 124 Q156 116 204 124 V140 Q156 132 110 140 Z" fill="#FFF4D6" stroke-width="5"/>
+<path d="M34 120 V78 Q34 64 44 62" fill="none" stroke="#FFFFFF" stroke-width="5" opacity="0.85"/>
+<path d="M120 156 Q128 150 140 150" fill="none" stroke="#FFFFFF" stroke-width="5" opacity="0.6"/>
+</g>
+</svg>

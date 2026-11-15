@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- icon-sync-signin: Sync sign in: a cream key with a round bow and two teeth. Single frame. Anchor centre (32,32).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="sync-signin" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+  <g id="key" transform="rotate(-35 32 32)">
+  <clipPath id="shaft-clip"><path d="M28 27.5 H56 Q59 27.5 59 30.5 V33.5 Q59 36.5 56 36.5 H54 V43 Q54 45 52 45 H49 Q47 45 47 43 V36.5 H43 V41 Q43 43 41 43 H38.5 Q36.5 43 36.5 41 V36.5 H28 Z"/></clipPath>
+  <g id="shaft-fill" clip-path="url(#shaft-clip)" stroke="none">
+    <path d="M28 27.5 H56 Q59 27.5 59 30.5 V33.5 Q59 36.5 56 36.5 H54 V43 Q54 45 52 45 H49 Q47 45 47 43 V36.5 H43 V41 Q43 43 41 43 H38.5 Q36.5 43 36.5 41 V36.5 H28 Z" fill="#E6D9B5"/>
+    <path d="M28 27.5 H56 Q59 27.5 59 30.5 V33.5 Q59 36.5 56 36.5 H54 V43 Q54 45 52 45 H49 Q47 45 47 43 V36.5 H43 V41 Q43 43 41 43 H38.5 Q36.5 43 36.5 41 V36.5 H28 Z" fill="#FFF4D6" transform="translate(-2 -2)"/>
+  </g>
+  <path id="shaft-outline" d="M28 27.5 H56 Q59 27.5 59 30.5 V33.5 Q59 36.5 56 36.5 H54 V43 Q54 45 52 45 H49 Q47 45 47 43 V36.5 H43 V41 Q43 43 41 43 H38.5 Q36.5 43 36.5 41 V36.5 H28 Z" fill="none"/>
+  <clipPath id="bow-clip"><path d="M18 17 A15 15 0 1 1 17.9 17 Z"/></clipPath>
+  <g id="bow-fill" clip-path="url(#bow-clip)" stroke="none">
+    <path d="M18 17 A15 15 0 1 1 17.9 17 Z" fill="#E6D9B5"/>
+    <path d="M18 17 A15 15 0 1 1 17.9 17 Z" fill="#FFF4D6" transform="translate(-3 -3)"/>
+  </g>
+  <path id="bow-highlight" d="M9 30 Q9 24 13 21" fill="none" stroke="#FFFFFF" stroke-width="2.5" opacity="0.85"/>
+  <path id="bow-outline" d="M18 17 A15 15 0 1 1 17.9 17 Z" fill="none"/>
+    <circle id="bow-hole" cx="18" cy="32" r="4.6" fill="none" stroke-width="3"/>
+  </g>
+</g>
+</svg>

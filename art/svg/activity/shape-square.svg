@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- shape-square: 2-D shape, a true square (side 188), green.
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+<g id="square" stroke="#2A1E3D" stroke-width="8" stroke-linejoin="round" stroke-linecap="round">
+  <clipPath id="square-clip"><path d="M34 34 L222 34 L222 222 L34 222 Z"/></clipPath>
+  <g id="square-fill" clip-path="url(#square-clip)" stroke="none">
+    <path d="M34 34 L222 34 L222 222 L34 222 Z" fill="#2A9653"/>
+    <path d="M34 34 L222 34 L222 222 L34 222 Z" fill="#3DBE6E" transform="translate(-7 -7)"/>
+  </g>
+  <path id="square-highlight" d="M56 150 V68 Q56 56 68 56 H150" fill="none" stroke="#8FE0AA" stroke-width="9"/>
+  <path id="square-outline" d="M34 34 L222 34 L222 222 L34 222 Z" fill="none"/>
+</g>
+</svg>

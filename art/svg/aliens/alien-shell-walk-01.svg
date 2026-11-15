@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Shellback plod, frame 01: contact, stretched forward. Anchor bottom-centre (128,256): feet on y=250.
+       Light from the top-left. See art/STYLE.md. -->
+  <defs><clipPath id="shell-clip"><path d="M16 208 Q12 94 106 90 Q196 92 198 200 Q198 220 182 222 L34 224 Q16 224 16 208 Z"/></clipPath><clipPath id="shell-head-clip"><circle cx="206" cy="198" r="38"/></clipPath></defs>
+  <g id="shell" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round" stroke-width="7">
+    <g id="limbs">
+      <g id="leg-back-left" transform="translate(0 -5) rotate(-4 40 214)"><rect x="25" y="198" width="30" height="52" rx="14" fill="#A6DCD3"/><path d="M33 238 Q40 243 48 238" fill="none" stroke-width="3.5"/></g>
+      <g id="leg-back-right" transform="translate(0 0) rotate(0 112 214)"><rect x="97" y="198" width="30" height="52" rx="14" fill="#A6DCD3"/><path d="M105 238 Q112 243 120 238" fill="none" stroke-width="3.5"/></g>
+      <g id="leg-front-left" transform="translate(0 0) rotate(0 78 214)"><rect x="63" y="198" width="30" height="52" rx="14" fill="#CDEFE9"/><path d="M71 238 Q78 243 86 238" fill="none" stroke-width="3.5"/></g>
+      <g id="leg-front-right" transform="translate(0 -12) rotate(-10 154 214)"><rect x="139" y="198" width="30" height="52" rx="14" fill="#CDEFE9"/><path d="M147 238 Q154 243 162 238" fill="none" stroke-width="3.5"/></g>
+    </g>
+    <g id="body" transform="translate(128 250) skewX(-4) scale(1 1.02) translate(-128 -250)">
+      <g id="head" transform="translate(-4 0)">
+        <g id="antennae" stroke-width="6" transform="translate(0 -6)">
+          <path d="M200 172 Q196 158 190 152" fill="none"/><circle cx="188" cy="148" r="8" fill="#9FF3FF" stroke-width="5"/>
+          <path d="M222 172 Q228 158 234 152" fill="none"/><circle cx="236" cy="148" r="8" fill="#9FF3FF" stroke-width="5"/>
+        </g>
+        <circle cx="206" cy="198" r="38" fill="#CDEFE9"/>
+        <path clip-path="url(#shell-head-clip)" d="M252 168 Q234 200 240 238 L256 240 Z" fill="#A6DCD3" stroke="none"/>
+        <g id="face-clip" clip-path="url(#shell-head-clip)">
+        <g id="face">
+          <g id="eyes">
+            <g id="eye-back" transform="translate(211 192) scale(1.2) translate(-203 -194)"><ellipse cx="203" cy="194" rx="10" ry="12" fill="#FFFFFF" stroke="none"/><circle cx="206" cy="198" r="6" fill="#2A1E3D" stroke="none"/><circle cx="208" cy="196" r="2.6" fill="#FFFFFF" stroke="none"/><path d="M192 190 L214 190 L214 180 L192 180 Z" fill="#CDEFE9" stroke="none"/><ellipse cx="203" cy="194" rx="10" ry="12" fill="none" stroke-width="4"/><path d="M194 190 L212 190" stroke-width="4"/></g>
+            <g id="eye-front" transform="translate(230 190) scale(1.2) translate(-226 -192)"><ellipse cx="226" cy="192" rx="9" ry="11" fill="#FFFFFF" stroke="none"/><circle cx="228.5" cy="196" r="5.5" fill="#2A1E3D" stroke="none"/><circle cx="230.5" cy="194" r="2.6" fill="#FFFFFF" stroke="none"/><path d="M216 188 L236 188 L236 179 L216 179 Z" fill="#CDEFE9" stroke="none"/><ellipse cx="226" cy="192" rx="9" ry="11" fill="none" stroke-width="4"/><path d="M218 188 L234 188" stroke-width="4"/></g>
+          </g>
+          <ellipse cx="196" cy="212" rx="5" ry="3.2" fill="#F48A9A" opacity="0.6" stroke="none"/>
+          <g id="mouth" fill="none" stroke-width="4.5" transform="translate(212 216) scale(1.15) translate(-216 -216)"><path d="M207 215 Q217 221 229 212"/></g>
+        </g>
+        </g>
+        <circle cx="206" cy="198" r="38" fill="none"/>
+      </g>
+      <g id="shell">
+        <path id="dome" d="M16 208 Q12 94 106 90 Q196 92 198 200 Q198 220 182 222 L34 224 Q16 224 16 208 Z" fill="#2FA39A" stroke="none"/>
+        <g clip-path="url(#shell-clip)" stroke="none">
+          <path id="dome-shade" d="M210 78 Q170 122 176 190 Q172 222 140 234 L212 240 Z" fill="#25837B"/>
+          <path id="dome-highlight" d="M34 178 Q34 134 64 110" fill="none" stroke="#7FD4CC" stroke-width="9"/>
+          <path d="M80 160 Q78 128 96 108" fill="none" stroke="#7FD4CC" stroke-width="7"/>
+          <path d="M140 160 Q140 132 154 116" fill="none" stroke="#7FD4CC" stroke-width="6"/>
+          <g id="plate-rims" fill="none" stroke="#6CC6BD" stroke-width="13">
+            <path d="M66 226 Q46 150 84 92 M128 228 Q118 150 140 92"/>
+          </g>
+          <g id="plate-seams" fill="none" stroke="#2A1E3D" stroke-width="4">
+            <path d="M66 226 Q46 150 84 92 M128 228 Q118 150 140 92"/>
+          </g>
+        </g>
+        <path id="dome-outline" d="M16 208 Q12 94 106 90 Q196 92 198 200 Q198 220 182 222 L34 224 Q16 224 16 208 Z" fill="none"/>
+        <g id="brim"><path d="M26 206 Q100 232 182 210" fill="none" stroke="#2A1E3D" stroke-width="22"/><path d="M26 206 Q100 232 182 210" fill="none" stroke="#6CC6BD" stroke-width="9"/></g>
+      </g>
+    </g>
+  </g>
+</svg>

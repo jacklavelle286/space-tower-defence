@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- icon-tried: Activity tried: a small grey dot inside a grey ring. Single frame. Anchor centre (32,32).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="tried" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+  <g id="ring" fill="none">
+    <path d="M32 11 A21 21 0 1 1 31.9 11 Z" stroke="#2A1E3D" stroke-width="11"/>
+    <path d="M32 11 A21 21 0 1 1 31.9 11 Z" stroke="#A7B0C8" stroke-width="4.5"/>
+  </g>
+  <clipPath id="dot-clip"><path d="M32 24.5 A7.5 7.5 0 1 1 31.9 24.5 Z"/></clipPath>
+  <g id="dot-fill" clip-path="url(#dot-clip)" stroke="none">
+    <path d="M32 24.5 A7.5 7.5 0 1 1 31.9 24.5 Z" fill="#7F89A6"/>
+    <path d="M32 24.5 A7.5 7.5 0 1 1 31.9 24.5 Z" fill="#A7B0C8" transform="translate(-2 -2)"/>
+  </g>
+  <path id="dot-outline" d="M32 24.5 A7.5 7.5 0 1 1 31.9 24.5 Z" fill="none"/>
+</g>
+</svg>

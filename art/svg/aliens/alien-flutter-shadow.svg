@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 96" width="128" height="96">
+  <!-- Orbit Flutter ground shadow: 4:3 ellipse, crater shade at ~40%. Anchor centre.
+       Light from the top-left. See art/STYLE.md. -->
+  <defs></defs>
+  <g id="shadow" fill="#4A3F7A" stroke="none">
+    <!-- soft edge without blur: two stacked 4:3 ellipses, centre ~40% -->
+    <ellipse cx="64" cy="48" rx="56" ry="42" opacity="0.22"/>
+    <ellipse cx="64" cy="48" rx="44" ry="33" opacity="0.23"/>
+  </g>
+</svg>

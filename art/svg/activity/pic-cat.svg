@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-cat: a grey cat sitting, facing the viewer, curled tail. Single frame. Anchor centre (128,128).
+       Activity picture: text-free, one object, no background. Light from the top-left. See art/STYLE.md. -->
+<g id="cat" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" transform="translate(0 -4)">
+<g id="tail">
+  <path d="M170 220 Q222 222 220 178 Q218 152 198 156" fill="none" stroke="#2A1E3D" stroke-width="28"/>
+  <path d="M170 220 Q222 222 220 178 Q218 152 198 156" fill="none" stroke="#A7B0C8" stroke-width="14"/>
+</g>
+<g id="body">
+  <clipPath id="body-clip"><path d="M128 120 C92 120 74 168 76 208 Q78 232 102 232 H154 Q178 232 180 208 C182 168 164 120 128 120 Z"/></clipPath>
+  <g clip-path="url(#body-clip)" stroke="none">
+    <path d="M128 120 C92 120 74 168 76 208 Q78 232 102 232 H154 Q178 232 180 208 C182 168 164 120 128 120 Z" fill="#7F89A6"/>
+    <path d="M128 120 C92 120 74 168 76 208 Q78 232 102 232 H154 Q178 232 180 208 C182 168 164 120 128 120 Z" fill="#A7B0C8" transform="translate(-9 -9)"/>
+  </g>
+  <path d="M128 120 C92 120 74 168 76 208 Q78 232 102 232 H154 Q178 232 180 208 C182 168 164 120 128 120 Z" fill="none"/>
+</g>
+<ellipse id="chest" cx="128" cy="180" rx="24" ry="34" fill="#F7F0E0" stroke="none"/>
+<g id="paws">
+  <ellipse cx="108" cy="230" rx="17" ry="11" fill="#A7B0C8" stroke-width="5"/>
+  <ellipse cx="148" cy="230" rx="17" ry="11" fill="#A7B0C8" stroke-width="5"/>
+</g>
+<g id="ears">
+  <path d="M82 84 L84 34 L124 58 Z" fill="#A7B0C8"/>
+  <path d="M174 84 L172 34 L132 58 Z" fill="#7F89A6"/>
+  <path d="M90 70 L91 48 L110 60 Z" fill="#F7A6B4" stroke="none"/>
+  <path d="M166 70 L165 48 L146 60 Z" fill="#F7A6B4" stroke="none"/>
+</g>
+<g id="head">
+  <clipPath id="head-clip"><path d="M74 94 A54 46 0 1 1 182 94 A54 46 0 1 1 74 94 Z"/></clipPath>
+  <g clip-path="url(#head-clip)" stroke="none">
+    <path d="M74 94 A54 46 0 1 1 182 94 A54 46 0 1 1 74 94 Z" fill="#7F89A6"/>
+    <path d="M74 94 A54 46 0 1 1 182 94 A54 46 0 1 1 74 94 Z" fill="#A7B0C8" transform="translate(-7 -7)"/>
+  </g>
+  <path d="M74 94 A54 46 0 1 1 182 94 A54 46 0 1 1 74 94 Z" fill="none"/>
+</g>
+<g id="stripes" fill="none" stroke="#7F89A6" stroke-width="5">
+  <path d="M128 52 V64"/><path d="M114 54 L117 64"/><path d="M142 54 L139 64"/>
+</g>
+<path d="M84 84 Q88 64 104 56" fill="none" stroke="#FFFFFF" stroke-width="6" opacity="0.85"/>
+<g id="face" stroke="none">
+  <ellipse cx="108" cy="92" rx="7" ry="9" fill="#2A1E3D"/><ellipse cx="148" cy="92" rx="7" ry="9" fill="#2A1E3D"/>
+  <circle cx="110.5" cy="88.5" r="2.6" fill="#FFFFFF"/><circle cx="150.5" cy="88.5" r="2.6" fill="#FFFFFF"/>
+  <path d="M121 105 H135 L128 113 Z" fill="#F27C8C" stroke="#2A1E3D" stroke-width="3"/>
+</g>
+<path id="mouth" d="M116 116 Q122 123 128 115 Q134 123 140 116" fill="none" stroke-width="3.5"/>
+<g id="whiskers" fill="none" stroke-width="3">
+  <path d="M98 106 L62 100"/><path d="M98 113 L64 118"/><path d="M158 106 L194 100"/><path d="M158 113 L192 118"/>
+</g>
+</g>
+</svg>

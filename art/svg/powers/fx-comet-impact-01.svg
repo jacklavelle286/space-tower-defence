@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- fx-comet-impact frame 01 of 08: friendly star burst in a flat 4:3 ground ring, soft centre glow, stars bouncing up. Drawn with real alpha (no black screen). Anchor centre (256,256); ring centre (256,300).
+       Light from the top-left. See art/STYLE.md. -->
+<g id="burst" stroke-linejoin="round" stroke-linecap="round">
+  <g id="glow">
+    <ellipse cx="256" cy="300" rx="51" ry="38.2" fill="#FFE79A" opacity="0.43"/>
+    <ellipse cx="256" cy="300" rx="34" ry="25.5" fill="#FFF4D6" opacity="0.95"/>
+  </g>
+  <g id="puff" opacity="1">
+    <circle cx="256" cy="290.4" r="24" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="4"/>
+    <circle cx="247.6" cy="282.0" r="5.3" fill="#FFFFFF"/>
+  </g>
+  <g id="stars" opacity="1">
+    <path d="M0 -12.5 L3.3 -4.5 L11.9 -3.9 L5.3 1.7 L7.3 10.1 L0 5.6 L-7.3 10.1 L-5.3 1.7 L-11.9 -3.9 L-3.3 -4.5 Z" transform="translate(256 266) scale(1.4) rotate(-2)" fill="#FFC94A" stroke="#2A1E3D" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M0 -10.6 L2.8 -3.8 L10 -3.3 L4.5 1.5 L6.2 8.5 L0 4.8 L-6.2 8.5 L-4.5 1.5 L-10 -3.3 L-2.8 -3.8 Z" transform="translate(293.6 280.3) scale(1.4) rotate(20)" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M0 -11.5 L3 -4.2 L11 -3.6 L4.9 1.6 L6.8 9.3 L0 5.2 L-6.8 9.3 L-4.9 1.6 L-11 -3.6 L-3 -4.2 Z" transform="translate(300.4 308.9) scale(1.4) rotate(-6)" fill="#FFC94A" stroke="#2A1E3D" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M0 -10.6 L2.8 -3.8 L10 -3.3 L4.5 1.5 L6.2 8.5 L0 4.8 L-6.2 8.5 L-4.5 1.5 L-10 -3.3 L-2.8 -3.8 Z" transform="translate(236.8 330.9) scale(1.4) rotate(-10)" fill="#FFC94A" stroke="#2A1E3D" stroke-width="4" stroke-linejoin="round"/>
+    <path d="M0 -11.5 L3 -4.2 L11 -3.6 L4.9 1.6 L6.8 9.3 L0 5.2 L-6.8 9.3 L-4.9 1.6 L-11 -3.6 L-3 -4.2 Z" transform="translate(211.6 308.9) scale(1.4) rotate(14)" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="4" stroke-linejoin="round"/>
+  </g>
+</g>
+</svg>

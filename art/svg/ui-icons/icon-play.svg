@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- icon-play: HUD play / Ready: a rounded cream triangle pointing right. Single frame. Anchor centre (32,32).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="play" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+  <clipPath id="triangle-clip"><path d="M18 15 Q18 8 24.5 11.5 L52 27.5 Q58 32 52 36.5 L24.5 52.5 Q18 56 18 49 Z"/></clipPath>
+  <g id="triangle-fill" clip-path="url(#triangle-clip)" stroke="none">
+    <path d="M18 15 Q18 8 24.5 11.5 L52 27.5 Q58 32 52 36.5 L24.5 52.5 Q18 56 18 49 Z" fill="#E6D9B5"/>
+    <path d="M18 15 Q18 8 24.5 11.5 L52 27.5 Q58 32 52 36.5 L24.5 52.5 Q18 56 18 49 Z" fill="#FFF4D6" transform="translate(-3 -3)"/>
+  </g>
+  <path id="triangle-highlight" d="M23 19 V31" fill="none" stroke="#FFFFFF" stroke-width="3" opacity="0.85"/>
+  <path id="triangle-outline" d="M18 15 Q18 8 24.5 11.5 L52 27.5 Q58 32 52 36.5 L24.5 52.5 Q18 56 18 49 Z" fill="none"/>
+</g>
+</svg>

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Send home beam-up, frame 02/06: translucent cream/cyan beam rising from a 4:3 glowing pad (width 0.7); sparkles drift up. Anchor bottom-centre (128,256).
+       See art/STYLE.md. -->
+  <g id="sell" stroke-linecap="round" stroke-linejoin="round">
+    <g id="pad" stroke="none"><ellipse cx="128" cy="218" rx="44" ry="33" fill="#5BE0F0" opacity="0.4"/><ellipse cx="128" cy="218" rx="30" ry="22.5" fill="#FFF4D6" opacity="0.6"/><ellipse cx="128" cy="218" rx="44" ry="33" fill="none" stroke="#5BE0F0" stroke-width="4" opacity="0.8"/></g>
+    <g id="beam" stroke="none" opacity="0.8"><path d="M97.2 0 L97.2 218 A30.8 33 0 0 0 158.8 218 L158.8 0 Z" fill="#5BE0F0" opacity="0.28"/><rect x="109.5" y="0" width="37" height="218" fill="#FFF4D6" opacity="0.35"/><rect x="121.8" y="0" width="12.3" height="218" fill="#FFFFFF" opacity="0.35"/><path d="M97.2 0 V218 M158.8 0 V218" fill="none" stroke="#5BE0F0" stroke-width="3" opacity="0.8"/></g>
+    <g id="sparkles">
+    <path d="M0 -8.2 Q2.3 -2.3 8.2 0 Q2.3 2.3 0 8.2 Q-2.3 2.3 -8.2 0 Q-2.3 -2.3 0 -8.2 Z" fill="#FFF4D6" stroke="#5FB4E6" stroke-width="2" stroke-linejoin="round" transform="translate(115.4 174.3) rotate(0)" opacity="0.8"/>
+    <path d="M0 -6.4 Q1.8 -1.8 6.4 0 Q1.8 1.8 0 6.4 Q-1.8 1.8 -6.4 0 Q-1.8 -1.8 0 -6.4 Z" fill="#9FF3FF" stroke="#5FB4E6" stroke-width="2" stroke-linejoin="round" transform="translate(139.2 136.3) rotate(0)" opacity="0.8"/>
+    <path d="M0 -7.3 Q2 -2 7.3 0 Q2 2 0 7.3 Q-2 2 -7.3 0 Q-2 -2 0 -7.3 Z" fill="#FFFFFF" stroke="#5FB4E6" stroke-width="2" stroke-linejoin="round" transform="translate(123.8 98.3) rotate(0)" opacity="0.8"/>
+    <path d="M0 -5.5 Q1.5 -1.5 5.5 0 Q1.5 1.5 0 5.5 Q-1.5 1.5 -5.5 0 Q-1.5 -1.5 0 -5.5 Z" fill="#FFF4D6" stroke="#5FB4E6" stroke-width="2" stroke-linejoin="round" transform="translate(143.4 60.3) rotate(0)" opacity="0.8"/>
+    <path d="M0 -6.4 Q1.8 -1.8 6.4 0 Q1.8 1.8 0 6.4 Q-1.8 1.8 -6.4 0 Q-1.8 -1.8 0 -6.4 Z" fill="#9FF3FF" stroke="#5FB4E6" stroke-width="2" stroke-linejoin="round" transform="translate(111.2 22.3) rotate(0)" opacity="0.3"/>
+    </g>
+  </g>
+</svg>

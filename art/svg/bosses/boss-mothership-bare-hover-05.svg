@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 768" width="768" height="768">
+  <!-- The Mothership hover, phase 4 (bare): plating off showing frame and pipes, all three doors open and empty, all lights dark, tilted forward (hurrying). Frame 05 of 06.
+       Anchor bottom-centre (384,768): flyer drawn high, lower canvas left empty for the game's shadow.
+       Built as an edit of the shared Mothership drawing (shut / door1open hovers). See art/STYLE.md. -->
+  <defs>
+    <clipPath id="upper-clip"><path d="M112 362 Q146 226 384 212 Q622 226 656 362 Z"/></clipPath>
+    <clipPath id="bowl-clip"><path d="M164 380 Q196 566 384 572 Q572 566 604 380 Z"/></clipPath>
+    <clipPath id="dome-clip"><path d="M276 234 A108 108 0 0 1 492 234 Z"/></clipPath>
+  </defs>
+  <g id="mothership" transform="translate(0 10.4) rotate(9.25 384 380)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="lower-hull">
+      <path d="M164 380 Q196 566 384 572 Q572 566 604 380 Z" fill="#C9D1E3" stroke="none"/>
+      <path clip-path="url(#bowl-clip)" d="M640 380 Q600 540 420 590 L660 600 Z" fill="#A39BD0" stroke="none"/>
+      <path d="M164 380 Q196 566 384 572 Q572 566 604 380 Z" fill="none" stroke-width="14"/>
+      <g id="door-1" transform="rotate(-9 290 504.0)">
+        <rect x="250" y="466" width="80" height="76" rx="18" fill="#23295E" stroke-width="10"/>
+        <path d="M258 488 Q258 474 274 474 H320" fill="none" stroke="#141633" stroke-width="12"/>
+        <path id="ramp-1" d="M252 536 L328 536 L342 600 L242 606 Z" fill="#A7B0C8" stroke-width="10"/>
+        <path d="M260 560 H326 M256 580 H332" fill="none" stroke="#7F89A6" stroke-width="7"/>
+      </g>
+      <g id="door-2" transform="rotate(0 384 504.0)">
+        <rect x="344" y="466" width="80" height="76" rx="18" fill="#23295E" stroke-width="10"/>
+        <path d="M352 488 Q352 474 368 474 H414" fill="none" stroke="#141633" stroke-width="12"/>
+        <path id="ramp-2" d="M346 536 L422 536 L436 600 L336 606 Z" fill="#A7B0C8" stroke-width="10"/>
+        <path d="M354 560 H420 M350 580 H426" fill="none" stroke="#7F89A6" stroke-width="7"/>
+      </g>
+      <g id="door-3" transform="rotate(9 478 504.0)">
+        <rect x="438" y="466" width="80" height="76" rx="18" fill="#23295E" stroke-width="10"/>
+        <path d="M446 488 Q446 474 462 474 H508" fill="none" stroke="#141633" stroke-width="12"/>
+        <path id="ramp-3" d="M440 536 L516 536 L530 600 L430 606 Z" fill="#A7B0C8" stroke-width="10"/>
+        <path d="M448 560 H514 M444 580 H520" fill="none" stroke="#7F89A6" stroke-width="7"/>
+      </g>
+      <g id="bottom-lights">
+        <circle cx="206" cy="452" r="11" fill="#E05FD0" stroke-width="5"/>
+        <circle cx="246" cy="522" r="11" fill="#A84A9E" stroke-width="5"/>
+        <circle cx="522" cy="522" r="11" fill="#E05FD0" stroke-width="5"/>
+        <circle cx="562" cy="452" r="11" fill="#A84A9E" stroke-width="5"/>
+      </g>
+    </g>
+    <g id="rim">
+      <ellipse cx="384" cy="372" rx="342" ry="92" fill="#C9D1E3" stroke="none"/>
+      <path d="M42 372 Q60 460 384 466 Q708 460 726 372 Q706 420 384 430 Q62 420 42 372 Z" fill="#A39BD0" stroke="none"/>
+      <path d="M78 352 Q160 300 300 290" fill="none" stroke="#EEF1F8" stroke-width="14"/>
+      <ellipse cx="384" cy="372" rx="342" ry="92" fill="none" stroke-width="14"/>
+      <path d="M50 386 Q210 440 384 442 Q558 440 718 386" fill="none" stroke-width="8"/>
+    </g>
+    <g id="door-lights">
+      <circle cx="290" cy="402.4" r="11" fill="#4A3F7A" stroke-width="6"/>
+      <circle cx="370" cy="408" r="11" fill="#4A3F7A" stroke-width="6"/><circle cx="398" cy="408" r="11" fill="#4A3F7A" stroke-width="6"/>
+      <circle cx="450" cy="402.4" r="11" fill="#4A3F7A" stroke-width="6"/><circle cx="478" cy="402.4" r="11" fill="#4A3F7A" stroke-width="6"/><circle cx="506" cy="402.4" r="11" fill="#4A3F7A" stroke-width="6"/>
+    </g>
+    <g id="upper-hull">
+      <path d="M112 362 Q146 226 384 212 Q622 226 656 362 Z" fill="#C9D1E3" stroke="none"/>
+      <path clip-path="url(#upper-clip)" d="M700 200 Q620 260 600 370 L700 370 Z" fill="#A39BD0" stroke="none"/>
+      <g id="frame-pipes">
+        <path d="M150 352 Q170 286 236 256 M262 360 Q262 290 300 236 M506 360 Q506 290 468 236 M618 352 Q598 286 532 256" fill="none" stroke="#7F89A6" stroke-width="16"/>
+        <path d="M150 352 Q170 286 236 256 M262 360 Q262 290 300 236 M506 360 Q506 290 468 236 M618 352 Q598 286 532 256" fill="none" stroke-width="5" opacity="0.6"/>
+        <path d="M166 330 Q230 290 300 312 Q384 340 470 300 Q540 272 604 326" fill="none" stroke="#2A1E3D" stroke-width="32"/>
+        <path d="M166 330 Q230 290 300 312 Q384 340 470 300 Q540 272 604 326" fill="none" stroke="#3FB8AF" stroke-width="16"/>
+        <path d="M196 312 Q230 296 262 300" fill="none" stroke="#9BE5DE" stroke-width="5"/>
+        <path d="M230 352 Q260 260 340 262 Q384 264 400 300 Q414 336 470 340 Q520 340 540 360" fill="none" stroke="#2A1E3D" stroke-width="30"/>
+        <path d="M230 352 Q260 260 340 262 Q384 264 400 300 Q414 336 470 340 Q520 340 540 360" fill="none" stroke="#E05FD0" stroke-width="14"/>
+        <g fill="#A7B0C8" stroke-width="6">
+          <rect x="284" y="296" width="26" height="34" rx="9"/><rect x="456" y="286" width="26" height="34" rx="9"/>
+          <rect x="384" y="282" width="30" height="24" rx="9"/><circle cx="178" cy="324" r="13"/><circle cx="594" cy="320" r="13"/>
+        </g>
+      </g>
+      <path d="M112 362 Q146 226 384 212 Q622 226 656 362" fill="none" stroke-width="14"/>
+    </g>
+    <g id="dome">
+      <g id="captain">
+        <path d="M330 236 Q330 170 384 166 Q438 170 438 236 Z" fill="#9BE564" stroke-width="8"/>
+        <path d="M428 196 Q438 214 436 236 L410 236 Z" fill="#7CC74A" stroke="none"/>
+        <path d="M392 168 Q398 140 412 128" fill="none" stroke-width="6"/>
+        <circle cx="414" cy="124" r="10" fill="#E05FD0" stroke-width="5"/>
+        <g id="captain-face">
+          <ellipse cx="376" cy="204" rx="13" ry="15" fill="#FFFFFF" stroke-width="5"/>
+          <ellipse cx="410" cy="202" rx="12" ry="14" fill="#FFFFFF" stroke-width="5"/>
+          <circle cx="381" cy="208" r="7" fill="#2A1E3D" stroke="none"/><circle cx="414" cy="206" r="6.5" fill="#2A1E3D" stroke="none"/>
+          <path d="M362 196 Q376 190 390 196 L390 186 L362 186 Z" fill="#9BE564" stroke="none"/>
+          <path d="M398 194 Q410 188 422 194 L422 184 L398 184 Z" fill="#9BE564" stroke="none"/>
+          <path d="M363 197 Q376 191 389 197 M399 195 Q410 189 421 195" fill="none" stroke-width="5"/>
+          <path d="M378 224 Q396 232 414 220" fill="none" stroke-width="6"/>
+        </g>
+      </g>
+      <path d="M276 234 A108 108 0 0 1 492 234 Z" fill="#CFE9FF" fill-opacity="0.5" stroke="none"/>
+      <path d="M302 210 A86 86 0 0 1 360 150" fill="none" stroke="#FFFFFF" stroke-width="12" opacity="0.9"/>
+      <circle cx="378" cy="146" r="6" fill="#FFFFFF" stroke="none"/>
+      <path d="M276 234 A108 108 0 0 1 492 234" fill="none" stroke-width="14"/>
+      <path d="M270 236 Q384 256 498 236" fill="none" stroke="#2A1E3D" stroke-width="30"/><path d="M270 236 Q384 256 498 236" fill="none" stroke="#A7B0C8" stroke-width="14"/>
+    </g>
+  </g>
+</svg>

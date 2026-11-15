@@ -1,0 +1,151 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+<!-- Challenge card: Blob Parade, three Moon Blobs marching, the front one in a band hat. Anchor centre.
+     Built from the in-game sprites (inlined, ids prefixed). Light from the top-left. See art/STYLE.md. -->
+<g id="s38-alien-blob-walk-05" transform="translate(58 150) scale(0.4 0.4) translate(-128 -256)"><defs>
+    <clipPath id="s38-blob-clip"><path d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z" /></clipPath>
+  </defs>
+  <g id="s38-blob" transform="translate(128 250) skewX(-7) scale(1.03 1.01) translate(-128 -250)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="s38-antennae" stroke-width="7">
+      <g id="s38-antenna-back" transform="rotate(-9 104 130)">
+        <path d="M104 130 Q98 108 92 96" fill="none" />
+        <circle cx="91" cy="90" r="11" fill="#9FF3FF" stroke-width="6" />
+        <circle cx="87" cy="86" r="3" fill="#FFFFFF" stroke="none" />
+      </g>
+      <g id="s38-antenna-front" transform="rotate(-9 158 130)">
+        <path d="M158 130 Q166 108 174 97" fill="none" />
+        <circle cx="176" cy="91" r="11" fill="#9FF3FF" stroke-width="6" />
+        <circle cx="172" cy="87" r="3" fill="#FFFFFF" stroke="none" />
+      </g>
+    </g>
+    <g id="s38-body">
+      <path id="s38-dome" d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z" fill="#5AA9F0" stroke="none" />
+      <g clip-path="url(#s38-blob-clip)" stroke="none">
+        <path id="s38-dome-shade" d="M236 120 Q206 150 212 236 Q208 246 186 252 L240 256 Z" fill="#3F86CF" />
+        <ellipse id="s38-belly" cx="132" cy="226" rx="62" ry="22" fill="#8CC7F6" />
+      </g>
+      <path id="s38-dome-highlight" d="M58 172 Q70 144 104 136" fill="none" stroke="#BFE3FF" stroke-width="10" />
+      <circle cx="52" cy="190" r="4" fill="#BFE3FF" stroke="none" />
+      <g id="s38-crater-spots" fill="#8CC7F6" stroke-width="3">
+        <ellipse cx="78" cy="196" rx="9" ry="7" />
+        <ellipse cx="196" cy="180" rx="7" ry="5.5" />
+        <ellipse cx="190" cy="150" rx="6" ry="4.5" />
+      </g>
+      <path id="s38-dome-outline" d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z" fill="none" stroke-width="8" />
+    </g>
+    <g id="s38-face" transform="translate(2 -1)">
+      <g id="s38-eyes">
+        <ellipse cx="112" cy="174" rx="17" ry="20" fill="#FFFFFF" stroke-width="5" />
+        <ellipse cx="158" cy="173" rx="16" ry="19" fill="#FFFFFF" stroke-width="5" />
+        <g stroke="none">
+          <circle cx="117" cy="178" r="9" fill="#2A1E3D" />
+          <circle cx="163" cy="177" r="8.5" fill="#2A1E3D" />
+          <circle cx="120" cy="174" r="3.5" fill="#FFFFFF" />
+          <circle cx="166" cy="173" r="3.3" fill="#FFFFFF" />
+        </g>
+      </g>
+      <g id="s38-mouth" fill="none" stroke-width="6">
+        <path d="M116 207 Q138 223 162 203" />
+        <path d="M156 201 L166 199" stroke-width="5" />
+      </g>
+    </g>
+  </g>
+</g>
+<g id="s39-alien-blob-walk-03" transform="translate(112 192) scale(0.5 0.5) translate(-128 -256)"><defs>
+    <clipPath id="s39-blob-clip"><path d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z" /></clipPath>
+  </defs>
+  <g id="s39-blob" transform="translate(128 250) skewX(-3) scale(1.0 1.0) translate(-128 -250)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="s39-antennae" stroke-width="7">
+      <g id="s39-antenna-back" transform="rotate(4 104 130)">
+        <path d="M104 130 Q98 108 92 96" fill="none" />
+        <circle cx="91" cy="90" r="11" fill="#9FF3FF" stroke-width="6" />
+        <circle cx="87" cy="86" r="3" fill="#FFFFFF" stroke="none" />
+      </g>
+      <g id="s39-antenna-front" transform="rotate(4 158 130)">
+        <path d="M158 130 Q166 108 174 97" fill="none" />
+        <circle cx="176" cy="91" r="11" fill="#9FF3FF" stroke-width="6" />
+        <circle cx="172" cy="87" r="3" fill="#FFFFFF" stroke="none" />
+      </g>
+    </g>
+    <g id="s39-body">
+      <path id="s39-dome" d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z" fill="#5AA9F0" stroke="none" />
+      <g clip-path="url(#s39-blob-clip)" stroke="none">
+        <path id="s39-dome-shade" d="M236 120 Q206 150 212 236 Q208 246 186 252 L240 256 Z" fill="#3F86CF" />
+        <ellipse id="s39-belly" cx="132" cy="226" rx="62" ry="22" fill="#8CC7F6" />
+      </g>
+      <path id="s39-dome-highlight" d="M58 172 Q70 144 104 136" fill="none" stroke="#BFE3FF" stroke-width="10" />
+      <circle cx="52" cy="190" r="4" fill="#BFE3FF" stroke="none" />
+      <g id="s39-crater-spots" fill="#8CC7F6" stroke-width="3">
+        <ellipse cx="78" cy="196" rx="9" ry="7" />
+        <ellipse cx="196" cy="180" rx="7" ry="5.5" />
+        <ellipse cx="190" cy="150" rx="6" ry="4.5" />
+      </g>
+      <path id="s39-dome-outline" d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z" fill="none" stroke-width="8" />
+    </g>
+    <g id="s39-face" transform="translate(1 0)">
+      <g id="s39-eyes">
+        <ellipse cx="112" cy="174" rx="17" ry="20" fill="#FFFFFF" stroke-width="5" />
+        <ellipse cx="158" cy="173" rx="16" ry="19" fill="#FFFFFF" stroke-width="5" />
+        <g stroke="none">
+          <circle cx="117" cy="178" r="9" fill="#2A1E3D" />
+          <circle cx="163" cy="177" r="8.5" fill="#2A1E3D" />
+          <circle cx="120" cy="174" r="3.5" fill="#FFFFFF" />
+          <circle cx="166" cy="173" r="3.3" fill="#FFFFFF" />
+        </g>
+      </g>
+      <g id="s39-mouth" fill="none" stroke-width="6">
+        <path d="M116 207 Q138 223 162 203" />
+        <path d="M156 201 L166 199" stroke-width="5" />
+      </g>
+    </g>
+  </g>
+</g>
+<g id="s40-alien-blob-walk-01" transform="translate(180 246) scale(0.64 0.64) translate(-128 -256)"><defs>
+    <clipPath id="s40-blob-clip"><path d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z" /></clipPath>
+  </defs>
+  <g id="s40-blob" transform="translate(128 250) skewX(-8) scale(1.0 1.04) translate(-128 -250)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="s40-antennae" stroke-width="7">
+      <g id="s40-antenna-back" transform="rotate(-8 104 130)">
+        <path d="M104 130 Q98 108 92 96" fill="none" />
+        <circle cx="91" cy="90" r="11" fill="#9FF3FF" stroke-width="6" />
+        <circle cx="87" cy="86" r="3" fill="#FFFFFF" stroke="none" />
+      </g>
+      <g id="s40-antenna-front" transform="rotate(-8 158 130)">
+        <path d="M158 130 Q166 108 174 97" fill="none" />
+        <circle cx="176" cy="91" r="11" fill="#9FF3FF" stroke-width="6" />
+        <circle cx="172" cy="87" r="3" fill="#FFFFFF" stroke="none" />
+      </g>
+    </g>
+    <g id="s40-body">
+      <path id="s40-dome" d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z" fill="#5AA9F0" stroke="none" />
+      <g clip-path="url(#s40-blob-clip)" stroke="none">
+        <path id="s40-dome-shade" d="M236 120 Q206 150 212 236 Q208 246 186 252 L240 256 Z" fill="#3F86CF" />
+        <ellipse id="s40-belly" cx="132" cy="226" rx="62" ry="22" fill="#8CC7F6" />
+      </g>
+      <path id="s40-dome-highlight" d="M58 172 Q70 144 104 136" fill="none" stroke="#BFE3FF" stroke-width="10" />
+      <circle cx="52" cy="190" r="4" fill="#BFE3FF" stroke="none" />
+      <g id="s40-crater-spots" fill="#8CC7F6" stroke-width="3">
+        <ellipse cx="78" cy="196" rx="9" ry="7" />
+        <ellipse cx="196" cy="180" rx="7" ry="5.5" />
+        <ellipse cx="190" cy="150" rx="6" ry="4.5" />
+      </g>
+      <path id="s40-dome-outline" d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z" fill="none" stroke-width="8" />
+    </g>
+    <g id="s40-face" transform="translate(2 -1)">
+      <g id="s40-eyes">
+        <ellipse cx="112" cy="174" rx="17" ry="20" fill="#FFFFFF" stroke-width="5" />
+        <ellipse cx="158" cy="173" rx="16" ry="19" fill="#FFFFFF" stroke-width="5" />
+        <g stroke="none">
+          <circle cx="117" cy="178" r="9" fill="#2A1E3D" />
+          <circle cx="163" cy="177" r="8.5" fill="#2A1E3D" />
+          <circle cx="120" cy="174" r="3.5" fill="#FFFFFF" />
+          <circle cx="166" cy="173" r="3.3" fill="#FFFFFF" />
+        </g>
+      </g>
+      <g id="s40-mouth" fill="none" stroke-width="6">
+        <path d="M116 207 Q138 223 162 203" />
+        <path d="M156 201 L166 199" stroke-width="5" />
+      </g>
+    </g>
+  <g id="s40-band-hat" transform="rotate(8 140 112)" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round"><path d="M118 70 Q120 40 132 38 Q138 14 152 22 Q150 34 144 40 Q152 44 154 70 Z" fill="#FFF4D6" stroke-width="6" /><rect x="104" y="64" width="64" height="58" rx="10" fill="#E2403A" /><path d="M156 66 V120 Q168 120 168 110 V74 Q168 64 158 64 Z" fill="#B52D28" stroke="none" /><rect x="104" y="64" width="64" height="58" rx="10" fill="none" /><path d="M104 80 H168" stroke-width="5" fill="none" /><path d="M112 100 L136 88 L160 100" fill="none" stroke="#F5B700" stroke-width="7" /><path d="M96 122 Q136 132 176 120" fill="none" stroke-width="14" /><path d="M96 122 Q136 132 176 120" fill="none" stroke="#2A1E3D" stroke-width="7" /><circle cx="136" cy="72" r="7" fill="#F5B700" stroke-width="4" /><path d="M112 94 V76" fill="none" stroke="#F28480" stroke-width="5" stroke-linecap="round" /></g></g>
+</g>
+</svg>

@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- badge-meteor-catcher-outline: Meteor Catcher: a glowing meteor caught in a soft net. outline (not yet earned: 15% white fill, thin grey #A7B0C8 lines). Single frame. Anchor centre (128,128).
+       Medal: gold rim, cream ring, night-blue disc, ribbon tab at the bottom. Light from the top-left. See art/STYLE.md. -->
+
+<g id="badge-meteor-catcher-outline" stroke-linejoin="round" stroke-linecap="round">
+  <g id="silhouette" fill="#FFFFFF" opacity="0.15" stroke="none">
+    <path d="M98 176 L130 186 L114 245 L99 233 L80 240 Z"/><path d="M158 176 L126 186 L142 245 L157 233 L176 240 Z"/>
+    <circle cx="128" cy="114" r="96"/>
+  </g>
+  <mask id="badge-meteor-catcher-outline-lines" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256">
+    <rect x="0" y="0" width="256" height="256" fill="#000"/>
+    <g id="outline-lines" fill="#000" stroke="#FFF" stroke-width="5">
+      <path d="M158 176 L126 186 L142 245 L157 233 L176 240 Z"/><path d="M98 176 L130 186 L114 245 L99 233 L80 240 Z"/>
+      <circle cx="128" cy="114" r="96"/>
+      <circle cx="128" cy="114" r="70" fill="none" stroke-width="3"/>
+      <g id="motif" transform="translate(128 114)" stroke-width="4">
+        <path d="M-8 -24 L40 -50 Q50 -50 48 -40 L20 6 Z" fill="#000" stroke="#FFF" stroke-width="4" />
+        <path d="M6 -22 L32 -38 L18 -6 Z" fill="#000" stroke="#FFF" stroke-width="3" />
+        <g id="meteor">
+          <circle cx="0" cy="-4" r="25" fill="#000" stroke="#FFF" stroke-width="4" />
+          <circle cx="-9" cy="-10" r="6" fill="#000" stroke="#FFF" stroke-width="3" />
+          <circle cx="9" cy="6" r="4.5" fill="#000" stroke="#FFF" stroke-width="3" />
+          <circle cx="10" cy="-14" r="3.2" fill="#000" stroke="#FFF" stroke-width="2.5" />
+        </g>
+        <g id="soft-net">
+          <clipPath id="badge-meteor-catcher-outline-net"><path d="M-52 -4 Q0 34 52 -4 Q0 74 -52 -4 Z" /></clipPath>
+          <path d="M-60 0 L-10 50 M-40 0 L10 50 M-20 0 L30 50 M0 0 L50 50 M20 0 L70 50 M60 0 L10 50 M40 0 L-10 50 M20 0 L-30 50 M0 0 L-50 50 M-20 0 L-70 50" clip-path="url(#badge-meteor-catcher-outline-net)" fill="none" stroke="#FFF" stroke-width="3" opacity="0.9"/>
+          <path d="M-52 -4 Q0 74 52 -4" fill="none" stroke="#FFF" stroke-width="8" />
+          <path d="M-52 -4 Q0 74 52 -4" fill="none" stroke="#000" stroke-width="1" />
+          <path d="M-52 -4 Q0 34 52 -4" fill="none" stroke="#FFF" stroke-width="8" />
+          <path d="M-52 -4 Q0 34 52 -4" fill="none" stroke="#000" stroke-width="1" />
+          <circle cx="-52" cy="-4" r="6.5" fill="#000" stroke="#FFF" stroke-width="3.5" />
+          <circle cx="52" cy="-4" r="6.5" fill="#000" stroke="#FFF" stroke-width="3.5" />
+        </g>
+        <path d="M0 -7 Q2 -2 7 0 Q2 2 0 7 Q-2 2 -7 0 Q-2 -2 0 -7 Z" transform="translate(-40 -36)" fill="#FFF" stroke="none" />
+        <path d="M0 -6 Q1.7 -1.7 6 0 Q1.7 1.7 0 6 Q-1.7 1.7 -6 0 Q-1.7 -1.7 0 -6 Z" transform="translate(54 -24)" fill="#FFF" stroke="none" />
+      </g>
+    </g>
+  </mask>
+  <rect x="0" y="0" width="256" height="256" fill="#A7B0C8" mask="url(#badge-meteor-catcher-outline-lines)"/>
+</g>
+</svg>

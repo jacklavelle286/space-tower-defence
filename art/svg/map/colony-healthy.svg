@@ -1,0 +1,164 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 768" width="768" height="768">
+  <!-- colony-healthy: research colony (all windows lit, antennas straight). Single frame. Same buildings in every state. Anchor bottom-centre (384,768). -->
+  <g id="colony" stroke="#2A1E3D" stroke-width="14" stroke-linejoin="round" stroke-linecap="round" transform="translate(0 -12)">
+    <g id="solar-panels">
+      <g id="panel-1">
+        <path d="M520 420 V462" stroke="#2A1E3D" stroke-width="20" fill="none"/>
+        <path d="M520 420 V462" stroke="#7F89A6" stroke-width="8" fill="none"/>
+        <path d="M480 394 L550 370 L564 410 L494 434 Z" fill="#3F86CF" stroke-width="11"/>
+        <path d="M503.3 386 L517.3 426" stroke="#8CC7F6" stroke-width="4.5" fill="none"/>
+        <path d="M526.7 378 L540.7 418" stroke="#8CC7F6" stroke-width="4.5" fill="none"/>
+        <path d="M487 414 L557 390" stroke="#8CC7F6" stroke-width="4.5" fill="none"/>
+        <path d="M488 396 L510 387" stroke="#D2F0FF" stroke-width="5" fill="none"/>
+        <path d="M480 394 L550 370 L564 410 L494 434 Z" fill="none" stroke-width="11"/>
+      </g>
+      <g id="panel-2">
+        <path d="M600 448 V490" stroke="#2A1E3D" stroke-width="20" fill="none"/>
+        <path d="M600 448 V490" stroke="#7F89A6" stroke-width="8" fill="none"/>
+        <path d="M560 422 L630 398 L644 438 L574 462 Z" fill="#3F86CF" stroke-width="11"/>
+        <path d="M583.3 414 L597.3 454" stroke="#8CC7F6" stroke-width="4.5" fill="none"/>
+        <path d="M606.7 406 L620.7 446" stroke="#8CC7F6" stroke-width="4.5" fill="none"/>
+        <path d="M567 442 L637 418" stroke="#8CC7F6" stroke-width="4.5" fill="none"/>
+        <path d="M568 424 L590 415" stroke="#D2F0FF" stroke-width="5" fill="none"/>
+        <path d="M560 422 L630 398 L644 438 L574 462 Z" fill="none" stroke-width="11"/>
+      </g>
+      <g id="panel-3">
+        <path d="M680 476 V518" stroke="#2A1E3D" stroke-width="20" fill="none"/>
+        <path d="M680 476 V518" stroke="#7F89A6" stroke-width="8" fill="none"/>
+        <path d="M640 450 L710 426 L724 466 L654 490 Z" fill="#3F86CF" stroke-width="11"/>
+        <path d="M663.3 442 L677.3 482" stroke="#8CC7F6" stroke-width="4.5" fill="none"/>
+        <path d="M686.7 434 L700.7 474" stroke="#8CC7F6" stroke-width="4.5" fill="none"/>
+        <path d="M647 470 L717 446" stroke="#8CC7F6" stroke-width="4.5" fill="none"/>
+        <path d="M648 452 L670 443" stroke="#D2F0FF" stroke-width="5" fill="none"/>
+        <path d="M640 450 L710 426 L724 466 L654 490 Z" fill="none" stroke-width="11"/>
+      </g>
+    </g>
+    <g id="greenhouse">
+      <clipPath id="greenhouse-clip"><path d="M134 540 A80 84 0 0 1 294 540 A80 60 0 0 1 134 540 Z"/></clipPath>
+      <path d="M134 540 V556 A80 60 0 0 0 294 556 V540 A80 60 0 0 1 134 540 Z" fill="#A7B0C8"/>
+      <path d="M134 540 A80 84 0 0 1 294 540 A80 60 0 0 1 134 540 Z" fill="#CFF6FF"/>
+      <g id="plants" clip-path="url(#greenhouse-clip)">
+        <path d="M215.3 526 C216.1 533.7 210.1 546.3 202.8 551.8 C195.6 557.2 181.4 560.4 171.7 558.7 C162.1 556.9 149.1 549 145 541.2 C140.9 533.3 142.6 519.9 147 511.7 C151.4 503.5 162.9 493.1 171.4 492.1 C179.9 491.1 190.7 500 198 505.7 C205.3 511.3 214.5 518.3 215.3 526 Z" fill="#3DBE6E" stroke-width="6"/>
+        <circle cx="169.8" cy="515.8" r="6.1" fill="#FFFFFF" opacity="0.6" stroke="none"/>
+        <path d="M273.7 518 C274.4 525.3 271.5 537.5 265.4 542.1 C259.2 546.7 245.6 547.4 237 545.6 C228.4 543.8 216.3 537.5 213.5 531.2 C210.7 524.9 216.3 514.3 220.3 507.7 C224.3 501.2 230.6 493.5 237.4 491.9 C244.2 490.4 255.1 494.3 261.2 498.6 C267.2 502.9 273 510.7 273.7 518 Z" fill="#3FB8AF" stroke-width="6"/>
+        <circle cx="235.0" cy="509.0" r="5.4" fill="#FFFFFF" opacity="0.6" stroke="none"/>
+        <path d="M242.4 558 C242.2 565.4 237.2 575.9 231.1 579.6 C225.1 583.3 213.7 582 206.4 580.2 C199.1 578.4 190.7 574.2 187.4 568.7 C184.2 563.1 184 553.9 186.9 547.1 C189.7 540.4 196.9 530.2 204.4 528.2 C212 526.2 226 530.1 232.3 535.1 C238.6 540.1 242.6 550.6 242.4 558 Z" fill="#8FE0AA" stroke-width="6"/>
+        <circle cx="203.0" cy="549.0" r="5.4" fill="#FFFFFF" opacity="0.6" stroke="none"/>
+      </g>
+      <path id="glass" d="M134 540 A80 84 0 0 1 294 540 A80 60 0 0 1 134 540 Z" fill="#CFF6FF" opacity="0.35" stroke="none"/>
+      <g id="ribs">
+        <path d="M174 592 Q168 514.8 202 457.7" fill="none" stroke="#A7B0C8" stroke-width="7"/>
+        <path d="M214 600 Q214 514.8 214 457.7" fill="none" stroke="#A7B0C8" stroke-width="7"/>
+        <path d="M254 592 Q260 514.8 226 457.7" fill="none" stroke="#A7B0C8" stroke-width="7"/>
+      </g>
+      <path d="M134 540 A80 84 0 0 1 294 540 A80 60 0 0 1 134 540 Z" fill="none"/>
+      <path d="M154 514.8 A64 67.2 0 0 1 194 477" fill="none" stroke="#FFFFFF" stroke-width="9"/>
+    </g>
+    <g id="tube-left">
+      <path d="M226 632 L304 570" stroke="#2A1E3D" stroke-width="66" fill="none"/>
+      <path d="M226 632 L304 570" stroke="#F4F1EA" stroke-width="44" fill="none"/>
+      <path d="M226 632 L304 570" stroke="#D8D2C4" stroke-width="14" fill="none" transform="translate(0 12)"/>
+      <path d="M226 632 L304 570" stroke="#FFFFFF" stroke-width="6" fill="none" transform="translate(0 -12)"/>
+      <rect x="252" y="568" width="26" height="66" rx="10" fill="#A7B0C8" stroke-width="8" transform="rotate(-38.5 265 601)"/>
+    </g>
+    <g id="tube-right">
+      <path d="M474 580 L556 620" stroke="#2A1E3D" stroke-width="66" fill="none"/>
+      <path d="M474 580 L556 620" stroke="#F4F1EA" stroke-width="44" fill="none"/>
+      <path d="M474 580 L556 620" stroke="#D8D2C4" stroke-width="14" fill="none" transform="translate(0 12)"/>
+      <path d="M474 580 L556 620" stroke="#FFFFFF" stroke-width="6" fill="none" transform="translate(0 -12)"/>
+      <rect x="502" y="567" width="26" height="66" rx="10" fill="#A7B0C8" stroke-width="8" transform="rotate(26 515 600)"/>
+    </g>
+    <g id="tube-green">
+      <path d="M244 560 L294 530" stroke="#2A1E3D" stroke-width="66" fill="none"/>
+      <path d="M244 560 L294 530" stroke="#F4F1EA" stroke-width="44" fill="none"/>
+      <path d="M244 560 L294 530" stroke="#D8D2C4" stroke-width="14" fill="none" transform="translate(0 12)"/>
+      <path d="M244 560 L294 530" stroke="#FFFFFF" stroke-width="6" fill="none" transform="translate(0 -12)"/>
+      <rect x="256" y="512" width="26" height="66" rx="10" fill="#A7B0C8" stroke-width="8" transform="rotate(-31 269 545)"/>
+    </g>
+    <g id="antenna-left">
+      <path d="M314 442 V322" fill="none" stroke="#2A1E3D" stroke-width="22"/>
+      <path d="M314 442 V322" fill="none" stroke="#A7B0C8" stroke-width="9"/>
+      <ellipse cx="314" cy="442" rx="20" ry="11" fill="#A7B0C8" stroke-width="8"/>
+      <circle cx="314" cy="318" r="30" fill="#FFE79A" opacity="0.5" stroke="none"/>
+      <circle cx="314" cy="318" r="19" fill="#F5B700" stroke-width="8"/>
+      <path d="M305 319 Q306 309 315 308" fill="none" stroke="#FFEA99" stroke-width="5"/>
+    </g>
+    <g id="main-dome">
+      <clipPath id="main-dome-clip"><path d="M212 600 A172 176 0 0 1 556 600 A172 129 0 0 1 212 600 Z"/></clipPath>
+      <path id="main-dome-skirt" d="M212 600 V622 A172 129 0 0 0 556 622 V600 A172 129 0 0 1 212 600 Z" fill="#A7B0C8"/>
+      <path d="M435.6 744.5 A172 129 0 0 0 552 628 V606 Z" fill="#7F89A6" stroke="none"/>
+      <path d="M212 600 V622 A172 129 0 0 0 556 622 V600 A172 129 0 0 1 212 600 Z" fill="none"/>
+      <path d="M212 600 A172 176 0 0 1 556 600 A172 129 0 0 1 212 600 Z" fill="#F4F1EA"/>
+      <g clip-path="url(#main-dome-clip)" stroke="none">
+        <path d="M212 600 A172 176 0 0 1 556 600 A172 129 0 0 1 212 600 Z" fill="#D8D2C4"/>
+        <path d="M212 600 A172 176 0 0 1 556 600 A172 129 0 0 1 212 600 Z" fill="#F4F1EA" transform="translate(-27.5 -24.6)"/>
+      </g>
+      <g id="main-windows">
+        <ellipse cx="292" cy="560" rx="31.1" ry="32.4" fill="#FFE79A" opacity="0.55" stroke="none"/>
+        <ellipse cx="292" cy="560" rx="22.1" ry="23.4" fill="#FFF4D6" stroke-width="8"/>
+        <circle cx="284.3" cy="550.9" r="5.2" fill="#FFFFFF" stroke="none"/>
+        <ellipse cx="374" cy="582" rx="39" ry="36" fill="#FFE79A" opacity="0.55" stroke="none"/>
+        <ellipse cx="374" cy="582" rx="30" ry="27" fill="#FFF4D6" stroke-width="8"/>
+        <circle cx="363.5" cy="571.5" r="6" fill="#FFFFFF" stroke="none"/>
+        <ellipse cx="464" cy="566" rx="31.1" ry="32.4" fill="#FFE79A" opacity="0.55" stroke="none"/>
+        <ellipse cx="464" cy="566" rx="22.1" ry="23.4" fill="#FFF4D6" stroke-width="8"/>
+        <circle cx="456.3" cy="556.9" r="5.2" fill="#FFFFFF" stroke="none"/>
+      </g>
+      <path d="M212 600 A172 176 0 0 1 556 600 A172 129 0 0 1 212 600 Z" fill="none"/>
+      <path id="main-dome-highlight" d="M249.8 538.4 A141 144.3 0 0 1 341 462.7" fill="none" stroke="#FFFFFF" stroke-width="9"/>
+    </g>
+    <g id="alert-light">
+      <path d="M348 430 Q348 386 378 386 Q408 386 408 430 Q378 440 348 430 Z" fill="#C9D0E2" stroke-width="11"/>
+      <path d="M360 418 Q360 400 374 396" fill="none" stroke="#FFFFFF" stroke-width="6"/>
+    </g>
+    <g id="left-dome">
+      <clipPath id="left-dome-clip"><path d="M100 672 A96 100 0 0 1 292 672 A96 72 0 0 1 100 672 Z"/></clipPath>
+      <path id="left-dome-skirt" d="M100 672 V694 A96 72 0 0 0 292 694 V672 A96 72 0 0 1 100 672 Z" fill="#A7B0C8"/>
+      <path d="M224.8 762.4 A96 72 0 0 0 288 700 V678 Z" fill="#7F89A6" stroke="none"/>
+      <path d="M100 672 V694 A96 72 0 0 0 292 694 V672 A96 72 0 0 1 100 672 Z" fill="none"/>
+      <path d="M100 672 A96 100 0 0 1 292 672 A96 72 0 0 1 100 672 Z" fill="#F4F1EA"/>
+      <g clip-path="url(#left-dome-clip)" stroke="none">
+        <path d="M100 672 A96 100 0 0 1 292 672 A96 72 0 0 1 100 672 Z" fill="#D8D2C4"/>
+        <path d="M100 672 A96 100 0 0 1 292 672 A96 72 0 0 1 100 672 Z" fill="#F4F1EA" transform="translate(-15.4 -14)"/>
+      </g>
+      <g id="doorway">
+        <path d="M108 674 Q108 608 144 606 Q174 608 174 676 Q141 702 108 674 Z" fill="#A7B0C8" stroke-width="8"/>
+        <path d="M120 670 Q120 622 144 620 Q162 622 162 672 Q141 688 120 670 Z" fill="#FFE79A" stroke-width="6"/>
+        <path d="M141 622 V680" stroke-width="5" fill="none"/>
+      </g>
+      <g id="left-windows">
+        <ellipse cx="226" cy="622" rx="26" ry="27" fill="#FFE79A" opacity="0.55" stroke="none"/>
+        <ellipse cx="226" cy="622" rx="17" ry="18" fill="#FFF4D6" stroke-width="8"/>
+        <circle cx="220.1" cy="615" r="4" fill="#FFFFFF" stroke="none"/>
+      </g>
+      <path d="M100 672 A96 100 0 0 1 292 672 A96 72 0 0 1 100 672 Z" fill="none"/>
+      <path id="left-dome-highlight" d="M121.1 637 A78.7 82 0 0 1 172 594" fill="none" stroke="#FFFFFF" stroke-width="9"/>
+    </g>
+    <g id="antenna-right">
+      <path d="M588 564 V460" fill="none" stroke="#2A1E3D" stroke-width="22"/>
+      <path d="M588 564 V460" fill="none" stroke="#A7B0C8" stroke-width="9"/>
+      <ellipse cx="588" cy="564" rx="20" ry="11" fill="#A7B0C8" stroke-width="8"/>
+      <circle cx="588" cy="456" r="30" fill="#FFE79A" opacity="0.5" stroke="none"/>
+      <circle cx="588" cy="456" r="19" fill="#F5B700" stroke-width="8"/>
+      <path d="M579 457 Q580 447 589 446" fill="none" stroke="#FFEA99" stroke-width="5"/>
+    </g>
+    <g id="right-dome">
+      <clipPath id="right-dome-clip"><path d="M474 666 A102 106 0 0 1 678 666 A102 76.5 0 0 1 474 666 Z"/></clipPath>
+      <path id="right-dome-skirt" d="M474 666 V688 A102 76.5 0 0 0 678 688 V666 A102 76.5 0 0 1 474 666 Z" fill="#A7B0C8"/>
+      <path d="M606.6 760.7 A102 76.5 0 0 0 674 694 V672 Z" fill="#7F89A6" stroke="none"/>
+      <path d="M474 666 V688 A102 76.5 0 0 0 678 688 V666 A102 76.5 0 0 1 474 666 Z" fill="none"/>
+      <path d="M474 666 A102 106 0 0 1 678 666 A102 76.5 0 0 1 474 666 Z" fill="#F4F1EA"/>
+      <g clip-path="url(#right-dome-clip)" stroke="none">
+        <path d="M474 666 A102 106 0 0 1 678 666 A102 76.5 0 0 1 474 666 Z" fill="#D8D2C4"/>
+        <path d="M474 666 A102 106 0 0 1 678 666 A102 76.5 0 0 1 474 666 Z" fill="#F4F1EA" transform="translate(-16.3 -14.8)"/>
+      </g>
+      <g id="right-windows">
+        <ellipse cx="580" cy="626" rx="29.4" ry="30.6" fill="#FFE79A" opacity="0.55" stroke="none"/>
+        <ellipse cx="580" cy="626" rx="20.4" ry="21.6" fill="#FFF4D6" stroke-width="8"/>
+        <circle cx="572.9" cy="617.6" r="4.8" fill="#FFFFFF" stroke="none"/>
+      </g>
+      <path d="M474 666 A102 106 0 0 1 678 666 A102 76.5 0 0 1 474 666 Z" fill="none"/>
+      <path id="right-dome-highlight" d="M496.4 628.9 A83.6 86.9 0 0 1 550.5 583.3" fill="none" stroke="#FFFFFF" stroke-width="9"/>
+    </g>
+  </g>
+</svg>

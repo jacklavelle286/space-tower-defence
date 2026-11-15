@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <!-- route-colony-end: route end cap, the track enters on the left exactly like route-straight-h and stops at a rounded metal doorstep with a plain glowing gate line. Single frame. Anchor centre (96,96). -->
+  <g id="route-colony-end">
+    <g id="track" fill="none" stroke-linecap="butt">
+      <path id="glow" d="M0 96 H128" stroke="#3FB8AF" stroke-width="164" opacity="0.3"/>
+      <path id="outline" d="M0 96 H128" stroke="#2A1E3D" stroke-width="146"/>
+      <path id="border" d="M0 96 H128" stroke="#3FB8AF" stroke-width="134"/>
+      <path id="border-light" d="M0 96 H128" stroke="#7FD9D2" stroke-width="124"/>
+      <path id="inner-line" d="M0 96 H128" stroke="#2A1E3D" stroke-width="112"/>
+      <path id="dust" d="M0 96 H128" stroke="#E6DDF7" stroke-width="106"/>
+    </g>
+    <g id="specks" fill="#C9C0F0"><ellipse cx="30" cy="66" rx="6" ry="4.5"/></g>
+    <g id="arrow" transform="translate(58 96) rotate(0)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M-15 -24 L13 0 L-15 24" stroke="#B3A8E3" stroke-width="17"/>
+      <path d="M-15 -24 L13 0 L-15 24" stroke="#FFFFFF" stroke-width="5" opacity="0.8" transform="translate(-3 -2)"/>
+    </g>
+    <g id="doorstep" stroke="#2A1E3D" stroke-width="6" stroke-linejoin="round">
+      <rect x="98" y="14" width="86" height="164" rx="40" fill="#3FB8AF" opacity="0.3" stroke="none" transform="translate(-4 0)"/>
+      <rect x="102" y="22" width="78" height="148" rx="36" fill="#A7B0C8"/>
+      <clipPath id="step-clip"><rect x="102" y="22" width="78" height="148" rx="36"/></clipPath>
+      <path clip-path="url(#step-clip)" d="M184 40 V176 H110 Q170 150 168 40 Z" fill="#7F89A6" stroke="none"/>
+      <rect x="102" y="22" width="78" height="148" rx="36" fill="none"/>
+      <path d="M114 70 Q114 42 134 34" fill="none" stroke="#C9D0E2" stroke-width="5" stroke-linecap="round"/>
+    </g>
+    <g id="gate-line" stroke-linecap="round">
+      <path d="M141 52 V140" stroke="#FFE79A" stroke-width="30" opacity="0.55"/>
+      <path d="M141 52 V140" stroke="#2A1E3D" stroke-width="15"/>
+      <path d="M141 52 V140" stroke="#FFF4D6" stroke-width="9"/>
+      <path d="M139 58 V80" stroke="#FFFFFF" stroke-width="3"/>
+    </g>
+  </g>
+</svg>

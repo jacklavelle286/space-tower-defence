@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-fish: a friendly orange fish, side view, facing right, with yellow fins.
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+  <defs>
+    <clipPath id="body-clip"><ellipse cx="144" cy="128" rx="78" ry="54"/></clipPath>
+  </defs>
+  <g id="fish" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <g id="fins-back" fill="#FFD23F">
+      <path id="tail" d="M84 128 Q56 98 32 82 Q20 78 22 92 Q32 128 22 164 Q20 178 32 174 Q56 158 84 128 Z"/>
+      <path id="fin-top" d="M100 84 Q124 38 178 60 Q182 70 176 80 Z"/>
+      <path id="fin-bottom" d="M122 176 Q132 208 166 200 Q160 190 162 176 Z"/>
+    </g>
+    <g id="body">
+      <ellipse cx="144" cy="128" rx="78" ry="54" fill="#FF8A2A"/>
+      <g clip-path="url(#body-clip)" stroke="none">
+        <ellipse id="belly" cx="150" cy="166" rx="66" ry="24" fill="#FFC08A"/>
+        <path id="body-shade" d="M222 60 V200 H120 Q200 180 222 60 Z" fill="#2A1E3D" opacity="0.13"/>
+      </g>
+      <g id="scales" fill="none" stroke="#D9661A" stroke-width="4">
+        <path d="M104 108 Q114 116 104 126"/>
+        <path d="M122 100 Q132 108 122 118"/>
+        <path d="M122 126 Q132 134 122 144"/>
+        <path d="M140 112 Q150 120 140 130"/>
+      </g>
+      <ellipse cx="144" cy="128" rx="78" ry="54" fill="none"/>
+      <path id="body-highlight" d="M90 102 Q104 86 126 80" fill="none" stroke="#FFFFFF" stroke-width="5"/>
+      <path id="gill" d="M178 94 Q166 128 178 160" fill="none" stroke-width="4"/>
+    </g>
+    <g id="face" stroke="none">
+      <circle cx="196" cy="112" r="12" fill="#FFFFFF" stroke="#2A1E3D" stroke-width="4"/>
+      <circle cx="199" cy="113" r="6.5" fill="#2A1E3D"/>
+      <circle cx="201" cy="110" r="2.2" fill="#FFFFFF"/>
+      <path d="M208 138 Q214 143 220 136" fill="none" stroke="#2A1E3D" stroke-width="4"/>
+    </g>
+  </g>
+</svg>

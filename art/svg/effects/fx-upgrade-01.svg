@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Upgrade burst, frame 01/08: sparkles, stars and chevrons rising in a column from the bottom-centre (progress 0%). Anchor bottom-centre (128,256).
+       See art/STYLE.md. -->
+  <g id="upgrade" stroke-linecap="round" stroke-linejoin="round">
+    <g id="glow" stroke="none"><rect x="98" y="240" width="60" height="0" rx="30" fill="#FFF4D6" opacity="0.3"/><ellipse cx="128" cy="232" rx="28" ry="21" fill="#FFE79A" opacity="0.6"/></g>
+    <g id="burst">
+    <path d="M0 -14 Q3.9 -3.9 14 0 Q3.9 3.9 0 14 Q-3.9 3.9 -14 0 Q-3.9 -3.9 0 -14 Z" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="3" stroke-linejoin="round" transform="translate(128 226) rotate(0)"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Bubble layer pop, frame 01 of 04: bubble wobbles, first split at the top-right.
+       Anchor centre (128,128).
+       Light from the top-left. See art/STYLE.md. -->
+<g id="burst" stroke-linejoin="round" stroke-linecap="round">
+  <g id="bubble" transform="translate(128 128) scale(1.05 0.95) translate(-128 -128)">
+    <path d="M187.1 52.4 A96 96 0 1 1 128 32 A9 9 0 0 1 128 50 A78 78 0 1 0 176 66.5 A9 9 0 0 1 187.1 52.4 Z" fill="#9FF3FF" fill-opacity="0.45" stroke="#2A1E3D" stroke-opacity="0.6" stroke-width="4"/>
+    <path d="M44.4 104 A87 87 0 0 1 74.4 59.4" fill="none" stroke="#FFFFFF" stroke-width="7" opacity="0.9"/>
+    <circle cx="87.2" cy="51.2" r="3.5" fill="#FFFFFF" opacity="0.9"/>
+  </g>
+  <g id="sparkles">
+    <path d="M0 -16 Q4.5 -4.5 16 0 Q4.5 4.5 0 16 Q-4.5 4.5 -16 0 Q-4.5 -4.5 0 -16 Z" transform="translate(159.3 37.2)" fill="#FFFFFF" stroke="none"/>
+  </g>
+</g>
+</svg>

@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 768" width="768" height="768">
+  <!-- King Wobble phase change (blue to pink), frame 06: 06 settles into the dash look.
+       Anchor bottom-centre (384,768): flat base on y=762.
+       See art/STYLE.md. Light from the top-left. -->
+  <defs>
+    <clipPath id="dome-clip"><path d="M90 704 Q90 300 384 294 Q678 300 678 704 Q678 762 622 762 L146 762 Q90 762 90 704 Z"/></clipPath>
+    <clipPath id="eye1-clip"><ellipse cx="336" cy="520" rx="51" ry="60"/></clipPath>
+    <clipPath id="eye2-clip"><ellipse cx="474" cy="517" rx="48" ry="57"/></clipPath>
+    <clipPath id="swirl-clip"><path d="M-909 0 C-1079 260 -879 480 -1059 768 L768 768 L768 0 Z"/></clipPath>
+  </defs>
+  <g id="wobble" transform="translate(384 762) skewX(-3) scale(1.0 1.0) translate(-384 -762)"
+     stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+      <g id="antennae" stroke-width="18">
+        <g id="antenna-back" transform="rotate(0 262 346)">
+          <path d="M262 346 Q236 290 210 252" fill="none"/>
+          <circle cx="204" cy="236" r="31" fill="#9FF3FF" stroke-width="10"/>
+          <circle cx="193" cy="225" r="9" fill="#FFFFFF" stroke="none"/>
+        </g>
+        <g id="antenna-front" transform="rotate(0 508 346)">
+          <path d="M508 346 Q534 290 560 252" fill="none"/>
+          <circle cx="566" cy="236" r="31" fill="#9FF3FF" stroke-width="10"/>
+          <circle cx="555" cy="225" r="9" fill="#FFFFFF" stroke="none"/>
+        </g>
+      </g>
+      <g id="body">
+        <path d="M90 704 Q90 300 384 294 Q678 300 678 704 Q678 762 622 762 L146 762 Q90 762 90 704 Z" fill="#5AA9F0" stroke="none"/>
+        <g clip-path="url(#dome-clip)" stroke="none">
+          <path id="dome-shade" d="M710 280 Q614 380 630 700 Q622 744 556 766 L730 768 Z" fill="#3F86CF"/>
+          <ellipse id="belly" cx="396" cy="694" rx="196" ry="62" fill="#8CC7F6"/>
+        </g>
+        <path id="dome-highlight" d="M168 520 Q200 432 300 404" fill="none" stroke="#BFE3FF" stroke-width="28"/>
+        <circle cx="150" cy="574" r="12" fill="#BFE3FF" stroke="none"/>
+        <g id="crater-spots" fill="#8CC7F6" stroke-width="6">
+          <ellipse cx="226" cy="604" rx="27" ry="21"/>
+          <ellipse cx="598" cy="556" rx="21" ry="16"/>
+          <ellipse cx="580" cy="460" rx="18" ry="13.5"/>
+        </g>
+      </g>
+      <g id="pink-swirl" clip-path="url(#swirl-clip)">
+      <g id="body-pink">
+        <path d="M90 704 Q90 300 384 294 Q678 300 678 704 Q678 762 622 762 L146 762 Q90 762 90 704 Z" fill="#FF7FB8" stroke="none"/>
+        <g clip-path="url(#dome-clip)" stroke="none">
+          <path id="dome-shade" d="M710 280 Q614 380 630 700 Q622 744 556 766 L730 768 Z" fill="#E0609A"/>
+          <ellipse id="belly" cx="396" cy="694" rx="196" ry="62" fill="#FFA8CF"/>
+        </g>
+        <path id="dome-highlight" d="M168 520 Q200 432 300 404" fill="none" stroke="#FFC4DE" stroke-width="28"/>
+        <circle cx="150" cy="574" r="12" fill="#FFC4DE" stroke="none"/>
+        <g id="crater-spots" fill="#FFA8CF" stroke-width="6">
+          <ellipse cx="226" cy="604" rx="27" ry="21"/>
+          <ellipse cx="598" cy="556" rx="21" ry="16"/>
+          <ellipse cx="580" cy="460" rx="18" ry="13.5"/>
+        </g>
+      </g>
+      </g>
+      <path id="dome-outline" d="M90 704 Q90 300 384 294 Q678 300 678 704 Q678 762 622 762 L146 762 Q90 762 90 704 Z" fill="none" stroke-width="14"/>
+      <g id="crown" transform="rotate(14 384 320) translate(10 -6)" stroke-width="10">
+        <path d="M286 320 L272 226 L332 268 L384 172 L436 268 L496 226 L482 320 Q384 340 286 320 Z" fill="#FFD23F"/>
+        <path d="M384 186 L384 326 Q440 330 476 320 L488 238 L436 276 Z" fill="#E0AE1F" stroke="none"/>
+        <path d="M384 180 V326" fill="none" stroke-width="5"/>
+        <path d="M286 320 L272 226 L332 268 L384 172 L436 268 L496 226 L482 320 Q384 340 286 320 Z" fill="none"/>
+        <path d="M292 300 Q384 316 478 300" fill="none" stroke-width="5"/>
+        <path d="M296 286 L290 248" fill="none" stroke="#FFEA99" stroke-width="9"/>
+        <circle cx="272" cy="222" r="14" fill="#FFD23F"/>
+        <circle cx="384" cy="166" r="15" fill="#FFD23F"/>
+        <circle cx="496" cy="222" r="14" fill="#FFD23F"/>
+      </g>
+      <g id="face" transform="translate(0 0)">
+        <g id="cheeks" stroke="none">
+          <ellipse cx="300" cy="618" rx="46" ry="34" fill="#F2559A" opacity="0.55"/>
+          <ellipse cx="520" cy="608" rx="40" ry="30" fill="#F2559A" opacity="0.55"/>
+          <circle cx="288" cy="606" r="8" fill="#FFFFFF" opacity="0.8"/>
+          <circle cx="510" cy="597" r="7" fill="#FFFFFF" opacity="0.8"/>
+        </g>
+        <g id="eyes">
+          <ellipse cx="336" cy="520" rx="51" ry="60" fill="#FFFFFF" stroke-width="8"/>
+          <ellipse cx="474" cy="517" rx="48" ry="57" fill="#FFFFFF" stroke-width="8"/>
+          <g stroke="none">
+            <circle cx="354" cy="532" r="27" fill="#2A1E3D"/>
+            <circle cx="491" cy="529" r="25.5" fill="#2A1E3D"/>
+            <circle cx="363" cy="522" r="10.5" fill="#FFFFFF"/>
+            <circle cx="500" cy="519" r="10" fill="#FFFFFF"/>
+          </g>
+          <path d="M288 496 Q336 486 384 496 L384 458 L288 458 Z" fill="#FF7FB8" stroke="none" clip-path="url(#eye1-clip)"/>
+          <path d="M428 493 Q474 483 520 493 L520 456 L428 456 Z" fill="#FF7FB8" stroke="none" clip-path="url(#eye2-clip)"/>
+          <path d="M290 497 Q336 486 382 497" fill="none" stroke-width="8"/>
+          <path d="M430 494 Q474 483 518 494" fill="none" stroke-width="8"/>
+          <ellipse cx="336" cy="520" rx="51" ry="60" fill="none" stroke-width="8"/>
+          <ellipse cx="474" cy="517" rx="48" ry="57" fill="none" stroke-width="8"/>
+        </g>
+        <path id="mouth" d="M372 624 Q392 610 412 624 Q432 638 452 622" fill="none" stroke-width="12"/>
+      </g>
+      <g id="steam-burst">
+        <g opacity="0.3"><path d="M190.2 305 A12.1 12.1 0 0 1 209.8 314.4 A12.1 12.1 0 0 1 214.6 335.6 A12.1 12.1 0 0 1 201.1 352.5 A12.1 12.1 0 0 1 179.4 352.5 A12.1 12.1 0 0 1 165.9 335.6 A12.1 12.1 0 0 1 170.7 314.4 A12.1 12.1 0 0 1 190.2 305 Z" fill="#FFFFFF" stroke-width="8"/><path d="M181.5 338.8 Q192.8 345 202.8 335" fill="none" stroke="#D8D2C4" stroke-width="4.5"/></g>
+        <g opacity="0.3"><path d="M216.2 244.9 A12.1 12.1 0 0 1 235.8 254.4 A12.1 12.1 0 0 1 240.6 275.5 A12.1 12.1 0 0 1 227.1 292.5 A12.1 12.1 0 0 1 205.4 292.5 A12.1 12.1 0 0 1 191.8 275.5 A12.1 12.1 0 0 1 196.7 254.4 A12.1 12.1 0 0 1 216.2 244.9 Z" fill="#FFFFFF" stroke-width="8"/><path d="M207.5 278.7 Q218.7 284.9 228.7 274.9" fill="none" stroke="#D8D2C4" stroke-width="4.5"/></g>
+        <g opacity="0.3"><path d="M287.1 201 A12.1 12.1 0 0 1 306.7 210.4 A12.1 12.1 0 0 1 311.5 231.5 A12.1 12.1 0 0 1 298 248.5 A12.1 12.1 0 0 1 276.3 248.5 A12.1 12.1 0 0 1 262.8 231.5 A12.1 12.1 0 0 1 267.6 210.4 A12.1 12.1 0 0 1 287.1 201 Z" fill="#FFFFFF" stroke-width="8"/><path d="M278.4 234.7 Q289.6 241 299.6 231" fill="none" stroke="#D8D2C4" stroke-width="4.5"/></g>
+        <g opacity="0.3"><path d="M384 184.9 A12.1 12.1 0 0 1 403.5 194.3 A12.1 12.1 0 0 1 408.4 215.4 A12.1 12.1 0 0 1 394.8 232.4 A12.1 12.1 0 0 1 373.2 232.4 A12.1 12.1 0 0 1 359.6 215.4 A12.1 12.1 0 0 1 364.5 194.3 A12.1 12.1 0 0 1 384 184.9 Z" fill="#FFFFFF" stroke-width="8"/><path d="M375.2 218.6 Q386.5 224.9 396.5 214.9" fill="none" stroke="#D8D2C4" stroke-width="4.5"/></g>
+        <g opacity="0.3"><path d="M480.9 201 A12.1 12.1 0 0 1 500.4 210.4 A12.1 12.1 0 0 1 505.2 231.5 A12.1 12.1 0 0 1 491.7 248.5 A12.1 12.1 0 0 1 470 248.5 A12.1 12.1 0 0 1 456.5 231.5 A12.1 12.1 0 0 1 461.3 210.4 A12.1 12.1 0 0 1 480.9 201 Z" fill="#FFFFFF" stroke-width="8"/><path d="M472.1 234.7 Q483.4 241 493.4 231" fill="none" stroke="#D8D2C4" stroke-width="4.5"/></g>
+        <g opacity="0.3"><path d="M551.8 244.9 A12.1 12.1 0 0 1 571.3 254.4 A12.1 12.1 0 0 1 576.2 275.5 A12.1 12.1 0 0 1 562.6 292.5 A12.1 12.1 0 0 1 540.9 292.5 A12.1 12.1 0 0 1 527.4 275.5 A12.1 12.1 0 0 1 532.2 254.4 A12.1 12.1 0 0 1 551.8 244.9 Z" fill="#FFFFFF" stroke-width="8"/><path d="M543 278.7 Q554.3 284.9 564.3 274.9" fill="none" stroke="#D8D2C4" stroke-width="4.5"/></g>
+        <g opacity="0.3"><path d="M577.8 305 A12.1 12.1 0 0 1 597.3 314.4 A12.1 12.1 0 0 1 602.1 335.6 A12.1 12.1 0 0 1 588.6 352.5 A12.1 12.1 0 0 1 566.9 352.5 A12.1 12.1 0 0 1 553.4 335.6 A12.1 12.1 0 0 1 558.2 314.4 A12.1 12.1 0 0 1 577.8 305 Z" fill="#FFFFFF" stroke-width="8"/><path d="M569 338.8 Q580.2 345 590.2 335" fill="none" stroke="#D8D2C4" stroke-width="4.5"/></g>
+      </g>
+  </g>
+</svg>

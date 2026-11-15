@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- obj-moon-rock: a round lumpy purple moon rock (darker than the lavender ground so it reads on the map) with three small craters. No face. Counting object.
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+  <defs>
+    <clipPath id="rock-clip"><path d="M103 55.1 Q128 43.5 152.7 55.5 Q177.4 67.5 198.3 85.1 Q219.3 102.7 214.5 128.6 Q209.8 154.4 195.9 176.5 Q182.1 198.5 155 202 Q128 205.4 100.1 203.1 Q72.2 200.7 58.2 177.9 Q44.3 155 43.4 129.7 Q42.4 104.4 60.2 85.6 Q78 66.7 103 55.1 Z"/></clipPath>
+    <clipPath id="bowl-a"><ellipse cx="2" cy="2" rx="14.5" ry="10.9"/></clipPath>
+    <clipPath id="bowl-b"><ellipse cx="2" cy="2" rx="10.6" ry="7.9"/></clipPath>
+    <clipPath id="bowl-c"><ellipse cx="2" cy="2" rx="7.9" ry="5.9"/></clipPath>
+  </defs>
+  <g id="moon-rock" stroke="#2A1E3D" stroke-width="8" stroke-linejoin="round" stroke-linecap="round">
+    <path id="rock" d="M103 55.1 Q128 43.5 152.7 55.5 Q177.4 67.5 198.3 85.1 Q219.3 102.7 214.5 128.6 Q209.8 154.4 195.9 176.5 Q182.1 198.5 155 202 Q128 205.4 100.1 203.1 Q72.2 200.7 58.2 177.9 Q44.3 155 43.4 129.7 Q42.4 104.4 60.2 85.6 Q78 66.7 103 55.1 Z" fill="#6B5CA5"/>
+    <g clip-path="url(#rock-clip)" stroke="none">
+      <path id="rock-shade" d="M214 90 Q232 200 110 232 H240 V90 Z" fill="#4A3F7A"/>
+    </g>
+    <path d="M103 55.1 Q128 43.5 152.7 55.5 Q177.4 67.5 198.3 85.1 Q219.3 102.7 214.5 128.6 Q209.8 154.4 195.9 176.5 Q182.1 198.5 155 202 Q128 205.4 100.1 203.1 Q72.2 200.7 58.2 177.9 Q44.3 155 43.4 129.7 Q42.4 104.4 60.2 85.6 Q78 66.7 103 55.1 Z" fill="none"/>
+    <g id="craters">
+      <g transform="translate(104 108)">
+        <ellipse rx="22" ry="16.5" fill="#9C8FD6" stroke-width="4"/>
+        <ellipse cx="2" cy="2" rx="14.5" ry="10.9" fill="#4A3F7A" stroke="none"/>
+        <ellipse cx="5" cy="5" rx="13.6" ry="10.2" fill="#5A4C90" stroke="none" clip-path="url(#bowl-a)"/>
+      </g>
+      <g transform="translate(158 160)">
+        <ellipse rx="16" ry="12" fill="#9C8FD6" stroke-width="4"/>
+        <ellipse cx="2" cy="2" rx="10.6" ry="7.9" fill="#4A3F7A" stroke="none"/>
+        <ellipse cx="5" cy="5" rx="9.9" ry="7.4" fill="#5A4C90" stroke="none" clip-path="url(#bowl-b)"/>
+      </g>
+      <g transform="translate(96 172)">
+        <ellipse rx="12" ry="9" fill="#9C8FD6" stroke-width="4"/>
+        <ellipse cx="2" cy="2" rx="7.9" ry="5.9" fill="#4A3F7A" stroke="none"/>
+        <ellipse cx="5" cy="5" rx="7.4" ry="5.6" fill="#5A4C90" stroke="none" clip-path="url(#bowl-c)"/>
+      </g>
+    </g>
+    <path id="rock-highlight" d="M58 118 Q64 84 92 62" fill="none" stroke="#9C8FD6" stroke-width="6"/>
+    <circle cx="106" cy="54" r="4" fill="#C9C0F0" stroke="none"/>
+  </g>
+</svg>

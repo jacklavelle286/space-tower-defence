@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Correct answer sparkle, frame 05/08: gold and cream four-point stars with lime and cyan dots radiating (spread 1.08), last frames fade. Anchor centre (128,128).
+       See art/STYLE.md. -->
+  <g id="correct-sparkle" stroke-linecap="round" stroke-linejoin="round">
+    <g id="glow" opacity="0.5"><path d="M0 -20.4 Q5.7 -5.7 20.4 0 Q5.7 5.7 0 20.4 Q-5.7 5.7 -20.4 0 Q-5.7 -5.7 0 -20.4 Z" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="3" stroke-linejoin="round" transform="translate(128 128) rotate(40)"/><circle cx="128" cy="128" r="3.7" fill="#FFFFFF" stroke="none"/></g>
+    <g id="stars">
+    <path d="M0 -19 Q5.3 -5.3 19 0 Q5.3 5.3 0 19 Q-5.3 5.3 -19 0 Q-5.3 -5.3 0 -19 Z" fill="#FFD23F" stroke="#2A1E3D" stroke-width="3" stroke-linejoin="round" transform="translate(128 45.9) rotate(0)" opacity="0.9"/>
+    <path d="M0 -12.3 Q3.5 -3.5 12.3 0 Q3.5 3.5 0 12.3 Q-3.5 3.5 -12.3 0 Q-3.5 -3.5 0 -12.3 Z" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="3" stroke-linejoin="round" transform="translate(176.9 79.1) rotate(0)" opacity="0.9"/>
+    <path d="M0 -19 Q5.3 -5.3 19 0 Q5.3 5.3 0 19 Q-5.3 5.3 -19 0 Q-5.3 -5.3 0 -19 Z" fill="#FFD23F" stroke="#2A1E3D" stroke-width="3" stroke-linejoin="round" transform="translate(210.1 128) rotate(0)" opacity="0.9"/>
+    <path d="M0 -12.3 Q3.5 -3.5 12.3 0 Q3.5 3.5 0 12.3 Q-3.5 3.5 -12.3 0 Q-3.5 -3.5 0 -12.3 Z" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="3" stroke-linejoin="round" transform="translate(176.9 176.9) rotate(90)" opacity="0.9"/>
+    <path d="M0 -19 Q5.3 -5.3 19 0 Q5.3 5.3 0 19 Q-5.3 5.3 -19 0 Q-5.3 -5.3 0 -19 Z" fill="#FFD23F" stroke="#2A1E3D" stroke-width="3" stroke-linejoin="round" transform="translate(128 210.1) rotate(0)" opacity="0.9"/>
+    <path d="M0 -12.3 Q3.5 -3.5 12.3 0 Q3.5 3.5 0 12.3 Q-3.5 3.5 -12.3 0 Q-3.5 -3.5 0 -12.3 Z" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="3" stroke-linejoin="round" transform="translate(79.1 176.9) rotate(180)" opacity="0.9"/>
+    <path d="M0 -19 Q5.3 -5.3 19 0 Q5.3 5.3 0 19 Q-5.3 5.3 -19 0 Q-5.3 -5.3 0 -19 Z" fill="#FFD23F" stroke="#2A1E3D" stroke-width="3" stroke-linejoin="round" transform="translate(45.9 128) rotate(0)" opacity="0.9"/>
+    <path d="M0 -12.3 Q3.5 -3.5 12.3 0 Q3.5 3.5 0 12.3 Q-3.5 3.5 -12.3 0 Q-3.5 -3.5 0 -12.3 Z" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="3" stroke-linejoin="round" transform="translate(79.1 79.1) rotate(270)" opacity="0.9"/>
+    <circle cx="164.4" cy="40.2" r="5.5" fill="#9FF3FF" stroke="#2A1E3D" stroke-width="2.5" opacity="0.9"/>
+    <circle cx="215.8" cy="91.6" r="5.5" fill="#9BE564" stroke="#2A1E3D" stroke-width="2.5" opacity="0.9"/>
+    <circle cx="215.8" cy="164.4" r="5.5" fill="#9FF3FF" stroke="#2A1E3D" stroke-width="2.5" opacity="0.9"/>
+    <circle cx="164.4" cy="215.8" r="5.5" fill="#9BE564" stroke="#2A1E3D" stroke-width="2.5" opacity="0.9"/>
+    <circle cx="91.6" cy="215.8" r="5.5" fill="#9FF3FF" stroke="#2A1E3D" stroke-width="2.5" opacity="0.9"/>
+    <circle cx="40.2" cy="164.4" r="5.5" fill="#9BE564" stroke="#2A1E3D" stroke-width="2.5" opacity="0.9"/>
+    <circle cx="40.2" cy="91.6" r="5.5" fill="#9FF3FF" stroke="#2A1E3D" stroke-width="2.5" opacity="0.9"/>
+    <circle cx="91.6" cy="40.2" r="5.5" fill="#9BE564" stroke="#2A1E3D" stroke-width="2.5" opacity="0.9"/>
+    </g>
+  </g>
+</svg>

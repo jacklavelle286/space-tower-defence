@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Bubble layer pop, frame 04 of 04: nearly empty: a few faint droplets and sparkles.
+       Anchor centre (128,128).
+       Light from the top-left. See art/STYLE.md. -->
+<g id="burst" stroke-linejoin="round" stroke-linecap="round">
+  <g id="droplets" stroke="#2A1E3D" stroke-width="3" opacity="0.4">
+    <circle cx="135.9" cy="14.8" r="3.9" fill="#9FF3FF"/><circle cx="134.6" cy="13.4" r="1.4" fill="#FFFFFF" stroke="none"/>
+    <circle cx="233.1" cy="81.2" r="3" fill="#9FF3FF"/><circle cx="232" cy="80.2" r="1" fill="#FFFFFF" stroke="none"/>
+    <circle cx="219.4" cy="194.4" r="4.2" fill="#9FF3FF"/><circle cx="217.9" cy="192.9" r="1.5" fill="#FFFFFF" stroke="none"/>
+    <circle cx="112.1" cy="241.4" r="3.3" fill="#9FF3FF"/><circle cx="110.9" cy="240.2" r="1.2" fill="#FFFFFF" stroke="none"/>
+    <circle cx="24.3" cy="174.2" r="3.9" fill="#9FF3FF"/><circle cx="22.9" cy="172.8" r="1.4" fill="#FFFFFF" stroke="none"/>
+    <circle cx="32.7" cy="63.7" r="3" fill="#9FF3FF"/><circle cx="31.6" cy="62.6" r="1" fill="#FFFFFF" stroke="none"/>
+  </g>
+  <g id="sparkles" opacity="0.45">
+    <path d="M0 -12 Q3.4 -3.4 12 0 Q3.4 3.4 0 12 Q-3.4 3.4 -12 0 Q-3.4 -3.4 0 -12 Z" transform="translate(84 74)" fill="#FFFFFF" stroke="none"/>
+    <path d="M0 -8 Q2.2 -2.2 8 0 Q2.2 2.2 0 8 Q-2.2 2.2 -8 0 Q-2.2 -2.2 0 -8 Z" transform="translate(170 178)" fill="#FFF4D6" stroke="none"/>
+  </g>
+</g>
+</svg>

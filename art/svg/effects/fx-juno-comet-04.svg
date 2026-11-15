@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Juno comet projectile, frame 04/04: golden ball flying right, tail stars drift left (one third of a slot per loop). Anchor centre (64,64).
+       See art/STYLE.md. -->
+  <g id="juno-comet" stroke-linecap="round" stroke-linejoin="round">
+    <defs><clipPath id="ball-clip"><circle cx="84" cy="64" r="22"/></clipPath></defs>
+    <g id="tail" stroke="none"><path d="M84 43 Q48 50 16 61 Q11 64 16 67 Q48 78 84 85 Z" fill="#FFF4D6" opacity="0.7"/><path d="M84 53 Q54 57 30 63 Q27 64 30 65 Q54 71 84 75 Z" fill="#FFE79A" opacity="0.9"/></g>
+    <g id="stars">
+    <path d="M0 -8.6 L2.5 -3.5 L8.2 -2.7 L4.1 1.3 L5.1 7 L0 4.3 L-5.1 7 L-4.1 1.3 L-8.2 -2.7 L-2.5 -3.5 Z" fill="#FFD23F" stroke="#2A1E3D" stroke-width="2.5" stroke-linejoin="round" transform="translate(50.5 57) rotate(-15)"/>
+    <path d="M0 -6.8 L2 -2.7 L6.5 -2.1 L3.2 1 L4 5.5 L0 3.4 L-4 5.5 L-3.2 1 L-6.5 -2.1 L-2 -2.7 Z" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="2.5" stroke-linejoin="round" transform="translate(35.2 71) rotate(-35)"/>
+    <path d="M0 -5 L1.5 -2 L4.7 -1.5 L2.4 0.8 L2.9 4 L0 2.5 L-2.9 4 L-2.4 0.8 L-4.7 -1.5 L-1.5 -2 Z" fill="#FFD23F" stroke="#2A1E3D" stroke-width="2.5" stroke-linejoin="round" transform="translate(19.8 57) rotate(-55)"/>
+    </g>
+    <g id="ball" transform="translate(84 64) scale(0.97 1.03) translate(-84 -64)"><circle cx="84" cy="64" r="22" fill="#FFC94A" stroke="none"/><g clip-path="url(#ball-clip)" stroke="none"><circle cx="93" cy="73" r="24" fill="none" stroke="#E0AE1F" stroke-width="10"/></g><path d="M70 63 Q71 52 81 49" fill="none" stroke="#FFFFFF" stroke-width="4.5"/><circle cx="70" cy="70" r="2.2" fill="#FFFFFF" stroke="none"/><circle cx="84" cy="64" r="22" fill="none" stroke="#2A1E3D" stroke-width="5"/></g>
+    <path d="M0 -4.5 Q1.3 -1.3 4.5 0 Q1.3 1.3 0 4.5 Q-1.3 1.3 -4.5 0 Q-1.3 -1.3 0 -4.5 Z" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="2" stroke-linejoin="round" transform="translate(108 86) rotate(0)"/>
+  </g>
+</svg>

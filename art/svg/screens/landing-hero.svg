@@ -1,0 +1,1297 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3840 2160" width="3840" height="2160">
+<!-- Landing hero: the six astronauts on the moon before the colony; portal with peeking aliens on the left; calm top-centre for the logo. Opaque. Anchor centre.
+     Built from the in-game sprites (inlined, ids prefixed). Light from the top-left. See art/STYLE.md. -->
+<rect id="background" width="3840" height="2160" fill="#141633"/>
+<g transform="translate(500 250) rotate(-12)" fill="#5B3F99"><ellipse cx="-211.1" cy="51.2" rx="711.4" ry="334.7" opacity="0.16"/><ellipse cx="-178.9" cy="79" rx="758.1" ry="339.2" opacity="0.16"/><ellipse cx="3.2" cy="-71.3" rx="540.9" ry="320.1" opacity="0.16"/><ellipse cx="53.8" cy="-116.3" rx="754.3" ry="301.4" opacity="0.16"/><ellipse cx="-134.7" cy="-98.9" rx="647.5" ry="295.8" opacity="0.16"/><ellipse cx="189" cy="25" rx="439.4" ry="251.5" opacity="0.16"/><ellipse cx="-1.2" cy="-83" rx="637.6" ry="255.8" opacity="0.16"/><ellipse cx="-174" cy="68.6" rx="459" ry="316.2" opacity="0.16"/><ellipse cx="-17.7" cy="8.4" rx="379.6" ry="201.3" opacity="0.16"/><ellipse cx="-118.3" cy="-75" rx="464.3" ry="181" opacity="0.16"/><ellipse cx="105.9" cy="-47.2" rx="480.9" ry="234.4" opacity="0.16"/><ellipse cx="96.3" cy="42.6" rx="418.1" ry="221.1" opacity="0.16"/><ellipse cx="-95.1" cy="-2.6" rx="305.3" ry="118.9" opacity="0.16"/><ellipse cx="106.6" cy="41.9" rx="260.2" ry="127.7" opacity="0.16"/><ellipse cx="-12.3" cy="-12.3" rx="323.4" ry="128.9" opacity="0.16"/><ellipse cx="-119.2" cy="-43.9" rx="293.6" ry="161.6" opacity="0.16"/></g>
+<g transform="translate(3400 300) rotate(12)" fill="#5B3F99"><ellipse cx="256.6" cy="-82" rx="485.7" ry="341.8" opacity="0.14"/><ellipse cx="-176.8" cy="-86.5" rx="636.3" ry="267.4" opacity="0.14"/><ellipse cx="218.1" cy="-61.2" rx="710.3" ry="264.4" opacity="0.14"/><ellipse cx="56.6" cy="98.5" rx="644.5" ry="333.3" opacity="0.14"/><ellipse cx="93.2" cy="-82.4" rx="553.2" ry="236.2" opacity="0.14"/><ellipse cx="-84.8" cy="-56.5" rx="547.2" ry="235.6" opacity="0.14"/><ellipse cx="196.2" cy="50" rx="568.5" ry="234" opacity="0.14"/><ellipse cx="88.9" cy="20.5" rx="433.6" ry="269.7" opacity="0.14"/><ellipse cx="-63" cy="38.5" rx="425.5" ry="181.3" opacity="0.14"/><ellipse cx="-120.2" cy="44.5" rx="384.1" ry="149.5" opacity="0.14"/><ellipse cx="-151.5" cy="4.4" rx="292.6" ry="200.1" opacity="0.14"/><ellipse cx="2.1" cy="2.4" rx="347" ry="182" opacity="0.14"/><ellipse cx="93.3" cy="-17.6" rx="227.9" ry="117.8" opacity="0.14"/><ellipse cx="-45.4" cy="8.7" rx="244.1" ry="111" opacity="0.14"/><ellipse cx="38.8" cy="2.6" rx="200.5" ry="136.6" opacity="0.14"/><ellipse cx="-32.3" cy="-6.2" rx="230.7" ry="133.6" opacity="0.14"/></g>
+<g transform="translate(3600 900) rotate(0)" fill="#3FB8AF"><ellipse cx="148.7" cy="70" rx="433.9" ry="162.5" opacity="0.08"/><ellipse cx="32.2" cy="-11.9" rx="379.5" ry="166.2" opacity="0.08"/><ellipse cx="-107.8" cy="-8.6" rx="333.2" ry="191.5" opacity="0.08"/><ellipse cx="-166.3" cy="-64.6" rx="406.5" ry="188.9" opacity="0.08"/><ellipse cx="3.5" cy="29.2" rx="283.1" ry="128.4" opacity="0.08"/><ellipse cx="79.3" cy="11.1" rx="318.9" ry="163.5" opacity="0.08"/><ellipse cx="131.8" cy="-17.1" rx="331.2" ry="147.8" opacity="0.08"/><ellipse cx="20.2" cy="20" rx="277.7" ry="130.1" opacity="0.08"/><ellipse cx="-5.4" cy="20.4" rx="233.2" ry="114.5" opacity="0.08"/><ellipse cx="29.9" cy="-29.8" rx="196.1" ry="108.7" opacity="0.08"/><ellipse cx="66.3" cy="-28.5" rx="190.3" ry="98.2" opacity="0.08"/><ellipse cx="-96.8" cy="-21" rx="231.6" ry="132" opacity="0.08"/><ellipse cx="-23.7" cy="-8.1" rx="137.3" ry="71.9" opacity="0.08"/><ellipse cx="38.9" cy="3.1" rx="135.5" ry="65.7" opacity="0.08"/><ellipse cx="39.7" cy="12.9" rx="169.7" ry="69.8" opacity="0.08"/><ellipse cx="6.4" cy="26.1" rx="155.6" ry="91.9" opacity="0.08"/></g>
+<circle cx="2735.4" cy="1041.4" r="3.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="650.4" cy="845.2" r="3.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2781.9" cy="949.8" r="2.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="1984.9" cy="1188.1" r="6" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="1919.1" cy="1234" r="4.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="2615.8" cy="1190.7" r="4.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3550.6" cy="392" r="2.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="372.1" cy="824.8" r="6" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="1023" cy="921.1" r="2.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3013.2" cy="809.5" r="3.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3057.9" cy="104.8" r="4.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="1502.5" cy="985.5" r="6" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="3193.4" cy="310.7" r="8" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="1311" cy="1098.6" r="2.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3344.7" cy="871.7" r="2.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="312.9" cy="406.7" r="6" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="1521.3" cy="273.8" r="4.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="1290.7" cy="1124.9" r="2.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="3551.4" cy="19.1" r="6" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3475.6" cy="331.7" r="4.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="3346" cy="10.6" r="6" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3044.5" cy="208.9" r="3.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3629.2" cy="165.8" r="2.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="200.5" cy="1158.8" r="6" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="703.6" cy="412.6" r="3.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="540.7" cy="625" r="8" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="2634.1" cy="1139.4" r="6" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3523.7" cy="817.9" r="3.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="310.6" cy="658.4" r="6" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="1083.4" cy="1079.5" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="956.9" cy="380.9" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3530.6" cy="572.4" r="6" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="2252" cy="1230.1" r="3.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3579.3" cy="209.3" r="3.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="899.3" cy="381" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3427.4" cy="327.3" r="6" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="3608.5" cy="300.3" r="8" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="3578.9" cy="452" r="8" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="1277.6" cy="105.7" r="6" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="3689.8" cy="584.4" r="2.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="626" cy="37.8" r="4.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="752.1" cy="872.5" r="3.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="542.9" cy="141.4" r="3.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2346" cy="877.1" r="8" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="1104.2" cy="1090.8" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3245.6" cy="299.5" r="3.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3661.4" cy="950.3" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3232.5" cy="434.2" r="2.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2404.7" cy="222.3" r="3.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="1317.3" cy="744.7" r="4.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3759.6" cy="693.3" r="4.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="761.3" cy="1043.3" r="3.5" fill="#FFF4D6" opacity="0.5"/>
+<path d="M2060.4 926.9 Q2066.4 942.3 2081.8 948.3 Q2066.4 954.3 2060.4 969.7 Q2054.4 954.3 2039 948.3 Q2054.4 942.3 2060.4 926.9 Z" fill="#FFE79A" opacity="1"/>
+<circle cx="531.8" cy="90.2" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="2825.9" cy="1035.1" r="4.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="658.7" cy="458.3" r="6" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="490" cy="198.9" r="6" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="1667" cy="1062.8" r="3.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="874.6" cy="1070" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="2762.4" cy="646.6" r="2.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="1379.8" cy="710.5" r="8" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="1369.5" cy="777.3" r="4.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3151" cy="1199.5" r="2.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3008.7" cy="182.2" r="2.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3745" cy="1176.1" r="8" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3401.7" cy="929.3" r="4.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="381.9" cy="450.6" r="8" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="1505.1" cy="1101.3" r="4.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3144.6" cy="10.8" r="3.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="2212.6" cy="1141.4" r="6" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3837.2" cy="89.6" r="4.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="654.5" cy="1099.2" r="8" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="464.8" cy="440.9" r="4.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2539.4" cy="1197.1" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3709.3" cy="1072.9" r="6" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="1566.6" cy="1072.1" r="4.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3760" cy="381.3" r="3.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="448.7" cy="342.4" r="4.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="2949" cy="700.8" r="3.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2474.5" cy="837.3" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="1692.6" cy="782.8" r="6" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="3516.2" cy="1087.6" r="2.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="490.1" cy="1126.9" r="3.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="1089.5" cy="1234.3" r="6" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="1227.4" cy="1016.9" r="6" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="2885.3" cy="389.7" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="2912" cy="58" r="6" fill="#FFF4D6" opacity="0.9"/>
+<path d="M400.6 271.8 Q406.5 287.2 421.9 293.2 Q406.5 299.1 400.6 314.5 Q394.6 299.1 379.2 293.2 Q394.6 287.2 400.6 271.8 Z" fill="#FFF4D6" opacity="1"/>
+<circle cx="414.6" cy="192.5" r="4.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3005.4" cy="99.3" r="3.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3272.1" cy="779.4" r="4.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="444.8" cy="184.1" r="3.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="2440.3" cy="1180.1" r="2.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="641.8" cy="387.6" r="3.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3220.2" cy="29.9" r="6" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="2777.4" cy="244.1" r="2.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="2338.6" cy="170.1" r="2.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3021.3" cy="731.7" r="4.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="730.8" cy="139.3" r="2.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="86.2" cy="497" r="2.5" fill="#FFF4D6" opacity="0.7"/>
+<path d="M606.3 491.7 Q613.5 510.2 631.9 517.3 Q613.5 524.5 606.3 542.9 Q599.2 524.5 580.7 517.3 Q599.2 510.2 606.3 491.7 Z" fill="#9FF3FF" opacity="1"/>
+<circle cx="42.3" cy="327" r="4.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="350.7" cy="221" r="3.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3743.1" cy="479.3" r="6" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="2836.5" cy="471.9" r="6" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="502.9" cy="1166.6" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="1053.7" cy="194.5" r="2.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="1260.3" cy="1175.9" r="6" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2475.8" cy="1230.7" r="8" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="345.5" cy="400.4" r="8" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3434.5" cy="462.9" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="149.1" cy="1041.8" r="2.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="802.8" cy="321.7" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="617.9" cy="52.3" r="4.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2771.3" cy="596.8" r="8" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="3140.6" cy="851.3" r="8" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="1538.8" cy="1153.7" r="2.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3303.2" cy="245.6" r="4.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2899.5" cy="1211.9" r="6" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="352.7" cy="289.5" r="6" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="892.2" cy="185" r="3.5" fill="#FFF4D6" opacity="0.7"/>
+<path d="M3767.7 627.6 Q3775.5 647.7 3795.6 655.5 Q3775.5 663.4 3767.7 683.5 Q3759.8 663.4 3739.7 655.5 Q3759.8 647.7 3767.7 627.6 Z" fill="#9FF3FF" opacity="1"/>
+<circle cx="1339.8" cy="947.5" r="4.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3396.3" cy="1070.3" r="2.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="240.4" cy="1152.8" r="4.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="1122.9" cy="1202.8" r="4.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="1153.1" cy="731.1" r="2.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="1031" cy="1160.8" r="2.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3358.6" cy="1183.4" r="3.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="1895.7" cy="763.3" r="8" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="185.3" cy="144.8" r="6" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3519.3" cy="622.7" r="2.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3298.2" cy="860.1" r="4.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2901.6" cy="1047" r="4.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="79.2" cy="532.2" r="4.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="566.3" cy="901.2" r="6" fill="#FFF4D6" opacity="0.7"/>
+<path d="M3644.4 186.2 Q3650.7 202.4 3666.9 208.7 Q3650.7 215 3644.4 231.2 Q3638.1 215 3621.9 208.7 Q3638.1 202.4 3644.4 186.2 Z" fill="#FFE79A" opacity="1"/>
+<circle cx="2557.4" cy="321.1" r="8" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="1094.5" cy="1049.2" r="4.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="698.4" cy="487.3" r="3.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3058.7" cy="389.8" r="8" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="741.4" cy="336.9" r="3.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="1677.2" cy="253.2" r="6" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="639.6" cy="53" r="6" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="3447.3" cy="362.8" r="2.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="1296.3" cy="910.2" r="2.5" fill="#FFF4D6" opacity="0.7"/>
+<path d="M3324.7 34.3 Q3332.2 53.6 3351.6 61.2 Q3332.2 68.7 3324.7 88.1 Q3317.1 68.7 3297.8 61.2 Q3317.1 53.6 3324.7 34.3 Z" fill="#9FF3FF" opacity="1"/>
+<circle cx="3722.7" cy="993.5" r="2.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3251.5" cy="327.5" r="6" fill="#FFF4D6" opacity="0.9"/>
+<path d="M3217.7 83.5 Q3223.4 98 3237.9 103.6 Q3223.4 109.2 3217.7 123.8 Q3212.1 109.2 3197.6 103.6 Q3212.1 98 3217.7 83.5 Z" fill="#FFF4D6" opacity="1"/>
+<circle cx="1834.2" cy="570.7" r="3.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="3109.4" cy="468.9" r="8" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="2923.8" cy="241.3" r="4.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3470.2" cy="1080.2" r="6" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3158.7" cy="442.7" r="3.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3344" cy="497.6" r="6" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="1900.5" cy="341.1" r="6" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="1012.3" cy="955.9" r="8" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="1009.9" cy="149.9" r="6" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="437.1" cy="1153.8" r="2.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="523.7" cy="34.6" r="4.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="988.3" cy="566.7" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3785.5" cy="815.7" r="4.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="2645.4" cy="518.6" r="6" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="772.7" cy="748.9" r="2.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="2018.4" cy="1133.6" r="4.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3635.2" cy="1039.1" r="4.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="1233.2" cy="1193.1" r="2.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2072.8" cy="303.4" r="6" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="2477.6" cy="509.5" r="4.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="3406.9" cy="533.9" r="3.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3616.1" cy="1079.7" r="2.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="209.1" cy="542.9" r="6" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="2691.1" cy="540.1" r="3.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="3293.8" cy="472.6" r="2.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2151" cy="986.3" r="3.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3257.9" cy="674.6" r="2.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="461.2" cy="1199.4" r="3.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="884.2" cy="898.9" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="310.4" cy="926" r="4.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="889.5" cy="1029.1" r="8" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="1385.2" cy="901" r="2.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="917.5" cy="532" r="2.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="711.8" cy="105.8" r="2.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="1690.4" cy="978.8" r="2.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2680.5" cy="664.6" r="2.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="1728.4" cy="1039.9" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="472.8" cy="855.5" r="2.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="1084.8" cy="624.6" r="2.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3389.9" cy="1085.3" r="2.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3397.1" cy="522" r="2.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="109.3" cy="1129.6" r="4.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3276" cy="795.1" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3567.4" cy="180.7" r="4.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3151.7" cy="172.9" r="3.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="327" cy="925.1" r="6" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3122.4" cy="1232.1" r="3.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="1402.6" cy="1084.9" r="4.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="3072.6" cy="748.4" r="4.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="1609" cy="1234.9" r="4.5" fill="#FFF4D6" opacity="0.9"/>
+<path d="M156.1 66 Q161.8 80.6 176.4 86.3 Q161.8 92 156.1 106.6 Q150.4 92 135.8 86.3 Q150.4 80.6 156.1 66 Z" fill="#FFE79A" opacity="1"/>
+<circle cx="3456" cy="1221.9" r="6" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3190.6" cy="97.1" r="3.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="1322.4" cy="925.3" r="2.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3164" cy="1147.3" r="6" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3188.5" cy="681.7" r="8" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="3520.4" cy="1184.1" r="6" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3142.5" cy="196.3" r="6" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="726.3" cy="1093" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="2977.1" cy="1006.4" r="4.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="1130.1" cy="921" r="8" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2021" cy="900.5" r="4.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3243.2" cy="469.7" r="8" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="398.7" cy="403.2" r="6" fill="#FFF4D6" opacity="0.35"/>
+<path d="M886.2 286.5 Q892.9 303.6 910 310.3 Q892.9 317 886.2 334.2 Q879.5 317 862.3 310.3 Q879.5 303.6 886.2 286.5 Z" fill="#FFE79A" opacity="1"/>
+<circle cx="330" cy="1013.3" r="2.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="990.9" cy="1070" r="3.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3560.5" cy="309.7" r="3.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="1010.6" cy="137.9" r="4.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="812.4" cy="13.4" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3801.5" cy="23.2" r="2.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="280.9" cy="75.1" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="242.4" cy="1168.1" r="4.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3677.7" cy="970.9" r="8" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="2754.7" cy="347.8" r="2.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="322.7" cy="85" r="2.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3665.3" cy="684.4" r="6" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="1987.6" cy="1236.9" r="4.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="3061.9" cy="325.1" r="2.5" fill="#FFF4D6" opacity="0.9"/>
+<path d="M852 1055.7 Q857.1 1068.9 870.2 1074 Q857.1 1079.1 852 1092.2 Q846.8 1079.1 833.7 1074 Q846.8 1068.9 852 1055.7 Z" fill="#9FF3FF" opacity="1"/>
+<path d="M3144 636.4 Q3150.8 653.8 3168.3 660.7 Q3150.8 667.5 3144 685 Q3137.2 667.5 3119.7 660.7 Q3137.2 653.8 3144 636.4 Z" fill="#FFF4D6" opacity="1"/>
+<circle cx="2806.4" cy="1187.7" r="6" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="2312" cy="1097.7" r="4.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="2546.8" cy="1046.2" r="2.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="1229.2" cy="888.3" r="3.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3446.4" cy="1056.8" r="8" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3169.1" cy="608.4" r="4.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="758.4" cy="1142.4" r="3.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3223.3" cy="257.6" r="4.5" fill="#FFF4D6" opacity="0.35"/>
+<path d="M472.5 846.2 Q477.8 860 491.7 865.4 Q477.8 870.8 472.5 884.6 Q467.1 870.8 453.2 865.4 Q467.1 860 472.5 846.2 Z" fill="#9FF3FF" opacity="1"/>
+<circle cx="1383.9" cy="1031.2" r="8" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3213.1" cy="681.8" r="3.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3648.5" cy="357.7" r="4.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="206" cy="1055.2" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="891.3" cy="380.8" r="2.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="2725.9" cy="599" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="1895.9" cy="873.1" r="2.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="810.4" cy="496.2" r="4.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3698.9" cy="906.5" r="6" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="966.4" cy="1162.5" r="4.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3251.6" cy="113.9" r="3.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="64.9" cy="896.7" r="2.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="1818.2" cy="788.3" r="4.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3458.1" cy="246.8" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="1514.1" cy="637" r="4.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="1082.2" cy="957.1" r="3.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="1458.2" cy="935.3" r="8" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="54.4" cy="383.9" r="3.5" fill="#FFF4D6" opacity="0.35"/>
+<path d="M214.2 552.5 Q219.4 565.8 232.6 571 Q219.4 576.1 214.2 589.4 Q209.1 576.1 195.8 571 Q209.1 565.8 214.2 552.5 Z" fill="#FFF4D6" opacity="1"/>
+<circle cx="2693.9" cy="1149.3" r="6" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="2373.9" cy="808.7" r="3.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="198.1" cy="245.1" r="8" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="2240" cy="902" r="3.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="955.8" cy="1038.5" r="4.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="2687.2" cy="1060" r="4.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="398.3" cy="865.4" r="4.5" fill="#FFF4D6" opacity="0.35"/>
+<path d="M2755.1 93.3 Q2762.5 112.4 2781.6 119.8 Q2762.5 127.2 2755.1 146.3 Q2747.7 127.2 2728.6 119.8 Q2747.7 112.4 2755.1 93.3 Z" fill="#FFE79A" opacity="1"/>
+<circle cx="628.8" cy="216.5" r="6" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2916.3" cy="652.9" r="2.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="1522.2" cy="1054.5" r="2.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3296.8" cy="698.2" r="6" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="1272.8" cy="886.5" r="6" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="2965.9" cy="316.2" r="8" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="489" cy="188.9" r="8" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="1378.2" cy="980.3" r="4.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="2091.9" cy="468.7" r="3.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="650.6" cy="674.2" r="4.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3247.2" cy="1074" r="6" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="1623.4" cy="1116.9" r="4.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2416.2" cy="922.6" r="6" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="1898.2" cy="1131.5" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3377.3" cy="439.1" r="8" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="77" cy="605.6" r="8" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2277.9" cy="721.4" r="8" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2627.5" cy="826.3" r="2.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="610.1" cy="716" r="2.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3360.7" cy="1028.1" r="2.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="3284" cy="118.3" r="8" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="234.8" cy="44.4" r="3.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="2824.4" cy="97.8" r="8" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3684.3" cy="583.9" r="2.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="1361.6" cy="1009.4" r="4.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="58.1" cy="497" r="8" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2552.5" cy="597.5" r="2.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="2560.1" cy="441.3" r="6" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="266.5" cy="942.4" r="3.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="2729.1" cy="922.1" r="3.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="1704.8" cy="1202.7" r="4.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="3698" cy="277.4" r="8" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="3321.5" cy="1130.5" r="2.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="392.9" cy="962.5" r="2.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="1277.7" cy="967.1" r="6" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="2462.7" cy="722.1" r="6" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="1322.6" cy="1166.9" r="3.5" fill="#FFF4D6" opacity="0.5"/>
+<path d="M2760 1053.8 Q2768.1 1074.5 2788.9 1082.6 Q2768.1 1090.7 2760 1111.4 Q2752 1090.7 2731.2 1082.6 Q2752 1074.5 2760 1053.8 Z" fill="#FFE79A" opacity="1"/>
+<circle cx="1185.1" cy="1072.9" r="4.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="1157.5" cy="281.6" r="3.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="1863.3" cy="541.5" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="2027.3" cy="812.4" r="8" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="1485.1" cy="45.8" r="6" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="334.1" cy="1087.1" r="6" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2763.6" cy="678.6" r="6" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="1756.1" cy="1072.4" r="2.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="157.6" cy="156.4" r="2.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3581.8" cy="508.1" r="2.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="1132.2" cy="906.9" r="4.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3124.9" cy="599.9" r="3.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2564.4" cy="767" r="6" fill="#FFF4D6" opacity="0.7"/>
+<path d="M994.4 578.6 Q1001.7 597.4 1020.5 604.7 Q1001.7 612 994.4 630.8 Q987.1 612 968.3 604.7 Q987.1 597.4 994.4 578.6 Z" fill="#FFF4D6" opacity="1"/>
+<circle cx="1825" cy="902.5" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="1024.7" cy="826" r="4.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="1145.7" cy="521.2" r="3.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="3224.5" cy="656.4" r="6" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="174.9" cy="354.8" r="6" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="2649.4" cy="743.5" r="3.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3120.2" cy="180.6" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="893.1" cy="733.8" r="3.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="254.9" cy="1083.9" r="2.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="979.9" cy="1035.9" r="2.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3012.1" cy="709.5" r="3.5" fill="#FFF4D6" opacity="0.5"/>
+<path d="M2024.2 657.9 Q2031.8 677.4 2051.3 685 Q2031.8 692.6 2024.2 712.1 Q2016.6 692.6 1997.2 685 Q2016.6 677.4 2024.2 657.9 Z" fill="#9FF3FF" opacity="1"/>
+<circle cx="1240.5" cy="1148.4" r="3.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2962.2" cy="731.9" r="8" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="2078" cy="145.9" r="4.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="3656.7" cy="401.6" r="4.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3714.3" cy="577.2" r="3.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="11.7" cy="913.6" r="2.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3379.9" cy="1189" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="727.4" cy="1235.8" r="8" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="1141.7" cy="492.8" r="2.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3365.8" cy="797.8" r="2.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="1079.6" cy="482.8" r="6" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3548.2" cy="216.8" r="6" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3262.9" cy="11.8" r="6" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="64.5" cy="757" r="4.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="1842.3" cy="887.6" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="1142.9" cy="392.8" r="8" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="940.5" cy="1200.6" r="6" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2866.4" cy="1059.9" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="1049.8" cy="485.4" r="2.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3766.9" cy="390.7" r="8" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="17.9" cy="100.1" r="6" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3545.7" cy="1089.8" r="6" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3445.4" cy="6.8" r="6" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2801.9" cy="330.4" r="8" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2107.7" cy="755.2" r="8" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="1504.1" cy="270.4" r="3.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="3383.5" cy="676" r="2.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="2056.5" cy="310.1" r="3.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="3348.1" cy="498.4" r="4.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="1708.3" cy="1068.6" r="4.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="3828.3" cy="669.6" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="461.3" cy="1146.9" r="4.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="1155.4" cy="84.4" r="8" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="971.8" cy="102.8" r="2.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="2800" cy="598" r="3.5" fill="#FFF4D6" opacity="0.5"/>
+<path d="M1744.6 915.2 Q1751 931.6 1767.4 938 Q1751 944.4 1744.6 960.7 Q1738.3 944.4 1721.9 938 Q1738.3 931.6 1744.6 915.2 Z" fill="#9FF3FF" opacity="1"/>
+<circle cx="1748.8" cy="907.9" r="6" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="1355.8" cy="744.4" r="3.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3100" cy="821.6" r="4.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="2539.4" cy="1217.5" r="6" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3631.6" cy="105.1" r="8" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="2339.4" cy="1211.4" r="4.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2499.4" cy="986.6" r="6" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="1879.1" cy="912" r="8" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="187.8" cy="572.6" r="6" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3091" cy="181.6" r="2.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2266.9" cy="1100.5" r="6" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="3631.7" cy="241.5" r="2.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3623.6" cy="1000.9" r="3.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="2847.8" cy="652.9" r="8" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3139.6" cy="1111.1" r="2.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="975.8" cy="1214.7" r="4.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2528.9" cy="890.3" r="2.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="3556.1" cy="30" r="2.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="759.1" cy="163.7" r="4.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="3673" cy="953" r="6" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2733.3" cy="299.1" r="6" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="2079.5" cy="643.2" r="2.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="1019.6" cy="505.7" r="8" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="804.9" cy="608.4" r="6" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="374.7" cy="867.5" r="6" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3412.3" cy="304.1" r="3.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2299.8" cy="916.7" r="6" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="844.2" cy="601" r="8" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="1893.4" cy="1225.2" r="6" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="530.3" cy="3.7" r="3.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="718.8" cy="1010.4" r="6" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="802.7" cy="1080.7" r="6" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="793.7" cy="1052.7" r="6" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="536.4" cy="359.8" r="8" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3720" cy="395.5" r="3.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="2860.2" cy="187.7" r="6" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="223.4" cy="701.9" r="8" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="1449.2" cy="1007.6" r="3.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="1177.6" cy="1198.7" r="2.5" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="3370.8" cy="180.8" r="4.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3834.6" cy="560.1" r="3.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="700.1" cy="301.2" r="6" fill="#FFF4D6" opacity="0.9"/>
+<path d="M1340.7 67.2 Q1348.7 87.8 1369.3 95.8 Q1348.7 103.7 1340.7 124.3 Q1332.7 103.7 1312.2 95.8 Q1332.7 87.8 1340.7 67.2 Z" fill="#9FF3FF" opacity="1"/>
+<circle cx="2860.4" cy="1156.5" r="4.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="2585.3" cy="1230.5" r="6" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="2403.8" cy="922.5" r="4.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="675.1" cy="578.1" r="3.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="3256.1" cy="506.3" r="3.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="71.3" cy="462.8" r="6" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="3123.4" cy="1009.9" r="3.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="1509.5" cy="952.7" r="3.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2766.5" cy="669" r="3.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="1118.8" cy="641.3" r="3.5" fill="#FFF4D6" opacity="0.5"/>
+<circle cx="768.4" cy="1183" r="2.5" fill="#FFF4D6" opacity="0.7"/>
+<circle cx="2492.1" cy="1062.2" r="6" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="2895.8" cy="1008.9" r="4.5" fill="#FFF4D6" opacity="0.9"/>
+<circle cx="48.6" cy="1093" r="8" fill="#FFF4D6" opacity="0.35"/>
+<circle cx="1432.9" cy="1182.8" r="8" fill="#FFF4D6" opacity="0.9"/>
+<g id="planet" stroke="#2A1E3D" stroke-width="10" stroke-linecap="round"><ellipse cx="3310" cy="420" rx="250" ry="66" transform="rotate(-12 3310 420)" fill="none" stroke="#2A1E3D" stroke-width="54"/><ellipse cx="3310" cy="420" rx="250" ry="66" transform="rotate(-12 3310 420)" fill="none" stroke="#FFD86B" stroke-width="34"/><circle cx="3310" cy="420" r="150" fill="#3FB8AF"/><clipPath id="pl"><circle cx="3310" cy="420" r="150"/></clipPath><path clip-path="url(#pl)" d="M3400 260 Q3480 420 3360 580 L3480 600 L3480 260 Z" fill="#2E8F88" stroke="none"/><path clip-path="url(#pl)" d="M3160 400 Q3300 360 3460 410" fill="none" stroke="#8FE0DA" stroke-width="22"/><circle cx="3310" cy="420" r="150" fill="none"/><path d="M3205 360 Q3225 312 3270 295" fill="none" stroke="#BFF0EC" stroke-width="16"/><clipPath id="ringfront"><rect x="2900" y="420" width="900" height="300" transform="rotate(-12 3310 420)"/></clipPath><g clip-path="url(#ringfront)"><ellipse cx="3310" cy="420" rx="250" ry="66" transform="rotate(-12 3310 420)" fill="none" stroke="#2A1E3D" stroke-width="54"/><ellipse cx="3310" cy="420" rx="250" ry="66" transform="rotate(-12 3310 420)" fill="none" stroke="#FFD86B" stroke-width="34"/></g></g>
+<path id="far-hills" d="M0 1200 Q228.9 1064.9 457.7 1194 Q656.4 1026.4 855.1 1205.4 Q1052.1 1029.3 1249 1218.5 Q1491.1 1073 1733.1 1216.4 Q1974 997.3 2215 1215 Q2431.8 1017.3 2648.6 1182.1 Q2907.8 1040.3 3167.1 1180.9 Q3362.7 994.2 3558.2 1208.4 Q3765.6 1068.2 3972.9 1207.7 L3840 2160 L0 2160 Z" fill="#6B5CA5" stroke="#2A1E3D" stroke-width="8.0"/><path id="ground" d="M0 1270 Q960.0 1200 1920.0 1250 Q2880.0 1300 3840 1230 L3840 2160 L0 2160 Z" fill="#9C8FD6" stroke="#2A1E3D" stroke-width="10"/><path d="M80 1300 Q960.0 1238 1728.0 1280" fill="none" stroke="#B3A8E3" stroke-width="16.0" stroke-linecap="round"/><path d="M0 1700 Q700 1560 1300 1640 Q1900 1720 2500 1620 Q3200 1510 3840 1600" fill="none" stroke="#C9C0F0" stroke-width="150" stroke-linecap="round" opacity="0.55"/><g transform="translate(300 1950)"><ellipse rx="170" ry="127.5" fill="#B3A8E3" stroke="#2A1E3D" stroke-width="10"/><clipPath id="cr-h0"><ellipse cx="10.2" cy="10.2" rx="122.4" ry="91.8"/></clipPath><ellipse cx="10.2" cy="10.2" rx="122.4" ry="91.8" fill="#4A3F7A"/><ellipse clip-path="url(#cr-h0)" cx="27.2" cy="27.2" rx="122.4" ry="91.8" fill="#6B5CA5"/><ellipse cx="10.2" cy="10.2" rx="122.4" ry="91.8" fill="none" stroke="#2A1E3D" stroke-width="6"/></g>
+<g transform="translate(3550 1980)"><ellipse rx="190" ry="142.5" fill="#B3A8E3" stroke="#2A1E3D" stroke-width="10"/><clipPath id="cr-h1"><ellipse cx="11.4" cy="11.4" rx="136.8" ry="102.6"/></clipPath><ellipse cx="11.4" cy="11.4" rx="136.8" ry="102.6" fill="#4A3F7A"/><ellipse clip-path="url(#cr-h1)" cx="30.4" cy="30.4" rx="136.8" ry="102.6" fill="#6B5CA5"/><ellipse cx="11.4" cy="11.4" rx="136.8" ry="102.6" fill="none" stroke="#2A1E3D" stroke-width="6"/></g>
+<g transform="translate(2850 1380)"><ellipse rx="80" ry="60" fill="#B3A8E3" stroke="#2A1E3D" stroke-width="10"/><clipPath id="cr-h2"><ellipse cx="4.8" cy="4.8" rx="57.6" ry="43.2"/></clipPath><ellipse cx="4.8" cy="4.8" rx="57.6" ry="43.2" fill="#4A3F7A"/><ellipse clip-path="url(#cr-h2)" cx="12.8" cy="12.8" rx="57.6" ry="43.2" fill="#6B5CA5"/><ellipse cx="4.8" cy="4.8" rx="57.6" ry="43.2" fill="none" stroke="#2A1E3D" stroke-width="6"/></g>
+<g transform="translate(900 1400)"><ellipse rx="70" ry="52.5" fill="#B3A8E3" stroke="#2A1E3D" stroke-width="10"/><clipPath id="cr-h3"><ellipse cx="4.2" cy="4.2" rx="50.4" ry="37.8"/></clipPath><ellipse cx="4.2" cy="4.2" rx="50.4" ry="37.8" fill="#4A3F7A"/><ellipse clip-path="url(#cr-h3)" cx="11.2" cy="11.2" rx="50.4" ry="37.8" fill="#6B5CA5"/><ellipse cx="4.2" cy="4.2" rx="50.4" ry="37.8" fill="none" stroke="#2A1E3D" stroke-width="6"/></g>
+<g transform="translate(1850 1330)"><ellipse rx="50" ry="37.5" fill="#B3A8E3" stroke="#2A1E3D" stroke-width="10"/><clipPath id="cr-h4"><ellipse cx="3" cy="3" rx="36" ry="27"/></clipPath><ellipse cx="3" cy="3" rx="36" ry="27" fill="#4A3F7A"/><ellipse clip-path="url(#cr-h4)" cx="8" cy="8" rx="36" ry="27" fill="#6B5CA5"/><ellipse cx="3" cy="3" rx="36" ry="27" fill="none" stroke="#2A1E3D" stroke-width="6"/></g>
+<g transform="translate(3300 1470)"><ellipse rx="60" ry="45" fill="#B3A8E3" stroke="#2A1E3D" stroke-width="10"/><clipPath id="cr-h5"><ellipse cx="3.6" cy="3.6" rx="43.2" ry="32.4"/></clipPath><ellipse cx="3.6" cy="3.6" rx="43.2" ry="32.4" fill="#4A3F7A"/><ellipse clip-path="url(#cr-h5)" cx="9.6" cy="9.6" rx="43.2" ry="32.4" fill="#6B5CA5"/><ellipse cx="3.6" cy="3.6" rx="43.2" ry="32.4" fill="none" stroke="#2A1E3D" stroke-width="6"/></g>
+<g id="s3-alien-mite-walk-03" transform="translate(330 1330) scale(1.7 1.7) translate(-64 -128)"><defs><clipPath id="s3-mite-clip"><path d="M40 104 Q22 100 22 80 Q22 64 30 54 Q27 44 21 36 Q33 34 46 40 Q58 34 72 36 Q104 42 106 74 Q108 104 80 106 Z" /></clipPath></defs>
+  <g id="s3-mite" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="s3-trail" stroke-width="3">
+      <g id="s3-speed-lines" transform="translate(-4 0)" opacity="0.55">
+        <path d="M8 52 L15 52" fill="none" stroke="#2A1E3D" stroke-width="8" /><path d="M8 52 L15 52" fill="none" stroke="#FFF4D6" stroke-width="3" />
+        <path d="M5 67 L14 67" fill="none" stroke="#2A1E3D" stroke-width="8" /><path d="M5 67 L14 67" fill="none" stroke="#FFF4D6" stroke-width="3" />
+        <path d="M8 82 L15 82" fill="none" stroke="#2A1E3D" stroke-width="8" /><path d="M8 82 L15 82" fill="none" stroke="#FFF4D6" stroke-width="3" />
+      </g>
+      <g id="s3-dust" opacity="0.5" transform="translate(18 114) scale(1.3) translate(-18 -114)">
+        <circle cx="20" cy="114" r="6" fill="#C9C0F0" />
+        <circle cx="10" cy="107" r="4" fill="#C9C0F0" />
+      </g>
+    </g>
+    <g id="s3-limbs-back">
+      <g transform="translate(0 -4.33) rotate(12.00 40 98)"><path d="M40 98 L42 115" fill="none" stroke="#2A1E3D" stroke-width="15" /><path d="M40 98 L42 115" fill="none" stroke="#AA6C3E" stroke-width="5" /></g>
+      <g transform="translate(0 -0.00) rotate(-12.00 70 98)"><path d="M70 98 L72 115" fill="none" stroke="#2A1E3D" stroke-width="15" /><path d="M70 98 L72 115" fill="none" stroke="#AA6C3E" stroke-width="5" /></g>
+    </g>
+    <g id="s3-body" transform="translate(64 104) translate(0 0) skewX(-3) translate(-64 -104)">
+      <path id="s3-rock" d="M40 104 Q22 100 22 80 Q22 64 30 54 Q27 44 21 36 Q33 34 46 40 Q58 34 72 36 Q104 42 106 74 Q108 104 80 106 Z" fill="#D08A55" stroke="none" />
+      <g clip-path="url(#s3-mite-clip)" stroke="none">
+        <path id="s3-rock-shade" d="M112 46 Q92 70 96 92 Q92 106 66 110 L114 114 Z" fill="#AA6C3E" />
+      </g>
+      <path id="s3-rock-highlight" d="M30 72 Q31 58 40 50" fill="none" stroke="#EDBB93" stroke-width="5" />
+      <g id="s3-speckles" fill="#A8693C" stroke="none">
+        <circle cx="40" cy="88" r="4" /><circle cx="52" cy="50" r="3" /><circle cx="48" cy="72" r="2.6" /><circle cx="96" cy="88" r="2.6" />
+      </g>
+      <path id="s3-rock-outline" d="M40 104 Q22 100 22 80 Q22 64 30 54 Q27 44 21 36 Q33 34 46 40 Q58 34 72 36 Q104 42 106 74 Q108 104 80 106 Z" fill="none" stroke-width="5" />
+      <g id="s3-face" transform="translate(0 0)">
+        <g id="s3-eyes">
+          <ellipse cx="64" cy="66" rx="11" ry="13" fill="#FFFFFF" stroke-width="3" />
+          <ellipse cx="88" cy="64" rx="10" ry="12" fill="#FFFFFF" stroke-width="3" />
+          <g stroke="none">
+            <circle cx="68" cy="69" r="6" fill="#2A1E3D" /><circle cx="91.5" cy="67" r="5.6" fill="#2A1E3D" />
+            <circle cx="70" cy="66" r="2.3" fill="#FFFFFF" /><circle cx="93.3" cy="64" r="2.1" fill="#FFFFFF" />
+          </g>
+        </g>
+        <g id="s3-mouth" fill="none" stroke-width="3.5">
+          <path d="M66 88 Q78 97 91 86" /><path d="M88 84.5 L94 83.5" stroke-width="3" />
+        </g>
+      </g>
+    </g>
+    <g id="s3-limbs-front">
+      <g transform="translate(0 -0.00) rotate(-12.00 54 98)"><path d="M54 98 L56 115" fill="none" stroke="#2A1E3D" stroke-width="15" /><path d="M54 98 L56 115" fill="none" stroke="#D08A55" stroke-width="5" /></g>
+      <g transform="translate(0 -4.33) rotate(12.00 86 98)"><path d="M86 98 L88 115" fill="none" stroke="#2A1E3D" stroke-width="15" /><path d="M86 98 L88 115" fill="none" stroke="#D08A55" stroke-width="5" /></g>
+    </g>
+  </g>
+</g>
+<g id="portal-hero" transform="translate(640 1320) scale(1.25)" stroke="#2A1E3D" stroke-width="9.6" stroke-linejoin="round" stroke-linecap="round"><ellipse cx="0" cy="-250" rx="210" ry="250" fill="#D08A55"/><ellipse cx="0" cy="-250" rx="165" ry="205" fill="#E05FD0"/><clipPath id="pc-hero"><ellipse cx="0" cy="-250" rx="165" ry="205"/></clipPath><g clip-path="url(#pc-hero)" fill="none" stroke-linecap="round"><ellipse cx="0" cy="-250" rx="120" ry="152" fill="#B98AF0" stroke="none"/><ellipse cx="0" cy="-250" rx="75" ry="98" fill="#9BE564" stroke="none"/><ellipse cx="0" cy="-250" rx="34" ry="46" fill="#FFF4D6" stroke="none"/><path transform="rotate(0 0 -250)" d="M0 -250 Q90 -330 30 -420 Q150 -330 120 -200" stroke="#FFF4D6" stroke-width="12.5" opacity="0.55"/><path transform="rotate(72 0 -250)" d="M0 -250 Q90 -330 30 -420 Q150 -330 120 -200" stroke="#FFF4D6" stroke-width="12.5" opacity="0.55"/><path transform="rotate(144 0 -250)" d="M0 -250 Q90 -330 30 -420 Q150 -330 120 -200" stroke="#FFF4D6" stroke-width="12.5" opacity="0.55"/><path transform="rotate(216 0 -250)" d="M0 -250 Q90 -330 30 -420 Q150 -330 120 -200" stroke="#FFF4D6" stroke-width="12.5" opacity="0.55"/><path transform="rotate(288 0 -250)" d="M0 -250 Q90 -330 30 -420 Q150 -330 120 -200" stroke="#FFF4D6" stroke-width="12.5" opacity="0.55"/></g><ellipse cx="0" cy="-250" rx="165" ry="205" fill="none"/><circle cx="-192.6" cy="-333.8" r="46" fill="#D08A55"/><path d="M-215.6 -343 Q-211 -361.4 -192.6 -363.7" fill="none" stroke="#F0B080" stroke-width="7.7"/><circle cx="-70.1" cy="-480.2" r="38" fill="#D08A55"/><path d="M-89.1 -487.8 Q-85.3 -503 -70.1 -504.9" fill="none" stroke="#F0B080" stroke-width="7.7"/><circle cx="102.5" cy="-462.2" r="50" fill="#D08A55"/><path d="M77.5 -472.2 Q82.5 -492.2 102.5 -494.7" fill="none" stroke="#F0B080" stroke-width="7.7"/><circle cx="192.6" cy="-333.8" r="36" fill="#D08A55"/><path d="M174.6 -341 Q178.2 -355.4 192.6 -357.2" fill="none" stroke="#F0B080" stroke-width="7.7"/><circle cx="192.6" cy="-166.2" r="44" fill="#D08A55"/><path d="M170.6 -175 Q175 -192.6 192.6 -194.8" fill="none" stroke="#F0B080" stroke-width="7.7"/><circle cx="-192.6" cy="-166.2" r="40" fill="#D08A55"/><path d="M-212.6 -174.2 Q-208.6 -190.2 -192.6 -192.2" fill="none" stroke="#F0B080" stroke-width="7.7"/><circle cx="-102.5" cy="-37.8" r="30" fill="#D08A55"/><path d="M-117.5 -43.8 Q-114.5 -55.8 -102.5 -57.3" fill="none" stroke="#F0B080" stroke-width="7.7"/><path d="M-150 -400 Q-120 -460 -60 -480" fill="none" stroke="#F0B080" stroke-width="11.5"/></g>
+<g id="s4-alien-blob-walk-04" transform="translate(975 1290) scale(1.05 1.05) translate(-128 -256)"><defs>
+    <clipPath id="s4-blob-clip"><path d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z" /></clipPath>
+  </defs>
+  <g id="s4-blob" transform="translate(128 250) skewX(-4) scale(0.95 1.07) translate(-128 -250)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="s4-antennae" stroke-width="7">
+      <g id="s4-antenna-back" transform="rotate(-4 104 130)">
+        <path d="M104 130 Q98 108 92 96" fill="none" />
+        <circle cx="91" cy="90" r="11" fill="#9FF3FF" stroke-width="6" />
+        <circle cx="87" cy="86" r="3" fill="#FFFFFF" stroke="none" />
+      </g>
+      <g id="s4-antenna-front" transform="rotate(-4 158 130)">
+        <path d="M158 130 Q166 108 174 97" fill="none" />
+        <circle cx="176" cy="91" r="11" fill="#9FF3FF" stroke-width="6" />
+        <circle cx="172" cy="87" r="3" fill="#FFFFFF" stroke="none" />
+      </g>
+    </g>
+    <g id="s4-body">
+      <path id="s4-dome" d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z" fill="#5AA9F0" stroke="none" />
+      <g clip-path="url(#s4-blob-clip)" stroke="none">
+        <path id="s4-dome-shade" d="M236 120 Q206 150 212 236 Q208 246 186 252 L240 256 Z" fill="#3F86CF" />
+        <ellipse id="s4-belly" cx="132" cy="226" rx="62" ry="22" fill="#8CC7F6" />
+      </g>
+      <path id="s4-dome-highlight" d="M58 172 Q70 144 104 136" fill="none" stroke="#BFE3FF" stroke-width="10" />
+      <circle cx="52" cy="190" r="4" fill="#BFE3FF" stroke="none" />
+      <g id="s4-crater-spots" fill="#8CC7F6" stroke-width="3">
+        <ellipse cx="78" cy="196" rx="9" ry="7" />
+        <ellipse cx="196" cy="180" rx="7" ry="5.5" />
+        <ellipse cx="190" cy="150" rx="6" ry="4.5" />
+      </g>
+      <path id="s4-dome-outline" d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z" fill="none" stroke-width="8" />
+    </g>
+    <g id="s4-face" transform="translate(1 -2)">
+      <g id="s4-eyes">
+        <ellipse cx="112" cy="174" rx="17" ry="20" fill="#FFFFFF" stroke-width="5" />
+        <ellipse cx="158" cy="173" rx="16" ry="19" fill="#FFFFFF" stroke-width="5" />
+        <g stroke="none">
+          <circle cx="117" cy="178" r="9" fill="#2A1E3D" />
+          <circle cx="163" cy="177" r="8.5" fill="#2A1E3D" />
+          <circle cx="120" cy="174" r="3.5" fill="#FFFFFF" />
+          <circle cx="166" cy="173" r="3.3" fill="#FFFFFF" />
+        </g>
+      </g>
+      <g id="s4-mouth" fill="none" stroke-width="6">
+        <path d="M116 207 Q138 223 162 203" />
+        <path d="M156 201 L166 199" stroke-width="5" />
+      </g>
+    </g>
+  </g>
+</g>
+<g id="s5-alien-swarm-bob-02" transform="translate(520 820) scale(2.6 2.6) translate(-32 -64)"><defs><clipPath id="s5-swarm-clip"><circle cx="32" cy="38" r="19" /></clipPath></defs>
+  <g id="s5-swarm" transform="translate(32 57) translate(0 -1.5) scale(0.97 1.04) translate(-32 -57)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="s5-body">
+      <circle id="s5-bubble" cx="32" cy="38" r="19" fill="#9FF3FF" stroke="none" />
+      <g clip-path="url(#s5-swarm-clip)" stroke="none">
+        <path id="s5-bubble-shade" d="M56 22 Q46 34 48 46 Q44 56 30 60 L58 62 Z" fill="#74D3E2" />
+      </g>
+      <path id="s5-bubble-sheen" d="M42 51 Q47 48 48 43" fill="none" stroke="#FFFFFF" stroke-width="1.8" opacity="0.9" />
+      <path id="s5-bubble-highlight" d="M19 37 Q19 27 28 23" fill="none" stroke="#FFFFFF" stroke-width="3.2" />
+      <circle cx="19.5" cy="42" r="1.4" fill="#FFFFFF" stroke="none" />
+      <circle id="s5-bubble-outline" cx="32" cy="38" r="19" fill="none" stroke-width="3.5" />
+    </g>
+    <g id="s5-face" stroke="none">
+      <ellipse cx="34" cy="37" rx="2.7" ry="3.2" fill="#2A1E3D" />
+      <ellipse cx="44" cy="36" rx="2.5" ry="3" fill="#2A1E3D" />
+      <circle cx="34.9" cy="35.8" r="1" fill="#FFFFFF" /><circle cx="44.8" cy="34.8" r="0.9" fill="#FFFFFF" />
+      <path id="s5-mouth" d="M35 43.5 Q39.5 47.5 44.5 43" fill="none" stroke="#2A1E3D" stroke-width="2.4" />
+    </g>
+  </g>
+</g>
+<g id="s6-alien-swarm-bob-04" transform="translate(830 760) scale(2 2) translate(-32 -64)"><defs><clipPath id="s6-swarm-clip"><circle cx="32" cy="38" r="19" /></clipPath></defs>
+  <g id="s6-swarm" transform="translate(32 57) translate(0 -1.5) scale(1 1) translate(-32 -57)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="s6-body">
+      <circle id="s6-bubble" cx="32" cy="38" r="19" fill="#9FF3FF" stroke="none" />
+      <g clip-path="url(#s6-swarm-clip)" stroke="none">
+        <path id="s6-bubble-shade" d="M56 22 Q46 34 48 46 Q44 56 30 60 L58 62 Z" fill="#74D3E2" />
+      </g>
+      <path id="s6-bubble-sheen" d="M42 51 Q47 48 48 43" fill="none" stroke="#FFFFFF" stroke-width="1.8" opacity="0.9" />
+      <path id="s6-bubble-highlight" d="M19 37 Q19 27 28 23" fill="none" stroke="#FFFFFF" stroke-width="3.2" />
+      <circle cx="19.5" cy="42" r="1.4" fill="#FFFFFF" stroke="none" />
+      <circle id="s6-bubble-outline" cx="32" cy="38" r="19" fill="none" stroke-width="3.5" />
+    </g>
+    <g id="s6-face" stroke="none">
+      <ellipse cx="34" cy="37" rx="2.7" ry="3.2" fill="#2A1E3D" />
+      <ellipse cx="44" cy="36" rx="2.5" ry="3" fill="#2A1E3D" />
+      <circle cx="34.9" cy="35.8" r="1" fill="#FFFFFF" /><circle cx="44.8" cy="34.8" r="0.9" fill="#FFFFFF" />
+      <path id="s6-mouth" d="M35 43.5 Q39.5 47.5 44.5 43" fill="none" stroke="#2A1E3D" stroke-width="2.4" />
+    </g>
+  </g>
+</g>
+<g id="colony-hero" transform="translate(2620 1340) scale(1.72)" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"><path d="M-345 0 V-50 A95 95 0 0 1 -155 -50 V0 Z" fill="#F4F1EA"/><clipPath id="pod-1-hero"><path d="M-345 0 V-50 A95 95 0 0 1 -155 -50 V0 Z"/></clipPath><path clip-path="url(#pod-1-hero)" d="M-190 -160 Q-170 -60 -210 10 H-140 V-160 Z" fill="#D8D2C4" stroke="none"/><path d="M-345 0 V-50 A95 95 0 0 1 -155 -50 V0 Z" fill="none"/><path d="M-345 -40 H-155" fill="none" stroke-width="3.8"/><circle cx="-250" cy="-82" r="22" fill="#FFE79A" stroke-width="3.8"/><path d="M-259 -92 Q-252 -98 -244 -96" fill="none" stroke="#FFFFFF" stroke-width="3.8"/><path d="M-320 -70 Q-310 -110 -275 -125" fill="none" stroke="#FFFFFF" stroke-width="7.7"/><path d="M155 0 V-50 A95 95 0 0 1 345 -50 V0 Z" fill="#F4F1EA"/><clipPath id="pod1-hero"><path d="M155 0 V-50 A95 95 0 0 1 345 -50 V0 Z"/></clipPath><path clip-path="url(#pod1-hero)" d="M310 -160 Q330 -60 290 10 H360 V-160 Z" fill="#D8D2C4" stroke="none"/><path d="M155 0 V-50 A95 95 0 0 1 345 -50 V0 Z" fill="none"/><path d="M155 -40 H345" fill="none" stroke-width="3.8"/><circle cx="250" cy="-82" r="22" fill="#FFE79A" stroke-width="3.8"/><path d="M241 -92 Q248 -98 256 -96" fill="none" stroke="#FFFFFF" stroke-width="3.8"/><path d="M180 -70 Q190 -110 225 -125" fill="none" stroke="#FFFFFF" stroke-width="7.7"/><rect x="-190" y="-70" width="380" height="58" rx="22" fill="#A7B0C8"/><path d="M-180 -26 H180" fill="none" stroke="#7F89A6" stroke-width="6.1"/><clipPath id="dome-hero"><path d="M-210 -60 A210 210 0 0 1 210 -60 Z"/></clipPath><path d="M-210 -60 A210 210 0 0 1 210 -60 Z" fill="#F4F1EA"/><g clip-path="url(#dome-hero)" stroke="none"><path d="M120 -300 Q200 -170 150 -40 L230 -40 L230 -300 Z" fill="#D8D2C4"/></g><g fill="none" stroke-width="3.8" opacity="0.8"><path d="M0 -270 V-60"/><path d="M-90 -250 Q-128 -160 -120 -60"/><path d="M90 -250 Q128 -160 120 -60"/><path d="M-200 -130 Q0 -110 200 -130"/></g><circle cx="-70" cy="-170" r="26" fill="#FFE79A" stroke-width="3.8"/><path d="M-81.7 -175.2 Q-77.8 -185.6 -67.4 -185.6" fill="none" stroke="#FFFFFF" stroke-width="3.8"/><circle cx="40" cy="-190" r="22" fill="#FFE79A" stroke-width="3.8"/><path d="M30.1 -194.4 Q33.4 -203.2 42.2 -203.2" fill="none" stroke="#FFFFFF" stroke-width="3.8"/><circle cx="130" cy="-130" r="18" fill="#FFE79A" stroke-width="3.8"/><path d="M121.9 -133.6 Q124.6 -140.8 131.8 -140.8" fill="none" stroke="#FFFFFF" stroke-width="3.8"/><path d="M-210 -60 A210 210 0 0 1 210 -60 Z" fill="none"/><path d="M-160 -120 Q-140 -200 -70 -235" fill="none" stroke="#FFFFFF" stroke-width="9.8"/><path d="M0 -270 V-340" fill="none"/><circle cx="0" cy="-352" r="20" fill="#FFD23F"/><circle cx="-6" cy="-358" r="5" fill="#FFFFFF" stroke="none"/><rect x="-230" y="-72" width="460" height="72" rx="26" fill="#A7B0C8"/><path d="M-210 -18 H210" fill="none" stroke="#7F89A6" stroke-width="6.9"/><path d="M-205 -54 H-120" fill="none" stroke="#C9D0E2" stroke-width="5.4"/><circle cx="-150" cy="-40" r="9" fill="#5BE0F0" stroke-width="3.1"/><circle cx="-100" cy="-40" r="9" fill="#5BE0F0" stroke-width="3.1"/><circle cx="100" cy="-40" r="9" fill="#5BE0F0" stroke-width="3.1"/><circle cx="150" cy="-40" r="9" fill="#5BE0F0" stroke-width="3.1"/><path d="M-46 0 V-60 A46 46 0 0 1 46 -60 V0 Z" fill="#3FB8AF"/><path d="M0 -104 V0" fill="none" stroke-width="3.8"/><path d="M-30 -60 Q-28 -84 -10 -92" fill="none" stroke="#8FE0DA" stroke-width="5"/></g>
+<g id="s8-pip-l1-idle-01" transform="translate(1330 1540) scale(2.5 2.5) translate(-128 -256)"><defs>
+    <clipPath id="s8-torso-clip"><path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" /></clipPath>
+    <clipPath id="s8-face-clip"><circle cx="128" cy="98" r="29" /></clipPath>
+    <clipPath id="s8-canister-back-clip"><circle cx="68" cy="120" r="25" /></clipPath>
+    <clipPath id="s8-canister-far-clip"><circle cx="84" cy="100" r="18" /></clipPath>
+  </defs>
+  <g id="s8-pip" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <g id="s8-body-back">
+      <g id="s8-backpack">
+        <rect x="68" y="138" width="36" height="60" rx="13" fill="#A7B0C8" />
+        <path d="M74 184 Q74 192 84 192 H98" fill="none" stroke="#7F89A6" stroke-width="5" />
+      </g>
+      <g id="s8-canisters">
+        
+        <g id="s8-canister-far">
+          <rect x="77" y="78" width="14" height="9" rx="4" fill="#A7B0C8" stroke-width="5" />
+          <circle cx="84" cy="100" r="18" fill="#8ED8FF" />
+          <path clip-path="url(#s8-canister-far-clip)" d="M101 89 Q101 117 73 119 L107 126 Z" fill="#5FB4E6" stroke="none" />
+          <circle cx="84" cy="100" r="18" fill="none" />
+          <path d="M72 98 Q73 89 81 87" fill="none" stroke="#FFFFFF" stroke-width="4" />
+        </g>
+        
+        <g id="s8-canister-near">
+          <rect x="58" y="89" width="18" height="11" rx="4" fill="#A7B0C8" stroke-width="5" />
+          <circle cx="68" cy="120" r="25" fill="#8ED8FF" />
+          <path clip-path="url(#s8-canister-back-clip)" d="M91 104 Q93 144 54 147 L98 156 Z" fill="#5FB4E6" stroke="none" />
+          <circle cx="68" cy="120" r="25" fill="none" />
+          <path d="M52 121 Q52 106 65 102" fill="none" stroke="#FFFFFF" stroke-width="5" />
+          <circle cx="54" cy="130" r="1.2" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="3.5" />
+        </g>
+      </g>
+      <g id="s8-legs">
+        <rect x="97" y="190" width="25" height="42" rx="10" fill="#F4F1EA" />
+        <rect x="130" y="190" width="25" height="42" rx="10" fill="#F4F1EA" />
+        <rect x="101" y="210" width="17" height="10" rx="4" fill="#8ED8FF" stroke-width="4" />
+        <rect x="134" y="210" width="17" height="10" rx="4" fill="#8ED8FF" stroke-width="4" />
+      </g>
+    </g>
+    <g id="s8-boots">
+      <path d="M93 250 V236 Q93 226 103 226 H114 Q124 226 125 234 Q133 237 133 244 V250 Z" fill="#8ED8FF" />
+      <path d="M126 250 V236 Q126 226 136 226 H147 Q157 226 158 234 Q166 237 166 244 V250 Z" fill="#8ED8FF" />
+      <g stroke="none">
+        <rect x="97" y="242" width="33" height="5" rx="2" fill="#5FB4E6" />
+        <rect x="130" y="242" width="33" height="5" rx="2" fill="#5FB4E6" />
+      </g>
+      <path d="M99 236 Q99 231 104 231" fill="none" stroke="#D2F0FF" stroke-width="3.5" />
+      <path d="M132 236 Q132 231 137 231" fill="none" stroke="#D2F0FF" stroke-width="3.5" />
+    </g>
+    <g id="s8-body">
+      <g id="s8-arm-back">
+        <path d="M92 146 Q74 164 80 190" fill="none" stroke-width="26" />
+        <path d="M92 146 Q74 164 80 190" fill="none" stroke="#F4F1EA" stroke-width="12" />
+        <g id="s8-mitten-back" fill="#8ED8FF">
+          <circle cx="80" cy="194" r="10.5" />
+          <ellipse cx="90" cy="190" rx="5" ry="4" stroke-width="4" />
+        </g>
+      </g>
+      <g id="s8-torso">
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="#8ED8FF" />
+        <g clip-path="url(#s8-torso-clip)">
+          
+          <rect x="80" y="186" width="92" height="24" fill="#F4F1EA" stroke-width="4.5" />
+          <path id="s8-torso-shade" d="M156 132 H170 V214 H140 Q158 186 156 132 Z" fill="#2A1E3D" opacity="0.13" stroke="none" />
+        </g>
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="none" />
+        <path id="s8-torso-highlight" d="M95 168 V152 Q95 143 103 141" fill="none" stroke="#D2F0FF" stroke-width="4.5" />
+        <g id="s8-emblem">
+          <circle cx="128" cy="167" r="15" fill="#F4F1EA" stroke-width="4" />
+          <g fill="none" stroke="#5FB4E6" stroke-width="3.5">
+            <path d="M128 157 V177 M119.3 162 L136.7 172 M119.3 172 L136.7 162" />
+          </g>
+          <circle cx="128" cy="167" r="3" fill="#5FB4E6" stroke="none" />
+        </g>
+      </g>
+      <ellipse id="s8-collar" cx="127" cy="141" rx="33" ry="9" fill="#A7B0C8" stroke-width="6" />
+      <g id="s8-arm-front">
+        <path d="M158 148 Q178 156 186 174" fill="none" stroke-width="26" />
+        <path d="M158 148 Q178 156 186 174" fill="none" stroke="#F4F1EA" stroke-width="12" />
+        <g id="s8-gadget">
+          <circle id="s8-tip-glow" cx="203" cy="110" r="16" fill="#CFF6FF" opacity="0.55" stroke="none" />
+          
+          <path d="M190 182 L201 124" fill="none" stroke-width="14" />
+          <path d="M190 182 L201 124" fill="none" stroke="#A7B0C8" stroke-width="6" />
+          
+          <g id="s8-wand-tip">
+            <path d="M203 98 V122 M192.6 104 L213.4 116 M192.6 116 L213.4 104" fill="none" stroke-width="13" />
+            <path d="M203 98 V122 M192.6 104 L213.4 116 M192.6 116 L213.4 104" fill="none" stroke="#CFF6FF" stroke-width="5" />
+            <circle cx="203" cy="110" r="4.5" fill="#8ED8FF" stroke="none" />
+            <circle cx="201" cy="99.5" r="1" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="2.5" />
+          </g>
+        </g>
+        <g id="s8-mitten-front" fill="#8ED8FF">
+          <circle cx="189" cy="177" r="10.5" />
+          <ellipse cx="181" cy="171" rx="4" ry="5" stroke-width="4" />
+        </g>
+      </g>
+      <g id="s8-helmet">
+        <circle id="s8-glass" cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none" />
+        <g id="s8-head" stroke-width="4">
+          <circle id="s8-face" cx="128" cy="98" r="29" fill="#FBE4D5" />
+          <path id="s8-face-shade" clip-path="url(#s8-face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#EFC6AE" stroke="none" />
+          
+          <path id="s8-fringe" d="M99 93 Q97 74 110 68 Q106 59 115 55 Q117 63 124 64 Q126 53 137 53 Q134 61 140 65 Q148 60 153 64 Q148 68 150 72 Q158 79 157 91 Q152 82 144 85 Q140 77 132 82 Q125 76 118 82 Q110 77 99 93 Z" fill="#E07A3C" />
+          <path d="M108 77 Q113 70 121 69" fill="none" stroke="#F4A673" stroke-width="3" />
+          <g id="s8-face-features" stroke="none">
+            <ellipse cx="120" cy="101" rx="4.6" ry="6" fill="#2A1E3D" />
+            <ellipse cx="142" cy="100" rx="4.6" ry="6" fill="#2A1E3D" />
+            <circle cx="121.6" cy="98.3" r="1.9" fill="#FFFFFF" />
+            <circle cx="143.6" cy="97.3" r="1.9" fill="#FFFFFF" />
+            
+            <ellipse cx="111" cy="111" rx="7.5" ry="5" fill="#F48A9A" opacity="0.7" />
+            <ellipse cx="152" cy="110" rx="5.8" ry="4.4" fill="#F48A9A" opacity="0.7" />
+            
+            <g id="s8-freckles" fill="#B5653F">
+              <circle cx="106.5" cy="106" r="2.2" />
+              <circle cx="112.5" cy="105" r="2.2" />
+              <circle cx="109.5" cy="110" r="2.2" />
+              <circle cx="148.5" cy="106.5" r="2.2" />
+              <circle cx="153.5" cy="105" r="2.2" />
+              <circle cx="151" cy="110" r="2.2" />
+            </g>
+          </g>
+          
+          <path id="s8-mouth" d="M124 111 Q134 116 144 110 Q142 121 134 121 Q126 121 124 111 Z" fill="#FFFFFF" stroke-width="3.5" />
+          <path d="M128 118 Q134 115 140 118 Q137 120.5 134 120.5 Q131 120.5 128 118 Z" fill="#F27C8C" stroke="none" />
+        </g>
+        <g id="s8-visor-rim">
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke-width="16" />
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke="#8ED8FF" stroke-width="9" />
+        </g>
+        <g id="s8-helmet-highlight" stroke="#FFFFFF" fill="none">
+          <path d="M88 70 Q98 54 116 49" stroke-width="7" opacity="0.9" />
+          <circle cx="83" cy="84" r="1.5" stroke-width="5" opacity="0.9" />
+        </g>
+        <circle id="s8-helmet-outline" cx="126" cy="94" r="50" fill="none" />
+      </g>
+    </g>
+  </g>
+</g>
+<g id="s9-orion-l1-idle-01" transform="translate(2060 1520) scale(2.5 2.5) translate(-128 -256)"><defs>
+    <clipPath id="s9-torso-clip"><path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" /></clipPath>
+    <clipPath id="s9-face-clip"><circle cx="128" cy="98" r="29" /></clipPath>
+    <clipPath id="s9-tube-clip"><rect x="188" y="130" width="16" height="84" rx="5" /></clipPath>
+    <clipPath id="s9-brass-clip"><rect x="184" y="82" width="24" height="44" rx="6" /></clipPath>
+    <clipPath id="s9-hood-clip"><path d="M183 88 L177 54 Q176 48 182 48 H210 Q216 48 215 54 L209 88 Z" /></clipPath>
+  </defs>
+  <g id="s9-orion" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <g id="s9-body-back">
+      <g id="s9-backpack">
+        <rect x="68" y="138" width="36" height="60" rx="13" fill="#A7B0C8" />
+        <path d="M74 184 Q74 192 84 192 H98" fill="none" stroke="#7F89A6" stroke-width="5" />
+      </g>
+      <g id="s9-legs">
+        <rect x="97" y="190" width="25" height="42" rx="10" fill="#F4F1EA" />
+        <rect x="130" y="190" width="25" height="42" rx="10" fill="#F4F1EA" />
+        <rect x="101" y="210" width="17" height="10" rx="4" fill="#2E4A9E" stroke-width="4" />
+        <rect x="134" y="210" width="17" height="10" rx="4" fill="#2E4A9E" stroke-width="4" />
+      </g>
+    </g>
+    <g id="s9-boots">
+      <path d="M93 250 V236 Q93 226 103 226 H114 Q124 226 125 234 Q133 237 133 244 V250 Z" fill="#2E4A9E" />
+      <path d="M126 250 V236 Q126 226 136 226 H147 Q157 226 158 234 Q166 237 166 244 V250 Z" fill="#2E4A9E" />
+      <g stroke="none">
+        <rect x="97" y="242" width="33" height="5" rx="2" fill="#FFD86B" />
+        <rect x="130" y="242" width="33" height="5" rx="2" fill="#FFD86B" />
+      </g>
+      <path d="M99 236 Q99 231 104 231" fill="none" stroke="#5C78C8" stroke-width="3.52" />
+      <path d="M132 236 Q132 231 137 231" fill="none" stroke="#5C78C8" stroke-width="3.52" />
+    </g>
+    <g id="s9-body">
+      <g id="s9-torso">
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="#2E4A9E" />
+        <g clip-path="url(#s9-torso-clip)" stroke="none">
+          <g id="s9-emblem" fill="#FFD86B">
+            
+            <path transform="translate(104 156)" d="M0 -9 Q2.5 -2.5 9 0 Q2.5 2.5 0 9 Q-2.5 2.5 -9 0 Q-2.5 -2.5 0 -9 Z" />
+            <path transform="translate(140 148)" d="M0 -6 Q1.7 -1.7 6 0 Q1.7 1.7 0 6 Q-1.7 1.7 -6 0 Q-1.7 -1.7 0 -6 Z" />
+            <path transform="translate(128 176)" d="M0 -7.5 Q2.1 -2.1 7.5 0 Q2.1 2.1 0 7.5 Q-2.1 2.1 -7.5 0 Q-2.1 -2.1 0 -7.5 Z" />
+            <path transform="translate(153 186)" d="M0 -6 Q1.7 -1.7 6 0 Q1.7 1.7 0 6 Q-1.7 1.7 -6 0 Q-1.7 -1.7 0 -6 Z" />
+            <path transform="translate(102 192)" d="M0 -5 Q1.4 -1.4 5 0 Q1.4 1.4 0 5 Q-1.4 1.4 -5 0 Q-1.4 -1.4 0 -5 Z" />
+          </g>
+          <path id="s9-torso-shade" d="M156 132 H170 V214 H140 Q158 186 156 132 Z" fill="#22377A" opacity="0.85" />
+        </g>
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="none" />
+        <path id="s9-torso-highlight" d="M95 168 V152 Q95 143 103 141" fill="none" stroke="#5C78C8" stroke-width="4.48" />
+      </g>
+      <ellipse id="s9-collar" cx="127" cy="141" rx="33" ry="9" fill="#A7B0C8" stroke-width="6" />
+      <g id="s9-arm-back">
+        
+        <path d="M94 154 Q118 188 182 162" fill="none" stroke-width="26" />
+        <path d="M94 154 Q118 188 182 162" fill="none" stroke="#F4F1EA" stroke-width="12" />
+      </g>
+      <g id="s9-arm-front">
+        <path d="M158 148 Q178 158 190 172" fill="none" stroke-width="26" />
+        <path d="M158 148 Q178 158 190 172" fill="none" stroke="#F4F1EA" stroke-width="12" />
+        <g id="s9-gadget" transform="rotate(12 196 174)">
+          
+          <circle id="s9-lens-glow" cx="196" cy="46" r="12" fill="#FFE79A" opacity="0.6" stroke="none" />
+          <rect id="s9-eyepiece" x="191" y="212" width="10" height="16" rx="4" fill="#A7B0C8" stroke-width="5" />
+          <g id="s9-tube">
+            <rect x="188" y="130" width="16" height="84" rx="5" fill="#2E4A9E" />
+            <rect clip-path="url(#s9-tube-clip)" x="198" y="130" width="7" height="84" fill="#22377A" stroke="none" />
+            <rect x="188" y="130" width="16" height="84" rx="5" fill="none" />
+            <path d="M193 140 V202" fill="none" stroke="#5C78C8" stroke-width="3.52" />
+          </g>
+          <g id="s9-brass">
+            <rect x="184" y="82" width="24" height="44" rx="6" fill="#FFD86B" />
+            <rect clip-path="url(#s9-brass-clip)" x="200" y="82" width="9" height="44" fill="#E0AE1F" stroke="none" />
+            <rect x="184" y="82" width="24" height="44" rx="6" fill="none" />
+            <path d="M189 92 V110" fill="none" stroke="#FFFFFF" stroke-width="3.52" />
+          </g>
+          <rect id="s9-ring" x="185" y="122" width="22" height="10" rx="4" fill="#FFD86B" stroke-width="5" />
+          <g id="s9-hood">
+            <path d="M183 88 L177 54 Q176 48 182 48 H210 Q216 48 215 54 L209 88 Z" fill="#2E4A9E" />
+            <path clip-path="url(#s9-hood-clip)" d="M204 48 H218 V90 H200 Z" fill="#22377A" stroke="none" />
+            <path d="M183 88 L177 54 Q176 48 182 48 H210 Q216 48 215 54 L209 88 Z" fill="none" />
+            <path d="M178 60 H214" fill="none" stroke="#FFD86B" stroke-width="4.48" stroke-linecap="butt" />
+            <path d="M184 70 L186 82" fill="none" stroke="#5C78C8" stroke-width="3.52" />
+          </g>
+          <ellipse id="s9-lens" cx="196" cy="49" rx="18" ry="7" fill="#FFF4D6" stroke-width="5" />
+          <path d="M186 48 Q189 45 194 45" fill="none" stroke="#FFFFFF" stroke-width="3" />
+        </g>
+        <g id="s9-mitten-back" fill="#2E4A9E">
+          <circle cx="196" cy="150" r="10.5" />
+          <ellipse cx="190" cy="141" rx="4" ry="5" stroke-width="4" />
+        </g>
+        <g id="s9-mitten-front" fill="#2E4A9E">
+          <circle cx="193" cy="177" r="10.5" />
+          <ellipse cx="202" cy="170" rx="4" ry="5" stroke-width="4" />
+        </g>
+      </g>
+      <g id="s9-helmet">
+        <circle id="s9-glass" cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none" />
+        <g id="s9-head" stroke-width="4">
+          
+          <path id="s9-hair-back" d="M97 108 Q88 96 94 84 Q90 72 101 66 Q104 56 117 57 Q126 50 137 56 Q150 54 155 64 Q166 70 162 84 Q166 95 158 104 Z" fill="#3B2A24" />
+          <circle id="s9-face" cx="128" cy="98" r="29" fill="#D6AE84" />
+          <path id="s9-face-shade" clip-path="url(#s9-face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#B88F66" stroke="none" />
+          
+          <path id="s9-fringe" d="M99 96 Q96 68 126 66 Q156 66 158 90 Q152 80 144 82 Q138 74 128 80 Q118 74 110 82 Q104 84 99 96 Z" fill="#3B2A24" />
+          <path d="M112 72 Q120 68 128 71" fill="none" stroke="#5A463C" stroke-width="3" />
+          
+          <g id="s9-hearing-aid">
+            <path d="M102 92 Q98 95 100 99" fill="none" stroke-width="3" />
+            <circle cx="101" cy="104" r="5" fill="#3FB8AF" stroke="#2A1E3D" stroke-width="3" />
+            <circle cx="99.5" cy="102.5" r="1.3" fill="#FFFFFF" stroke="none" />
+          </g>
+          <g id="s9-face-features" stroke="none">
+            <ellipse cx="120" cy="101" rx="4.6" ry="6" fill="#2A1E3D" />
+            <ellipse cx="142" cy="100" rx="4.6" ry="6" fill="#2A1E3D" />
+            <circle cx="121.6" cy="98.3" r="1.9" fill="#FFFFFF" />
+            <circle cx="143.6" cy="97.3" r="1.9" fill="#FFFFFF" />
+            <ellipse cx="111" cy="110" rx="6" ry="3.8" fill="#F48A9A" opacity="0.45" />
+            <ellipse cx="152" cy="109" rx="4.5" ry="3.4" fill="#F48A9A" opacity="0.45" />
+          </g>
+          
+          <path id="s9-mouth" d="M125 113 Q134 119 143 112" fill="none" stroke-width="3.52" />
+        </g>
+        <g id="s9-visor-rim">
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke-width="16" />
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke="#2E4A9E" stroke-width="9" />
+        </g>
+        <g id="s9-helmet-highlight" stroke="#FFFFFF" fill="none">
+          <path d="M88 70 Q98 54 116 49" stroke-width="7" opacity="0.9" />
+          <circle cx="83" cy="84" r="1.5" stroke-width="5" opacity="0.9" />
+        </g>
+        <circle id="s9-helmet-outline" cx="126" cy="94" r="50" fill="none" />
+      </g>
+    </g>
+  </g>
+</g>
+<g id="s10-sol-l1-idle-01" transform="translate(3150 1560) scale(2.5 2.5) translate(-128 -384)"><defs>
+    <clipPath id="s10-torso-clip"><path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" /></clipPath>
+    <clipPath id="s10-face-clip"><circle cx="128" cy="98" r="29" /></clipPath>
+    <clipPath id="s10-bulb-clip"><circle cx="63" cy="-38" r="13" /></clipPath>
+  </defs>
+  <g id="s10-sol" transform="translate(0 128)" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <g id="s10-body-back">
+      <g id="s10-antenna">
+        <g id="s10-antenna-mast">
+          <path d="M76 136 L64 -22" fill="none" stroke-width="12" />
+          <path d="M76 136 L64 -22" fill="none" stroke="#A7B0C8" stroke-width="5" />
+          <path d="M71 70 L67.6 25" fill="none" stroke="#E2403A" stroke-width="5" stroke-linecap="butt" />
+          <rect x="54" y="-27" width="18" height="10" rx="4" fill="#A7B0C8" stroke-width="4" />
+        </g>
+        <g id="s10-beacon">
+          <circle id="s10-beacon-glow" cx="63" cy="-38" r="20" fill="#FFE79A" opacity="0.5" stroke="none" />
+          <circle cx="63" cy="-38" r="13" fill="#F5B700" stroke="none" />
+          <path clip-path="url(#s10-bulb-clip)" d="M76 -44 Q72 -26 54 -24 L78 -20 Z" fill="#CC9600" stroke="none" />
+          <circle id="s10-bulb-outline" cx="63" cy="-38" r="13" fill="none" stroke-width="5" />
+          <path d="M56 -40 Q57 -45 62 -46" fill="none" stroke="#FFF4D6" stroke-width="3.5" />
+        </g>
+        <rect id="s10-antenna-mount" x="68" y="128" width="20" height="14" rx="5" fill="#A7B0C8" stroke-width="5" />
+      </g>
+      <g id="s10-backpack">
+        <rect x="68" y="138" width="36" height="60" rx="13" fill="#A7B0C8" />
+        <path d="M74 184 Q74 192 84 192 H98" fill="none" stroke="#7F89A6" stroke-width="5" />
+      </g>
+      <g id="s10-legs">
+        <rect x="97" y="190" width="25" height="42" rx="10" fill="#E2403A" />
+        <rect x="130" y="190" width="25" height="42" rx="10" fill="#E2403A" />
+        <rect x="101" y="210" width="17" height="10" rx="4" fill="#F5B700" stroke-width="4" />
+        <rect x="134" y="210" width="17" height="10" rx="4" fill="#F5B700" stroke-width="4" />
+      </g>
+    </g>
+    <g id="s10-boots">
+      <path d="M93 250 V236 Q93 226 103 226 H114 Q124 226 125 234 Q133 237 133 244 V250 Z" fill="#F5B700" />
+      <path d="M126 250 V236 Q126 226 136 226 H147 Q157 226 158 234 Q166 237 166 244 V250 Z" fill="#F5B700" />
+      <g stroke="none">
+        <rect x="97" y="242" width="33" height="5" rx="2" fill="#CC9600" />
+        <rect x="130" y="242" width="33" height="5" rx="2" fill="#CC9600" />
+      </g>
+      <path d="M99 236 Q99 231 104 231" fill="none" stroke="#FFF4D6" stroke-width="3.5" />
+      <path d="M132 236 Q132 231 137 231" fill="none" stroke="#FFF4D6" stroke-width="3.5" />
+    </g>
+    <g id="s10-body">
+      <g id="s10-arm-back">
+        <path d="M92 146 Q74 164 80 190" fill="none" stroke-width="26" />
+        <path d="M92 146 Q74 164 80 190" fill="none" stroke="#E2403A" stroke-width="12" />
+        <g id="s10-mitten-back" fill="#F5B700">
+          <circle cx="80" cy="194" r="10.5" />
+          <ellipse cx="90" cy="190" rx="5" ry="4" stroke-width="4" />
+        </g>
+      </g>
+      <g id="s10-torso">
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="#E2403A" />
+        <g clip-path="url(#s10-torso-clip)">
+          <path id="s10-torso-shade" d="M156 132 H170 V214 H140 Q158 186 156 132 Z" fill="#B52D28" stroke="none" />
+          <rect id="s10-belt" x="80" y="180" width="92" height="13" fill="#F5B700" stroke-width="4.5" />
+        </g>
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="none" />
+        <g id="s10-emblem">
+          <circle cx="114" cy="161" r="9" fill="#F5B700" stroke-width="4" />
+          <circle cx="114" cy="161" r="3.5" fill="#FFF4D6" stroke="none" />
+        </g>
+        <path id="s10-torso-highlight" d="M95 168 V152 Q95 143 103 141" fill="none" stroke="#F28480" stroke-width="4.5" />
+      </g>
+      <ellipse id="s10-collar" cx="127" cy="141" rx="33" ry="9" fill="#A7B0C8" stroke-width="6" />
+      <g id="s10-arm-front">
+        <path d="M158 148 Q190 156 188 124" fill="none" stroke-width="26" />
+        <path d="M158 148 Q190 156 188 124" fill="none" stroke="#E2403A" stroke-width="12" />
+        <g id="s10-mitten-front" fill="#F5B700">
+          <rect x="181" y="94" width="10" height="18" rx="5" stroke-width="4" />
+          <circle cx="189" cy="117" r="11" />
+          <path d="M183 112 Q188 110 194 113" fill="none" stroke-width="3" />
+        </g>
+      </g>
+      <g id="s10-helmet">
+        <circle id="s10-glass" cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none" />
+        <g id="s10-head" stroke-width="4">
+          <circle id="s10-face" cx="128" cy="98" r="29" fill="#6E4630" />
+          <path id="s10-face-shade" clip-path="url(#s10-face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#553424" stroke="none" />
+          <path id="s10-beard" d="M100 90 Q98 128 128 128 Q158 128 156 88 L151 90 Q151 108 141 110 Q134 106 128 108.5 Q122 106 115 110 Q105 108 105 91 Z" fill="#B9B4C4" />
+          <path id="s10-hair" d="M100 92 Q99 69 128 69 Q157 69 156 90 Q152 82 145 83 Q139 78 132 80 Q125 77 118 80 Q108 79 100 92 Z" fill="#B9B4C4" />
+          <g id="s10-face-features" stroke="none">
+            <ellipse cx="120" cy="96" rx="4.6" ry="6" fill="#1E1A24" />
+            <ellipse cx="142" cy="95" rx="4.6" ry="6" fill="#1E1A24" />
+            <circle cx="121.6" cy="93.3" r="1.9" fill="#FFFFFF" />
+            <circle cx="143.6" cy="92.3" r="1.9" fill="#FFFFFF" />
+            <ellipse cx="110" cy="104" rx="5.5" ry="3.5" fill="#F48A9A" opacity="0.4" />
+            <ellipse cx="152" cy="103" rx="4.5" ry="3.2" fill="#F48A9A" opacity="0.4" />
+          </g>
+          <path id="s10-mouth" d="M122 107 H146 Q144 120 134 120 Q124 120 122 107 Z" fill="#FFFFFF" stroke-width="3.5" />
+          <path d="M127 116 Q134 112 141 116 Q138 119.5 134 119.5 Q130 119.5 127 116 Z" fill="#F27C8C" stroke="none" />
+        </g>
+        <g id="s10-visor-rim">
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke-width="16" />
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke="#F5B700" stroke-width="9" />
+        </g>
+        <g id="s10-helmet-highlight" stroke="#FFFFFF" fill="none">
+          <path d="M88 70 Q98 54 116 49" stroke-width="7" opacity="0.9" />
+          <circle cx="83" cy="84" r="1.5" stroke-width="5" opacity="0.9" />
+        </g>
+        <circle id="s10-helmet-outline" cx="126" cy="94" r="50" fill="none" />
+      </g>
+    </g>
+  </g>
+</g>
+<g id="s11-nova-l1-idle-01" transform="translate(960 1900) scale(2.7 2.7) translate(-128 -256)"><defs>
+    <clipPath id="s11-torso-clip"><path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" /></clipPath>
+    <clipPath id="s11-face-clip"><circle cx="128" cy="98" r="29" /></clipPath>
+  </defs>
+  <g id="s11-nova" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <g id="s11-body-back">
+      <g id="s11-backpack">
+        <rect x="68" y="138" width="36" height="60" rx="13" fill="#A7B0C8" />
+        <path d="M74 184 Q74 192 84 192 H98" fill="none" stroke="#7F89A6" stroke-width="5" />
+      </g>
+      <g id="s11-legs">
+        <rect x="97" y="190" width="25" height="42" rx="10" fill="#F4F1EA" />
+        <rect x="130" y="190" width="25" height="42" rx="10" fill="#F4F1EA" />
+        <rect x="101" y="210" width="17" height="10" rx="4" fill="#FF8A2A" stroke-width="4" />
+        <rect x="134" y="210" width="17" height="10" rx="4" fill="#FF8A2A" stroke-width="4" />
+      </g>
+    </g>
+    <g id="s11-boots">
+      <path d="M93 250 V236 Q93 226 103 226 H114 Q124 226 125 234 Q133 237 133 244 V250 Z" fill="#FF8A2A" />
+      <path d="M126 250 V236 Q126 226 136 226 H147 Q157 226 158 234 Q166 237 166 244 V250 Z" fill="#FF8A2A" />
+      <g stroke="none">
+        <rect x="97" y="242" width="33" height="5" rx="2" fill="#D9661A" />
+        <rect x="130" y="242" width="33" height="5" rx="2" fill="#D9661A" />
+      </g>
+      <path d="M99 236 Q99 231 104 231" fill="none" stroke="#FFC08A" stroke-width="3.5" />
+      <path d="M132 236 Q132 231 137 231" fill="none" stroke="#FFC08A" stroke-width="3.5" />
+    </g>
+    <g id="s11-body">
+      <g id="s11-arm-back">
+        <path d="M92 146 Q74 164 80 190" fill="none" stroke-width="26" />
+        <path d="M92 146 Q74 164 80 190" fill="none" stroke="#F4F1EA" stroke-width="12" />
+        <g id="s11-mitten-back" fill="#FF8A2A">
+          <circle cx="80" cy="194" r="10.5" />
+          <ellipse cx="90" cy="190" rx="5" ry="4" stroke-width="4" />
+        </g>
+      </g>
+      <g id="s11-torso">
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="#F4F1EA" />
+        <g clip-path="url(#s11-torso-clip)">
+          <path id="s11-chevron" d="M78 176 L174 136 L174 156 L78 196 Z" fill="#FF8A2A" stroke-width="4.5" />
+          <path id="s11-torso-shade" d="M156 132 H170 V214 H140 Q158 186 156 132 Z" fill="#2A1E3D" opacity="0.13" stroke="none" />
+                  </g>
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="none" />
+        <path id="s11-torso-highlight" d="M95 168 V152 Q95 143 103 141" fill="none" stroke="#FFFFFF" stroke-width="4.5" />
+      </g>
+      <ellipse id="s11-collar" cx="127" cy="141" rx="33" ry="9" fill="#A7B0C8" stroke-width="6" />
+      <g id="s11-arm-front">
+        <path d="M158 148 Q180 156 188 174" fill="none" stroke-width="26" />
+        <path d="M158 148 Q180 156 188 174" fill="none" stroke="#F4F1EA" stroke-width="12" />
+        <g id="s11-gadget" transform="rotate(-20 192 176)">
+          <circle id="s11-lens-glow" cx="228" cy="176" r="12" fill="#FFE79A" opacity="0.6" stroke="none" />
+          <rect x="186" y="165" width="36" height="22" rx="10" fill="#F4F1EA" stroke-width="6" />
+          <path d="M204 166 V186" fill="none" stroke="#FF8A2A" stroke-width="7" stroke-linecap="butt" />
+          <rect x="186" y="165" width="36" height="22" rx="10" fill="none" stroke-width="6" />
+          <circle id="s11-lens" cx="225" cy="176" r="8" fill="#FFF4D6" stroke-width="5" />
+          <circle cx="223" cy="174" r="2.5" fill="#FFFFFF" stroke="none" />
+        </g>
+        <g id="s11-mitten-front" fill="#FF8A2A">
+          <circle cx="190" cy="179" r="10.5" />
+          <ellipse cx="194" cy="169" rx="4" ry="5" stroke-width="4" />
+        </g>
+      </g>
+      <g id="s11-helmet">
+        <circle id="s11-glass" cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none" />
+        <g id="s11-head" stroke-width="4">
+          <g id="s11-hair-puffs" fill="#1E1A24">
+            <path d="M110.0 76.4 A6.1 6.1 0 0 1 103.2 83.7 A6.1 6.1 0 0 1 93.2 83.0 A6.1 6.1 0 0 1 87.6 74.7 A6.1 6.1 0 0 1 90.6 65.2 A6.1 6.1 0 0 1 99.9 61.5 A6.1 6.1 0 0 1 108.5 66.5 A6.1 6.1 0 0 1 110.0 76.4 Z" />
+            <path d="M167.9 73.1 A5.8 5.8 0 0 1 163.0 81.2 A5.8 5.8 0 0 1 153.5 82.4 A5.8 5.8 0 0 1 146.7 75.8 A5.8 5.8 0 0 1 147.6 66.3 A5.8 5.8 0 0 1 155.6 61.1 A5.8 5.8 0 0 1 164.7 64.1 A5.8 5.8 0 0 1 167.9 73.1 Z" />
+          </g>
+          <circle id="s11-face" cx="128" cy="98" r="29" fill="#FCE0CF" />
+          <path id="s11-face-shade" clip-path="url(#s11-face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#F2C3AA" stroke="none" />
+          <path id="s11-fringe" d="M99 93 Q98 68 128 67 Q158 68 157 91 Q153 83 147 85 Q142 77 134 82 Q127 75 120 82 Q111 77 99 93 Z" fill="#1E1A24" />
+          <g id="s11-face-features" stroke="none">
+            <ellipse cx="120" cy="101" rx="4.6" ry="6" fill="#2A1E3D" />
+            <ellipse cx="142" cy="100" rx="4.6" ry="6" fill="#2A1E3D" />
+            <circle cx="121.6" cy="98.3" r="1.9" fill="#FFFFFF" />
+            <circle cx="143.6" cy="97.3" r="1.9" fill="#FFFFFF" />
+            <ellipse cx="111" cy="110" rx="6.5" ry="4.2" fill="#F48A9A" opacity="0.75" />
+            <ellipse cx="152" cy="109" rx="5" ry="3.8" fill="#F48A9A" opacity="0.75" />
+          </g>
+          <path id="s11-mouth" d="M122 109 H146 Q144 122 134 122 Q124 122 122 109 Z" fill="#FFFFFF" stroke-width="3.5" />
+          <path d="M127 118 Q134 114 141 118 Q138 121.5 134 121.5 Q130 121.5 127 118 Z" fill="#F27C8C" stroke="none" />
+        </g>
+        <g id="s11-visor-rim">
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke-width="16" />
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke="#FF8A2A" stroke-width="9" />
+        </g>
+        <g id="s11-helmet-highlight" stroke="#FFFFFF" fill="none">
+          <path d="M88 70 Q98 54 116 49" stroke-width="7" opacity="0.9" />
+          <circle cx="83" cy="84" r="1.5" stroke-width="5" opacity="0.9" />
+        </g>
+        <circle id="s11-helmet-outline" cx="126" cy="94" r="50" fill="none" />
+      </g>
+    </g>
+  </g>
+</g>
+<g id="s12-juno-l1-idle-01" transform="translate(1700 1940) scale(2.7 2.7) translate(-128 -256)"><defs>
+    <clipPath id="s12-torso-clip"><path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" /></clipPath>
+    <clipPath id="s12-face-clip"><circle cx="128" cy="98" r="29" /></clipPath>
+    <clipPath id="s12-ball-clip"><circle cx="70" cy="128" r="22" /></clipPath>
+  </defs>
+  <g id="s12-juno" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <g id="s12-body-back">
+      <g id="s12-backpack">
+        <rect x="68" y="138" width="36" height="60" rx="13" fill="#A7B0C8" />
+        <path d="M74 184 Q74 192 84 192 H98" fill="none" stroke="#7F89A6" stroke-width="5" />
+      </g>
+      <g id="s12-popper">
+        <g id="s12-funnel">
+          <rect id="s12-funnel-neck" x="60" y="62" width="24" height="46" rx="7" fill="#F4F1EA" />
+          <path d="M60 64 L50 34 H94 L84 64 Z" fill="#FFD23F" />
+          <path d="M78 62 L87 37" fill="none" stroke="#E0AE1F" stroke-width="4" />
+          <path d="M59 56 L55 43" fill="none" stroke="#FFEA99" stroke-width="4" />
+          <ellipse cx="72" cy="30" rx="24" ry="13" fill="#FFD23F" />
+          <ellipse id="s12-funnel-hole" cx="72" cy="30.5" rx="15" ry="7.5" fill="#2A1E3D" stroke="none" />
+        </g>
+        <g id="s12-popper-ball">
+          <circle cx="70" cy="128" r="22" fill="#FFD23F" />
+          <path clip-path="url(#s12-ball-clip)" d="M88 114 Q90 142 64 152 L96 156 L96 112 Z" fill="#E0AE1F" stroke="none" />
+          <path id="s12-ball-star" d="M0 -20 L5.3 -7.3 L19 -6.2 L8.6 2.8 L11.8 16.2 L0 9 L-11.8 16.2 L-8.6 2.8 L-19 -6.2 L-5.3 -7.3 Z" transform="translate(68 130) scale(0.36)" fill="#FFF4D6" stroke="none" />
+          <path d="M55 126 Q56 115 65 111" fill="none" stroke="#FFEA99" stroke-width="4" />
+          <circle cx="70" cy="128" r="22" fill="none" />
+        </g>
+      </g>
+      <g id="s12-legs">
+        <rect x="97" y="190" width="25" height="42" rx="10" fill="#F4F1EA" />
+        <rect x="130" y="190" width="25" height="42" rx="10" fill="#F4F1EA" />
+        <rect x="101" y="210" width="17" height="10" rx="4" fill="#FFD23F" stroke-width="4" />
+        <rect x="134" y="210" width="17" height="10" rx="4" fill="#FFD23F" stroke-width="4" />
+      </g>
+    </g>
+    <g id="s12-boots">
+      <path d="M93 250 V236 Q93 226 103 226 H114 Q124 226 125 234 Q133 237 133 244 V250 Z" fill="#FFD23F" />
+      <path d="M126 250 V236 Q126 226 136 226 H147 Q157 226 158 234 Q166 237 166 244 V250 Z" fill="#FFD23F" />
+      <g stroke="none">
+        <rect x="97" y="241" width="33" height="5.5" rx="2" fill="#E0AE1F" />
+        <rect x="130" y="241" width="33" height="5.5" rx="2" fill="#E0AE1F" />
+      </g>
+      <path d="M99 236 Q99 231 104 231" fill="none" stroke="#FFEA99" stroke-width="3.5" />
+      <path d="M132 236 Q132 231 137 231" fill="none" stroke="#FFEA99" stroke-width="3.5" />
+    </g>
+    <g id="s12-body">
+      <g id="s12-torso">
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="#FFD23F" />
+        <g clip-path="url(#s12-torso-clip)">
+          <path id="s12-torso-shade" d="M156 132 H170 V214 H140 Q158 186 156 132 Z" fill="#E0AE1F" stroke="none" />
+          <rect id="s12-chest-panel" x="102" y="145" width="40" height="30" rx="10" fill="#F4F1EA" stroke-width="4" />
+          <g id="s12-emblem" stroke="none">
+            <path d="M117 166 L130 153" fill="none" stroke="#FFD23F" stroke-width="5" stroke-linecap="round" />
+            <circle cx="117" cy="165" r="6" fill="#FFD23F" />
+          </g>
+          <rect id="s12-tool-belt" x="80" y="183" width="92" height="12" fill="#A7B0C8" stroke-width="4" />
+        </g>
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="none" />
+        <path id="s12-torso-highlight" d="M94 172 V152 Q94 143 102 141" fill="none" stroke="#FFEA99" stroke-width="4.5" />
+      </g>
+      <g id="s12-arm-back">
+        <path d="M92 147 Q70 160 82 182" fill="none" stroke-width="26" />
+        <path d="M92 147 Q70 160 82 182" fill="none" stroke="#F4F1EA" stroke-width="12" />
+        <g id="s12-mitten-back" fill="#FFD23F">
+          <circle cx="88" cy="185" r="10.5" />
+        </g>
+      </g>
+      <ellipse id="s12-collar" cx="127" cy="141" rx="33" ry="9" fill="#A7B0C8" stroke-width="6" />
+      <g id="s12-arm-front">
+        <path d="M158 148 Q178 158 176 178" fill="none" stroke-width="26" />
+        <path d="M158 148 Q178 158 176 178" fill="none" stroke="#F4F1EA" stroke-width="12" />
+        <g id="s12-mitten-front" fill="#FFD23F">
+          <circle cx="172" cy="190" r="10.5" />
+        </g>
+        <g id="s12-controller" transform="rotate(-8 184 184)">
+          <rect x="166" y="171" width="40" height="26" rx="11" fill="#A7B0C8" stroke-width="6" />
+          <path d="M172 192 H200" fill="none" stroke="#7F89A6" stroke-width="3" />
+          <circle id="s12-button-glow" cx="190" cy="181" r="12" fill="#FFE79A" opacity="0.6" stroke="none" />
+          <circle id="s12-button" cx="190" cy="181" r="8.5" fill="#FFD23F" stroke-width="4" />
+          <circle cx="187.5" cy="178.5" r="2.6" fill="#FFFFFF" stroke="none" />
+        </g>
+        <ellipse id="s12-mitten-thumb" cx="174" cy="178" rx="4.5" ry="5.5" fill="#FFD23F" stroke-width="4" />
+      </g>
+      <g id="s12-helmet">
+        <circle id="s12-glass" cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none" />
+        <g id="s12-head" stroke-width="4">
+          <path id="s12-hair-bob" d="M94 113 Q88 62 128 61 Q168 62 162 113 Q162 119 155 119 H101 Q94 119 94 113 Z" fill="#1E1A24" />
+          <circle id="s12-face" cx="128" cy="98" r="29" fill="#D9A27A" />
+          <path id="s12-face-shade" clip-path="url(#s12-face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#BC855F" stroke="none" />
+          <path id="s12-fringe" d="M99 95 Q96 64 128 63 Q160 64 157 93 Q156 84 149 84 H107 Q100 84 99 95 Z" fill="#1E1A24" />
+          <path id="s12-hair-sheen" d="M108 76 Q116 70 126 70" fill="none" stroke="#3B2A24" stroke-width="3.5" />
+          <g id="s12-face-features" stroke="none">
+            <ellipse cx="120" cy="101" rx="4.6" ry="6" fill="#2A1E3D" />
+            <ellipse cx="142" cy="100" rx="4.6" ry="6" fill="#2A1E3D" />
+            <circle cx="121.6" cy="98.3" r="1.9" fill="#FFFFFF" />
+            <circle cx="143.6" cy="97.3" r="1.9" fill="#FFFFFF" />
+            <ellipse cx="111" cy="110" rx="6" ry="3.8" fill="#E8806E" opacity="0.6" />
+            <ellipse cx="152" cy="109" rx="4.6" ry="3.4" fill="#E8806E" opacity="0.6" />
+          </g>
+          <g id="s12-mouth" fill="none" stroke-width="3.5">
+            <path d="M123 111 Q134 120 146 108" />
+            <path d="M143.5 106 L148 104.5" stroke-width="4" />
+          </g>
+        </g>
+        <g id="s12-visor-rim">
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke-width="16" />
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke="#FFD23F" stroke-width="9" />
+        </g>
+        <g id="s12-helmet-highlight" stroke="#FFFFFF" fill="none">
+          <path d="M86 78 Q92 64 102 57" stroke-width="7" opacity="0.9" />
+          <circle cx="83" cy="90" r="1.5" stroke-width="5" opacity="0.9" />
+        </g>
+        <circle id="s12-helmet-outline" cx="126" cy="94" r="50" fill="none" />
+        <g id="s12-goggles">
+          <path id="s12-goggle-strap" d="M83 68 Q91 55 104 48 M148 46 Q161 52 169 66" fill="none" stroke-width="14" />
+          <path d="M83 68 Q91 55 104 48 M148 46 Q161 52 169 66" fill="none" stroke="#E0AE1F" stroke-width="6" />
+          <g id="s12-goggle-frame" transform="rotate(-4 126 45)">
+            <rect x="95" y="32" width="62" height="27" rx="13.5" fill="#FFD23F" />
+            <circle cx="111" cy="45.5" r="8" fill="#8ED8FF" stroke-width="3.5" />
+            <circle cx="141" cy="45.5" r="8" fill="#8ED8FF" stroke-width="3.5" />
+            <circle cx="108.5" cy="43" r="2.6" fill="#FFFFFF" stroke="none" />
+            <circle cx="138.5" cy="43" r="2.6" fill="#FFFFFF" stroke="none" />
+            <path d="M101 40 Q101 36 105 35" fill="none" stroke="#FFEA99" stroke-width="3.5" />
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
+</g>
+<g id="s13-mira-l1-idle-01" transform="translate(2460 1940) scale(2.7 2.7) translate(-128 -256)"><defs>
+    <clipPath id="s13-torso-clip"><path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" /></clipPath>
+    <clipPath id="s13-shield-clip"><path d="M91 151 Q126 138 161 151 V170 Q161 194 126 205 Q91 194 91 170 Z" /></clipPath>
+    <clipPath id="s13-face-clip"><circle cx="128" cy="98" r="29" /></clipPath>
+  </defs>
+  <g id="s13-mira" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <g id="s13-body-back">
+      <g id="s13-backpack">
+        <rect x="68" y="138" width="36" height="60" rx="13" fill="#A7B0C8" />
+        <path d="M74 184 Q74 192 84 192 H98" fill="none" stroke="#7F89A6" stroke-width="5" />
+      </g>
+      <g id="s13-legs">
+        <rect x="97" y="190" width="25" height="42" rx="10" fill="#F4F1EA" />
+        <rect x="130" y="190" width="25" height="42" rx="10" fill="#F4F1EA" />
+        <rect x="101" y="210" width="17" height="10" rx="4" fill="#3DBE6E" stroke-width="4" />
+        <rect x="134" y="210" width="17" height="10" rx="4" fill="#3DBE6E" stroke-width="4" />
+      </g>
+    </g>
+    <g id="s13-boots">
+      <path d="M93 250 V236 Q93 226 103 226 H114 Q124 226 125 234 Q133 237 133 244 V250 Z" fill="#3DBE6E" />
+      <path d="M126 250 V236 Q126 226 136 226 H147 Q157 226 158 234 Q166 237 166 244 V250 Z" fill="#3DBE6E" />
+      <g stroke="none">
+        <rect x="97" y="242" width="33" height="5" rx="2" fill="#2A9653" />
+        <rect x="130" y="242" width="33" height="5" rx="2" fill="#2A9653" />
+      </g>
+      <path d="M99 236 Q99 231 104 231" fill="none" stroke="#8FE0AA" stroke-width="3.5" />
+      <path d="M132 236 Q132 231 137 231" fill="none" stroke="#8FE0AA" stroke-width="3.5" />
+    </g>
+    <g id="s13-body">
+      <g id="s13-arm-back">
+        <path d="M92 146 Q74 164 80 190" fill="none" stroke-width="26" />
+        <path d="M92 146 Q74 164 80 190" fill="none" stroke="#F4F1EA" stroke-width="12" />
+        <g id="s13-mitten-back" fill="#3DBE6E">
+          <circle cx="80" cy="194" r="10.5" />
+          <ellipse cx="90" cy="190" rx="5" ry="4" stroke-width="4" />
+        </g>
+      </g>
+      <g id="s13-torso">
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="#F4F1EA" />
+        <g clip-path="url(#s13-torso-clip)">
+          <path id="s13-torso-shade" d="M156 132 H170 V214 H140 Q158 186 156 132 Z" fill="#2A1E3D" opacity="0.13" stroke="none" />
+        </g>
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="none" />
+        
+        <g id="s13-emblem">
+          <path d="M91 151 Q126 138 161 151 V170 Q161 194 126 205 Q91 194 91 170 Z" fill="#3DBE6E" stroke-width="5" />
+          <g clip-path="url(#s13-shield-clip)" stroke="none">
+            <path id="s13-emblem-shade" d="M150 140 H166 V208 H120 Q154 192 150 140 Z" fill="#2A9653" />
+          </g>
+          <path id="s13-emblem-band" d="M101 158 Q126 149 151 158 V171 Q151 189 126 197 Q101 189 101 171 Z" fill="none" stroke="#F4F1EA" stroke-width="5" />
+          <path d="M91 151 Q126 138 161 151 V170 Q161 194 126 205 Q91 194 91 170 Z" fill="none" stroke-width="5" />
+          <path id="s13-emblem-highlight" d="M108 168 Q109 163 115 161" fill="none" stroke="#8FE0AA" stroke-width="4" />
+        </g>
+        <path id="s13-torso-highlight" d="M89 170 V156 Q89 148 94 145" fill="none" stroke="#FFFFFF" stroke-width="4" />
+      </g>
+      <ellipse id="s13-collar" cx="127" cy="141" rx="33" ry="9" fill="#A7B0C8" stroke-width="6" />
+      <g id="s13-arm-front">
+        <path d="M158 148 Q180 156 188 174" fill="none" stroke-width="26" />
+        <path d="M158 148 Q180 156 188 174" fill="none" stroke="#F4F1EA" stroke-width="12" />
+        
+        <g id="s13-gadget" transform="translate(210 156) rotate(40)">
+          <circle id="s13-lens-glow" cx="0" cy="-10" r="12" fill="#5BE0F0" opacity="0.6" stroke="none" />
+          <rect id="s13-handle" x="-4.5" y="6" width="9" height="26" rx="4.5" fill="#A7B0C8" stroke-width="5" />
+          <path id="s13-dish" d="M-25 0 Q-23 18 0 18 Q23 18 25 0 Z" fill="#F4F1EA" stroke-width="5" />
+          <path id="s13-dish-band" d="M-19 9 Q0 14.5 19 9" fill="none" stroke="#3DBE6E" stroke-width="4" />
+          <ellipse id="s13-dish-face" cx="0" cy="0" rx="25" ry="7" fill="#C9D0E2" stroke-width="5" />
+          <path id="s13-feed" d="M0 0 V-9" fill="none" stroke-width="4" />
+          <circle id="s13-lens" cx="0" cy="-10" r="4.5" fill="#5BE0F0" stroke-width="4" />
+          <circle cx="-1.5" cy="-11.5" r="1.4" fill="#FFFFFF" stroke="none" />
+        </g>
+        <g id="s13-mitten-front" fill="#3DBE6E">
+          <circle cx="190" cy="179" r="10.5" />
+          <ellipse cx="194" cy="169" rx="4" ry="5" stroke-width="4" />
+        </g>
+      </g>
+      <g id="s13-helmet">
+        <circle id="s13-glass" cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none" />
+        <g id="s13-head" stroke-width="4">
+          
+          <circle id="s13-hair-bun" cx="104" cy="70" r="12" fill="#3B2A24" />
+          <path d="M98 66 Q100 62 105 61" fill="none" stroke="#6A5048" stroke-width="3" />
+          <circle id="s13-face" cx="128" cy="98" r="29" fill="#A9714B" />
+          <path id="s13-face-shade" clip-path="url(#s13-face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#8A5A3A" stroke="none" />
+          
+          <path id="s13-fringe" d="M99 97 Q96 68 128 67 Q159 68 157 93 Q151 80 136 79 Q141 84 140 86 Q122 78 110 84 Q102 88 99 97 Z" fill="#3B2A24" />
+          <path d="M108 76 Q114 71 122 71" fill="none" stroke="#6A5048" stroke-width="3" stroke-linecap="round" />
+          <g id="s13-face-features" stroke="none">
+            <ellipse cx="120" cy="102" rx="4" ry="5.2" fill="#2A1E3D" />
+            <ellipse cx="142" cy="101" rx="4" ry="5.2" fill="#2A1E3D" />
+            <circle cx="121.4" cy="99.8" r="1.7" fill="#FFFFFF" />
+            <circle cx="143.4" cy="98.8" r="1.7" fill="#FFFFFF" />
+            <ellipse cx="110" cy="113" rx="6" ry="3.8" fill="#D9606E" opacity="0.6" />
+            <ellipse cx="152" cy="112" rx="4.6" ry="3.4" fill="#D9606E" opacity="0.6" />
+          </g>
+          
+          <g id="s13-glasses" stroke-width="3">
+            <circle cx="120" cy="101" r="9" fill="#FFFFFF" fill-opacity="0.22" />
+            <circle cx="142.5" cy="100" r="8.5" fill="#FFFFFF" fill-opacity="0.22" />
+            <path d="M129 100 Q131.3 97.5 134 99.5" fill="none" />
+            <path d="M111 99 L100 96" fill="none" />
+          </g>
+          <path id="s13-mouth" d="M124 114 Q133 121 143 113" fill="none" stroke-width="3.5" />
+        </g>
+        <g id="s13-visor-rim">
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke-width="16" />
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke="#3DBE6E" stroke-width="9" />
+        </g>
+        <g id="s13-helmet-highlight" stroke="#FFFFFF" fill="none">
+          <path d="M88 70 Q98 54 116 49" stroke-width="7" opacity="0.9" />
+          <circle cx="83" cy="84" r="1.5" stroke-width="5" opacity="0.9" />
+        </g>
+        <circle id="s13-helmet-outline" cx="126" cy="94" r="50" fill="none" />
+      </g>
+    </g>
+  </g>
+</g>
+</svg>

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-hat: a straw sun hat with a wide brim and a pink ribbon bow. Single frame. Anchor centre (128,128).
+       Activity picture: text-free, one object, no background. Light from the top-left. See art/STYLE.md. -->
+<g id="hat" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" transform="translate(0 -6)">
+<g id="brim">
+  <clipPath id="brim-clip"><path d="M14 160 A114 44 0 1 1 242 160 A114 44 0 1 1 14 160 Z"/></clipPath>
+  <g clip-path="url(#brim-clip)" stroke="none">
+    <path d="M14 160 A114 44 0 1 1 242 160 A114 44 0 1 1 14 160 Z" fill="#E0AE1F"/>
+    <path d="M14 160 A114 44 0 1 1 242 160 A114 44 0 1 1 14 160 Z" fill="#FFD86B" transform="translate(-10 -6)"/>
+  </g>
+  <path d="M14 160 A114 44 0 1 1 242 160 A114 44 0 1 1 14 160 Z" fill="none"/>
+</g>
+<path id="brim-inner" d="M64 156 Q128 186 192 156" fill="none" stroke="#E0AE1F" stroke-width="5"/>
+<g id="crown">
+  <clipPath id="crown-clip"><path d="M70 160 Q66 76 128 72 Q190 76 186 160 Q128 180 70 160 Z"/></clipPath>
+  <g clip-path="url(#crown-clip)" stroke="none">
+    <path d="M70 160 Q66 76 128 72 Q190 76 186 160 Q128 180 70 160 Z" fill="#E0AE1F"/>
+    <path d="M70 160 Q66 76 128 72 Q190 76 186 160 Q128 180 70 160 Z" fill="#FFD86B" transform="translate(-9 -6)"/>
+  </g>
+  <path d="M70 160 Q66 76 128 72 Q190 76 186 160 Q128 180 70 160 Z" fill="none"/>
+</g>
+<path id="band" d="M70 132 Q128 152 186 132 L187 156 Q128 176 69 156 Z" fill="#E05FD0"/>
+<g id="bow">
+  <path d="M88 150 L64 128 Q58 154 70 168 Z" fill="#E05FD0" stroke-width="5"/>
+  <path d="M88 150 L74 182 Q92 186 98 172 Z" fill="#B848A8" stroke-width="5"/>
+  <circle cx="88" cy="150" r="9" fill="#E05FD0" stroke-width="5"/>
+</g>
+<path d="M84 118 Q86 92 108 82" fill="none" stroke="#FFFFFF" stroke-width="6" opacity="0.85"/>
+<path d="M28 156 Q34 140 54 132" fill="none" stroke="#FFFFFF" stroke-width="5" opacity="0.85"/>
+</g>
+</svg>

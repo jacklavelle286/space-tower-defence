@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- badge-boss-3: Bubble Popper: a bubble wand and a bubble popping into droplets. earned (full colour). Single frame. Anchor centre (128,128).
+       Medal: gold rim, cream ring, night-blue disc, ribbon tab at the bottom. Light from the top-left. See art/STYLE.md. -->
+
+<g id="badge-boss-3" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+  <g id="ribbon">
+    <clipPath id="badge-boss-3-tail-right"><path d="M158 176 L126 186 L142 245 L157 233 L176 240 Z"/></clipPath>
+    <g id="tail-right">
+      <g clip-path="url(#badge-boss-3-tail-right)" stroke="none">
+        <path d="M158 176 L126 186 L145.2 256.8 L179.6 252.8 Z" fill="#9FF3FF"/>
+        <path d="M136.2 182.8 L126 186 L145.2 256.8 L156.2 255.5 Z" fill="#2A1E3D" opacity="0.18"/>
+      </g>
+      <path d="M158 176 L126 186 L142 245 L157 233 L176 240 Z" fill="none"/>
+    </g>
+    <clipPath id="badge-boss-3-tail-left"><path d="M98 176 L130 186 L114 245 L99 233 L80 240 Z"/></clipPath>
+    <g id="tail-left">
+      <g clip-path="url(#badge-boss-3-tail-left)" stroke="none">
+        <path d="M98 176 L130 186 L110.8 256.8 L76.4 252.8 Z" fill="#9FF3FF"/>
+        <path d="M119.8 182.8 L130 186 L110.8 256.8 L99.8 255.5 Z" fill="#2A1E3D" opacity="0.18"/>
+      </g>
+      <path d="M98 176 L130 186 L114 245 L99 233 L80 240 Z" fill="none"/>
+    </g>
+  </g>
+  <g id="rim">
+    <clipPath id="badge-boss-3-rim-clip"><circle cx="128" cy="114" r="96"/></clipPath>
+    <circle id="rim-gold" cx="128" cy="114" r="96" fill="#D09A00" stroke="none"/>
+    <circle clip-path="url(#badge-boss-3-rim-clip)" cx="122" cy="108" r="96" fill="#F5B700" stroke="none"/>
+    <path id="rim-highlight" d="M43.4 89.7 A88 88 0 0 1 97.9 31.3" fill="none" stroke="#FFE79A" stroke-width="5"/>
+    <circle id="rim-outline" cx="128" cy="114" r="96" fill="none"/>
+    <circle id="cream-ring" cx="128" cy="114" r="80" fill="#FFF4D6" stroke-width="4"/>
+    <circle id="disc" cx="128" cy="114" r="70" fill="#23295E" stroke-width="4"/>
+  </g>
+  <g id="motif" transform="translate(128 114)" stroke-width="4">
+    <path d="M-44 46 L-14 8" fill="none" stroke-width="14" />
+    <path d="M-44 46 L-14 8" fill="none" stroke="#E05FD0" stroke-width="7" />
+    <circle cx="-6" cy="-6" r="17" fill="#9FF3FF" fill-opacity="0.35" stroke="none"/>
+    <path d="M-6 -24 A18 18 0 1 1 -6.1 -24 Z" fill="none" stroke-width="12" />
+    <path d="M-6 -24 A18 18 0 1 1 -6.1 -24 Z" fill="none" stroke="#FFD23F" stroke-width="6" />
+    <g id="popping-bubble" transform="translate(24 -26)">
+      <path d="M-17.9 -6.5 A19 19 0 0 1 -6.5 -17.9" fill="none" stroke="#9FF3FF" stroke-width="5" />
+      <path d="M1.7 -18.9 A19 19 0 0 1 16.5 -9.5" fill="none" stroke="#9FF3FF" stroke-width="5" />
+      <path d="M18.9 -1.7 A19 19 0 0 1 12.2 14.6" fill="none" stroke="#9FF3FF" stroke-width="5" />
+      <path d="M4.9 18.4 A19 19 0 0 1 -9.5 16.5" fill="none" stroke="#9FF3FF" stroke-width="5" />
+      <path d="M-14.6 12.2 A19 19 0 0 1 -18.9 1.7" fill="none" stroke="#9FF3FF" stroke-width="5" />
+      <circle cx="-26.8" cy="-15.5" r="4.8" fill="#9FF3FF" stroke-width="3" />
+      <circle cx="-2.7" cy="-30.9" r="4.8" fill="#9FF3FF" stroke-width="3" />
+      <circle cx="23.7" cy="-19.9" r="4.8" fill="#9FF3FF" stroke-width="3" />
+      <circle cx="29.9" cy="8" r="4.8" fill="#9FF3FF" stroke-width="3" />
+      <circle cx="10.6" cy="29.1" r="4.8" fill="#9FF3FF" stroke-width="3" />
+    </g>
+  </g>
+</g>
+</svg>

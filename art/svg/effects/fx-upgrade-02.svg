@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Upgrade burst, frame 02/08: sparkles, stars and chevrons rising in a column from the bottom-centre (progress 14.3%). Anchor bottom-centre (128,256).
+       See art/STYLE.md. -->
+  <g id="upgrade" stroke-linecap="round" stroke-linejoin="round">
+    <g id="glow" stroke="none"><rect x="98" y="168" width="60" height="68" rx="30" fill="#FFF4D6" opacity="0.3"/><ellipse cx="128" cy="232" rx="30.9" ry="23.1" fill="#FFE79A" opacity="0.5"/></g>
+    <g id="burst">
+    <g transform="translate(128 185.9) scale(0.8)"><path d="M-16 8 L0 -8 L16 8" fill="none" stroke="#2A1E3D" stroke-width="17"/><path d="M-16 8 L0 -8 L16 8" fill="none" stroke="#FFD23F" stroke-width="10"/><path d="M-13 5 L-4 -4" fill="none" stroke="#FFEA99" stroke-width="3"/></g>
+    <g transform="translate(112.5 229.4) scale(0.3)"><path d="M-16 8 L0 -8 L16 8" fill="none" stroke="#2A1E3D" stroke-width="17"/><path d="M-16 8 L0 -8 L16 8" fill="none" stroke="#FFD23F" stroke-width="10"/><path d="M-13 5 L-4 -4" fill="none" stroke="#FFEA99" stroke-width="3"/></g>
+    <path d="M0 -9 L2.4 -3.3 L8.5 -2.8 L3.8 1.2 L5.3 7.2 L0 4 L-5.3 7.2 L-3.8 1.2 L-8.5 -2.8 L-2.4 -3.3 Z" fill="#FFD23F" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" transform="translate(102.4 204.6) rotate(8)"/>
+    <path d="M0 -6.1 L1.6 -2.2 L5.8 -1.9 L2.6 0.9 L3.6 4.9 L0 2.8 L-3.6 4.9 L-2.6 0.9 L-5.8 -1.9 L-1.6 -2.2 Z" fill="#9FF3FF" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" transform="translate(151.6 217.9) rotate(-10)"/>
+    <path d="M0 -7.8 L2.1 -2.8 L7.4 -2.4 L3.3 1.1 L4.6 6.3 L0 3.5 L-4.6 6.3 L-3.3 1.1 L-7.4 -2.4 L-2.1 -2.8 Z" fill="#FFD23F" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" transform="translate(142.7 213.1) rotate(4)"/>
+    <path d="M0 -5.8 Q1.6 -1.6 5.8 0 Q1.6 1.6 0 5.8 Q-1.6 1.6 -5.8 0 Q-1.6 -1.6 0 -5.8 Z" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="2.5" stroke-linejoin="round" transform="translate(95.5 223) rotate(0)"/>
+    </g>
+  </g>
+</svg>

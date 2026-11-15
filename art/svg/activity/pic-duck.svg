@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-duck: a yellow duckling, side view facing right, orange beak and webbed feet, small wing.
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+  <defs>
+    <clipPath id="body-clip"><path d="M40 118 Q58 136 84 134 Q124 122 168 138 Q208 156 200 186 Q190 222 124 222 Q58 222 46 180 Q38 148 40 118 Z"/></clipPath>
+    <clipPath id="head-clip"><circle cx="158" cy="92" r="42"/></clipPath>
+  </defs>
+  <g id="duck" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" transform="translate(-6 0)">
+    <g id="feet" fill="#FF8A2A" stroke-width="6">
+      <path d="M104 212 L90 234 Q100 238 108 232 Q116 238 124 232 L116 212 Z"/>
+      <path d="M146 212 L136 234 Q146 238 154 232 Q162 238 170 232 L158 212 Z"/>
+    </g>
+    <g id="body">
+      <path d="M40 118 Q58 136 84 134 Q124 122 168 138 Q208 156 200 186 Q190 222 124 222 Q58 222 46 180 Q38 148 40 118 Z" fill="#FFD23F"/>
+      <path id="body-shade" clip-path="url(#body-clip)" d="M200 150 Q196 210 120 222 H210 V150 Z" fill="#E0AE1F" stroke="none"/>
+      <path d="M40 118 Q58 136 84 134 Q124 122 168 138 Q208 156 200 186 Q190 222 124 222 Q58 222 46 180 Q38 148 40 118 Z" fill="none"/>
+      <path id="wing" d="M76 160 Q104 134 148 154 Q146 188 108 192 Q78 188 76 160 Z" fill="#FFEA99" stroke-width="5"/>
+    </g>
+    <g id="head">
+      <circle cx="158" cy="92" r="42" fill="#FFD23F"/>
+      <path id="head-shade" clip-path="url(#head-clip)" d="M196 80 Q194 128 150 134 H210 V80 Z" fill="#E0AE1F" stroke="none"/>
+      <circle cx="158" cy="92" r="42" fill="none"/>
+      <path id="head-highlight" d="M128 82 Q132 64 148 58" fill="none" stroke="#FFFFFF" stroke-width="5"/>
+      <path id="tuft" d="M150 52 Q148 40 158 36 M158 52 Q162 42 172 42" fill="none" stroke-width="5"/>
+      <path id="beak" d="M194 88 Q226 84 232 96 Q226 110 196 108 Z" fill="#FF8A2A" stroke-width="6"/>
+      <path d="M198 98 Q214 100 228 97" fill="none" stroke="#D9661A" stroke-width="3.5"/>
+      <g id="face" stroke="none">
+        <ellipse cx="176" cy="84" rx="6" ry="7.5" fill="#2A1E3D"/>
+        <circle cx="178" cy="81" r="2.3" fill="#FFFFFF"/>
+        <ellipse cx="180" cy="106" rx="8" ry="5" fill="#F48A9A" opacity="0.75"/>
+      </g>
+    </g>
+  </g>
+</svg>

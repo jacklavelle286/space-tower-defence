@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Bubble Guard walk (no bubbles), frame 06: passing, marching. Anchor bottom-centre (128,256): feet on y=250.
+       Light from the top-left. See art/STYLE.md. -->
+  <defs><clipPath id="guard-clip"><path d="M82 200 Q80 152 126 150 Q174 150 176 196 Q178 238 128 240 Q82 240 82 200 Z"/></clipPath></defs>
+  <g id="guard" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round" stroke-width="7">
+    <g id="limbs">
+      <g id="leg-back" transform="translate(0 0) rotate(0 108 226)"><path d="M96 222 L96 238 Q96 250 108 250 L116 250 Q128 250 126 240 Q122 232 118 230 L118 222 Z" fill="#E8936A"/></g>
+      <g id="leg-front" transform="translate(0 -3) rotate(0 144 226)"><path d="M132 222 L132 238 Q132 250 144 250 L152 250 Q164 250 162 240 Q158 232 154 230 L154 222 Z" fill="#FFB38A"/></g>
+    </g>
+    <g id="body-all" transform="translate(128 250) scale(1.02 0.97) translate(-128 -250)">
+      <g id="arm-back" transform="rotate(-8 88 212)"><path d="M88 212 Q74 220 72 232" fill="none" stroke="#2A1E3D" stroke-width="22"/><path d="M88 212 Q74 220 72 232" fill="none" stroke="#E8936A" stroke-width="8"/></g>
+      <g id="antennae">
+        <g id="wand" transform="rotate(2 132 152)">
+          <path d="M132 152 Q134 130 142 116" fill="none"/>
+          <circle id="wand-film" cx="146" cy="102" r="14" fill="#9FF3FF" fill-opacity="0.8" stroke="none"/>
+          <circle cx="146" cy="102" r="14" fill="none" stroke="#2A1E3D" stroke-width="13"/>
+          <circle id="wand-ring" cx="146" cy="102" r="14" fill="none" stroke="#E05FD0" stroke-width="5"/>
+          <path d="M139 97 Q141 92 146 91" fill="none" stroke="#FFFFFF" stroke-width="3"/>
+        </g>
+      </g>
+      <g id="body">
+        <path id="ball" d="M82 200 Q80 152 126 150 Q174 150 176 196 Q178 238 128 240 Q82 240 82 200 Z" fill="#FFB38A" stroke="none"/>
+        <g clip-path="url(#guard-clip)" stroke="none">
+          <path id="ball-shade" d="M186 160 Q168 190 170 214 Q160 238 126 246 L190 248 Z" fill="#E8936A"/>
+          <ellipse id="belly" cx="138" cy="226" rx="30" ry="16" fill="#FFD3B8"/>
+        </g>
+        <path id="ball-highlight" d="M94 194 Q96 170 116 160" fill="none" stroke="#FFD9C4" stroke-width="8"/>
+        <circle cx="92" cy="208" r="3.5" fill="#FFD9C4" stroke="none"/>
+        <path id="ball-outline" d="M82 200 Q80 152 126 150 Q174 150 176 196 Q178 238 128 240 Q82 240 82 200 Z" fill="none"/>
+      </g>
+      <g id="face" transform="translate(1 0.5)">
+        <g id="eyes">
+          <ellipse cx="122" cy="186" rx="12" ry="14" fill="#FFFFFF" stroke-width="4.5"/>
+          <ellipse cx="154" cy="184" rx="11" ry="13" fill="#FFFFFF" stroke-width="4.5"/>
+          <g stroke="none">
+            <circle cx="125.5" cy="188" r="6.5" fill="#2A1E3D"/><circle cx="157" cy="186" r="6" fill="#2A1E3D"/>
+            <circle cx="127.5" cy="184.5" r="2.6" fill="#FFFFFF"/><circle cx="159" cy="182.5" r="2.4" fill="#FFFFFF"/>
+          </g>
+        </g>
+        <g stroke="none" fill="#F48A9A" opacity="0.7">
+          <ellipse cx="110" cy="204" rx="6" ry="3.8"/><ellipse cx="166" cy="201" rx="5" ry="3.4"/>
+        </g>
+        <g id="mouth" fill="none" stroke-width="5">
+          <path d="M128 205 Q141 215 156 202"/>
+        </g>
+      </g>
+      <g id="arm-front" transform="rotate(8 172 216)"><path d="M172 216 Q186 222 188 232" fill="none" stroke="#2A1E3D" stroke-width="22"/><path d="M172 216 Q186 222 188 232" fill="none" stroke="#FFB38A" stroke-width="8"/></g>
+    </g>
+  </g>
+</svg>

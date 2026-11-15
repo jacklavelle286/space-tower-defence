@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- icon-maths: Maths subject: a row of five gold counting beads on a wire between two posts (no numerals). Single frame. Anchor centre (64,64).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="maths" stroke="#2A1E3D" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+  <g id="frame">
+  <g id="wire" fill="none">
+    <path d="M12 64 H116" stroke="#2A1E3D" stroke-width="11"/>
+    <path d="M12 64 H116" stroke="#A7B0C8" stroke-width="4"/>
+  </g>
+  <clipPath id="post-left-clip"><path d="M6 30 Q6 24 11 24 Q16 24 16 30 V98 Q16 104 11 104 Q6 104 6 98 Z"/></clipPath>
+  <g id="post-left-fill" clip-path="url(#post-left-clip)" stroke="none">
+    <path d="M6 30 Q6 24 11 24 Q16 24 16 30 V98 Q16 104 11 104 Q6 104 6 98 Z" fill="#AB6A3B"/>
+    <path d="M6 30 Q6 24 11 24 Q16 24 16 30 V98 Q16 104 11 104 Q6 104 6 98 Z" fill="#D08A55" transform="translate(-3 -3)"/>
+  </g>
+  <path id="post-left-highlight" d="M9.5 32 V52" fill="none" stroke="#FFFFFF" stroke-width="3" opacity="0.85"/>
+  <path id="post-left-outline" d="M6 30 Q6 24 11 24 Q16 24 16 30 V98 Q16 104 11 104 Q6 104 6 98 Z" fill="none"/>
+  <clipPath id="post-right-clip"><path d="M112 30 Q112 24 117 24 Q122 24 122 30 V98 Q122 104 117 104 Q112 104 112 98 Z"/></clipPath>
+  <g id="post-right-fill" clip-path="url(#post-right-clip)" stroke="none">
+    <path d="M112 30 Q112 24 117 24 Q122 24 122 30 V98 Q122 104 117 104 Q112 104 112 98 Z" fill="#AB6A3B"/>
+    <path d="M112 30 Q112 24 117 24 Q122 24 122 30 V98 Q122 104 117 104 Q112 104 112 98 Z" fill="#D08A55" transform="translate(-3 -3)"/>
+  </g>
+  <path id="post-right-highlight" d="M115.5 32 V52" fill="none" stroke="#FFFFFF" stroke-width="3" opacity="0.85"/>
+  <path id="post-right-outline" d="M112 30 Q112 24 117 24 Q122 24 122 30 V98 Q122 104 117 104 Q112 104 112 98 Z" fill="none"/>
+  </g>
+  <g id="beads" stroke-width="4">
+  <clipPath id="bead-1-clip"><path d="M26 51 A8.5 13 0 1 1 25.9 51 Z"/></clipPath>
+  <g id="bead-1-fill" clip-path="url(#bead-1-clip)" stroke="none">
+    <path d="M26 51 A8.5 13 0 1 1 25.9 51 Z" fill="#C98F00"/>
+    <path d="M26 51 A8.5 13 0 1 1 25.9 51 Z" fill="#F5B700" transform="translate(-2.5 -2.5)"/>
+  </g>
+  <path id="bead-1-highlight" d="M22 66 Q22 59 25 57" fill="none" stroke="#FFFFFF" stroke-width="3" opacity="0.85"/>
+  <path id="bead-1-outline" d="M26 51 A8.5 13 0 1 1 25.9 51 Z" fill="none"/>
+  <clipPath id="bead-2-clip"><path d="M45 51 A8.5 13 0 1 1 44.9 51 Z"/></clipPath>
+  <g id="bead-2-fill" clip-path="url(#bead-2-clip)" stroke="none">
+    <path d="M45 51 A8.5 13 0 1 1 44.9 51 Z" fill="#C98F00"/>
+    <path d="M45 51 A8.5 13 0 1 1 44.9 51 Z" fill="#F5B700" transform="translate(-2.5 -2.5)"/>
+  </g>
+  <path id="bead-2-highlight" d="M41 66 Q41 59 44 57" fill="none" stroke="#FFFFFF" stroke-width="3" opacity="0.85"/>
+  <path id="bead-2-outline" d="M45 51 A8.5 13 0 1 1 44.9 51 Z" fill="none"/>
+  <clipPath id="bead-3-clip"><path d="M64 51 A8.5 13 0 1 1 63.9 51 Z"/></clipPath>
+  <g id="bead-3-fill" clip-path="url(#bead-3-clip)" stroke="none">
+    <path d="M64 51 A8.5 13 0 1 1 63.9 51 Z" fill="#C98F00"/>
+    <path d="M64 51 A8.5 13 0 1 1 63.9 51 Z" fill="#F5B700" transform="translate(-2.5 -2.5)"/>
+  </g>
+  <path id="bead-3-highlight" d="M60 66 Q60 59 63 57" fill="none" stroke="#FFFFFF" stroke-width="3" opacity="0.85"/>
+  <path id="bead-3-outline" d="M64 51 A8.5 13 0 1 1 63.9 51 Z" fill="none"/>
+  <clipPath id="bead-4-clip"><path d="M83 51 A8.5 13 0 1 1 82.9 51 Z"/></clipPath>
+  <g id="bead-4-fill" clip-path="url(#bead-4-clip)" stroke="none">
+    <path d="M83 51 A8.5 13 0 1 1 82.9 51 Z" fill="#C98F00"/>
+    <path d="M83 51 A8.5 13 0 1 1 82.9 51 Z" fill="#F5B700" transform="translate(-2.5 -2.5)"/>
+  </g>
+  <path id="bead-4-highlight" d="M79 66 Q79 59 82 57" fill="none" stroke="#FFFFFF" stroke-width="3" opacity="0.85"/>
+  <path id="bead-4-outline" d="M83 51 A8.5 13 0 1 1 82.9 51 Z" fill="none"/>
+  <clipPath id="bead-5-clip"><path d="M102 51 A8.5 13 0 1 1 101.9 51 Z"/></clipPath>
+  <g id="bead-5-fill" clip-path="url(#bead-5-clip)" stroke="none">
+    <path d="M102 51 A8.5 13 0 1 1 101.9 51 Z" fill="#C98F00"/>
+    <path d="M102 51 A8.5 13 0 1 1 101.9 51 Z" fill="#F5B700" transform="translate(-2.5 -2.5)"/>
+  </g>
+  <path id="bead-5-highlight" d="M98 66 Q98 59 101 57" fill="none" stroke="#FFFFFF" stroke-width="3" opacity="0.85"/>
+  <path id="bead-5-outline" d="M102 51 A8.5 13 0 1 1 101.9 51 Z" fill="none"/>
+  </g>
+</g>
+</svg>

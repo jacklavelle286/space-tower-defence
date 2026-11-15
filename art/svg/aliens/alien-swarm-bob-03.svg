@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Bubble Swarm bob, frame 03: top, stretched. Anchor bottom-centre (32,64): base on y=57.
+       Light from the top-left. See art/STYLE.md. -->
+  <defs><clipPath id="swarm-clip"><circle cx="32" cy="38" r="19"/></clipPath></defs>
+  <g id="swarm" transform="translate(32 57) translate(0 -3) scale(0.94 1.07) translate(-32 -57)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="body">
+      <circle id="bubble" cx="32" cy="38" r="19" fill="#9FF3FF" stroke="none"/>
+      <g clip-path="url(#swarm-clip)" stroke="none">
+        <path id="bubble-shade" d="M56 22 Q46 34 48 46 Q44 56 30 60 L58 62 Z" fill="#74D3E2"/>
+      </g>
+      <path id="bubble-sheen" d="M42 51 Q47 48 48 43" fill="none" stroke="#FFFFFF" stroke-width="1.8" opacity="0.9"/>
+      <path id="bubble-highlight" d="M19 37 Q19 27 28 23" fill="none" stroke="#FFFFFF" stroke-width="3.2"/>
+      <circle cx="19.5" cy="42" r="1.4" fill="#FFFFFF" stroke="none"/>
+      <circle id="bubble-outline" cx="32" cy="38" r="19" fill="none" stroke-width="3.5"/>
+    </g>
+    <g id="face" stroke="none">
+      <ellipse cx="34" cy="37" rx="2.7" ry="3.2" fill="#2A1E3D"/>
+      <ellipse cx="44" cy="36" rx="2.5" ry="3" fill="#2A1E3D"/>
+      <circle cx="34.9" cy="35.8" r="1" fill="#FFFFFF"/><circle cx="44.8" cy="34.8" r="0.9" fill="#FFFFFF"/>
+      <path id="mouth" d="M35 43.5 Q39.5 47.5 44.5 43" fill="none" stroke="#2A1E3D" stroke-width="2.4"/>
+    </g>
+  </g>
+</svg>

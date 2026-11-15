@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Bubble Guard bubble layer overlay, 1 layer: concentric translucent soap-bubble rings, empty centre.
+       One shared construction for all four variants: band width 14, gap 6, outermost ring always r=120
+       (rings outer/inner: 120/106, 100/86, 80/66, 60/46), so the bubble never changes size as layers pop.
+       Anchor centre (128,128); the game scales it to each alien (32 to 256 px).
+       Light from the top-left. See art/STYLE.md. -->
+  <g id="bubble-layers" stroke-linecap="round">
+    <g id="ring-1">
+      <path d="M8 128 A120 120 0 1 1 248 128 A120 120 0 1 1 8 128 Z M22 128 A106 106 0 1 1 234 128 A106 106 0 1 1 22 128 Z" fill="#9FF3FF" fill-opacity="0.4" fill-rule="evenodd" stroke="none"/>
+      <circle cx="128" cy="128" r="120" fill="none" stroke="#2A1E3D" stroke-opacity="0.5" stroke-width="4"/>
+      <circle cx="128" cy="128" r="106" fill="none" stroke="#2A1E3D" stroke-opacity="0.5" stroke-width="3"/>
+      <path d="M19.4 96.9 A113.0 113.0 0 0 1 52.4 44.0" fill="none" stroke="#FFFFFF" stroke-width="6" stroke-linecap="round" opacity="0.9"/>
+      <circle cx="68.1" cy="32.2" r="3.5" fill="#FFFFFF" opacity="0.9"/>
+      <path d="M234.2 166.6 A113.0 113.0 0 0 1 181.1 227.8" fill="none" stroke="#FFFFFF" stroke-width="4.0" stroke-linecap="round" opacity="0.55"/>
+    </g>
+  </g>
+</svg>

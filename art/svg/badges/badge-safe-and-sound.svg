@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- badge-safe-and-sound: Safe and Sound: the white domed colony under a cyan hexagon shield dome. earned (full colour). Single frame. Anchor centre (128,128).
+       Medal: gold rim, cream ring, night-blue disc, ribbon tab at the bottom. Light from the top-left. See art/STYLE.md. -->
+
+<g id="badge-safe-and-sound" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+  <g id="ribbon">
+    <clipPath id="badge-safe-and-sound-tail-right"><path d="M158 176 L126 186 L142 245 L157 233 L176 240 Z"/></clipPath>
+    <g id="tail-right">
+      <g clip-path="url(#badge-safe-and-sound-tail-right)" stroke="none">
+        <path d="M158 176 L126 186 L145.2 256.8 L179.6 252.8 Z" fill="#5BE0F0"/>
+        <path d="M136.2 182.8 L126 186 L145.2 256.8 L156.2 255.5 Z" fill="#2A1E3D" opacity="0.18"/>
+      </g>
+      <path d="M158 176 L126 186 L142 245 L157 233 L176 240 Z" fill="none"/>
+    </g>
+    <clipPath id="badge-safe-and-sound-tail-left"><path d="M98 176 L130 186 L114 245 L99 233 L80 240 Z"/></clipPath>
+    <g id="tail-left">
+      <g clip-path="url(#badge-safe-and-sound-tail-left)" stroke="none">
+        <path d="M98 176 L130 186 L110.8 256.8 L76.4 252.8 Z" fill="#5BE0F0"/>
+        <path d="M119.8 182.8 L130 186 L110.8 256.8 L99.8 255.5 Z" fill="#2A1E3D" opacity="0.18"/>
+      </g>
+      <path d="M98 176 L130 186 L114 245 L99 233 L80 240 Z" fill="none"/>
+    </g>
+  </g>
+  <g id="rim">
+    <clipPath id="badge-safe-and-sound-rim-clip"><circle cx="128" cy="114" r="96"/></clipPath>
+    <circle id="rim-gold" cx="128" cy="114" r="96" fill="#D09A00" stroke="none"/>
+    <circle clip-path="url(#badge-safe-and-sound-rim-clip)" cx="122" cy="108" r="96" fill="#F5B700" stroke="none"/>
+    <path id="rim-highlight" d="M43.4 89.7 A88 88 0 0 1 97.9 31.3" fill="none" stroke="#FFE79A" stroke-width="5"/>
+    <circle id="rim-outline" cx="128" cy="114" r="96" fill="none"/>
+    <circle id="cream-ring" cx="128" cy="114" r="80" fill="#FFF4D6" stroke-width="4"/>
+    <circle id="disc" cx="128" cy="114" r="70" fill="#23295E" stroke-width="4"/>
+  </g>
+  <g id="motif" transform="translate(128 114)" stroke-width="4">
+    <g id="shield" transform="translate(0 -2) scale(0.95)">
+      <path d="M-52 38 Q-52 -50 0 -52 Q52 -50 52 38 Q0 50 -52 38 Z" fill="#5BE0F0" fill-opacity="0.28" stroke="none"/>
+      <clipPath id="badge-safe-and-sound-shield"><path d="M-52 38 Q-52 -50 0 -52 Q52 -50 52 38 Q0 50 -52 38 Z" /></clipPath>
+      <g id="colony" transform="translate(0 8) scale(0.85)">
+        <clipPath id="badge-safe-and-sound-c1"><rect x="-42" y="26" width="84" height="20" rx="8" /></clipPath>
+        <g clip-path="url(#badge-safe-and-sound-c1)" stroke="none" >
+          <rect x="-300" y="-300" width="900" height="900" fill="#7F89A6"/>
+          <g transform="translate(-4 -4)"><rect x="-42" y="26" width="84" height="20" rx="8" fill="#A7B0C8"/></g>
+        </g>
+        <rect x="-42" y="26" width="84" height="20" rx="8" fill="none" stroke-width="4" />
+        <clipPath id="badge-safe-and-sound-c2"><path d="M-34 30 Q-34 -12 0 -13 Q34 -12 34 30 Z" /></clipPath>
+        <g clip-path="url(#badge-safe-and-sound-c2)" stroke="none" >
+          <rect x="-300" y="-300" width="900" height="900" fill="#D8D2C4"/>
+          <g transform="translate(-6 -6)"><path d="M-34 30 Q-34 -12 0 -13 Q34 -12 34 30 Z" fill="#F4F1EA"/></g>
+        </g>
+        <path d="M-34 30 Q-34 -12 0 -13 Q34 -12 34 30 Z" fill="none" stroke-width="4" />
+        <path d="M-25 20 Q-25 0 -12 -6" fill="none" stroke="#FFFFFF" stroke-width="4.5"/>
+        <path d="M-8 30 V16 Q-8 7 0 7 Q8 7 8 16 V30 Z" fill="#3FB8AF" stroke-width="3.5" />
+        <circle cx="19" cy="11" r="5.5" fill="#FFE79A" stroke-width="3.5" />
+        <path d="M0 -13 V-24" fill="none" stroke="#2A1E3D" stroke-width="4" />
+        <circle cx="0" cy="-28" r="5" fill="#E2403A" stroke-width="3.5" />
+      </g>
+      <path clip-path="url(#badge-safe-and-sound-shield)" d="M-80 -93 L-68.7 -86.5 L-68.7 -73.5 L-80 -67 L-91.3 -73.5 L-91.3 -86.5 Z M-57.5 -93 L-46.2 -86.5 L-46.2 -73.5 L-57.5 -67 L-68.7 -73.5 L-68.7 -86.5 Z M-35 -93 L-23.7 -86.5 L-23.7 -73.5 L-35 -67 L-46.2 -73.5 L-46.2 -86.5 Z M-12.5 -93 L-1.2 -86.5 L-1.2 -73.5 L-12.5 -67 L-23.7 -73.5 L-23.7 -86.5 Z M10.1 -93 L21.3 -86.5 L21.3 -73.5 L10.1 -67 L-1.2 -73.5 L-1.2 -86.5 Z M32.6 -93 L43.8 -86.5 L43.8 -73.5 L32.6 -67 L21.3 -73.5 L21.3 -86.5 Z M55.1 -93 L66.4 -86.5 L66.4 -73.5 L55.1 -67 L43.8 -73.5 L43.8 -86.5 Z M77.6 -93 L88.9 -86.5 L88.9 -73.5 L77.6 -67 L66.4 -73.5 L66.4 -86.5 Z M-68.7 -73.5 L-57.5 -67 L-57.5 -54 L-68.7 -47.5 L-80 -54 L-80 -67 Z M-46.2 -73.5 L-35 -67 L-35 -54 L-46.2 -47.5 L-57.5 -54 L-57.5 -67 Z M-23.7 -73.5 L-12.5 -67 L-12.5 -54 L-23.7 -47.5 L-35 -54 L-35 -67 Z M-1.2 -73.5 L10.1 -67 L10.1 -54 L-1.2 -47.5 L-12.5 -54 L-12.5 -67 Z M21.3 -73.5 L32.6 -67 L32.6 -54 L21.3 -47.5 L10.1 -54 L10.1 -67 Z M43.8 -73.5 L55.1 -67 L55.1 -54 L43.8 -47.5 L32.6 -54 L32.6 -67 Z M66.4 -73.5 L77.6 -67 L77.6 -54 L66.4 -47.5 L55.1 -54 L55.1 -67 Z M-80 -54 L-68.7 -47.5 L-68.7 -34.5 L-80 -28 L-91.3 -34.5 L-91.3 -47.5 Z M-57.5 -54 L-46.2 -47.5 L-46.2 -34.5 L-57.5 -28 L-68.7 -34.5 L-68.7 -47.5 Z M-35 -54 L-23.7 -47.5 L-23.7 -34.5 L-35 -28 L-46.2 -34.5 L-46.2 -47.5 Z M-12.5 -54 L-1.2 -47.5 L-1.2 -34.5 L-12.5 -28 L-23.7 -34.5 L-23.7 -47.5 Z M10.1 -54 L21.3 -47.5 L21.3 -34.5 L10.1 -28 L-1.2 -34.5 L-1.2 -47.5 Z M32.6 -54 L43.8 -47.5 L43.8 -34.5 L32.6 -28 L21.3 -34.5 L21.3 -47.5 Z M55.1 -54 L66.4 -47.5 L66.4 -34.5 L55.1 -28 L43.8 -34.5 L43.8 -47.5 Z M77.6 -54 L88.9 -47.5 L88.9 -34.5 L77.6 -28 L66.4 -34.5 L66.4 -47.5 Z M-68.7 -34.5 L-57.5 -28 L-57.5 -15 L-68.7 -8.5 L-80 -15 L-80 -28 Z M-46.2 -34.5 L-35 -28 L-35 -15 L-46.2 -8.5 L-57.5 -15 L-57.5 -28 Z M-23.7 -34.5 L-12.5 -28 L-12.5 -15 L-23.7 -8.5 L-35 -15 L-35 -28 Z M-1.2 -34.5 L10.1 -28 L10.1 -15 L-1.2 -8.5 L-12.5 -15 L-12.5 -28 Z M21.3 -34.5 L32.6 -28 L32.6 -15 L21.3 -8.5 L10.1 -15 L10.1 -28 Z M43.8 -34.5 L55.1 -28 L55.1 -15 L43.8 -8.5 L32.6 -15 L32.6 -28 Z M66.4 -34.5 L77.6 -28 L77.6 -15 L66.4 -8.5 L55.1 -15 L55.1 -28 Z M-80 -15 L-68.7 -8.5 L-68.7 4.5 L-80 11 L-91.3 4.5 L-91.3 -8.5 Z M-57.5 -15 L-46.2 -8.5 L-46.2 4.5 L-57.5 11 L-68.7 4.5 L-68.7 -8.5 Z M-35 -15 L-23.7 -8.5 L-23.7 4.5 L-35 11 L-46.2 4.5 L-46.2 -8.5 Z M-12.5 -15 L-1.2 -8.5 L-1.2 4.5 L-12.5 11 L-23.7 4.5 L-23.7 -8.5 Z M10.1 -15 L21.3 -8.5 L21.3 4.5 L10.1 11 L-1.2 4.5 L-1.2 -8.5 Z M32.6 -15 L43.8 -8.5 L43.8 4.5 L32.6 11 L21.3 4.5 L21.3 -8.5 Z M55.1 -15 L66.4 -8.5 L66.4 4.5 L55.1 11 L43.8 4.5 L43.8 -8.5 Z M77.6 -15 L88.9 -8.5 L88.9 4.5 L77.6 11 L66.4 4.5 L66.4 -8.5 Z M-68.7 4.5 L-57.5 11 L-57.5 24 L-68.7 30.5 L-80 24 L-80 11 Z M-46.2 4.5 L-35 11 L-35 24 L-46.2 30.5 L-57.5 24 L-57.5 11 Z M-23.7 4.5 L-12.5 11 L-12.5 24 L-23.7 30.5 L-35 24 L-35 11 Z M-1.2 4.5 L10.1 11 L10.1 24 L-1.2 30.5 L-12.5 24 L-12.5 11 Z M21.3 4.5 L32.6 11 L32.6 24 L21.3 30.5 L10.1 24 L10.1 11 Z M43.8 4.5 L55.1 11 L55.1 24 L43.8 30.5 L32.6 24 L32.6 11 Z M66.4 4.5 L77.6 11 L77.6 24 L66.4 30.5 L55.1 24 L55.1 11 Z M-80 24 L-68.7 30.5 L-68.7 43.5 L-80 50 L-91.3 43.5 L-91.3 30.5 Z M-57.5 24 L-46.2 30.5 L-46.2 43.5 L-57.5 50 L-68.7 43.5 L-68.7 30.5 Z M-35 24 L-23.7 30.5 L-23.7 43.5 L-35 50 L-46.2 43.5 L-46.2 30.5 Z M-12.5 24 L-1.2 30.5 L-1.2 43.5 L-12.5 50 L-23.7 43.5 L-23.7 30.5 Z M10.1 24 L21.3 30.5 L21.3 43.5 L10.1 50 L-1.2 43.5 L-1.2 30.5 Z M32.6 24 L43.8 30.5 L43.8 43.5 L32.6 50 L21.3 43.5 L21.3 30.5 Z M55.1 24 L66.4 30.5 L66.4 43.5 L55.1 50 L43.8 43.5 L43.8 30.5 Z M77.6 24 L88.9 30.5 L88.9 43.5 L77.6 50 L66.4 43.5 L66.4 30.5 Z M-68.7 43.5 L-57.5 50 L-57.5 63 L-68.7 69.5 L-80 63 L-80 50 Z M-46.2 43.5 L-35 50 L-35 63 L-46.2 69.5 L-57.5 63 L-57.5 50 Z M-23.7 43.5 L-12.5 50 L-12.5 63 L-23.7 69.5 L-35 63 L-35 50 Z M-1.2 43.5 L10.1 50 L10.1 63 L-1.2 69.5 L-12.5 63 L-12.5 50 Z M21.3 43.5 L32.6 50 L32.6 63 L21.3 69.5 L10.1 63 L10.1 50 Z M43.8 43.5 L55.1 50 L55.1 63 L43.8 69.5 L32.6 63 L32.6 50 Z M66.4 43.5 L77.6 50 L77.6 63 L66.4 69.5 L55.1 63 L55.1 50 Z M-80 63 L-68.7 69.5 L-68.7 82.5 L-80 89 L-91.3 82.5 L-91.3 69.5 Z M-57.5 63 L-46.2 69.5 L-46.2 82.5 L-57.5 89 L-68.7 82.5 L-68.7 69.5 Z M-35 63 L-23.7 69.5 L-23.7 82.5 L-35 89 L-46.2 82.5 L-46.2 69.5 Z M-12.5 63 L-1.2 69.5 L-1.2 82.5 L-12.5 89 L-23.7 82.5 L-23.7 69.5 Z M10.1 63 L21.3 69.5 L21.3 82.5 L10.1 89 L-1.2 82.5 L-1.2 69.5 Z M32.6 63 L43.8 69.5 L43.8 82.5 L32.6 89 L21.3 82.5 L21.3 69.5 Z M55.1 63 L66.4 69.5 L66.4 82.5 L55.1 89 L43.8 82.5 L43.8 69.5 Z M77.6 63 L88.9 69.5 L88.9 82.5 L77.6 89 L66.4 82.5 L66.4 69.5 Z" fill="none" stroke="#5BE0F0" stroke-width="3" opacity="0.6"/>
+      <path d="M-52 38 Q-52 -50 0 -52 Q52 -50 52 38 Q0 50 -52 38 Z" clip-path="url(#badge-safe-and-sound-shield)" fill="none" stroke="#5BE0F0" stroke-width="12"/>
+      <path d="M-40 6 Q-40 -30 -12 -42" fill="none" stroke="#FFFFFF" stroke-width="5" opacity="0.9"/>
+      <path d="M-52 38 Q-52 -50 0 -52 Q52 -50 52 38 Q0 50 -52 38 Z" fill="none" stroke="#2A1E3D" stroke-width="5" />
+    </g>
+  </g>
+</g>
+</svg>

@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- badge-boss-1: Wobble Stopper: a yellow folded-paper crown with three points. earned (full colour). Single frame. Anchor centre (128,128).
+       Medal: gold rim, cream ring, night-blue disc, ribbon tab at the bottom. Light from the top-left. See art/STYLE.md. -->
+
+<g id="badge-boss-1" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+  <g id="ribbon">
+    <clipPath id="badge-boss-1-tail-right"><path d="M158 176 L126 186 L142 245 L157 233 L176 240 Z"/></clipPath>
+    <g id="tail-right">
+      <g clip-path="url(#badge-boss-1-tail-right)" stroke="none">
+        <path d="M158 176 L126 186 L145.2 256.8 L179.6 252.8 Z" fill="#5AA9F0"/>
+        <path d="M136.2 182.8 L126 186 L145.2 256.8 L156.2 255.5 Z" fill="#2A1E3D" opacity="0.18"/>
+      </g>
+      <path d="M158 176 L126 186 L142 245 L157 233 L176 240 Z" fill="none"/>
+    </g>
+    <clipPath id="badge-boss-1-tail-left"><path d="M98 176 L130 186 L114 245 L99 233 L80 240 Z"/></clipPath>
+    <g id="tail-left">
+      <g clip-path="url(#badge-boss-1-tail-left)" stroke="none">
+        <path d="M98 176 L130 186 L110.8 256.8 L76.4 252.8 Z" fill="#5AA9F0"/>
+        <path d="M119.8 182.8 L130 186 L110.8 256.8 L99.8 255.5 Z" fill="#2A1E3D" opacity="0.18"/>
+      </g>
+      <path d="M98 176 L130 186 L114 245 L99 233 L80 240 Z" fill="none"/>
+    </g>
+  </g>
+  <g id="rim">
+    <clipPath id="badge-boss-1-rim-clip"><circle cx="128" cy="114" r="96"/></clipPath>
+    <circle id="rim-gold" cx="128" cy="114" r="96" fill="#D09A00" stroke="none"/>
+    <circle clip-path="url(#badge-boss-1-rim-clip)" cx="122" cy="108" r="96" fill="#F5B700" stroke="none"/>
+    <path id="rim-highlight" d="M43.4 89.7 A88 88 0 0 1 97.9 31.3" fill="none" stroke="#FFE79A" stroke-width="5"/>
+    <circle id="rim-outline" cx="128" cy="114" r="96" fill="none"/>
+    <circle id="cream-ring" cx="128" cy="114" r="80" fill="#FFF4D6" stroke-width="4"/>
+    <circle id="disc" cx="128" cy="114" r="70" fill="#23295E" stroke-width="4"/>
+  </g>
+  <g id="motif" transform="translate(128 114)" stroke-width="4">
+    <g id="paper-crown" transform="translate(0 6)">
+      <clipPath id="badge-boss-1-c1"><path d="M-46 32 L-48 -16 L-24 6 L0 -36 L24 6 L48 -16 L46 32 Z" /></clipPath>
+      <g clip-path="url(#badge-boss-1-c1)" stroke="none" >
+        <rect x="-300" y="-300" width="900" height="900" fill="#E0AE1F"/>
+        <g transform="translate(-6 -6)"><path d="M-46 32 L-48 -16 L-24 6 L0 -36 L24 6 L48 -16 L46 32 Z" fill="#FFD23F"/></g>
+      </g>
+      <path d="M-46 32 L-48 -16 L-24 6 L0 -36 L24 6 L48 -16 L46 32 Z" fill="none" stroke-width="5" />
+      <path d="M0 -36 L0 16" fill="none" stroke="#E0AE1F" stroke-width="4" />
+      <path d="M-40 -2 L-41 22" fill="none" stroke="#FFEA99" stroke-width="5"/>
+      <clipPath id="badge-boss-1-c2"><rect x="-50" y="14" width="100" height="22" rx="8" /></clipPath>
+      <g clip-path="url(#badge-boss-1-c2)" stroke="none" >
+        <rect x="-300" y="-300" width="900" height="900" fill="#E0AE1F"/>
+        <g transform="translate(-4 -4)"><rect x="-50" y="14" width="100" height="22" rx="8" fill="#FFD23F"/></g>
+      </g>
+      <rect x="-50" y="14" width="100" height="22" rx="8" fill="none" stroke-width="5" />
+      <circle cx="-28" cy="25" r="5.5" fill="#5AA9F0" stroke-width="3" />
+      <circle cx="0" cy="25" r="5.5" fill="#E05FD0" stroke-width="3" />
+      <circle cx="28" cy="25" r="5.5" fill="#9BE564" stroke-width="3" />
+      <circle cx="-48" cy="-18" r="6" fill="#FFF4D6" stroke-width="3.5" />
+      <circle cx="0" cy="-38" r="6" fill="#FFF4D6" stroke-width="3.5" />
+      <circle cx="48" cy="-18" r="6" fill="#FFF4D6" stroke-width="3.5" />
+    </g>
+  </g>
+</g>
+</svg>

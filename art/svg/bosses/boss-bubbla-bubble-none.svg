@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 768" width="768" height="768">
+  <!-- Queen Bubbla big bubble overlay, state NONE: popped, nothing drawn (intentionally empty).
+       Anchor centre (384,384).
+       See art/STYLE.md. Light from the top-left. -->
+  <g id="bubble"/>
+</svg>

@@ -1,0 +1,191 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Pip (Frost Explorer) L3 attack, frame 02: 02 zap: wand pointed forward to the viewer's right, little hop, cheeks puffed, frosty sparkle at the tip (no projectile). L3 upgrade: biggest frosted canisters with icicles, frost aura ring, chest star badge, largest tip.
+       Anchor bottom-centre (128,256): boot soles sit on y=250 (+3.5 outline). Light from the top-left. See art/STYLE.md. -->
+  <defs>
+    <clipPath id="torso-clip"><path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z"/></clipPath>
+    <clipPath id="face-clip"><circle cx="128" cy="98" r="29"/></clipPath>
+    <clipPath id="canister-near-clip"><circle cx="56" cy="124" r="40"/></clipPath>
+    <clipPath id="canister-far-clip"><circle cx="75" cy="79" r="29"/></clipPath>
+  </defs>
+  <g id="frost-ring" stroke-linejoin="round" stroke-linecap="round">
+      <!-- L3 aura: thin flat frost ring on the ground around his feet, ellipse 4:3 -->
+      <ellipse cx="128" cy="201" rx="64" ry="48" fill="#CFF6FF" opacity="0.22" stroke="none"/>
+      <ellipse cx="128" cy="201" rx="64" ry="48" fill="none" stroke="#2A1E3D" stroke-width="9"/>
+      <ellipse cx="128" cy="201" rx="64" ry="48" fill="none" stroke="#CFF6FF" stroke-width="4.5"/>
+      <path d="M67.9 176.1 Q70.2 182.2 76.4 184.6 Q70.2 187 67.9 193.1 Q65.5 187 59.4 184.6 Q65.5 182.2 67.9 176.1 Z" fill="#2A1E3D" stroke="none"/>
+      <path d="M67.9 178.6 Q69.5 182.9 73.9 184.6 Q69.5 186.3 67.9 190.6 Q66.2 186.3 61.9 184.6 Q66.2 182.9 67.9 178.6 Z" fill="#CFF6FF" stroke="none"/>
+      <path d="M67.9 208.9 Q70.2 215 76.4 217.4 Q70.2 219.8 67.9 225.9 Q65.5 219.8 59.4 217.4 Q65.5 215 67.9 208.9 Z" fill="#2A1E3D" stroke="none"/>
+      <path d="M67.9 211.4 Q69.5 215.7 73.9 217.4 Q69.5 219.1 67.9 223.4 Q66.2 219.1 61.9 217.4 Q66.2 215.7 67.9 211.4 Z" fill="#CFF6FF" stroke="none"/>
+      <path d="M82.7 223.9 Q85.8 231.9 93.7 234.9 Q85.8 238 82.7 245.9 Q79.7 238 71.7 234.9 Q79.7 231.9 82.7 223.9 Z" fill="#2A1E3D" stroke="none"/>
+      <path d="M82.7 226.4 Q85.1 232.6 91.2 234.9 Q85.1 237.3 82.7 243.4 Q80.4 237.3 74.2 234.9 Q80.4 232.6 82.7 226.4 Z" fill="#FFFFFF" stroke="none"/>
+      <path d="M173.3 226.4 Q175.6 232.6 181.8 234.9 Q175.6 237.3 173.3 243.4 Q170.9 237.3 164.8 234.9 Q170.9 232.6 173.3 226.4 Z" fill="#2A1E3D" stroke="none"/>
+      <path d="M173.3 228.9 Q174.9 233.3 179.3 234.9 Q174.9 236.6 173.3 240.9 Q171.6 236.6 167.3 234.9 Q171.6 233.3 173.3 228.9 Z" fill="#CFF6FF" stroke="none"/>
+      <path d="M188.1 208.9 Q190.5 215 196.6 217.4 Q190.5 219.8 188.1 225.9 Q185.8 219.8 179.6 217.4 Q185.8 215 188.1 208.9 Z" fill="#2A1E3D" stroke="none"/>
+      <path d="M188.1 211.4 Q189.8 215.7 194.1 217.4 Q189.8 219.1 188.1 223.4 Q186.5 219.1 182.1 217.4 Q186.5 215.7 188.1 211.4 Z" fill="#CFF6FF" stroke="none"/>
+      <path d="M188.1 173.6 Q191.2 181.5 199.1 184.6 Q191.2 187.7 188.1 195.6 Q185.1 187.7 177.1 184.6 Q185.1 181.5 188.1 173.6 Z" fill="#2A1E3D" stroke="none"/>
+      <path d="M188.1 176.1 Q190.5 182.2 196.6 184.6 Q190.5 187 188.1 193.1 Q185.8 187 179.6 184.6 Q185.8 182.2 188.1 176.1 Z" fill="#FFFFFF" stroke="none"/>
+    </g>
+  <g id="pip" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <g id="body-back" transform="translate(129 228) scale(0.99 1.025) translate(-129 -228)">
+      <g id="backpack">
+        <rect x="68" y="138" width="36" height="60" rx="13" fill="#A7B0C8"/>
+        <path d="M74 184 Q74 192 84 192 H98" fill="none" stroke="#7F89A6" stroke-width="5"/>
+      </g>
+      <g id="canisters">
+        <!-- far canister: second bubble behind and above the near one, on the backpack side (L3: biggest, frosted cap and little icicles) -->
+        <g id="canister-far">
+          <circle cx="75" cy="79" r="38" fill="#CFF6FF" opacity="0.55" stroke="none"/>
+          <rect x="67.5" y="45.2" width="15" height="10" rx="4" fill="#A7B0C8" stroke-width="5"/>
+          <circle cx="75" cy="79" r="29" fill="#8ED8FF"/>
+          <circle cx="77.3" cy="80.7" r="16" fill="#D2F0FF" opacity="0.55" stroke="none"/>
+          <path clip-path="url(#canister-far-clip)" d="M102.4 61.3 Q102.4 106.4 57.3 109.6 L112.1 120.9 Z" fill="#5FB4E6" stroke="none"/>
+          <path clip-path="url(#canister-far-clip)" d="M40.2 65.1 Q51.8 69.7 58.8 62.8 Q68 69.7 77.3 61.6 Q86.6 68.6 93.6 61.6 Q100.5 67.4 109.8 63.9 L109.8 44.2 L40.2 44.2 Z" fill="#F4F1EA" stroke-width="4"/>
+          <circle cx="75" cy="79" r="29" fill="none"/>
+          <path d="M60.1 104.1 Q64.6 115.8 69.1 104.1 Z" fill="#CFF6FF" stroke-width="4"/>
+          <path d="M69.3 106 Q73.8 121.6 78.3 106 Z" fill="#CFF6FF" stroke-width="4"/>
+          <path d="M78.6 104.8 Q83.1 115.2 87.6 104.8 Z" fill="#CFF6FF" stroke-width="4"/>
+          <path d="M55.7 75.8 Q57.3 61.3 70.2 58.1" fill="none" stroke="#FFFFFF" stroke-width="4"/>
+        </g>
+        <!-- near canister: big frosted bubble on the back, viewer's left -->
+        <g id="canister-near">
+          <circle cx="56" cy="124" r="49" fill="#CFF6FF" opacity="0.55" stroke="none"/>
+          <rect x="43.5" y="76.8" width="23" height="14" rx="4" fill="#A7B0C8" stroke-width="5"/>
+          <circle cx="56" cy="124" r="40" fill="#8ED8FF"/>
+          <circle cx="59.2" cy="126.4" r="22" fill="#D2F0FF" opacity="0.55" stroke="none"/>
+          <path clip-path="url(#canister-near-clip)" d="M92.8 98.4 Q96 162.4 33.6 167.2 L104 181.6 Z" fill="#5FB4E6" stroke="none"/>
+          <path clip-path="url(#canister-near-clip)" d="M8 104.8 Q24 111.2 33.6 101.6 Q46.4 111.2 59.2 100 Q72 109.6 81.6 100 Q91.2 108 104 103.2 L104 76 L8 76 Z" fill="#F4F1EA" stroke-width="4"/>
+          <circle cx="56" cy="124" r="40" fill="none"/>
+          <path d="M37.1 159.3 Q41.6 171 46.1 159.3 Z" fill="#CFF6FF" stroke-width="4"/>
+          <path d="M49.9 162 Q54.4 177.6 58.9 162 Z" fill="#CFF6FF" stroke-width="4"/>
+          <path d="M62.7 160.4 Q67.2 170.8 71.7 160.4 Z" fill="#CFF6FF" stroke-width="4"/>
+          <path d="M30.4 125.6 Q30.4 101.6 51.2 95.2" fill="none" stroke="#FFFFFF" stroke-width="5"/>
+          <circle cx="33.6" cy="140" r="1.2" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="3.5"/>
+        </g>
+      </g>
+      <g id="legs">
+        <rect x="97" y="190" width="25" height="42" rx="10" fill="#F4F1EA"/>
+        <rect x="130" y="190" width="25" height="42" rx="10" fill="#F4F1EA"/>
+        <rect x="101" y="210" width="17" height="10" rx="4" fill="#8ED8FF" stroke-width="4"/>
+        <rect x="134" y="210" width="17" height="10" rx="4" fill="#8ED8FF" stroke-width="4"/>
+      </g>
+    </g>
+    <g id="boots">
+      <path d="M93 250 V236 Q93 226 103 226 H114 Q124 226 125 234 Q133 237 133 244 V250 Z" fill="#8ED8FF"/>
+      <path d="M126 250 V236 Q126 226 136 226 H147 Q157 226 158 234 Q166 237 166 244 V250 Z" fill="#8ED8FF"/>
+      <g stroke="none">
+        <rect x="97" y="242" width="33" height="5" rx="2" fill="#5FB4E6"/>
+        <rect x="130" y="242" width="33" height="5" rx="2" fill="#5FB4E6"/>
+      </g>
+      <path d="M99 236 Q99 231 104 231" fill="none" stroke="#D2F0FF" stroke-width="3.5"/>
+      <path d="M132 236 Q132 231 137 231" fill="none" stroke="#D2F0FF" stroke-width="3.5"/>
+    </g>
+    <g id="body" transform="translate(129 228) scale(0.99 1.025) translate(-129 -228)">
+      <g id="arm-back">
+        <path d="M92 146 Q74 164 80 190" fill="none" stroke-width="26"/>
+        <path d="M92 146 Q74 164 80 190" fill="none" stroke="#F4F1EA" stroke-width="12"/>
+        <g id="mitten-back" fill="#8ED8FF">
+          <circle cx="80" cy="194" r="10.5"/>
+          <ellipse cx="90" cy="190" rx="5" ry="4" stroke-width="4"/>
+        </g>
+      </g>
+      <g id="torso">
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="#8ED8FF"/>
+        <g clip-path="url(#torso-clip)">
+          <!-- white belt panel across the lower torso -->
+          <rect x="80" y="186" width="92" height="24" fill="#F4F1EA" stroke-width="4.5"/>
+          <path id="torso-shade" d="M156 132 H170 V214 H140 Q158 186 156 132 Z" fill="#2A1E3D" opacity="0.13" stroke="none"/>
+        </g>
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="none"/>
+        <path id="torso-highlight" d="M95 168 V152 Q95 143 103 141" fill="none" stroke="#D2F0FF" stroke-width="4.5"/>
+        <g id="emblem">
+          <circle cx="128" cy="167" r="15" fill="#F4F1EA" stroke-width="4"/>
+          <g fill="none" stroke="#5FB4E6" stroke-width="3.5">
+            <path d="M128 157 V177 M119.3 162 L136.7 172 M119.3 172 L136.7 162"/>
+          </g>
+          <circle cx="128" cy="167" r="3" fill="#5FB4E6" stroke="none"/>
+        </g>
+        <!-- L3: plain ice-blue star badge on the chest -->
+        <path id="star-badge" d="M153 167.5 L155.7 173.3 L162 174.1 L157.4 178.4 L158.6 184.7 L153 181.6 L147.4 184.7 L148.6 178.4 L144 174.1 L150.3 173.3 Z" fill="#D2F0FF" stroke-width="3.5"/>
+      </g>
+      <ellipse id="collar" cx="127" cy="141" rx="33" ry="9" fill="#A7B0C8" stroke-width="6"/>
+      <!-- L2+: snowflake patch on each shoulder -->
+      <g id="shoulder-snowflakes">
+        <g transform="translate(97 154)"><circle r="8.5" fill="#F4F1EA" stroke-width="4"/><path d="M0 -5 V5 M-4.3 -2.5 L4.3 2.5 M-4.3 2.5 L4.3 -2.5" fill="none" stroke="#5FB4E6" stroke-width="3"/></g>
+      </g>
+      <g id="arm-front" transform="rotate(2 158 148)">
+        <path d="M158 148 Q178 156 186 174" fill="none" stroke-width="26"/>
+        <path d="M158 148 Q178 156 186 174" fill="none" stroke="#F4F1EA" stroke-width="12"/>
+        <g id="shoulder-front"><g transform="translate(164 153)"><circle r="9.5" fill="#F4F1EA" stroke-width="4"/><path d="M0 -6 V6 M-5.2 -3 L5.2 3 M-5.2 3 L5.2 -3" fill="none" stroke="#5FB4E6" stroke-width="3"/></g></g>
+        <g id="gadget" transform="rotate(11 189 177)">
+          <circle id="tip-glow" cx="204" cy="104.5" r="24" fill="#CFF6FF" opacity="0.9" stroke="none"/>
+          <!-- short wand, held upright beside him -->
+          <path d="M190 182 L202 124" fill="none" stroke-width="14"/>
+          <path d="M190 182 L202 124" fill="none" stroke="#A7B0C8" stroke-width="6"/>
+          <!-- snowflake crystal tip: three crossed outlined arms -->
+          <g id="wand-tip">
+            <path d="M204 87 V122 M188.8 95.8 L219.2 113.2 M188.8 113.2 L219.2 95.8" fill="none" stroke-width="13"/>
+            <path d="M204 87 V122 M188.8 95.8 L219.2 113.2 M188.8 113.2 L219.2 95.8" fill="none" stroke="#CFF6FF" stroke-width="5"/>
+            <circle cx="204" cy="104.5" r="5.5" fill="#8ED8FF" stroke="none"/>
+            <circle cx="204" cy="104.5" r="2.2" fill="#FFFFFF" stroke="none"/>
+            <circle cx="202" cy="88.5" r="1" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="2.5"/>
+          </g>
+          <g id="frost-sparkles">
+            <path d="M206 85.4 Q210.5 97 222.1 101.5 Q210.5 106 206 117.6 Q201.5 106 189.9 101.5 Q201.5 97 206 85.4 Z" fill="#FFFFFF" stroke="none" opacity="0.95"/>
+            <path d="M223.6 73.7 Q226.3 80.8 233.4 83.5 Q226.3 86.2 223.6 93.3 Q220.9 86.2 213.8 83.5 Q220.9 80.8 223.6 73.7 Z" fill="#CFF6FF" stroke="none" opacity="0.95"/>
+            <path d="M222.2 112.9 Q224.6 118.9 230.6 121.3 Q224.6 123.7 222.2 129.7 Q219.8 123.7 213.8 121.3 Q219.8 118.9 222.2 112.9 Z" fill="#FFF4D6" stroke="none" opacity="0.95"/>
+            <path d="M185.8 72.3 Q188.2 78.3 194.2 80.7 Q188.2 83.1 185.8 89.1 Q183.4 83.1 177.4 80.7 Q183.4 78.3 185.8 72.3 Z" fill="#CFF6FF" stroke="none" opacity="0.9"/>
+            <path d="M202 70 Q203.8 74.7 208.5 76.5 Q203.8 78.3 202 83 Q200.2 78.3 195.5 76.5 Q200.2 74.7 202 70 Z" fill="#FFFFFF" stroke="none" opacity="0.9"/>
+            <path d="M186 103 Q187.5 107 191.5 108.5 Q187.5 110 186 114 Q184.5 110 180.5 108.5 Q184.5 107 186 103 Z" fill="#CFF6FF" stroke="none" opacity="0.9"/>
+            <path d="M223 98.5 Q224.4 102.1 228 103.5 Q224.4 104.9 223 108.5 Q221.6 104.9 218 103.5 Q221.6 102.1 223 98.5 Z" fill="#FFF4D6" stroke="none" opacity="0.9"/>
+            <circle cx="232" cy="102.5" r="2.6" fill="#FFFFFF" stroke="none"/>
+            <circle cx="195" cy="126.9" r="2.2" fill="#FFFFFF" stroke="none"/>
+            <circle cx="212" cy="70.9" r="2.2" fill="#FFFFFF" stroke="none"/>
+          </g>
+        </g>
+        <g id="mitten-front" fill="#8ED8FF">
+          <circle cx="189" cy="177" r="10.5"/>
+          <ellipse cx="181" cy="171" rx="4" ry="5" stroke-width="4"/>
+        </g>
+      </g>
+      <g id="helmet">
+        <circle id="glass" cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none"/>
+        <g id="head" stroke-width="4">
+          <circle id="face" cx="128" cy="98" r="29" fill="#FBE4D5"/>
+          <path id="face-shade" clip-path="url(#face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#EFC6AE" stroke="none"/>
+          <!-- tufty ginger hair: a cap with three rounded tufts sticking up -->
+          <path id="fringe" d="M99 93 Q97 74 110 68 Q106 59 115 55 Q117 63 124 64 Q126 53 137 53 Q134 61 140 65 Q148 60 153 64 Q148 68 150 72 Q158 79 157 91 Q152 82 144 85 Q140 77 132 82 Q125 76 118 82 Q110 77 99 93 Z" fill="#E07A3C"/>
+          <path d="M108 77 Q113 70 121 69" fill="none" stroke="#F4A673" stroke-width="3" />
+          <g id="face-features" stroke="none">
+            <ellipse cx="120" cy="101" rx="4.6" ry="6" fill="#2A1E3D"/>
+            <ellipse cx="142" cy="100" rx="4.6" ry="6" fill="#2A1E3D"/>
+            <circle cx="121.6" cy="98.3" r="1.9" fill="#FFFFFF"/>
+            <circle cx="143.6" cy="97.3" r="1.9" fill="#FFFFFF"/>
+            <!-- round cheeks, a little bigger than Nova's -->
+            <ellipse cx="110" cy="111" rx="9.5" ry="6.5" fill="#F48A9A" opacity="0.8"/>
+            <ellipse cx="153" cy="110" rx="7.5" ry="5.6" fill="#F48A9A" opacity="0.8"/>
+            <!-- freckles over the nose and cheeks -->
+            <g id="freckles" fill="#B5653F">
+              <circle cx="106.5" cy="106" r="2.2"/>
+              <circle cx="112.5" cy="105" r="2.2"/>
+              <circle cx="109.5" cy="110" r="2.2"/>
+              <circle cx="148.5" cy="106.5" r="2.2"/>
+              <circle cx="153.5" cy="105" r="2.2"/>
+              <circle cx="151" cy="110" r="2.2"/>
+            </g>
+          </g>
+          <!-- cheeks puffed, lips in a little round "blow" -->
+          <ellipse id="mouth" cx="137" cy="116" rx="4.5" ry="4" fill="#F27C8C" stroke-width="3.5"/>
+        </g>
+        <g id="visor-rim">
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke-width="16"/>
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke="#8ED8FF" stroke-width="9"/>
+        </g>
+        <g id="helmet-highlight" stroke="#FFFFFF" fill="none">
+          <path d="M88 70 Q98 54 116 49" stroke-width="7" opacity="0.9"/>
+          <circle cx="83" cy="84" r="1.5" stroke-width="5" opacity="0.9"/>
+        </g>
+        <circle id="helmet-outline" cx="126" cy="94" r="50" fill="none"/>
+      </g>
+    </g>
+  </g>
+</svg>

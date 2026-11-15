@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-peg: a wooden clothes peg with a silver spring, jaws closed at the right. Single frame. Anchor centre (128,128).
+       Activity picture: text-free, one object, no background. Light from the top-left. See art/STYLE.md. -->
+<g id="peg-group" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+<g id="peg" transform="translate(130 128) rotate(-18) scale(0.9)">
+<g id="jaw-top">
+  <clipPath id="jaw-top-clip"><path d="M-104 -62 Q-116 -48 -106 -30 L104 -3 Q114 -6 110 -22 Z"/></clipPath>
+  <g clip-path="url(#jaw-top-clip)" stroke="none">
+    <path d="M-104 -62 Q-116 -48 -106 -30 L104 -3 Q114 -6 110 -22 Z" fill="#C2854A"/>
+    <path d="M-104 -62 Q-116 -48 -106 -30 L104 -3 Q114 -6 110 -22 Z" fill="#E8B07E" transform="translate(0 -6)"/>
+  </g>
+  <path d="M-104 -62 Q-116 -48 -106 -30 L104 -3 Q114 -6 110 -22 Z" fill="none"/>
+</g>
+<g id="jaw-bottom">
+  <clipPath id="jaw-bottom-clip"><path d="M-104 62 Q-116 48 -106 30 L104 3 Q114 6 110 22 Z"/></clipPath>
+  <g clip-path="url(#jaw-bottom-clip)" stroke="none">
+    <path d="M-104 62 Q-116 48 -106 30 L104 3 Q114 6 110 22 Z" fill="#A86A3C"/>
+    <path d="M-104 62 Q-116 48 -106 30 L104 3 Q114 6 110 22 Z" fill="#C2854A" transform="translate(0 -6)"/>
+  </g>
+  <path d="M-104 62 Q-116 48 -106 30 L104 3 Q114 6 110 22 Z" fill="none"/>
+</g>
+<path id="notch-top" d="M50 -18 Q60 -6 70 -12" fill="none" stroke-width="4"/>
+<path id="notch-bottom" d="M50 18 Q60 6 70 12" fill="none" stroke-width="4"/>
+<g id="spring">
+  <path d="M-20 -36 L34 -20 M-20 36 L34 20" fill="none" stroke="#2A1E3D" stroke-width="10"/>
+  <path d="M-20 -36 L34 -20 M-20 36 L34 20" fill="none" stroke="#A7B0C8" stroke-width="4"/>
+  <circle cx="-22" cy="0" r="26" fill="#A7B0C8" stroke-width="6"/>
+  <circle cx="-22" cy="0" r="12" fill="#7F89A6" stroke-width="4"/>
+</g>
+<path d="M-96 -48 L-56 -40" fill="none" stroke="#FFFFFF" stroke-width="5" opacity="0.8"/>
+</g>
+</g>
+</svg>

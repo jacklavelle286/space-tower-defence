@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Nova (Laser Scout) shop portrait, L1 look: head and shoulders facing the viewer, big grin, laser lens peeking
+       in at the bottom right. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+  <defs>
+    <clipPath id="shoulder-clip"><path d="M34 246 V214 Q34 180 76 176 H180 Q222 180 222 214 V246 Z"/></clipPath>
+    <clipPath id="face-clip"><circle cx="128" cy="110" r="47"/></clipPath>
+  </defs>
+  <g id="nova" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <g id="body">
+      <g id="torso">
+        <path d="M34 246 V214 Q34 180 76 176 H180 Q222 180 222 214 V246 Z" fill="#F4F1EA"/>
+        <g clip-path="url(#shoulder-clip)" stroke="none">
+          <path id="chevron" d="M20 238 L240 178 L240 210 L20 270 Z" fill="#FF8A2A" stroke="#2A1E3D" stroke-width="5"/>
+          <path id="torso-shade" d="M196 176 H230 V250 H170 Q206 220 196 176 Z" fill="#2A1E3D" opacity="0.13"/>
+        </g>
+        <path d="M34 246 V214 Q34 180 76 176 H180 Q222 180 222 214 V246 Z" fill="none"/>
+        <path id="torso-highlight" d="M46 222 V212 Q46 196 60 190" fill="none" stroke="#FFFFFF" stroke-width="5"/>
+      </g>
+      <ellipse id="collar" cx="128" cy="180" rx="60" ry="15" fill="#A7B0C8" stroke-width="6"/>
+      <g id="gadget" transform="rotate(-35 196 232)">
+        <circle id="lens-glow" cx="232" cy="223" r="15" fill="#FFE79A" opacity="0.6" stroke="none"/>
+        <rect x="184" y="210" width="40" height="26" rx="12" fill="#F4F1EA" stroke-width="6"/>
+        <path d="M201 211 V235" fill="none" stroke="#FF8A2A" stroke-width="8" stroke-linecap="butt"/>
+        <rect x="184" y="210" width="40" height="26" rx="12" fill="none" stroke-width="6"/>
+        <circle id="lens" cx="226" cy="223" r="11" fill="#FFF4D6" stroke-width="5"/>
+        <circle cx="223" cy="220" r="3" fill="#FFFFFF" stroke="none"/>
+      </g>
+      <g id="mitten-front" fill="#FF8A2A">
+        <circle cx="194" cy="234" r="13"/>
+        <ellipse cx="200" cy="222" rx="5" ry="6.5" stroke-width="4"/>
+      </g>
+      <g id="helmet">
+        <circle id="glass" cx="128" cy="100" r="82" fill="#CFE9FF" fill-opacity="0.6" stroke="none"/>
+        <g id="head" stroke-width="5">
+          <g id="hair-puffs" fill="#1E1A24">
+            <path d="M99.0 78.0 A9.2 9.2 0 0 1 91.8 92.9 A9.2 9.2 0 0 1 75.8 96.5 A9.2 9.2 0 0 1 62.9 86.2 A9.2 9.2 0 0 1 62.9 69.8 A9.2 9.2 0 0 1 75.8 59.5 A9.2 9.2 0 0 1 91.8 63.1 A9.2 9.2 0 0 1 99.0 78.0 Z"/>
+            <path d="M193.9 84.5 A9.2 9.2 0 0 1 182.1 96.0 A9.2 9.2 0 0 1 165.7 94.0 A9.2 9.2 0 0 1 157.1 79.9 A9.2 9.2 0 0 1 162.7 64.4 A9.2 9.2 0 0 1 178.4 59.1 A9.2 9.2 0 0 1 192.2 68.1 A9.2 9.2 0 0 1 193.9 84.5 Z"/>
+          </g>
+          <circle id="face" cx="128" cy="110" r="47" fill="#FCE0CF"/>
+          <path id="face-shade" clip-path="url(#face-clip)" d="M172 96 Q170 146 116 160 L180 162 Z" fill="#F2C3AA" stroke="none"/>
+          <path id="fringe" d="M82 106 Q80 62 128 61 Q176 62 174 106 Q168 92 158 95 Q151 81 140 88 Q129 77 117 88 Q105 81 98 95 Q88 92 82 106 Z" fill="#1E1A24"/>
+          <g id="face-features" stroke="none">
+            <ellipse cx="112" cy="112" rx="7" ry="9" fill="#2A1E3D"/>
+            <ellipse cx="144" cy="112" rx="7" ry="9" fill="#2A1E3D"/>
+            <circle cx="114.5" cy="108" r="2.9" fill="#FFFFFF"/>
+            <circle cx="146.5" cy="108" r="2.9" fill="#FFFFFF"/>
+            <ellipse cx="97" cy="128" rx="9" ry="6" fill="#F48A9A" opacity="0.75"/>
+            <ellipse cx="159" cy="128" rx="9" ry="6" fill="#F48A9A" opacity="0.75"/>
+          </g>
+          <path id="mouth" d="M110 126 H146 Q144 147 128 147 Q112 147 110 126 Z" fill="#FFFFFF" stroke-width="4.5"/>
+          <path d="M117 140 Q128 133 139 140 Q135 145 128 145 Q121 145 117 140 Z" fill="#F27C8C" stroke="none"/>
+        </g>
+        <g id="visor-rim">
+          <path d="M57 140 Q128 202 199 140" fill="none" stroke-width="22"/>
+          <path d="M57 140 Q128 202 199 140" fill="none" stroke="#FF8A2A" stroke-width="12"/>
+        </g>
+        <g id="helmet-highlight" stroke="#FFFFFF" fill="none">
+          <path d="M66 66 Q80 40 106 30" stroke-width="9" opacity="0.9"/>
+          <circle cx="58" cy="86" r="2" stroke-width="6" opacity="0.9"/>
+        </g>
+        <circle id="helmet-outline" cx="128" cy="100" r="82" fill="none"/>
+      </g>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-kite: a red-and-yellow diamond kite with cross spars and a wavy string tail with three bows.
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+  <defs>
+    <path id="bow" d="M0 0 L-16 -10 Q-20 0 -16 10 Z M0 0 L16 -10 Q20 0 16 10 Z"/>
+  </defs>
+  <g id="kite" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <g id="tail">
+      <path d="M150 174 C130 204 104 186 96 210 C90 230 64 222 46 236" fill="none" stroke-width="4"/>
+      <g stroke-width="3">
+        <use href="#bow" transform="translate(126 194) rotate(-30) scale(1.4)" fill="#5AA9F0"/>
+        <use href="#bow" transform="translate(95 214) rotate(-60) scale(1.4)" fill="#3DBE6E"/>
+        <use href="#bow" transform="translate(66 228) rotate(-20) scale(1.4)" fill="#E05FD0"/>
+      </g>
+      <g fill="#2A1E3D" stroke="none">
+        <circle cx="126" cy="194" r="4.5"/><circle cx="95" cy="214" r="4.5"/><circle cx="66" cy="228" r="4.5"/>
+      </g>
+    </g>
+    <g id="sail" stroke="none">
+      <path d="M150 22 L88 84 H150 Z" fill="#E2403A"/>
+      <path d="M150 22 L212 84 H150 Z" fill="#FFD23F"/>
+      <path d="M88 84 L150 174 V84 Z" fill="#FFD23F"/>
+      <path d="M212 84 L150 174 V84 Z" fill="#E2403A"/>
+      <path id="sail-shade" d="M212 84 L150 174 L164 84 Z" fill="#2A1E3D" opacity="0.13"/>
+      <path id="sail-highlight" d="M108 72 L140 40" fill="none" stroke="#F28480" stroke-width="5" stroke-linecap="round"/>
+    </g>
+    <path id="spars" d="M150 26 V170 M92 84 H208" fill="none" stroke-width="4"/>
+    <path id="sail-outline" d="M150 22 L212 84 L150 174 L88 84 Z" fill="none"/>
+  </g>
+</svg>

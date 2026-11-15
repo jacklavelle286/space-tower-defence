@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- shape-cuboid: 3-D shape, a cuboid clearly longer than it is tall and deep (196 x 86 x depth), orange.
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+<g id="cuboid" stroke="#2A1E3D" stroke-linejoin="round" stroke-linecap="round">
+  <g id="faces" stroke="none">
+    <path id="top" d="M10 105 L50 65 L246 65 L206 105 Z" fill="#FFC08A"/>
+    <path id="front" d="M10 105 L206 105 L206 191 L10 191 Z" fill="#FF8A2A"/>
+    <path id="side" d="M206 105 L246 65 L246 151 L206 191 Z" fill="#D9661A"/>
+  </g>
+  <path class="highlight" d="M24 158.3 V121 H98.2" fill="none" stroke="#FFFFFF" stroke-width="7" opacity="0.8"/>
+  <path id="cuboid-edges" d="M10 105 L206 105 L246 65 M206 105 L206 191" fill="none" stroke-width="5"/>
+  <path id="cuboid-outline" d="M10 191 L10 105 L50 65 L246 65 L246 151 L206 191 Z" fill="none" stroke-width="8"/>
+</g>
+</svg>

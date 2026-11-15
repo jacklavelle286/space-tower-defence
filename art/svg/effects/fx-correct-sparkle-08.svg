@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Correct answer sparkle, frame 08/08: gold and cream four-point stars with lime and cyan dots radiating (spread 1.26), last frames fade. Anchor centre (128,128).
+       See art/STYLE.md. -->
+  <g id="correct-sparkle" stroke-linecap="round" stroke-linejoin="round">
+    <g id="stars">
+    <path d="M0 -8.4 Q2.4 -2.4 8.4 0 Q2.4 2.4 0 8.4 Q-2.4 2.4 -8.4 0 Q-2.4 -2.4 0 -8.4 Z" fill="#FFD23F" stroke="#2A1E3D" stroke-width="3" stroke-linejoin="round" transform="translate(128 32.2) rotate(0)" opacity="0.2"/>
+    <path d="M0 -5.5 Q1.5 -1.5 5.5 0 Q1.5 1.5 0 5.5 Q-1.5 1.5 -5.5 0 Q-1.5 -1.5 0 -5.5 Z" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="3" stroke-linejoin="round" transform="translate(185 71) rotate(0)" opacity="0.2"/>
+    <path d="M0 -8.4 Q2.4 -2.4 8.4 0 Q2.4 2.4 0 8.4 Q-2.4 2.4 -8.4 0 Q-2.4 -2.4 0 -8.4 Z" fill="#FFD23F" stroke="#2A1E3D" stroke-width="3" stroke-linejoin="round" transform="translate(223.8 128) rotate(0)" opacity="0.2"/>
+    <path d="M0 -5.5 Q1.5 -1.5 5.5 0 Q1.5 1.5 0 5.5 Q-1.5 1.5 -5.5 0 Q-1.5 -1.5 0 -5.5 Z" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="3" stroke-linejoin="round" transform="translate(185 185) rotate(90)" opacity="0.2"/>
+    <path d="M0 -8.4 Q2.4 -2.4 8.4 0 Q2.4 2.4 0 8.4 Q-2.4 2.4 -8.4 0 Q-2.4 -2.4 0 -8.4 Z" fill="#FFD23F" stroke="#2A1E3D" stroke-width="3" stroke-linejoin="round" transform="translate(128 223.8) rotate(0)" opacity="0.2"/>
+    <path d="M0 -5.5 Q1.5 -1.5 5.5 0 Q1.5 1.5 0 5.5 Q-1.5 1.5 -5.5 0 Q-1.5 -1.5 0 -5.5 Z" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="3" stroke-linejoin="round" transform="translate(71 185) rotate(180)" opacity="0.2"/>
+    <path d="M0 -8.4 Q2.4 -2.4 8.4 0 Q2.4 2.4 0 8.4 Q-2.4 2.4 -8.4 0 Q-2.4 -2.4 0 -8.4 Z" fill="#FFD23F" stroke="#2A1E3D" stroke-width="3" stroke-linejoin="round" transform="translate(32.2 128) rotate(0)" opacity="0.2"/>
+    <path d="M0 -5.5 Q1.5 -1.5 5.5 0 Q1.5 1.5 0 5.5 Q-1.5 1.5 -5.5 0 Q-1.5 -1.5 0 -5.5 Z" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="3" stroke-linejoin="round" transform="translate(71 71) rotate(270)" opacity="0.2"/>
+    <circle cx="170.4" cy="25.6" r="2.8" fill="#9FF3FF" stroke="#2A1E3D" stroke-width="2.5" opacity="0.2"/>
+    <circle cx="230.4" cy="85.6" r="2.8" fill="#9BE564" stroke="#2A1E3D" stroke-width="2.5" opacity="0.2"/>
+    <circle cx="230.4" cy="170.4" r="2.8" fill="#9FF3FF" stroke="#2A1E3D" stroke-width="2.5" opacity="0.2"/>
+    <circle cx="170.4" cy="230.4" r="2.8" fill="#9BE564" stroke="#2A1E3D" stroke-width="2.5" opacity="0.2"/>
+    <circle cx="85.6" cy="230.4" r="2.8" fill="#9FF3FF" stroke="#2A1E3D" stroke-width="2.5" opacity="0.2"/>
+    <circle cx="25.6" cy="170.4" r="2.8" fill="#9BE564" stroke="#2A1E3D" stroke-width="2.5" opacity="0.2"/>
+    <circle cx="25.6" cy="85.6" r="2.8" fill="#9FF3FF" stroke="#2A1E3D" stroke-width="2.5" opacity="0.2"/>
+    <circle cx="85.6" cy="25.6" r="2.8" fill="#9BE564" stroke="#2A1E3D" stroke-width="2.5" opacity="0.2"/>
+    </g>
+  </g>
+</svg>

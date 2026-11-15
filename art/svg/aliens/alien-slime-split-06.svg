@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Split Slime split, frame 06 of 06: two happy Slimelets stand apart, last faint stars.
+       Anchor bottom-centre (128,256): base on y=250.
+       Light from the top-left. See art/STYLE.md. -->
+  <defs><clipPath id="lobe-left-clip"><path d="M14 236 Q14 156 64 154 Q114 156 114 236 Q114 250 98 250 L30 250 Q14 250 14 236 Z"/></clipPath></defs>
+  <g id="lobe-left" transform="translate(64 250) rotate(0) skewX(0) scale(0.98 1.02) translate(-64 -250)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="lobe-left-body">
+      <path d="M14 236 Q14 156 64 154 Q114 156 114 236 Q114 250 98 250 L30 250 Q14 250 14 236 Z" fill="#9BE564" stroke="none"/>
+      <g clip-path="url(#lobe-left-clip)" stroke="none">
+        <path id="lobe-left-shade" d="M122 150 Q102 184 104 238 Q100 248 84 254 L122 256 Z" fill="#78C443"/>
+        <ellipse id="lobe-left-belly" cx="66" cy="237" rx="34" ry="11" fill="#BDF08F"/>
+      </g>
+      <path id="lobe-left-highlight" d="M27 202 Q31 180 50 165" fill="none" stroke="#D2F6B0" stroke-width="9"/>
+      <path d="M14 236 Q14 156 64 154 Q114 156 114 236 Q114 250 98 250 L30 250 Q14 250 14 236 Z" fill="none" stroke-width="8"/>
+    </g>
+    <g id="lobe-left-face">
+      <ellipse cx="70" cy="197.2" rx="19" ry="22" fill="#FFFFFF" stroke-width="5"/>
+      <circle cx="75" cy="201.2" r="10" fill="#2A1E3D" stroke="none"/>
+      <circle cx="79" cy="196.2" r="3.8" fill="#FFFFFF" stroke="none"/>
+      <path d="M55 227.2 Q70 239.2 86 224.2" fill="none" stroke-width="5.5"/>
+    </g>
+  </g>
+  <defs><clipPath id="lobe-right-clip"><path d="M142 236 Q142 156 192 154 Q242 156 242 236 Q242 250 226 250 L158 250 Q142 250 142 236 Z"/></clipPath></defs>
+  <g id="lobe-right" transform="translate(192 250) rotate(0) skewX(0) scale(0.98 1.02) translate(-192 -250)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="lobe-right-body">
+      <path d="M142 236 Q142 156 192 154 Q242 156 242 236 Q242 250 226 250 L158 250 Q142 250 142 236 Z" fill="#9BE564" stroke="none"/>
+      <g clip-path="url(#lobe-right-clip)" stroke="none">
+        <path id="lobe-right-shade" d="M250 150 Q230 184 232 238 Q228 248 212 254 L250 256 Z" fill="#78C443"/>
+        <ellipse id="lobe-right-belly" cx="194" cy="237" rx="34" ry="11" fill="#BDF08F"/>
+      </g>
+      <path id="lobe-right-highlight" d="M155 202 Q159 180 178 165" fill="none" stroke="#D2F6B0" stroke-width="9"/>
+      <path d="M142 236 Q142 156 192 154 Q242 156 242 236 Q242 250 226 250 L158 250 Q142 250 142 236 Z" fill="none" stroke-width="8"/>
+    </g>
+    <g id="lobe-right-face">
+      <ellipse cx="198" cy="197.2" rx="19" ry="22" fill="#FFFFFF" stroke-width="5"/>
+      <circle cx="203" cy="201.2" r="10" fill="#2A1E3D" stroke="none"/>
+      <circle cx="207" cy="196.2" r="3.8" fill="#FFFFFF" stroke="none"/>
+      <path d="M183 227.2 Q198 239.2 214 224.2" fill="none" stroke-width="5.5"/>
+    </g>
+  </g>
+  <g id="stars" opacity="0.35">
+    <path d="M0 -9 Q2.5 -2.5 9 0 Q2.5 2.5 0 9 Q-2.5 2.5 -9 0 Q-2.5 -2.5 0 -9 Z" transform="translate(118 120)" fill="#FFF4D6" stroke="none"/>
+    <path d="M0 -6 Q1.7 -1.7 6 0 Q1.7 1.7 0 6 Q-1.7 1.7 -6 0 Q-1.7 -1.7 0 -6 Z" transform="translate(146 96)" fill="#FFF4D6" stroke="none"/>
+  </g>
+</svg>

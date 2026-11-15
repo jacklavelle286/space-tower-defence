@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- shape-sphere: 3-D shape, a sphere: cel shade crescent bottom-right, soft highlight top-left, magenta.
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+<g id="sphere" stroke="#2A1E3D" stroke-linejoin="round" stroke-linecap="round">
+  <clipPath id="sphere-clip"><path d="M128 28 A100 100 0 1 1 127.9 28 Z"/></clipPath>
+  <g id="sphere-fill" clip-path="url(#sphere-clip)" stroke="none">
+    <path d="M128 28 A100 100 0 1 1 127.9 28 Z" fill="#B94BAB"/>
+    <circle cx="112" cy="112" r="96" fill="#E05FD0"/>
+    <ellipse cx="94" cy="90" rx="40" ry="32" fill="#F2A6E8" transform="rotate(-35 94 90)"/>
+  </g>
+  <path id="sphere-highlight" d="M60 104 Q66 76 90 62" fill="none" stroke="#FFFFFF" stroke-width="9" opacity="0.9"/>
+  <circle cx="58" cy="124" r="4.5" fill="#FFFFFF" stroke="none" opacity="0.9"/>
+  <path id="sphere-outline" d="M128 28 A100 100 0 1 1 127.9 28 Z" fill="none" stroke-width="8"/>
+</g>
+</svg>

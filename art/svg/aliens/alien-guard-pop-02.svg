@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Bubble layer pop, frame 02 of 04: ring breaks into six curved pieces, droplets fly out.
+       Anchor centre (128,128).
+       Light from the top-left. See art/STYLE.md. -->
+<g id="burst" stroke-linejoin="round" stroke-linecap="round">
+  <g id="fragments" stroke="#2A1E3D" stroke-opacity="0.65" stroke-width="4" opacity="1.0">
+    <g transform="translate(5.7 -8.2) rotate(-8 177.9 56.7)">
+      <path d="M151 35.8 A95 95 0 0 1 206.8 74.9 A8 8 0 0 1 193.5 83.8 A79 79 0 0 0 147.1 51.3 A8 8 0 0 1 151 35.8 Z" fill="#9FF3FF" fill-opacity="0.6"/>
+    </g>
+    <g transform="translate(9.9 1) rotate(8 214.5 137.1)">
+      <path d="M220.2 105 A95 95 0 0 1 213.4 169.6 A8 8 0 0 1 199 162.6 A79 79 0 0 0 204.7 108.9 A8 8 0 0 1 220.2 105 Z" fill="#9FF3FF" fill-opacity="0.6"/>
+    </g>
+    <g transform="translate(3.9 9.2) rotate(-8 162 208.1)">
+      <path d="M194 196.3 A95 95 0 0 1 131.3 222.9 A8 8 0 0 1 130.8 207 A79 79 0 0 0 182.9 184.8 A8 8 0 0 1 194 196.3 Z" fill="#9FF3FF" fill-opacity="0.6"/>
+    </g>
+    <g transform="translate(-6 8) rotate(8 75.6 197.5)">
+      <path d="M98.6 218.4 A95 95 0 0 1 49.2 181.1 A8 8 0 0 1 62.5 172.2 A79 79 0 0 0 103.6 203.1 A8 8 0 0 1 98.6 218.4 Z" fill="#9FF3FF" fill-opacity="0.6"/>
+    </g>
+    <g transform="translate(-10 -0.9) rotate(-8 41.3 120.4)">
+      <path d="M35.8 151 A95 95 0 0 1 41.2 89.4 A8 8 0 0 1 55.8 95.9 A79 79 0 0 0 51.3 147.1 A8 8 0 0 1 35.8 151 Z" fill="#9FF3FF" fill-opacity="0.6"/>
+      <path d="M41.8 140.1 A87 87 0 0 1 45.3 101.1" fill="none" stroke="#FFFFFF" stroke-width="5" opacity="0.9"/>
+    </g>
+    <g transform="translate(-4.8 -8.7) rotate(8 85.8 51.9)">
+      <path d="M59.7 62 A95 95 0 0 1 108.2 35.1 A8 8 0 0 1 111.6 50.7 A79 79 0 0 0 71.2 73.1 A8 8 0 0 1 59.7 62 Z" fill="#9FF3FF" fill-opacity="0.6"/>
+      <path d="M72.1 61.4 A87 87 0 0 1 101.1 45.3" fill="none" stroke="#FFFFFF" stroke-width="5" opacity="0.9"/>
+    </g>
+  </g>
+  <g id="droplets" stroke="#2A1E3D" stroke-width="3" opacity="1.0">
+    <circle cx="134.9" cy="28.7" r="6.5" fill="#9FF3FF"/><circle cx="132.7" cy="26.5" r="2.3" fill="#FFFFFF" stroke="none"/>
+    <circle cx="220.3" cy="86.9" r="5" fill="#9FF3FF"/><circle cx="218.5" cy="85.2" r="1.8" fill="#FFFFFF" stroke="none"/>
+    <circle cx="208.1" cy="186.2" r="7" fill="#9FF3FF"/><circle cx="205.6" cy="183.7" r="2.4" fill="#FFFFFF" stroke="none"/>
+    <circle cx="114" cy="227.5" r="5.5" fill="#9FF3FF"/><circle cx="112.1" cy="225.6" r="1.9" fill="#FFFFFF" stroke="none"/>
+    <circle cx="37.1" cy="168.5" r="6.5" fill="#9FF3FF"/><circle cx="34.8" cy="166.2" r="2.3" fill="#FFFFFF" stroke="none"/>
+    <circle cx="44.3" cy="71.5" r="5" fill="#9FF3FF"/><circle cx="42.5" cy="69.8" r="1.8" fill="#FFFFFF" stroke="none"/>
+  </g>
+  <g id="sparkles" opacity="1">
+    <path d="M0 -18 Q5 -5 18 0 Q5 5 0 18 Q-5 5 -18 0 Q-5 -5 0 -18 Z" transform="translate(84 74)" fill="#FFFFFF" stroke="none"/>
+    <path d="M0 -12 Q3.4 -3.4 12 0 Q3.4 3.4 0 12 Q-3.4 3.4 -12 0 Q-3.4 -3.4 0 -12 Z" transform="translate(170 178)" fill="#FFF4D6" stroke="none"/>
+  </g>
+</g>
+</svg>

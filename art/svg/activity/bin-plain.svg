@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- bin-plain: Sorting bin, plain: a round open-top metal tub seen from slightly above, dark inside. Labels are DOM text.
+       Single frame. Anchor centre (256,256). Light from the top-left. See art/STYLE.md. -->
+<g id="bin-plain" stroke="#2A1E3D" stroke-linejoin="round" stroke-linecap="round">
+  <clipPath id="bin-clip"><path d="M80 150 L120 430 A136 44 0 0 0 392 430 L432 150 Z"/></clipPath>
+  <g id="bin-body" clip-path="url(#bin-clip)" stroke="none">
+    <path d="M80 150 L120 430 A136 44 0 0 0 392 430 L432 150 Z" fill="#7F89A6"/>
+    <path d="M60 100 H372 L330 500 H60 Z" fill="#A7B0C8"/>
+    <path d="M60 330 H460 V350 H60 Z" fill="#2A1E3D" opacity="0.13"/>
+  </g>
+  <path id="bin-highlight" d="M118 210 L140 380" fill="none" stroke="#C9D0E2" stroke-width="12"/>
+  <path id="bin-band" d="M108 330 Q256 380 402 330" fill="none" stroke-width="6"/>
+  <path id="bin-outline" d="M80 150 L120 430 A136 44 0 0 0 392 430 L432 150 Z" fill="none" stroke-width="11"/>
+  <g id="rim">
+    <ellipse cx="256" cy="150" rx="176" ry="56" fill="#C9D0E2" stroke-width="11"/>
+    <ellipse id="bin-inside" cx="256" cy="154" rx="152" ry="40" fill="#23295E" stroke-width="6"/>
+    <path id="inside-back" d="M110 152 Q256 110 402 152" fill="none" stroke="#5B3F99" stroke-width="10" opacity="0.8"/>
+    <path id="rim-highlight" d="M110 128 Q150 106 210 100" fill="none" stroke="#FFFFFF" stroke-width="7" opacity="0.85"/>
+  </g>
+</g>
+</svg>

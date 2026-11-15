@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <!-- route-portal-end: route start cap, the track leaves the portal as a glowing fan on the left and matches route-straight-h exactly on the right edge. Single frame. Anchor centre (96,96). -->
+  <g id="route-portal-end">
+    <g id="track">
+      <path id="glow" d="M0 -2 C55 -2 50 14 105 14 H192 V178 H105 C50 178 55 194 0 194 Z" fill="#3FB8AF" opacity="0.3"/>
+      <path id="outline" d="M0 7 C55 7 50 23 105 23 H192 V169 H105 C50 169 55 185 0 185 Z" fill="#2A1E3D"/>
+      <path id="border" d="M0 13 C55 13 50 29 105 29 H192 V163 H105 C50 163 55 179 0 179 Z" fill="#3FB8AF"/>
+      <path id="border-light" d="M0 18 C55 18 50 34 105 34 H192 V158 H105 C50 158 55 174 0 174 Z" fill="#7FD9D2"/>
+      <path id="inner-line" d="M0 24 C55 24 50 40 105 40 H192 V152 H105 C50 152 55 168 0 168 Z" fill="#2A1E3D"/>
+      <path id="dust" d="M0 27 C55 27 50 43 105 43 H192 V149 H105 C50 149 55 165 0 165 Z" fill="#E6DDF7"/>
+    </g>
+    <g id="mouth-glow">
+      <ellipse cx="0" cy="96" rx="34" ry="62" fill="#FFF4D6" opacity="0.55"/>
+      <ellipse cx="0" cy="96" rx="16" ry="40" fill="#FFFFFF" opacity="0.7"/>
+    </g>
+    <g id="specks" fill="#C9C0F0">
+      <ellipse cx="160" cy="126" rx="6.5" ry="4.8"/>
+    </g>
+    <g id="sparkles">
+      <path d="M38 46 Q40.8 53.2 48 56 Q40.8 58.8 38 66 Q35.2 58.8 28 56 Q35.2 53.2 38 46 Z" fill="#FFF4D6"/>
+      <path d="M48 133 Q50 138 55 140 Q50 142 48 147 Q46 142 41 140 Q46 138 48 133 Z" fill="#9FF3FF"/>
+    </g>
+    <g id="arrow" transform="translate(124 96) rotate(0)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M-15 -24 L13 0 L-15 24" stroke="#B3A8E3" stroke-width="17"/>
+      <path d="M-15 -24 L13 0 L-15 24" stroke="#FFFFFF" stroke-width="5" opacity="0.8" transform="translate(-3 -2)"/>
+    </g>
+  </g>
+</svg>

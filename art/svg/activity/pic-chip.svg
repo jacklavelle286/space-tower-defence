@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-chip: a small pile of three thick golden potato chips (British chips, not crisps).
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+  <defs>
+    <clipPath id="chip-clip"><rect x="-84" y="-21" width="168" height="42" rx="14"/></clipPath>
+  </defs>
+  <g id="chips" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <g id="chip-back" transform="translate(140 108) rotate(14)">
+      <rect x="-84" y="-21" width="168" height="42" rx="14" fill="#FFD23F"/>
+      <g clip-path="url(#chip-clip)" stroke="none">
+        <rect x="-90" y="8" width="180" height="16" fill="#E0AE1F"/>
+        <rect x="64" y="-24" width="24" height="48" fill="#E0AE1F"/>
+      </g>
+      <rect x="-84" y="-21" width="168" height="42" rx="14" fill="none"/>
+      <path d="M-66 -10 H-20" fill="none" stroke="#FFEA99" stroke-width="5"/>
+    </g>
+    <g id="chip-middle" transform="translate(116 140) rotate(-18)">
+      <rect x="-84" y="-21" width="168" height="42" rx="14" fill="#FFD23F"/>
+      <g clip-path="url(#chip-clip)" stroke="none">
+        <rect x="-90" y="8" width="180" height="16" fill="#E0AE1F"/>
+        <rect x="64" y="-24" width="24" height="48" fill="#E0AE1F"/>
+      </g>
+      <rect x="-84" y="-21" width="168" height="42" rx="14" fill="none"/>
+      <path d="M-66 -10 H-20" fill="none" stroke="#FFEA99" stroke-width="5"/>
+    </g>
+    <g id="chip-front" transform="translate(132 182) rotate(-3)">
+      <rect x="-84" y="-21" width="168" height="42" rx="14" fill="#FFD23F"/>
+      <g clip-path="url(#chip-clip)" stroke="none">
+        <rect x="-90" y="8" width="180" height="16" fill="#E0AE1F"/>
+        <rect x="64" y="-24" width="24" height="48" fill="#E0AE1F"/>
+      </g>
+      <rect x="-84" y="-21" width="168" height="42" rx="14" fill="none"/>
+      <path d="M-66 -10 H-20" fill="none" stroke="#FFEA99" stroke-width="5"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,283 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1536 1024" width="1536" height="1024">
+  <!-- Mira (Shield Specialist) master character sheet (reference, not shipped): front, three-quarter right, back. Same size, soles on one line. Transparent background (no key colour). -->
+  <defs><clipPath id="f-torso-clip"><path d="M86 150 Q86 132 106 132 H146 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z"/></clipPath><clipPath id="f-shield-clip"><path d="M91 151 Q126 138 161 151 V170 Q161 194 126 205 Q91 194 91 170 Z"/></clipPath><clipPath id="f-face-clip"><circle cx="126" cy="98" r="29"/></clipPath><clipPath id="b-torso-clip"><path d="M86 150 Q86 132 106 132 H146 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z"/></clipPath><clipPath id="b-shield-clip"><path d="M91 151 Q126 138 161 151 V170 Q161 194 126 205 Q91 194 91 170 Z"/></clipPath><clipPath id="b-face-clip"><circle cx="126" cy="98" r="29"/></clipPath>
+    <clipPath id="q-torso-clip"><path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z"/></clipPath>
+    <clipPath id="q-shield-clip"><path d="M91 151 Q126 138 161 151 V170 Q161 194 126 205 Q91 194 91 170 Z"/></clipPath>
+    <clipPath id="q-face-clip"><circle cx="128" cy="98" r="29"/></clipPath>
+  </defs>
+
+  <g id="view-f" transform="translate(256 930) scale(2.8) translate(-126 -250)">
+  <g id="f-mira" stroke="#2A1E3D" stroke-width="4.20" stroke-linejoin="round" stroke-linecap="round">
+    <rect id="f-backpack" x="74" y="140" width="104" height="58" rx="14" fill="#A7B0C8"/>
+    
+    <g id="f-legs">
+      <rect x="98" y="190" width="24" height="42" rx="10" fill="#F4F1EA"/>
+      <rect x="130" y="190" width="24" height="42" rx="10" fill="#F4F1EA"/>
+      <rect x="102" y="210" width="16" height="10" rx="4" fill="#3DBE6E" stroke-width="2.40"/><rect x="134" y="210" width="16" height="10" rx="4" fill="#3DBE6E" stroke-width="2.40"/>
+    </g>
+    <g id="f-boots">
+      <path d="M93 250 V237 Q93 226 104 226 H113 Q124 226 124 237 V250 Z" fill="#3DBE6E"/>
+      <path d="M128 250 V237 Q128 226 139 226 H148 Q159 226 159 237 V250 Z" fill="#3DBE6E"/>
+      <rect x="97" y="242" width="23" height="5" rx="2" fill="#2A9653" stroke="none"/>
+      <rect x="132" y="242" width="23" height="5" rx="2" fill="#2A9653" stroke="none"/>
+      <path d="M99 237 Q99 232 104 232" fill="none" stroke="#8FE0AA" stroke-width="2.10"/>
+      <path d="M134 237 Q134 232 139 232" fill="none" stroke="#8FE0AA" stroke-width="2.10"/>
+    </g>
+    <g id="f-arms">
+      <path d="M92 146 Q76 164 80 190" fill="none" stroke-width="15.60"/><path d="M92 146 Q76 164 80 190" fill="none" stroke="#F4F1EA" stroke-width="7.20"/>
+      <path d="M160 146 Q176 164 172 190" fill="none" stroke-width="15.60"/><path d="M160 146 Q176 164 172 190" fill="none" stroke="#F4F1EA" stroke-width="7.20"/>
+    </g>
+    
+    <g id="f-torso">
+      <path d="M86 150 Q86 132 106 132 H146 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="#F4F1EA"/>
+      <path clip-path="url(#f-torso-clip)" d="M156 132 H170 V214 H140 Q158 186 156 132 Z" fill="#2A1E3D" opacity="0.13" stroke="none"/>
+      <path d="M86 150 Q86 132 106 132 H146 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="none"/>
+      
+      <g id="f-emblem">
+        <path d="M91 151 Q126 138 161 151 V170 Q161 194 126 205 Q91 194 91 170 Z" fill="#3DBE6E" stroke-width="3.00"/>
+        <path clip-path="url(#f-shield-clip)" d="M150 140 H166 V208 H120 Q154 192 150 140 Z" fill="#2A9653" stroke="none"/>
+        <path d="M101 158 Q126 149 151 158 V171 Q151 189 126 197 Q101 189 101 171 Z" fill="none" stroke="#F4F1EA" stroke-width="3.00"/>
+        <path d="M91 151 Q126 138 161 151 V170 Q161 194 126 205 Q91 194 91 170 Z" fill="none" stroke-width="3.00"/>
+        <path d="M108 168 Q109 163 115 161" fill="none" stroke="#8FE0AA" stroke-width="2.40"/>
+      </g>
+      <path d="M89 170 V156 Q89 148 94 145" fill="none" stroke="#FFFFFF" stroke-width="2.40"/>
+    </g>
+    <ellipse cx="126" cy="141" rx="33" ry="9" fill="#A7B0C8" stroke-width="3.60"/>
+    
+      <g transform="translate(186 168) rotate(22)">
+        <circle cx="0" cy="-10" r="12" fill="#5BE0F0" opacity="0.6" stroke="none"/>
+        <rect x="-4.5" y="6" width="9" height="26" rx="4.5" fill="#A7B0C8" stroke-width="3.00"/>
+        <path d="M-25 0 Q-23 18 0 18 Q23 18 25 0 Z" fill="#F4F1EA" stroke-width="3.00"/>
+        <path d="M-19 9 Q0 14.5 19 9" fill="none" stroke="#3DBE6E" stroke-width="2.40"/>
+        <ellipse cx="0" cy="0" rx="25" ry="7" fill="#C9D0E2" stroke-width="3.00"/>
+        <path d="M0 0 V-9" fill="none" stroke-width="2.40"/>
+        <circle cx="0" cy="-10" r="4.5" fill="#5BE0F0" stroke-width="2.40"/>
+        <circle cx="-1.5" cy="-11.5" r="1.4" fill="#FFFFFF" stroke="none"/>
+      </g>
+    <circle cx="80" cy="194" r="10.5" fill="#3DBE6E"/><ellipse cx="71" cy="188" rx="4" ry="5" fill="#3DBE6E" stroke-width="2.40"/>
+    <circle cx="172" cy="194" r="10.5" fill="#3DBE6E"/><ellipse cx="181" cy="188" rx="4" ry="5" fill="#3DBE6E" stroke-width="2.40"/>
+    
+    <g id="f-helmet">
+      <circle cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none"/>
+      <g id="f-head" stroke-width="2.40">
+        <!-- neat bun on top of the head -->
+        <circle id="f-hair-bun" cx="126" cy="66" r="12" fill="#3B2A24"/>
+        <path d="M119 63 Q121 59 126 58" fill="none" stroke="#6A5048" stroke-width="1.80"/>
+        <circle id="f-face" cx="126" cy="98" r="29" fill="#A9714B"/>
+        <path clip-path="url(#f-face-clip)" d="M153 89 Q150 121 118 127 L158 129 Z" fill="#8A5A3A" stroke="none"/>
+        <path id="f-fringe" d="M97 97 Q94 68 126 67 Q157 68 155 93 Q149 80 134 79 Q139 84 138 86 Q120 78 108 84 Q100 88 97 97 Z" fill="#3B2A24"/>
+        <path d="M106 76 Q112 71 120 71" fill="none" stroke="#6A5048" stroke-width="1.80"/>
+        <g id="f-face-features" stroke="none">
+          <ellipse cx="115" cy="101" rx="4" ry="5.2" fill="#2A1E3D"/>
+          <ellipse cx="137" cy="101" rx="4" ry="5.2" fill="#2A1E3D"/>
+          <circle cx="116.4" cy="98.8" r="1.7" fill="#FFFFFF"/>
+          <circle cx="138.4" cy="98.8" r="1.7" fill="#FFFFFF"/>
+          <ellipse cx="105" cy="112" rx="5.2" ry="3.6" fill="#D9606E" opacity="0.6"/>
+          <ellipse cx="147" cy="112" rx="5.2" ry="3.6" fill="#D9606E" opacity="0.6"/>
+        </g>
+        <g id="f-glasses" stroke-width="1.80">
+          <circle cx="115" cy="100" r="9" fill="#FFFFFF" fill-opacity="0.22"/>
+          <circle cx="137" cy="100" r="9" fill="#FFFFFF" fill-opacity="0.22"/>
+          <path d="M124 99.5 Q126 97 128 99.5" fill="none"/>
+          <path d="M106 98 L98 95" fill="none"/>
+          <path d="M146 98 L154 95" fill="none"/>
+        </g>
+        <path id="f-mouth" d="M117 113 Q126 120 135 113" fill="none" stroke-width="2.10"/>
+      </g>
+      <g id="f-visor-rim">
+        <path d="M83 121 Q126 152 169 121" fill="none" stroke-width="9.60"/>
+        <path d="M83 121 Q126 152 169 121" fill="none" stroke="#3DBE6E" stroke-width="5.40"/>
+      </g>
+      <g id="f-helmet-highlight" stroke="#FFFFFF" fill="none">
+        <path d="M88 70 Q98 54 116 49" stroke-width="4.20" opacity="0.9"/>
+        <circle cx="83" cy="84" r="1.5" stroke-width="3.00" opacity="0.9"/>
+      </g>
+      <circle cx="126" cy="94" r="50" fill="none"/>
+    </g>
+  </g>
+  </g>
+  <g id="view-q" transform="translate(768 930) scale(2.8) translate(-140 -250)"><g id="q-mira" stroke="#2A1E3D" stroke-width="4.20" stroke-linejoin="round" stroke-linecap="round">
+    <g id="q-body-back">
+      <g id="q-backpack">
+        <rect x="68" y="138" width="36" height="60" rx="13" fill="#A7B0C8"/>
+        <path d="M74 184 Q74 192 84 192 H98" fill="none" stroke="#7F89A6" stroke-width="3.00"/>
+      </g>
+      <g id="q-legs">
+        <rect x="97" y="190" width="25" height="42" rx="10" fill="#F4F1EA"/>
+        <rect x="130" y="190" width="25" height="42" rx="10" fill="#F4F1EA"/>
+        <rect x="101" y="210" width="17" height="10" rx="4" fill="#3DBE6E" stroke-width="2.40"/>
+        <rect x="134" y="210" width="17" height="10" rx="4" fill="#3DBE6E" stroke-width="2.40"/>
+      </g>
+    </g>
+    <g id="q-boots">
+      <path d="M93 250 V236 Q93 226 103 226 H114 Q124 226 125 234 Q133 237 133 244 V250 Z" fill="#3DBE6E"/>
+      <path d="M126 250 V236 Q126 226 136 226 H147 Q157 226 158 234 Q166 237 166 244 V250 Z" fill="#3DBE6E"/>
+      <g stroke="none">
+        <rect x="97" y="242" width="33" height="5" rx="2" fill="#2A9653"/>
+        <rect x="130" y="242" width="33" height="5" rx="2" fill="#2A9653"/>
+      </g>
+      <path d="M99 236 Q99 231 104 231" fill="none" stroke="#8FE0AA" stroke-width="2.10"/>
+      <path d="M132 236 Q132 231 137 231" fill="none" stroke="#8FE0AA" stroke-width="2.10"/>
+    </g>
+    <g id="q-body">
+      <g id="q-arm-back">
+        <path d="M92 146 Q74 164 80 190" fill="none" stroke-width="15.60"/>
+        <path d="M92 146 Q74 164 80 190" fill="none" stroke="#F4F1EA" stroke-width="7.20"/>
+        <g id="q-mitten-back" fill="#3DBE6E">
+          <circle cx="80" cy="194" r="10.5"/>
+          <ellipse cx="90" cy="190" rx="5" ry="4" stroke-width="2.40"/>
+        </g>
+      </g>
+      <g id="q-torso">
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="#F4F1EA"/>
+        <g clip-path="url(#q-torso-clip)">
+          <path id="q-torso-shade" d="M156 132 H170 V214 H140 Q158 186 156 132 Z" fill="#2A1E3D" opacity="0.13" stroke="none"/>
+        </g>
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="none"/>
+        <!-- the big chest shield: green shield, white inner band, no symbols -->
+        <g id="q-emblem">
+          <path d="M91 151 Q126 138 161 151 V170 Q161 194 126 205 Q91 194 91 170 Z" fill="#3DBE6E" stroke-width="3.00"/>
+          <g clip-path="url(#q-shield-clip)" stroke="none">
+            <path id="q-emblem-shade" d="M150 140 H166 V208 H120 Q154 192 150 140 Z" fill="#2A9653"/>
+          </g>
+          <path id="q-emblem-band" d="M101 158 Q126 149 151 158 V171 Q151 189 126 197 Q101 189 101 171 Z" fill="none" stroke="#F4F1EA" stroke-width="3.00"/>
+          <path d="M91 151 Q126 138 161 151 V170 Q161 194 126 205 Q91 194 91 170 Z" fill="none" stroke-width="3.00"/>
+          <path id="q-emblem-highlight" d="M108 168 Q109 163 115 161" fill="none" stroke="#8FE0AA" stroke-width="2.40"/>
+        </g>
+        <path id="q-torso-highlight" d="M89 170 V156 Q89 148 94 145" fill="none" stroke="#FFFFFF" stroke-width="2.40"/>
+      </g>
+      <ellipse id="q-collar" cx="127" cy="141" rx="33" ry="9" fill="#A7B0C8" stroke-width="3.60"/>
+      <g id="q-arm-front">
+        <path d="M158 148 Q180 156 188 174" fill="none" stroke-width="15.60"/>
+        <path d="M158 148 Q180 156 188 174" fill="none" stroke="#F4F1EA" stroke-width="7.20"/>
+        <!-- dish emitter: a mini satellite dish on a short handle, opening up-right; local origin = dish rim centre -->
+        <g id="q-gadget" transform="translate(210 156) rotate(40)">
+          <circle id="q-lens-glow" cx="0" cy="-10" r="12" fill="#5BE0F0" opacity="0.6" stroke="none"/>
+          <rect id="q-handle" x="-4.5" y="6" width="9" height="26" rx="4.5" fill="#A7B0C8" stroke-width="3.00"/>
+          <path id="q-dish" d="M-25 0 Q-23 18 0 18 Q23 18 25 0 Z" fill="#F4F1EA" stroke-width="3.00"/>
+          <path id="q-dish-band" d="M-19 9 Q0 14.5 19 9" fill="none" stroke="#3DBE6E" stroke-width="2.40"/>
+          <ellipse id="q-dish-face" cx="0" cy="0" rx="25" ry="7" fill="#C9D0E2" stroke-width="3.00"/>
+          <path id="q-feed" d="M0 0 V-9" fill="none" stroke-width="2.40"/>
+          <circle id="q-lens" cx="0" cy="-10" r="4.5" fill="#5BE0F0" stroke-width="2.40"/>
+          <circle cx="-1.5" cy="-11.5" r="1.4" fill="#FFFFFF" stroke="none"/>
+        </g>
+        <g id="q-mitten-front" fill="#3DBE6E">
+          <circle cx="190" cy="179" r="10.5"/>
+          <ellipse cx="194" cy="169" rx="4" ry="5" stroke-width="2.40"/>
+        </g>
+      </g>
+      <g id="q-helmet">
+        <circle id="q-glass" cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none"/>
+        <g id="q-head" stroke-width="2.40">
+          <!-- neat bun at the back of the head (viewer's left, top) -->
+          <circle id="q-hair-bun" cx="104" cy="70" r="12" fill="#3B2A24"/>
+          <path d="M98 66 Q100 62 105 61" fill="none" stroke="#6A5048" stroke-width="1.80"/>
+          <circle id="q-face" cx="128" cy="98" r="29" fill="#A9714B"/>
+          <path id="q-face-shade" clip-path="url(#q-face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#8A5A3A" stroke="none"/>
+          <!-- smooth swept hair cap with a side parting -->
+          <path id="q-fringe" d="M99 97 Q96 68 128 67 Q159 68 157 93 Q151 80 136 79 Q141 84 140 86 Q122 78 110 84 Q102 88 99 97 Z" fill="#3B2A24"/>
+          <path d="M108 76 Q114 71 122 71" fill="none" stroke="#6A5048" stroke-width="1.80" stroke-linecap="round"/>
+          <g id="q-face-features" stroke="none">
+            <ellipse cx="120" cy="102" rx="4" ry="5.2" fill="#2A1E3D"/>
+            <ellipse cx="142" cy="101" rx="4" ry="5.2" fill="#2A1E3D"/>
+            <circle cx="121.4" cy="99.8" r="1.7" fill="#FFFFFF"/>
+            <circle cx="143.4" cy="98.8" r="1.7" fill="#FFFFFF"/>
+            <ellipse cx="110" cy="113" rx="6" ry="3.8" fill="#D9606E" opacity="0.6"/>
+            <ellipse cx="152" cy="112" rx="4.6" ry="3.4" fill="#D9606E" opacity="0.6"/>
+          </g>
+          <!-- round glasses -->
+          <g id="q-glasses" stroke-width="1.80">
+            <circle cx="120" cy="101" r="9" fill="#FFFFFF" fill-opacity="0.22"/>
+            <circle cx="142.5" cy="100" r="8.5" fill="#FFFFFF" fill-opacity="0.22"/>
+            <path d="M129 100 Q131.3 97.5 134 99.5" fill="none"/>
+            <path d="M111 99 L100 96" fill="none"/>
+          </g>
+          <path id="q-mouth" d="M124 114 Q133 121 143 113" fill="none" stroke-width="2.10"/>
+        </g>
+        <g id="q-visor-rim">
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke-width="9.60"/>
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke="#3DBE6E" stroke-width="5.40"/>
+        </g>
+        <g id="q-helmet-highlight" stroke="#FFFFFF" fill="none">
+          <path d="M88 70 Q98 54 116 49" stroke-width="4.20" opacity="0.9"/>
+          <circle cx="83" cy="84" r="1.5" stroke-width="3.00" opacity="0.9"/>
+        </g>
+        <circle id="q-helmet-outline" cx="126" cy="94" r="50" fill="none"/>
+      </g>
+    </g>
+  </g>
+  </g>
+  <g id="view-b" transform="translate(1280 930) scale(2.8) translate(-126 -250)">
+  <g id="b-mira" stroke="#2A1E3D" stroke-width="4.20" stroke-linejoin="round" stroke-linecap="round">
+    
+    <g id="b-legs">
+      <rect x="98" y="190" width="24" height="42" rx="10" fill="#F4F1EA"/>
+      <rect x="130" y="190" width="24" height="42" rx="10" fill="#F4F1EA"/>
+      
+    </g>
+    <g id="b-boots">
+      <path d="M93 250 V237 Q93 226 104 226 H113 Q124 226 124 237 V250 Z" fill="#3DBE6E"/>
+      <path d="M128 250 V237 Q128 226 139 226 H148 Q159 226 159 237 V250 Z" fill="#3DBE6E"/>
+      <rect x="97" y="242" width="23" height="5" rx="2" fill="#2A9653" stroke="none"/>
+      <rect x="132" y="242" width="23" height="5" rx="2" fill="#2A9653" stroke="none"/>
+      <path d="M99 237 Q99 232 104 232" fill="none" stroke="#8FE0AA" stroke-width="2.10"/>
+      <path d="M134 237 Q134 232 139 232" fill="none" stroke="#8FE0AA" stroke-width="2.10"/>
+    </g>
+    
+      <g transform="translate(66 168) rotate(-22)">
+        <circle cx="0" cy="-10" r="12" fill="#5BE0F0" opacity="0.6" stroke="none"/>
+        <rect x="-4.5" y="6" width="9" height="26" rx="4.5" fill="#A7B0C8" stroke-width="3.00"/>
+        <path d="M-25 0 Q-23 18 0 18 Q23 18 25 0 Z" fill="#F4F1EA" stroke-width="3.00"/>
+        <path d="M-19 9 Q0 14.5 19 9" fill="none" stroke="#3DBE6E" stroke-width="2.40"/>
+        <ellipse cx="0" cy="0" rx="25" ry="7" fill="#C9D0E2" stroke-width="3.00"/>
+        <path d="M0 0 V-9" fill="none" stroke-width="2.40"/>
+        <circle cx="0" cy="-10" r="4.5" fill="#5BE0F0" stroke-width="2.40"/>
+        <circle cx="-1.5" cy="-11.5" r="1.4" fill="#FFFFFF" stroke="none"/>
+      </g>
+    <g id="b-arms">
+      <path d="M92 146 Q76 164 80 190" fill="none" stroke-width="15.60"/><path d="M92 146 Q76 164 80 190" fill="none" stroke="#F4F1EA" stroke-width="7.20"/>
+      <path d="M160 146 Q176 164 172 190" fill="none" stroke-width="15.60"/><path d="M160 146 Q176 164 172 190" fill="none" stroke="#F4F1EA" stroke-width="7.20"/>
+    </g>
+    
+    <g id="b-torso">
+      <path d="M86 150 Q86 132 106 132 H146 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="#F4F1EA"/>
+      <path clip-path="url(#b-torso-clip)" d="M156 132 H170 V214 H140 Q158 186 156 132 Z" fill="#2A1E3D" opacity="0.13" stroke="none"/>
+      <path d="M86 150 Q86 132 106 132 H146 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="none"/>
+      
+      <path d="M89 170 V156 Q89 148 94 145" fill="none" stroke="#FFFFFF" stroke-width="2.40"/>
+    </g>
+    <path clip-path="url(#b-torso-clip)" d="M80 190 H172" fill="none" stroke="#3DBE6E" stroke-width="5.40"/>
+    <path d="M86 150 Q86 132 106 132 H146 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="none"/>
+    <g id="b-backpack">
+      <rect x="94" y="138" width="64" height="62" rx="15" fill="#A7B0C8"/>
+      <path d="M146 144 Q152 146 152 156 V186 Q152 194 144 194" fill="none" stroke="#7F89A6" stroke-width="3.00"/>
+      <path d="M108 158 H136 M108 168 H136" fill="none" stroke="#7F89A6" stroke-width="2.40"/>
+      <circle cx="122" cy="183" r="6" fill="#3DBE6E" stroke-width="2.40"/>
+      <path d="M101 160 V150 Q101 145 106 144" fill="none" stroke="#C9D0E2" stroke-width="2.40"/>
+    </g>
+    <ellipse cx="126" cy="141" rx="33" ry="9" fill="#A7B0C8" stroke-width="3.60"/>
+    <circle cx="80" cy="194" r="10.5" fill="#3DBE6E"/><ellipse cx="89" cy="188" rx="4" ry="5" fill="#3DBE6E" stroke-width="2.40"/>
+    <circle cx="172" cy="194" r="10.5" fill="#3DBE6E"/><ellipse cx="163" cy="188" rx="4" ry="5" fill="#3DBE6E" stroke-width="2.40"/>
+    
+    <g id="b-helmet">
+      <circle cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none"/>
+      <g id="b-head" stroke-width="2.40">
+        <circle cx="126" cy="98" r="29" fill="#3B2A24"/>
+        <path d="M126 74 Q122 86 126 96" fill="none" stroke="#6A5048" stroke-width="1.80"/>
+        <path d="M106 86 Q112 74 124 71" fill="none" stroke="#6A5048" stroke-width="1.80"/>
+        <circle id="b-hair-bun" cx="126" cy="104" r="11" fill="#3B2A24"/>
+        <path d="M119 101 Q121 97 126 96" fill="none" stroke="#6A5048" stroke-width="1.80"/>
+      </g>
+      <g id="b-visor-rim">
+        <path d="M83 121 Q126 152 169 121" fill="none" stroke-width="9.60"/>
+        <path d="M83 121 Q126 152 169 121" fill="none" stroke="#3DBE6E" stroke-width="5.40"/>
+      </g>
+      <g id="b-helmet-highlight" stroke="#FFFFFF" fill="none">
+        <path d="M88 70 Q98 54 116 49" stroke-width="4.20" opacity="0.9"/>
+        <circle cx="83" cy="84" r="1.5" stroke-width="3.00" opacity="0.9"/>
+      </g>
+      <circle cx="126" cy="94" r="50" fill="none"/>
+    </g>
+  </g>
+  </g>
+</svg>

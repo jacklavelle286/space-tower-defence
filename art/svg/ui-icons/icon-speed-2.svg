@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- icon-speed-2: HUD speed 2x: two bold cream chevrons pointing right (the button label carries 2x). Single frame. Anchor centre (32,32).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="speed-2" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+  <g id="chevron-back" fill="none">
+    <path d="M14 14 L30 32 L14 50" stroke="#2A1E3D" stroke-width="16"/>
+    <path d="M14 14 L30 32 L14 50" stroke="#FFF4D6" stroke-width="8"/>
+  </g>
+  <g id="chevron-front" fill="none">
+    <path d="M34 14 L50 32 L34 50" stroke="#2A1E3D" stroke-width="16"/>
+    <path d="M34 14 L50 32 L34 50" stroke="#FFF4D6" stroke-width="8"/>
+  </g>
+  <path d="M13 16.5 L17.5 21.5 M33 16.5 L37.5 21.5" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round"/>
+</g>
+</svg>

@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Moon Blob walk, frame 06: 06 passing.
+       Anchor bottom-centre (128,256): flat base sits on y=250 (+4 outline). Faces three-quarter to the viewer's right.
+       Light from the top-left. See art/STYLE.md. -->
+  <defs>
+    <clipPath id="blob-clip"><path d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z"/></clipPath>
+  </defs>
+  <g id="blob" transform="translate(128 250) skewX(-3) scale(1.02 0.97) translate(-128 -250)"
+     stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="antennae" stroke-width="7">
+      <g id="antenna-back" transform="rotate(5 104 130)">
+        <path d="M104 130 Q98 108 92 96" fill="none"/>
+        <circle cx="91" cy="90" r="11" fill="#9FF3FF" stroke-width="6"/>
+        <circle cx="87" cy="86" r="3" fill="#FFFFFF" stroke="none"/>
+      </g>
+      <g id="antenna-front" transform="rotate(5 158 130)">
+        <path d="M158 130 Q166 108 174 97" fill="none"/>
+        <circle cx="176" cy="91" r="11" fill="#9FF3FF" stroke-width="6"/>
+        <circle cx="172" cy="87" r="3" fill="#FFFFFF" stroke="none"/>
+      </g>
+    </g>
+    <g id="body">
+      <path id="dome" d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z" fill="#5AA9F0" stroke="none"/>
+      <g clip-path="url(#blob-clip)" stroke="none">
+        <path id="dome-shade" d="M236 120 Q206 150 212 236 Q208 246 186 252 L240 256 Z" fill="#3F86CF"/>
+        <ellipse id="belly" cx="132" cy="226" rx="62" ry="22" fill="#8CC7F6"/>
+      </g>
+      <path id="dome-highlight" d="M58 172 Q70 144 104 136" fill="none" stroke="#BFE3FF" stroke-width="10"/>
+      <circle cx="52" cy="190" r="4" fill="#BFE3FF" stroke="none"/>
+      <g id="crater-spots" fill="#8CC7F6" stroke-width="3">
+        <ellipse cx="78" cy="196" rx="9" ry="7"/>
+        <ellipse cx="196" cy="180" rx="7" ry="5.5"/>
+        <ellipse cx="190" cy="150" rx="6" ry="4.5"/>
+      </g>
+      <path id="dome-outline" d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z" fill="none" stroke-width="8"/>
+    </g>
+    <g id="face" transform="translate(1 1)">
+      <g id="eyes">
+        <ellipse cx="112" cy="174" rx="17" ry="20" fill="#FFFFFF" stroke-width="5"/>
+        <ellipse cx="158" cy="173" rx="16" ry="19" fill="#FFFFFF" stroke-width="5"/>
+        <g stroke="none">
+          <circle cx="117" cy="178" r="9" fill="#2A1E3D"/>
+          <circle cx="163" cy="177" r="8.5" fill="#2A1E3D"/>
+          <circle cx="120" cy="174" r="3.5" fill="#FFFFFF"/>
+          <circle cx="166" cy="173" r="3.3" fill="#FFFFFF"/>
+        </g>
+      </g>
+      <g id="mouth" fill="none" stroke-width="6">
+        <path d="M116 207 Q138 223 162 203"/>
+        <path d="M156 201 L166 199" stroke-width="5"/>
+      </g>
+    </g>
+  </g>
+</svg>

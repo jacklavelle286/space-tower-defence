@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- icon-sync-device: Sync this device: a cream laptop with a pale screen. Single frame. Anchor centre (32,32).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="sync-device" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+  <g id="laptop">
+  <clipPath id="screen-clip"><path d="M14 13 Q10 13 10 17 V42 H54 V17 Q54 13 50 13 Z"/></clipPath>
+  <g id="screen-fill" clip-path="url(#screen-clip)" stroke="none">
+    <path d="M14 13 Q10 13 10 17 V42 H54 V17 Q54 13 50 13 Z" fill="#E6D9B5"/>
+    <path d="M14 13 Q10 13 10 17 V42 H54 V17 Q54 13 50 13 Z" fill="#FFF4D6" transform="translate(-3 -3)"/>
+  </g>
+  <path id="screen-outline" d="M14 13 Q10 13 10 17 V42 H54 V17 Q54 13 50 13 Z" fill="none"/>
+  <rect id="screen-inner" x="16" y="19" width="32" height="18" rx="2.5" fill="#CFE9FF" stroke-width="2.5"/>
+  <path d="M20 24 L24 21" fill="none" stroke="#FFFFFF" stroke-width="2.2"/>
+  <clipPath id="base-clip"><path d="M4 46 Q4 43 8 43 H56 Q60 43 60 46 Q60 52 54 52 H10 Q4 52 4 46 Z"/></clipPath>
+  <g id="base-fill" clip-path="url(#base-clip)" stroke="none">
+    <path d="M4 46 Q4 43 8 43 H56 Q60 43 60 46 Q60 52 54 52 H10 Q4 52 4 46 Z" fill="#E6D9B5"/>
+    <path d="M4 46 Q4 43 8 43 H56 Q60 43 60 46 Q60 52 54 52 H10 Q4 52 4 46 Z" fill="#FFF4D6" transform="translate(-2 -2)"/>
+  </g>
+  <path id="base-outline" d="M4 46 Q4 43 8 43 H56 Q60 43 60 46 Q60 52 54 52 H10 Q4 52 4 46 Z" fill="none"/>
+  <path id="trackpad" d="M27 47.5 H37" fill="none" stroke-width="2.5"/>
+  </g>
+</g>
+</svg>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Slowed overlay, frame 02/02: frost crust with rounded icicles at the feet, snowflakes twinkle in a different place. Anchor bottom-centre (64,128).
+       See art/STYLE.md. -->
+  <g id="slowed" stroke-linecap="round" stroke-linejoin="round">
+    <defs><clipPath id="crust-clip"><path d="M18 102 Q10 94 18 87 Q22 78 34 83 Q42 74 54 81 Q64 73 74 81 Q85 74 95 81 Q106 75 111 86 Q120 93 111 102 L104 104 Q101 119 97 104 L84 105 Q80 122 75 105 L60 105 Q56 117 52 104 L38 104 Q34 118 30 103 Z"/></clipPath></defs>
+    <g id="crust"><path d="M18 102 Q10 94 18 87 Q22 78 34 83 Q42 74 54 81 Q64 73 74 81 Q85 74 95 81 Q106 75 111 86 Q120 93 111 102 L104 104 Q101 119 97 104 L84 105 Q80 122 75 105 L60 105 Q56 117 52 104 L38 104 Q34 118 30 103 Z" fill="#CFF6FF" stroke="none"/>
+    <g clip-path="url(#crust-clip)" stroke="none"><path d="M10 100 Q64 108 120 94 L120 128 L10 128 Z" fill="#8ED8FF"/></g>
+    <path d="M24 88 Q30 82 38 86 M60 80 Q66 77 72 80" fill="none" stroke="#FFFFFF" stroke-width="3.5"/>
+    <path d="M18 102 Q10 94 18 87 Q22 78 34 83 Q42 74 54 81 Q64 73 74 81 Q85 74 95 81 Q106 75 111 86 Q120 93 111 102 L104 104 Q101 119 97 104 L84 105 Q80 122 75 105 L60 105 Q56 117 52 104 L38 104 Q34 118 30 103 Z" fill="none" stroke="#2A1E3D" stroke-width="5"/></g>
+    <g id="flakes">
+    <path d="M45.5 46.2 L58.5 53.8 M52 42.5 L52 57.5 M58.5 46.2 L45.5 53.8 " fill="none" stroke="#2A1E3D" stroke-width="6.6" stroke-linecap="round"/><path d="M45.5 46.2 L58.5 53.8 M52 42.5 L52 57.5 M58.5 46.2 L45.5 53.8 " fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+    <path d="M79.1 60.4 L96.9 63.6 M84.9 53.5 L91.1 70.5 M93.8 55.1 L82.2 68.9 " fill="none" stroke="#2A1E3D" stroke-width="6.6" stroke-linecap="round"/><path d="M79.1 60.4 L96.9 63.6 M84.9 53.5 L91.1 70.5 M93.8 55.1 L82.2 68.9 " fill="none" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round"/>
+    <path d="M0 -5 Q1.4 -1.4 5 0 Q1.4 1.4 0 5 Q-1.4 1.4 -5 0 Q-1.4 -1.4 0 -5 Z" fill="#FFFFFF" stroke="#2A1E3D" stroke-width="2" stroke-linejoin="round" transform="translate(30 70) rotate(0)"/>
+    </g>
+  </g>
+</svg>

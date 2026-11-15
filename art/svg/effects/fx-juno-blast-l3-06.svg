@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 538 538" width="538" height="538">
+  <!-- Juno comet blast L3, frame 06/06: flat 4:3 starry impact ring; stars burst outward and fade. Drawn on a 384 grid, scaled x1.4. Anchor centre (269,269).
+       See art/STYLE.md. -->
+  <g id="juno-blast" transform="scale(1.4)" stroke-linecap="round" stroke-linejoin="round">
+      <g id="glow" stroke="none"><ellipse cx="192" cy="192" rx="150" ry="112.5" fill="#FFE79A" opacity="0"/>
+      </g>
+      <g id="ring" fill="none" opacity="0.2"><ellipse cx="192" cy="192" rx="150" ry="112.5" stroke="#2A1E3D" stroke-width="18"/><ellipse cx="192" cy="192" rx="150" ry="112.5" stroke="#FFC94A" stroke-width="10"/>
+      <ellipse cx="192" cy="192" rx="150" ry="112.5" stroke="#FFFFFF" stroke-width="3.5"/><ellipse cx="192" cy="192" rx="165" ry="123.8" stroke="#FFF4D6" stroke-width="4"/>
+      </g>
+      <g id="stars">
+      <path d="M0 -13.5 L4 -5.5 L12.8 -4.2 L6.4 2.1 L7.9 10.9 L0 6.8 L-7.9 10.9 L-6.4 2.1 L-12.8 -4.2 L-4 -5.5 Z" fill="#FFD23F" stroke="#2A1E3D" stroke-width="2.7" stroke-linejoin="round" transform="translate(245.8 67.9) rotate(18)" opacity="0.2"/>
+      <path d="M0 -10.8 L3.2 -4.4 L10.3 -3.3 L5.1 1.7 L6.3 8.7 L0 5.4 L-6.3 8.7 L-5.1 1.7 L-10.3 -3.3 L-3.2 -4.4 Z" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="2.5" stroke-linejoin="round" transform="translate(332.8 115.3) rotate(54)" opacity="0.2"/>
+      <path d="M0 -13.5 L4 -5.5 L12.8 -4.2 L6.4 2.1 L7.9 10.9 L0 6.8 L-7.9 10.9 L-6.4 2.1 L-12.8 -4.2 L-4 -5.5 Z" fill="#FFD23F" stroke="#2A1E3D" stroke-width="2.7" stroke-linejoin="round" transform="translate(366 192) rotate(90)" opacity="0.2"/>
+      <path d="M0 -10.8 L3.2 -4.4 L10.3 -3.3 L5.1 1.7 L6.3 8.7 L0 5.4 L-6.3 8.7 L-5.1 1.7 L-10.3 -3.3 L-3.2 -4.4 Z" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="2.5" stroke-linejoin="round" transform="translate(332.8 268.7) rotate(126)" opacity="0.2"/>
+      <path d="M0 -13.5 L4 -5.5 L12.8 -4.2 L6.4 2.1 L7.9 10.9 L0 6.8 L-7.9 10.9 L-6.4 2.1 L-12.8 -4.2 L-4 -5.5 Z" fill="#FFD23F" stroke="#2A1E3D" stroke-width="2.7" stroke-linejoin="round" transform="translate(245.8 316.1) rotate(162)" opacity="0.2"/>
+      <path d="M0 -10.8 L3.2 -4.4 L10.3 -3.3 L5.1 1.7 L6.3 8.7 L0 5.4 L-6.3 8.7 L-5.1 1.7 L-10.3 -3.3 L-3.2 -4.4 Z" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="2.5" stroke-linejoin="round" transform="translate(138.2 316.1) rotate(198)" opacity="0.2"/>
+      <path d="M0 -13.5 L4 -5.5 L12.8 -4.2 L6.4 2.1 L7.9 10.9 L0 6.8 L-7.9 10.9 L-6.4 2.1 L-12.8 -4.2 L-4 -5.5 Z" fill="#FFD23F" stroke="#2A1E3D" stroke-width="2.7" stroke-linejoin="round" transform="translate(51.2 268.7) rotate(234)" opacity="0.2"/>
+      <path d="M0 -10.8 L3.2 -4.4 L10.3 -3.3 L5.1 1.7 L6.3 8.7 L0 5.4 L-6.3 8.7 L-5.1 1.7 L-10.3 -3.3 L-3.2 -4.4 Z" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="2.5" stroke-linejoin="round" transform="translate(18 192) rotate(270)" opacity="0.2"/>
+      <path d="M0 -13.5 L4 -5.5 L12.8 -4.2 L6.4 2.1 L7.9 10.9 L0 6.8 L-7.9 10.9 L-6.4 2.1 L-12.8 -4.2 L-4 -5.5 Z" fill="#FFD23F" stroke="#2A1E3D" stroke-width="2.7" stroke-linejoin="round" transform="translate(51.2 115.3) rotate(306)" opacity="0.2"/>
+      <path d="M0 -10.8 L3.2 -4.4 L10.3 -3.3 L5.1 1.7 L6.3 8.7 L0 5.4 L-6.3 8.7 L-5.1 1.7 L-10.3 -3.3 L-3.2 -4.4 Z" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="2.5" stroke-linejoin="round" transform="translate(138.2 67.9) rotate(342)" opacity="0.2"/>
+      <circle cx="192" cy="80.6" r="2.2" fill="#FFF4D6" stroke="none" opacity="0.2"/>
+      <circle cx="279.3" cy="101.9" r="2.2" fill="#FFF4D6" stroke="none" opacity="0.2"/>
+      <circle cx="333.2" cy="157.6" r="2.2" fill="#FFF4D6" stroke="none" opacity="0.2"/>
+      <circle cx="333.2" cy="226.4" r="2.2" fill="#FFF4D6" stroke="none" opacity="0.2"/>
+      <circle cx="279.3" cy="282.1" r="2.2" fill="#FFF4D6" stroke="none" opacity="0.2"/>
+      <circle cx="192" cy="303.4" r="2.2" fill="#FFF4D6" stroke="none" opacity="0.2"/>
+      <circle cx="104.7" cy="282.1" r="2.2" fill="#FFF4D6" stroke="none" opacity="0.2"/>
+      <circle cx="50.8" cy="226.4" r="2.2" fill="#FFF4D6" stroke="none" opacity="0.2"/>
+      <circle cx="50.8" cy="157.6" r="2.2" fill="#FFF4D6" stroke="none" opacity="0.2"/>
+      <circle cx="104.7" cy="101.9" r="2.2" fill="#FFF4D6" stroke="none" opacity="0.2"/>
+      </g>
+  </g>
+</svg>

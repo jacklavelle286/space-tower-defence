@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-frog: a green frog sitting, facing the viewer, big round eyes on top, light belly, wide smile.
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+  <defs>
+    <clipPath id="body-clip"><path d="M128 82 Q210 82 210 156 Q210 216 128 216 Q46 216 46 156 Q46 82 128 82 Z"/></clipPath>
+  </defs>
+  <g id="frog" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <g id="legs-back" fill="#3DBE6E">
+      <ellipse cx="62" cy="190" rx="36" ry="30"/>
+      <ellipse cx="194" cy="190" rx="36" ry="30"/>
+      <path d="M40 222 Q30 230 34 236 H70 Q76 228 66 220 Z" stroke-width="6"/>
+      <path d="M216 222 Q226 230 222 236 H186 Q180 228 190 220 Z" stroke-width="6"/>
+    </g>
+    <g id="body">
+      <path d="M128 82 Q210 82 210 156 Q210 216 128 216 Q46 216 46 156 Q46 82 128 82 Z" fill="#3DBE6E"/>
+      <g clip-path="url(#body-clip)" stroke="none">
+        <ellipse id="belly" cx="128" cy="186" rx="52" ry="36" fill="#8FE0AA"/>
+        <path id="body-shade" d="M196 100 Q214 170 160 216 H220 V100 Z" fill="#2A1E3D" opacity="0.13"/>
+      </g>
+      <path d="M128 82 Q210 82 210 156 Q210 216 128 216 Q46 216 46 156 Q46 82 128 82 Z" fill="none"/>
+      <path id="body-highlight" d="M62 140 Q64 116 80 104" fill="none" stroke="#8FE0AA" stroke-width="5"/>
+    </g>
+    <g id="feet-front" fill="#3DBE6E" stroke-width="6">
+      <ellipse cx="100" cy="216" rx="20" ry="11"/>
+      <ellipse cx="156" cy="216" rx="20" ry="11"/>
+      <path d="M94 210 V220 M106 210 V220 M150 210 V220 M162 210 V220" fill="none" stroke-width="3.5"/>
+    </g>
+    <g id="eye-bumps" fill="#3DBE6E">
+      <circle cx="88" cy="84" r="30"/>
+      <circle cx="168" cy="84" r="30"/>
+      <g stroke="none">
+        <circle cx="88" cy="86" r="26"/>
+        <circle cx="168" cy="86" r="26"/>
+        <rect x="88" y="92" width="80" height="16"/>
+      </g>
+      <path d="M68 70 Q72 60 82 58" fill="none" stroke="#8FE0AA" stroke-width="5"/>
+    </g>
+    <g id="face">
+      <g id="eyes">
+        <circle cx="90" cy="82" r="17" fill="#FFFFFF" stroke-width="5"/>
+        <circle cx="166" cy="82" r="17" fill="#FFFFFF" stroke-width="5"/>
+        <circle cx="94" cy="85" r="9" fill="#2A1E3D" stroke="none"/>
+        <circle cx="170" cy="85" r="9" fill="#2A1E3D" stroke="none"/>
+        <circle cx="97" cy="81" r="3.5" fill="#FFFFFF" stroke="none"/>
+        <circle cx="173" cy="81" r="3.5" fill="#FFFFFF" stroke="none"/>
+      </g>
+      <g stroke="none">
+        <circle cx="120" cy="116" r="2.8" fill="#2A1E3D"/>
+        <circle cx="136" cy="116" r="2.8" fill="#2A1E3D"/>
+        <ellipse cx="72" cy="140" rx="9" ry="6" fill="#F48A9A" opacity="0.75"/>
+        <ellipse cx="184" cy="140" rx="9" ry="6" fill="#F48A9A" opacity="0.75"/>
+      </g>
+      <path id="mouth" d="M84 134 Q128 166 172 134" fill="none" stroke-width="5"/>
+    </g>
+  </g>
+</svg>

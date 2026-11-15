@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Healed sparkle, frame 02/04: green sparkles and rounded plus twinkles rising (offset 0). Anchor centre (64,64).
+       See art/STYLE.md. -->
+  <g id="healed" stroke-linecap="round" stroke-linejoin="round" opacity="1">
+    <g id="sparkles">
+    <g transform="translate(44 72) rotate(0)"><path d="M-9 0 L9 0 M0 -9 L0 9" fill="none" stroke="#2A1E3D" stroke-width="11" stroke-linecap="round"/><path d="M-9 0 L9 0 M0 -9 L0 9" fill="none" stroke="#7BEA8C" stroke-width="6" stroke-linecap="round"/></g>
+    <g transform="translate(88 40) rotate(0)"><path d="M-6.8 0 L6.8 0 M0 -6.8 L0 6.8" fill="none" stroke="#2A1E3D" stroke-width="8.2" stroke-linecap="round"/><path d="M-6.8 0 L6.8 0 M0 -6.8 L0 6.8" fill="none" stroke="#7BEA8C" stroke-width="4.5" stroke-linecap="round"/></g>
+    <path d="M0 -14 Q3.9 -3.9 14 0 Q3.9 3.9 0 14 Q-3.9 3.9 -14 0 Q-3.9 -3.9 0 -14 Z" fill="#7BEA8C" stroke="#2A1E3D" stroke-width="2.5" stroke-linejoin="round" transform="translate(84 84) rotate(0)"/>
+    <path d="M0 -9 Q2.5 -2.5 9 0 Q2.5 2.5 0 9 Q-2.5 2.5 -9 0 Q-2.5 -2.5 0 -9 Z" fill="#7BEA8C" stroke="#2A1E3D" stroke-width="2.5" stroke-linejoin="round" transform="translate(40 36) rotate(0)"/>
+    <path d="M0 -7 Q2 -2 7 0 Q2 2 0 7 Q-2 2 -7 0 Q-2 -2 0 -7 Z" fill="#C8F7CF" stroke="#2A1E3D" stroke-width="2.5" stroke-linejoin="round" transform="translate(104 62) rotate(0)"/>
+    <circle cx="62" cy="100" r="4" fill="#7BEA8C" stroke="#2A1E3D" stroke-width="2"/>
+    <circle cx="64" cy="48" r="3" fill="#FFFFFF" stroke="none"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- deco-rock-1: a chunky round purple moon boulder with two soft dimples, sitting on the ground. Single frame. Anchor bottom-centre (128,256), base on y 250.
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="rock" stroke="#2A1E3D" stroke-width="8" stroke-linejoin="round" stroke-linecap="round">
+  <clipPath id="boulder-clip"><path d="M40 236 Q30 190 58 150 Q84 92 140 88 Q198 86 218 140 Q238 192 224 236 Q220 250 204 250 H56 Q42 250 40 236 Z"/></clipPath>
+  <g id="boulder">
+    <path d="M40 236 Q30 190 58 150 Q84 92 140 88 Q198 86 218 140 Q238 192 224 236 Q220 250 204 250 H56 Q42 250 40 236 Z" fill="#6B5CA5" stroke="none"/>
+    <path id="boulder-shade" clip-path="url(#boulder-clip)" d="M238 110 Q226 210 150 238 Q110 252 60 252 H240 Z" fill="#4A3F7A" stroke="none"/>
+    <g id="dimples" stroke="none">
+      <ellipse cx="152" cy="150" rx="15" ry="11" fill="#4A3F7A"/>
+      <ellipse cx="148" cy="147" rx="12" ry="8.5" fill="#5A4C93"/>
+      <ellipse cx="96" cy="196" rx="11" ry="8" fill="#4A3F7A"/>
+      <ellipse cx="93" cy="194" rx="8.5" ry="6" fill="#5A4C93"/>
+      <ellipse cx="184" cy="206" rx="8" ry="6" fill="#3E3468"/>
+    </g>
+    <path id="boulder-highlight" d="M58 186 Q62 140 96 114 M116 104 Q126 100 134 100" fill="none" stroke="#9C8FD6" stroke-width="7"/>
+    <path id="boulder-outline" d="M40 236 Q30 190 58 150 Q84 92 140 88 Q198 86 218 140 Q238 192 224 236 Q220 250 204 250 H56 Q42 250 40 236 Z" fill="none"/>
+  </g>
+</g>
+</svg>

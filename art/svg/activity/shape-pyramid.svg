@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- shape-pyramid: 3-D shape, a square-based pyramid seen from slightly above; hidden back base edges dotted faintly, lilac.
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+<g id="pyramid" stroke="#2A1E3D" stroke-linejoin="round" stroke-linecap="round">
+  <g id="faces" stroke="none">
+    <path id="front" d="M124 30 L30 194 L156 226 Z" fill="#B98AF0"/>
+    <path id="right" d="M124 30 L156 226 L226 182 Z" fill="#9467CC"/>
+  </g>
+  <path class="highlight" d="M109.7 79.9 L64.7 153.9" fill="none" stroke="#FFFFFF" stroke-width="7" opacity="0.8"/>
+  <path id="pyramid-edges" d="M124 30 L156 226" fill="none" stroke-width="5"/>
+  <path id="pyramid-outline" d="M124 30 L30 194 L156 226 L226 182 Z" fill="none" stroke-width="8"/>
+  <g id="hidden-edges" fill="none" stroke-width="4" stroke-dasharray="7 9" opacity="0.6">
+    <path d="M30 194 L100 150 L226 182 M100 150 L124 30"/>
+  </g>
+</g>
+</svg>

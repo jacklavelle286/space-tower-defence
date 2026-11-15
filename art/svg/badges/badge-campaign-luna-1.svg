@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- badge-campaign-luna-1: Colony Hero: a grand star with rays behind the white domed colony; double gold rim with tiny stars. earned (full colour). Single frame. Anchor centre (128,128).
+       Medal: gold rim, cream ring, night-blue disc, ribbon tab at the bottom. Light from the top-left. See art/STYLE.md. -->
+
+<g id="badge-campaign-luna-1" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+  <g id="ribbon">
+    <clipPath id="badge-campaign-luna-1-tail-right"><path d="M158 176 L126 186 L142 245 L157 233 L176 240 Z"/></clipPath>
+    <g id="tail-right">
+      <g clip-path="url(#badge-campaign-luna-1-tail-right)" stroke="none">
+        <path d="M158 176 L126 186 L145.2 256.8 L179.6 252.8 Z" fill="#F5B700"/>
+        <path d="M136.2 182.8 L126 186 L145.2 256.8 L156.2 255.5 Z" fill="#2A1E3D" opacity="0.18"/>
+      </g>
+      <path d="M158 176 L126 186 L142 245 L157 233 L176 240 Z" fill="none"/>
+    </g>
+    <clipPath id="badge-campaign-luna-1-tail-left"><path d="M98 176 L130 186 L114 245 L99 233 L80 240 Z"/></clipPath>
+    <g id="tail-left">
+      <g clip-path="url(#badge-campaign-luna-1-tail-left)" stroke="none">
+        <path d="M98 176 L130 186 L110.8 256.8 L76.4 252.8 Z" fill="#F5B700"/>
+        <path d="M119.8 182.8 L130 186 L110.8 256.8 L99.8 255.5 Z" fill="#2A1E3D" opacity="0.18"/>
+      </g>
+      <path d="M98 176 L130 186 L114 245 L99 233 L80 240 Z" fill="none"/>
+    </g>
+  </g>
+  <g id="rim">
+    <clipPath id="badge-campaign-luna-1-rim-clip"><circle cx="128" cy="114" r="102"/></clipPath>
+    <circle id="rim-gold" cx="128" cy="114" r="102" fill="#D09A00" stroke="none"/>
+    <circle clip-path="url(#badge-campaign-luna-1-rim-clip)" cx="122" cy="108" r="102" fill="#F5B700" stroke="none"/>
+    <path id="rim-highlight" d="M37.6 88.1 A94 94 0 0 1 95.9 25.7" fill="none" stroke="#FFE79A" stroke-width="5"/>
+    <circle cx="128" cy="114" r="92" fill="none" stroke-width="4"/>
+    <g id="rim-stars" fill="#FFF4D6" stroke="none">
+      <path d="M0 -6 L1.6 -2.2 L5.7 -1.9 L2.6 0.8 L3.5 4.9 L0 2.7 L-3.5 4.9 L-2.6 0.8 L-5.7 -1.9 L-1.6 -2.2 Z" transform="translate(153.1 20.3)"/>
+      <path d="M0 -6 L1.6 -2.2 L5.7 -1.9 L2.6 0.8 L3.5 4.9 L0 2.7 L-3.5 4.9 L-2.6 0.8 L-5.7 -1.9 L-1.6 -2.2 Z" transform="translate(196.6 45.4)"/>
+      <path d="M0 -6 L1.6 -2.2 L5.7 -1.9 L2.6 0.8 L3.5 4.9 L0 2.7 L-3.5 4.9 L-2.6 0.8 L-5.7 -1.9 L-1.6 -2.2 Z" transform="translate(221.7 88.9)"/>
+      <path d="M0 -6 L1.6 -2.2 L5.7 -1.9 L2.6 0.8 L3.5 4.9 L0 2.7 L-3.5 4.9 L-2.6 0.8 L-5.7 -1.9 L-1.6 -2.2 Z" transform="translate(221.7 139.1)"/>
+      <path d="M0 -6 L1.6 -2.2 L5.7 -1.9 L2.6 0.8 L3.5 4.9 L0 2.7 L-3.5 4.9 L-2.6 0.8 L-5.7 -1.9 L-1.6 -2.2 Z" transform="translate(196.6 182.6)"/>
+      <path d="M0 -6 L1.6 -2.2 L5.7 -1.9 L2.6 0.8 L3.5 4.9 L0 2.7 L-3.5 4.9 L-2.6 0.8 L-5.7 -1.9 L-1.6 -2.2 Z" transform="translate(153.1 207.7)"/>
+      <path d="M0 -6 L1.6 -2.2 L5.7 -1.9 L2.6 0.8 L3.5 4.9 L0 2.7 L-3.5 4.9 L-2.6 0.8 L-5.7 -1.9 L-1.6 -2.2 Z" transform="translate(102.9 207.7)"/>
+      <path d="M0 -6 L1.6 -2.2 L5.7 -1.9 L2.6 0.8 L3.5 4.9 L0 2.7 L-3.5 4.9 L-2.6 0.8 L-5.7 -1.9 L-1.6 -2.2 Z" transform="translate(59.4 182.6)"/>
+      <path d="M0 -6 L1.6 -2.2 L5.7 -1.9 L2.6 0.8 L3.5 4.9 L0 2.7 L-3.5 4.9 L-2.6 0.8 L-5.7 -1.9 L-1.6 -2.2 Z" transform="translate(34.3 139.1)"/>
+      <path d="M0 -6 L1.6 -2.2 L5.7 -1.9 L2.6 0.8 L3.5 4.9 L0 2.7 L-3.5 4.9 L-2.6 0.8 L-5.7 -1.9 L-1.6 -2.2 Z" transform="translate(34.3 88.9)"/>
+      <path d="M0 -6 L1.6 -2.2 L5.7 -1.9 L2.6 0.8 L3.5 4.9 L0 2.7 L-3.5 4.9 L-2.6 0.8 L-5.7 -1.9 L-1.6 -2.2 Z" transform="translate(59.4 45.4)"/>
+      <path d="M0 -6 L1.6 -2.2 L5.7 -1.9 L2.6 0.8 L3.5 4.9 L0 2.7 L-3.5 4.9 L-2.6 0.8 L-5.7 -1.9 L-1.6 -2.2 Z" transform="translate(102.9 20.3)"/>
+    </g>
+    <circle id="rim-outline" cx="128" cy="114" r="102" fill="none"/>
+    <circle id="cream-ring" cx="128" cy="114" r="80" fill="#FFF4D6" stroke-width="4"/>
+    <circle id="disc" cx="128" cy="114" r="70" fill="#23295E" stroke-width="4"/>
+  </g>
+  <g id="motif" transform="translate(128 114)" stroke-width="4">
+    <g id="rays" stroke-width="4">
+      <path d="M14.2 -51.7 L17.9 -63.2" fill="none" stroke-width="9" />
+      <path d="M14.2 -51.7 L17.9 -63.2" fill="none" stroke="#FFE79A" stroke-width="3.5" />
+      <path d="M37.2 -35 L46.9 -42.1" fill="none" stroke-width="9" />
+      <path d="M37.2 -35 L46.9 -42.1" fill="none" stroke="#FFE79A" stroke-width="3.5" />
+      <path d="M46 -8 L58 -8" fill="none" stroke-width="9" />
+      <path d="M46 -8 L58 -8" fill="none" stroke="#FFE79A" stroke-width="3.5" />
+      <path d="M37.2 19 L46.9 26.1" fill="none" stroke-width="9" />
+      <path d="M37.2 19 L46.9 26.1" fill="none" stroke="#FFE79A" stroke-width="3.5" />
+      <path d="M14.2 35.7 L17.9 47.2" fill="none" stroke-width="9" />
+      <path d="M14.2 35.7 L17.9 47.2" fill="none" stroke="#FFE79A" stroke-width="3.5" />
+      <path d="M-14.2 35.7 L-17.9 47.2" fill="none" stroke-width="9" />
+      <path d="M-14.2 35.7 L-17.9 47.2" fill="none" stroke="#FFE79A" stroke-width="3.5" />
+      <path d="M-37.2 19 L-46.9 26.1" fill="none" stroke-width="9" />
+      <path d="M-37.2 19 L-46.9 26.1" fill="none" stroke="#FFE79A" stroke-width="3.5" />
+      <path d="M-46 -8 L-58 -8" fill="none" stroke-width="9" />
+      <path d="M-46 -8 L-58 -8" fill="none" stroke="#FFE79A" stroke-width="3.5" />
+      <path d="M-37.2 -35 L-46.9 -42.1" fill="none" stroke-width="9" />
+      <path d="M-37.2 -35 L-46.9 -42.1" fill="none" stroke="#FFE79A" stroke-width="3.5" />
+      <path d="M-14.2 -51.7 L-17.9 -63.2" fill="none" stroke-width="9" />
+      <path d="M-14.2 -51.7 L-17.9 -63.2" fill="none" stroke="#FFE79A" stroke-width="3.5" />
+    </g>
+    <clipPath id="badge-campaign-luna-1-c1"><path d="M0 -56 L15.3 -21 L53.3 -17.3 L24.7 8 L32.9 45.3 L0 26 L-32.9 45.3 L-24.7 8 L-53.3 -17.3 L-15.3 -21 Z" transform="translate(0 -8)" /></clipPath>
+    <g clip-path="url(#badge-campaign-luna-1-c1)" stroke="none" >
+      <rect x="-300" y="-300" width="900" height="900" fill="#E0AE1F"/>
+      <g transform="translate(-6 -6)"><path d="M0 -56 L15.3 -21 L53.3 -17.3 L24.7 8 L32.9 45.3 L0 26 L-32.9 45.3 L-24.7 8 L-53.3 -17.3 L-15.3 -21 Z" transform="translate(0 -8)" fill="#FFD23F"/></g>
+    </g>
+    <path d="M0 -56 L15.3 -21 L53.3 -17.3 L24.7 8 L32.9 45.3 L0 26 L-32.9 45.3 L-24.7 8 L-53.3 -17.3 L-15.3 -21 Z" transform="translate(0 -8)" fill="none" stroke-width="5" />
+    <path d="M-30 -24 L-14 -24 M-6 -46 L-2 -56" fill="none" stroke="#FFEA99" stroke-width="5"/>
+    <g id="colony" transform="translate(0 10) scale(0.95)">
+      <clipPath id="badge-campaign-luna-1-c2"><rect x="-42" y="26" width="84" height="20" rx="8" /></clipPath>
+      <g clip-path="url(#badge-campaign-luna-1-c2)" stroke="none" >
+        <rect x="-300" y="-300" width="900" height="900" fill="#7F89A6"/>
+        <g transform="translate(-4 -4)"><rect x="-42" y="26" width="84" height="20" rx="8" fill="#A7B0C8"/></g>
+      </g>
+      <rect x="-42" y="26" width="84" height="20" rx="8" fill="none" stroke-width="4" />
+      <clipPath id="badge-campaign-luna-1-c3"><path d="M-34 30 Q-34 -12 0 -13 Q34 -12 34 30 Z" /></clipPath>
+      <g clip-path="url(#badge-campaign-luna-1-c3)" stroke="none" >
+        <rect x="-300" y="-300" width="900" height="900" fill="#D8D2C4"/>
+        <g transform="translate(-6 -6)"><path d="M-34 30 Q-34 -12 0 -13 Q34 -12 34 30 Z" fill="#F4F1EA"/></g>
+      </g>
+      <path d="M-34 30 Q-34 -12 0 -13 Q34 -12 34 30 Z" fill="none" stroke-width="4" />
+      <path d="M-25 20 Q-25 0 -12 -6" fill="none" stroke="#FFFFFF" stroke-width="4.5"/>
+      <path d="M-8 30 V16 Q-8 7 0 7 Q8 7 8 16 V30 Z" fill="#3FB8AF" stroke-width="3.5" />
+      <circle cx="19" cy="11" r="5.5" fill="#FFE79A" stroke-width="3.5" />
+      <path d="M0 -13 V-24" fill="none" stroke="#2A1E3D" stroke-width="4" />
+      <circle cx="0" cy="-28" r="5" fill="#E2403A" stroke-width="3.5" />
+    </g>
+  </g>
+</g>
+</svg>

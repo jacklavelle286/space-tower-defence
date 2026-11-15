@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- deco-flag-plain: small plain Nova-orange flag on a thin pole stuck in a little moon-dust mound; one wavy fold, no emblem or pattern. Single frame. Anchor bottom-centre (64,128), base on y 122.
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="flag" stroke="#2A1E3D" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+  <g id="mound">
+    <path d="M26 122 Q28 108 44 108 Q60 108 62 122 Z" fill="#B3A8E3"/>
+    <path d="M33 116 Q36 112 41 112" fill="none" stroke="#E4DFF9" stroke-width="3"/>
+  </g>
+  <g id="pole">
+    <path d="M44 114 V20" fill="none" stroke="#2A1E3D" stroke-width="11"/>
+    <path d="M44 114 V20" fill="none" stroke="#C9D0E2" stroke-width="4"/>
+    <circle cx="44" cy="15" r="6.5" fill="#FFD86B" stroke-width="5"/>
+  </g>
+  <g id="cloth">
+    <clipPath id="cloth-clip"><path d="M48 24 Q66 15 82 23 Q96 30 112 23 V60 Q96 67 82 60 Q66 52 48 61 Z"/></clipPath>
+    <path d="M48 24 Q66 15 82 23 Q96 30 112 23 V60 Q96 67 82 60 Q66 52 48 61 Z" fill="#FF8A2A" stroke="none"/>
+    <path id="fold-shade" clip-path="url(#cloth-clip)" d="M78 20 Q88 30 88 42 Q88 54 84 66 L79 66 Q82 54 82 42 Q82 30 74 20 Z" fill="#D9661A" stroke="none"/>
+    <path id="fold-highlight" d="M56 30 Q66 25 74 28 M90 34 Q98 37 104 33" fill="none" stroke="#FFC08A" stroke-width="5"/>
+    <path d="M48 24 Q66 15 82 23 Q96 30 112 23 V60 Q96 67 82 60 Q66 52 48 61 Z" fill="none"/>
+  </g>
+</g>
+</svg>

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Mira shield pulse, frame 02/06: cyan shield-shaped ripple growing and travelling right (scale 0.75). Anchor centre (128,128).
+       See art/STYLE.md. -->
+  <g id="shield-pulse" stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
+    <g id="glow" transform="translate(122 128) scale(0.8)"><path d="M0 -80 C28 -66 52 -66 70 -70 C76 -20 70 30 0 80 C-70 30 -76 -20 -70 -70 C-52 -66 -28 -66 0 -80 Z" fill="#5BE0F0" opacity="0.25" stroke="none"/><path d="M0 -80 C28 -66 52 -66 70 -70 C76 -20 70 30 0 80 C-70 30 -76 -20 -70 -70 C-52 -66 -28 -66 0 -80 Z" fill="none" stroke="#2A1E3D" stroke-width="20"/><path d="M0 -80 C28 -66 52 -66 70 -70 C76 -20 70 30 0 80 C-70 30 -76 -20 -70 -70 C-52 -66 -28 -66 0 -80 Z" fill="none" stroke="#5BE0F0" stroke-width="11"/><path d="M-58 -52 C-62 -20 -56 10 -40 32" fill="none" stroke="#FFFFFF" stroke-width="4"/><path d="M0 -80 C28 -66 52 -66 70 -70 C76 -20 70 30 0 80 C-70 30 -76 -20 -70 -70 C-52 -66 -28 -66 0 -80 Z" fill="none" stroke="#5BE0F0" stroke-width="5" opacity="0.7" transform="scale(0.62)"/></g>
+    <g id="sparkles">
+    <path d="M0 -7.3 Q2 -2 7.3 0 Q2 2 0 7.3 Q-2 2 -7.3 0 Q-2 -2 0 -7.3 Z" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="2.5" stroke-linejoin="round" transform="translate(180.5 83) rotate(0)"/>
+    <path d="M0 -9.1 Q2.6 -2.6 9.1 0 Q2.6 2.6 0 9.1 Q-2.6 2.6 -9.1 0 Q-2.6 -2.6 0 -9.1 Z" fill="#9FF3FF" stroke="#2A1E3D" stroke-width="2.5" stroke-linejoin="round" transform="translate(191 138.5) rotate(0)"/>
+    <path d="M0 -6 Q1.7 -1.7 6 0 Q1.7 1.7 0 6 Q-1.7 1.7 -6 0 Q-1.7 -1.7 0 -6 Z" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="2.5" stroke-linejoin="round" transform="translate(69.5 170) rotate(0)"/>
+    <path d="M0 -5.7 Q1.6 -1.6 5.7 0 Q1.6 1.6 0 5.7 Q-1.6 1.6 -5.7 0 Q-1.6 -1.6 0 -5.7 Z" fill="#9FF3FF" stroke="#2A1E3D" stroke-width="2.5" stroke-linejoin="round" transform="translate(137 56) rotate(0)"/>
+    </g>
+  </g>
+</svg>

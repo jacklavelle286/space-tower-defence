@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- obj-star: a chunky gold five-point star with soft rounded points. No face. Counting object.
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+  <defs>
+    <clipPath id="star-clip"><path d="M128 28 L159.7 92.3 L230.7 102.6 L179.4 152.7 L191.5 223.4 L128 190 L64.5 223.4 L76.6 152.7 L25.3 102.6 L96.3 92.3 Z"/></clipPath>
+  </defs>
+  <g id="star" stroke="#2A1E3D" stroke-width="8" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M128 28 L159.7 92.3 L230.7 102.6 L179.4 152.7 L191.5 223.4 L128 190 L64.5 223.4 L76.6 152.7 L25.3 102.6 L96.3 92.3 Z" fill="#FFD23F" stroke-width="14"/>
+    <path d="M128 28 L159.7 92.3 L230.7 102.6 L179.4 152.7 L191.5 223.4 L128 190 L64.5 223.4 L76.6 152.7 L25.3 102.6 L96.3 92.3 Z" fill="#FFD23F" stroke="none"/>
+    <path id="star-shade" clip-path="url(#star-clip)" d="M128 136 L236 98 L240 240 L196 240 Z M128 136 L128 250 L196 250 Z" fill="#E0AE1F" stroke="none"/>
+    <path id="star-highlight" d="M84 112 L110 106 L124 70" fill="none" stroke="#FFFFFF" stroke-width="6"/>
+    <circle cx="128" cy="50" r="3.5" fill="#FFFFFF" stroke="none"/>
+  </g>
+</svg>

@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- badge-challenge-bubble-trouble: Bubble Wrangler: three bubbles caught in a looped lasso rope. earned (full colour). Single frame. Anchor centre (128,128).
+       Medal: gold rim, cream ring, night-blue disc, ribbon tab at the bottom. Light from the top-left. See art/STYLE.md. -->
+
+<g id="badge-challenge-bubble-trouble" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+  <g id="ribbon">
+    <clipPath id="badge-challenge-bubble-trouble-tail-right"><path d="M158 176 L126 186 L142 245 L157 233 L176 240 Z"/></clipPath>
+    <g id="tail-right">
+      <g clip-path="url(#badge-challenge-bubble-trouble-tail-right)" stroke="none">
+        <path d="M158 176 L126 186 L145.2 256.8 L179.6 252.8 Z" fill="#9FF3FF"/>
+        <path d="M136.2 182.8 L126 186 L145.2 256.8 L156.2 255.5 Z" fill="#2A1E3D" opacity="0.18"/>
+      </g>
+      <path d="M158 176 L126 186 L142 245 L157 233 L176 240 Z" fill="none"/>
+    </g>
+    <clipPath id="badge-challenge-bubble-trouble-tail-left"><path d="M98 176 L130 186 L114 245 L99 233 L80 240 Z"/></clipPath>
+    <g id="tail-left">
+      <g clip-path="url(#badge-challenge-bubble-trouble-tail-left)" stroke="none">
+        <path d="M98 176 L130 186 L110.8 256.8 L76.4 252.8 Z" fill="#9FF3FF"/>
+        <path d="M119.8 182.8 L130 186 L110.8 256.8 L99.8 255.5 Z" fill="#2A1E3D" opacity="0.18"/>
+      </g>
+      <path d="M98 176 L130 186 L114 245 L99 233 L80 240 Z" fill="none"/>
+    </g>
+  </g>
+  <g id="rim">
+    <clipPath id="badge-challenge-bubble-trouble-rim-clip"><circle cx="128" cy="114" r="96"/></clipPath>
+    <circle id="rim-gold" cx="128" cy="114" r="96" fill="#D09A00" stroke="none"/>
+    <circle clip-path="url(#badge-challenge-bubble-trouble-rim-clip)" cx="122" cy="108" r="96" fill="#F5B700" stroke="none"/>
+    <path id="rim-highlight" d="M43.4 89.7 A88 88 0 0 1 97.9 31.3" fill="none" stroke="#FFE79A" stroke-width="5"/>
+    <circle id="rim-outline" cx="128" cy="114" r="96" fill="none"/>
+    <circle id="cream-ring" cx="128" cy="114" r="80" fill="#FFF4D6" stroke-width="4"/>
+    <circle id="disc" cx="128" cy="114" r="70" fill="#23295E" stroke-width="4"/>
+  </g>
+  <g id="motif" transform="translate(128 114)" stroke-width="4">
+    <circle cx="-14" cy="-10" r="18" fill="#9FF3FF" stroke-width="4" fill-opacity="0.75"/>
+    <path d="M-25.5 -12 A11.7 11.7 0 0 1 -18 -21" fill="none" stroke="#FFFFFF" stroke-width="4" opacity="0.95"/>
+    <circle cx="-7.7" cy="-18.1" r="2.6" fill="#FFFFFF" stroke="none" />
+    <circle cx="16" cy="-14" r="16" fill="#9FF3FF" stroke-width="4" fill-opacity="0.75"/>
+    <path d="M5.8 -15.8 A10.4 10.4 0 0 1 12.4 -23.8" fill="none" stroke="#FFFFFF" stroke-width="4" opacity="0.95"/>
+    <circle cx="21.6" cy="-21.2" r="2.6" fill="#FFFFFF" stroke="none" />
+    <circle cx="2" cy="18" r="17" fill="#9FF3FF" stroke-width="4" fill-opacity="0.75"/>
+    <path d="M-8.9 16.1 A11.1 11.1 0 0 1 -1.8 7.6" fill="none" stroke="#FFFFFF" stroke-width="4" opacity="0.95"/>
+    <circle cx="7.9" cy="10.3" r="2.6" fill="#FFFFFF" stroke="none" />
+    <path d="M36 26 Q52 0 36 -28 Q14 -50 -18 -38 Q-48 -22 -42 12 Q-34 40 -2 42 Q24 42 36 26" fill="none" stroke-width="12" />
+    <path d="M36 26 Q52 0 36 -28 Q14 -50 -18 -38 Q-48 -22 -42 12 Q-34 40 -2 42 Q24 42 36 26" fill="none" stroke="#D08A55" stroke-width="6" />
+    <path d="M36 26 Q44 40 54 42" fill="none" stroke-width="12" />
+    <path d="M36 26 Q44 40 54 42" fill="none" stroke="#D08A55" stroke-width="6" />
+    <clipPath id="badge-challenge-bubble-trouble-c1"><ellipse cx="36" cy="27" rx="7" ry="6" /></clipPath>
+    <g clip-path="url(#badge-challenge-bubble-trouble-c1)" stroke="none" >
+      <rect x="-300" y="-300" width="900" height="900" fill="#A86A3E"/>
+      <g transform="translate(-2 -2)"><ellipse cx="36" cy="27" rx="7" ry="6" fill="#D08A55"/></g>
+    </g>
+    <ellipse cx="36" cy="27" rx="7" ry="6" fill="none" stroke-width="4" />
+    <path d="M36 26 Q52 0 36 -28 Q14 -50 -18 -38 Q-48 -22 -42 12 Q-34 40 -2 42 Q24 42 36 26" fill="none" stroke="#F2C49A" stroke-width="2.5" stroke-dasharray="3 9"/>
+  </g>
+</g>
+</svg>

@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Profile avatar 01 (rocket). Still, 1 frame. Anchor centre (128,128).
+       Round night-blue disc with tiny stars and a thin gold rim; transparent outside the circle.
+       Head-and-shoulders character in a round glass helmet, facing the viewer. Light from the top-left. See art/STYLE.md. -->
+  <defs>
+    <clipPath id="disc-clip"><circle cx="128" cy="128" r="116"/></clipPath>
+    <clipPath id="suit-clip"><path d="M24 268 Q26 208 82 192 Q104 186 128 186 Q152 186 174 192 Q230 208 232 268 Z"/></clipPath>
+    <clipPath id="face-clip"><circle cx="128" cy="124" r="36"/></clipPath>
+  </defs>
+  <g id="avatar-01" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <circle id="disc" cx="128" cy="128" r="116" fill="#23295E" stroke="none"/>
+    <g id="portrait" clip-path="url(#disc-clip)">
+      <g id="sky-stars" stroke="none" fill="#FFF4D6">
+        <path d="M0 -9 Q2.5 -2.5 9 0 Q2.5 2.5 0 9 Q-2.5 2.5 -9 0 Q-2.5 -2.5 0 -9 Z" transform="translate(58 62)"/>
+        <path d="M0 -7 Q2 -2 7 0 Q2 2 0 7 Q-2 2 -7 0 Q-2 -2 0 -7 Z" transform="translate(202 50)" fill="#9FF3FF"/>
+        <path d="M0 -6 Q1.7 -1.7 6 0 Q1.7 1.7 0 6 Q-1.7 1.7 -6 0 Q-1.7 -1.7 0 -6 Z" transform="translate(40 150)"/>
+        <path d="M0 -5 Q1.4 -1.4 5 0 Q1.4 1.4 0 5 Q-1.4 1.4 -5 0 Q-1.4 -1.4 0 -5 Z" transform="translate(220 140)" fill="#9FF3FF"/>
+        <circle cx="96" cy="30" r="2.5"/><circle cx="170" cy="28" r="2"/>
+        <circle cx="30" cy="104" r="2"/><circle cx="226" cy="100" r="2.5"/><circle cx="48" cy="196" r="2"/>
+      </g>
+      <g id="body">
+        <g id="torso">
+          <path d="M24 268 Q26 208 82 192 Q104 186 128 186 Q152 186 174 192 Q230 208 232 268 Z" fill="#F4F1EA"/>
+          <path id="torso-shade" clip-path="url(#suit-clip)" d="M190 190 Q206 226 196 268 H240 V190 Z" fill="#2A1E3D" opacity="0.13" stroke="none"/>
+          <path d="M24 268 Q26 208 82 192 Q104 186 128 186 Q152 186 174 192 Q230 208 232 268 Z" fill="none"/>
+          <path id="torso-highlight" d="M52 236 Q56 214 76 206" fill="none" stroke="#FFFFFF" stroke-width="5"/>
+          <path d="M84 196 Q80 222 84 260 M172 196 Q176 222 172 260" fill="none" stroke="#D8D2C4" stroke-width="4"/>
+        </g>
+        <g id="motif-badge" transform="translate(128 218)">
+          <circle r="24" fill="#2E4A9E" stroke-width="5"/>
+          <g transform="rotate(30)" stroke-width="3.5">
+            <path d="M-8 6 L-15 16 L-8 14 Z M8 6 L15 16 L8 14 Z" fill="#E2403A"/>
+            <path d="M0 -19 Q9 -10 8 4 V13 H-8 V4 Q-9 -10 0 -19 Z" fill="#F4F1EA"/>
+            <path d="M0 -19 Q6 -13 7 -8 H-7 Q-6 -13 0 -19 Z" fill="#E2403A"/>
+            <circle cy="0" r="3.8" fill="#8ED8FF"/>
+          </g>
+          <circle cx="-10" cy="-14" r="2" fill="#FFF4D6" stroke="none"/>
+        </g>
+        <ellipse id="collar" cx="128" cy="180" rx="46" ry="12" fill="#A7B0C8" stroke-width="6"/>
+      </g>
+      <g id="helmet">
+        <circle id="glass" cx="128" cy="116" r="62" fill="#CFE9FF" fill-opacity="0.6" stroke="none"/>
+        <g id="head" stroke-width="4">
+          <circle id="face" cx="128" cy="124" r="36" fill="#D9A27A"/>
+          <path id="face-shade" clip-path="url(#face-clip)" d="M161 112 Q158 152 118 160 L170 166 Z" fill="#BC855F" stroke="none"/>
+          <circle cx="128" cy="124" r="36" fill="none"/>
+          <path id="fringe" d="M92 122 Q88 84 128 84 Q168 84 165 120 Q160 104 146 100 Q124 96 110 106 Q100 112 92 122 Z" fill="#3B2A24"/>
+          <g id="face-features" stroke="none">
+            <ellipse cx="115" cy="127" rx="5.6" ry="7.3" fill="#2A1E3D"/>
+            <ellipse cx="141" cy="127" rx="5.6" ry="7.3" fill="#2A1E3D"/>
+            <circle cx="117" cy="123.6" r="2.3" fill="#FFFFFF"/>
+            <circle cx="143" cy="123.6" r="2.3" fill="#FFFFFF"/>
+            <ellipse cx="104" cy="139" rx="6.5" ry="4.2" fill="#F48A9A" opacity="0.75"/>
+            <ellipse cx="152" cy="139" rx="6.5" ry="4.2" fill="#F48A9A" opacity="0.75"/>
+          </g>
+          <path id="mouth" d="M117 138 H139 Q137 151 128 151 Q119 151 117 138 Z" fill="#FFFFFF" stroke-width="3.5"/>
+          <path d="M121.5 147 Q128 143 134.5 147 Q132 150.5 128 150.5 Q124 150.5 121.5 147 Z" fill="#F27C8C" stroke="none"/>
+        </g>
+        <g id="visor-rim">
+          <path d="M73 144 Q128 190 183 144" fill="none" stroke-width="20"/>
+          <path d="M73 144 Q128 190 183 144" fill="none" stroke="#E2403A" stroke-width="11"/>
+        </g>
+        <g id="helmet-highlight" stroke="#FFFFFF" fill="none" opacity="0.9">
+          <path d="M80 88 Q92 66 114 59" stroke-width="8"/>
+          <circle cx="75" cy="104" r="2" stroke-width="6"/>
+        </g>
+        <circle id="helmet-outline" cx="128" cy="116" r="62" fill="none"/>
+      </g>
+      <g id="motif-fin">
+        <path d="M108 60 Q110 26 144 14 Q134 36 150 58 Q128 50 108 60 Z" fill="#E2403A" stroke-width="6"/>
+        <path d="M120 44 Q124 32 134 24" fill="none" stroke="#F28480" stroke-width="4"/>
+      </g>
+    </g>
+    <g id="rim" fill="none">
+      <circle cx="128" cy="128" r="117" stroke-width="10"/>
+      <circle cx="128" cy="128" r="117" stroke="#FFD86B" stroke-width="4.5"/>
+    </g>
+  </g>
+</svg>

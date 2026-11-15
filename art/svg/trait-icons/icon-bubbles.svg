@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- icon-bubbles: bubbles trait: three nested bubble rings. Single frame. Anchor centre (32,32).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="bubbles" stroke="#2A1E3D" stroke-linejoin="round" stroke-linecap="round">
+  <circle id="ring-outer" cx="32" cy="32" r="27" fill="#9FF3FF" fill-opacity="0.35" stroke-width="3.5"/>
+  <circle id="ring-middle" cx="32" cy="32" r="17.5" fill="#9FF3FF" fill-opacity="0.55" stroke-width="3"/>
+  <circle id="ring-inner" cx="32" cy="32" r="8" fill="#9FF3FF" stroke-width="3"/>
+  <g id="bubble-highlights" fill="none" stroke="#FFFFFF" stroke-width="2.5" opacity="0.95">
+    <path d="M11.5 27 Q13.5 17 22 12.5"/>
+    <path d="M20 29 Q21.5 22.5 27 19.5"/>
+    <circle cx="29" cy="29" r="1.6" fill="#FFFFFF" stroke="none"/>
+  </g>
+</g>
+</svg>

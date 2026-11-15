@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-pan: a grey frying pan seen from the side at an angle, long wooden handle, no lid. Single frame. Anchor centre (128,128).
+       Activity picture: text-free, one object, no background. Light from the top-left. See art/STYLE.md. -->
+<g id="pan" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" transform="translate(124 142) scale(0.92) translate(-128 -128)">
+<g id="handle">
+  <path d="M176 118 L244 92" fill="none" stroke="#2A1E3D" stroke-width="30"/>
+  <path d="M176 118 L244 92" fill="none" stroke="#D08A55" stroke-width="16"/>
+  <circle cx="232" cy="96.5" r="4.5" fill="#2A1E3D" stroke="none"/>
+  <path d="M172 124 L196 114" fill="none" stroke="#2A1E3D" stroke-width="22"/>
+  <path d="M172 124 L196 114" fill="none" stroke="#A7B0C8" stroke-width="8"/>
+</g>
+<g id="wall">
+  <clipPath id="wall-clip"><path d="M14 118 Q16 176 96 180 Q176 176 178 118 Z"/></clipPath>
+  <g clip-path="url(#wall-clip)" stroke="none">
+    <path d="M14 118 Q16 176 96 180 Q176 176 178 118 Z" fill="#4E5470"/>
+    <path d="M14 118 Q16 176 96 180 Q176 176 178 118 Z" fill="#7F89A6" transform="translate(-10 -6)"/>
+  </g>
+  <path d="M14 118 Q16 176 96 180 Q176 176 178 118 Z" fill="none"/>
+</g>
+<ellipse id="rim" cx="96" cy="118" rx="82" ry="40" fill="#A7B0C8"/>
+<ellipse id="inside" cx="98" cy="122" rx="66" ry="29" fill="#4E5470" stroke-width="4"/>
+<path d="M48 120 Q56 104 82 98" fill="none" stroke="#7F89A6" stroke-width="5"/>
+<path d="M28 112 Q36 90 70 82" fill="none" stroke="#FFFFFF" stroke-width="6" opacity="0.85"/>
+</g>
+</svg>

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-cup: a light-blue teacup with a handle, standing on a matching saucer. Single frame. Anchor centre (128,128).
+       Activity picture: text-free, one object, no background. Light from the top-left. See art/STYLE.md. -->
+<g id="cup" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" transform="translate(0 -12)">
+<g id="saucer">
+  <clipPath id="saucer-clip"><path d="M24 186 A104 28 0 1 1 232 186 A104 28 0 1 1 24 186 Z"/></clipPath>
+  <g clip-path="url(#saucer-clip)" stroke="none">
+    <path d="M24 186 A104 28 0 1 1 232 186 A104 28 0 1 1 24 186 Z" fill="#5FB4E6"/>
+    <path d="M24 186 A104 28 0 1 1 232 186 A104 28 0 1 1 24 186 Z" fill="#8ED8FF" transform="translate(-10 -6)"/>
+  </g>
+  <path d="M24 186 A104 28 0 1 1 232 186 A104 28 0 1 1 24 186 Z" fill="none"/>
+</g>
+<ellipse id="saucer-well" cx="128" cy="184" rx="58" ry="14" fill="#5FB4E6" stroke-width="4"/>
+<g id="handle">
+  <path d="M180 112 Q226 104 224 132 Q222 160 172 154" fill="none" stroke="#2A1E3D" stroke-width="28"/>
+  <path d="M180 112 Q226 104 224 132 Q222 160 172 154" fill="none" stroke="#8ED8FF" stroke-width="14"/>
+</g>
+<g id="bowl">
+  <clipPath id="bowl-clip"><path d="M56 96 H200 Q202 174 128 182 Q54 174 56 96 Z"/></clipPath>
+  <g clip-path="url(#bowl-clip)" stroke="none">
+    <path d="M56 96 H200 Q202 174 128 182 Q54 174 56 96 Z" fill="#5FB4E6"/>
+    <path d="M56 96 H200 Q202 174 128 182 Q54 174 56 96 Z" fill="#8ED8FF" transform="translate(-10 -8)"/>
+  </g>
+  <path d="M56 96 H200 Q202 174 128 182 Q54 174 56 96 Z" fill="none"/>
+</g>
+<ellipse id="rim" cx="128" cy="96" rx="72" ry="18" fill="#FFFFFF"/>
+<ellipse id="tea" cx="128" cy="98" rx="60" ry="12" fill="#A9714B" stroke="none"/>
+<path id="band" d="M60 124 Q128 144 196 124" fill="none" stroke="#FFFFFF" stroke-width="8"/>
+<path d="M70 120 Q74 150 96 166" fill="none" stroke="#FFFFFF" stroke-width="7" opacity="0.85"/>
+</g>
+</svg>

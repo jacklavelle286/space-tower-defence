@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- icon-sound-play: Sound control, play: cream speaker with a play triangle on a cyan button. Single frame. Anchor centre (64,64).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="sound-play" stroke="#2A1E3D" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+  <clipPath id="button-clip"><path d="M64 8 A56 56 0 1 1 63.9 8 Z"/></clipPath>
+  <g id="button-fill" clip-path="url(#button-clip)" stroke="none">
+    <path d="M64 8 A56 56 0 1 1 63.9 8 Z" fill="#34B9CC"/>
+    <path d="M64 8 A56 56 0 1 1 63.9 8 Z" fill="#5BE0F0" transform="translate(-5 -5)"/>
+  </g>
+  <path id="button-highlight" d="M22 58 Q24 32 46 20" fill="none" stroke="#FFFFFF" stroke-width="5" opacity="0.85"/>
+  <path id="button-outline" d="M64 8 A56 56 0 1 1 63.9 8 Z" fill="none"/>
+  <g id="speaker">
+  <clipPath id="speaker-clip"><path d="M22 52 H35 L53 36 Q59 32 59 39 V89 Q59 96 53 92 L35 76 H22 Q18 76 18 72 V56 Q18 52 22 52 Z"/></clipPath>
+  <g id="speaker-fill" clip-path="url(#speaker-clip)" stroke="none">
+    <path d="M22 52 H35 L53 36 Q59 32 59 39 V89 Q59 96 53 92 L35 76 H22 Q18 76 18 72 V56 Q18 52 22 52 Z" fill="#E6D9B5"/>
+    <path d="M22 52 H35 L53 36 Q59 32 59 39 V89 Q59 96 53 92 L35 76 H22 Q18 76 18 72 V56 Q18 52 22 52 Z" fill="#FFF4D6" transform="translate(-3 -3)"/>
+  </g>
+  <path id="speaker-outline" d="M22 52 H35 L53 36 Q59 32 59 39 V89 Q59 96 53 92 L35 76 H22 Q18 76 18 72 V56 Q18 52 22 52 Z" fill="none"/>
+  </g>
+  <clipPath id="play-clip"><path d="M70 48 Q70 40 77 44 L98 58 Q104 64 98 70 L77 84 Q70 88 70 80 Z"/></clipPath>
+  <g id="play-fill" clip-path="url(#play-clip)" stroke="none">
+    <path d="M70 48 Q70 40 77 44 L98 58 Q104 64 98 70 L77 84 Q70 88 70 80 Z" fill="#E6D9B5"/>
+    <path d="M70 48 Q70 40 77 44 L98 58 Q104 64 98 70 L77 84 Q70 88 70 80 Z" fill="#FFF4D6" transform="translate(-3 -3)"/>
+  </g>
+  <path id="play-outline" d="M70 48 Q70 40 77 44 L98 58 Q104 64 98 70 L77 84 Q70 88 70 80 Z" fill="none"/>
+</g>
+</svg>

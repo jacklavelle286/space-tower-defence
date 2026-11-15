@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-zip: a navy zip (zipper) half open: interlocked silver teeth below the slider, open V above, pull tab. Single frame. Anchor centre (128,128).
+       Activity picture: text-free, one object, no background. Light from the top-left. See art/STYLE.md. -->
+<g id="zip" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" transform="translate(128 128) rotate(-90) scale(0.86) translate(-128 -130)">
+<g id="tape-left">
+  <clipPath id="tape-left-clip"><path d="M128 236 V132 L70 24 L30 32 L88 142 V236 Z"/></clipPath>
+  <g clip-path="url(#tape-left-clip)" stroke="none">
+    <path d="M128 236 V132 L70 24 L30 32 L88 142 V236 Z" fill="#22377A"/>
+    <path d="M128 236 V132 L70 24 L30 32 L88 142 V236 Z" fill="#2E4A9E" transform="translate(-6 0)"/>
+  </g>
+  <path d="M128 236 V132 L70 24 L30 32 L88 142 V236 Z" fill="none"/>
+</g>
+<g id="tape-right">
+  <clipPath id="tape-right-clip"><path d="M128 236 V132 L186 24 L226 32 L168 142 V236 Z"/></clipPath>
+  <g clip-path="url(#tape-right-clip)" stroke="none">
+    <path d="M128 236 V132 L186 24 L226 32 L168 142 V236 Z" fill="#22377A"/>
+    <path d="M128 236 V132 L186 24 L226 32 L168 142 V236 Z" fill="#2E4A9E" transform="translate(-6 0)"/>
+  </g>
+  <path d="M128 236 V132 L186 24 L226 32 L168 142 V236 Z" fill="none"/>
+</g>
+<path id="tape-centre" d="M128 152 V236" fill="none" stroke-width="4"/>
+<g id="teeth" fill="#A7B0C8" stroke-width="3">
+  <path d="M119 154 H125 Q128 154 128 157 V160 Q128 163 125 163 H119 Q116 163 116 160 V157 Q116 154 119 154 Z"/>
+  <path d="M131 164 H137 Q140 164 140 167 V170 Q140 173 137 173 H131 Q128 173 128 170 V167 Q128 164 131 164 Z"/>
+  <path d="M119 174 H125 Q128 174 128 177 V180 Q128 183 125 183 H119 Q116 183 116 180 V177 Q116 174 119 174 Z"/>
+  <path d="M131 184 H137 Q140 184 140 187 V190 Q140 193 137 193 H131 Q128 193 128 190 V187 Q128 184 131 184 Z"/>
+  <path d="M119 194 H125 Q128 194 128 197 V200 Q128 203 125 203 H119 Q116 203 116 200 V197 Q116 194 119 194 Z"/>
+  <path d="M131 204 H137 Q140 204 140 207 V210 Q140 213 137 213 H131 Q128 213 128 210 V207 Q128 204 131 204 Z"/>
+  <path d="M119 214 H125 Q128 214 128 217 V220 Q128 223 125 223 H119 Q116 223 116 220 V217 Q116 214 119 214 Z"/>
+  <path d="M-6 -4.5 H6 V4.5 H-6 Z" transform="translate(113.8 105.6) rotate(-28.2) translate(-4 0)"/>
+  <path d="M-6 -4.5 H6 V4.5 H-6 Z" transform="translate(107.7 94.1) rotate(-28.2) translate(-4 0)"/>
+  <path d="M-6 -4.5 H6 V4.5 H-6 Z" transform="translate(101.5 82.7) rotate(-28.2) translate(-4 0)"/>
+  <path d="M-6 -4.5 H6 V4.5 H-6 Z" transform="translate(95.4 71.2) rotate(-28.2) translate(-4 0)"/>
+  <path d="M-6 -4.5 H6 V4.5 H-6 Z" transform="translate(89.2 59.8) rotate(-28.2) translate(-4 0)"/>
+  <path d="M-6 -4.5 H6 V4.5 H-6 Z" transform="translate(83.1 48.3) rotate(-28.2) translate(-4 0)"/>
+  <path d="M-6 -4.5 H6 V4.5 H-6 Z" transform="translate(76.9 36.9) rotate(-28.2) translate(-4 0)"/>
+  <path d="M-6 -4.5 H6 V4.5 H-6 Z" transform="translate(142.2 105.6) rotate(28.2) translate(4 0)"/>
+  <path d="M-6 -4.5 H6 V4.5 H-6 Z" transform="translate(148.3 94.1) rotate(28.2) translate(4 0)"/>
+  <path d="M-6 -4.5 H6 V4.5 H-6 Z" transform="translate(154.5 82.7) rotate(28.2) translate(4 0)"/>
+  <path d="M-6 -4.5 H6 V4.5 H-6 Z" transform="translate(160.6 71.2) rotate(28.2) translate(4 0)"/>
+  <path d="M-6 -4.5 H6 V4.5 H-6 Z" transform="translate(166.8 59.8) rotate(28.2) translate(4 0)"/>
+  <path d="M-6 -4.5 H6 V4.5 H-6 Z" transform="translate(172.9 48.3) rotate(28.2) translate(4 0)"/>
+  <path d="M-6 -4.5 H6 V4.5 H-6 Z" transform="translate(179.1 36.9) rotate(28.2) translate(4 0)"/>
+</g>
+<g id="slider">
+  <path d="M104 112 H152 Q156 112 154 118 L144 150 H112 L102 118 Q100 112 104 112 Z" fill="#A7B0C8"/>
+  <path d="M127 140 H129 Q137 140 137 148 V172 Q137 180 129 180 H127 Q119 180 119 172 V148 Q119 140 127 140 Z" fill="#A7B0C8" stroke-width="6"/>
+  <path d="M128 160 H128 Q131.5 160 131.5 163.5 V168.5 Q131.5 172 128 172 H128 Q124.5 172 124.5 168.5 V163.5 Q124.5 160 128 160 Z" fill="#2A1E3D" stroke="none"/>
+<path d="M110 120 L114 132" fill="none" stroke="#FFFFFF" stroke-width="4" opacity="0.9"/>
+</g>
+</g>
+</svg>

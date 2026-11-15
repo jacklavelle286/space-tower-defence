@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- icon-splitter: splitter trait: one lime blob pinching into two smaller blobs. Single frame. Anchor centre (32,32).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="splitter" stroke-linejoin="round" stroke-linecap="round">
+  <!-- union outline: shapes drawn in plum at 2x outline, then filled on top -->
+  <g id="split-outline" fill="#2A1E3D" stroke="#2A1E3D" stroke-width="7">
+    <path d="M7 42 Q7 24 19.5 24 Q32 24 32 42 Q32 50 19.5 50 Q7 50 7 42 Z"/>
+    <path d="M35 42 Q35 24 47.5 24 Q60 24 60 42 Q60 50 47.5 50 Q35 50 35 42 Z" transform="translate(-3 0)"/>
+    <ellipse cx="31" cy="31" rx="7" ry="4.5"/>
+  </g>
+  <g id="split-fill" fill="#9BE564" stroke="none">
+    <path d="M7 42 Q7 24 19.5 24 Q32 24 32 42 Q32 50 19.5 50 Q7 50 7 42 Z"/>
+    <path d="M35 42 Q35 24 47.5 24 Q60 24 60 42 Q60 50 47.5 50 Q35 50 35 42 Z" transform="translate(-3 0)"/>
+    <ellipse cx="31" cy="31" rx="7" ry="4.5"/>
+  </g>
+  <g id="split-shade" fill="#7CC64A" stroke="none">
+    <path d="M24 46 Q30 44 31 38 Q32 46 28 49 Q22 51 18 50 Z"/>
+    <path d="M52 46 Q58 44 59 38 Q60 46 56 49 Q50 51 46 50 Z" transform="translate(-3 0)"/>
+  </g>
+  <g id="split-highlight" fill="none" stroke="#D2F5B0" stroke-width="2.5">
+    <path d="M11 36 Q12 30 17 28"/>
+    <path d="M36 36 Q37 30 42 28"/>
+  </g>
+  <g id="split-eyes" fill="#2A1E3D">
+    <ellipse cx="20" cy="37" rx="2" ry="2.6"/><ellipse cx="26" cy="36.6" rx="1.9" ry="2.5"/>
+    <ellipse cx="45" cy="37" rx="2" ry="2.6"/><ellipse cx="51" cy="36.6" rx="1.9" ry="2.5"/>
+  </g>
+</g>
+</svg>

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- obj-alien-egg: an oval lime-green egg with darker spots. No face. Counting object.
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+  <defs>
+    <clipPath id="egg-clip"><path d="M128 24 C178 24 210 98 210 150 C210 202 174 234 128 234 C82 234 46 202 46 150 C46 98 78 24 128 24 Z"/></clipPath>
+  </defs>
+  <g id="alien-egg" stroke="#2A1E3D" stroke-width="8" stroke-linejoin="round" stroke-linecap="round" transform="translate(0 -2)">
+    <path id="egg" d="M128 24 C178 24 210 98 210 150 C210 202 174 234 128 234 C82 234 46 202 46 150 C46 98 78 24 128 24 Z" fill="#9BE564"/>
+    <g clip-path="url(#egg-clip)" stroke="none">
+      <path id="egg-shade" d="M196 70 Q222 200 110 236 H230 V70 Z" fill="#7CC94A"/>
+      <g id="spots" fill="#5FA83A">
+        <ellipse cx="104" cy="88" rx="14" ry="11"/>
+        <ellipse cx="160" cy="112" rx="18" ry="14"/>
+        <ellipse cx="96" cy="160" rx="20" ry="16"/>
+        <ellipse cx="154" cy="182" rx="13" ry="10"/>
+        <ellipse cx="126" cy="214" rx="11" ry="8"/>
+        <ellipse cx="200" cy="160" rx="10" ry="14"/>
+        <ellipse cx="136" cy="54" rx="8" ry="6"/>
+      </g>
+    </g>
+    <path d="M128 24 C178 24 210 98 210 150 C210 202 174 234 128 234 C82 234 46 202 46 150 C46 98 78 24 128 24 Z" fill="none"/>
+    <path id="egg-highlight" d="M70 132 Q74 90 96 60" fill="none" stroke="#FFFFFF" stroke-width="7" opacity="0.9"/>
+    <circle cx="104" cy="46" r="4" fill="#FFFFFF" stroke="none" opacity="0.9"/>
+  </g>
+</svg>

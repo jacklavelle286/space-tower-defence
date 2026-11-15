@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- shape-triangle: 2-D shape, an equilateral triangle (side 222) pointing up, yellow.
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+<g id="triangle" stroke="#2A1E3D" stroke-width="8" stroke-linejoin="round" stroke-linecap="round">
+  <clipPath id="triangle-clip"><path d="M128 31.9 L239 224.1 L17 224.1 Z"/></clipPath>
+  <g id="triangle-fill" clip-path="url(#triangle-clip)" stroke="none">
+    <path d="M128 31.9 L239 224.1 L17 224.1 Z" fill="#E0AE1F"/>
+    <path d="M128 31.9 L239 224.1 L17 224.1 Z" fill="#FFD23F" transform="translate(-7 -7)"/>
+  </g>
+  <path id="triangle-highlight" d="M74.2 164.5 L103.8 114.6" fill="none" stroke="#FFEA99" stroke-width="9"/>
+  <path id="triangle-outline" d="M128 31.9 L239 224.1 L17 224.1 Z" fill="none"/>
+</g>
+</svg>

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Send home beam-up, frame 03/06: translucent cream/cyan beam rising from a 4:3 glowing pad (width 1.0); sparkles drift up. Anchor bottom-centre (128,256).
+       See art/STYLE.md. -->
+  <g id="sell" stroke-linecap="round" stroke-linejoin="round">
+    <g id="pad" stroke="none"><ellipse cx="128" cy="218" rx="44" ry="33" fill="#5BE0F0" opacity="0.5"/><ellipse cx="128" cy="218" rx="30" ry="22.5" fill="#FFF4D6" opacity="0.7"/><ellipse cx="128" cy="218" rx="44" ry="33" fill="none" stroke="#5BE0F0" stroke-width="4" opacity="1"/></g>
+    <g id="beam" stroke="none" opacity="1"><path d="M84 0 L84 218 A44 33 0 0 0 172 218 L172 0 Z" fill="#5BE0F0" opacity="0.28"/><rect x="101.6" y="0" width="52.8" height="218" fill="#FFF4D6" opacity="0.35"/><rect x="119.2" y="0" width="17.6" height="218" fill="#FFFFFF" opacity="0.35"/><path d="M84 0 V218 M172 0 V218" fill="none" stroke="#5BE0F0" stroke-width="3" opacity="0.8"/></g>
+    <g id="sparkles">
+    <path d="M0 -9 Q2.5 -2.5 9 0 Q2.5 2.5 0 9 Q-2.5 2.5 -9 0 Q-2.5 -2.5 0 -9 Z" fill="#FFF4D6" stroke="#5FB4E6" stroke-width="2" stroke-linejoin="round" transform="translate(110 142.7) rotate(0)"/>
+    <path d="M0 -7 Q2 -2 7 0 Q2 2 0 7 Q-2 2 -7 0 Q-2 -2 0 -7 Z" fill="#9FF3FF" stroke="#5FB4E6" stroke-width="2" stroke-linejoin="round" transform="translate(144 104.7) rotate(0)"/>
+    <path d="M0 -8 Q2.2 -2.2 8 0 Q2.2 2.2 0 8 Q-2.2 2.2 -8 0 Q-2.2 -2.2 0 -8 Z" fill="#FFFFFF" stroke="#5FB4E6" stroke-width="2" stroke-linejoin="round" transform="translate(122 66.7) rotate(0)"/>
+    <path d="M0 -6 Q1.7 -1.7 6 0 Q1.7 1.7 0 6 Q-1.7 1.7 -6 0 Q-1.7 -1.7 0 -6 Z" fill="#FFF4D6" stroke="#5FB4E6" stroke-width="2" stroke-linejoin="round" transform="translate(150 28.7) rotate(0)" opacity="0.4"/>
+    <path d="M0 -7 Q2 -2 7 0 Q2 2 0 7 Q-2 2 -7 0 Q-2 -2 0 -7 Z" fill="#9FF3FF" stroke="#5FB4E6" stroke-width="2" stroke-linejoin="round" transform="translate(104 180.7) rotate(0)"/>
+    </g>
+  </g>
+</svg>

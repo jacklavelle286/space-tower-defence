@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- icon-menu: HUD menu: three rounded cream horizontal bars. Single frame. Anchor centre (32,32).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="menu" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+  <g id="bars" fill="none">
+    <path d="M14 17 H50 M14 32 H50 M14 47 H50" stroke="#2A1E3D" stroke-width="14"/>
+    <path d="M14 17 H50 M14 32 H50 M14 47 H50" stroke="#FFF4D6" stroke-width="7"/>
+  </g>
+  <path d="M15.5 15.5 H22 M15.5 30.5 H22 M15.5 45.5 H22" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round"/>
+</g>
+</svg>

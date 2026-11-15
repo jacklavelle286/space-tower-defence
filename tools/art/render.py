@@ -92,7 +92,12 @@ def main() -> int:
                     print(f"missing {src.relative_to(ROOT)}")
                 continue
             if not args.check:
-                render(src, dst, w, h)
+                if dst.suffix == ".svg":
+                    # Vector assets ship as SVG: copy the source as-is (Chrome cannot screenshot to .svg).
+                    dst.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copyfile(src, dst)
+                else:
+                    render(src, dst, w, h)
                 done += 1
     print(f"rendered {done}, missing sources {missing}")
     return 0

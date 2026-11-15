@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-moon: a fat pale-yellow crescent moon with soft craters (not a banana: no stem, pointed tips). Single frame. Anchor centre (128,128).
+       Activity picture: text-free, one object, no background. Light from the top-left. See art/STYLE.md. -->
+<g id="moon" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" transform="translate(9 -2)">
+<g id="crescent">
+  <clipPath id="crescent-clip"><path d="M118.7 32 A98 98 0 1 0 207.5 174.1 A84 84 0 0 1 118.7 32 Z"/></clipPath>
+  <g clip-path="url(#crescent-clip)" stroke="none">
+    <path d="M118.7 32 A98 98 0 1 0 207.5 174.1 A84 84 0 0 1 118.7 32 Z" fill="#E0C060"/>
+    <path d="M118.7 32 A98 98 0 1 0 207.5 174.1 A84 84 0 0 1 118.7 32 Z" fill="#FFEA99" transform="translate(-10 -10)"/>
+  </g>
+  <path d="M118.7 32 A98 98 0 1 0 207.5 174.1 A84 84 0 0 1 118.7 32 Z" fill="none" stroke-width="8"/>
+</g>
+<g id="craters" stroke-width="4">
+  <circle cx="70" cy="150" r="13" fill="#E0C060"/>
+  <circle cx="98" cy="196" r="9" fill="#E0C060"/>
+  <circle cx="66" cy="104" r="7" fill="#E0C060"/>
+  <circle cx="130" cy="214" r="6" fill="#E0C060"/>
+</g>
+<path d="M44 140 Q44 84 92 52" fill="none" stroke="#FFFFFF" stroke-width="8" opacity="0.85"/>
+</g>
+</svg>

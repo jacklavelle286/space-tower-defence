@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- icon-pause: HUD pause: two rounded cream vertical bars. Single frame. Anchor centre (32,32).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="pause" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+  <clipPath id="bar-left-clip"><path d="M14 16 Q14 11 19 11 H23 Q28 11 28 16 V48 Q28 53 23 53 H19 Q14 53 14 48 Z"/></clipPath>
+  <g id="bar-left-fill" clip-path="url(#bar-left-clip)" stroke="none">
+    <path d="M14 16 Q14 11 19 11 H23 Q28 11 28 16 V48 Q28 53 23 53 H19 Q14 53 14 48 Z" fill="#E6D9B5"/>
+    <path d="M14 16 Q14 11 19 11 H23 Q28 11 28 16 V48 Q28 53 23 53 H19 Q14 53 14 48 Z" fill="#FFF4D6" transform="translate(-3 -3)"/>
+  </g>
+  <path id="bar-left-highlight" d="M18.5 17 V30" fill="none" stroke="#FFFFFF" stroke-width="3" opacity="0.85"/>
+  <path id="bar-left-outline" d="M14 16 Q14 11 19 11 H23 Q28 11 28 16 V48 Q28 53 23 53 H19 Q14 53 14 48 Z" fill="none"/>
+  <clipPath id="bar-right-clip"><path d="M36 16 Q36 11 41 11 H45 Q50 11 50 16 V48 Q50 53 45 53 H41 Q36 53 36 48 Z"/></clipPath>
+  <g id="bar-right-fill" clip-path="url(#bar-right-clip)" stroke="none">
+    <path d="M36 16 Q36 11 41 11 H45 Q50 11 50 16 V48 Q50 53 45 53 H41 Q36 53 36 48 Z" fill="#E6D9B5"/>
+    <path d="M36 16 Q36 11 41 11 H45 Q50 11 50 16 V48 Q50 53 45 53 H41 Q36 53 36 48 Z" fill="#FFF4D6" transform="translate(-3 -3)"/>
+  </g>
+  <path id="bar-right-highlight" d="M40.5 17 V30" fill="none" stroke="#FFFFFF" stroke-width="3" opacity="0.85"/>
+  <path id="bar-right-outline" d="M36 16 Q36 11 41 11 H45 Q50 11 50 16 V48 Q50 53 45 53 H41 Q36 53 36 48 Z" fill="none"/>
+</g>
+</svg>

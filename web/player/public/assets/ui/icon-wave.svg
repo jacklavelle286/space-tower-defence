@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- icon-wave: HUD wave: three round Moon Blob heads in a row, getting smaller towards the back. Single frame. Anchor centre (32,32).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="wave" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+  <g id="head-small">
+  <clipPath id="head-small-clip"><path d="M46.5 40.8 Q46.0 26.0 54.5 26.0 Q63.0 26.0 62.5 40.8 Q62.5 42 60.1 42 H48.9 Q46.5 42 46.5 40.8 Z"/></clipPath>
+  <g id="head-small-fill" clip-path="url(#head-small-clip)" stroke="none">
+    <path d="M46.5 40.8 Q46.0 26.0 54.5 26.0 Q63.0 26.0 62.5 40.8 Q62.5 42 60.1 42 H48.9 Q46.5 42 46.5 40.8 Z" fill="#3F86CF"/>
+    <path d="M46.5 40.8 Q46.0 26.0 54.5 26.0 Q63.0 26.0 62.5 40.8 Q62.5 42 60.1 42 H48.9 Q46.5 42 46.5 40.8 Z" fill="#5AA9F0" transform="translate(-2 -2)"/>
+  </g>
+  <path id="head-small-highlight" d="M49.5 34.8 Q49.7 29.6 53.3 28.4" fill="none" stroke="#FFFFFF" stroke-width="2" opacity="0.85"/>
+  <path id="head-small-outline" d="M46.5 40.8 Q46.0 26.0 54.5 26.0 Q63.0 26.0 62.5 40.8 Q62.5 42 60.1 42 H48.9 Q46.5 42 46.5 40.8 Z" fill="none"/>
+  <g id="head-small-eyes" stroke="none">
+    <ellipse cx="53.5" cy="33.6" rx="1.7" ry="2.1" fill="#2A1E3D"/>
+    <ellipse cx="57.9" cy="33.2" rx="1.7" ry="2.1" fill="#2A1E3D"/>
+    <circle cx="54.1" cy="32.8" r="0.7" fill="#FFFFFF"/>
+    <circle cx="58.5" cy="32.4" r="0.7" fill="#FFFFFF"/>
+  </g>
+  </g>
+  <g id="head-mid">
+  <clipPath id="head-mid-clip"><path d="M28 44.2 Q27.5 22.0 40 22.0 Q52.5 22.0 52 44.2 Q52 46 48.4 46 H31.6 Q28 46 28 44.2 Z"/></clipPath>
+  <g id="head-mid-fill" clip-path="url(#head-mid-clip)" stroke="none">
+    <path d="M28 44.2 Q27.5 22.0 40 22.0 Q52.5 22.0 52 44.2 Q52 46 48.4 46 H31.6 Q28 46 28 44.2 Z" fill="#3F86CF"/>
+    <path d="M28 44.2 Q27.5 22.0 40 22.0 Q52.5 22.0 52 44.2 Q52 46 48.4 46 H31.6 Q28 46 28 44.2 Z" fill="#5AA9F0" transform="translate(-2.64 -2.64)"/>
+  </g>
+  <path id="head-mid-highlight" d="M32.6 35.2 Q32.8 27.4 38.2 25.6" fill="none" stroke="#FFFFFF" stroke-width="2.5" opacity="0.85"/>
+  <path id="head-mid-outline" d="M28 44.2 Q27.5 22.0 40 22.0 Q52.5 22.0 52 44.2 Q52 46 48.4 46 H31.6 Q28 46 28 44.2 Z" fill="none"/>
+  <g id="head-mid-eyes" stroke="none">
+    <ellipse cx="38.6" cy="33.4" rx="2.4" ry="3.0" fill="#2A1E3D"/>
+    <ellipse cx="45.0" cy="33.0" rx="2.4" ry="3.0" fill="#2A1E3D"/>
+    <circle cx="39.4" cy="32.3" r="1.0" fill="#FFFFFF"/>
+    <circle cx="45.9" cy="31.9" r="1.0" fill="#FFFFFF"/>
+  </g>
+  </g>
+  <g id="head-big">
+  <clipPath id="head-big-clip"><path d="M3.5 47.5 Q3.0 17.0 20 17.0 Q37.0 17.0 36.5 47.5 Q36.5 50 31.5 50 H8.5 Q3.5 50 3.5 47.5 Z"/></clipPath>
+  <g id="head-big-fill" clip-path="url(#head-big-clip)" stroke="none">
+    <path d="M3.5 47.5 Q3.0 17.0 20 17.0 Q37.0 17.0 36.5 47.5 Q36.5 50 31.5 50 H8.5 Q3.5 50 3.5 47.5 Z" fill="#3F86CF"/>
+    <path d="M3.5 47.5 Q3.0 17.0 20 17.0 Q37.0 17.0 36.5 47.5 Q36.5 50 31.5 50 H8.5 Q3.5 50 3.5 47.5 Z" fill="#5AA9F0" transform="translate(-3.63 -3.63)"/>
+  </g>
+  <path id="head-big-highlight" d="M9.8 35.1 Q10.1 24.4 17.5 21.9" fill="none" stroke="#FFFFFF" stroke-width="3" opacity="0.85"/>
+  <path id="head-big-outline" d="M3.5 47.5 Q3.0 17.0 20 17.0 Q37.0 17.0 36.5 47.5 Q36.5 50 31.5 50 H8.5 Q3.5 50 3.5 47.5 Z" fill="none"/>
+  <g id="head-big-eyes" stroke="none">
+    <ellipse cx="18.0" cy="32.7" rx="3.3" ry="4.1" fill="#2A1E3D"/>
+    <ellipse cx="26.9" cy="32.3" rx="3.3" ry="4.1" fill="#2A1E3D"/>
+    <circle cx="19.2" cy="31.2" r="1.4" fill="#FFFFFF"/>
+    <circle cx="28.1" cy="30.8" r="1.4" fill="#FFFFFF"/>
+  </g>
+  </g>
+</g>
+</svg>

@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- icon-credits: HUD credits: a round gold coin with an embossed five-point star, no currency sign. Single frame. Anchor centre (32,32).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="credits" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+  <clipPath id="coin-clip"><path d="M32 6 A26 26 0 1 1 31.9 6 Z"/></clipPath>
+  <g id="coin-fill" clip-path="url(#coin-clip)" stroke="none">
+    <path d="M32 6 A26 26 0 1 1 31.9 6 Z" fill="#C98F00"/>
+    <path d="M32 6 A26 26 0 1 1 31.9 6 Z" fill="#F5B700" transform="translate(-4 -4)"/>
+  </g>
+  <path id="coin-highlight" d="M14 30 Q15 18 26 12" fill="none" stroke="#FFFFFF" stroke-width="3" opacity="0.85"/>
+  <path id="coin-outline" d="M32 6 A26 26 0 1 1 31.9 6 Z" fill="none"/>
+  <circle id="coin-rim" cx="32" cy="32" r="19" fill="none" stroke="#C98F00" stroke-width="2.5"/>
+  <clipPath id="star-clip"><path d="M32.0 19.5 L35.9 28.2 L45.3 29.2 L38.3 35.5 L40.2 44.8 L32.0 40.1 L23.8 44.8 L25.7 35.5 L18.7 29.2 L28.1 28.2 Z"/></clipPath>
+  <g id="star-fill" clip-path="url(#star-clip)" stroke="none">
+    <path d="M32.0 19.5 L35.9 28.2 L45.3 29.2 L38.3 35.5 L40.2 44.8 L32.0 40.1 L23.8 44.8 L25.7 35.5 L18.7 29.2 L28.1 28.2 Z" fill="#E0AE1F"/>
+    <path d="M32.0 19.5 L35.9 28.2 L45.3 29.2 L38.3 35.5 L40.2 44.8 L32.0 40.1 L23.8 44.8 L25.7 35.5 L18.7 29.2 L28.1 28.2 Z" fill="#FFD86B" transform="translate(-2 -2)"/>
+  </g>
+  <path id="star-outline" d="M32.0 19.5 L35.9 28.2 L45.3 29.2 L38.3 35.5 L40.2 44.8 L32.0 40.1 L23.8 44.8 L25.7 35.5 L18.7 29.2 L28.1 28.2 Z" fill="none"/>
+  <circle cx="27" cy="27" r="1.6" fill="#FFFFFF" stroke="none"/>
+</g>
+</svg>

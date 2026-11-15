@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- icon-flying: flying trait: one soft rounded wing. Single frame. Anchor centre (32,32).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="wing" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+  <clipPath id="wing-clip"><path d="M10 48 C9 27 28 11 52 8 Q59 8 56 15 Q52 22 45 24 Q52 29 45 34 Q39 38 33 37 Q37 44 29 48 Q19 52 10 48 Z"/></clipPath>
+  <path id="wing-fill" d="M10 48 C9 27 28 11 52 8 Q59 8 56 15 Q52 22 45 24 Q52 29 45 34 Q39 38 33 37 Q37 44 29 48 Q19 52 10 48 Z" fill="#B98AF0" stroke="none"/>
+  <path id="wing-shade" clip-path="url(#wing-clip)" d="M60 14 Q46 30 34 38 Q24 46 6 48 V60 H64 Z" fill="#9468D2" stroke="none"/>
+  <g id="feathers" fill="none" stroke-width="2.5">
+    <path d="M45 24 Q36 28 29 31"/>
+    <path d="M33 37 Q26 40 20 41"/>
+  </g>
+  <path id="wing-highlight" d="M15 38 Q17 24 30 16" fill="none" stroke="#E2D0FA" stroke-width="3"/>
+  <path id="wing-outline" d="M10 48 C9 27 28 11 52 8 Q59 8 56 15 Q52 22 45 24 Q52 29 45 34 Q39 38 33 37 Q37 44 29 48 Q19 52 10 48 Z" fill="none"/>
+</g>
+</svg>

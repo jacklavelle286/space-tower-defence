@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- dice-6: Number picture, a die face showing six pips in the standard layout (no numerals).
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+<g id="dice-6" stroke="#2A1E3D" stroke-width="8" stroke-linejoin="round" stroke-linecap="round">
+  <clipPath id="die-clip"><path d="M64 26 H192 Q230 26 230 64 V192 Q230 230 192 230 H64 Q26 230 26 192 V64 Q26 26 64 26 Z"/></clipPath>
+  <g id="die-fill" clip-path="url(#die-clip)" stroke="none">
+    <path d="M64 26 H192 Q230 26 230 64 V192 Q230 230 192 230 H64 Q26 230 26 192 V64 Q26 26 64 26 Z" fill="#D8D2C4"/>
+    <path d="M64 26 H192 Q230 26 230 64 V192 Q230 230 192 230 H64 Q26 230 26 192 V64 Q26 26 64 26 Z" fill="#F4F1EA" transform="translate(-8 -8)"/>
+  </g>
+  <path id="die-highlight" d="M44 150 V72 Q44 44 72 44 H150" fill="none" stroke="#FFFFFF" stroke-width="8"/>
+  <path id="die-outline" d="M64 26 H192 Q230 26 230 64 V192 Q230 230 192 230 H64 Q26 230 26 192 V64 Q26 26 64 26 Z" fill="none"/>
+  <g id="pips" fill="#2A1E3D" stroke="none">
+    <circle cx="74" cy="74" r="18"/>
+    <circle cx="182" cy="74" r="18"/>
+    <circle cx="74" cy="128" r="18"/>
+    <circle cx="182" cy="128" r="18"/>
+    <circle cx="74" cy="182" r="18"/>
+    <circle cx="182" cy="182" r="18"/>
+  </g>
+  <g id="pip-shine" fill="#5B3F99" stroke="none">
+    <circle cx="67.7" cy="67.7" r="5.0"/>
+    <circle cx="175.7" cy="67.7" r="5.0"/>
+    <circle cx="67.7" cy="121.7" r="5.0"/>
+    <circle cx="175.7" cy="121.7" r="5.0"/>
+    <circle cx="67.7" cy="175.7" r="5.0"/>
+    <circle cx="175.7" cy="175.7" r="5.0"/>
+  </g>
+</g>
+</svg>

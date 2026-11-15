@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Mira (Shield Specialist) shop portrait: head and shoulders, facing the viewer, top of the chest shield visible. Anchor centre. Light from the top-left. See art/STYLE.md. -->
+  <defs><clipPath id="p-torso-clip"><path d="M86 150 Q86 132 106 132 H146 Q166 132 166 150 V176 Q166 186 156 186 H96 Q86 186 86 176 Z"/></clipPath><clipPath id="p-shield-clip"><path d="M91 151 Q126 138 161 151 V170 Q161 194 126 205 Q91 194 91 170 Z"/></clipPath><clipPath id="p-face-clip"><circle cx="126" cy="98" r="29"/></clipPath></defs>
+  <g transform="translate(128 18) scale(1.55) translate(-126 -44)">
+  <g id="p-mira" stroke="#2A1E3D" stroke-width="5.25" stroke-linejoin="round" stroke-linecap="round">
+    <g id="p-arms">
+      <path d="M94 144 Q80 156 80 176" fill="none" stroke-width="19.50"/><path d="M94 144 Q80 156 80 176" fill="none" stroke="#F4F1EA" stroke-width="9.00"/>
+      <path d="M158 144 Q172 156 172 176" fill="none" stroke-width="19.50"/><path d="M158 144 Q172 156 172 176" fill="none" stroke="#F4F1EA" stroke-width="9.00"/>
+    </g>
+    <g id="p-torso">
+      <path d="M86 150 Q86 132 106 132 H146 Q166 132 166 150 V176 Q166 186 156 186 H96 Q86 186 86 176 Z" fill="#F4F1EA"/>
+      <g clip-path="url(#p-torso-clip)">
+        <path d="M156 132 H170 V214 H140 Q158 186 156 132 Z" fill="#2A1E3D" opacity="0.13" stroke="none"/>
+        
+      <g id="p-emblem">
+        <path d="M91 151 Q126 138 161 151 V170 Q161 194 126 205 Q91 194 91 170 Z" fill="#3DBE6E" stroke-width="3.75"/>
+        <path clip-path="url(#p-shield-clip)" d="M150 140 H166 V208 H120 Q154 192 150 140 Z" fill="#2A9653" stroke="none"/>
+        <path d="M101 158 Q126 149 151 158 V171 Q151 189 126 197 Q101 189 101 171 Z" fill="none" stroke="#F4F1EA" stroke-width="3.75"/>
+        <path d="M91 151 Q126 138 161 151 V170 Q161 194 126 205 Q91 194 91 170 Z" fill="none" stroke-width="3.75"/>
+        <path d="M108 168 Q109 163 115 161" fill="none" stroke="#8FE0AA" stroke-width="3.00"/>
+      </g>
+      </g>
+      <path d="M86 150 Q86 132 106 132 H146 Q166 132 166 150 V176 Q166 186 156 186 H96 Q86 186 86 176 Z" fill="none"/>
+      <path d="M89 170 V156 Q89 148 94 145" fill="none" stroke="#FFFFFF" stroke-width="3.00"/>
+    </g>
+    <ellipse id="p-collar" cx="126" cy="141" rx="33" ry="9" fill="#A7B0C8" stroke-width="4.50"/>
+    
+    <g id="p-helmet">
+      <circle cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none"/>
+      <g id="p-head" stroke-width="3.00">
+        <!-- neat bun on top of the head -->
+        <circle id="p-hair-bun" cx="126" cy="66" r="12" fill="#3B2A24"/>
+        <path d="M119 63 Q121 59 126 58" fill="none" stroke="#6A5048" stroke-width="2.25"/>
+        <circle id="p-face" cx="126" cy="98" r="29" fill="#A9714B"/>
+        <path clip-path="url(#p-face-clip)" d="M153 89 Q150 121 118 127 L158 129 Z" fill="#8A5A3A" stroke="none"/>
+        <path id="p-fringe" d="M97 97 Q94 68 126 67 Q157 68 155 93 Q149 80 134 79 Q139 84 138 86 Q120 78 108 84 Q100 88 97 97 Z" fill="#3B2A24"/>
+        <path d="M106 76 Q112 71 120 71" fill="none" stroke="#6A5048" stroke-width="2.25"/>
+        <g id="p-face-features" stroke="none">
+          <ellipse cx="115" cy="101" rx="4" ry="5.2" fill="#2A1E3D"/>
+          <ellipse cx="137" cy="101" rx="4" ry="5.2" fill="#2A1E3D"/>
+          <circle cx="116.4" cy="98.8" r="1.7" fill="#FFFFFF"/>
+          <circle cx="138.4" cy="98.8" r="1.7" fill="#FFFFFF"/>
+          <ellipse cx="105" cy="112" rx="5.2" ry="3.6" fill="#D9606E" opacity="0.6"/>
+          <ellipse cx="147" cy="112" rx="5.2" ry="3.6" fill="#D9606E" opacity="0.6"/>
+        </g>
+        <g id="p-glasses" stroke-width="2.25">
+          <circle cx="115" cy="100" r="9" fill="#FFFFFF" fill-opacity="0.22"/>
+          <circle cx="137" cy="100" r="9" fill="#FFFFFF" fill-opacity="0.22"/>
+          <path d="M124 99.5 Q126 97 128 99.5" fill="none"/>
+          <path d="M106 98 L98 95" fill="none"/>
+          <path d="M146 98 L154 95" fill="none"/>
+        </g>
+        <path id="p-mouth" d="M117 113 Q126 120 135 113" fill="none" stroke-width="2.62"/>
+      </g>
+      <g id="p-visor-rim">
+        <path d="M83 121 Q126 152 169 121" fill="none" stroke-width="12.00"/>
+        <path d="M83 121 Q126 152 169 121" fill="none" stroke="#3DBE6E" stroke-width="6.75"/>
+      </g>
+      <g id="p-helmet-highlight" stroke="#FFFFFF" fill="none">
+        <path d="M88 70 Q98 54 116 49" stroke-width="5.25" opacity="0.9"/>
+        <circle cx="83" cy="84" r="1.5" stroke-width="3.75" opacity="0.9"/>
+      </g>
+      <circle cx="126" cy="94" r="50" fill="none"/>
+    </g>
+  </g>
+  </g>
+</svg>

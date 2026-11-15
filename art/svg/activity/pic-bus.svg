@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-bus: a yellow single-deck bus, side view facing right: a row of windows, red stripe, no signs or numbers. Single frame. Anchor centre (128,128).
+       Activity picture: text-free, one object, no background. Light from the top-left. See art/STYLE.md. -->
+<g id="bus" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" transform="translate(0 -4)">
+<g id="body">
+  <clipPath id="body-clip"><path d="M30 64 H214 Q236 64 238 88 L240 178 Q240 192 226 192 H30 Q16 192 16 178 V78 Q16 64 30 64 Z"/></clipPath>
+  <g clip-path="url(#body-clip)" stroke="none">
+    <path d="M30 64 H214 Q236 64 238 88 L240 178 Q240 192 226 192 H30 Q16 192 16 178 V78 Q16 64 30 64 Z" fill="#E0AE1F"/>
+    <path d="M30 64 H214 Q236 64 238 88 L240 178 Q240 192 226 192 H30 Q16 192 16 178 V78 Q16 64 30 64 Z" fill="#FFD23F" transform="translate(-8 -8)"/>
+  </g>
+  <path d="M30 64 H214 Q236 64 238 88 L240 178 Q240 192 226 192 H30 Q16 192 16 178 V78 Q16 64 30 64 Z" fill="none"/>
+</g>
+<g id="windows" fill="#CFE9FF" stroke-width="5">
+  <path d="M37 80 H55 Q62 80 62 87 V111 Q62 118 55 118 H37 Q30 118 30 111 V87 Q30 80 37 80 Z"/>
+  <path d="M77 80 H95 Q102 80 102 87 V111 Q102 118 95 118 H77 Q70 118 70 111 V87 Q70 80 77 80 Z"/>
+  <path d="M117 80 H135 Q142 80 142 87 V111 Q142 118 135 118 H117 Q110 118 110 111 V87 Q110 80 117 80 Z"/>
+  <path d="M157 80 H175 Q182 80 182 87 V111 Q182 118 175 118 H157 Q150 118 150 111 V87 Q150 80 157 80 Z"/>
+  <path d="M194 80 H220 Q230 80 230 92 V122 H194 Z"/>
+</g>
+<g id="window-shine" fill="none" stroke="#FFFFFF" stroke-width="4" opacity="0.9">
+  <path d="M37 108 L43 90"/>
+  <path d="M77 108 L83 90"/>
+  <path d="M117 108 L123 90"/>
+  <path d="M157 108 L163 90"/>
+</g>
+<path id="stripe" d="M16 140 H240" fill="none" stroke="#E2403A" stroke-width="10"/>
+<path id="door-line" d="M188 80 V190" fill="none" stroke-width="4"/>
+<ellipse id="headlight" cx="232" cy="164" rx="5" ry="8" fill="#FFE79A" stroke-width="4"/>
+<path id="bumper" d="M212 190 H240" fill="none" stroke-width="8"/>
+<g id="wheels">
+  <circle cx="66" cy="192" r="24" fill="#2A1E3D"/>
+  <circle cx="66" cy="192" r="10" fill="#A7B0C8" stroke="none"/>
+  <circle cx="194" cy="192" r="24" fill="#2A1E3D"/>
+  <circle cx="194" cy="192" r="10" fill="#A7B0C8" stroke="none"/>
+</g>
+</g>
+</svg>

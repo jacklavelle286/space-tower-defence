@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- icon-target-fast: Aim mode FAST: a small magenta alien running to the right with speed lines behind it. Single frame. Anchor centre (32,32).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="target-fast" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+  <g id="speed-lines" fill="none" stroke-width="3.5">
+    <path d="M5 21 H15"/><path d="M3 31 H17"/><path d="M6 41 H16"/>
+  </g>
+  <g id="legs" stroke-width="3">
+    <path d="M33 45 L27 52" stroke="#2A1E3D" stroke-width="8"/><path d="M33 45 L27 52" stroke="#E05FD0" stroke-width="3"/>
+    <ellipse cx="25.5" cy="53.5" rx="5" ry="3.5" fill="#E05FD0" transform="rotate(-20 25.5 53.5)"/>
+    <path d="M45 45 L50 52" stroke="#2A1E3D" stroke-width="8"/><path d="M45 45 L50 52" stroke="#E05FD0" stroke-width="3"/>
+    <ellipse cx="52.5" cy="53" rx="5" ry="3.5" fill="#E05FD0" transform="rotate(10 52.5 53)"/>
+  </g>
+  <g id="antenna" fill="none">
+    <path d="M34 16 Q30 9 22 9" stroke-width="3"/>
+    <circle cx="21" cy="9" r="3.6" fill="#FFD86B" stroke-width="2.5"/>
+  </g>
+  <clipPath id="body-clip"><path d="M24 38 Q22 18 38 15 Q54 13 55 30 Q56 45 42 47 Q26 49 24 38 Z"/></clipPath>
+  <g id="body-fill" clip-path="url(#body-clip)" stroke="none">
+    <path d="M24 38 Q22 18 38 15 Q54 13 55 30 Q56 45 42 47 Q26 49 24 38 Z" fill="#B946AB"/>
+    <path d="M24 38 Q22 18 38 15 Q54 13 55 30 Q56 45 42 47 Q26 49 24 38 Z" fill="#E05FD0" transform="translate(-3 -3)"/>
+  </g>
+  <path id="body-highlight" d="M28 33 Q28 23 36 20" fill="none" stroke="#FFFFFF" stroke-width="2.5" opacity="0.85"/>
+  <path id="body-outline" d="M24 38 Q22 18 38 15 Q54 13 55 30 Q56 45 42 47 Q26 49 24 38 Z" fill="none"/>
+  <g id="eyes" stroke="none">
+    <ellipse cx="42" cy="28" rx="2.6" ry="3.3" fill="#2A1E3D"/><ellipse cx="50" cy="27.5" rx="2.4" ry="3.1" fill="#2A1E3D"/>
+    <circle cx="43" cy="26.7" r="1.1" fill="#FFFFFF"/><circle cx="50.9" cy="26.2" r="1" fill="#FFFFFF"/>
+  </g>
+  <path id="mouth" d="M43 36 Q47 39 51 35" fill="none" stroke-width="2.2"/>
+</g>
+</svg>

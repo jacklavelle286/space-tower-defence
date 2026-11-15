@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-pen: a navy ballpoint pen with its cap off: click button, clip, grip and silver tip. Single frame. Anchor centre (128,128).
+       Activity picture: text-free, one object, no background. Light from the top-left. See art/STYLE.md. -->
+<g id="pen-group" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+<g id="pen" transform="translate(128 128) rotate(40)">
+<path id="button" d="M-3 -112 H3 Q9 -112 9 -106 V-98 Q9 -92 3 -92 H-3 Q-9 -92 -9 -98 V-106 Q-9 -112 -3 -112 Z" fill="#A7B0C8" stroke-width="6"/>
+<g id="barrel">
+  <clipPath id="barrel-clip"><path d="M-5 -98 H5 Q19 -98 19 -84 V20 Q19 34 5 34 H-5 Q-19 34 -19 20 V-84 Q-19 -98 -5 -98 Z"/></clipPath>
+  <g clip-path="url(#barrel-clip)" stroke="none">
+    <path d="M-5 -98 H5 Q19 -98 19 -84 V20 Q19 34 5 34 H-5 Q-19 34 -19 20 V-84 Q-19 -98 -5 -98 Z" fill="#22377A"/>
+    <path d="M-5 -98 H5 Q19 -98 19 -84 V20 Q19 34 5 34 H-5 Q-19 34 -19 20 V-84 Q-19 -98 -5 -98 Z" fill="#2E4A9E" transform="translate(-7 0)"/>
+  </g>
+  <path d="M-5 -98 H5 Q19 -98 19 -84 V20 Q19 34 5 34 H-5 Q-19 34 -19 20 V-84 Q-19 -98 -5 -98 Z" fill="none"/>
+</g>
+<path d="M-10 -84 V16" fill="none" stroke="#5C78C8" stroke-width="5" opacity="0.6"/>
+<path id="grip" d="M-19 26 H19 V60 Q19 66 13 66 H-13 Q-19 66 -19 60 Z" fill="#2A1E3D" stroke="#2A1E3D"/>
+<g id="grip-ridges" stroke="#5C78C8" stroke-width="3" opacity="0.9"><path d="M-12 38 H12"/><path d="M-12 48 H12"/><path d="M-12 58 H12"/></g>
+<g id="cone">
+  <clipPath id="cone-clip"><path d="M-15 66 H15 L5 98 H-5 Z"/></clipPath>
+  <g clip-path="url(#cone-clip)" stroke="none">
+    <path d="M-15 66 H15 L5 98 H-5 Z" fill="#7F89A6"/>
+    <path d="M-15 66 H15 L5 98 H-5 Z" fill="#A7B0C8" transform="translate(-5 0)"/>
+  </g>
+  <path d="M-15 66 H15 L5 98 H-5 Z" fill="none" stroke-width="6"/>
+</g>
+<circle id="ball" cx="0" cy="104" r="5" fill="#2A1E3D" stroke="none"/>
+<path id="clip" d="M19 -88 H27 Q31 -88 31 -84 V-30 Q31 -24 25 -24 H19" fill="#A7B0C8" stroke-width="5"/>
+</g>
+</g>
+</svg>

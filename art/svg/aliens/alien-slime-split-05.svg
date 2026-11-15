@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Split Slime split, frame 05 of 06: both halves land, squashed, stars drift and fade.
+       Anchor bottom-centre (128,256): base on y=250.
+       Light from the top-left. See art/STYLE.md. -->
+  <defs><clipPath id="lobe-left-clip"><path d="M14 236 Q14 156 64 154 Q114 156 114 236 Q114 250 98 250 L30 250 Q14 250 14 236 Z"/></clipPath></defs>
+  <g id="lobe-left" transform="translate(64 250) rotate(0) skewX(0) scale(1.08 0.92) translate(-64 -250)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="lobe-left-body">
+      <path d="M14 236 Q14 156 64 154 Q114 156 114 236 Q114 250 98 250 L30 250 Q14 250 14 236 Z" fill="#9BE564" stroke="none"/>
+      <g clip-path="url(#lobe-left-clip)" stroke="none">
+        <path id="lobe-left-shade" d="M122 150 Q102 184 104 238 Q100 248 84 254 L122 256 Z" fill="#78C443"/>
+        <ellipse id="lobe-left-belly" cx="66" cy="237" rx="34" ry="11" fill="#BDF08F"/>
+      </g>
+      <path id="lobe-left-highlight" d="M27 202 Q31 180 50 165" fill="none" stroke="#D2F6B0" stroke-width="9"/>
+      <path d="M14 236 Q14 156 64 154 Q114 156 114 236 Q114 250 98 250 L30 250 Q14 250 14 236 Z" fill="none" stroke-width="8"/>
+    </g>
+    <g id="lobe-left-face">
+      <ellipse cx="70" cy="197.2" rx="19" ry="22" fill="#FFFFFF" stroke-width="5"/>
+      <circle cx="75" cy="201.2" r="10" fill="#2A1E3D" stroke="none"/>
+      <circle cx="79" cy="196.2" r="3.8" fill="#FFFFFF" stroke="none"/>
+      <path d="M55 227.2 Q70 239.2 86 224.2" fill="none" stroke-width="5.5"/>
+    </g>
+  </g>
+  <defs><clipPath id="lobe-right-clip"><path d="M142 236 Q142 156 192 154 Q242 156 242 236 Q242 250 226 250 L158 250 Q142 250 142 236 Z"/></clipPath></defs>
+  <g id="lobe-right" transform="translate(192 250) rotate(0) skewX(0) scale(1.08 0.92) translate(-192 -250)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="lobe-right-body">
+      <path d="M142 236 Q142 156 192 154 Q242 156 242 236 Q242 250 226 250 L158 250 Q142 250 142 236 Z" fill="#9BE564" stroke="none"/>
+      <g clip-path="url(#lobe-right-clip)" stroke="none">
+        <path id="lobe-right-shade" d="M250 150 Q230 184 232 238 Q228 248 212 254 L250 256 Z" fill="#78C443"/>
+        <ellipse id="lobe-right-belly" cx="194" cy="237" rx="34" ry="11" fill="#BDF08F"/>
+      </g>
+      <path id="lobe-right-highlight" d="M155 202 Q159 180 178 165" fill="none" stroke="#D2F6B0" stroke-width="9"/>
+      <path d="M142 236 Q142 156 192 154 Q242 156 242 236 Q242 250 226 250 L158 250 Q142 250 142 236 Z" fill="none" stroke-width="8"/>
+    </g>
+    <g id="lobe-right-face">
+      <ellipse cx="198" cy="197.2" rx="19" ry="22" fill="#FFFFFF" stroke-width="5"/>
+      <circle cx="203" cy="201.2" r="10" fill="#2A1E3D" stroke="none"/>
+      <circle cx="207" cy="196.2" r="3.8" fill="#FFFFFF" stroke="none"/>
+      <path d="M183 227.2 Q198 239.2 214 224.2" fill="none" stroke-width="5.5"/>
+    </g>
+  </g>
+  <g id="stars" stroke="#2A1E3D" stroke-linejoin="round" opacity="0.85">
+    <path d="M0 -20 L5.3 -7.3 L19 -6.2 L8.6 2.8 L11.8 16.2 L0 9 L-11.8 16.2 L-8.6 2.8 L-19 -6.2 L-5.3 -7.3 Z" fill="#FFD23F" stroke-width="8.1" transform="translate(128 87.9) rotate(-8) scale(0.5)"/>
+    <path d="M0 -20 L5.3 -7.3 L19 -6.2 L8.6 2.8 L11.8 16.2 L0 9 L-11.8 16.2 L-8.6 2.8 L-19 -6.2 L-5.3 -7.3 Z" fill="#9FF3FF" stroke-width="12.1" transform="translate(87.5 123) rotate(14) scale(0.3)"/>
+    <path d="M0 -20 L5.3 -7.3 L19 -6.2 L8.6 2.8 L11.8 16.2 L0 9 L-11.8 16.2 L-8.6 2.8 L-19 -6.2 L-5.3 -7.3 Z" fill="#E05FD0" stroke-width="10.4" transform="translate(168.5 117.6) rotate(-16) scale(0.4)"/>
+    <path d="M0 -20 L5.3 -7.3 L19 -6.2 L8.6 2.8 L11.8 16.2 L0 9 L-11.8 16.2 L-8.6 2.8 L-19 -6.2 L-5.3 -7.3 Z" fill="#FF8A2A" stroke-width="13.2" transform="translate(117.2 163.5) rotate(10) scale(0.3)"/>
+    <path d="M0 -20 L5.3 -7.3 L19 -6.2 L8.6 2.8 L11.8 16.2 L0 9 L-11.8 16.2 L-8.6 2.8 L-19 -6.2 L-5.3 -7.3 Z" fill="#FFF4D6" stroke-width="14.5" transform="translate(152.3 174.3) rotate(-6) scale(0.3)"/>
+    <circle cx="98.3" cy="77.1" r="2.2" fill="#FFF4D6" stroke="none"/>
+    <circle cx="163.1" cy="69" r="2.2" fill="#FFF4D6" stroke="none"/>
+    <circle cx="128" cy="131.1" r="2.2" fill="#FFF4D6" stroke="none"/>
+  </g>
+</svg>

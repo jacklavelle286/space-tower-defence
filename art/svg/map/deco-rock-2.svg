@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- deco-rock-2: a cluster of two rounded moon pebbles, a purple one behind and a pale lavender one in front. Single frame. Anchor bottom-centre (128,256), base on y 250.
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="rock" stroke="#2A1E3D" stroke-width="8" stroke-linejoin="round" stroke-linecap="round">
+  <clipPath id="back-clip"><path d="M34 222 Q26 176 58 140 Q88 108 128 116 Q166 124 170 168 Q174 214 152 232 Q144 238 128 238 H48 Q36 238 34 222 Z"/></clipPath>
+  <clipPath id="front-clip"><path d="M116 238 Q112 200 140 182 Q170 166 200 182 Q226 198 222 234 Q220 250 204 250 H130 Q118 250 116 238 Z"/></clipPath>
+  <g id="pebble-back">
+    <path d="M34 222 Q26 176 58 140 Q88 108 128 116 Q166 124 170 168 Q174 214 152 232 Q144 238 128 238 H48 Q36 238 34 222 Z" fill="#6B5CA5" stroke="none"/>
+    <path clip-path="url(#back-clip)" d="M180 120 Q170 200 110 228 Q80 240 40 242 H180 Z" fill="#4A3F7A" stroke="none"/>
+    <path d="M48 196 Q48 154 82 132" fill="none" stroke="#9C8FD6" stroke-width="7"/>
+    <ellipse cx="96" cy="178" rx="10" ry="7.5" fill="#4A3F7A" stroke="none"/>
+    <path d="M34 222 Q26 176 58 140 Q88 108 128 116 Q166 124 170 168 Q174 214 152 232 Q144 238 128 238 H48 Q36 238 34 222 Z" fill="none"/>
+  </g>
+  <g id="pebble-front">
+    <path d="M116 238 Q112 200 140 182 Q170 166 200 182 Q226 198 222 234 Q220 250 204 250 H130 Q118 250 116 238 Z" fill="#B3A8E3" stroke="none"/>
+    <path clip-path="url(#front-clip)" d="M228 176 Q222 230 170 246 Q150 252 120 252 H230 Z" fill="#9C8FD6" stroke="none"/>
+    <path d="M128 222 Q130 198 152 186" fill="none" stroke="#E4DFF9" stroke-width="6"/>
+    <path d="M116 238 Q112 200 140 182 Q170 166 200 182 Q226 198 222 234 Q220 250 204 250 H130 Q118 250 116 238 Z" fill="none"/>
+  </g>
+</g>
+</svg>

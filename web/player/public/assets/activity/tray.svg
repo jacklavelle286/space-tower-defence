@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- tray: Object tray: a wide shallow metal-grey tray seen from slightly above, plain lilac floor for counters.
+       Single frame. Anchor centre (256,256). Light from the top-left. See art/STYLE.md. -->
+<g id="tray" stroke="#2A1E3D" stroke-linejoin="round" stroke-linecap="round">
+  <path id="tray-front" d="M42 300 Q42 342 84 342 H428 Q470 342 470 300 V336 Q470 378 428 378 H84 Q42 378 42 336 Z" fill="#7F89A6" stroke="none"/>
+  <path id="tray-rim" d="M84 150 H428 Q470 150 470 192 V300 Q470 342 428 342 H84 Q42 342 42 300 V192 Q42 150 84 150 Z" fill="#A7B0C8" stroke="none"/>
+  <path id="tray-floor" d="M100 178 H412 Q440 178 440 206 V290 Q440 318 412 318 H100 Q72 318 72 290 V206 Q72 178 100 178 Z" fill="#C9C0F0" stroke-width="6"/>
+  <path id="floor-back-wall" d="M78 214 V206 Q78 184 100 184 H412 Q434 184 434 206 V214" fill="none" stroke="#9C8FD6" stroke-width="10" opacity="0.7"/>
+  <path id="rim-highlight" d="M56 270 V196 Q56 164 88 164 H230" fill="none" stroke="#C9D0E2" stroke-width="9"/>
+  <path id="rim-edge" d="M42 300 Q42 342 84 342 H428 Q470 342 470 300" fill="none" stroke-width="6"/>
+  <path id="tray-outline" d="M42 336 V192 Q42 150 84 150 H428 Q470 150 470 192 V336 Q470 378 428 378 H84 Q42 378 42 336 Z" fill="none" stroke-width="11"/>
+</g>
+</svg>

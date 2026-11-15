@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-box: a closed cardboard box in three-quarter view with a strip of tape across the lid. Single frame. Anchor centre (128,128).
+       Activity picture: text-free, one object, no background. Light from the top-left. See art/STYLE.md. -->
+<g id="box" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+<path id="top" d="M128 42 L222 84 L128 126 L34 84 Z" fill="#E8B07E"/>
+<path id="left" d="M34 84 L128 126 V226 L34 184 Z" fill="#D08A55"/>
+<path id="right" d="M128 126 L222 84 V184 L128 226 Z" fill="#A86A3C"/>
+<g id="tape" stroke="none" fill="#F5D7A1">
+  <path d="M70 58 L92 68 L186 110 L164 120 Z"/>
+  <path d="M164 120 L186 110 V156 L164 166 Z"/>
+</g>
+<g id="tape-edges" fill="none" stroke-width="3.5">
+  <path d="M70 58 L164 120 V166"/><path d="M92 68 L186 110 V156"/>
+</g>
+<path id="flap-seam" d="M81 63 L175 105" fill="none" stroke-width="3" opacity="0.6"/>
+<path id="box-outline" d="M128 42 L222 84 V184 L128 226 L34 184 V84 Z M34 84 L128 126 L222 84 M128 126 V226" fill="none"/>
+<path d="M46 100 V170" fill="none" stroke="#FFFFFF" stroke-width="6" opacity="0.6"/>
+</g>
+</svg>

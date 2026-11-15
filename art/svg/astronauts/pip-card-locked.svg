@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Pip locked silhouette: the pip-card outline filled flat night blue #23295E with a plum outline.
+       Pass 1 draws every part with a thick plum stroke; pass 2 fills them on top, so only the outer edge stays. -->
+  <g id="pip-locked" stroke-linejoin="round">
+    <g id="outline" fill="#2A1E3D" stroke="#2A1E3D" stroke-width="9">
+    <rect x="49" y="111" width="22" height="13" rx="5" />
+    <circle cx="60" cy="150" r="31" />
+    <rect x="185" y="111" width="22" height="13" rx="5" />
+    <circle cx="196" cy="150" r="31" />
+    <path d="M38 246 V218 Q38 184 76 178 H180 Q218 184 218 218 V246 Z" />
+    <ellipse cx="128" cy="181" rx="54" ry="13" />
+    <circle cx="128" cy="104" r="78" />
+    </g>
+    <g id="fill" fill="#23295E" stroke="none">
+    <rect x="49" y="111" width="22" height="13" rx="5" />
+    <circle cx="60" cy="150" r="31" />
+    <rect x="185" y="111" width="22" height="13" rx="5" />
+    <circle cx="196" cy="150" r="31" />
+    <path d="M38 246 V218 Q38 184 76 178 H180 Q218 184 218 218 V246 Z" />
+    <ellipse cx="128" cy="181" rx="54" ry="13" />
+    <circle cx="128" cy="104" r="78" />
+    </g>
+  </g>
+</svg>

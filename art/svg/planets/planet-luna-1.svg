@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- planet.luna-1 (Moonbeam Colony planet). Still, 1 frame. Anchor centre (256,256); the moon disc sits slightly low (centre 256,282, r 178) to leave headroom for the colony.
+       Round cartoon moon seen whole from space: lavender with soft teal and purple patches, a few round craters,
+       a cyan rim of light on the top-left edge, and a little cluster of white domed colony buildings with warm
+       windows standing on its upper surface. Light from the top-left. Outline 11 / inner 6 / detail 4. See art/STYLE.md. -->
+  <defs>
+    <clipPath id="moon-clip"><circle cx="256" cy="272" r="196"/></clipPath>
+  </defs>
+  <g id="planet-luna-1" stroke="#2A1E3D" stroke-width="12" stroke-linejoin="round" stroke-linecap="round">
+
+    <!-- colony: drawn first so the moon's surface hides the building bases -->
+    <g id="colony" transform="translate(334 108) rotate(24) scale(0.85)">
+      <g id="tower">
+        <path d="M60 -96 V-64" fill="none" stroke-width="6"/>
+        <circle cx="60" cy="-100" r="8" fill="#FFD86B" stroke-width="5"/>
+        <rect x="48" y="-66" width="24" height="86" rx="10" fill="#F4F1EA" stroke-width="8"/>
+        <rect x="54" y="-50" width="12" height="12" rx="4" fill="#FFE79A" stroke-width="4"/>
+        <path d="M68 -60 V14" fill="none" stroke="#D8D2C4" stroke-width="5"/>
+      </g>
+      <g id="dome-small">
+        <path d="M-92 20 V-2 A28 28 0 0 1 -36 -2 V20 Z" fill="#F4F1EA" stroke-width="8"/>
+        <path d="M-82 -6 Q-80 -20 -66 -26" fill="none" stroke="#FFFFFF" stroke-width="5"/>
+        <rect x="-74" y="-6" width="20" height="8" rx="4" fill="#FFE79A" stroke-width="4"/>
+      </g>
+      <g id="tube">
+        <rect x="-44" y="-10" width="16" height="16" rx="4" fill="#A7B0C8" stroke-width="5"/>
+        <rect x="34" y="-14" width="18" height="16" rx="4" fill="#A7B0C8" stroke-width="5"/>
+      </g>
+      <g id="dome-big">
+        <path d="M-38 24 V-10 A40 40 0 0 1 42 -10 V24 Z" fill="#F4F1EA" stroke-width="8"/>
+        <path d="M18 -42 Q38 -30 38 -6 V22 H28 Q32 -20 18 -42 Z" fill="#2A1E3D" opacity="0.13" stroke="none"/>
+        <path d="M-38 24 V-10 A40 40 0 0 1 42 -10 V24 Z" fill="none" stroke-width="8"/>
+        <path d="M-26 -16 Q-22 -36 -2 -44" fill="none" stroke="#FFFFFF" stroke-width="5"/>
+        <path d="M-38 -2 H42" fill="none" stroke="#A7B0C8" stroke-width="5"/>
+        <g id="windows" fill="#FFE79A" stroke-width="4">
+          <circle cx="-18" cy="-12" r="5"/>
+          <circle cx="2" cy="-12" r="5"/>
+          <circle cx="22" cy="-12" r="5"/>
+          <rect x="-4" y="4" width="16" height="18" rx="6"/>
+        </g>
+      </g>
+    </g>
+
+    <g id="moon-scaled" transform="translate(256 282) scale(0.908) translate(-256 -272)">
+    <!-- soft cyan glow just outside the top-left edge -->
+    <path id="glow" d="M54.0 243.6 A204 204 0 0 1 234.7 69.1" fill="none" stroke="#5BE0F0" stroke-width="14" opacity="0.45"/>
+
+    <g id="moon">
+      <circle id="moon-base" cx="256" cy="272" r="196" fill="#9C8FD6" stroke="none"/>
+      <g id="patches" clip-path="url(#moon-clip)" stroke="none">
+        <path d="M206 128 Q262 108 296 136 Q318 162 284 180 Q244 194 214 172 Q186 150 206 128 Z" fill="#3FB8AF" opacity="0.6"/>
+        <path d="M76 296 Q96 260 142 270 Q178 284 166 324 Q150 356 112 350 Q78 338 76 296 Z" fill="#3FB8AF" opacity="0.6"/>
+        <path d="M294 392 Q338 368 386 386 Q404 414 364 432 Q316 444 296 420 Q284 404 294 392 Z" fill="#3FB8AF" opacity="0.6"/>
+        <path d="M344 214 Q388 196 422 222 Q440 258 410 270 Q372 278 352 256 Q334 234 344 214 Z" fill="#6B5CA5" opacity="0.55"/>
+        <path d="M150 404 Q180 390 210 404 Q222 426 196 440 Q164 446 150 430 Q140 416 150 404 Z" fill="#6B5CA5" opacity="0.55"/>
+      </g>
+      <g id="craters" stroke-width="6">
+        <g transform="translate(176 226)">
+          <ellipse rx="44" ry="37" fill="#B3A8E3"/>
+          <ellipse cx="3" cy="3" rx="30" ry="24" fill="#4A3F7A" stroke="none"/>
+          <ellipse cx="9" cy="9" rx="26" ry="20" fill="#6B5CA5" stroke="none"/>
+          <ellipse cx="3" cy="3" rx="30" ry="24" fill="none" stroke-width="4"/>
+        </g>
+        <g transform="translate(300 312)">
+          <ellipse rx="56" ry="46" fill="#B3A8E3"/>
+          <ellipse cx="4" cy="4" rx="39" ry="31" fill="#4A3F7A" stroke="none"/>
+          <ellipse cx="11" cy="11" rx="34" ry="26" fill="#6B5CA5" stroke="none"/>
+          <ellipse cx="4" cy="4" rx="39" ry="31" fill="none" stroke-width="4"/>
+        </g>
+        <g transform="translate(232 400)">
+          <ellipse rx="30" ry="22" fill="#B3A8E3"/>
+          <ellipse cx="2" cy="2" rx="19" ry="13" fill="#4A3F7A" stroke="none"/>
+          <ellipse cx="6" cy="6" rx="16" ry="10" fill="#6B5CA5" stroke="none"/>
+          <ellipse cx="2" cy="2" rx="19" ry="13" fill="none" stroke-width="4"/>
+        </g>
+        <g transform="translate(400 330)">
+          <ellipse rx="22" ry="26" fill="#B3A8E3"/>
+          <ellipse cx="2" cy="2" rx="13" ry="16" fill="#4A3F7A" stroke="none"/>
+          <ellipse cx="5" cy="5" rx="11" ry="13" fill="#6B5CA5" stroke="none"/>
+          <ellipse cx="2" cy="2" rx="13" ry="16" fill="none" stroke-width="4"/>
+        </g>
+        <g transform="translate(118 190)">
+          <ellipse rx="18" ry="16" fill="#B3A8E3"/>
+          <ellipse cx="1.5" cy="1.5" rx="10" ry="9" fill="#4A3F7A" stroke="none"/>
+          <ellipse cx="1.5" cy="1.5" rx="10" ry="9" fill="none" stroke-width="4"/>
+        </g>
+      </g>
+      <!-- one shade: crescent on the bottom-right -->
+      <path id="moon-shade" clip-path="url(#moon-clip)" fill-rule="evenodd" d="M0 0 H512 V512 H0 Z M226 242 m-206 0 a206 206 0 1 0 412 0 a206 206 0 1 0 -412 0 Z" fill="#2A1E3D" opacity="0.18" stroke="none"/>
+      <!-- cyan rim of light inside the top-left edge -->
+      <path id="moon-rim-light" d="M72.8 239.7 A186 186 0 0 1 239.8 86.7" fill="none" stroke="#5BE0F0" stroke-width="14"/>
+      <g id="moon-highlight" stroke="#FFFFFF" fill="none">
+        <path d="M100 196 Q122 140 170 112" stroke-width="8"/>
+        <circle cx="90" cy="226" r="5" fill="#FFFFFF" stroke="none"/>
+      </g>
+      <circle id="moon-outline" cx="256" cy="272" r="196" fill="none"/>
+    </g>
+    </g>
+  </g>
+</svg>

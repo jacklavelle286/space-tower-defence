@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Orion tracer, frame 03/03: thin gold streak edge to edge with a four-point star at the right tip, twinkle step 3. Anchor left-middle (0,64).
+       See art/STYLE.md. -->
+  <g id="orion-shot" stroke-linecap="round" stroke-linejoin="round">
+    <g id="glow"><rect x="0" y="48" width="128" height="32" fill="#2E4A9E" opacity="0.1"/><rect x="0" y="54" width="128" height="20" fill="#2E4A9E" opacity="0.2"/></g>
+    <g id="streak"><rect x="0" y="59.5" width="128" height="9" fill="#FFD86B"/><rect x="0" y="62" width="128" height="3" fill="#FFF4D6"/><path d="M0 59.5 H128 M0 68.5 H128" stroke="#2A1E3D" stroke-width="2.5" fill="none"/></g>
+    <g id="tip"><path d="M0 -21 Q5.9 -5.9 21 0 Q5.9 5.9 0 21 Q-5.9 5.9 -21 0 Q-5.9 -5.9 0 -21 Z" fill="#2E4A9E" stroke="none" transform="translate(104 64) rotate(-10)" opacity="0.3"/><path d="M0 -16 Q4.5 -4.5 16 0 Q4.5 4.5 0 16 Q-4.5 4.5 -16 0 Q-4.5 -4.5 0 -16 Z" fill="#FFD86B" stroke="#2A1E3D" stroke-width="2.5" stroke-linejoin="round" transform="translate(104 64) rotate(-10)"/><circle cx="104" cy="64" r="3.5" fill="#FFFFFF"/></g>
+  </g>
+</svg>

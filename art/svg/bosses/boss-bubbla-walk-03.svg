@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 768" width="768" height="768">
+  <!-- Queen Bubbla grand walk (drawn without her bubble), frame 03: 03 passing: neutral.
+       Anchor bottom-centre (384,768): feet on y=762.
+       See art/STYLE.md. Light from the top-left. -->
+  <defs>
+    <clipPath id="bb-clip"><circle cx="384" cy="492" r="214"/></clipPath>
+  </defs>
+  <g id="bubbla" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+      <g id="feet">
+        <path d="M262 762 V732 Q262 698 304 698 H332 Q372 698 376 732 V762 Z" fill="#E8915F" stroke-width="14"/>
+        <path d="M408 762 V732 Q408 698 450 698 H478 Q518 698 524 730 Q528 762 520 762 Z" fill="#FFB38A" stroke-width="14"/>
+        <circle id="mitten-grip" cx="604" cy="518" r="27" fill="#FFB38A" stroke-width="10"/>
+    </g>
+    <g id="upper" transform="translate(0 -2) rotate(0 384 740)">
+      <g id="arm-back">
+        <path d="M196 540 Q160 580 156 624" fill="none" stroke="#2A1E3D" stroke-width="52"/><path d="M196 540 Q160 580 156 624" fill="none" stroke="#FFB38A" stroke-width="24"/>
+        <circle cx="156" cy="628" r="26" fill="#E8915F" stroke-width="10"/>
+      </g>
+      <g id="body">
+        <circle cx="384" cy="492" r="214" fill="#FFB38A" stroke="none"/>
+        <g clip-path="url(#bb-clip)" stroke="none">
+          <circle id="body-shade" cx="350" cy="462" r="214" fill="#E8915F" transform="translate(68 60)"/>
+          <circle cx="354" cy="468" r="206" fill="#FFB38A"/>
+          <ellipse id="belly" cx="392" cy="660" rx="140" ry="54" fill="#FFCDAE"/>
+        </g>
+        <path id="body-highlight" d="M206 480 Q216 368 300 318" fill="none" stroke="#FFDCC8" stroke-width="24"/>
+        <circle cx="204" cy="530" r="11" fill="#FFDCC8" stroke="none"/>
+        <circle cx="384" cy="492" r="214" fill="none" stroke-width="14"/>
+      </g>
+      <g id="face">
+        <ellipse cx="300" cy="566" rx="34" ry="22" fill="#F48A9A" opacity="0.7" stroke="none"/>
+        <ellipse cx="514" cy="556" rx="28" ry="19" fill="#F48A9A" opacity="0.7" stroke="none"/>
+        <g id="eyes">
+          <ellipse cx="350" cy="470" rx="44" ry="52" fill="#FFFFFF" stroke-width="8"/>
+          <ellipse cx="468" cy="466" rx="41" ry="49" fill="#FFFFFF" stroke-width="8"/>
+          <circle cx="364" cy="476" r="23" fill="#2A1E3D" stroke="none"/>
+          <circle cx="481" cy="472" r="21.5" fill="#2A1E3D" stroke="none"/>
+          <circle cx="372" cy="465" r="9" fill="#FFFFFF" stroke="none"/>
+          <circle cx="489" cy="461" r="8.5" fill="#FFFFFF" stroke="none"/>
+        </g>
+        <path id="mouth" d="M348 556 Q352 552 358 556 Q416 606 486 548 Q490 544 496 548 Q470 618 412 620 Q362 618 348 556 Z" fill="#FFFFFF" stroke-width="10"/>
+        <path d="M384 598 Q414 584 446 596 Q432 614 412 614 Q394 614 384 598 Z" fill="#F27C8C" stroke="none"/>
+      </g>
+      <g id="bubble-crown">
+        <g><circle cx="318" cy="270" r="46" fill="#9FF3FF" fill-opacity="0.55" stroke="none"/><path d="M289.5 272.3 A28.5 28.5 0 0 1 320.3 241.5" fill="none" stroke="#FFFFFF" stroke-width="7.4"/><circle cx="335.5 " cy="287.5" r="4.1" fill="#FFFFFF" stroke="none"/><circle cx="318" cy="270" r="46" fill="none" stroke-width="8"/></g>
+        <g><circle cx="450" cy="268" r="44" fill="#9FF3FF" fill-opacity="0.55" stroke="none"/><path d="M422.7 270.2 A27.3 27.3 0 0 1 452.2 240.7" fill="none" stroke="#FFFFFF" stroke-width="7"/><circle cx="466.7 " cy="284.7" r="4" fill="#FFFFFF" stroke="none"/><circle cx="450" cy="268" r="44" fill="none" stroke-width="8"/></g>
+        <g><circle cx="384" cy="228" r="56" fill="#9FF3FF" fill-opacity="0.55" stroke="none"/><path d="M349.3 230.8 A34.7 34.7 0 0 1 386.8 193.3" fill="none" stroke="#FFFFFF" stroke-width="9"/><circle cx="405.3 " cy="249.3" r="5" fill="#FFFFFF" stroke="none"/><circle cx="384" cy="228" r="56" fill="none" stroke-width="8"/></g>
+      </g>
+      <g id="arm-front">
+        <path d="M560 548 Q592 551 604 518" fill="none" stroke="#2A1E3D" stroke-width="52"/><path d="M560 548 Q592 551 604 518" fill="none" stroke="#FFB38A" stroke-width="24"/>
+        <circle id="mitten-front" cx="604" cy="518" r="27" fill="#FFB38A" stroke-width="10"/>
+      </g>
+      <g id="hoop">
+        <path d="M604 504 L615.4 408.7" fill="none" stroke="#2A1E3D" stroke-width="32"/><path d="M604 504 L615.4 408.7" fill="none" stroke="#F5B700" stroke-width="16"/>
+        <circle cx="622.6" cy="349.1" r="60" fill="#9FF3FF" fill-opacity="0.35" stroke="none"/>
+        <path d="M586.6 353.1 A36 36 0 0 1 626.6 313.1" fill="none" stroke="#FFFFFF" stroke-width="9"/>
+        <circle cx="622.6" cy="349.1" r="60" fill="none" stroke="#2A1E3D" stroke-width="38"/>
+        <circle cx="622.6" cy="349.1" r="60" fill="none" stroke="#E05FD0" stroke-width="22"/>
+        <path d="M580.6 307.1 A60 60 0 0 1 622.6 289.1" fill="none" stroke="#F49BE8" stroke-width="7"/>
+      </g>
+    </g>
+  </g>
+</svg>

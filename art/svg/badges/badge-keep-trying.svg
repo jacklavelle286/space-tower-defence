@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- badge-keep-trying: Keep Trying: a little rocket launching up again after a big curly wobble trail. earned (full colour). Single frame. Anchor centre (128,128).
+       Medal: gold rim, cream ring, night-blue disc, ribbon tab at the bottom. Light from the top-left. See art/STYLE.md. -->
+
+<g id="badge-keep-trying" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+  <g id="ribbon">
+    <clipPath id="badge-keep-trying-tail-right"><path d="M158 176 L126 186 L142 245 L157 233 L176 240 Z"/></clipPath>
+    <g id="tail-right">
+      <g clip-path="url(#badge-keep-trying-tail-right)" stroke="none">
+        <path d="M158 176 L126 186 L145.2 256.8 L179.6 252.8 Z" fill="#3DBE6E"/>
+        <path d="M136.2 182.8 L126 186 L145.2 256.8 L156.2 255.5 Z" fill="#2A1E3D" opacity="0.18"/>
+      </g>
+      <path d="M158 176 L126 186 L142 245 L157 233 L176 240 Z" fill="none"/>
+    </g>
+    <clipPath id="badge-keep-trying-tail-left"><path d="M98 176 L130 186 L114 245 L99 233 L80 240 Z"/></clipPath>
+    <g id="tail-left">
+      <g clip-path="url(#badge-keep-trying-tail-left)" stroke="none">
+        <path d="M98 176 L130 186 L110.8 256.8 L76.4 252.8 Z" fill="#3DBE6E"/>
+        <path d="M119.8 182.8 L130 186 L110.8 256.8 L99.8 255.5 Z" fill="#2A1E3D" opacity="0.18"/>
+      </g>
+      <path d="M98 176 L130 186 L114 245 L99 233 L80 240 Z" fill="none"/>
+    </g>
+  </g>
+  <g id="rim">
+    <clipPath id="badge-keep-trying-rim-clip"><circle cx="128" cy="114" r="96"/></clipPath>
+    <circle id="rim-gold" cx="128" cy="114" r="96" fill="#D09A00" stroke="none"/>
+    <circle clip-path="url(#badge-keep-trying-rim-clip)" cx="122" cy="108" r="96" fill="#F5B700" stroke="none"/>
+    <path id="rim-highlight" d="M43.4 89.7 A88 88 0 0 1 97.9 31.3" fill="none" stroke="#FFE79A" stroke-width="5"/>
+    <circle id="rim-outline" cx="128" cy="114" r="96" fill="none"/>
+    <circle id="cream-ring" cx="128" cy="114" r="80" fill="#FFF4D6" stroke-width="4"/>
+    <circle id="disc" cx="128" cy="114" r="70" fill="#23295E" stroke-width="4"/>
+  </g>
+  <g id="motif" transform="translate(128 114)" stroke-width="4">
+    <path d="M-54 40 C-28 54 8 46 6 20 C4 -4 -34 -2 -28 22 C-22 42 16 36 18 4" fill="none" stroke-width="14" />
+    <path d="M-54 40 C-28 54 8 46 6 20 C4 -4 -34 -2 -28 22 C-22 42 16 36 18 4" fill="none" stroke="#FFF4D6" stroke-width="8" />
+    <circle cx="-56" cy="38" r="7" fill="#FFF4D6" stroke="none" />
+    <g id="rocket" transform="translate(22 -26) rotate(12)">
+      <path d="M0 22 Q-6 30 0 40 Q6 30 0 22 Z" fill="#FFC94A" stroke-width="3.5" />
+      <path d="M-11 6 L-20 22 Q-20 26 -15 25 L-9 20 Z" fill="#E2403A" stroke-width="3.5" />
+      <clipPath id="badge-keep-trying-c1"><path d="M11 6 L20 22 Q20 26 15 25 L9 20 Z" /></clipPath>
+      <g clip-path="url(#badge-keep-trying-c1)" stroke="none" >
+        <rect x="-300" y="-300" width="900" height="900" fill="#B52D28"/>
+        <g transform="translate(-3 -3)"><path d="M11 6 L20 22 Q20 26 15 25 L9 20 Z" fill="#E2403A"/></g>
+      </g>
+      <path d="M11 6 L20 22 Q20 26 15 25 L9 20 Z" fill="none" stroke-width="3.5" />
+      <clipPath id="badge-keep-trying-c2"><path d="M0 -32 Q14 -18 12 22 L-12 22 Q-14 -18 0 -32 Z" /></clipPath>
+      <g clip-path="url(#badge-keep-trying-c2)" stroke="none" >
+        <rect x="-300" y="-300" width="900" height="900" fill="#D8D2C4"/>
+        <g transform="translate(-5 -5)"><path d="M0 -32 Q14 -18 12 22 L-12 22 Q-14 -18 0 -32 Z" fill="#F4F1EA"/></g>
+      </g>
+      <path d="M0 -32 Q14 -18 12 22 L-12 22 Q-14 -18 0 -32 Z" fill="none" stroke-width="4.5" />
+      <clipPath id="badge-keep-trying-rocket"><path d="M0 -32 Q14 -18 12 22 L-12 22 Q-14 -18 0 -32 Z" /></clipPath>
+      <path clip-path="url(#badge-keep-trying-rocket)" d="M-20 -30 H20 V-17 Q0 -12 -20 -17 Z" fill="#E2403A" stroke="none"/>
+      <path d="M-10 -16 Q0 -12 10 -16" fill="none" stroke="#2A1E3D" stroke-width="3.5" />
+      <circle cx="0" cy="-2" r="6.5" fill="#8ED8FF" stroke-width="3.5" />
+      <path d="M-7 10 Q-8 -8 -4 -18" fill="none" stroke="#FFFFFF" stroke-width="3.5"/>
+    </g>
+  </g>
+</g>
+</svg>

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Nova laser beam L2, frame 01/03: horizontal band edge to edge (stretched at runtime), shimmer step 1. Anchor left-middle (0,64).
+       See art/STYLE.md. -->
+  <g id="nova-beam" stroke-linecap="round">
+    <g id="glow"><rect x="0" y="32" width="128" height="64" fill="#FF8A2A" opacity="0.2"/>
+    <rect x="0" y="40.3" width="128" height="47.4" fill="#FF8A2A" opacity="0.4"/></g>
+    <g id="beam"><rect x="0" y="47" width="128" height="34" fill="#FF8A2A"/>
+    <rect x="0" y="73.5" width="128" height="7.5" fill="#D9661A"/>
+    <rect x="0" y="55.5" width="128" height="15" fill="#FFF4D6"/>
+    <rect x="0" y="57.8" width="128" height="4.5" fill="#FFFFFF"/>
+    <path d="M0 47 H128 M0 81 H128" stroke="#2A1E3D" stroke-width="3.5" fill="none"/></g>
+  </g>
+</svg>

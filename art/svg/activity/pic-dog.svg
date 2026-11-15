@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-dog: a friendly tan dog standing, side view facing right, wagging tail. Single frame. Anchor centre (128,128).
+       Activity picture: text-free, one object, no background. Light from the top-left. See art/STYLE.md. -->
+<g id="dog" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" transform="translate(0 8)">
+<g id="tail">
+  <path d="M66 128 Q44 116 42 88" fill="none" stroke="#2A1E3D" stroke-width="26"/>
+  <path d="M66 128 Q44 116 42 88" fill="none" stroke="#D9A27A" stroke-width="12"/>
+</g>
+<g id="legs-far">
+  <path d="M103 150 H105 Q114 150 114 159 V207 Q114 216 105 216 H103 Q94 216 94 207 V159 Q94 150 103 150 Z" fill="#BC855F"/>
+  <path d="M175 150 H177 Q186 150 186 159 V207 Q186 216 177 216 H175 Q166 216 166 207 V159 Q166 150 175 150 Z" fill="#BC855F"/>
+</g>
+<g id="body">
+  <clipPath id="body-clip"><path d="M88 110 H160 Q192 110 192 142 V144 Q192 176 160 176 H88 Q56 176 56 144 V142 Q56 110 88 110 Z"/></clipPath>
+  <g clip-path="url(#body-clip)" stroke="none">
+    <path d="M88 110 H160 Q192 110 192 142 V144 Q192 176 160 176 H88 Q56 176 56 144 V142 Q56 110 88 110 Z" fill="#BC855F"/>
+    <path d="M88 110 H160 Q192 110 192 142 V144 Q192 176 160 176 H88 Q56 176 56 144 V142 Q56 110 88 110 Z" fill="#D9A27A" transform="translate(-8 -8)"/>
+  </g>
+  <path d="M88 110 H160 Q192 110 192 142 V144 Q192 176 160 176 H88 Q56 176 56 144 V142 Q56 110 88 110 Z" fill="none"/>
+</g>
+<ellipse id="patch" cx="96" cy="128" rx="20" ry="13" fill="#6E4630" stroke="none"/>
+<path d="M74 130 Q76 118 90 114" fill="none" stroke="#FFFFFF" stroke-width="6" opacity="0.85"/>
+<g id="legs-near">
+  <path d="M80 150 H82 Q92 150 92 160 V210 Q92 220 82 220 H80 Q70 220 70 210 V160 Q70 150 80 150 Z" fill="#D9A27A"/>
+  <path d="M154 150 H156 Q166 150 166 160 V210 Q166 220 156 220 H154 Q144 220 144 210 V160 Q144 150 154 150 Z" fill="#D9A27A"/>
+  <path d="M66 218 Q66 208 80 208 Q96 208 98 218 Z" fill="#F7F0E0" stroke-width="4"/>
+  <path d="M140 218 Q140 208 154 208 Q170 208 172 218 Z" fill="#F7F0E0" stroke-width="4"/>
+</g>
+<path id="collar" d="M160 104 Q170 132 180 152" fill="none" stroke="#2A1E3D" stroke-width="20"/>
+<path d="M160 104 Q170 132 180 152" fill="none" stroke="#E2403A" stroke-width="8"/>
+<g id="head">
+  <clipPath id="head-clip"><path d="M146 94 A38 38 0 1 1 222 94 A38 38 0 1 1 146 94 Z"/></clipPath>
+  <g clip-path="url(#head-clip)" stroke="none">
+    <path d="M146 94 A38 38 0 1 1 222 94 A38 38 0 1 1 146 94 Z" fill="#BC855F"/>
+    <path d="M146 94 A38 38 0 1 1 222 94 A38 38 0 1 1 146 94 Z" fill="#D9A27A" transform="translate(-7 -7)"/>
+  </g>
+  <path d="M146 94 A38 38 0 1 1 222 94 A38 38 0 1 1 146 94 Z" fill="none"/>
+</g>
+<path id="snout" d="M196 98 H226 Q240 98 240 112 Q240 128 222 128 H200 Q188 128 190 112 Z" fill="#F7F0E0"/>
+<ellipse id="nose" cx="234" cy="104" rx="9" ry="7" fill="#2A1E3D" stroke="none"/>
+<circle cx="231" cy="101.5" r="2.2" fill="#FFFFFF" stroke="none"/>
+<path id="mouth" d="M210 116 Q220 124 230 116" fill="none" stroke-width="3.5"/>
+<path id="tongue" d="M214 121 Q215 134 221 134 Q227 134 226 121 Z" fill="#F27C8C" stroke-width="3"/>
+<g id="eye" stroke="none"><ellipse cx="196" cy="86" rx="6" ry="7.5" fill="#2A1E3D"/><circle cx="198" cy="83" r="2.3" fill="#FFFFFF"/></g>
+<path id="ear" d="M166 64 Q146 68 148 106 Q150 124 164 120 Q176 100 178 70 Z" fill="#6E4630"/>
+<path d="M156 90 Q156 76 164 70" fill="none" stroke="#FFFFFF" stroke-width="4.5" opacity="0.5"/>
+</g>
+</svg>

@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-bell: a classic golden bell with a top loop, flared lip and a round clapper showing underneath.
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+  <defs>
+    <clipPath id="bell-clip"><path d="M128 50 Q174 50 178 108 Q180 160 210 182 Q216 196 200 196 H56 Q40 196 46 182 Q76 160 78 108 Q82 50 128 50 Z"/></clipPath>
+  </defs>
+  <g id="bell" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <g id="loop">
+      <circle cx="128" cy="38" r="14" fill="none" stroke-width="20"/>
+      <circle cx="128" cy="38" r="14" fill="none" stroke="#E0AE1F" stroke-width="7"/>
+    </g>
+    <g id="clapper">
+      <path d="M128 190 V208" fill="none" stroke-width="10"/>
+      <circle cx="128" cy="216" r="16" fill="#A7B0C8"/>
+      <path d="M120 212 Q121 207 126 206" fill="none" stroke="#FFFFFF" stroke-width="4"/>
+    </g>
+    <g id="body">
+      <path d="M128 50 Q174 50 178 108 Q180 160 210 182 Q216 196 200 196 H56 Q40 196 46 182 Q76 160 78 108 Q82 50 128 50 Z" fill="#FFD23F"/>
+      <g clip-path="url(#bell-clip)" stroke="none">
+        <path id="body-shade" d="M156 50 Q170 110 168 150 Q178 182 210 196 H230 V40 Z" fill="#E0AE1F"/>
+      </g>
+      <path d="M128 50 Q174 50 178 108 Q180 160 210 182 Q216 196 200 196 H56 Q40 196 46 182 Q76 160 78 108 Q82 50 128 50 Z" fill="none"/>
+      <path id="band" d="M80 108 Q128 124 176 108" fill="none" stroke-width="4"/>
+      <path id="body-highlight" d="M96 150 Q96 104 106 80" fill="none" stroke="#FFFFFF" stroke-width="6"/>
+    </g>
+    <g id="lip">
+      <rect x="38" y="180" width="180" height="22" rx="11" fill="#FFD23F"/>
+      <path d="M50 186 H90" fill="none" stroke="#FFEA99" stroke-width="5"/>
+      <rect x="172" y="184" width="40" height="14" rx="7" fill="#E0AE1F" stroke="none"/>
+      <rect x="38" y="180" width="180" height="22" rx="11" fill="none"/>
+    </g>
+  </g>
+</svg>

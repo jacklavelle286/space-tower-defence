@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- shape-pentagon: 2-D shape, a regular pentagon (circumradius 110) with a point up, magenta.
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+<g id="pentagon" stroke="#2A1E3D" stroke-width="8" stroke-linejoin="round" stroke-linecap="round">
+  <clipPath id="pentagon-clip"><path d="M128 28.5 L232.6 104.5 L192.7 227.5 L63.3 227.5 L23.4 104.5 Z"/></clipPath>
+  <g id="pentagon-fill" clip-path="url(#pentagon-clip)" stroke="none">
+    <path d="M128 28.5 L232.6 104.5 L192.7 227.5 L63.3 227.5 L23.4 104.5 Z" fill="#B94BAB"/>
+    <path d="M128 28.5 L232.6 104.5 L192.7 227.5 L63.3 227.5 L23.4 104.5 Z" fill="#E05FD0" transform="translate(-7 -7)"/>
+  </g>
+  <path id="pentagon-highlight" d="M67.8 97.8 L107.9 68.7" fill="none" stroke="#F2A6E8" stroke-width="9"/>
+  <path id="pentagon-outline" d="M128 28.5 L232.6 104.5 L192.7 227.5 L63.3 227.5 L23.4 104.5 Z" fill="none"/>
+</g>
+</svg>

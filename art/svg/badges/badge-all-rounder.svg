@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- badge-all-rounder: All-Rounder: counting beads, an ear with sound waves and a pencil. earned (full colour). Single frame. Anchor centre (128,128).
+       Medal: gold rim, cream ring, night-blue disc, ribbon tab at the bottom. Light from the top-left. See art/STYLE.md. -->
+
+<g id="badge-all-rounder" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+  <g id="ribbon">
+    <clipPath id="badge-all-rounder-tail-right"><path d="M158 176 L126 186 L142 245 L157 233 L176 240 Z"/></clipPath>
+    <g id="tail-right">
+      <g clip-path="url(#badge-all-rounder-tail-right)" stroke="none">
+        <path d="M158 176 L147.3 179.3 L168.1 254.1 L179.6 252.8 Z" fill="#F5B700"/>
+        <path d="M147.3 179.3 L136.7 182.7 L156.7 255.5 L168.1 254.1 Z" fill="#5BE0F0"/>
+        <path d="M136.7 182.7 L126 186 L145.2 256.8 L156.7 255.5 Z" fill="#FF8A2A"/>
+        <path d="M136.2 182.8 L126 186 L145.2 256.8 L156.2 255.5 Z" fill="#2A1E3D" opacity="0.18"/>
+      </g>
+      <path d="M158 176 L126 186 L142 245 L157 233 L176 240 Z" fill="none"/>
+    </g>
+    <clipPath id="badge-all-rounder-tail-left"><path d="M98 176 L130 186 L114 245 L99 233 L80 240 Z"/></clipPath>
+    <g id="tail-left">
+      <g clip-path="url(#badge-all-rounder-tail-left)" stroke="none">
+        <path d="M98 176 L108.7 179.3 L87.9 254.1 L76.4 252.8 Z" fill="#F5B700"/>
+        <path d="M108.7 179.3 L119.3 182.7 L99.3 255.5 L87.9 254.1 Z" fill="#5BE0F0"/>
+        <path d="M119.3 182.7 L130 186 L110.8 256.8 L99.3 255.5 Z" fill="#FF8A2A"/>
+        <path d="M119.8 182.8 L130 186 L110.8 256.8 L99.8 255.5 Z" fill="#2A1E3D" opacity="0.18"/>
+      </g>
+      <path d="M98 176 L130 186 L114 245 L99 233 L80 240 Z" fill="none"/>
+    </g>
+  </g>
+  <g id="rim">
+    <clipPath id="badge-all-rounder-rim-clip"><circle cx="128" cy="114" r="96"/></clipPath>
+    <circle id="rim-gold" cx="128" cy="114" r="96" fill="#D09A00" stroke="none"/>
+    <circle clip-path="url(#badge-all-rounder-rim-clip)" cx="122" cy="108" r="96" fill="#F5B700" stroke="none"/>
+    <path id="rim-highlight" d="M43.4 89.7 A88 88 0 0 1 97.9 31.3" fill="none" stroke="#FFE79A" stroke-width="5"/>
+    <circle id="rim-outline" cx="128" cy="114" r="96" fill="none"/>
+    <circle id="cream-ring" cx="128" cy="114" r="80" fill="#FFF4D6" stroke-width="4"/>
+    <circle id="disc" cx="128" cy="114" r="70" fill="#23295E" stroke-width="4"/>
+  </g>
+  <g id="motif" transform="translate(128 114)" stroke-width="4">
+    <g id="beads" transform="translate(0 -34)">
+      <path d="M-44 0 H44" fill="none" stroke-width="7" />
+      <path d="M-44 0 H44" fill="none" stroke="#A7B0C8" stroke-width="3" />
+      <circle cx="-28" cy="0" r="7.5" fill="#FF8A2A" stroke-width="3.5" />
+      <circle cx="-14" cy="0" r="7.5" fill="#FFD23F" stroke-width="3.5" />
+      <circle cx="0" cy="0" r="7.5" fill="#3DBE6E" stroke-width="3.5" />
+      <circle cx="14" cy="0" r="7.5" fill="#8ED8FF" stroke-width="3.5" />
+      <circle cx="28" cy="0" r="7.5" fill="#E05FD0" stroke-width="3.5" />
+    </g>
+    <g id="ear" transform="translate(-14 16) scale(-1 1)">
+      <clipPath id="badge-all-rounder-c1"><path d="M2 -22 Q22 -22 22 -2 Q22 10 12 16 Q6 20 5 27 Q3 36 -6 35 Q-14 34 -14 24 Q-12 14 -14 6 Q-18 -22 2 -22 Z" /></clipPath>
+      <g clip-path="url(#badge-all-rounder-c1)" stroke="none" >
+        <rect x="-300" y="-300" width="900" height="900" fill="#E0875A"/>
+        <g transform="translate(-4 -4)"><path d="M2 -22 Q22 -22 22 -2 Q22 10 12 16 Q6 20 5 27 Q3 36 -6 35 Q-14 34 -14 24 Q-12 14 -14 6 Q-18 -22 2 -22 Z" fill="#FFB38A"/></g>
+      </g>
+      <path d="M2 -22 Q22 -22 22 -2 Q22 10 12 16 Q6 20 5 27 Q3 36 -6 35 Q-14 34 -14 24 Q-12 14 -14 6 Q-18 -22 2 -22 Z" fill="none" stroke-width="4" />
+      <path d="M12 -2 Q12 -12 3 -12 Q-5 -12 -5 -2 Q-4 6 4 8" fill="none" stroke="#2A1E3D" stroke-width="3.5" />
+    </g>
+    <g id="sound-waves">
+      <path d="M-39.7 14.4 A10 10 0 0 1 -39.7 1.6" fill="none" stroke="#FFF4D6" stroke-width="4" />
+      <path d="M-48.4 19.5 A20 20 0 0 1 -48.4 -3.5" fill="none" stroke="#FFF4D6" stroke-width="4" />
+    </g>
+    <g id="pencil" transform="translate(30 22) rotate(-55)">
+      <path d="M18 -7 L32 0 L18 7 Z" fill="#FFF4D6" stroke-width="3.5" />
+      <path d="M27 -2.5 L32 0 L27 2.5 Z" fill="#2A1E3D" stroke="none" />
+      <clipPath id="badge-all-rounder-c2"><rect x="-26" y="-7" width="44" height="14" rx="2" /></clipPath>
+      <g clip-path="url(#badge-all-rounder-c2)" stroke="none" >
+        <rect x="-300" y="-300" width="900" height="900" fill="#E0AE1F"/>
+        <g transform="translate(-3 -3)"><rect x="-26" y="-7" width="44" height="14" rx="2" fill="#FFD23F"/></g>
+      </g>
+      <rect x="-26" y="-7" width="44" height="14" rx="2" fill="none" stroke-width="3.5" />
+      <rect x="-26" y="-7" width="7" height="14" rx="1.5" fill="#A7B0C8" stroke-width="3.5" />
+      <path d="M-26 -7 H-31 Q-36 -7 -36 0 Q-36 7 -31 7 H-26 Z" fill="#F48A9A" stroke-width="3.5" />
+    </g>
+  </g>
+</g>
+</svg>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-map: a folded paper treasure map: green island, dotted red path ending in a gold star. No letters. Single frame. Anchor centre (128,128).
+       Activity picture: text-free, one object, no background. Light from the top-left. See art/STYLE.md. -->
+<g id="map" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+<path id="panel-1" d="M34 66 L94 52 L94 200 L34 214 Z" fill="#F7F0E0"/>
+<path id="panel-2" d="M94 52 L162 66 L162 214 L94 200 Z" fill="#E2D3B0"/>
+<path id="panel-3" d="M162 66 L222 52 L222 200 L162 214 Z" fill="#F7F0E0"/>
+<clipPath id="map-clip"><path d="M34 66 L94 52 L162 66 L222 52 L222 200 L162 214 L94 200 L34 214 Z"/></clipPath>
+<g clip-path="url(#map-clip)"><path id="island" d="M50 130 Q46 98 76 92 Q98 76 126 88 Q156 80 190 92 Q214 104 204 134 Q212 166 182 176 Q150 192 120 180 Q86 192 62 172 Q42 158 50 130 Z" fill="#9BE564" stroke-width="4" opacity="0.9"/></g>
+<path id="trail" d="M64 172 Q86 140 118 156 Q150 172 152 132 Q154 104 180 104" fill="none" stroke="#E2403A" stroke-width="7" stroke-dasharray="0.1 15"/>
+<path id="treasure-star" d="M186 80 L191.3 92.7 L205 93.8 L194.6 102.8 L197.8 116.2 L186 109 L174.2 116.2 L177.4 102.8 L167 93.8 L180.7 92.7 Z" fill="#FFD23F" stroke-width="4"/>
+<g id="folds" fill="none" stroke-width="4"><path d="M94 52 V200"/><path d="M162 66 V214"/></g>
+<path id="map-outline" d="M34 66 L94 52 L162 66 L222 52 L222 200 L162 214 L94 200 L34 214 Z" fill="none"/>
+<g id="fold-shade" stroke="none" fill="#2A1E3D" opacity="0.08"><path d="M94 52 L162 66 L162 214 L94 200 Z"/></g>
+</g>
+</svg>

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-ring: a gold ring seen at an angle with one round pink gem on top.
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+  <g id="ring" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <g id="band">
+      <ellipse cx="128" cy="160" rx="78" ry="56" fill="none" stroke-width="32"/>
+      <ellipse cx="128" cy="160" rx="78" ry="56" fill="none" stroke="#FFD23F" stroke-width="18"/>
+      <path id="band-shade" d="M206 160 A78 56 0 0 1 128 216" fill="none" stroke="#E0AE1F" stroke-width="8" stroke-linecap="butt" transform="translate(0 4)"/>
+      <path id="band-highlight" d="M56 150 Q62 126 86 114" fill="none" stroke="#FFFFFF" stroke-width="5"/>
+    </g>
+    <g id="setting" fill="#FFD23F">
+      <path d="M96 106 L104 92 H152 L160 106 Q128 124 96 106 Z" stroke-width="6"/>
+    </g>
+    <g id="gem">
+      <circle cx="128" cy="70" r="36" fill="#E05FD0"/>
+      <circle cx="128" cy="70" r="18" fill="#F59BE8" stroke-width="4"/>
+      <path id="gem-shade" d="M160 58 A36 36 0 0 1 116 104 Q150 96 160 58 Z" fill="#2A1E3D" opacity="0.16" stroke="none"/>
+      <path id="gem-highlight" d="M104 64 Q106 50 118 44" fill="none" stroke="#FFFFFF" stroke-width="5"/>
+      <circle cx="122" cy="64" r="3.5" fill="#FFFFFF" stroke="none"/>
+      <circle cx="128" cy="70" r="36" fill="none"/>
+      <g id="prongs" fill="#FFD23F" stroke-width="4">
+        <circle cx="96" cy="86" r="7"/>
+        <circle cx="160" cy="86" r="7"/>
+      </g>
+    </g>
+  </g>
+</svg>

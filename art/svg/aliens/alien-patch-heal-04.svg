@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 576 576" width="576" height="576">
+  <!-- Patchling heal pulse, frame 04 of 06: the ring nearly reaches its full 1.5-tile reach.
+       A flat ground ring (ellipse 4:3) of healing-green twinkles, empty centre. Anchor centre (288,288).
+       Light from the top-left. See art/STYLE.md. -->
+  <g id="ring" opacity="0.9" stroke-linejoin="round" stroke-linecap="round">
+    <g id="glow">
+      <ellipse cx="288" cy="288" rx="239.4" ry="179.5" fill="none" stroke="#7BEA8C" stroke-opacity="0.35" stroke-width="24.7"/>
+      <ellipse cx="288" cy="288" rx="239.4" ry="179.5" fill="none" stroke="#57C96A" stroke-width="4.4"/>
+    </g>
+    <g id="stars" stroke="#2A1E3D" stroke-width="4">
+      <path d="M-5 -12.1 Q0 -17.1 5 -12.1 L5 -5 L12.1 -5 Q17.1 0 12.1 5 L5 5 L5 12.1 Q0 17.1 -5 12.1 L-5 5 L-12.1 5 Q-17.1 0 -12.1 -5 L-5 -5 Z" transform="translate(515.7 343.5)" fill="#7BEA8C"/>
+      <path d="M0 -17.2 Q4.8 -4.8 17.2 0 Q4.8 4.8 0 17.2 Q-4.8 4.8 -17.2 0 Q-4.8 -4.8 0 -17.2 Z" transform="translate(461 412.1)" fill="#C9F7D0" stroke="none"/>
+      <path d="M-3.8 -9.3 Q0 -13.2 3.8 -9.3 L3.8 -3.8 L9.3 -3.8 Q13.2 0 9.3 3.8 L3.8 3.8 L3.8 9.3 Q0 13.2 -3.8 9.3 L-3.8 3.8 L-9.3 3.8 Q-13.2 0 -9.3 -3.8 L-3.8 -3.8 Z" transform="translate(372.1 456.1)" fill="#7BEA8C"/>
+      <path d="M0 -12.8 Q3.6 -3.6 12.8 0 Q3.6 3.6 0 12.8 Q-3.6 3.6 -12.8 0 Q-3.6 -3.6 0 -12.8 Z" transform="translate(266.5 466.8)" fill="#FFF4D6" stroke="none"/>
+      <path d="M-5 -12.1 Q0 -17.1 5 -12.1 L5 -5 L12.1 -5 Q17.1 0 12.1 5 L5 5 L5 12.1 Q0 17.1 -5 12.1 L-5 5 L-12.1 5 Q-17.1 0 -12.1 -5 L-5 -5 Z" transform="translate(165.2 442.1)" fill="#7BEA8C"/>
+      <path d="M0 -17.2 Q4.8 -4.8 17.2 0 Q4.8 4.8 0 17.2 Q-4.8 4.8 -17.2 0 Q-4.8 -4.8 0 -17.2 Z" transform="translate(88.2 386.9)" fill="#C9F7D0" stroke="none"/>
+      <path d="M-3.8 -9.3 Q0 -13.2 3.8 -9.3 L3.8 -3.8 L9.3 -3.8 Q13.2 0 9.3 3.8 L3.8 3.8 L3.8 9.3 Q0 13.2 -3.8 9.3 L-3.8 3.8 L-9.3 3.8 Q-13.2 0 -9.3 -3.8 L-3.8 -3.8 Z" transform="translate(50.8 312.1)" fill="#7BEA8C"/>
+      <path d="M0 -12.8 Q3.6 -3.6 12.8 0 Q3.6 3.6 0 12.8 Q-3.6 3.6 -12.8 0 Q-3.6 -3.6 0 -12.8 Z" transform="translate(60.3 232.5)" fill="#FFF4D6" stroke="none"/>
+      <path d="M-5 -12.1 Q0 -17.1 5 -12.1 L5 -5 L12.1 -5 Q17.1 0 12.1 5 L5 5 L5 12.1 Q0 17.1 -5 12.1 L-5 5 L-12.1 5 Q-17.1 0 -12.1 -5 L-5 -5 Z" transform="translate(115 163.9)" fill="#7BEA8C"/>
+      <path d="M0 -17.2 Q4.8 -4.8 17.2 0 Q4.8 4.8 0 17.2 Q-4.8 4.8 -17.2 0 Q-4.8 -4.8 0 -17.2 Z" transform="translate(203.9 119.9)" fill="#C9F7D0" stroke="none"/>
+      <path d="M-3.8 -9.3 Q0 -13.2 3.8 -9.3 L3.8 -3.8 L9.3 -3.8 Q13.2 0 9.3 3.8 L3.8 3.8 L3.8 9.3 Q0 13.2 -3.8 9.3 L-3.8 3.8 L-9.3 3.8 Q-13.2 0 -9.3 -3.8 L-3.8 -3.8 Z" transform="translate(309.5 109.2)" fill="#7BEA8C"/>
+      <path d="M0 -12.8 Q3.6 -3.6 12.8 0 Q3.6 3.6 0 12.8 Q-3.6 3.6 -12.8 0 Q-3.6 -3.6 0 -12.8 Z" transform="translate(410.8 133.9)" fill="#FFF4D6" stroke="none"/>
+      <path d="M-5 -12.1 Q0 -17.1 5 -12.1 L5 -5 L12.1 -5 Q17.1 0 12.1 5 L5 5 L5 12.1 Q0 17.1 -5 12.1 L-5 5 L-12.1 5 Q-17.1 0 -12.1 -5 L-5 -5 Z" transform="translate(487.8 189.1)" fill="#7BEA8C"/>
+      <path d="M0 -17.2 Q4.8 -4.8 17.2 0 Q4.8 4.8 0 17.2 Q-4.8 4.8 -17.2 0 Q-4.8 -4.8 0 -17.2 Z" transform="translate(525.2 263.9)" fill="#C9F7D0" stroke="none"/>
+    </g>
+    <g id="glints" stroke="none" opacity="0.9">
+      <circle cx="489.3" cy="377.6" r="4" fill="#FFFFFF"/>
+      <circle cx="417.2" cy="433.7" r="4" fill="#FFFFFF"/>
+      <circle cx="319.5" cy="461" r="4" fill="#FFFFFF"/>
+      <circle cx="215.5" cy="454.1" r="4" fill="#FFFFFF"/>
+      <circle cx="126" cy="414.2" r="4" fill="#FFFFFF"/>
+      <circle cx="68.5" cy="349.4" r="4" fill="#FFFFFF"/>
+      <circle cx="54.5" cy="272.3" r="4" fill="#FFFFFF"/>
+      <circle cx="86.7" cy="198.4" r="4" fill="#FFFFFF"/>
+      <circle cx="158.8" cy="142.3" r="4" fill="#FFFFFF"/>
+      <circle cx="256.5" cy="115" r="4" fill="#FFFFFF"/>
+      <circle cx="360.5" cy="121.9" r="4" fill="#FFFFFF"/>
+      <circle cx="450" cy="161.8" r="4" fill="#FFFFFF"/>
+      <circle cx="507.5" cy="226.6" r="4" fill="#FFFFFF"/>
+      <circle cx="521.5" cy="303.7" r="4" fill="#FFFFFF"/>
+    </g>
+  </g>
+</svg>

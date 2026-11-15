@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- shape-hexagon: 2-D shape, a regular hexagon (circumradius 108) with flat top and bottom, teal.
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+<g id="hexagon" stroke="#2A1E3D" stroke-width="8" stroke-linejoin="round" stroke-linecap="round">
+  <clipPath id="hexagon-clip"><path d="M236 128 L182 221.5 L74 221.5 L20 128 L74 34.5 L182 34.5 Z"/></clipPath>
+  <g id="hexagon-fill" clip-path="url(#hexagon-clip)" stroke="none">
+    <path d="M236 128 L182 221.5 L74 221.5 L20 128 L74 34.5 L182 34.5 Z" fill="#23807A"/>
+    <path d="M236 128 L182 221.5 L74 221.5 L20 128 L74 34.5 L182 34.5 Z" fill="#2FA39A" transform="translate(-7 -7)"/>
+  </g>
+  <path id="hexagon-highlight" d="M52.4 113.5 L77.6 69.8" fill="none" stroke="#7FD3CB" stroke-width="9"/>
+  <path id="hexagon-outline" d="M236 128 L182 221.5 L74 221.5 L20 128 L74 34.5 L182 34.5 Z" fill="none"/>
+</g>
+</svg>

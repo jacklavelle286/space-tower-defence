@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 384" width="256" height="384">
+  <!-- Sol (Beacon Commander) L3 (tallest antenna, ringed bulb, double dish, red-and-gold shoulder stripes) idle, frame 03: 03 neutral, beacon glows a little brighter, antenna settling.
+       Anchor bottom-centre (128,384): boot soles sit on y=378 (+3.5 outline). Light from the top-left. See art/STYLE.md.
+       Drawn in Nova's 256x256 coordinates and shifted down 128 px by the top group (same as sol-l1-idle-01.svg). -->
+  <defs>
+    <clipPath id="torso-clip"><path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z"/></clipPath>
+    <clipPath id="face-clip"><circle cx="128" cy="98" r="29"/></clipPath>
+    <clipPath id="bulb-clip"><circle cx="58.7" cy="-92" r="16"/></clipPath>
+  </defs>
+  <g id="sol" transform="translate(0 128)" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <g id="body-back">
+      <g id="antenna" transform="rotate(-0.5 76 136)">
+        <g id="antenna-mast">
+        <path d="M76 136 L60.1 -74" fill="none" stroke-width="12"/>
+        <path d="M76 136 L60.1 -74" fill="none" stroke="#A7B0C8" stroke-width="5"/>
+        <path d="M71.0 70 L67.6 25" fill="none" stroke="#E2403A" stroke-width="5" stroke-linecap="butt"/>
+        <path d="M65.3 -5 L62.6 -40" fill="none" stroke="#E2403A" stroke-width="5" stroke-linecap="butt"/>
+        <g id="cross-bar">
+        <path d="M50.3 9 L82.3 7" fill="none" stroke-width="11"/>
+        <path d="M50.3 9 L82.3 7" fill="none" stroke="#A7B0C8" stroke-width="4"/>
+        <circle cx="49.3" cy="9" r="5" fill="#F5B700" stroke-width="4"/>
+        <circle cx="83.3" cy="7" r="5" fill="#F5B700" stroke-width="4"/>
+        </g>
+        <rect x="51.1" y="-79" width="18" height="10" rx="4" fill="#A7B0C8" stroke-width="4"/>
+        </g>
+        <g id="dishes">
+        <path d="M48.5 -42 L76.5 -42" fill="none" stroke-width="10"/>
+        <path d="M48.5 -42 L76.5 -42" fill="none" stroke="#A7B0C8" stroke-width="3.5"/>
+        <g id="dish-left">
+        <path d="M36.5 -60 A18 18 0 0 1 36.5 -24 Z" fill="#CC9600" stroke-width="4.5" transform="translate(1 0)"/>
+        <ellipse cx="36.5" cy="-42" rx="7" ry="18" fill="#F5B700" stroke-width="4.5"/>
+        <path d="M36.5 -42 L26.5 -42" fill="none" stroke-width="3"/>
+        <circle cx="25.5" cy="-42" r="3.2" fill="#F5B700" stroke-width="3"/>
+        </g>
+        <g id="dish-right">
+        <path d="M88.5 -60 A18 18 0 0 0 88.5 -24 Z" fill="#CC9600" stroke-width="4.5" transform="translate(-1 0)"/>
+        <ellipse cx="88.5" cy="-42" rx="7" ry="18" fill="#F5B700" stroke-width="4.5"/>
+        <path d="M88.5 -42 L98.5 -42" fill="none" stroke-width="3"/>
+        <circle cx="99.5" cy="-42" r="3.2" fill="#F5B700" stroke-width="3"/>
+        </g>
+        </g>
+        <g id="beacon">
+        <circle id="beacon-glow" cx="58.7" cy="-92" r="27" fill="#FFE79A" opacity="0.65" stroke="none"/>
+        <g id="beacon-ring">
+        <circle cx="58.7" cy="-92" r="23" fill="none" stroke-width="10"/>
+        <circle cx="58.7" cy="-92" r="23" fill="none" stroke="#F5B700" stroke-width="4"/>
+        </g>
+        <circle cx="58.7" cy="-92" r="16" fill="#F5B700" stroke="none"/>
+        <path clip-path="url(#bulb-clip)" d="M74.7 -99.2 Q69.9 -76  47.5 -74.7 L77.9 -69.6 Z" fill="#CC9600" stroke="none"/>
+        <circle id="bulb-outline" cx="58.7" cy="-92" r="16" fill="none" stroke-width="5"/>
+        <path d="M49.9 -94 Q51.5 -101.6 57.7 -101.9" fill="none" stroke="#FFF4D6" stroke-width="3.5"/>
+        </g>
+        <rect id="antenna-mount" x="68" y="128" width="20" height="14" rx="5" fill="#A7B0C8" stroke-width="5"/>
+      </g>
+      <g id="backpack">
+        <rect x="68" y="138" width="36" height="60" rx="13" fill="#A7B0C8"/>
+        <path d="M74 184 Q74 192 84 192 H98" fill="none" stroke="#7F89A6" stroke-width="5"/>
+      </g>
+      <g id="legs">
+        <rect x="97" y="190" width="25" height="42" rx="10" fill="#E2403A"/>
+        <rect x="130" y="190" width="25" height="42" rx="10" fill="#E2403A"/>
+        <rect x="101" y="210" width="17" height="10" rx="4" fill="#F5B700" stroke-width="4"/>
+        <rect x="134" y="210" width="17" height="10" rx="4" fill="#F5B700" stroke-width="4"/>
+      </g>
+    </g>
+    <g id="boots">
+      <path d="M93 250 V236 Q93 226 103 226 H114 Q124 226 125 234 Q133 237 133 244 V250 Z" fill="#F5B700"/>
+      <path d="M126 250 V236 Q126 226 136 226 H147 Q157 226 158 234 Q166 237 166 244 V250 Z" fill="#F5B700"/>
+      <g stroke="none">
+        <rect x="97" y="242" width="33" height="5" rx="2" fill="#CC9600"/>
+        <rect x="130" y="242" width="33" height="5" rx="2" fill="#CC9600"/>
+      </g>
+      <path d="M99 236 Q99 231 104 231" fill="none" stroke="#FFF4D6" stroke-width="3.5"/>
+      <path d="M132 236 Q132 231 137 231" fill="none" stroke="#FFF4D6" stroke-width="3.5"/>
+    </g>
+    <g id="body">
+      <g id="arm-back">
+        <path d="M92 146 Q74 164 80 190" fill="none" stroke-width="26"/>
+        <path d="M92 146 Q74 164 80 190" fill="none" stroke="#E2403A" stroke-width="12"/>
+        <g id="mitten-back" fill="#F5B700">
+          <circle cx="80" cy="194" r="10.5"/>
+          <ellipse cx="90" cy="190" rx="5" ry="4" stroke-width="4"/>
+        </g>
+      </g>
+      <g id="torso">
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="#E2403A"/>
+        <g clip-path="url(#torso-clip)">
+          <path id="torso-shade" d="M156 132 H170 V214 H140 Q158 186 156 132 Z" fill="#B52D28" stroke="none"/>
+          <rect id="belt" x="80" y="180" width="92" height="13" fill="#F5B700" stroke-width="4.5"/>
+        </g>
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="none"/>
+        <g id="emblem">
+          <circle cx="114" cy="161" r="9" fill="#F5B700" stroke-width="4"/>
+          <circle cx="114" cy="161" r="3.5" fill="#FFF4D6" stroke="none"/>
+        </g>
+        <path id="star-patch" d="M141.0 148.0 L144.2 155.6 L152.4 156.3 L146.1 161.7 L148.1 169.7 L141.0 165.4 L133.9 169.7 L135.9 161.7 L129.6 156.3 L137.8 155.6 Z" fill="#F5B700" stroke-width="4"/>
+        <path id="torso-highlight" d="M95 168 V152 Q95 143 103 141" fill="none" stroke="#F28480" stroke-width="4.5"/>
+        <g id="shoulder-back" transform="rotate(-20 92 141)"><ellipse cx="92" cy="141" rx="9" ry="7" fill="#F5B700" stroke-width="4"/><path d="M85 141 H99" fill="none" stroke="#E2403A" stroke-width="3.5"/></g>
+        </g>
+      <ellipse id="collar" cx="127" cy="141" rx="33" ry="9" fill="#A7B0C8" stroke-width="6"/>
+      <g id="arm-front">
+        <path d="M158 148 Q190 156 188 124" fill="none" stroke-width="26"/>
+        <path d="M158 148 Q190 156 188 124" fill="none" stroke="#E2403A" stroke-width="12"/>
+        <g id="mitten-front" fill="#F5B700">
+          <rect x="181" y="94" width="10" height="18" rx="5" stroke-width="4"/>
+          <circle cx="189" cy="117" r="11"/>
+          <path d="M183 112 Q188 110 194 113" fill="none" stroke-width="3"/>
+        </g>
+        <g id="shoulder-front" transform="rotate(15 163 145)"><ellipse cx="163" cy="145" rx="12" ry="9" fill="#F5B700" stroke-width="4"/><path d="M153 145 H173" fill="none" stroke="#E2403A" stroke-width="3.5"/></g>
+      </g>
+      <g id="helmet">
+        <circle id="glass" cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none"/>
+        <g id="head" stroke-width="4">
+          <circle id="face" cx="128" cy="98" r="29" fill="#6E4630"/>
+          <path id="face-shade" clip-path="url(#face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#553424" stroke="none"/>
+          <path id="beard" d="M100 90 Q98 128 128 128 Q158 128 156 88 L151 90 Q151 108 141 110 Q134 106 128 108.5 Q122 106 115 110 Q105 108 105 91 Z" fill="#B9B4C4"/>
+          <path id="hair" d="M100 92 Q99 69 128 69 Q157 69 156 90 Q152 82 145 83 Q139 78 132 80 Q125 77 118 80 Q108 79 100 92 Z" fill="#B9B4C4"/>
+          <g id="face-features" stroke="none">
+            <ellipse cx="120" cy="96" rx="4.6" ry="6" fill="#1E1A24"/>
+            <ellipse cx="142" cy="95" rx="4.6" ry="6" fill="#1E1A24"/>
+            <circle cx="121.6" cy="93.3" r="1.9" fill="#FFFFFF"/>
+            <circle cx="143.6" cy="92.3" r="1.9" fill="#FFFFFF"/>
+            <ellipse cx="110" cy="104" rx="5.5" ry="3.5" fill="#F48A9A" opacity="0.4"/>
+            <ellipse cx="152" cy="103" rx="4.5" ry="3.2" fill="#F48A9A" opacity="0.4"/>
+          </g>
+          <path id="mouth" d="M122 107 H146 Q144 120 134 120 Q124 120 122 107 Z" fill="#FFFFFF" stroke-width="3.5"/>
+          <path d="M127 116 Q134 112 141 116 Q138 119.5 134 119.5 Q130 119.5 127 116 Z" fill="#F27C8C" stroke="none"/>
+        </g>
+        <g id="visor-rim">
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke-width="16"/>
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke="#F5B700" stroke-width="9"/>
+        </g>
+        <g id="helmet-highlight" stroke="#FFFFFF" fill="none">
+          <path d="M88 70 Q98 54 116 49" stroke-width="7" opacity="0.9"/>
+          <circle cx="83" cy="84" r="1.5" stroke-width="5" opacity="0.9"/>
+        </g>
+        <circle id="helmet-outline" cx="126" cy="94" r="50" fill="none"/>
+      </g>
+    </g>
+  </g>
+</svg>

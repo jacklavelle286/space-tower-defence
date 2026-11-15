@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- icon-phonics: Phonics subject: a cyan ear listening to three curved sound waves (no letters). Single frame. Anchor centre (64,64).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="phonics" stroke="#2A1E3D" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">
+  <clipPath id="ear-clip"><path d="M50 16 C26 16 14 34 16 56 C17 70 26 76 28 90 C30 104 40 114 54 110 C64 107 64 98 68 90 C74 78 82 66 82 50 C82 28 70 16 50 16 Z"/></clipPath>
+  <g id="ear-fill" clip-path="url(#ear-clip)" stroke="none">
+    <path d="M50 16 C26 16 14 34 16 56 C17 70 26 76 28 90 C30 104 40 114 54 110 C64 107 64 98 68 90 C74 78 82 66 82 50 C82 28 70 16 50 16 Z" fill="#5FCFE0"/>
+    <path d="M50 16 C26 16 14 34 16 56 C17 70 26 76 28 90 C30 104 40 114 54 110 C64 107 64 98 68 90 C74 78 82 66 82 50 C82 28 70 16 50 16 Z" fill="#9FF3FF" transform="translate(-5 -5)"/>
+  </g>
+  <path id="ear-highlight" d="M26 52 Q26 32 42 25" fill="none" stroke="#FFFFFF" stroke-width="4" opacity="0.85"/>
+  <path id="ear-outline" d="M50 16 C26 16 14 34 16 56 C17 70 26 76 28 90 C30 104 40 114 54 110 C64 107 64 98 68 90 C74 78 82 66 82 50 C82 28 70 16 50 16 Z" fill="none"/>
+  <path id="ear-fold" d="M38 58 C36 42 48 34 58 38 C70 43 68 58 58 64 C51 68 52 76 55 82" fill="none" stroke-width="4"/>
+  <g id="wave-1" fill="none">
+    <path d="M92 50 Q98 60 92 70" stroke="#2A1E3D" stroke-width="13"/>
+    <path d="M92 50 Q98 60 92 70" stroke="#5BE0F0" stroke-width="5"/>
+  </g>
+  <g id="wave-2" fill="none">
+    <path d="M102 38 Q114 60 102 82" stroke="#2A1E3D" stroke-width="13"/>
+    <path d="M102 38 Q114 60 102 82" stroke="#5BE0F0" stroke-width="5"/>
+  </g>
+  <g id="wave-3" fill="none">
+    <path d="M112 26 Q130 60 112 94" stroke="#2A1E3D" stroke-width="13"/>
+    <path d="M112 26 Q130 60 112 94" stroke="#5BE0F0" stroke-width="5"/>
+  </g>
+</g>
+</svg>

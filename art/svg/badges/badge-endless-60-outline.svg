@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- badge-endless-60-outline: Star Voyager: a ringed planet with a dotted orbit and three small stars on it. outline (not yet earned: 15% white fill, thin grey #A7B0C8 lines). Single frame. Anchor centre (128,128).
+       Medal: gold rim, cream ring, night-blue disc, ribbon tab at the bottom. Light from the top-left. See art/STYLE.md. -->
+
+<g id="badge-endless-60-outline" stroke-linejoin="round" stroke-linecap="round">
+  <g id="silhouette" fill="#FFFFFF" opacity="0.15" stroke="none">
+    <path d="M98 176 L130 186 L114 245 L99 233 L80 240 Z"/><path d="M158 176 L126 186 L142 245 L157 233 L176 240 Z"/>
+    <circle cx="128" cy="114" r="96"/>
+  </g>
+  <mask id="badge-endless-60-outline-lines" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256">
+    <rect x="0" y="0" width="256" height="256" fill="#000"/>
+    <g id="outline-lines" fill="#000" stroke="#FFF" stroke-width="5">
+      <path d="M158 176 L126 186 L142 245 L157 233 L176 240 Z"/><path d="M98 176 L130 186 L114 245 L99 233 L80 240 Z"/>
+      <circle cx="128" cy="114" r="96"/>
+      <circle cx="128" cy="114" r="70" fill="none" stroke-width="3"/>
+      <g id="motif" transform="translate(128 114)" stroke-width="4">
+        <ellipse cx="0" cy="0" rx="58" ry="28" transform="rotate(-22)" fill="none" stroke="#FFF" stroke-width="4" stroke-dasharray="0 11"/>
+        <g id="ring-back" transform="rotate(-18)">
+          <path d="M-40 0 A40 11 0 0 1 40 0" fill="none" stroke="#FFF" stroke-width="9" />
+          <path d="M-40 0 A40 11 0 0 1 40 0" fill="none" stroke="#000" stroke-width="1.8" />
+        </g>
+        <circle cx="0" cy="0" r="25" fill="#000" stroke="#FFF" stroke-width="4" />
+        <clipPath id="badge-endless-60-outline-planet"><circle cx="0" cy="0" r="25" /></clipPath>
+        <g id="ring-front" transform="rotate(-18)">
+          <path d="M40 0 A40 11 0 0 1 -40 0" fill="none" stroke="#FFF" stroke-width="9" />
+          <path d="M40 0 A40 11 0 0 1 -40 0" fill="none" stroke="#000" stroke-width="1.8" />
+        </g>
+        <path d="M0 -9 L2.4 -3.3 L8.6 -2.8 L3.9 1.3 L5.3 7.3 L0 4.1 L-5.3 7.3 L-3.9 1.3 L-8.6 -2.8 L-2.4 -3.3 Z" transform="translate(-54.1 11.5)" fill="#000" stroke="#FFF" stroke-width="3" />
+        <path d="M0 -7.5 L2 -2.8 L7.1 -2.3 L3.3 1.1 L4.4 6.1 L0 3.5 L-4.4 6.1 L-3.3 1.1 L-7.1 -2.3 L-2 -2.8 Z" transform="translate(17.8 -33.3)" fill="#000" stroke="#FFF" stroke-width="3" />
+        <path d="M0 -8 L2.2 -3 L7.6 -2.5 L3.5 1.1 L4.7 6.5 L0 3.7 L-4.7 6.5 L-3.5 1.1 L-7.6 -2.5 L-2.2 -3 Z" transform="translate(36 11.6)" fill="#000" stroke="#FFF" stroke-width="3" />
+      </g>
+    </g>
+  </mask>
+  <rect x="0" y="0" width="256" height="256" fill="#A7B0C8" mask="url(#badge-endless-60-outline-lines)"/>
+</g>
+</svg>

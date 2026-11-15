@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- shape-cube: 3-D shape, a cube seen from slightly above (front face square 136, top and right side showing), ice blue.
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+<g id="cube" stroke="#2A1E3D" stroke-linejoin="round" stroke-linecap="round">
+  <g id="faces" stroke="none">
+    <path id="top" d="M34 86 L86 34 L222 34 L170 86 Z" fill="#D2F0FF"/>
+    <path id="front" d="M34 86 L170 86 L170 222 L34 222 Z" fill="#8ED8FF"/>
+    <path id="side" d="M170 86 L222 34 L222 170 L170 222 Z" fill="#5FB4E6"/>
+  </g>
+  <path class="highlight" d="M48 170.3 V102 H95.2" fill="none" stroke="#FFFFFF" stroke-width="7" opacity="0.8"/>
+  <path id="cube-edges" d="M34 86 L170 86 L222 34 M170 86 L170 222" fill="none" stroke-width="5"/>
+  <path id="cube-outline" d="M34 222 L34 86 L86 34 L222 34 L222 170 L170 222 Z" fill="none" stroke-width="8"/>
+</g>
+</svg>

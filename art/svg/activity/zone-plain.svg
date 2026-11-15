@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- zone-plain: Sorting drop zone, plain: an empty translucent shield-cyan rounded square with a dotted inner line.
+       Single frame. Anchor centre (256,256). Light from the top-left. See art/STYLE.md. -->
+<g id="zone-plain" stroke="#2A1E3D" stroke-linejoin="round" stroke-linecap="round">
+  <path id="zone-fill" d="M136 56 H376 Q456 56 456 136 V376 Q456 456 376 456 H136 Q56 456 56 376 V136 Q56 56 136 56 Z" fill="#5BE0F0" fill-opacity="0.28" stroke="none"/>
+  <path id="zone-outline" d="M136 56 H376 Q456 56 456 136 V376 Q456 456 376 456 H136 Q56 456 56 376 V136 Q56 56 136 56 Z" fill="none" stroke-width="11"/>
+  <path id="zone-dots" d="M140 84 H372 Q428 84 428 140 V372 Q428 428 372 428 H140 Q84 428 84 372 V140 Q84 84 140 84 Z" fill="none" stroke="#CFF6FF" stroke-width="10" stroke-dasharray="1 26"/>
+</g>
+</svg>

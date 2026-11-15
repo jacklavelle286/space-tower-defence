@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 768" width="768" height="768">
+  <!-- Captain Clank phase 2 (cracked shell, gold glow) plod, frame 03: 03 passing: body up.
+       Anchor bottom-centre (384,768): front feet on y=762.
+       See art/STYLE.md. Light from the top-left. -->
+  <defs>
+    <clipPath id="shell-clip"><path d="M70 606 Q60 236 360 186 Q644 172 672 520 Q678 604 612 626 Q360 692 130 652 Q72 640 70 606 Z"/></clipPath>
+    <clipPath id="head-clip"><circle cx="596" cy="566" r="108"/></clipPath>
+    <clipPath id="eyeL-clip"><ellipse cx="574" cy="554" rx="30" ry="36"/></clipPath>
+    <clipPath id="eyeR-clip"><ellipse cx="646" cy="550" rx="27" ry="33"/></clipPath>
+    <clipPath id="plate-left-clip"><rect x="-62.0" y="-84.0" width="124" height="168" rx="30"/></clipPath>
+  </defs>
+  <g id="clank" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+      <g id="leg-back-left"><rect x="136" y="606" width="92" height="130" rx="39" fill="#7FCBA6" stroke-width="14"/><path d="M152 714 H212" fill="none" stroke-width="5"/></g>
+      <g id="leg-back-right"><rect x="406" y="598" width="92" height="130" rx="39" fill="#7FCBA6" stroke-width="14"/><path d="M422 706 H482" fill="none" stroke-width="5"/></g>
+      <g id="body" transform="translate(0 -4) translate(384 640) scale(1 1.01) translate(-384 -640)">
+        <ellipse id="belly" cx="372" cy="640" rx="262" ry="88" fill="#A8E6C8" stroke-width="14"/>
+      <g id="shell">
+        <path d="M70 606 Q60 236 360 186 Q644 172 672 520 Q678 604 612 626 Q360 692 130 652 Q72 640 70 606 Z" fill="#2FA39A" stroke="none"/>
+        <g clip-path="url(#shell-clip)" stroke="none">
+          <path id="shell-shade" d="M700 200 Q600 330 620 560 Q600 640 420 700 L720 720 Z" fill="#23827A"/>
+          <path id="shell-rim" d="M40 600 Q360 700 700 580 L700 720 L40 720 Z" fill="#5CC4B9"/>
+        </g>
+        <g id="plate-seams" fill="none" stroke-width="8" clip-path="url(#shell-clip)">
+          <path d="M228 214 Q176 420 226 652"/>
+          <path d="M498 186 Q566 420 494 664"/>
+          <path d="M210 404 Q360 362 528 412"/>
+          <path d="M84 602 Q360 686 662 584"/>
+        </g>
+        <g id="plate-rims" fill="none" stroke="#7DD8CE" stroke-width="12">
+          <path d="M112 520 Q104 360 196 262"/>
+          <path d="M262 352 Q290 252 380 222"/>
+          <path d="M258 470 Q300 432 360 428"/>
+          <path d="M534 250 Q560 300 568 360"/>
+        </g>
+        <g id="cracks" fill="none">
+          <path d="M318 232 L344 286 L318 330 L356 378" stroke="#FFE79A" stroke-width="34" opacity="0.45"/><path d="M318 232 L344 286 L318 330 L356 378" stroke="#2A1E3D" stroke-width="18"/><path d="M318 232 L344 286 L318 330 L356 378" stroke="#FFE79A" stroke-width="7"/>
+          <path d="M548 300 L520 344 L552 392 L530 430" stroke="#FFE79A" stroke-width="34" opacity="0.45"/><path d="M548 300 L520 344 L552 392 L530 430" stroke="#2A1E3D" stroke-width="18"/><path d="M548 300 L520 344 L552 392 L530 430" stroke="#FFE79A" stroke-width="7"/>
+          <path d="M140 470 L190 500 L176 552" stroke="#FFE79A" stroke-width="34" opacity="0.45"/><path d="M140 470 L190 500 L176 552" stroke="#2A1E3D" stroke-width="18"/><path d="M140 470 L190 500 L176 552" stroke="#FFE79A" stroke-width="7"/>
+          <path d="M402 470 L436 520 L420 566" stroke="#FFE79A" stroke-width="34" opacity="0.45"/><path d="M402 470 L436 520 L420 566" stroke="#2A1E3D" stroke-width="18"/><path d="M402 470 L436 520 L420 566" stroke="#FFE79A" stroke-width="7"/>
+        </g>
+        <path id="shell-outline" d="M70 606 Q60 236 360 186 Q644 172 672 520 Q678 604 612 626 Q360 692 130 652 Q72 640 70 606 Z" fill="none" stroke-width="14"/>
+      </g>
+      <g id="armour-plates">
+        <g id="plate-left" transform=" translate(168 448) rotate(-24)"><rect x="-62.0" y="-84.0" width="124" height="168" rx="30" fill="#7F89A6" stroke="none"/><rect clip-path="url(#plate-left-clip)" x="-74.0" y="-96.0" width="124" height="168" rx="30" fill="#A7B0C8" stroke="none"/><path d="M-44 44 V-54 Q-44 -66 -22 -66" fill="none" stroke="#C9D0E2" stroke-width="9"/><rect x="-62.0" y="-84.0" width="124" height="168" rx="30" fill="none" stroke-width="10"/><circle cx="-36" cy="-58" r="13" fill="#C9D0E2" stroke-width="6"/><circle cx="36" cy="-58" r="13" fill="#C9D0E2" stroke-width="6"/><circle cx="-36" cy="58" r="13" fill="#C9D0E2" stroke-width="6"/><circle cx="36" cy="58" r="13" fill="#C9D0E2" stroke-width="6"/></g>
+      </g>
+      <g id="head">
+        <circle cx="596" cy="566" r="108" fill="#A8E6C8" stroke="none"/>
+        <g clip-path="url(#head-clip)" stroke="none"><circle cx="570" cy="544" r="108" fill="#7FCBA6" transform="translate(52 44)"/><circle cx="582" cy="554" r="102" fill="#A8E6C8"/></g>
+        <path d="M514 572 Q516 516 556 490" fill="none" stroke="#D6F5E6" stroke-width="14"/>
+        <circle cx="596" cy="566" r="108" fill="none" stroke-width="14"/>
+        <g id="face">
+          <ellipse cx="546" cy="598" rx="20" ry="13" fill="#F48A9A" opacity="0.75" stroke="none"/>
+          <ellipse cx="678" cy="590" rx="15" ry="11" fill="#F48A9A" opacity="0.75" stroke="none"/>
+          <g id="eyes">
+            <ellipse cx="574" cy="552" rx="32" ry="39" fill="#FFFFFF" stroke-width="8"/>
+            <ellipse cx="646" cy="548" rx="29" ry="36" fill="#FFFFFF" stroke-width="8"/>
+            <circle cx="581" cy="554" r="11" fill="#2A1E3D" stroke="none"/>
+            <circle cx="653" cy="550" r="10.5" fill="#2A1E3D" stroke="none"/>
+            <circle cx="585" cy="549" r="4" fill="#FFFFFF" stroke="none"/>
+            <circle cx="657" cy="545" r="4" fill="#FFFFFF" stroke="none"/>
+          </g>
+          <ellipse id="mouth" cx="622" cy="616" rx="14" ry="17" fill="#2A1E3D" stroke-width="5"/>
+        </g>
+        <g id="hat" transform="rotate(6 596 466)">
+          <path d="M526 466 L488 416 Q478 388 516 384 H682 Q718 388 706 416 L666 466 Z" fill="#2E4A9E" stroke-width="10"/>
+          <path d="M636 390 H684 Q708 394 698 414 L660 460 H630 Z" fill="#22377A" stroke="none"/>
+          <path d="M512 400 H606" fill="none" stroke="#5C78C8" stroke-width="10"/>
+          <path d="M526 466 L488 416 Q478 388 516 384 H682 Q718 388 706 416 L666 466 Z" fill="none" stroke-width="10"/>
+          <rect x="520" y="442" width="152" height="30" rx="12" fill="#FFD86B" stroke-width="10"/>
+          <path d="M586 470 Q646 466 700 486 Q692 504 606 496 Z" fill="#22377A" stroke-width="10"/>
+        </g>
+      </g>
+      </g>
+      <g id="leg-front-left"><rect x="208" y="622" width="100" height="140" rx="42" fill="#A8E6C8" stroke-width="14"/><path d="M224 740 H292" fill="none" stroke-width="5"/></g>
+      <g id="leg-front-right"><rect x="478" y="622" width="100" height="140" rx="42" fill="#A8E6C8" stroke-width="14"/><path d="M494 740 H562" fill="none" stroke-width="5"/></g>
+  </g>
+</svg>

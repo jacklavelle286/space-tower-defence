@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-night-sky: a dark blue rounded square of night sky with a golden crescent moon, stars and sparkles.
+       (A picture of night, so it has a background shape.) Single frame. Anchor centre (128,128).
+       Light from the top-left. See art/STYLE.md. -->
+  <defs>
+    <clipPath id="sky-clip"><rect x="24" y="24" width="208" height="208" rx="40"/></clipPath>
+    <clipPath id="moon-clip"><path d="M134 66 A54 54 0 1 0 134 166 A60 60 0 0 1 134 66 Z"/></clipPath>
+    <path id="star" d="M0.0 -20.0 L5.3 -7.3 L19.0 -6.2 L8.6 2.8 L11.8 16.2 L0.0 9.0 L-11.8 16.2 L-8.6 2.8 L-19.0 -6.2 L-5.3 -7.3 Z"/>
+    <path id="sparkle" d="M0 -10 Q2.8 -2.8 10 0 Q2.8 2.8 0 10 Q-2.8 2.8 -10 0 Q-2.8 -2.8 0 -10 Z"/>
+  </defs>
+  <g id="night-sky" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <g id="sky">
+      <rect x="24" y="24" width="208" height="208" rx="40" fill="#23295E"/>
+      <g clip-path="url(#sky-clip)" stroke="none">
+        <ellipse cx="200" cy="214" rx="90" ry="50" fill="#5B3F99" opacity="0.45"/>
+        <ellipse cx="40" cy="40" rx="60" ry="40" fill="#141633" opacity="0.6"/>
+      </g>
+      <rect x="24" y="24" width="208" height="208" rx="40" fill="none"/>
+    </g>
+    <g id="moon">
+      <path d="M134 66 A54 54 0 1 0 134 166 A60 60 0 0 1 134 66 Z" fill="#FFD86B"/>
+      <g clip-path="url(#moon-clip)" stroke="none">
+        <path id="moon-shade" d="M60 150 Q100 176 140 160 V190 H40 Z" fill="#E0AE1F"/>
+        <ellipse cx="78" cy="98" rx="8" ry="6" fill="#E0AE1F"/>
+        <ellipse cx="72" cy="128" rx="6" ry="4.5" fill="#E0AE1F"/>
+      </g>
+      <path d="M134 66 A54 54 0 1 0 134 166 A60 60 0 0 1 134 66 Z" fill="none"/>
+      <path id="moon-highlight" d="M62 132 Q58 102 76 82" fill="none" stroke="#FFFFFF" stroke-width="5"/>
+    </g>
+    <g id="stars" fill="#FFD86B" stroke-width="4">
+      <use href="#star" transform="translate(180 72) rotate(-8) scale(1.1)"/>
+      <use href="#star" transform="translate(190 150) rotate(12) scale(0.8)"/>
+      <use href="#star" transform="translate(120 196) rotate(-14) scale(0.7)"/>
+    </g>
+    <g id="sparkles" fill="#FFF4D6" stroke="none">
+      <use href="#sparkle" transform="translate(150 112)"/>
+      <use href="#sparkle" transform="translate(64 194) scale(1.2)"/>
+      <use href="#sparkle" transform="translate(206 108) scale(0.8)"/>
+      <use href="#sparkle" transform="translate(110 44) scale(0.8)"/>
+      <circle cx="170" cy="198" r="3.5"/>
+      <circle cx="148" cy="46" r="3"/>
+      <circle cx="210" cy="190" r="3"/>
+      <circle cx="44" cy="150" r="3"/>
+    </g>
+  </g>
+</svg>

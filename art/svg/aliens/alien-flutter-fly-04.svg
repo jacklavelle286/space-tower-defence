@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Orbit Flutter fly, frame 04: down-mid. Anchor bottom-centre (128,256); hovers, lower canvas left empty for the game's shadow.
+       Light from the top-left. See art/STYLE.md. -->
+  <defs><clipPath id="flutter-clip"><path d="M62 124 Q62 88 128 86 Q194 88 194 124 Q194 162 128 164 Q62 162 62 124 Z"/></clipPath></defs>
+  <g id="flutter" transform="translate(0 -3)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round" stroke-width="7">
+    <g id="wings">
+      <g id="wing-back" transform="translate(112 100) rotate(-8) scale(0.95 0.9309999999999999)"><path d="M0 0 Q-16 -58 -52 -70 Q-86 -78 -86 -48 Q-86 -26 -48 -18 Q-72 -8 -64 10 Q-54 26 -30 14 Q-10 6 0 0 Z" fill="#CBAEF5"/><path d="M-6 -6 Q-40 -30 -70 -48" fill="none" stroke="#9FF3FF" stroke-width="4" opacity="0"/><circle cx="-56" cy="-46" r="13" fill="#9FF3FF" stroke-width="4"/><circle cx="-60" cy="-50" r="3.5" fill="#FFFFFF" stroke="none"/><circle cx="-42" cy="4" r="6.5" fill="#9FF3FF" stroke-width="3"/><path d="M-64 -66 Q-78 -64 -78 -50" fill="none" stroke="#FFFFFF" stroke-width="4" opacity="0.85"/></g>
+      <g id="wing-front" transform="translate(146 98) rotate(8) scale(-0.95 0.9309999999999999)"><path d="M0 0 Q-16 -58 -52 -70 Q-86 -78 -86 -48 Q-86 -26 -48 -18 Q-72 -8 -64 10 Q-54 26 -30 14 Q-10 6 0 0 Z" fill="#E4D3FB"/><path d="M-6 -6 Q-40 -30 -70 -48" fill="none" stroke="#9FF3FF" stroke-width="4" opacity="0"/><circle cx="-56" cy="-46" r="13" fill="#9FF3FF" stroke-width="4"/><circle cx="-60" cy="-50" r="3.5" fill="#FFFFFF" stroke="none"/><circle cx="-42" cy="4" r="6.5" fill="#9FF3FF" stroke-width="3"/><path d="M-64 -66 Q-78 -64 -78 -50" fill="none" stroke="#FFFFFF" stroke-width="4" opacity="0.85"/></g>
+    </g>
+    <g id="body">
+      <path id="disc" d="M62 124 Q62 88 128 86 Q194 88 194 124 Q194 162 128 164 Q62 162 62 124 Z" fill="#B98AF0" stroke="none"/>
+      <g clip-path="url(#flutter-clip)" stroke="none">
+        <path id="disc-rim" d="M56 124 Q128 152 200 120 L204 172 L52 172 Z" fill="#A577E6"/>
+        <path id="disc-shade" d="M204 92 Q186 128 180 146 Q166 164 128 170 L206 172 Z" fill="#9A68D6"/>
+      </g>
+      <ellipse id="cap" cx="118" cy="106" rx="30" ry="11" fill="#D9C0FA" stroke-width="4"/>
+      <path id="disc-highlight" d="M74 118 Q78 100 96 94" fill="none" stroke="#D9C0FA" stroke-width="8"/>
+      <path id="rim-line" d="M64 126 Q128 152 192 122" fill="none" stroke-width="4"/>
+      <g id="rim-lights" stroke-width="3">
+        <circle cx="80" cy="141" r="5" fill="#9FF3FF"/><circle cx="98" cy="148" r="5" fill="#9FF3FF"/>
+      </g>
+      <path id="disc-outline" d="M62 124 Q62 88 128 86 Q194 88 194 124 Q194 162 128 164 Q62 162 62 124 Z" fill="none"/>
+    </g>
+    <g id="face">
+      <g id="eyes">
+        <ellipse cx="136" cy="134" rx="13" ry="15" fill="#FFFFFF" stroke-width="4.5"/>
+        <ellipse cx="168" cy="131" rx="12" ry="14" fill="#FFFFFF" stroke-width="4.5"/>
+        <g stroke="none">
+          <circle cx="140" cy="137" r="7" fill="#2A1E3D"/><circle cx="171.5" cy="134" r="6.5" fill="#2A1E3D"/>
+          <circle cx="142.5" cy="133.5" r="2.8" fill="#FFFFFF"/><circle cx="174" cy="130.5" r="2.6" fill="#FFFFFF"/>
+        </g>
+      </g>
+      <path id="mouth" d="M144 154 Q156 161 170 151" fill="none" stroke-width="5"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Mira locked silhouette: flat night-blue fill of mira-card plus plum outline (helmet, collar and chest-shield lines kept so it reads apart from Nova). Anchor centre. -->
+
+  
+  <defs><clipPath id="p-torso-clip"><path d="M86 150 Q86 132 106 132 H146 Q166 132 166 150 V176 Q166 186 156 186 H96 Q86 186 86 176 Z" /></clipPath><clipPath id="p-shield-clip"><path d="M91 151 Q126 138 161 151 V170 Q161 194 126 205 Q91 194 91 170 Z" /></clipPath><clipPath id="p-face-clip"><circle cx="126" cy="98" r="29" /></clipPath></defs>
+  <g transform="translate(128 18) scale(1.55) translate(-126 -44)">
+  <g id="p-mira" stroke="#2A1E3D" stroke-width="5.25" stroke-linejoin="round" stroke-linecap="round">
+    <g id="p-arms">
+      <path d="M94 144 Q80 156 80 176" fill="none" stroke-width="19.50" /><path d="M94 144 Q80 156 80 176" fill="none" stroke="#23295E" stroke-width="9.00" />
+      <path d="M158 144 Q172 156 172 176" fill="none" stroke-width="19.50" /><path d="M158 144 Q172 156 172 176" fill="none" stroke="#23295E" stroke-width="9.00" />
+    </g>
+    <g id="p-torso">
+      <path d="M86 150 Q86 132 106 132 H146 Q166 132 166 150 V176 Q166 186 156 186 H96 Q86 186 86 176 Z" fill="#23295E" />
+      <g clip-path="url(#p-torso-clip)">
+        <path d="M156 132 H170 V214 H140 Q158 186 156 132 Z" fill="#23295E" stroke="none" />
+        
+      <g id="p-emblem" stroke="#5B3F99">
+        <path d="M91 151 Q126 138 161 151 V170 Q161 194 126 205 Q91 194 91 170 Z" fill="#23295E" stroke-width="3.75" />
+        <path d="M101 158 Q126 149 151 158 V171 Q151 189 126 197 Q101 189 101 171 Z" fill="none" stroke="#23295E" stroke-width="3.75" />
+        <path d="M91 151 Q126 138 161 151 V170 Q161 194 126 205 Q91 194 91 170 Z" fill="none" stroke-width="3.75" />
+        </g>
+      </g>
+      <path d="M86 150 Q86 132 106 132 H146 Q166 132 166 150 V176 Q166 186 156 186 H96 Q86 186 86 176 Z" fill="none" />
+      </g>
+    <ellipse id="p-collar" cx="126" cy="141" rx="33" ry="9" fill="#23295E" stroke-width="4.50" stroke="#5B3F99" />
+    
+    <g id="p-helmet">
+      <circle cx="126" cy="94" r="50" fill="#23295E" stroke="none" />
+      <g id="p-visor-rim" stroke="#5B3F99">
+        <path d="M83 121 Q126 152 169 121" fill="none" stroke-width="12.00" />
+        <path d="M83 121 Q126 152 169 121" fill="none" stroke="#23295E" stroke-width="6.75" />
+      </g>
+      <circle cx="126" cy="94" r="50" fill="none" />
+    </g>
+  </g>
+  </g>
+</svg>

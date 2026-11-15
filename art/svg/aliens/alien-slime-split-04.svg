@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Split Slime split, frame 04 of 06: both halves fly apart, stars at full size.
+       Anchor bottom-centre (128,256): base on y=250.
+       Light from the top-left. See art/STYLE.md. -->
+  <defs><clipPath id="lobe-left-clip"><path d="M16 236 Q16 156 66 154 Q116 156 116 236 Q116 250 100 250 L32 250 Q16 250 16 236 Z"/></clipPath></defs>
+  <g id="lobe-left" transform="translate(66 234) rotate(-12) skewX(0) scale(0.97 1.04) translate(-66 -250)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="lobe-left-body">
+      <path d="M16 236 Q16 156 66 154 Q116 156 116 236 Q116 250 100 250 L32 250 Q16 250 16 236 Z" fill="#9BE564" stroke="none"/>
+      <g clip-path="url(#lobe-left-clip)" stroke="none">
+        <path id="lobe-left-shade" d="M124 150 Q104 184 106 238 Q102 248 86 254 L124 256 Z" fill="#78C443"/>
+        <ellipse id="lobe-left-belly" cx="68" cy="237" rx="34" ry="11" fill="#BDF08F"/>
+      </g>
+      <path id="lobe-left-highlight" d="M29 202 Q33 180 52 165" fill="none" stroke="#D2F6B0" stroke-width="9"/>
+      <path d="M16 236 Q16 156 66 154 Q116 156 116 236 Q116 250 100 250 L32 250 Q16 250 16 236 Z" fill="none" stroke-width="8"/>
+    </g>
+    <g id="lobe-left-face">
+      <ellipse cx="72" cy="197.2" rx="19" ry="22" fill="#FFFFFF" stroke-width="5"/>
+      <circle cx="77" cy="201.2" r="10" fill="#2A1E3D" stroke="none"/>
+      <circle cx="81" cy="196.2" r="3.8" fill="#FFFFFF" stroke="none"/>
+      <path d="M58 227.2 Q72 230.2 86 226.2 Q82 242.2 72 242.2 Q62 242.2 58 227.2 Z" fill="#FFFFFF" stroke-width="4.5"/>
+    </g>
+  </g>
+  <defs><clipPath id="lobe-right-clip"><path d="M140 236 Q140 156 190 154 Q240 156 240 236 Q240 250 224 250 L156 250 Q140 250 140 236 Z"/></clipPath></defs>
+  <g id="lobe-right" transform="translate(190 234) rotate(12) skewX(0) scale(0.97 1.04) translate(-190 -250)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="lobe-right-body">
+      <path d="M140 236 Q140 156 190 154 Q240 156 240 236 Q240 250 224 250 L156 250 Q140 250 140 236 Z" fill="#9BE564" stroke="none"/>
+      <g clip-path="url(#lobe-right-clip)" stroke="none">
+        <path id="lobe-right-shade" d="M248 150 Q228 184 230 238 Q226 248 210 254 L248 256 Z" fill="#78C443"/>
+        <ellipse id="lobe-right-belly" cx="192" cy="237" rx="34" ry="11" fill="#BDF08F"/>
+      </g>
+      <path id="lobe-right-highlight" d="M153 202 Q157 180 176 165" fill="none" stroke="#D2F6B0" stroke-width="9"/>
+      <path d="M140 236 Q140 156 190 154 Q240 156 240 236 Q240 250 224 250 L156 250 Q140 250 140 236 Z" fill="none" stroke-width="8"/>
+    </g>
+    <g id="lobe-right-face">
+      <ellipse cx="196" cy="197.2" rx="19" ry="22" fill="#FFFFFF" stroke-width="5"/>
+      <circle cx="201" cy="201.2" r="10" fill="#2A1E3D" stroke="none"/>
+      <circle cx="205" cy="196.2" r="3.8" fill="#FFFFFF" stroke="none"/>
+      <path d="M182 227.2 Q196 230.2 210 226.2 Q206 242.2 196 242.2 Q186 242.2 182 227.2 Z" fill="#FFFFFF" stroke-width="4.5"/>
+    </g>
+  </g>
+  <g id="stars" stroke="#2A1E3D" stroke-linejoin="round" opacity="1.0">
+    <path d="M0 -20 L5.3 -7.3 L19 -6.2 L8.6 2.8 L11.8 16.2 L0 9 L-11.8 16.2 L-8.6 2.8 L-19 -6.2 L-5.3 -7.3 Z" fill="#FFD23F" stroke-width="4.4" transform="translate(128 97.1) rotate(-8) scale(0.9)"/>
+    <path d="M0 -20 L5.3 -7.3 L19 -6.2 L8.6 2.8 L11.8 16.2 L0 9 L-11.8 16.2 L-8.6 2.8 L-19 -6.2 L-5.3 -7.3 Z" fill="#9FF3FF" stroke-width="6.7" transform="translate(93.5 127) rotate(14) scale(0.6)"/>
+    <path d="M0 -20 L5.3 -7.3 L19 -6.2 L8.6 2.8 L11.8 16.2 L0 9 L-11.8 16.2 L-8.6 2.8 L-19 -6.2 L-5.3 -7.3 Z" fill="#E05FD0" stroke-width="5.7" transform="translate(162.5 122.4) rotate(-16) scale(0.7)"/>
+    <path d="M0 -20 L5.3 -7.3 L19 -6.2 L8.6 2.8 L11.8 16.2 L0 9 L-11.8 16.2 L-8.6 2.8 L-19 -6.2 L-5.3 -7.3 Z" fill="#FF8A2A" stroke-width="7.3" transform="translate(118.8 161.5) rotate(10) scale(0.6)"/>
+    <path d="M0 -20 L5.3 -7.3 L19 -6.2 L8.6 2.8 L11.8 16.2 L0 9 L-11.8 16.2 L-8.6 2.8 L-19 -6.2 L-5.3 -7.3 Z" fill="#FFF4D6" stroke-width="8" transform="translate(148.7 170.7) rotate(-6) scale(0.5)"/>
+    <circle cx="102.7" cy="87.9" r="4" fill="#FFF4D6" stroke="none"/>
+    <circle cx="157.9" cy="81" r="4" fill="#FFF4D6" stroke="none"/>
+    <circle cx="128" cy="133.9" r="4" fill="#FFF4D6" stroke="none"/>
+  </g>
+</svg>

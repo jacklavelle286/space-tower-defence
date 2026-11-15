@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- icon-carrier: carrier trait: a small flying saucer with three tiny faces in its portholes. Single frame. Anchor centre (32,32).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="saucer" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+  <g id="dome">
+    <path d="M18 34 Q18 14 32 14 Q46 14 46 34 Z" fill="#CFE9FF"/>
+    <path d="M23 26 Q24 19 30 18" fill="none" stroke="#FFFFFF" stroke-width="2.5"/>
+  </g>
+  <clipPath id="disc-clip"><ellipse cx="32" cy="38" rx="28" ry="11"/></clipPath>
+  <ellipse id="disc" cx="32" cy="38" rx="28" ry="11" fill="#A7B0C8" stroke="none"/>
+  <rect id="disc-shade" clip-path="url(#disc-clip)" x="0" y="41" width="64" height="12" fill="#7F89A6" stroke="none"/>
+  <path id="disc-highlight" d="M9 36 Q14 31 22 30" fill="none" stroke="#C9D0E2" stroke-width="2.5"/>
+  <ellipse id="disc-outline" cx="32" cy="38" rx="28" ry="11" fill="none"/>
+  <g id="portholes" stroke-width="2.2">
+    <circle cx="17" cy="39.5" r="4.6" fill="#FFB38A"/>
+    <circle cx="32" cy="41.5" r="4.6" fill="#9BE564"/>
+    <circle cx="47" cy="39.5" r="4.6" fill="#9FF3FF"/>
+  </g>
+  <g id="faces" fill="#2A1E3D" stroke="none">
+    <circle cx="16" cy="39" r="1"/><circle cx="19" cy="39" r="1"/>
+    <circle cx="31" cy="41" r="1"/><circle cx="34" cy="41" r="1"/>
+    <circle cx="46" cy="39" r="1"/><circle cx="49" cy="39" r="1"/>
+  </g>
+</g>
+</svg>

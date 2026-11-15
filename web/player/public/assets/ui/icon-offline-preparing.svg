@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- icon-offline-preparing: Offline preparing: a cream box with a plum downward arrow. Single frame. Anchor centre (32,32).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="offline-preparing" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+  <g id="box">
+  <clipPath id="box-body-clip"><path d="M10 24 H54 V50 Q54 56 48 56 H16 Q10 56 10 50 Z"/></clipPath>
+  <g id="box-body-fill" clip-path="url(#box-body-clip)" stroke="none">
+    <path d="M10 24 H54 V50 Q54 56 48 56 H16 Q10 56 10 50 Z" fill="#E6D9B5"/>
+    <path d="M10 24 H54 V50 Q54 56 48 56 H16 Q10 56 10 50 Z" fill="#FFF4D6" transform="translate(-3 -3)"/>
+  </g>
+  <path id="box-body-highlight" d="M15 31 V44" fill="none" stroke="#FFFFFF" stroke-width="2.5" opacity="0.85"/>
+  <path id="box-body-outline" d="M10 24 H54 V50 Q54 56 48 56 H16 Q10 56 10 50 Z" fill="none"/>
+  <clipPath id="box-lid-clip"><path d="M6 16 Q6 11 11 11 H53 Q58 11 58 16 V20 Q58 25 53 25 H11 Q6 25 6 20 Z"/></clipPath>
+  <g id="box-lid-fill" clip-path="url(#box-lid-clip)" stroke="none">
+    <path d="M6 16 Q6 11 11 11 H53 Q58 11 58 16 V20 Q58 25 53 25 H11 Q6 25 6 20 Z" fill="#E6D9B5"/>
+    <path d="M6 16 Q6 11 11 11 H53 Q58 11 58 16 V20 Q58 25 53 25 H11 Q6 25 6 20 Z" fill="#FFF4D6" transform="translate(-2 -2)"/>
+  </g>
+  <path id="box-lid-highlight" d="M11 16 H18" fill="none" stroke="#FFFFFF" stroke-width="2.5" opacity="0.85"/>
+  <path id="box-lid-outline" d="M6 16 Q6 11 11 11 H53 Q58 11 58 16 V20 Q58 25 53 25 H11 Q6 25 6 20 Z" fill="none"/>
+  </g>
+  <path id="arrow-shaft" d="M32 30 V46" fill="none" stroke-width="4.5"/>
+  <path id="arrow-head" d="M24 41 L32 49 L40 41" fill="none" stroke-width="4.5"/>
+</g>
+</svg>

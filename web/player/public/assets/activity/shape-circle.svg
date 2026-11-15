@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- shape-circle: 2-D shape, a true circle (r 100), blue.
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+<g id="circle" stroke="#2A1E3D" stroke-width="8" stroke-linejoin="round" stroke-linecap="round">
+  <clipPath id="circle-clip"><path d="M128 28 A100 100 0 1 1 127.9 28 Z"/></clipPath>
+  <g id="circle-fill" clip-path="url(#circle-clip)" stroke="none">
+    <path d="M128 28 A100 100 0 1 1 127.9 28 Z" fill="#3F86CF"/>
+    <path d="M128 28 A100 100 0 1 1 127.9 28 Z" fill="#5AA9F0" transform="translate(-7 -7)"/>
+  </g>
+  <path id="circle-highlight" d="M52 112 A78 78 0 0 1 104 54" fill="none" stroke="#BFE3FF" stroke-width="9"/>
+  <path id="circle-outline" d="M128 28 A100 100 0 1 1 127.9 28 Z" fill="none"/>
+</g>
+</svg>

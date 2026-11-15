@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- icon-cap-token-available: Shop cap token, available: a navy round token with a plain white astronaut helmet. Single frame. Anchor centre (32,32).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="cap-token-available" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+  <clipPath id="token-clip"><path d="M32 5 A27 27 0 1 1 31.9 5 Z"/></clipPath>
+  <g id="token-fill" clip-path="url(#token-clip)" stroke="none">
+    <path d="M32 5 A27 27 0 1 1 31.9 5 Z" fill="#22377A"/>
+    <path d="M32 5 A27 27 0 1 1 31.9 5 Z" fill="#2E4A9E" transform="translate(-3 -3)"/>
+  </g>
+  <path id="token-highlight" d="M12 26 Q15 15 24 10" fill="none" stroke="#FFFFFF" stroke-width="3" opacity="0.85"/>
+  <path id="token-outline" d="M32 5 A27 27 0 1 1 31.9 5 Z" fill="none"/>
+  <g id="helmet">
+    <ellipse id="collar" cx="32" cy="46" rx="12" ry="4.5" fill="#A7B0C8" stroke-width="2.5"/>
+  <clipPath id="shell-clip"><path d="M32 14 A15 15 0 1 1 31.9 14 Z"/></clipPath>
+  <g id="shell-fill" clip-path="url(#shell-clip)" stroke="none">
+    <path d="M32 14 A15 15 0 1 1 31.9 14 Z" fill="#D8D2C4"/>
+    <path d="M32 14 A15 15 0 1 1 31.9 14 Z" fill="#F4F1EA" transform="translate(-2.5 -2.5)"/>
+  </g>
+  <path id="shell-outline" d="M32 14 A15 15 0 1 1 31.9 14 Z" fill="none"/>
+    <path id="visor" d="M20 29 Q20 22 32 22 Q44 22 44 29 Q44 37 32 37 Q20 37 20 29 Z" fill="#5C78C8" stroke-width="2.5"/>
+    <path id="visor-shine" d="M24 27 Q26 25 30 24.5" fill="none" stroke="#FFF4D6" stroke-width="2"/>
+    <circle cx="38" cy="27" r="1.2" fill="#FFF4D6" stroke="none"/>
+  </g>
+</g>
+</svg>

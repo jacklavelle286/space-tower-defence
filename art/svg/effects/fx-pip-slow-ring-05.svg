@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 384 384" width="384" height="384">
+  <!-- Pip L3 area-slow ring, frame 05/06: flat 4:3 frost ring on the ground spreading out (scale 1.03). Anchor centre (192,192).
+       See art/STYLE.md. -->
+  <g id="slow-ring" stroke-linecap="round" stroke-linejoin="round" opacity="0.8">
+    <g id="glow"><ellipse cx="192" cy="192" rx="154.5" ry="115.9" fill="#CFF6FF" opacity="0.16"/></g>
+    <g id="ring" fill="none"><ellipse cx="192" cy="192" rx="154.5" ry="115.9" stroke="#2A1E3D" stroke-width="30.9"/><ellipse cx="192" cy="192" rx="154.5" ry="115.9" stroke="#8ED8FF" stroke-width="21.6"/><ellipse cx="192" cy="192" rx="154.5" ry="115.9" stroke="#CFF6FF" stroke-width="10.3"/>
+    <path d="M39.8 171.9 A154.5 115.9 0 0 1 139.2 83.1" stroke="#FFFFFF" stroke-width="4.1"/></g>
+    <g id="crystals">
+    <path d="M327.9 218.5 L350 237.1 M341.4 213.6 L336.4 242 M352.5 222.9 L325.4 232.7 " fill="none" stroke="#2A1E3D" stroke-width="9.1" stroke-linecap="round"/><path d="M327.9 218.5 L350 237.1 M341.4 213.6 L336.4 242 M352.5 222.9 L325.4 232.7 " fill="none" stroke="#FFFFFF" stroke-width="4.1" stroke-linecap="round"/>
+    <path d="M0 -11.3 L7.2 0 L0 11.3 L-7.2 0 Z" fill="#CFF6FF" stroke="#2A1E3D" stroke-width="3.6" transform="translate(282.8 285.7) rotate(-8)"/>
+    <path d="M183.5 296.2 L200.5 319.5 M197.9 294.7 L186.1 321 M206.3 306.4 L177.7 309.4 " fill="none" stroke="#2A1E3D" stroke-width="9.1" stroke-linecap="round"/><path d="M183.5 296.2 L200.5 319.5 M197.9 294.7 L186.1 321 M206.3 306.4 L177.7 309.4 " fill="none" stroke="#FFFFFF" stroke-width="4.1" stroke-linecap="round"/>
+    <path d="M0 -11.3 L7.2 0 L0 11.3 L-7.2 0 Z" fill="#CFF6FF" stroke="#2A1E3D" stroke-width="3.6" transform="translate(101.2 285.7) rotate(-8)"/>
+    <path d="M39.7 214.4 L50.5 241.2 M53.9 216.4 L36.2 239.2 M59.3 229.8 L30.8 225.8 " fill="none" stroke="#2A1E3D" stroke-width="9.1" stroke-linecap="round"/><path d="M39.7 214.4 L50.5 241.2 M53.9 216.4 L36.2 239.2 M59.3 229.8 L30.8 225.8 " fill="none" stroke="#FFFFFF" stroke-width="4.1" stroke-linecap="round"/>
+    <path d="M0 -11.3 L7.2 0 L0 11.3 L-7.2 0 Z" fill="#CFF6FF" stroke="#2A1E3D" stroke-width="3.6" transform="translate(45.1 156.2) rotate(-8)"/>
+    <path d="M99.2 84 L103.2 112.5 M112.6 89.4 L89.8 107.1 M114.6 103.7 L87.8 92.9 " fill="none" stroke="#2A1E3D" stroke-width="9.1" stroke-linecap="round"/><path d="M99.2 84 L103.2 112.5 M112.6 89.4 L89.8 107.1 M114.6 103.7 L87.8 92.9 " fill="none" stroke="#FFFFFF" stroke-width="4.1" stroke-linecap="round"/>
+    <path d="M0 -11.3 L7.2 0 L0 11.3 L-7.2 0 Z" fill="#CFF6FF" stroke="#2A1E3D" stroke-width="3.6" transform="translate(192 76.1) rotate(-8)"/>
+    <path d="M284.3 83.9 L281.3 112.6 M296 92.4 L269.6 104.1 M294.5 106.7 L271.1 89.8 " fill="none" stroke="#2A1E3D" stroke-width="9.1" stroke-linecap="round"/><path d="M284.3 83.9 L281.3 112.6 M296 92.4 L269.6 104.1 M294.5 106.7 L271.1 89.8 " fill="none" stroke="#FFFFFF" stroke-width="4.1" stroke-linecap="round"/>
+    <path d="M0 -11.3 L7.2 0 L0 11.3 L-7.2 0 Z" fill="#CFF6FF" stroke="#2A1E3D" stroke-width="3.6" transform="translate(338.9 156.2) rotate(-8)"/>
+    </g>
+  </g>
+</svg>

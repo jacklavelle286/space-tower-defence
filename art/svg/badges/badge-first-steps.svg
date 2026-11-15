@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- badge-first-steps: First Steps: one boot print pressed into purple moon dust. earned (full colour). Single frame. Anchor centre (128,128).
+       Medal: gold rim, cream ring, night-blue disc, ribbon tab at the bottom. Light from the top-left. See art/STYLE.md. -->
+
+<g id="badge-first-steps" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+  <g id="ribbon">
+    <clipPath id="badge-first-steps-tail-right"><path d="M158 176 L126 186 L142 245 L157 233 L176 240 Z"/></clipPath>
+    <g id="tail-right">
+      <g clip-path="url(#badge-first-steps-tail-right)" stroke="none">
+        <path d="M158 176 L126 186 L145.2 256.8 L179.6 252.8 Z" fill="#9C8FD6"/>
+        <path d="M136.2 182.8 L126 186 L145.2 256.8 L156.2 255.5 Z" fill="#2A1E3D" opacity="0.18"/>
+      </g>
+      <path d="M158 176 L126 186 L142 245 L157 233 L176 240 Z" fill="none"/>
+    </g>
+    <clipPath id="badge-first-steps-tail-left"><path d="M98 176 L130 186 L114 245 L99 233 L80 240 Z"/></clipPath>
+    <g id="tail-left">
+      <g clip-path="url(#badge-first-steps-tail-left)" stroke="none">
+        <path d="M98 176 L130 186 L110.8 256.8 L76.4 252.8 Z" fill="#9C8FD6"/>
+        <path d="M119.8 182.8 L130 186 L110.8 256.8 L99.8 255.5 Z" fill="#2A1E3D" opacity="0.18"/>
+      </g>
+      <path d="M98 176 L130 186 L114 245 L99 233 L80 240 Z" fill="none"/>
+    </g>
+  </g>
+  <g id="rim">
+    <clipPath id="badge-first-steps-rim-clip"><circle cx="128" cy="114" r="96"/></clipPath>
+    <circle id="rim-gold" cx="128" cy="114" r="96" fill="#D09A00" stroke="none"/>
+    <circle clip-path="url(#badge-first-steps-rim-clip)" cx="122" cy="108" r="96" fill="#F5B700" stroke="none"/>
+    <path id="rim-highlight" d="M43.4 89.7 A88 88 0 0 1 97.9 31.3" fill="none" stroke="#FFE79A" stroke-width="5"/>
+    <circle id="rim-outline" cx="128" cy="114" r="96" fill="none"/>
+    <circle id="cream-ring" cx="128" cy="114" r="80" fill="#FFF4D6" stroke-width="4"/>
+    <circle id="disc" cx="128" cy="114" r="70" fill="#23295E" stroke-width="4"/>
+  </g>
+  <g id="motif" transform="translate(128 114)" stroke-width="4">
+    <clipPath id="badge-first-steps-c1"><ellipse cx="0" cy="6" rx="58" ry="43.5" /></clipPath>
+    <g clip-path="url(#badge-first-steps-c1)" stroke="none" >
+      <rect x="-300" y="-300" width="900" height="900" fill="#6B5CA5"/>
+      <g transform="translate(-6 -6)"><ellipse cx="0" cy="6" rx="58" ry="43.5" fill="#9C8FD6"/></g>
+    </g>
+    <ellipse cx="0" cy="6" rx="58" ry="43.5" fill="none" stroke-width="4" />
+    <path d="M-48 -4 Q-42 -26 -14 -34" fill="none" stroke="#B3A8E3" stroke-width="5"/>
+    <g id="boot-print" transform="translate(4 4) rotate(-22) scale(0.92)">
+      <clipPath id="badge-first-steps-c2"><path d="M-14 -14 Q-16 -38 0 -38 Q16 -38 15 -14 Q14 2 10 8 Q13 20 12 30 Q10 41 0 41 Q-10 41 -11 30 Q-12 20 -9 8 Q-14 2 -14 -14 Z" /></clipPath>
+      <g clip-path="url(#badge-first-steps-c2)" stroke="none" >
+        <rect x="-300" y="-300" width="900" height="900" fill="#4A3F7A"/>
+        <g transform="translate(6 6)"><path d="M-14 -14 Q-16 -38 0 -38 Q16 -38 15 -14 Q14 2 10 8 Q13 20 12 30 Q10 41 0 41 Q-10 41 -11 30 Q-12 20 -9 8 Q-14 2 -14 -14 Z" fill="#6B5CA5"/></g>
+      </g>
+      <path d="M-14 -14 Q-16 -38 0 -38 Q16 -38 15 -14 Q14 2 10 8 Q13 20 12 30 Q10 41 0 41 Q-10 41 -11 30 Q-12 20 -9 8 Q-14 2 -14 -14 Z" fill="none" stroke-width="4" />
+      <path d="M-9 -27 H9 M-11 -16 H11 M-11 -5 H10 M-7 22 H7 M-7 31 H7" fill="none" stroke="#4A3F7A" stroke-width="4" />
+    </g>
+    <circle cx="-40" cy="22" r="4" fill="#C9C0F0" stroke="none" />
+    <circle cx="38" cy="-18" r="3.5" fill="#C9C0F0" stroke="none" />
+    <circle cx="40" cy="28" r="3" fill="#C9C0F0" stroke="none" />
+  </g>
+</g>
+</svg>

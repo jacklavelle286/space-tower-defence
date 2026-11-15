@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- planet.coming-later (planet silhouette). Still, 1 frame. Anchor centre (256,256).
+       A plain dotted circle outline in metal grey at 50% opacity, with a faint dotted ring, so it clearly
+       does not look playable. No fill, no face, no detail. Alt text: "a planet coming later". See art/STYLE.md. -->
+  <defs>
+    <!-- keeps only the parts of the back ring that lie outside the planet disc -->
+    <clipPath id="outside-planet"><path clip-rule="evenodd" d="M0 0 H512 V512 H0 Z M256 74 A182 182 0 1 0 256 438 A182 182 0 1 0 256 74 Z"/></clipPath>
+  </defs>
+  <g id="planet-silhouette" fill="none" stroke="#A7B0C8" stroke-linecap="round" opacity="0.5">
+    <!-- back half of the ring (hidden behind the planet would be the far side; keep it fainter) -->
+    <path id="ring-back" clip-path="url(#outside-planet)" d="M30 292 A232 60 -14 0 1 482 220" stroke-width="10" stroke-dasharray="0 26" opacity="0.5"/>
+    <circle id="outline" cx="256" cy="256" r="176" stroke-width="14" stroke-dasharray="0 34.56"/>
+    <path id="ring-front" d="M30 292 A232 60 -14 0 0 482 220" stroke-width="10" stroke-dasharray="0 26" opacity="0.7"/>
+  </g>
+</svg>

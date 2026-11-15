@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Split Slime split, frame 01 of 06: wobble: the slime squashes, the seam sparkles.
+       Anchor bottom-centre (128,256): base on y=250.
+       Light from the top-left. See art/STYLE.md. -->
+  <defs><clipPath id="slime-clip"><path d="M30 236 Q30 136 88 134 Q114 134 128 150 Q142 134 168 134 Q226 136 226 236 Q226 250 210 250 L46 250 Q30 250 30 236 Z"/></clipPath></defs>
+  <g id="slime" transform="translate(128 250) rotate(0) skewX(0) scale(1.06 0.94) translate(-128 -250)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="body">
+      <path id="lobes" d="M30 236 Q30 136 88 134 Q114 134 128 150 Q142 134 168 134 Q226 136 226 236 Q226 250 210 250 L46 250 Q30 250 30 236 Z" fill="#9BE564" stroke="none"/>
+      <g clip-path="url(#slime-clip)" stroke="none">
+        <path id="lobes-shade" d="M238 124 Q208 154 212 236 Q208 246 186 252 L240 256 Z" fill="#78C443"/>
+        <ellipse id="belly" cx="130" cy="234" rx="70" ry="17" fill="#BDF08F"/>
+      </g>
+      <g id="lobes-highlight" fill="none" stroke="#D2F6B0">
+        <path d="M46 188 Q52 158 80 147" stroke-width="10"/>
+        <path d="M152 156 Q160 148 172 147" stroke-width="7"/>
+      </g>
+      <circle cx="44" cy="206" r="4" fill="#D2F6B0" stroke="none"/>
+      <path id="seam" d="M128 152 L121 163 L135 175 L121 187 L135 199 L121 211 L135 223 L121 235 L128 246" fill="none" stroke-width="5"/>
+      <path id="lobes-outline" d="M30 236 Q30 136 88 134 Q114 134 128 150 Q142 134 168 134 Q226 136 226 236 Q226 250 210 250 L46 250 Q30 250 30 236 Z" fill="none" stroke-width="8"/>
+      <path d="M0 -13 Q3.6 -3.6 13 0 Q3.6 3.6 0 13 Q-3.6 3.6 -13 0 Q-3.6 -3.6 0 -13 Z" transform="translate(128 132)" fill="#FFF4D6" stroke="none"/>
+      <path d="M0 -7 Q2 -2 7 0 Q2 2 0 7 Q-2 2 -7 0 Q-2 -2 0 -7 Z" transform="translate(110 150)" fill="#FFF4D6" stroke="none"/>
+      <path d="M0 -8 Q2.2 -2.2 8 0 Q2.2 2.2 0 8 Q-2.2 2.2 -8 0 Q-2.2 -2.2 0 -8 Z" transform="translate(146 146)" fill="#FFF4D6" stroke="none"/>
+    </g>
+    <g id="face" transform="translate(1 2)">
+      <g id="eyes">
+        <g transform="translate(86 182) scale(1.0) translate(-86 -182)">
+          <ellipse cx="86" cy="182" rx="20" ry="23" fill="#FFFFFF" stroke-width="5"/>
+          <circle cx="91" cy="186" r="10" fill="#2A1E3D" stroke="none"/>
+          <circle cx="95" cy="181" r="3.8" fill="#FFFFFF" stroke="none"/>
+        </g>
+        <g transform="translate(170 180) scale(1.0) translate(-170 -180)">
+          <ellipse cx="170" cy="180" rx="19" ry="22" fill="#FFFFFF" stroke-width="5"/>
+          <circle cx="175" cy="184" r="9.5" fill="#2A1E3D" stroke="none"/>
+          <circle cx="179" cy="179" r="3.6" fill="#FFFFFF" stroke="none"/>
+        </g>
+      </g>
+      <g id="mouth">
+        <path d="M100 212 Q134 236 170 207" fill="none" stroke="#9BE564" stroke-width="16"/>
+        <path d="M100 212 Q134 236 170 207" fill="none" stroke-width="6"/>
+        <path d="M164 205 L175 202" fill="none" stroke-width="5"/>
+      </g>
+    </g>
+  </g>
+</svg>

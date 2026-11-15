@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-mug: a tall orange mug with a big handle, no saucer. Single frame. Anchor centre (128,128).
+       Activity picture: text-free, one object, no background. Light from the top-left. See art/STYLE.md. -->
+<g id="mug" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" transform="translate(0 -4)">
+<g id="handle">
+  <path d="M166 92 Q222 86 220 140 Q218 190 166 182" fill="none" stroke="#2A1E3D" stroke-width="32"/>
+  <path d="M166 92 Q222 86 220 140 Q218 190 166 182" fill="none" stroke="#FF8A2A" stroke-width="18"/>
+</g>
+<g id="body">
+  <clipPath id="body-clip"><path d="M58 58 H178 V210 Q178 228 160 228 H76 Q58 228 58 210 Z"/></clipPath>
+  <g clip-path="url(#body-clip)" stroke="none">
+    <path d="M58 58 H178 V210 Q178 228 160 228 H76 Q58 228 58 210 Z" fill="#D9661A"/>
+    <path d="M58 58 H178 V210 Q178 228 160 228 H76 Q58 228 58 210 Z" fill="#FF8A2A" transform="translate(-12 -8)"/>
+  </g>
+  <path d="M58 58 H178 V210 Q178 228 160 228 H76 Q58 228 58 210 Z" fill="none"/>
+</g>
+<ellipse id="rim" cx="118" cy="58" rx="60" ry="15" fill="#FFC08A"/>
+<ellipse id="cocoa" cx="118" cy="60" rx="49" ry="9" fill="#A9714B" stroke="none"/>
+<path d="M74 84 V196" fill="none" stroke="#FFFFFF" stroke-width="8" opacity="0.75"/>
+</g>
+</svg>

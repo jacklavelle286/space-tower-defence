@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Sol beacon pulse, frame 06/06: soft gold 4:3 ground ring of light pulsing outward (scale 1.1). Anchor centre (128,128).
+       See art/STYLE.md. -->
+  <g id="sol-beacon" stroke-linecap="round" stroke-linejoin="round" opacity="0.2">
+    <g id="glow" fill="none"><ellipse cx="128" cy="128" rx="118.8" ry="89.1" fill="#F5B700" opacity="0.08"/><ellipse cx="128" cy="128" rx="118.8" ry="89.1" stroke="#F5B700" stroke-width="24" opacity="0.28"/></g>
+    <g id="ring" fill="none"><ellipse cx="128" cy="128" rx="118.8" ry="89.1" stroke="#F5B700" stroke-width="10" opacity="0.75"/><ellipse cx="128" cy="128" rx="118.8" ry="89.1" stroke="#FFE79A" stroke-width="4"/></g>
+    <g id="sparkles">
+    <path d="M0 -4.8 Q1.3 -1.3 4.8 0 Q1.3 1.3 0 4.8 Q-1.3 1.3 -4.8 0 Q-1.3 -1.3 0 -4.8 Z" fill="#FFF4D6" stroke="none" transform="translate(230.9 83.5) rotate(0)"/>
+    <path d="M0 -9.6 Q2.7 -2.7 9.6 0 Q2.7 2.7 0 9.6 Q-2.7 2.7 -9.6 0 Q-2.7 -2.7 0 -9.6 Z" fill="#FFF4D6" stroke="none" transform="translate(230.9 172.6) rotate(0)"/>
+    <path d="M0 -6.4 Q1.8 -1.8 6.4 0 Q1.8 1.8 0 6.4 Q-1.8 1.8 -6.4 0 Q-1.8 -1.8 0 -6.4 Z" fill="#FFF4D6" stroke="none" transform="translate(128 217.1) rotate(0)"/>
+    <path d="M0 -8 Q2.2 -2.2 8 0 Q2.2 2.2 0 8 Q-2.2 2.2 -8 0 Q-2.2 -2.2 0 -8 Z" fill="#FFF4D6" stroke="none" transform="translate(25.1 172.6) rotate(0)"/>
+    <path d="M0 -4.8 Q1.3 -1.3 4.8 0 Q1.3 1.3 0 4.8 Q-1.3 1.3 -4.8 0 Q-1.3 -1.3 0 -4.8 Z" fill="#FFF4D6" stroke="none" transform="translate(25.1 83.4) rotate(0)"/>
+    <path d="M0 -9.6 Q2.7 -2.7 9.6 0 Q2.7 2.7 0 9.6 Q-2.7 2.7 -9.6 0 Q-2.7 -2.7 0 -9.6 Z" fill="#FFF4D6" stroke="none" transform="translate(128 38.9) rotate(0)"/>
+    </g>
+  </g>
+</svg>

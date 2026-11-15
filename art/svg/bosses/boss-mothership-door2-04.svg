@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 768 768" width="768" height="768">
+  <!-- The Mothership door 2 opening (one-shot): two-dot door 2 drops open, Orbit Flutters flutter out. Frame 04 of 06 (01 = hover before, 06 = hover after).
+       Anchor bottom-centre (384,768): flyer drawn high, lower canvas left empty for the game's shadow.
+       Built as an edit of the shared Mothership drawing (shut / door1open hovers). See art/STYLE.md. -->
+  <defs>
+    <clipPath id="upper-clip"><path d="M112 362 Q146 226 384 212 Q622 226 656 362 Z"/></clipPath>
+    <clipPath id="bowl-clip"><path d="M164 380 Q196 566 384 572 Q572 566 604 380 Z"/></clipPath>
+    <clipPath id="dome-clip"><path d="M276 234 A108 108 0 0 1 492 234 Z"/></clipPath>
+  </defs>
+  <g id="mothership" transform="translate(0 0) rotate(2.50 384 380)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="lower-hull">
+      <path d="M164 380 Q196 566 384 572 Q572 566 604 380 Z" fill="#C9D1E3" stroke="none"/>
+      <path clip-path="url(#bowl-clip)" d="M640 380 Q600 540 420 590 L660 600 Z" fill="#A39BD0" stroke="none"/>
+      <path d="M164 380 Q196 566 384 572 Q572 566 604 380 Z" fill="none" stroke-width="14"/>
+      <g id="door-1" transform="rotate(-9 290 504.0)">
+        <rect x="250" y="466" width="80" height="76" rx="18" fill="#23295E" stroke-width="10"/>
+        <path d="M258 488 Q258 474 274 474 H320" fill="none" stroke="#141633" stroke-width="12"/>
+        <path id="ramp-1" d="M252 536 L328 536 L342 600 L242 606 Z" fill="#A7B0C8" stroke-width="10"/>
+        <path d="M260 560 H326 M256 580 H332" fill="none" stroke="#7F89A6" stroke-width="7"/>
+      </g>
+      <g id="door-2" transform="rotate(0 384 504.0)">
+        <rect x="344" y="466" width="80" height="76" rx="18" fill="#23295E" stroke-width="10"/>
+        <path d="M352 488 Q352 474 368 474 H414" fill="none" stroke="#141633" stroke-width="12"/>
+        <path id="ramp-2" d="M346 536 L422 536 L436 600 L336 606 Z" fill="#A7B0C8" stroke-width="10"/>
+        <path d="M354 560 H420 M350 580 H426" fill="none" stroke="#7F89A6" stroke-width="7"/>
+      </g>
+      <g id="door-3" transform="rotate(9 478 504.0)">
+        <rect x="438" y="466" width="80" height="76" rx="18" fill="#A7B0C8" stroke-width="10"/>
+        <path d="M504 482 V528 H454" fill="none" stroke="#7F89A6" stroke-width="8"/>
+        <path d="M452 492 H496 M452 510 H496" fill="none" stroke-width="5"/>
+        <path d="M450 520 V486 Q450 478 460 478" fill="none" stroke="#C9D0E2" stroke-width="6"/>
+      </g>
+      <g id="bottom-lights">
+        <circle cx="206" cy="452" r="11" fill="#E05FD0" stroke-width="5"/>
+        <circle cx="246" cy="522" r="11" fill="#A84A9E" stroke-width="5"/>
+        <circle cx="522" cy="522" r="11" fill="#E05FD0" stroke-width="5"/>
+        <circle cx="562" cy="452" r="11" fill="#A84A9E" stroke-width="5"/>
+      </g>
+    </g>
+    <g id="rim">
+      <ellipse cx="384" cy="372" rx="342" ry="92" fill="#C9D1E3" stroke="none"/>
+      <path d="M42 372 Q60 460 384 466 Q708 460 726 372 Q706 420 384 430 Q62 420 42 372 Z" fill="#A39BD0" stroke="none"/>
+      <path d="M78 352 Q160 300 300 290" fill="none" stroke="#EEF1F8" stroke-width="14"/>
+      <ellipse cx="384" cy="372" rx="342" ry="92" fill="none" stroke-width="14"/>
+      <path d="M50 386 Q210 440 384 442 Q558 440 718 386" fill="none" stroke-width="8"/>
+    </g>
+    <g id="door-lights">
+      <g id="light-flash"><circle cx="370" cy="408" r="24" fill="#FFF4D6" opacity="0.75" stroke="none"/><circle cx="398" cy="408" r="24" fill="#FFF4D6" opacity="0.75" stroke="none"/></g>
+      <circle cx="290" cy="402.4" r="11" fill="#4A3F7A" stroke-width="6"/>
+      <circle cx="370" cy="408" r="12" fill="#FFFFFF" stroke-width="6"/><circle cx="367" cy="405" r="4" fill="#FFE79A" stroke="none"/><circle cx="398" cy="408" r="12" fill="#FFFFFF" stroke-width="6"/><circle cx="395" cy="405" r="4" fill="#FFE79A" stroke="none"/>
+      <circle cx="450" cy="402.4" r="11" fill="#FFE79A" stroke-width="6"/><circle cx="447" cy="399.4" r="3.5" fill="#FFFFFF" stroke="none"/><circle cx="478" cy="402.4" r="11" fill="#FFE79A" stroke-width="6"/><circle cx="475" cy="399.4" r="3.5" fill="#FFFFFF" stroke="none"/><circle cx="506" cy="402.4" r="11" fill="#FFE79A" stroke-width="6"/><circle cx="503" cy="399.4" r="3.5" fill="#FFFFFF" stroke="none"/>
+    </g>
+    <g id="upper-hull">
+      <path d="M112 362 Q146 226 384 212 Q622 226 656 362 Z" fill="#C9D1E3" stroke="none"/>
+      <path clip-path="url(#upper-clip)" d="M700 200 Q620 260 600 370 L700 370 Z" fill="#A39BD0" stroke="none"/>
+      <g id="hull-plating" stroke-width="8">
+        <path d="M150 352 Q166 294 226 262 Q252 300 250 356 Z" fill="#DDE2EE"/>
+        <path d="M268 358 Q270 296 250 254 Q300 236 352 232 Q352 300 360 360 Z" fill="#DDE2EE"/>
+        <path d="M408 360 Q416 300 416 232 Q470 236 516 252 Q500 300 502 358 Z" fill="#DDE2EE"/>
+        <path d="M520 356 Q520 300 540 260 Q600 290 618 352 Z" fill="#DDE2EE"/>
+        <g fill="#A7B0C8" stroke-width="4">
+          <circle cx="200" cy="330" r="7"/><circle cx="306" cy="334" r="7"/><circle cx="456" cy="334" r="7"/><circle cx="570" cy="330" r="7"/>
+        </g>
+      </g>
+      <path d="M112 362 Q146 226 384 212 Q622 226 656 362" fill="none" stroke-width="14"/>
+    </g>
+    <g id="dome">
+      <g id="captain">
+        <path d="M330 236 Q330 170 384 166 Q438 170 438 236 Z" fill="#9BE564" stroke-width="8"/>
+        <path d="M428 196 Q438 214 436 236 L410 236 Z" fill="#7CC74A" stroke="none"/>
+        <path d="M392 168 Q398 140 412 128" fill="none" stroke-width="6"/>
+        <circle cx="414" cy="124" r="10" fill="#E05FD0" stroke-width="5"/>
+        <g id="captain-face">
+          <ellipse cx="376" cy="204" rx="13" ry="15" fill="#FFFFFF" stroke-width="5"/>
+          <ellipse cx="410" cy="202" rx="12" ry="14" fill="#FFFFFF" stroke-width="5"/>
+          <circle cx="381" cy="208" r="7" fill="#2A1E3D" stroke="none"/><circle cx="414" cy="206" r="6.5" fill="#2A1E3D" stroke="none"/>
+          <path d="M362 196 Q376 190 390 196 L390 186 L362 186 Z" fill="#9BE564" stroke="none"/>
+          <path d="M398 194 Q410 188 422 194 L422 184 L398 184 Z" fill="#9BE564" stroke="none"/>
+          <path d="M363 197 Q376 191 389 197 M399 195 Q410 189 421 195" fill="none" stroke-width="5"/>
+          <path d="M378 224 Q396 232 414 220" fill="none" stroke-width="6"/>
+        </g>
+      </g>
+      <path d="M276 234 A108 108 0 0 1 492 234 Z" fill="#CFE9FF" fill-opacity="0.5" stroke="none"/>
+      <path d="M302 210 A86 86 0 0 1 360 150" fill="none" stroke="#FFFFFF" stroke-width="12" opacity="0.9"/>
+      <circle cx="378" cy="146" r="6" fill="#FFFFFF" stroke="none"/>
+      <path d="M276 234 A108 108 0 0 1 492 234" fill="none" stroke-width="14"/>
+      <path d="M270 236 Q384 256 498 236" fill="none" stroke="#2A1E3D" stroke-width="30"/><path d="M270 236 Q384 256 498 236" fill="none" stroke="#A7B0C8" stroke-width="14"/>
+    </g>
+  </g>
+<g id="flutter-1" transform="translate(304.4 629.8) rotate(-8.0) scale(0.950 0.950)" stroke="#2A1E3D" stroke-linejoin="round" stroke-linecap="round"><g transform="rotate(20 -18 -10)"><path d="M-18 -10 Q-70 -70 -70 -24 Q-68 4 -24 4 Z" fill="#D9C2FA" stroke-width="6"/></g><g transform="rotate(-20 18 -10)"><path d="M18 -10 Q70 -76 74 -26 Q72 4 24 4 Z" fill="#D9C2FA" stroke-width="6"/></g><ellipse cx="0" cy="6" rx="46" ry="24" fill="#B98AF0" stroke="none"/><path d="M44 4 Q40 28 0 30 L40 34 Z" fill="#9668D0" stroke="none"/><path d="M-30 -4 Q-14 -14 8 -15" fill="none" stroke="#E6D6FF" stroke-width="6"/><ellipse cx="0" cy="6" rx="46" ry="24" fill="none" stroke-width="7"/><circle cx="4" cy="8" r="10" fill="#FFFFFF" stroke="#2A1E3D" stroke-width="4"/><circle cx="6.5" cy="9.5" r="5.2" fill="#2A1E3D" stroke="none"/><circle cx="8.5" cy="7.3" r="2.0" fill="#FFFFFF" stroke="none"/><circle cx="26" cy="6" r="9" fill="#FFFFFF" stroke="#2A1E3D" stroke-width="4"/><circle cx="28.2" cy="7.3" r="4.7" fill="#2A1E3D" stroke="none"/><circle cx="30.1" cy="5.4" r="1.8" fill="#FFFFFF" stroke="none"/><path d="M8 22 Q16 26 26 21" fill="none" stroke-width="4"/></g><g id="flutter-2" transform="translate(414.4 659.8) rotate(6.0) scale(0.950 0.950)" stroke="#2A1E3D" stroke-linejoin="round" stroke-linecap="round"><g transform="rotate(-25 -18 -10)"><path d="M-18 -10 Q-70 -70 -70 -24 Q-68 4 -24 4 Z" fill="#D9C2FA" stroke-width="6"/></g><g transform="rotate(25 18 -10)"><path d="M18 -10 Q70 -76 74 -26 Q72 4 24 4 Z" fill="#D9C2FA" stroke-width="6"/></g><ellipse cx="0" cy="6" rx="46" ry="24" fill="#B98AF0" stroke="none"/><path d="M44 4 Q40 28 0 30 L40 34 Z" fill="#9668D0" stroke="none"/><path d="M-30 -4 Q-14 -14 8 -15" fill="none" stroke="#E6D6FF" stroke-width="6"/><ellipse cx="0" cy="6" rx="46" ry="24" fill="none" stroke-width="7"/><circle cx="4" cy="8" r="10" fill="#FFFFFF" stroke="#2A1E3D" stroke-width="4"/><circle cx="6.5" cy="9.5" r="5.2" fill="#2A1E3D" stroke="none"/><circle cx="8.5" cy="7.3" r="2.0" fill="#FFFFFF" stroke="none"/><circle cx="26" cy="6" r="9" fill="#FFFFFF" stroke="#2A1E3D" stroke-width="4"/><circle cx="28.2" cy="7.3" r="4.7" fill="#2A1E3D" stroke="none"/><circle cx="30.1" cy="5.4" r="1.8" fill="#FFFFFF" stroke="none"/><path d="M8 22 Q16 26 26 21" fill="none" stroke-width="4"/></g><g id="flutter-3" transform="translate(484.4 609.8) rotate(10.0) scale(0.900 0.900)" stroke="#2A1E3D" stroke-linejoin="round" stroke-linecap="round"><g transform="rotate(0 -18 -10)"><path d="M-18 -10 Q-70 -70 -70 -24 Q-68 4 -24 4 Z" fill="#D9C2FA" stroke-width="6"/></g><g transform="rotate(0 18 -10)"><path d="M18 -10 Q70 -76 74 -26 Q72 4 24 4 Z" fill="#D9C2FA" stroke-width="6"/></g><ellipse cx="0" cy="6" rx="46" ry="24" fill="#B98AF0" stroke="none"/><path d="M44 4 Q40 28 0 30 L40 34 Z" fill="#9668D0" stroke="none"/><path d="M-30 -4 Q-14 -14 8 -15" fill="none" stroke="#E6D6FF" stroke-width="6"/><ellipse cx="0" cy="6" rx="46" ry="24" fill="none" stroke-width="7"/><circle cx="4" cy="8" r="10" fill="#FFFFFF" stroke="#2A1E3D" stroke-width="4"/><circle cx="6.5" cy="9.5" r="5.2" fill="#2A1E3D" stroke="none"/><circle cx="8.5" cy="7.3" r="2.0" fill="#FFFFFF" stroke="none"/><circle cx="26" cy="6" r="9" fill="#FFFFFF" stroke="#2A1E3D" stroke-width="4"/><circle cx="28.2" cy="7.3" r="4.7" fill="#2A1E3D" stroke="none"/><circle cx="30.1" cy="5.4" r="1.8" fill="#FFFFFF" stroke="none"/><path d="M8 22 Q16 26 26 21" fill="none" stroke-width="4"/></g><g id="flutter-4" transform="translate(364.4 689.8) rotate(-4.0) scale(0.900 0.900)" stroke="#2A1E3D" stroke-linejoin="round" stroke-linecap="round"><g transform="rotate(-30 -18 -10)"><path d="M-18 -10 Q-70 -70 -70 -24 Q-68 4 -24 4 Z" fill="#D9C2FA" stroke-width="6"/></g><g transform="rotate(30 18 -10)"><path d="M18 -10 Q70 -76 74 -26 Q72 4 24 4 Z" fill="#D9C2FA" stroke-width="6"/></g><ellipse cx="0" cy="6" rx="46" ry="24" fill="#B98AF0" stroke="none"/><path d="M44 4 Q40 28 0 30 L40 34 Z" fill="#9668D0" stroke="none"/><path d="M-30 -4 Q-14 -14 8 -15" fill="none" stroke="#E6D6FF" stroke-width="6"/><ellipse cx="0" cy="6" rx="46" ry="24" fill="none" stroke-width="7"/><circle cx="4" cy="8" r="10" fill="#FFFFFF" stroke="#2A1E3D" stroke-width="4"/><circle cx="6.5" cy="9.5" r="5.2" fill="#2A1E3D" stroke="none"/><circle cx="8.5" cy="7.3" r="2.0" fill="#FFFFFF" stroke="none"/><circle cx="26" cy="6" r="9" fill="#FFFFFF" stroke="#2A1E3D" stroke-width="4"/><circle cx="28.2" cy="7.3" r="4.7" fill="#2A1E3D" stroke="none"/><circle cx="30.1" cy="5.4" r="1.8" fill="#FFFFFF" stroke="none"/><path d="M8 22 Q16 26 26 21" fill="none" stroke-width="4"/></g>
+</svg>

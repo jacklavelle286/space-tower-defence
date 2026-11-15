@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- shape-cone: 3-D shape, a cone standing point-up, curved base edge showing, green.
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+<g id="cone" stroke="#2A1E3D" stroke-linejoin="round" stroke-linecap="round">
+  <clipPath id="cone-clip"><path d="M128 16 L214 212 A86 28 0 0 1 42 212 Z"/></clipPath>
+  <g id="cone-fill" clip-path="url(#cone-clip)" stroke="none">
+    <path d="M128 16 L214 212 A86 28 0 0 1 42 212 Z" fill="#2A9653"/>
+    <path d="M128 16 L162 252 L8 252 Z" fill="#3DBE6E"/>
+    <path d="M128 16 L98 252 L8 252 Z" fill="#8FE0AA" opacity="0.55"/>
+  </g>
+  <path class="highlight" d="M114 66 L80 188" fill="none" stroke="#FFFFFF" stroke-width="8" opacity="0.8"/>
+  <path id="cone-outline" d="M128 16 L214 212 A86 28 0 0 1 42 212 Z" fill="none" stroke-width="8"/>
+</g>
+</svg>

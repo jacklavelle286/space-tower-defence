@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- meteor-offer-art: cheerful glowing meteor (no face) with a gold and cyan sparkly tail streaking past a small purple moon, stars around. Single frame. Anchor centre (256,256).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="meteor-offer" stroke="#2A1E3D" stroke-width="11" stroke-linejoin="round" stroke-linecap="round">
+  <g id="sky-stars" stroke-width="6">
+    <path d="M0 -20 L5.3 -7.3 L19 -6.2 L8.6 2.8 L11.8 16.2 L0 9 L-11.8 16.2 L-8.6 2.8 L-19 -6.2 L-5.3 -7.3 Z" transform="translate(66 86) rotate(-10)" fill="#FFD86B" stroke="#2A1E3D" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M0 -16 L4.2 -5.8 L15.2 -4.9 L6.8 2.2 L9.4 12.9 L0 7.2 L-9.4 12.9 L-6.8 2.2 L-15.2 -4.9 L-4.2 -5.8 Z" transform="translate(452 236) rotate(12)" fill="#FFD86B" stroke="#2A1E3D" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M0 -15 L4 -5.5 L14.3 -4.6 L6.4 2.1 L8.8 12.1 L0 6.8 L-8.8 12.1 L-6.4 2.1 L-14.3 -4.6 L-4 -5.5 Z" transform="translate(92 432) rotate(8)" fill="#9FF3FF" stroke="#2A1E3D" stroke-width="6" stroke-linejoin="round"/>
+    <path d="M0 -18 Q5 -5 18 0 Q5 5 0 18 Q-5 5 -18 0 Q-5 -5 0 -18 Z" transform="translate(270 64) rotate(0)" fill="#FFF4D6" stroke="none"/>
+    <path d="M0 -14 Q3.9 -3.9 14 0 Q3.9 3.9 0 14 Q-3.9 3.9 -14 0 Q-3.9 -3.9 0 -14 Z" transform="translate(250 470) rotate(0)" fill="#FFFFFF" stroke="none"/>
+    <path d="M0 -12 Q3.4 -3.4 12 0 Q3.4 3.4 0 12 Q-3.4 3.4 -12 0 Q-3.4 -3.4 0 -12 Z" transform="translate(40 250) rotate(0)" fill="#FFF4D6" stroke="none"/>
+  </g>
+  <g id="moon">
+    <clipPath id="moon-clip"><circle cx="398" cy="392" r="76"/></clipPath>
+    <circle cx="398" cy="392" r="76" fill="#9C8FD6" stroke="none"/>
+    <path clip-path="url(#moon-clip)" d="M450 330 Q500 420 400 476 L480 480 L490 320 Z" fill="#6B5CA5" stroke="none"/>
+    <g id="craters" stroke-width="6">
+      <ellipse cx="376" cy="370" rx="20" ry="15" fill="#6B5CA5"/>
+      <ellipse cx="424" cy="414" rx="15" ry="11" fill="#6B5CA5"/>
+      <ellipse cx="380" cy="430" rx="10" ry="7.5" fill="#6B5CA5"/>
+    </g>
+    <path d="M336 396 Q336 348 376 330" fill="none" stroke="#B3A8E3" stroke-width="8"/>
+    <circle cx="398" cy="392" r="76" fill="none"/>
+  </g>
+  <g id="tail" transform="translate(170 262) rotate(-36)">
+    <path d="M0 -66 C90 -70 200 -50 300 -14 Q318 0 300 14 C200 50 90 70 0 66 Z" fill="#FFE79A"/>
+    <path d="M8 -40 C90 -44 180 -30 262 -8 Q272 0 262 8 C180 30 90 44 8 40 Z" fill="#FFC94A" stroke="none"/>
+    <path d="M14 -14 C90 -16 160 -10 220 -3 Q226 0 220 3 C160 10 90 16 14 14 Z" fill="#9FF3FF" stroke="none"/>
+    <g id="tail-sparkles">
+      <path d="M0 -16 Q4.5 -4.5 16 0 Q4.5 4.5 0 16 Q-4.5 4.5 -16 0 Q-4.5 -4.5 0 -16 Z" transform="translate(150 -30) rotate(0)" fill="#FFFFFF" stroke="none"/>
+      <path d="M0 -13 Q3.6 -3.6 13 0 Q3.6 3.6 0 13 Q-3.6 3.6 -13 0 Q-3.6 -3.6 0 -13 Z" transform="translate(220 18) rotate(0)" fill="#FFFFFF" stroke="none"/>
+      <path d="M0 -12 Q3.4 -3.4 12 0 Q3.4 3.4 0 12 Q-3.4 3.4 -12 0 Q-3.4 -3.4 0 -12 Z" transform="translate(96 36) rotate(0)" fill="#FFF4D6" stroke="none"/>
+    </g>
+  </g>
+  <g id="meteor">
+    <circle cx="170" cy="262" r="92" fill="#FFE79A" opacity="0.45" stroke="none"/>
+    <clipPath id="rock-clip"><path d="M100 250 Q98 196 152 186 Q206 180 236 222 Q254 262 230 300 Q206 336 160 334 Q110 330 102 290 Z"/></clipPath>
+    <path id="rock" d="M100 250 Q98 196 152 186 Q206 180 236 222 Q254 262 230 300 Q206 336 160 334 Q110 330 102 290 Z" fill="#D08A55" stroke="none"/>
+    <path clip-path="url(#rock-clip)" d="M220 200 Q262 290 170 340 L260 350 L270 200 Z" fill="#A96A3C" stroke="none"/>
+    <g id="rock-craters" stroke-width="6">
+      <ellipse cx="148" cy="236" rx="18" ry="14" fill="#B0703F"/>
+      <ellipse cx="200" cy="292" rx="14" ry="11" fill="#B0703F"/>
+      <ellipse cx="140" cy="296" rx="9" ry="7" fill="#B0703F"/>
+    </g>
+    <path d="M114 254 Q114 214 148 202" fill="none" stroke="#EDB98E" stroke-width="9"/>
+    <circle cx="166" cy="198" r="5" fill="#FFF4D6" stroke="none"/>
+    <path id="rock-outline" d="M100 250 Q98 196 152 186 Q206 180 236 222 Q254 262 230 300 Q206 336 160 334 Q110 330 102 290 Z" fill="none"/>
+  </g>
+</g>
+</svg>

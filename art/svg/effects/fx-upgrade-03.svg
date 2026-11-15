@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Upgrade burst, frame 03/08: sparkles, stars and chevrons rising in a column from the bottom-centre (progress 28.6%). Anchor bottom-centre (128,256).
+       See art/STYLE.md. -->
+  <g id="upgrade" stroke-linecap="round" stroke-linejoin="round">
+    <g id="glow" stroke="none"><rect x="98" y="112" width="60" height="124" rx="30" fill="#FFF4D6" opacity="0.3"/><ellipse cx="128" cy="232" rx="33.7" ry="25.3" fill="#FFE79A" opacity="0.5"/></g>
+    <g id="burst">
+    <g transform="translate(128 144.8) scale(1.1)"><path d="M-16 8 L0 -8 L16 8" fill="none" stroke="#2A1E3D" stroke-width="17"/><path d="M-16 8 L0 -8 L16 8" fill="none" stroke="#FFD23F" stroke-width="10"/><path d="M-13 5 L-4 -4" fill="none" stroke="#FFEA99" stroke-width="3"/></g>
+    <g transform="translate(105.8 192.7) scale(0.7)"><path d="M-16 8 L0 -8 L16 8" fill="none" stroke="#2A1E3D" stroke-width="17"/><path d="M-16 8 L0 -8 L16 8" fill="none" stroke="#FFD23F" stroke-width="10"/><path d="M-13 5 L-4 -4" fill="none" stroke="#FFEA99" stroke-width="3"/></g>
+    <g transform="translate(144.9 219.4) scale(0.4)"><path d="M-16 8 L0 -8 L16 8" fill="none" stroke="#2A1E3D" stroke-width="17"/><path d="M-16 8 L0 -8 L16 8" fill="none" stroke="#FFD23F" stroke-width="10"/><path d="M-13 5 L-4 -4" fill="none" stroke="#FFEA99" stroke-width="3"/></g>
+    <path d="M0 -14.7 L3.9 -5.3 L13.9 -4.5 L6.3 2 L8.6 11.9 L0 6.6 L-8.6 11.9 L-6.3 2 L-13.9 -4.5 L-3.9 -5.3 Z" fill="#FFD23F" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" transform="translate(93.7 163.6) rotate(8)"/>
+    <path d="M0 -11.3 L3 -4.1 L10.8 -3.5 L4.9 1.6 L6.7 9.2 L0 5.1 L-6.7 9.2 L-4.9 1.6 L-10.8 -3.5 L-3 -4.1 Z" fill="#9FF3FF" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" transform="translate(161.1 164.9) rotate(-10)"/>
+    <path d="M0 -8.1 L2.1 -2.9 L7.7 -2.5 L3.5 1.1 L4.7 6.5 L0 3.6 L-4.7 6.5 L-3.5 1.1 L-7.7 -2.5 L-2.1 -2.9 Z" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" transform="translate(119.6 189.3) rotate(2)"/>
+    <path d="M0 -11 L2.9 -4 L10.5 -3.4 L4.7 1.5 L6.5 8.9 L0 5 L-6.5 8.9 L-4.7 1.5 L-10.5 -3.4 L-2.9 -4 Z" fill="#FFD23F" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" transform="translate(146.9 194.3) rotate(4)"/>
+    <path d="M0 -10.1 Q2.8 -2.8 10.1 0 Q2.8 2.8 0 10.1 Q-2.8 2.8 -10.1 0 Q-2.8 -2.8 0 -10.1 Z" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="2.5" stroke-linejoin="round" transform="translate(83.3 197.5) rotate(0)"/>
+    <path d="M0 -6.8 Q1.9 -1.9 6.8 0 Q1.9 1.9 0 6.8 Q-1.9 1.9 -6.8 0 Q-1.9 -1.9 0 -6.8 Z" fill="#9FF3FF" stroke="#2A1E3D" stroke-width="2.5" stroke-linejoin="round" transform="translate(166.4 208.5) rotate(0)"/>
+    </g>
+  </g>
+</svg>

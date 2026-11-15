@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- badge-boss-2: Clank Cracker: a rounded grey armour plate with bolts and a glowing gold zigzag crack. earned (full colour). Single frame. Anchor centre (128,128).
+       Medal: gold rim, cream ring, night-blue disc, ribbon tab at the bottom. Light from the top-left. See art/STYLE.md. -->
+
+<g id="badge-boss-2" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+  <g id="ribbon">
+    <clipPath id="badge-boss-2-tail-right"><path d="M158 176 L126 186 L142 245 L157 233 L176 240 Z"/></clipPath>
+    <g id="tail-right">
+      <g clip-path="url(#badge-boss-2-tail-right)" stroke="none">
+        <path d="M158 176 L126 186 L145.2 256.8 L179.6 252.8 Z" fill="#2FA39A"/>
+        <path d="M136.2 182.8 L126 186 L145.2 256.8 L156.2 255.5 Z" fill="#2A1E3D" opacity="0.18"/>
+      </g>
+      <path d="M158 176 L126 186 L142 245 L157 233 L176 240 Z" fill="none"/>
+    </g>
+    <clipPath id="badge-boss-2-tail-left"><path d="M98 176 L130 186 L114 245 L99 233 L80 240 Z"/></clipPath>
+    <g id="tail-left">
+      <g clip-path="url(#badge-boss-2-tail-left)" stroke="none">
+        <path d="M98 176 L130 186 L110.8 256.8 L76.4 252.8 Z" fill="#2FA39A"/>
+        <path d="M119.8 182.8 L130 186 L110.8 256.8 L99.8 255.5 Z" fill="#2A1E3D" opacity="0.18"/>
+      </g>
+      <path d="M98 176 L130 186 L114 245 L99 233 L80 240 Z" fill="none"/>
+    </g>
+  </g>
+  <g id="rim">
+    <clipPath id="badge-boss-2-rim-clip"><circle cx="128" cy="114" r="96"/></clipPath>
+    <circle id="rim-gold" cx="128" cy="114" r="96" fill="#D09A00" stroke="none"/>
+    <circle clip-path="url(#badge-boss-2-rim-clip)" cx="122" cy="108" r="96" fill="#F5B700" stroke="none"/>
+    <path id="rim-highlight" d="M43.4 89.7 A88 88 0 0 1 97.9 31.3" fill="none" stroke="#FFE79A" stroke-width="5"/>
+    <circle id="rim-outline" cx="128" cy="114" r="96" fill="none"/>
+    <circle id="cream-ring" cx="128" cy="114" r="80" fill="#FFF4D6" stroke-width="4"/>
+    <circle id="disc" cx="128" cy="114" r="70" fill="#23295E" stroke-width="4"/>
+  </g>
+  <g id="motif" transform="translate(128 114)" stroke-width="4">
+    <g id="armour-plate" transform="rotate(-8)">
+      <clipPath id="badge-boss-2-c1"><rect x="-46" y="-42" width="92" height="84" rx="24" /></clipPath>
+      <g clip-path="url(#badge-boss-2-c1)" stroke="none" >
+        <rect x="-300" y="-300" width="900" height="900" fill="#7F89A6"/>
+        <g transform="translate(-7 -7)"><rect x="-46" y="-42" width="92" height="84" rx="24" fill="#A7B0C8"/></g>
+      </g>
+      <rect x="-46" y="-42" width="92" height="84" rx="24" fill="none" stroke-width="5" />
+      <path d="M-36 6 Q-38 -24 -16 -32" fill="none" stroke="#C9D0E2" stroke-width="6"/>
+      <path d="M-22 -38 L-8 -16 L-20 -2 L2 14 L-8 26 L6 40" fill="none" stroke="#FFE79A" stroke-width="18" opacity="0.5"/>
+      <path d="M-22 -38 L-8 -16 L-20 -2 L2 14 L-8 26 L6 40" fill="none" stroke-width="11" />
+      <path d="M-22 -38 L-8 -16 L-20 -2 L2 14 L-8 26 L6 40" fill="none" stroke="#FFC94A" stroke-width="5" />
+      <circle cx="-30" cy="-26" r="6.5" fill="#C9D0E2" stroke-width="3.5" />
+      <circle cx="30" cy="-26" r="6.5" fill="#C9D0E2" stroke-width="3.5" />
+      <circle cx="-30" cy="26" r="6.5" fill="#C9D0E2" stroke-width="3.5" />
+      <circle cx="30" cy="26" r="6.5" fill="#C9D0E2" stroke-width="3.5" />
+    </g>
+    <path d="M0 -10 Q2.8 -2.8 10 0 Q2.8 2.8 0 10 Q-2.8 2.8 -10 0 Q-2.8 -2.8 0 -10 Z" transform="translate(-34 -50)" fill="#FFE79A" stroke="none" />
+    <path d="M0 -8 Q2.2 -2.2 8 0 Q2.2 2.2 0 8 Q-2.2 2.2 -8 0 Q-2.2 -2.2 0 -8 Z" transform="translate(30 52)" fill="#FFE79A" stroke="none" />
+  </g>
+</g>
+</svg>

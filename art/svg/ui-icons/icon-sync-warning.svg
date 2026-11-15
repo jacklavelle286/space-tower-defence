@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- icon-sync-warning: Sync warning: a rounded cream triangle with one plum dot inside (no exclamation mark). Single frame. Anchor centre (32,32).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="sync-warning" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+  <clipPath id="triangle-clip"><path d="M27.5 10.5 Q32 3 36.5 10.5 L58 48 Q61 55 53 55 H11 Q3 55 6 48 Z"/></clipPath>
+  <g id="triangle-fill" clip-path="url(#triangle-clip)" stroke="none">
+    <path d="M27.5 10.5 Q32 3 36.5 10.5 L58 48 Q61 55 53 55 H11 Q3 55 6 48 Z" fill="#E6D9B5"/>
+    <path d="M27.5 10.5 Q32 3 36.5 10.5 L58 48 Q61 55 53 55 H11 Q3 55 6 48 Z" fill="#FFF4D6" transform="translate(-3 -3)"/>
+  </g>
+  <path id="triangle-highlight" d="M15 44 L26 25" fill="none" stroke="#FFFFFF" stroke-width="2.5" opacity="0.85"/>
+  <path id="triangle-outline" d="M27.5 10.5 Q32 3 36.5 10.5 L58 48 Q61 55 53 55 H11 Q3 55 6 48 Z" fill="none"/>
+  <circle id="dot" cx="32" cy="40" r="5.2" fill="#2A1E3D" stroke="none"/>
+</g>
+</svg>

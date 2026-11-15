@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- ten-frame: Number picture, an empty ten-frame: 2 rows of 5 equal square cells (42 px) in a metal-grey frame.
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+<g id="ten-frame" stroke="#2A1E3D" stroke-linejoin="round" stroke-linecap="round">
+  <clipPath id="frame-clip"><path d="M27 76 H229 Q243 76 243 90 V166 Q243 180 229 180 H27 Q13 180 13 166 V90 Q13 76 27 76 Z"/></clipPath>
+  <g id="frame-fill" clip-path="url(#frame-clip)" stroke="none">
+    <path d="M27 76 H229 Q243 76 243 90 V166 Q243 180 229 180 H27 Q13 180 13 166 V90 Q13 76 27 76 Z" fill="#7F89A6"/>
+    <path d="M27 76 H229 Q243 76 243 90 V166 Q243 180 229 180 H27 Q13 180 13 166 V90 Q13 76 27 76 Z" fill="#A7B0C8" transform="translate(-5 -5)"/>
+  </g>
+  <g id="cells" fill="#FFF4D6" stroke="none">
+    <rect x="23" y="86" width="42" height="42"/>
+    <rect x="65" y="86" width="42" height="42"/>
+    <rect x="107" y="86" width="42" height="42"/>
+    <rect x="149" y="86" width="42" height="42"/>
+    <rect x="191" y="86" width="42" height="42"/>
+    <rect x="23" y="128" width="42" height="42"/>
+    <rect x="65" y="128" width="42" height="42"/>
+    <rect x="107" y="128" width="42" height="42"/>
+    <rect x="149" y="128" width="42" height="42"/>
+    <rect x="191" y="128" width="42" height="42"/>
+  </g>
+  <path id="frame-highlight" d="M19 150 V92 Q19 82 29 82 H120" fill="none" stroke="#C9D0E2" stroke-width="4"/>
+  <path id="grid-lines" d="M65 86 V170 M107 86 V170 M149 86 V170 M191 86 V170 M23 128 H233" fill="none" stroke-width="4"/>
+  <rect id="grid-outline" x="23" y="86" width="210" height="84" fill="none" stroke-width="5"/>
+  <path id="frame-outline" d="M27 76 H229 Q243 76 243 90 V166 Q243 180 229 180 H27 Q13 180 13 166 V90 Q13 76 27 76 Z" fill="none" stroke-width="7"/>
+</g>
+</svg>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- icon-shield: HUD shield: a rounded cyan shield with a bevel ring and a bright sparkle (no cross or chevron, unlike Mira's chest emblem). Single frame. Anchor centre (32,32).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="shield" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+  <clipPath id="shield-clip"><path d="M32 6 Q42 11 54 11 Q56 33 47 46 Q41 54 32 58 Q23 54 17 46 Q8 33 10 11 Q22 11 32 6 Z"/></clipPath>
+  <g id="shield-fill" clip-path="url(#shield-clip)" stroke="none">
+    <path d="M32 6 Q42 11 54 11 Q56 33 47 46 Q41 54 32 58 Q23 54 17 46 Q8 33 10 11 Q22 11 32 6 Z" fill="#34B9CC"/>
+    <path d="M32 6 Q42 11 54 11 Q56 33 47 46 Q41 54 32 58 Q23 54 17 46 Q8 33 10 11 Q22 11 32 6 Z" fill="#5BE0F0" transform="translate(-4 -4)"/>
+  </g>
+  <path id="shield-highlight" d="M16 17 Q16 30 20 38" fill="none" stroke="#FFFFFF" stroke-width="3" opacity="0.85"/>
+  <path id="shield-outline" d="M32 6 Q42 11 54 11 Q56 33 47 46 Q41 54 32 58 Q23 54 17 46 Q8 33 10 11 Q22 11 32 6 Z" fill="none"/>
+  <path id="shield-bevel" d="M32 14 Q39 17 47 17 Q47 33 41 42 Q37 47 32 50 Q27 47 23 42 Q17 33 17 17 Q25 17 32 14 Z" fill="none" stroke-width="2.5"/>
+  <path id="shield-sparkle" d="M0 -10 Q2.8 -2.8 10 0 Q2.8 2.8 0 10 Q-2.8 2.8 -10 0 Q-2.8 -2.8 0 -10 Z" transform="translate(33 31)" fill="#FFFFFF" stroke-width="2"/>
+</g>
+</svg>

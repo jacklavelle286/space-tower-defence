@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- icon-sync-reload: Sync reload: one bold cream circular arrow. Single frame. Anchor centre (32,32).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="sync-reload" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+  <g id="arc" fill="none">
+    <path d="M51 36 A19 19 0 1 1 41 15.5" stroke="#2A1E3D" stroke-width="12"/>
+    <path d="M51 36 A19 19 0 1 1 41 15.5" stroke="#FFF4D6" stroke-width="5"/>
+  </g>
+  <path id="arrow-head" d="M35 6 L50 15 L36 24 Z" fill="#FFF4D6" stroke-width="3.2"/>
+</g>
+</svg>

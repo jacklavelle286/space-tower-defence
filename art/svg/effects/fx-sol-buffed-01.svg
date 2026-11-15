@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Buffed chevron, frame 01/02: chunky gold upward chevron with a sparkle at the tip. Anchor centre (32,32).
+       See art/STYLE.md. -->
+  <g id="sol-buffed" stroke-linecap="round" stroke-linejoin="round">
+    <g id="chevron"><path d="M15 46 L32 29 L49 46" fill="none" stroke="#2A1E3D" stroke-width="21"/><path d="M15 46 L32 29 L49 46" fill="none" stroke="#F5B700" stroke-width="14"/><path d="M17.5 48 L32 33.5 L46.5 48" fill="none" stroke="#D99A00" stroke-width="5" opacity="0.9"/><path d="M15 43 L26 32" fill="none" stroke="#FFEA99" stroke-width="3"/></g>
+    <g id="sparkle"><path d="M0 -7 Q2 -2 7 0 Q2 2 0 7 Q-2 2 -7 0 Q-2 -2 0 -7 Z" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="2" stroke-linejoin="round" transform="translate(32 13) rotate(0)"/></g>
+  </g>
+</svg>

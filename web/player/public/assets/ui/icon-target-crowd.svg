@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- icon-target-crowd: Aim mode CROWD: a tight diamond-shaped group of four lilac alien heads. Single frame. Anchor centre (32,32).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="target-crowd" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+  <g id="head-back">
+  <clipPath id="head-back-clip"><path d="M22 28.5 Q21.5 10.0 32 10.0 Q42.5 10.0 42 28.5 Q42 30 39.0 30 H25.0 Q22 30 22 28.5 Z"/></clipPath>
+  <g id="head-back-fill" clip-path="url(#head-back-clip)" stroke="none">
+    <path d="M22 28.5 Q21.5 10.0 32 10.0 Q42.5 10.0 42 28.5 Q42 30 39.0 30 H25.0 Q22 30 22 28.5 Z" fill="#966BD4"/>
+    <path d="M22 28.5 Q21.5 10.0 32 10.0 Q42.5 10.0 42 28.5 Q42 30 39.0 30 H25.0 Q22 30 22 28.5 Z" fill="#B98AF0" transform="translate(-2.2 -2.2)"/>
+  </g>
+  <path id="head-back-highlight" d="M25.8 21.0 Q26.0 14.5 30.5 13.0" fill="none" stroke="#FFFFFF" stroke-width="2.5" opacity="0.85"/>
+  <path id="head-back-outline" d="M22 28.5 Q21.5 10.0 32 10.0 Q42.5 10.0 42 28.5 Q42 30 39.0 30 H25.0 Q22 30 22 28.5 Z" fill="none"/>
+  <g id="head-back-eyes" stroke="none">
+    <ellipse cx="30.8" cy="19.5" rx="2.0" ry="2.5" fill="#2A1E3D"/>
+    <ellipse cx="36.2" cy="19.1" rx="2.0" ry="2.5" fill="#2A1E3D"/>
+    <circle cx="31.5" cy="18.6" r="0.8" fill="#FFFFFF"/>
+    <circle cx="36.9" cy="18.2" r="0.8" fill="#FFFFFF"/>
+  </g>
+  </g>
+  <g id="head-left">
+  <clipPath id="head-left-clip"><path d="M7 43.5 Q6.5 25.0 17 25.0 Q27.5 25.0 27 43.5 Q27 45 24.0 45 H10.0 Q7 45 7 43.5 Z"/></clipPath>
+  <g id="head-left-fill" clip-path="url(#head-left-clip)" stroke="none">
+    <path d="M7 43.5 Q6.5 25.0 17 25.0 Q27.5 25.0 27 43.5 Q27 45 24.0 45 H10.0 Q7 45 7 43.5 Z" fill="#966BD4"/>
+    <path d="M7 43.5 Q6.5 25.0 17 25.0 Q27.5 25.0 27 43.5 Q27 45 24.0 45 H10.0 Q7 45 7 43.5 Z" fill="#B98AF0" transform="translate(-2.2 -2.2)"/>
+  </g>
+  <path id="head-left-highlight" d="M10.8 36.0 Q11.0 29.5 15.5 28.0" fill="none" stroke="#FFFFFF" stroke-width="2.5" opacity="0.85"/>
+  <path id="head-left-outline" d="M7 43.5 Q6.5 25.0 17 25.0 Q27.5 25.0 27 43.5 Q27 45 24.0 45 H10.0 Q7 45 7 43.5 Z" fill="none"/>
+  <g id="head-left-eyes" stroke="none">
+    <ellipse cx="15.8" cy="34.5" rx="2.0" ry="2.5" fill="#2A1E3D"/>
+    <ellipse cx="21.2" cy="34.1" rx="2.0" ry="2.5" fill="#2A1E3D"/>
+    <circle cx="16.5" cy="33.6" r="0.8" fill="#FFFFFF"/>
+    <circle cx="21.9" cy="33.2" r="0.8" fill="#FFFFFF"/>
+  </g>
+  </g>
+  <g id="head-right">
+  <clipPath id="head-right-clip"><path d="M37 43.5 Q36.5 25.0 47 25.0 Q57.5 25.0 57 43.5 Q57 45 54.0 45 H40.0 Q37 45 37 43.5 Z"/></clipPath>
+  <g id="head-right-fill" clip-path="url(#head-right-clip)" stroke="none">
+    <path d="M37 43.5 Q36.5 25.0 47 25.0 Q57.5 25.0 57 43.5 Q57 45 54.0 45 H40.0 Q37 45 37 43.5 Z" fill="#966BD4"/>
+    <path d="M37 43.5 Q36.5 25.0 47 25.0 Q57.5 25.0 57 43.5 Q57 45 54.0 45 H40.0 Q37 45 37 43.5 Z" fill="#B98AF0" transform="translate(-2.2 -2.2)"/>
+  </g>
+  <path id="head-right-highlight" d="M40.8 36.0 Q41.0 29.5 45.5 28.0" fill="none" stroke="#FFFFFF" stroke-width="2.5" opacity="0.85"/>
+  <path id="head-right-outline" d="M37 43.5 Q36.5 25.0 47 25.0 Q57.5 25.0 57 43.5 Q57 45 54.0 45 H40.0 Q37 45 37 43.5 Z" fill="none"/>
+  <g id="head-right-eyes" stroke="none">
+    <ellipse cx="45.8" cy="34.5" rx="2.0" ry="2.5" fill="#2A1E3D"/>
+    <ellipse cx="51.2" cy="34.1" rx="2.0" ry="2.5" fill="#2A1E3D"/>
+    <circle cx="46.5" cy="33.6" r="0.8" fill="#FFFFFF"/>
+    <circle cx="51.9" cy="33.2" r="0.8" fill="#FFFFFF"/>
+  </g>
+  </g>
+  <g id="head-front">
+  <clipPath id="head-front-clip"><path d="M21.5 56.4 Q21.0 37.0 32 37.0 Q43.0 37.0 42.5 56.4 Q42.5 58 39.4 58 H24.6 Q21.5 58 21.5 56.4 Z"/></clipPath>
+  <g id="head-front-fill" clip-path="url(#head-front-clip)" stroke="none">
+    <path d="M21.5 56.4 Q21.0 37.0 32 37.0 Q43.0 37.0 42.5 56.4 Q42.5 58 39.4 58 H24.6 Q21.5 58 21.5 56.4 Z" fill="#966BD4"/>
+    <path d="M21.5 56.4 Q21.0 37.0 32 37.0 Q43.0 37.0 42.5 56.4 Q42.5 58 39.4 58 H24.6 Q21.5 58 21.5 56.4 Z" fill="#B98AF0" transform="translate(-2.31 -2.31)"/>
+  </g>
+  <path id="head-front-highlight" d="M25.5 48.5 Q25.7 41.7 30.4 40.1" fill="none" stroke="#FFFFFF" stroke-width="2.5" opacity="0.85"/>
+  <path id="head-front-outline" d="M21.5 56.4 Q21.0 37.0 32 37.0 Q43.0 37.0 42.5 56.4 Q42.5 58 39.4 58 H24.6 Q21.5 58 21.5 56.4 Z" fill="none"/>
+  <g id="head-front-eyes" stroke="none">
+    <ellipse cx="30.7" cy="47.0" rx="2.1" ry="2.6" fill="#2A1E3D"/>
+    <ellipse cx="36.4" cy="46.6" rx="2.1" ry="2.6" fill="#2A1E3D"/>
+    <circle cx="31.5" cy="46.0" r="0.9" fill="#FFFFFF"/>
+    <circle cx="37.1" cy="45.6" r="0.9" fill="#FFFFFF"/>
+  </g>
+  </g>
+</g>
+</svg>

@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- shape-rectangle: 2-D shape, a rectangle 224 wide x 124 tall (clearly longer than tall), orange.
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+<g id="rectangle" stroke="#2A1E3D" stroke-width="8" stroke-linejoin="round" stroke-linecap="round">
+  <clipPath id="rectangle-clip"><path d="M16 66 L240 66 L240 190 L16 190 Z"/></clipPath>
+  <g id="rectangle-fill" clip-path="url(#rectangle-clip)" stroke="none">
+    <path d="M16 66 L240 66 L240 190 L16 190 Z" fill="#D9661A"/>
+    <path d="M16 66 L240 66 L240 190 L16 190 Z" fill="#FF8A2A" transform="translate(-7 -7)"/>
+  </g>
+  <path id="rectangle-highlight" d="M38 140 V100 Q38 88 50 88 H150" fill="none" stroke="#FFC08A" stroke-width="9"/>
+  <path id="rectangle-outline" d="M16 66 L240 66 L240 190 L16 190 Z" fill="none"/>
+</g>
+</svg>

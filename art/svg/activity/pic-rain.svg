@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-rain: a grey cloud with blue raindrops falling below. No lightning.
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+  <defs>
+    <clipPath id="cloud-clip"><path d="M62 136 Q30 136 32 110 Q34 86 62 88 Q66 54 100 52 Q120 26 152 40 Q184 36 192 68 Q226 72 224 104 Q222 136 190 136 Z"/></clipPath>
+    <path id="drop" d="M0 -20 Q13 -2 13 6 A13 13 0 0 1 -13 6 Q-13 -2 0 -20 Z"/>
+  </defs>
+  <g id="rain" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <g id="drops" fill="#5AA9F0">
+      <g transform="translate(78 176)"><use href="#drop"/><path d="M-6 4 Q-6 -2 -2 -6" fill="none" stroke="#FFFFFF" stroke-width="4"/></g>
+      <g transform="translate(130 188)"><use href="#drop"/><path d="M-6 4 Q-6 -2 -2 -6" fill="none" stroke="#FFFFFF" stroke-width="4"/></g>
+      <g transform="translate(182 176)"><use href="#drop"/><path d="M-6 4 Q-6 -2 -2 -6" fill="none" stroke="#FFFFFF" stroke-width="4"/></g>
+      <g transform="translate(102 226)"><use href="#drop"/><path d="M-6 4 Q-6 -2 -2 -6" fill="none" stroke="#FFFFFF" stroke-width="4"/></g>
+      <g transform="translate(156 226)"><use href="#drop"/><path d="M-6 4 Q-6 -2 -2 -6" fill="none" stroke="#FFFFFF" stroke-width="4"/></g>
+    </g>
+    <g id="cloud">
+      <path d="M62 136 Q30 136 32 110 Q34 86 62 88 Q66 54 100 52 Q120 26 152 40 Q184 36 192 68 Q226 72 224 104 Q222 136 190 136 Z" fill="#A7B0C8"/>
+      <g clip-path="url(#cloud-clip)" stroke="none">
+        <path id="cloud-shade" d="M20 118 Q128 130 236 104 V150 H20 Z" fill="#7F89A6"/>
+      </g>
+      <path d="M62 136 Q30 136 32 110 Q34 86 62 88 Q66 54 100 52 Q120 26 152 40 Q184 36 192 68 Q226 72 224 104 Q222 136 190 136 Z" fill="none"/>
+      <path id="cloud-highlight" d="M74 84 Q80 66 100 62 M44 106 Q46 98 54 96" fill="none" stroke="#C9D0E2" stroke-width="5"/>
+    </g>
+  </g>
+</svg>

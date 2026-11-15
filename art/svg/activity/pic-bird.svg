@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-bird: a small round garden bird, side view facing right: blue back, yellow breast, white cheek,
+       orange beak, thin legs. Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+  <defs>
+    <clipPath id="body-clip"><path d="M58 146 Q54 92 108 78 Q126 46 166 50 Q206 56 208 98 Q210 140 188 166 Q162 198 118 198 Q64 196 58 146 Z"/></clipPath>
+  </defs>
+  <g id="bird" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" transform="translate(-4 4)">
+    <path id="tail" d="M72 124 L28 100 Q16 110 24 122 Q14 136 26 146 L76 152 Z" fill="#3F86CF"/>
+    <g id="legs" fill="none" stroke-width="5">
+      <path d="M112 192 L106 226 M96 228 H116"/>
+      <path d="M140 190 L144 226 M134 228 H154"/>
+    </g>
+    <g id="body">
+      <path d="M58 146 Q54 92 108 78 Q126 46 166 50 Q206 56 208 98 Q210 140 188 166 Q162 198 118 198 Q64 196 58 146 Z" fill="#5AA9F0"/>
+      <g clip-path="url(#body-clip)" stroke="none">
+        <ellipse id="breast" cx="160" cy="160" rx="62" ry="50" fill="#FFD23F"/>
+        <path id="breast-shade" d="M210 120 Q206 186 130 204 H220 V120 Z" fill="#E0AE1F"/>
+        <ellipse id="cheek" cx="176" cy="106" rx="15" ry="10" fill="#FFFFFF"/>
+        <path id="cap" d="M110 70 Q140 40 200 64 Q178 74 150 74 Q126 74 110 82 Z" fill="#2E4A9E"/>
+      </g>
+      <path d="M58 146 Q54 92 108 78 Q126 46 166 50 Q206 56 208 98 Q210 140 188 166 Q162 198 118 198 Q64 196 58 146 Z" fill="none"/>
+      <path id="body-highlight" d="M72 128 Q78 104 98 92" fill="none" stroke="#BFE3FF" stroke-width="5"/>
+    </g>
+    <g id="wing">
+      <path d="M64 150 Q96 118 134 122 Q150 130 140 146 Q118 168 64 150 Z" fill="#3F86CF" stroke-width="5"/>
+      <path d="M96 132 Q110 128 124 130" fill="none" stroke="#5AA9F0" stroke-width="4"/>
+    </g>
+    <path id="beak" d="M204 90 L228 100 L204 110 Z" fill="#FF8A2A" stroke-width="6"/>
+    <g id="face" stroke="none">
+      <ellipse cx="180" cy="90" rx="6" ry="7.5" fill="#2A1E3D"/>
+      <circle cx="182" cy="87" r="2.3" fill="#FFFFFF"/>
+    </g>
+  </g>
+</svg>

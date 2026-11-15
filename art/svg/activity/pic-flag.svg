@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-flag: a plain one-colour orange flag with a single wavy fold on a grey pole. NO design, stripes, stars or emblem.
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+  <defs>
+    <clipPath id="flag-clip"><path d="M70 52 Q112 34 150 54 Q186 72 220 54 V148 Q186 166 150 148 Q112 128 70 146 Z"/></clipPath>
+  </defs>
+  <g id="flag" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <g id="pole">
+      <path d="M62 44 V236" fill="none" stroke-width="22"/>
+      <path d="M62 44 V236" fill="none" stroke="#A7B0C8" stroke-width="8"/>
+      <path d="M60 60 V120" fill="none" stroke="#C9D0E2" stroke-width="3"/>
+      <circle id="finial" cx="62" cy="34" r="12" fill="#FFD23F" stroke-width="6"/>
+      <circle cx="58" cy="30" r="3" fill="#FFFFFF" stroke="none"/>
+    </g>
+    <g id="cloth">
+      <path d="M70 52 Q112 34 150 54 Q186 72 220 54 V148 Q186 166 150 148 Q112 128 70 146 Z" fill="#FF8A2A"/>
+      <g clip-path="url(#flag-clip)" stroke="none">
+        <path id="fold-shade" d="M124 30 Q150 58 186 70 V170 Q154 156 124 134 Z" fill="#D9661A"/>
+      </g>
+      <path d="M70 52 Q112 34 150 54 Q186 72 220 54 V148 Q186 166 150 148 Q112 128 70 146 Z" fill="none"/>
+      <path id="cloth-highlight" d="M82 64 Q100 54 118 54" fill="none" stroke="#FFC08A" stroke-width="5"/>
+    </g>
+  </g>
+</svg>

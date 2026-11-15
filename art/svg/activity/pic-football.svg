@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-football: a classic black-and-white football (dark plum patches), no brand marks.
+       Single frame. Anchor centre (128,128). Light from the top-left. See art/STYLE.md. -->
+  <defs>
+    <clipPath id="ball-clip"><circle cx="128" cy="128" r="98"/></clipPath>
+  </defs>
+  <g id="football" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <circle id="ball" cx="128" cy="128" r="98" fill="#F4F1EA"/>
+    <g clip-path="url(#ball-clip)">
+      <path id="seams" d="M128 98 L128 68 M156.5 118.7 L185.1 109.5 M145.6 152.3 L163.3 176.5 M110.4 152.3 L92.7 176.5 M99.5 118.7 L70.9 109.5 M158.4 45.9 L196.7 73.7 M215.5 131.6 L200.9 176.5 M151.6 212.3 L104.4 212.3 M55.1 176.5 L40.5 131.6 M59.3 73.7 L97.6 45.9" fill="none" stroke-width="4"/>
+      <g id="patches" fill="#2A1E3D" stroke-width="5">
+        <path d="M128 98 L156.5 118.7 L145.6 152.3 L110.4 152.3 L99.5 118.7 Z"/>
+        <path d="M128 68 L97.6 45.9 L109.2 10.1 L146.8 10.1 L158.4 45.9 Z"/>
+        <path d="M185.1 109.5 L196.7 73.7 L234.3 73.7 L245.9 109.5 L215.5 131.6 Z"/>
+        <path d="M163.3 176.5 L200.9 176.5 L212.5 212.3 L182.1 234.4 L151.6 212.3 Z"/>
+        <path d="M92.7 176.5 L104.4 212.3 L73.9 234.4 L43.5 212.3 L55.1 176.5 Z"/>
+        <path d="M70.9 109.5 L40.5 131.6 L10.1 109.5 L21.7 73.7 L59.3 73.7 Z"/>
+      </g>
+      <path id="ball-shade" d="M226 70 A98 98 0 0 1 90 220 Q230 230 226 70 Z" fill="#2A1E3D" opacity="0.13" stroke="none"/>
+    </g>
+    <circle cx="128" cy="128" r="98" fill="none"/>
+    <path id="ball-highlight" d="M50 112 Q56 74 86 52" fill="none" stroke="#FFFFFF" stroke-width="6"/>
+  </g>
+</svg>

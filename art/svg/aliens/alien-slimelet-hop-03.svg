@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Slimelet hop, frame 03 of 04: top: stretched.
+       Anchor bottom-centre (64,128): base on y=122. Drawn in 256 units inside scale(0.5).
+       Light from the top-left. See art/STYLE.md. -->
+<g id="slimelet-128" transform="scale(0.5)">
+  <defs><clipPath id="slimelet-clip"><path d="M44 230 Q44 96 128 94 Q212 96 212 230 Q212 244 196 244 L60 244 Q44 244 44 230 Z"/></clipPath></defs>
+  <g id="slimelet" transform="translate(0 -24) translate(128 244) rotate(0) skewX(0) scale(0.94 1.07) translate(-128 -244)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="slimelet-body">
+      <path d="M44 230 Q44 96 128 94 Q212 96 212 230 Q212 244 196 244 L60 244 Q44 244 44 230 Z" fill="#9BE564" stroke="none"/>
+      <g clip-path="url(#slimelet-clip)" stroke="none">
+        <path id="slimelet-shade" d="M220 90 Q191.8 144.4 195.2 232 Q188.5 242 161.6 248 L220 250 Z" fill="#78C443"/>
+        <ellipse id="slimelet-belly" cx="131.4" cy="222.2" rx="57.1" ry="18.5" fill="#BDF08F"/>
+      </g>
+      <path id="slimelet-highlight" d="M65.8 169 Q72.6 137.7 104.5 112.5" fill="none" stroke="#D2F6B0" stroke-width="11.2"/>
+      <path d="M44 230 Q44 96 128 94 Q212 96 212 230 Q212 244 196 244 L60 244 Q44 244 44 230 Z" fill="none" stroke-width="10"/>
+    </g>
+    <g id="slimelet-face">
+      <ellipse cx="138.1" cy="161.5" rx="31.9" ry="37" fill="#FFFFFF" stroke-width="6.2"/>
+      <circle cx="146.5" cy="168.2" r="16.8" fill="#2A1E3D" stroke="none"/>
+      <circle cx="153.2" cy="159.8" r="6.4" fill="#FFFFFF" stroke="none"/>
+      <path d="M112.9 211.9 Q138.1 232.1 165 206.9" fill="none" stroke-width="6.9"/>
+    </g>
+  </g>
+</g>
+</svg>

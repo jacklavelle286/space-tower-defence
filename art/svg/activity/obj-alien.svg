@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- obj-alien: Counting alien. The Moon Blob (alien-blob-walk frame 01 construction) facing the viewer, sitting still,
+       no lean, symmetric antennae and face. Single frame. Anchor centre (128,128): the whole blob is shifted up 40 px
+       so it sits centred on the canvas. Light from the top-left. See art/STYLE.md. -->
+  <defs>
+    <clipPath id="blob-clip"><path d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z"/></clipPath>
+  </defs>
+  <g id="blob" transform="translate(0 -40)"
+     stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="antennae" stroke-width="7">
+      <g id="antenna-back">
+        <path d="M100 130 Q92 110 84 98" fill="none"/>
+        <circle cx="81" cy="92" r="11" fill="#9FF3FF" stroke-width="6"/>
+        <circle cx="77" cy="88" r="3" fill="#FFFFFF" stroke="none"/>
+      </g>
+      <g id="antenna-front">
+        <path d="M156 130 Q164 110 172 98" fill="none"/>
+        <circle cx="175" cy="92" r="11" fill="#9FF3FF" stroke-width="6"/>
+        <circle cx="171" cy="88" r="3" fill="#FFFFFF" stroke="none"/>
+      </g>
+    </g>
+    <g id="body">
+      <path id="dome" d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z" fill="#5AA9F0" stroke="none"/>
+      <g clip-path="url(#blob-clip)" stroke="none">
+        <path id="dome-shade" d="M236 120 Q206 150 212 236 Q208 246 186 252 L240 256 Z" fill="#3F86CF"/>
+        <ellipse id="belly" cx="128" cy="228" rx="62" ry="22" fill="#8CC7F6"/>
+      </g>
+      <path id="dome-highlight" d="M58 172 Q70 144 104 136" fill="none" stroke="#BFE3FF" stroke-width="10"/>
+      <circle cx="52" cy="190" r="4" fill="#BFE3FF" stroke="none"/>
+      <g id="crater-spots" fill="#8CC7F6" stroke-width="3">
+        <ellipse cx="66" cy="208" rx="9" ry="7"/>
+        <ellipse cx="196" cy="160" rx="7" ry="5.5"/>
+      </g>
+      <path id="dome-outline" d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z" fill="none" stroke-width="8"/>
+    </g>
+    <g id="face">
+      <g id="eyes">
+        <ellipse cx="105" cy="176" rx="17" ry="20" fill="#FFFFFF" stroke-width="5"/>
+        <ellipse cx="151" cy="176" rx="17" ry="20" fill="#FFFFFF" stroke-width="5"/>
+        <g stroke="none">
+          <circle cx="106" cy="181" r="9" fill="#2A1E3D"/>
+          <circle cx="150" cy="181" r="9" fill="#2A1E3D"/>
+          <circle cx="109" cy="177" r="3.5" fill="#FFFFFF"/>
+          <circle cx="153" cy="177" r="3.5" fill="#FFFFFF"/>
+        </g>
+      </g>
+      <g id="mouth" fill="none" stroke-width="6">
+        <path d="M110 208 Q128 222 146 208"/>
+      </g>
+    </g>
+  </g>
+</svg>

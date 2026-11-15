@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- icon-health: HUD health: a plump red heart. Single frame. Anchor centre (32,32).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="health" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+  <clipPath id="heart-clip"><path d="M32 55 C21 47 7 38 7 23 C7 14 14 9 21 9 C26 9 30 12 32 16 C34 12 38 9 43 9 C50 9 57 14 57 23 C57 38 43 47 32 55 Z"/></clipPath>
+  <g id="heart-fill" clip-path="url(#heart-clip)" stroke="none">
+    <path d="M32 55 C21 47 7 38 7 23 C7 14 14 9 21 9 C26 9 30 12 32 16 C34 12 38 9 43 9 C50 9 57 14 57 23 C57 38 43 47 32 55 Z" fill="#B52D28"/>
+    <path d="M32 55 C21 47 7 38 7 23 C7 14 14 9 21 9 C26 9 30 12 32 16 C34 12 38 9 43 9 C50 9 57 14 57 23 C57 38 43 47 32 55 Z" fill="#E2403A" transform="translate(-4 -4)"/>
+  </g>
+  <path id="heart-highlight" d="M13 24 Q13 16 20 15" fill="none" stroke="#FFFFFF" stroke-width="3" opacity="0.85"/>
+  <path id="heart-outline" d="M32 55 C21 47 7 38 7 23 C7 14 14 9 21 9 C26 9 30 12 32 16 C34 12 38 9 43 9 C50 9 57 14 57 23 C57 38 43 47 32 55 Z" fill="none"/>
+  <circle cx="21" cy="31" r="1.8" fill="#F28480" stroke="none"/>
+</g>
+</svg>

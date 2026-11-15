@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- badge-boss-2-outline: Clank Cracker: a rounded grey armour plate with bolts and a glowing gold zigzag crack. outline (not yet earned: 15% white fill, thin grey #A7B0C8 lines). Single frame. Anchor centre (128,128).
+       Medal: gold rim, cream ring, night-blue disc, ribbon tab at the bottom. Light from the top-left. See art/STYLE.md. -->
+
+<g id="badge-boss-2-outline" stroke-linejoin="round" stroke-linecap="round">
+  <g id="silhouette" fill="#FFFFFF" opacity="0.15" stroke="none">
+    <path d="M98 176 L130 186 L114 245 L99 233 L80 240 Z"/><path d="M158 176 L126 186 L142 245 L157 233 L176 240 Z"/>
+    <circle cx="128" cy="114" r="96"/>
+  </g>
+  <mask id="badge-boss-2-outline-lines" maskUnits="userSpaceOnUse" x="0" y="0" width="256" height="256">
+    <rect x="0" y="0" width="256" height="256" fill="#000"/>
+    <g id="outline-lines" fill="#000" stroke="#FFF" stroke-width="5">
+      <path d="M158 176 L126 186 L142 245 L157 233 L176 240 Z"/><path d="M98 176 L130 186 L114 245 L99 233 L80 240 Z"/>
+      <circle cx="128" cy="114" r="96"/>
+      <circle cx="128" cy="114" r="70" fill="none" stroke-width="3"/>
+      <g id="motif" transform="translate(128 114)" stroke-width="4">
+        <g id="armour-plate" transform="rotate(-8)">
+          <rect x="-46" y="-42" width="92" height="84" rx="24" fill="#000" stroke="#FFF" stroke-width="4" />
+          <path d="M-22 -38 L-8 -16 L-20 -2 L2 14 L-8 26 L6 40" fill="none" stroke="#FFF" stroke-width="9" />
+          <path d="M-22 -38 L-8 -16 L-20 -2 L2 14 L-8 26 L6 40" fill="none" stroke="#000" stroke-width="1.8" />
+          <circle cx="-30" cy="-26" r="6.5" fill="#000" stroke="#FFF" stroke-width="3.5" />
+          <circle cx="30" cy="-26" r="6.5" fill="#000" stroke="#FFF" stroke-width="3.5" />
+          <circle cx="-30" cy="26" r="6.5" fill="#000" stroke="#FFF" stroke-width="3.5" />
+          <circle cx="30" cy="26" r="6.5" fill="#000" stroke="#FFF" stroke-width="3.5" />
+        </g>
+        <path d="M0 -10 Q2.8 -2.8 10 0 Q2.8 2.8 0 10 Q-2.8 2.8 -10 0 Q-2.8 -2.8 0 -10 Z" transform="translate(-34 -50)" fill="#FFF" stroke="none" />
+        <path d="M0 -8 Q2.2 -2.2 8 0 Q2.2 2.2 0 8 Q-2.2 2.2 -8 0 Q-2.2 -2.2 0 -8 Z" transform="translate(30 52)" fill="#FFF" stroke="none" />
+      </g>
+    </g>
+  </mask>
+  <rect x="0" y="0" width="256" height="256" fill="#A7B0C8" mask="url(#badge-boss-2-outline-lines)"/>
+</g>
+</svg>

@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- icon-cap-token-used: Shop cap token, used: the same token and helmet as a hollow outline only. Single frame. Anchor centre (32,32).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g id="cap-token-used" stroke="#2A1E3D" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+  <g id="token" fill="none">
+    <path d="M32 5 A27 27 0 1 1 31.9 5 Z" fill="#FFFFFF" fill-opacity="0.15" stroke="#2A1E3D" stroke-width="6"/>
+    <path d="M32 5 A27 27 0 1 1 31.9 5 Z" stroke="#A7B0C8" stroke-width="2.2"/>
+  </g>
+  <g id="collar" fill="none">
+    <path d="M20 46 A12 4.5 0 1 1 44 46 A12 4.5 0 1 1 20 46 Z" fill="#FFFFFF" fill-opacity="0.15" stroke="#2A1E3D" stroke-width="5"/>
+    <path d="M20 46 A12 4.5 0 1 1 44 46 A12 4.5 0 1 1 20 46 Z" stroke="#A7B0C8" stroke-width="1.8"/>
+  </g>
+  <g id="shell" fill="none">
+    <path d="M32 14 A15 15 0 1 1 31.9 14 Z" fill="#FFFFFF" fill-opacity="0.15" stroke="#2A1E3D" stroke-width="5"/>
+    <path d="M32 14 A15 15 0 1 1 31.9 14 Z" stroke="#A7B0C8" stroke-width="1.8"/>
+  </g>
+  <g id="visor" fill="none">
+    <path d="M20 29 Q20 22 32 22 Q44 22 44 29 Q44 37 32 37 Q20 37 20 29 Z" fill="#FFFFFF" fill-opacity="0.15" stroke="#2A1E3D" stroke-width="5"/>
+    <path d="M20 29 Q20 22 32 22 Q44 22 44 29 Q44 37 32 37 Q20 37 20 29 Z" stroke="#A7B0C8" stroke-width="1.8"/>
+  </g>
+</g>
+</svg>

@@ -1,0 +1,310 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+<!-- Challenge card: Bubble Trouble, a tumbling cluster of swarm bubbles round a Bubble Guard. Anchor centre.
+     Built from the in-game sprites (inlined, ids prefixed). Light from the top-left. See art/STYLE.md. -->
+<g id="s42-alien-swarm-bob-01" transform="translate(44 80) rotate(-24) scale(-1.05901 1.05901) translate(-32 -38)"><defs><clipPath id="s42-swarm-clip"><circle cx="32" cy="38" r="19" /></clipPath></defs>
+  <g id="s42-swarm" transform="translate(32 57) scale(1.08 0.92) translate(-32 -57)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="s42-body">
+      <circle id="s42-bubble" cx="32" cy="38" r="19" fill="#9FF3FF" stroke="none" />
+      <g clip-path="url(#s42-swarm-clip)" stroke="none">
+        <path id="s42-bubble-shade" d="M56 22 Q46 34 48 46 Q44 56 30 60 L58 62 Z" fill="#74D3E2" />
+      </g>
+      <path id="s42-bubble-sheen" d="M42 51 Q47 48 48 43" fill="none" stroke="#FFFFFF" stroke-width="1.8" opacity="0.9" />
+      <path id="s42-bubble-highlight" d="M19 37 Q19 27 28 23" fill="none" stroke="#FFFFFF" stroke-width="3.2" />
+      <circle cx="19.5" cy="42" r="1.4" fill="#FFFFFF" stroke="none" />
+      <circle id="s42-bubble-outline" cx="32" cy="38" r="19" fill="none" stroke-width="3.5" />
+    </g>
+    <g id="s42-face" stroke="none">
+      <ellipse cx="34" cy="37" rx="2.7" ry="3.2" fill="#2A1E3D" />
+      <ellipse cx="44" cy="36" rx="2.5" ry="3" fill="#2A1E3D" />
+      <circle cx="34.9" cy="35.8" r="1" fill="#FFFFFF" /><circle cx="44.8" cy="34.8" r="0.9" fill="#FFFFFF" />
+      <path id="s42-mouth" d="M35 43.5 Q39.5 47.5 44.5 43" fill="none" stroke="#2A1E3D" stroke-width="2.4" />
+    </g>
+  </g>
+</g>
+<g id="s43-alien-swarm-bob-02" transform="translate(88 42) scale(1.1803 1.1803) translate(-32 -38)"><defs><clipPath id="s43-swarm-clip"><circle cx="32" cy="38" r="19" /></clipPath></defs>
+  <g id="s43-swarm" transform="translate(32 57) translate(0 -1.5) scale(0.97 1.04) translate(-32 -57)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="s43-body">
+      <circle id="s43-bubble" cx="32" cy="38" r="19" fill="#9FF3FF" stroke="none" />
+      <g clip-path="url(#s43-swarm-clip)" stroke="none">
+        <path id="s43-bubble-shade" d="M56 22 Q46 34 48 46 Q44 56 30 60 L58 62 Z" fill="#74D3E2" />
+      </g>
+      <path id="s43-bubble-sheen" d="M42 51 Q47 48 48 43" fill="none" stroke="#FFFFFF" stroke-width="1.8" opacity="0.9" />
+      <path id="s43-bubble-highlight" d="M19 37 Q19 27 28 23" fill="none" stroke="#FFFFFF" stroke-width="3.2" />
+      <circle cx="19.5" cy="42" r="1.4" fill="#FFFFFF" stroke="none" />
+      <circle id="s43-bubble-outline" cx="32" cy="38" r="19" fill="none" stroke-width="3.5" />
+    </g>
+    <g id="s43-face" stroke="none">
+      <ellipse cx="34" cy="37" rx="2.7" ry="3.2" fill="#2A1E3D" />
+      <ellipse cx="44" cy="36" rx="2.5" ry="3" fill="#2A1E3D" />
+      <circle cx="34.9" cy="35.8" r="1" fill="#FFFFFF" /><circle cx="44.8" cy="34.8" r="0.9" fill="#FFFFFF" />
+      <path id="s43-mouth" d="M35 43.5 Q39.5 47.5 44.5 43" fill="none" stroke="#2A1E3D" stroke-width="2.4" />
+    </g>
+  </g>
+</g>
+<g id="s44-alien-swarm-bob-03" transform="translate(146 32) rotate(-26) scale(1.03874 1.03874) translate(-32 -38)"><defs><clipPath id="s44-swarm-clip"><circle cx="32" cy="38" r="19" /></clipPath></defs>
+  <g id="s44-swarm" transform="translate(32 57) translate(0 -3) scale(0.94 1.07) translate(-32 -57)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="s44-body">
+      <circle id="s44-bubble" cx="32" cy="38" r="19" fill="#9FF3FF" stroke="none" />
+      <g clip-path="url(#s44-swarm-clip)" stroke="none">
+        <path id="s44-bubble-shade" d="M56 22 Q46 34 48 46 Q44 56 30 60 L58 62 Z" fill="#74D3E2" />
+      </g>
+      <path id="s44-bubble-sheen" d="M42 51 Q47 48 48 43" fill="none" stroke="#FFFFFF" stroke-width="1.8" opacity="0.9" />
+      <path id="s44-bubble-highlight" d="M19 37 Q19 27 28 23" fill="none" stroke="#FFFFFF" stroke-width="3.2" />
+      <circle cx="19.5" cy="42" r="1.4" fill="#FFFFFF" stroke="none" />
+      <circle id="s44-bubble-outline" cx="32" cy="38" r="19" fill="none" stroke-width="3.5" />
+    </g>
+    <g id="s44-face" stroke="none">
+      <ellipse cx="34" cy="37" rx="2.7" ry="3.2" fill="#2A1E3D" />
+      <ellipse cx="44" cy="36" rx="2.5" ry="3" fill="#2A1E3D" />
+      <circle cx="34.9" cy="35.8" r="1" fill="#FFFFFF" /><circle cx="44.8" cy="34.8" r="0.9" fill="#FFFFFF" />
+      <path id="s44-mouth" d="M35 43.5 Q39.5 47.5 44.5 43" fill="none" stroke="#2A1E3D" stroke-width="2.4" />
+    </g>
+  </g>
+</g>
+<g id="s45-alien-swarm-bob-04" transform="translate(204 64) rotate(5) scale(-1.00495 1.00495) translate(-32 -38)"><defs><clipPath id="s45-swarm-clip"><circle cx="32" cy="38" r="19" /></clipPath></defs>
+  <g id="s45-swarm" transform="translate(32 57) translate(0 -1.5) scale(1 1) translate(-32 -57)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="s45-body">
+      <circle id="s45-bubble" cx="32" cy="38" r="19" fill="#9FF3FF" stroke="none" />
+      <g clip-path="url(#s45-swarm-clip)" stroke="none">
+        <path id="s45-bubble-shade" d="M56 22 Q46 34 48 46 Q44 56 30 60 L58 62 Z" fill="#74D3E2" />
+      </g>
+      <path id="s45-bubble-sheen" d="M42 51 Q47 48 48 43" fill="none" stroke="#FFFFFF" stroke-width="1.8" opacity="0.9" />
+      <path id="s45-bubble-highlight" d="M19 37 Q19 27 28 23" fill="none" stroke="#FFFFFF" stroke-width="3.2" />
+      <circle cx="19.5" cy="42" r="1.4" fill="#FFFFFF" stroke="none" />
+      <circle id="s45-bubble-outline" cx="32" cy="38" r="19" fill="none" stroke-width="3.5" />
+    </g>
+    <g id="s45-face" stroke="none">
+      <ellipse cx="34" cy="37" rx="2.7" ry="3.2" fill="#2A1E3D" />
+      <ellipse cx="44" cy="36" rx="2.5" ry="3" fill="#2A1E3D" />
+      <circle cx="34.9" cy="35.8" r="1" fill="#FFFFFF" /><circle cx="44.8" cy="34.8" r="0.9" fill="#FFFFFF" />
+      <path id="s45-mouth" d="M35 43.5 Q39.5 47.5 44.5 43" fill="none" stroke="#2A1E3D" stroke-width="2.4" />
+    </g>
+  </g>
+</g>
+<g id="s46-alien-swarm-bob-01" transform="translate(222 128) rotate(21) scale(1.22949 1.22949) translate(-32 -38)"><defs><clipPath id="s46-swarm-clip"><circle cx="32" cy="38" r="19" /></clipPath></defs>
+  <g id="s46-swarm" transform="translate(32 57) scale(1.08 0.92) translate(-32 -57)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="s46-body">
+      <circle id="s46-bubble" cx="32" cy="38" r="19" fill="#9FF3FF" stroke="none" />
+      <g clip-path="url(#s46-swarm-clip)" stroke="none">
+        <path id="s46-bubble-shade" d="M56 22 Q46 34 48 46 Q44 56 30 60 L58 62 Z" fill="#74D3E2" />
+      </g>
+      <path id="s46-bubble-sheen" d="M42 51 Q47 48 48 43" fill="none" stroke="#FFFFFF" stroke-width="1.8" opacity="0.9" />
+      <path id="s46-bubble-highlight" d="M19 37 Q19 27 28 23" fill="none" stroke="#FFFFFF" stroke-width="3.2" />
+      <circle cx="19.5" cy="42" r="1.4" fill="#FFFFFF" stroke="none" />
+      <circle id="s46-bubble-outline" cx="32" cy="38" r="19" fill="none" stroke-width="3.5" />
+    </g>
+    <g id="s46-face" stroke="none">
+      <ellipse cx="34" cy="37" rx="2.7" ry="3.2" fill="#2A1E3D" />
+      <ellipse cx="44" cy="36" rx="2.5" ry="3" fill="#2A1E3D" />
+      <circle cx="34.9" cy="35.8" r="1" fill="#FFFFFF" /><circle cx="44.8" cy="34.8" r="0.9" fill="#FFFFFF" />
+      <path id="s46-mouth" d="M35 43.5 Q39.5 47.5 44.5 43" fill="none" stroke="#2A1E3D" stroke-width="2.4" />
+    </g>
+  </g>
+</g>
+<g id="s47-alien-swarm-bob-02" transform="translate(212 192) rotate(-27) scale(1.24751 1.24751) translate(-32 -38)"><defs><clipPath id="s47-swarm-clip"><circle cx="32" cy="38" r="19" /></clipPath></defs>
+  <g id="s47-swarm" transform="translate(32 57) translate(0 -1.5) scale(0.97 1.04) translate(-32 -57)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="s47-body">
+      <circle id="s47-bubble" cx="32" cy="38" r="19" fill="#9FF3FF" stroke="none" />
+      <g clip-path="url(#s47-swarm-clip)" stroke="none">
+        <path id="s47-bubble-shade" d="M56 22 Q46 34 48 46 Q44 56 30 60 L58 62 Z" fill="#74D3E2" />
+      </g>
+      <path id="s47-bubble-sheen" d="M42 51 Q47 48 48 43" fill="none" stroke="#FFFFFF" stroke-width="1.8" opacity="0.9" />
+      <path id="s47-bubble-highlight" d="M19 37 Q19 27 28 23" fill="none" stroke="#FFFFFF" stroke-width="3.2" />
+      <circle cx="19.5" cy="42" r="1.4" fill="#FFFFFF" stroke="none" />
+      <circle id="s47-bubble-outline" cx="32" cy="38" r="19" fill="none" stroke-width="3.5" />
+    </g>
+    <g id="s47-face" stroke="none">
+      <ellipse cx="34" cy="37" rx="2.7" ry="3.2" fill="#2A1E3D" />
+      <ellipse cx="44" cy="36" rx="2.5" ry="3" fill="#2A1E3D" />
+      <circle cx="34.9" cy="35.8" r="1" fill="#FFFFFF" /><circle cx="44.8" cy="34.8" r="0.9" fill="#FFFFFF" />
+      <path id="s47-mouth" d="M35 43.5 Q39.5 47.5 44.5 43" fill="none" stroke="#2A1E3D" stroke-width="2.4" />
+    </g>
+  </g>
+</g>
+<g id="s48-alien-swarm-bob-03" transform="translate(36 140) rotate(4) scale(-1.05548 1.05548) translate(-32 -38)"><defs><clipPath id="s48-swarm-clip"><circle cx="32" cy="38" r="19" /></clipPath></defs>
+  <g id="s48-swarm" transform="translate(32 57) translate(0 -3) scale(0.94 1.07) translate(-32 -57)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="s48-body">
+      <circle id="s48-bubble" cx="32" cy="38" r="19" fill="#9FF3FF" stroke="none" />
+      <g clip-path="url(#s48-swarm-clip)" stroke="none">
+        <path id="s48-bubble-shade" d="M56 22 Q46 34 48 46 Q44 56 30 60 L58 62 Z" fill="#74D3E2" />
+      </g>
+      <path id="s48-bubble-sheen" d="M42 51 Q47 48 48 43" fill="none" stroke="#FFFFFF" stroke-width="1.8" opacity="0.9" />
+      <path id="s48-bubble-highlight" d="M19 37 Q19 27 28 23" fill="none" stroke="#FFFFFF" stroke-width="3.2" />
+      <circle cx="19.5" cy="42" r="1.4" fill="#FFFFFF" stroke="none" />
+      <circle id="s48-bubble-outline" cx="32" cy="38" r="19" fill="none" stroke-width="3.5" />
+    </g>
+    <g id="s48-face" stroke="none">
+      <ellipse cx="34" cy="37" rx="2.7" ry="3.2" fill="#2A1E3D" />
+      <ellipse cx="44" cy="36" rx="2.5" ry="3" fill="#2A1E3D" />
+      <circle cx="34.9" cy="35.8" r="1" fill="#FFFFFF" /><circle cx="44.8" cy="34.8" r="0.9" fill="#FFFFFF" />
+      <path id="s48-mouth" d="M35 43.5 Q39.5 47.5 44.5 43" fill="none" stroke="#2A1E3D" stroke-width="2.4" />
+    </g>
+  </g>
+</g>
+<g id="s49-alien-swarm-bob-04" transform="translate(50 200) rotate(19) scale(1.09006 1.09006) translate(-32 -38)"><defs><clipPath id="s49-swarm-clip"><circle cx="32" cy="38" r="19" /></clipPath></defs>
+  <g id="s49-swarm" transform="translate(32 57) translate(0 -1.5) scale(1 1) translate(-32 -57)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="s49-body">
+      <circle id="s49-bubble" cx="32" cy="38" r="19" fill="#9FF3FF" stroke="none" />
+      <g clip-path="url(#s49-swarm-clip)" stroke="none">
+        <path id="s49-bubble-shade" d="M56 22 Q46 34 48 46 Q44 56 30 60 L58 62 Z" fill="#74D3E2" />
+      </g>
+      <path id="s49-bubble-sheen" d="M42 51 Q47 48 48 43" fill="none" stroke="#FFFFFF" stroke-width="1.8" opacity="0.9" />
+      <path id="s49-bubble-highlight" d="M19 37 Q19 27 28 23" fill="none" stroke="#FFFFFF" stroke-width="3.2" />
+      <circle cx="19.5" cy="42" r="1.4" fill="#FFFFFF" stroke="none" />
+      <circle id="s49-bubble-outline" cx="32" cy="38" r="19" fill="none" stroke-width="3.5" />
+    </g>
+    <g id="s49-face" stroke="none">
+      <ellipse cx="34" cy="37" rx="2.7" ry="3.2" fill="#2A1E3D" />
+      <ellipse cx="44" cy="36" rx="2.5" ry="3" fill="#2A1E3D" />
+      <circle cx="34.9" cy="35.8" r="1" fill="#FFFFFF" /><circle cx="44.8" cy="34.8" r="0.9" fill="#FFFFFF" />
+      <path id="s49-mouth" d="M35 43.5 Q39.5 47.5 44.5 43" fill="none" stroke="#2A1E3D" stroke-width="2.4" />
+    </g>
+  </g>
+</g>
+<g id="s50-alien-swarm-bob-01" transform="translate(232 60) rotate(-24) scale(1.04317 1.04317) translate(-32 -38)"><defs><clipPath id="s50-swarm-clip"><circle cx="32" cy="38" r="19" /></clipPath></defs>
+  <g id="s50-swarm" transform="translate(32 57) scale(1.08 0.92) translate(-32 -57)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="s50-body">
+      <circle id="s50-bubble" cx="32" cy="38" r="19" fill="#9FF3FF" stroke="none" />
+      <g clip-path="url(#s50-swarm-clip)" stroke="none">
+        <path id="s50-bubble-shade" d="M56 22 Q46 34 48 46 Q44 56 30 60 L58 62 Z" fill="#74D3E2" />
+      </g>
+      <path id="s50-bubble-sheen" d="M42 51 Q47 48 48 43" fill="none" stroke="#FFFFFF" stroke-width="1.8" opacity="0.9" />
+      <path id="s50-bubble-highlight" d="M19 37 Q19 27 28 23" fill="none" stroke="#FFFFFF" stroke-width="3.2" />
+      <circle cx="19.5" cy="42" r="1.4" fill="#FFFFFF" stroke="none" />
+      <circle id="s50-bubble-outline" cx="32" cy="38" r="19" fill="none" stroke-width="3.5" />
+    </g>
+    <g id="s50-face" stroke="none">
+      <ellipse cx="34" cy="37" rx="2.7" ry="3.2" fill="#2A1E3D" />
+      <ellipse cx="44" cy="36" rx="2.5" ry="3" fill="#2A1E3D" />
+      <circle cx="34.9" cy="35.8" r="1" fill="#FFFFFF" /><circle cx="44.8" cy="34.8" r="0.9" fill="#FFFFFF" />
+      <path id="s50-mouth" d="M35 43.5 Q39.5 47.5 44.5 43" fill="none" stroke="#2A1E3D" stroke-width="2.4" />
+    </g>
+  </g>
+</g>
+<g id="s51-alien-swarm-bob-02" transform="translate(22 96) rotate(30) scale(-1.06543 1.06543) translate(-32 -38)"><defs><clipPath id="s51-swarm-clip"><circle cx="32" cy="38" r="19" /></clipPath></defs>
+  <g id="s51-swarm" transform="translate(32 57) translate(0 -1.5) scale(0.97 1.04) translate(-32 -57)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="s51-body">
+      <circle id="s51-bubble" cx="32" cy="38" r="19" fill="#9FF3FF" stroke="none" />
+      <g clip-path="url(#s51-swarm-clip)" stroke="none">
+        <path id="s51-bubble-shade" d="M56 22 Q46 34 48 46 Q44 56 30 60 L58 62 Z" fill="#74D3E2" />
+      </g>
+      <path id="s51-bubble-sheen" d="M42 51 Q47 48 48 43" fill="none" stroke="#FFFFFF" stroke-width="1.8" opacity="0.9" />
+      <path id="s51-bubble-highlight" d="M19 37 Q19 27 28 23" fill="none" stroke="#FFFFFF" stroke-width="3.2" />
+      <circle cx="19.5" cy="42" r="1.4" fill="#FFFFFF" stroke="none" />
+      <circle id="s51-bubble-outline" cx="32" cy="38" r="19" fill="none" stroke-width="3.5" />
+    </g>
+    <g id="s51-face" stroke="none">
+      <ellipse cx="34" cy="37" rx="2.7" ry="3.2" fill="#2A1E3D" />
+      <ellipse cx="44" cy="36" rx="2.5" ry="3" fill="#2A1E3D" />
+      <circle cx="34.9" cy="35.8" r="1" fill="#FFFFFF" /><circle cx="44.8" cy="34.8" r="0.9" fill="#FFFFFF" />
+      <path id="s51-mouth" d="M35 43.5 Q39.5 47.5 44.5 43" fill="none" stroke="#2A1E3D" stroke-width="2.4" />
+    </g>
+  </g>
+</g>
+<g id="s52-alien-guard-walk-01" transform="translate(128 226) scale(0.92 0.92) translate(-128 -256)"><defs><clipPath id="s52-guard-clip"><path d="M82 200 Q80 152 126 150 Q174 150 176 196 Q178 238 128 240 Q82 240 82 200 Z" /></clipPath></defs>
+  <g id="s52-guard" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round" stroke-width="7">
+    <g id="s52-limbs">
+      <g id="s52-leg-back" transform="translate(0 0) rotate(0 108 226)"><path d="M96 222 L96 238 Q96 250 108 250 L116 250 Q128 250 126 240 Q122 232 118 230 L118 222 Z" fill="#E8936A" /></g>
+      <g id="s52-leg-front" transform="translate(0 -8) rotate(-6 144 226)"><path d="M132 222 L132 238 Q132 250 144 250 L152 250 Q164 250 162 240 Q158 232 154 230 L154 222 Z" fill="#FFB38A" /></g>
+    </g>
+    <g id="s52-body-all" transform="translate(128 250) skewX(-8) scale(1 1.04) translate(-128 -250)">
+      <g id="s52-arm-back" transform="rotate(24 88 212)"><path d="M88 212 Q74 220 72 232" fill="none" stroke="#2A1E3D" stroke-width="22" /><path d="M88 212 Q74 220 72 232" fill="none" stroke="#E8936A" stroke-width="8" /></g>
+      <g id="s52-antennae">
+        <g id="s52-wand" transform="rotate(6 132 152)">
+          <path d="M132 152 Q134 130 142 116" fill="none" />
+          <circle id="s52-wand-film" cx="146" cy="102" r="14" fill="#9FF3FF" fill-opacity="0.8" stroke="none" />
+          <circle cx="146" cy="102" r="14" fill="none" stroke="#2A1E3D" stroke-width="13" />
+          <circle id="s52-wand-ring" cx="146" cy="102" r="14" fill="none" stroke="#E05FD0" stroke-width="5" />
+          <path d="M139 97 Q141 92 146 91" fill="none" stroke="#FFFFFF" stroke-width="3" />
+        </g>
+      </g>
+      <g id="s52-body">
+        <path id="s52-ball" d="M82 200 Q80 152 126 150 Q174 150 176 196 Q178 238 128 240 Q82 240 82 200 Z" fill="#FFB38A" stroke="none" />
+        <g clip-path="url(#s52-guard-clip)" stroke="none">
+          <path id="s52-ball-shade" d="M186 160 Q168 190 170 214 Q160 238 126 246 L190 248 Z" fill="#E8936A" />
+          <ellipse id="s52-belly" cx="138" cy="226" rx="30" ry="16" fill="#FFD3B8" />
+        </g>
+        <path id="s52-ball-highlight" d="M94 194 Q96 170 116 160" fill="none" stroke="#FFD9C4" stroke-width="8" />
+        <circle cx="92" cy="208" r="3.5" fill="#FFD9C4" stroke="none" />
+        <path id="s52-ball-outline" d="M82 200 Q80 152 126 150 Q174 150 176 196 Q178 238 128 240 Q82 240 82 200 Z" fill="none" />
+      </g>
+      <g id="s52-face" transform="translate(2 -1)">
+        <g id="s52-eyes">
+          <ellipse cx="122" cy="186" rx="12" ry="14" fill="#FFFFFF" stroke-width="4.5" />
+          <ellipse cx="154" cy="184" rx="11" ry="13" fill="#FFFFFF" stroke-width="4.5" />
+          <g stroke="none">
+            <circle cx="125.5" cy="188" r="6.5" fill="#2A1E3D" /><circle cx="157" cy="186" r="6" fill="#2A1E3D" />
+            <circle cx="127.5" cy="184.5" r="2.6" fill="#FFFFFF" /><circle cx="159" cy="182.5" r="2.4" fill="#FFFFFF" />
+          </g>
+        </g>
+        <g stroke="none" fill="#F48A9A" opacity="0.7">
+          <ellipse cx="110" cy="204" rx="6" ry="3.8" /><ellipse cx="166" cy="201" rx="5" ry="3.4" />
+        </g>
+        <g id="s52-mouth" fill="none" stroke-width="5">
+          <path d="M128 205 Q141 215 156 202" />
+        </g>
+      </g>
+      <g id="s52-arm-front" transform="rotate(-24 172 216)"><path d="M172 216 Q186 222 188 232" fill="none" stroke="#2A1E3D" stroke-width="22" /><path d="M172 216 Q186 222 188 232" fill="none" stroke="#FFB38A" stroke-width="8" /></g>
+    </g>
+  </g>
+</g>
+<g id="s53-alien-guard-layers-2" transform="translate(128 152) scale(0.62 0.62) translate(-128 -128)"><g id="s53-bubble-layers" stroke-linecap="round">
+    <g id="s53-ring-1">
+      <path d="M8 128 A120 120 0 1 1 248 128 A120 120 0 1 1 8 128 Z M26 128 A102 102 0 1 1 230 128 A102 102 0 1 1 26 128 Z" fill="#9FF3FF" fill-opacity="0.4" fill-rule="evenodd" stroke="none" />
+      <circle cx="128" cy="128" r="120" fill="none" stroke="#2A1E3D" stroke-opacity="0.5" stroke-width="4" />
+      <circle cx="128" cy="128" r="102" fill="none" stroke="#2A1E3D" stroke-opacity="0.5" stroke-width="3" />
+      <path d="M21.3 97.4 A111 111 0 0 1 53.7 45.5" fill="none" stroke="#FFFFFF" stroke-width="8.1" stroke-linecap="round" opacity="0.9" />
+      <circle cx="69.2" cy="33.9" r="4" fill="#FFFFFF" opacity="0.9" />
+      <path d="M232.3 166 A111 111 0 0 1 180.1 226" fill="none" stroke="#FFFFFF" stroke-width="5.4" stroke-linecap="round" opacity="0.55" />
+    </g>
+    <g id="s53-ring-2">
+      <path d="M34 128 A94 94 0 1 1 222 128 A94 94 0 1 1 34 128 Z M50 128 A78 78 0 1 1 206 128 A78 78 0 1 1 50 128 Z" fill="#9FF3FF" fill-opacity="0.4" fill-rule="evenodd" stroke="none" />
+      <circle cx="128" cy="128" r="94" fill="none" stroke="#2A1E3D" stroke-opacity="0.5" stroke-width="4" />
+      <circle cx="128" cy="128" r="78" fill="none" stroke="#2A1E3D" stroke-opacity="0.5" stroke-width="3" />
+      <path d="M45.3 104.3 A86 86 0 0 1 70.5 64.1" fill="none" stroke="#FFFFFF" stroke-width="7.2" stroke-linecap="round" opacity="0.9" />
+      <circle cx="82.4" cy="55.1" r="3.5" fill="#FFFFFF" opacity="0.9" />
+      <path d="M208.8 157.4 A86 86 0 0 1 168.4 203.9" fill="none" stroke="#FFFFFF" stroke-width="4.8" stroke-linecap="round" opacity="0.55" />
+    </g>
+  </g>
+</g>
+<g id="s54-alien-swarm-bob-02" transform="translate(92 236) rotate(-19) scale(0.95 0.95) translate(-32 -38)"><defs><clipPath id="s54-swarm-clip"><circle cx="32" cy="38" r="19" /></clipPath></defs>
+  <g id="s54-swarm" transform="translate(32 57) translate(0 -1.5) scale(0.97 1.04) translate(-32 -57)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="s54-body">
+      <circle id="s54-bubble" cx="32" cy="38" r="19" fill="#9FF3FF" stroke="none" />
+      <g clip-path="url(#s54-swarm-clip)" stroke="none">
+        <path id="s54-bubble-shade" d="M56 22 Q46 34 48 46 Q44 56 30 60 L58 62 Z" fill="#74D3E2" />
+      </g>
+      <path id="s54-bubble-sheen" d="M42 51 Q47 48 48 43" fill="none" stroke="#FFFFFF" stroke-width="1.8" opacity="0.9" />
+      <path id="s54-bubble-highlight" d="M19 37 Q19 27 28 23" fill="none" stroke="#FFFFFF" stroke-width="3.2" />
+      <circle cx="19.5" cy="42" r="1.4" fill="#FFFFFF" stroke="none" />
+      <circle id="s54-bubble-outline" cx="32" cy="38" r="19" fill="none" stroke-width="3.5" />
+    </g>
+    <g id="s54-face" stroke="none">
+      <ellipse cx="34" cy="37" rx="2.7" ry="3.2" fill="#2A1E3D" />
+      <ellipse cx="44" cy="36" rx="2.5" ry="3" fill="#2A1E3D" />
+      <circle cx="34.9" cy="35.8" r="1" fill="#FFFFFF" /><circle cx="44.8" cy="34.8" r="0.9" fill="#FFFFFF" />
+      <path id="s54-mouth" d="M35 43.5 Q39.5 47.5 44.5 43" fill="none" stroke="#2A1E3D" stroke-width="2.4" />
+    </g>
+  </g>
+</g>
+<g id="s55-alien-swarm-bob-02" transform="translate(168 236) rotate(-4) scale(0.95 0.95) translate(-32 -38)"><defs><clipPath id="s55-swarm-clip"><circle cx="32" cy="38" r="19" /></clipPath></defs>
+  <g id="s55-swarm" transform="translate(32 57) translate(0 -1.5) scale(0.97 1.04) translate(-32 -57)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="s55-body">
+      <circle id="s55-bubble" cx="32" cy="38" r="19" fill="#9FF3FF" stroke="none" />
+      <g clip-path="url(#s55-swarm-clip)" stroke="none">
+        <path id="s55-bubble-shade" d="M56 22 Q46 34 48 46 Q44 56 30 60 L58 62 Z" fill="#74D3E2" />
+      </g>
+      <path id="s55-bubble-sheen" d="M42 51 Q47 48 48 43" fill="none" stroke="#FFFFFF" stroke-width="1.8" opacity="0.9" />
+      <path id="s55-bubble-highlight" d="M19 37 Q19 27 28 23" fill="none" stroke="#FFFFFF" stroke-width="3.2" />
+      <circle cx="19.5" cy="42" r="1.4" fill="#FFFFFF" stroke="none" />
+      <circle id="s55-bubble-outline" cx="32" cy="38" r="19" fill="none" stroke-width="3.5" />
+    </g>
+    <g id="s55-face" stroke="none">
+      <ellipse cx="34" cy="37" rx="2.7" ry="3.2" fill="#2A1E3D" />
+      <ellipse cx="44" cy="36" rx="2.5" ry="3" fill="#2A1E3D" />
+      <circle cx="34.9" cy="35.8" r="1" fill="#FFFFFF" /><circle cx="44.8" cy="34.8" r="0.9" fill="#FFFFFF" />
+      <path id="s55-mouth" d="M35 43.5 Q39.5 47.5 44.5 43" fill="none" stroke="#2A1E3D" stroke-width="2.4" />
+    </g>
+  </g>
+</g>
+</svg>

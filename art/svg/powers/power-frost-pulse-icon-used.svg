@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- power-frost-pulse-icon-used: used / empty state of the power-frost-pulse-icon: desaturated, lightened, dashed outline ring. Single frame. Anchor centre (128,128).
+       Light from the top-left. See art/STYLE.md. -->
+
+<g opacity="0.85" id="frost-pulse" stroke-linejoin="round" stroke-linecap="round">
+  <g id="ripple">
+    <circle cx="128" cy="128" r="98" fill="#DCDAE2" fill-opacity="0.3" stroke="none"/>
+    <circle id="ripple-outer" cx="128" cy="128" r="114" fill="none" stroke="#929098" stroke-width="17" opacity="0.9"/>
+    <circle cx="128" cy="128" r="114" fill="none" stroke="#F0EEF6" stroke-width="5"/>
+    <circle id="ripple-inner" cx="128" cy="128" r="98" fill="none" stroke="#929098" stroke-width="15"/>
+    <circle cx="128" cy="128" r="98" fill="none" stroke="#DCDAE2" stroke-width="5"/>
+  </g>
+  <g id="snowflake">
+    <path id="flake-outline" d="M128 128 L128 38 M128 78 L105 58.7 M128 78 L151 58.7 M128 128 L205.9 83 M171.3 103 L176.5 73.5 M171.3 103 L199.5 113.3 M128 128 L205.9 173 M171.3 153 L199.5 142.7 M171.3 153 L176.5 182.5 M128 128 L128 218 M128 178 L151 197.3 M128 178 L105 197.3 M128 128 L50.1 173 M84.7 153 L79.5 182.5 M84.7 153 L56.5 142.7 M128 128 L50.1 83 M84.7 103 L56.5 113.3 M84.7 103 L79.5 73.5" fill="none" stroke="#929098" stroke-width="30"/>
+    <circle cx="128" cy="128" r="24" fill="#929098"/>
+    <path id="flake-fill" d="M128 128 L128 38 M128 78 L105 58.7 M128 78 L151 58.7 M128 128 L205.9 83 M171.3 103 L176.5 73.5 M171.3 103 L199.5 113.3 M128 128 L205.9 173 M171.3 153 L199.5 142.7 M171.3 153 L176.5 182.5 M128 128 L128 218 M128 178 L151 197.3 M128 178 L105 197.3 M128 128 L50.1 173 M84.7 153 L79.5 182.5 M84.7 153 L56.5 142.7 M128 128 L50.1 83 M84.7 103 L56.5 113.3 M84.7 103 L79.5 73.5" fill="none" stroke="#F0EEF6" stroke-width="16"/>
+    <circle id="flake-centre" cx="128" cy="128" r="17" fill="#DCDAE2"/>
+    <clipPath id="lower-right"><path d="M256 0 L0 256 H256 Z"/></clipPath>
+    <path id="flake-shade" clip-path="url(#lower-right)" d="M128 128 L128 38 M128 78 L105 58.7 M128 78 L151 58.7 M128 128 L205.9 83 M171.3 103 L176.5 73.5 M171.3 103 L199.5 113.3 M128 128 L205.9 173 M171.3 153 L199.5 142.7 M171.3 153 L176.5 182.5 M128 128 L128 218 M128 178 L151 197.3 M128 178 L105 197.3 M128 128 L50.1 173 M84.7 153 L79.5 182.5 M84.7 153 L56.5 142.7 M128 128 L50.1 83 M84.7 103 L56.5 113.3 M84.7 103 L79.5 73.5" fill="none" stroke="#DCDAE2" stroke-width="6"/>
+    <path id="flake-highlight" d="M128 104 L128 52 M104 114 L60 89" fill="none" stroke="#FBF9FF" stroke-width="5"/>
+    <circle cx="121" cy="121" r="5" fill="#FBF9FF"/>
+  </g>
+</g>
+<g id="used-ring" fill="none" stroke="#2A1E3D" stroke-width="6" stroke-linecap="round" stroke-dasharray="14 16" opacity="0.7">
+  <circle cx="128" cy="128" r="122"/>
+</g>
+</svg>

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- Nova (Laser Scout) locked silhouette: the nova-card outline as one flat night-blue #23295E shape with a 4 px
+       plum rim. Anchor centre (128,128). Nova is never locked; the file exists for consistency. See art/STYLE.md. -->
+  <g id="nova-locked" stroke-linejoin="round" stroke-linecap="round">
+    <g id="rim" fill="#2A1E3D" stroke="#2A1E3D" stroke-width="15">
+      <path d="M34 246 V214 Q34 180 76 176 H180 Q222 180 222 214 V246 Z"/>
+      <ellipse cx="128" cy="180" rx="60" ry="15"/>
+      <g transform="rotate(-35 196 232)">
+        <circle cx="232" cy="223" r="15"/>
+        <rect x="184" y="210" width="40" height="26" rx="12"/>
+        <circle cx="226" cy="223" r="11"/>
+      </g>
+      <circle cx="194" cy="234" r="13"/>
+      <ellipse cx="200" cy="222" rx="5" ry="6.5"/>
+      <circle cx="128" cy="100" r="82"/>
+    </g>
+    <g id="silhouette" fill="#23295E" stroke="#23295E" stroke-width="7">
+      <path d="M34 246 V214 Q34 180 76 176 H180 Q222 180 222 214 V246 Z"/>
+      <ellipse cx="128" cy="180" rx="60" ry="15"/>
+      <g transform="rotate(-35 196 232)">
+        <circle cx="232" cy="223" r="15"/>
+        <rect x="184" y="210" width="40" height="26" rx="12"/>
+        <circle cx="226" cy="223" r="11"/>
+      </g>
+      <circle cx="194" cy="234" r="13"/>
+      <ellipse cx="200" cy="222" rx="5" ry="6.5"/>
+      <circle cx="128" cy="100" r="82"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <!-- pic-ship: a big ship, side view: navy hull with red bottom, white decks, one orange funnel, no water, no flags or name. Single frame. Anchor centre (128,128).
+       Activity picture: text-free, one object, no background. Light from the top-left. See art/STYLE.md. -->
+<g id="ship" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round" transform="translate(0 8)">
+<g id="funnels">
+<g id="funnel">
+  <clipPath id="funnel-clip"><path d="M110 82 L116 32 H150 L148 82 Z"/></clipPath>
+  <g clip-path="url(#funnel-clip)" stroke="none">
+    <path d="M110 82 L116 32 H150 L148 82 Z" fill="#D9661A"/>
+    <path d="M110 82 L116 32 H150 L148 82 Z" fill="#FF8A2A" transform="translate(-6 0)"/>
+  </g>
+  <path d="M110 82 L116 32 H150 L148 82 Z" fill="none"/>
+</g>
+  <path d="M114 46 H150" fill="none" stroke="#2A1E3D" stroke-width="10"/>
+</g>
+<g id="deck-top">
+  <clipPath id="deck-top-clip"><path d="M92 78 H168 Q176 78 176 86 V104 Q176 112 168 112 H92 Q84 112 84 104 V86 Q84 78 92 78 Z"/></clipPath>
+  <g clip-path="url(#deck-top-clip)" stroke="none">
+    <path d="M92 78 H168 Q176 78 176 86 V104 Q176 112 168 112 H92 Q84 112 84 104 V86 Q84 78 92 78 Z" fill="#D8D2C4"/>
+    <path d="M92 78 H168 Q176 78 176 86 V104 Q176 112 168 112 H92 Q84 112 84 104 V86 Q84 78 92 78 Z" fill="#F4F1EA" transform="translate(-6 -6)"/>
+  </g>
+  <path d="M92 78 H168 Q176 78 176 86 V104 Q176 112 168 112 H92 Q84 112 84 104 V86 Q84 78 92 78 Z" fill="none"/>
+</g>
+<g id="deck">
+  <clipPath id="deck-clip"><path d="M64 108 H196 Q204 108 204 116 V136 Q204 144 196 144 H64 Q56 144 56 136 V116 Q56 108 64 108 Z"/></clipPath>
+  <g clip-path="url(#deck-clip)" stroke="none">
+    <path d="M64 108 H196 Q204 108 204 116 V136 Q204 144 196 144 H64 Q56 144 56 136 V116 Q56 108 64 108 Z" fill="#D8D2C4"/>
+    <path d="M64 108 H196 Q204 108 204 116 V136 Q204 144 196 144 H64 Q56 144 56 136 V116 Q56 108 64 108 Z" fill="#F4F1EA" transform="translate(-6 -6)"/>
+  </g>
+  <path d="M64 108 H196 Q204 108 204 116 V136 Q204 144 196 144 H64 Q56 144 56 136 V116 Q56 108 64 108 Z" fill="none"/>
+</g>
+<g id="windows" fill="#5C78C8" stroke-width="4">
+  <path d="M102 88 H108 Q112 88 112 92 V98 Q112 102 108 102 H102 Q98 102 98 98 V92 Q98 88 102 88 Z"/>
+  <path d="M126 88 H132 Q136 88 136 92 V98 Q136 102 132 102 H126 Q122 102 122 98 V92 Q122 88 126 88 Z"/>
+  <path d="M150 88 H156 Q160 88 160 92 V98 Q160 102 156 102 H150 Q146 102 146 98 V92 Q146 88 150 88 Z"/>
+  <path d="M74 118 H80 Q84 118 84 122 V128 Q84 132 80 132 H74 Q70 132 70 128 V122 Q70 118 74 118 Z"/>
+  <path d="M100 118 H106 Q110 118 110 122 V128 Q110 132 106 132 H100 Q96 132 96 128 V122 Q96 118 100 118 Z"/>
+  <path d="M126 118 H132 Q136 118 136 122 V128 Q136 132 132 132 H126 Q122 132 122 128 V122 Q122 118 126 118 Z"/>
+  <path d="M152 118 H158 Q162 118 162 122 V128 Q162 132 158 132 H152 Q148 132 148 128 V122 Q148 118 152 118 Z"/>
+  <path d="M178 118 H184 Q188 118 188 122 V128 Q188 132 184 132 H178 Q174 132 174 128 V122 Q174 118 178 118 Z"/>
+</g>
+<g id="hull">
+  <clipPath id="hull-clip"><path d="M14 140 H244 L222 198 Q218 208 206 208 H48 Q36 208 32 198 Z"/></clipPath>
+  <g clip-path="url(#hull-clip)" stroke="none">
+    <path d="M14 140 H244 L222 198 Q218 208 206 208 H48 Q36 208 32 198 Z" fill="#22377A"/>
+    <path d="M14 140 H244 L222 198 Q218 208 206 208 H48 Q36 208 32 198 Z" fill="#2E4A9E" transform="translate(-10 -6)"/>
+    <path d="M0 186 H256 V256 H0 Z" fill="#E2403A"/>
+  </g>
+  <path d="M28 186 H228" fill="none" stroke-width="4"/>
+  <path d="M14 140 H244 L222 198 Q218 208 206 208 H48 Q36 208 32 198 Z" fill="none"/>
+</g>
+<g id="portholes" fill="#FFF4D6" stroke-width="4">
+  <circle cx="64" cy="164" r="8"/>
+  <circle cx="104" cy="164" r="8"/>
+  <circle cx="144" cy="164" r="8"/>
+  <circle cx="184" cy="164" r="8"/>
+</g>
+<path d="M24 148 H80" fill="none" stroke="#FFFFFF" stroke-width="5" opacity="0.5"/>
+</g>
+</svg>

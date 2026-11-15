@@ -1,0 +1,966 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+<!-- Campaign complete: the six astronauts cheer on the colony roof under star fireworks; cheerful aliens wave goodbye from a toy saucer. Transparent. Anchor centre.
+     Built from the in-game sprites (inlined, ids prefixed). Light from the top-left. See art/STYLE.md. -->
+<g transform="translate(190 190)"><path d="M27.2 -4 L47.2 -7" stroke="#FFD23F" stroke-width="6.2" stroke-linecap="round" opacity="0.8"/><path d="M0.0 -20.0 L5.3 -7.3 L19.0 -6.2 L8.6 2.8 L11.8 16.2 L0.0 9.0 L-11.8 16.2 L-8.6 2.8 L-19.0 -6.2 L-5.3 -7.3 Z" fill="#FFD23F" stroke="#2A1E3D" stroke-width="4.4" stroke-linejoin="round" transform="translate(79.4 -11.7) rotate(-4) scale(1.12844)"/>
+<path d="M17.2 21.4 L29.1 36.2" stroke="#9FF3FF" stroke-width="6.2" stroke-linecap="round" opacity="0.8"/><path d="M0.0 -20.0 L5.3 -7.3 L19.0 -6.2 L8.6 2.8 L11.8 16.2 L0.0 9.0 L-11.8 16.2 L-8.6 2.8 L-19.0 -6.2 L-5.3 -7.3 Z" fill="#9FF3FF" stroke="#2A1E3D" stroke-width="4.7" stroke-linejoin="round" transform="translate(49.4 61.5) rotate(4) scale(1.05556)"/>
+<path d="M-16.4 22.1 L-21.7 29.2" stroke="#E05FD0" stroke-width="6.2" stroke-linecap="round" opacity="0.8"/><path d="M0.0 -20.0 L5.3 -7.3 L19.0 -6.2 L8.6 2.8 L11.8 16.2 L0.0 9.0 L-11.8 16.2 L-8.6 2.8 L-19.0 -6.2 L-5.3 -7.3 Z" fill="#E05FD0" stroke="#2A1E3D" stroke-width="5.3" stroke-linejoin="round" transform="translate(-41.1 55.3) rotate(4) scale(0.944587)"/>
+<path d="M-27.5 0.7 L-46.4 1.2" stroke="#9BE564" stroke-width="6.2" stroke-linecap="round" opacity="0.8"/><path d="M0.0 -20.0 L5.3 -7.3 L19.0 -6.2 L8.6 2.8 L11.8 16.2 L0.0 9.0 L-11.8 16.2 L-8.6 2.8 L-19.0 -6.2 L-5.3 -7.3 Z" fill="#9BE564" stroke="#2A1E3D" stroke-width="5.3" stroke-linejoin="round" transform="translate(-78.9 2.1) rotate(8) scale(0.938027)"/>
+<path d="M-15.9 -22.4 L-27.2 -38.4" stroke="#FF8A2A" stroke-width="6.2" stroke-linecap="round" opacity="0.8"/><path d="M0.0 -20.0 L5.3 -7.3 L19.0 -6.2 L8.6 2.8 L11.8 16.2 L0.0 9.0 L-11.8 16.2 L-8.6 2.8 L-19.0 -6.2 L-5.3 -7.3 Z" fill="#FF8A2A" stroke="#2A1E3D" stroke-width="4.6" stroke-linejoin="round" transform="translate(-46 -64.9) rotate(-14) scale(1.08529)"/>
+<path d="M17.4 -21.3 L22.4 -27.5" stroke="#B98AF0" stroke-width="6.2" stroke-linecap="round" opacity="0.8"/><path d="M0.0 -20.0 L5.3 -7.3 L19.0 -6.2 L8.6 2.8 L11.8 16.2 L0.0 9.0 L-11.8 16.2 L-8.6 2.8 L-19.0 -6.2 L-5.3 -7.3 Z" fill="#B98AF0" stroke="#2A1E3D" stroke-width="5.3" stroke-linejoin="round" transform="translate(43 -52.7) rotate(14) scale(0.943861)"/>
+<circle r="20" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="5"/><path d="M0 -11.2 Q3.2 -3.2 11.2 0 Q3.2 3.2 0 11.2 Q-3.2 3.2 -11.2 0 Q-3.2 -3.2 0 -11.2 Z" fill="#FFFFFF" opacity="1"/>
+</g>
+<g transform="translate(500 120)"><path d="M20.6 3.8 L36.8 6.8" stroke="#FF8A2A" stroke-width="4.8" stroke-linecap="round" opacity="0.8"/><path d="M0.0 -20.0 L5.3 -7.3 L19.0 -6.2 L8.6 2.8 L11.8 16.2 L0.0 9.0 L-11.8 16.2 L-8.6 2.8 L-19.0 -6.2 L-5.3 -7.3 Z" fill="#FF8A2A" stroke="#2A1E3D" stroke-width="6.9" stroke-linejoin="round" transform="translate(61.1 11.3) rotate(-15) scale(0.723245)"/>
+<path d="M7.6 19.5 L10.3 26.6" stroke="#5BE0F0" stroke-width="4.8" stroke-linecap="round" opacity="0.8"/><path d="M0.0 -20.0 L5.3 -7.3 L19.0 -6.2 L8.6 2.8 L11.8 16.2 L0.0 9.0 L-11.8 16.2 L-8.6 2.8 L-19.0 -6.2 L-5.3 -7.3 Z" fill="#5BE0F0" stroke="#2A1E3D" stroke-width="5.8" stroke-linejoin="round" transform="translate(19.2 49.6) rotate(-1) scale(0.866203)"/>
+<path d="M-15.6 13.9 L-21.7 19.3" stroke="#FFD23F" stroke-width="4.8" stroke-linecap="round" opacity="0.8"/><path d="M0.0 -20.0 L5.3 -7.3 L19.0 -6.2 L8.6 2.8 L11.8 16.2 L0.0 9.0 L-11.8 16.2 L-8.6 2.8 L-19.0 -6.2 L-5.3 -7.3 Z" fill="#FFD23F" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" transform="translate(-40.1 35.7) rotate(-10) scale(0.71929)"/>
+<path d="M-14.1 -15.4 L-22.9 -25" stroke="#E05FD0" stroke-width="4.8" stroke-linecap="round" opacity="0.8"/><path d="M0.0 -20.0 L5.3 -7.3 L19.0 -6.2 L8.6 2.8 L11.8 16.2 L0.0 9.0 L-11.8 16.2 L-8.6 2.8 L-19.0 -6.2 L-5.3 -7.3 Z" fill="#E05FD0" stroke="#2A1E3D" stroke-width="5.8" stroke-linejoin="round" transform="translate(-39.6 -43.2) rotate(12) scale(0.865197)"/>
+<path d="M9.9 -18.4 L15.6 -28.9" stroke="#9BE564" stroke-width="4.8" stroke-linecap="round" opacity="0.8"/><path d="M0.0 -20.0 L5.3 -7.3 L19.0 -6.2 L8.6 2.8 L11.8 16.2 L0.0 9.0 L-11.8 16.2 L-8.6 2.8 L-19.0 -6.2 L-5.3 -7.3 Z" fill="#9BE564" stroke="#2A1E3D" stroke-width="6.3" stroke-linejoin="round" transform="translate(27.3 -50.6) rotate(-3) scale(0.797022)"/>
+<circle r="15.2" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="5"/><path d="M0 -8.5 Q2.4 -2.4 8.5 0 Q2.4 2.4 0 8.5 Q-2.4 2.4 -8.5 0 Q-2.4 -2.4 0 -8.5 Z" fill="#FFFFFF" opacity="1"/>
+</g>
+<g transform="translate(370 300)"><path d="M15.3 -1.6 L24 -2.5" stroke="#B98AF0" stroke-width="3.5" stroke-linecap="round" opacity="0.8"/><path d="M0.0 -20.0 L5.3 -7.3 L19.0 -6.2 L8.6 2.8 L11.8 16.2 L0.0 9.0 L-11.8 16.2 L-8.6 2.8 L-19.0 -6.2 L-5.3 -7.3 Z" fill="#B98AF0" stroke="#2A1E3D" stroke-width="7.8" stroke-linejoin="round" transform="translate(42.1 -4.4) rotate(18) scale(0.576794)"/>
+<path d="M4.9 14.6 L7.8 23.2" stroke="#FFD23F" stroke-width="3.5" stroke-linecap="round" opacity="0.8"/><path d="M0.0 -20.0 L5.3 -7.3 L19.0 -6.2 L8.6 2.8 L11.8 16.2 L0.0 9.0 L-11.8 16.2 L-8.6 2.8 L-19.0 -6.2 L-5.3 -7.3 Z" fill="#FFD23F" stroke="#2A1E3D" stroke-width="7.4" stroke-linejoin="round" transform="translate(13.6 40.5) rotate(10) scale(0.609784)"/>
+<path d="M-11.5 10.2 L-16.1 14.3" stroke="#9FF3FF" stroke-width="3.5" stroke-linecap="round" opacity="0.8"/><path d="M0.0 -20.0 L5.3 -7.3 L19.0 -6.2 L8.6 2.8 L11.8 16.2 L0.0 9.0 L-11.8 16.2 L-8.6 2.8 L-19.0 -6.2 L-5.3 -7.3 Z" fill="#9FF3FF" stroke="#2A1E3D" stroke-width="6.8" stroke-linejoin="round" transform="translate(-29.8 26.4) rotate(10) scale(0.66439)"/>
+<path d="M-12.3 -9.3 L-19.4 -14.6" stroke="#FF8A2A" stroke-width="3.5" stroke-linecap="round" opacity="0.8"/><path d="M0.0 -20.0 L5.3 -7.3 L19.0 -6.2 L8.6 2.8 L11.8 16.2 L0.0 9.0 L-11.8 16.2 L-8.6 2.8 L-19.0 -6.2 L-5.3 -7.3 Z" fill="#FF8A2A" stroke="#2A1E3D" stroke-width="7.8" stroke-linejoin="round" transform="translate(-33.9 -25.5) rotate(-11) scale(0.580599)"/>
+<path d="M3.2 -15.1 L4.3 -20.4" stroke="#9BE564" stroke-width="3.5" stroke-linecap="round" opacity="0.8"/><path d="M0.0 -20.0 L5.3 -7.3 L19.0 -6.2 L8.6 2.8 L11.8 16.2 L0.0 9.0 L-11.8 16.2 L-8.6 2.8 L-19.0 -6.2 L-5.3 -7.3 Z" fill="#9BE564" stroke="#2A1E3D" stroke-width="6.9" stroke-linejoin="round" transform="translate(8 -38.2) rotate(4) scale(0.654617)"/>
+<circle r="11.2" fill="#FFF4D6" stroke="#2A1E3D" stroke-width="4.5"/><path d="M0 -6.3 Q1.8 -1.8 6.3 0 Q1.8 1.8 0 6.3 Q-1.8 1.8 -6.3 0 Q-1.8 -1.8 0 -6.3 Z" fill="#FFFFFF" opacity="1"/>
+</g>
+<path d="M60 316 Q63.9 326.1 74 330 Q63.9 333.9 60 344 Q56.1 333.9 46 330 Q56.1 326.1 60 316 Z" fill="#FFE79A" opacity="1"/>
+<path d="M330 48 Q333.4 56.6 342 60 Q333.4 63.4 330 72 Q326.6 63.4 318 60 Q326.6 56.6 330 48 Z" fill="#FFE79A" opacity="1"/>
+<path d="M640 246 Q643.9 256.1 654 260 Q643.9 263.9 640 274 Q636.1 263.9 626 260 Q636.1 256.1 640 246 Z" fill="#FFE79A" opacity="1"/>
+<path d="M90 60 Q92.8 67.2 100 70 Q92.8 72.8 90 80 Q87.2 72.8 80 70 Q87.2 67.2 90 60 Z" fill="#FFE79A" opacity="1"/>
+<path d="M560 320 Q562.8 327.2 570 330 Q562.8 332.8 560 340 Q557.2 332.8 550 330 Q557.2 327.2 560 320 Z" fill="#FFE79A" opacity="1"/>
+<path d="M950 408 Q953.4 416.6 962 420 Q953.4 423.4 950 432 Q946.6 423.4 938 420 Q946.6 416.6 950 408 Z" fill="#FFE79A" opacity="1"/>
+<path d="M700 51 Q702.5 57.5 709 60 Q702.5 62.5 700 69 Q697.5 62.5 691 60 Q697.5 57.5 700 51 Z" fill="#FFE79A" opacity="1"/>
+<g id="saucer-trail" fill="none" stroke="#FFF4D6" stroke-width="9" stroke-linecap="round" opacity="0.8"><path d="M700 172 Q655 186 600 190"/><path d="M712 214 Q668 236 620 244"/></g>
+<g id="s14-alien-flutter-fly-02" transform="translate(700 420) rotate(-8) scale(0.6 0.6) translate(-128 -256)"><defs><clipPath id="s14-flutter-clip"><path d="M62 124 Q62 88 128 86 Q194 88 194 124 Q194 162 128 164 Q62 162 62 124 Z" /></clipPath></defs>
+  <g id="s14-flutter" transform="translate(0 -3)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round" stroke-width="7">
+    <g id="s14-wings">
+      <g id="s14-wing-back" transform="translate(112 100) rotate(8) scale(0.95 0.9309999999999999)"><path d="M0 0 Q-16 -58 -52 -70 Q-86 -78 -86 -48 Q-86 -26 -48 -18 Q-72 -8 -64 10 Q-54 26 -30 14 Q-10 6 0 0 Z" fill="#CBAEF5" /><path d="M-6 -6 Q-40 -30 -70 -48" fill="none" stroke="#9FF3FF" stroke-width="4" opacity="0" /><circle cx="-56" cy="-46" r="13" fill="#9FF3FF" stroke-width="4" /><circle cx="-60" cy="-50" r="3.5" fill="#FFFFFF" stroke="none" /><circle cx="-42" cy="4" r="6.5" fill="#9FF3FF" stroke-width="3" /><path d="M-64 -66 Q-78 -64 -78 -50" fill="none" stroke="#FFFFFF" stroke-width="4" opacity="0.85" /></g>
+      <g id="s14-wing-front" transform="translate(146 98) rotate(-8) scale(-0.95 0.9309999999999999)"><path d="M0 0 Q-16 -58 -52 -70 Q-86 -78 -86 -48 Q-86 -26 -48 -18 Q-72 -8 -64 10 Q-54 26 -30 14 Q-10 6 0 0 Z" fill="#E4D3FB" /><path d="M-6 -6 Q-40 -30 -70 -48" fill="none" stroke="#9FF3FF" stroke-width="4" opacity="0" /><circle cx="-56" cy="-46" r="13" fill="#9FF3FF" stroke-width="4" /><circle cx="-60" cy="-50" r="3.5" fill="#FFFFFF" stroke="none" /><circle cx="-42" cy="4" r="6.5" fill="#9FF3FF" stroke-width="3" /><path d="M-64 -66 Q-78 -64 -78 -50" fill="none" stroke="#FFFFFF" stroke-width="4" opacity="0.85" /></g>
+    </g>
+    <g id="s14-body">
+      <path id="s14-disc" d="M62 124 Q62 88 128 86 Q194 88 194 124 Q194 162 128 164 Q62 162 62 124 Z" fill="#B98AF0" stroke="none" />
+      <g clip-path="url(#s14-flutter-clip)" stroke="none">
+        <path id="s14-disc-rim" d="M56 124 Q128 152 200 120 L204 172 L52 172 Z" fill="#A577E6" />
+        <path id="s14-disc-shade" d="M204 92 Q186 128 180 146 Q166 164 128 170 L206 172 Z" fill="#9A68D6" />
+      </g>
+      <ellipse id="s14-cap" cx="118" cy="106" rx="30" ry="11" fill="#D9C0FA" stroke-width="4" />
+      <path id="s14-disc-highlight" d="M74 118 Q78 100 96 94" fill="none" stroke="#D9C0FA" stroke-width="8" />
+      <path id="s14-rim-line" d="M64 126 Q128 152 192 122" fill="none" stroke-width="4" />
+      <g id="s14-rim-lights" stroke-width="3">
+        <circle cx="80" cy="141" r="5" fill="#9FF3FF" /><circle cx="98" cy="148" r="5" fill="#9FF3FF" />
+      </g>
+      <path id="s14-disc-outline" d="M62 124 Q62 88 128 86 Q194 88 194 124 Q194 162 128 164 Q62 162 62 124 Z" fill="none" />
+    </g>
+    <g id="s14-face">
+      <g id="s14-eyes">
+        <ellipse cx="136" cy="134" rx="13" ry="15" fill="#FFFFFF" stroke-width="4.5" />
+        <ellipse cx="168" cy="131" rx="12" ry="14" fill="#FFFFFF" stroke-width="4.5" />
+        <g stroke="none">
+          <circle cx="140" cy="137" r="7" fill="#2A1E3D" /><circle cx="171.5" cy="134" r="6.5" fill="#2A1E3D" />
+          <circle cx="142.5" cy="133.5" r="2.8" fill="#FFFFFF" /><circle cx="174" cy="130.5" r="2.6" fill="#FFFFFF" />
+        </g>
+      </g>
+      <path id="s14-mouth" d="M144 154 Q156 161 170 151" fill="none" stroke-width="5" />
+    </g>
+  </g>
+</g>
+<g id="s15-alien-blob-walk-04" transform="translate(845 152) rotate(-10) scale(0.45 0.45) translate(-128 -256)"><defs>
+    <clipPath id="s15-blob-clip"><path d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z" /></clipPath>
+  </defs>
+  <g id="s15-blob" transform="translate(128 250) skewX(-4) scale(0.95 1.07) translate(-128 -250)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="s15-antennae" stroke-width="7">
+      <g id="s15-antenna-back" transform="rotate(-4 104 130)">
+        <path d="M104 130 Q98 108 92 96" fill="none" />
+        <circle cx="91" cy="90" r="11" fill="#9FF3FF" stroke-width="6" />
+        <circle cx="87" cy="86" r="3" fill="#FFFFFF" stroke="none" />
+      </g>
+      <g id="s15-antenna-front" transform="rotate(-4 158 130)">
+        <path d="M158 130 Q166 108 174 97" fill="none" />
+        <circle cx="176" cy="91" r="11" fill="#9FF3FF" stroke-width="6" />
+        <circle cx="172" cy="87" r="3" fill="#FFFFFF" stroke="none" />
+      </g>
+    </g>
+    <g id="s15-body">
+      <path id="s15-dome" d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z" fill="#5AA9F0" stroke="none" />
+      <g clip-path="url(#s15-blob-clip)" stroke="none">
+        <path id="s15-dome-shade" d="M236 120 Q206 150 212 236 Q208 246 186 252 L240 256 Z" fill="#3F86CF" />
+        <ellipse id="s15-belly" cx="132" cy="226" rx="62" ry="22" fill="#8CC7F6" />
+      </g>
+      <path id="s15-dome-highlight" d="M58 172 Q70 144 104 136" fill="none" stroke="#BFE3FF" stroke-width="10" />
+      <circle cx="52" cy="190" r="4" fill="#BFE3FF" stroke="none" />
+      <g id="s15-crater-spots" fill="#8CC7F6" stroke-width="3">
+        <ellipse cx="78" cy="196" rx="9" ry="7" />
+        <ellipse cx="196" cy="180" rx="7" ry="5.5" />
+        <ellipse cx="190" cy="150" rx="6" ry="4.5" />
+      </g>
+      <path id="s15-dome-outline" d="M30 234 Q30 126 128 124 Q226 126 226 234 Q226 250 208 250 L48 250 Q30 250 30 234 Z" fill="none" stroke-width="8" />
+    </g>
+    <g id="s15-face" transform="translate(1 -2)">
+      <g id="s15-eyes">
+        <ellipse cx="112" cy="174" rx="17" ry="20" fill="#FFFFFF" stroke-width="5" />
+        <ellipse cx="158" cy="173" rx="16" ry="19" fill="#FFFFFF" stroke-width="5" />
+        <g stroke="none">
+          <circle cx="117" cy="178" r="9" fill="#2A1E3D" />
+          <circle cx="163" cy="177" r="8.5" fill="#2A1E3D" />
+          <circle cx="120" cy="174" r="3.5" fill="#FFFFFF" />
+          <circle cx="166" cy="173" r="3.3" fill="#FFFFFF" />
+        </g>
+      </g>
+      <g id="s15-mouth" fill="none" stroke-width="6">
+        <path d="M116 207 Q138 223 162 203" />
+        <path d="M156 201 L166 199" stroke-width="5" />
+      </g>
+    </g>
+  </g>
+</g>
+<g id="s16-alien-craft-hover-03" transform="translate(850 310) rotate(-10) scale(0.5 0.5) translate(-256 -512)"><g id="s16-craft" transform="translate(0 14) rotate(5 256 220)">
+  <defs>
+    <clipPath id="s16-top-clip"><path d="M44 190 A212 56 0 1 1 468 190 A212 56 0 1 1 44 190 Z" /></clipPath>
+    <clipPath id="s16-band-clip"><path d="M44 190 L44 236 A212 72 0 0 0 468 236 L468 190 Z" /></clipPath>
+    <clipPath id="s16-dome-clip"><path d="M168 178 Q168 84 256 82 Q344 84 344 178 Z" /></clipPath>
+    <clipPath id="s16-port-clip-1"><circle cx="120" cy="262" r="19" /></clipPath>
+    <clipPath id="s16-port-clip-2"><circle cx="208" cy="276" r="19" /></clipPath>
+    <clipPath id="s16-port-clip-3"><circle cx="304" cy="276" r="19" /></clipPath>
+    <clipPath id="s16-port-clip-4"><circle cx="392" cy="262" r="19" /></clipPath>
+  </defs>
+  <g id="s16-craft-parts" stroke="#2A1E3D" stroke-width="11" stroke-linecap="round" stroke-linejoin="round">
+    <g id="s16-underside">
+      <ellipse cx="256" cy="298" rx="118" ry="36" fill="#8C83C2" />
+    </g>
+    <g id="s16-lights">
+      <circle cx="178" cy="318" r="10" fill="#E05FD0" stroke-width="5" /><circle cx="175" cy="315" r="3" fill="#F6B5EE" stroke="none" />
+      <circle cx="214" cy="327" r="8.5" fill="#A9479E" stroke-width="5" />
+      <circle cx="256" cy="330" r="10" fill="#E05FD0" stroke-width="5" /><circle cx="253" cy="327" r="3" fill="#F6B5EE" stroke="none" />
+      <circle cx="298" cy="327" r="8.5" fill="#A9479E" stroke-width="5" />
+      <circle cx="334" cy="318" r="10" fill="#E05FD0" stroke-width="5" /><circle cx="331" cy="315" r="3" fill="#F6B5EE" stroke="none" />
+    </g>
+    <g id="s16-band">
+      <path d="M44 190 L44 236 A212 72 0 0 0 468 236 L468 190 Z" fill="#B7B5DF" />
+      <g clip-path="url(#s16-band-clip)" stroke="none">
+        <path d="M400 180 Q430 250 360 320 L480 320 L480 180 Z" fill="#9790CB" />
+      </g>
+      <path d="M44 190 L44 236 A212 72 0 0 0 468 236 L468 190 Z" fill="none" />
+      <g id="s16-porthole-1">
+        <circle cx="120" cy="262" r="27" fill="#A7B0C8" stroke-width="6" />
+        <circle cx="120" cy="262" r="19" fill="#5AA9F0" stroke-width="4" />
+        <path d="M101 268 Q114 280 139 268 L139 281 L101 281 Z" fill="#8CC7F6" stroke="none" clip-path="url(#s16-port-clip-1)" />
+        <circle cx="120" cy="262" r="19" fill="none" stroke-width="4" />
+        <g stroke="none">
+          <ellipse cx="114" cy="257" rx="5.5" ry="6.5" fill="#FFFFFF" />
+          <ellipse cx="127" cy="256.5" rx="5.2" ry="6.2" fill="#FFFFFF" />
+          <circle cx="117" cy="258" r="3.2" fill="#2A1E3D" />
+          <circle cx="130" cy="257.5" r="3" fill="#2A1E3D" />
+        </g>
+        <path d="M112 268 Q120 275 129 266" fill="none" stroke-width="3.5" />
+        <path d="M103 254 A22 22 0 0 1 113 243" fill="none" stroke="#FFFFFF" stroke-width="4" opacity="0.85" />
+      </g>
+      <g id="s16-porthole-2">
+        <circle cx="208" cy="276" r="27" fill="#A7B0C8" stroke-width="6" />
+        <circle cx="208" cy="276" r="19" fill="#5AA9F0" stroke-width="4" />
+        <path d="M189 282 Q202 294 227 282 L227 295 L189 295 Z" fill="#8CC7F6" stroke="none" clip-path="url(#s16-port-clip-2)" />
+        <circle cx="208" cy="276" r="19" fill="none" stroke-width="4" />
+        <g stroke="none">
+          <ellipse cx="202" cy="271" rx="5.5" ry="6.5" fill="#FFFFFF" />
+          <ellipse cx="215" cy="270.5" rx="5.2" ry="6.2" fill="#FFFFFF" />
+          <circle cx="205" cy="272" r="3.2" fill="#2A1E3D" />
+          <circle cx="218" cy="271.5" r="3" fill="#2A1E3D" />
+        </g>
+        <path d="M200 282 Q208 289 217 280" fill="none" stroke-width="3.5" />
+        <path d="M191 268 A22 22 0 0 1 201 257" fill="none" stroke="#FFFFFF" stroke-width="4" opacity="0.85" />
+      </g>
+      <g id="s16-porthole-3">
+        <circle cx="304" cy="276" r="27" fill="#A7B0C8" stroke-width="6" />
+        <circle cx="304" cy="276" r="19" fill="#5AA9F0" stroke-width="4" />
+        <path d="M285 282 Q298 294 323 282 L323 295 L285 295 Z" fill="#8CC7F6" stroke="none" clip-path="url(#s16-port-clip-3)" />
+        <circle cx="304" cy="276" r="19" fill="none" stroke-width="4" />
+        <g stroke="none">
+          <ellipse cx="298" cy="271" rx="5.5" ry="6.5" fill="#FFFFFF" />
+          <ellipse cx="311" cy="270.5" rx="5.2" ry="6.2" fill="#FFFFFF" />
+          <circle cx="301" cy="272" r="3.2" fill="#2A1E3D" />
+          <circle cx="314" cy="271.5" r="3" fill="#2A1E3D" />
+        </g>
+        <path d="M296 282 Q304 289 313 280" fill="none" stroke-width="3.5" />
+        <path d="M287 268 A22 22 0 0 1 297 257" fill="none" stroke="#FFFFFF" stroke-width="4" opacity="0.85" />
+      </g>
+      <g id="s16-porthole-4">
+        <circle cx="392" cy="262" r="27" fill="#A7B0C8" stroke-width="6" />
+        <circle cx="392" cy="262" r="19" fill="#5AA9F0" stroke-width="4" />
+        <path d="M373 268 Q386 280 411 268 L411 281 L373 281 Z" fill="#8CC7F6" stroke="none" clip-path="url(#s16-port-clip-4)" />
+        <circle cx="392" cy="262" r="19" fill="none" stroke-width="4" />
+        <g stroke="none">
+          <ellipse cx="386" cy="257" rx="5.5" ry="6.5" fill="#FFFFFF" />
+          <ellipse cx="399" cy="256.5" rx="5.2" ry="6.2" fill="#FFFFFF" />
+          <circle cx="389" cy="258" r="3.2" fill="#2A1E3D" />
+          <circle cx="402" cy="257.5" r="3" fill="#2A1E3D" />
+        </g>
+        <path d="M384 268 Q392 275 401 266" fill="none" stroke-width="3.5" />
+        <path d="M375 254 A22 22 0 0 1 385 243" fill="none" stroke="#FFFFFF" stroke-width="4" opacity="0.85" />
+      </g>
+    </g>
+    <g id="s16-top-hull">
+      <path d="M44 190 A212 56 0 1 1 468 190 A212 56 0 1 1 44 190 Z" fill="#C9D1E3" />
+      <g clip-path="url(#s16-top-clip)" stroke="none">
+        <path d="M330 120 Q440 160 420 250 L480 250 L480 120 Z" fill="#A9A3D8" />
+      </g>
+      <path d="M78 196 Q96 160 176 144" fill="none" stroke="#EEF1F8" stroke-width="10" />
+      <circle cx="72" cy="212" r="5" fill="#EEF1F8" stroke="none" />
+      <path d="M44 190 A212 56 0 1 1 468 190 A212 56 0 1 1 44 190 Z" fill="none" />
+    </g>
+    <g id="s16-dome">
+      <g id="s16-antenna" stroke-width="7">
+        <path d="M256 86 L256 60" fill="none" stroke-width="9" />
+        <circle cx="256" cy="50" r="13" fill="#E05FD0" stroke-width="7" />
+        <circle cx="251" cy="45" r="4" fill="#F6B5EE" stroke="none" />
+      </g>
+      <path d="M168 178 Q168 84 256 82 Q344 84 344 178 Z" fill="#CFE9FF" fill-opacity="0.6" stroke="none" />
+      <path d="M190 156 Q192 110 232 98" fill="none" stroke="#FFFFFF" stroke-width="9" opacity="0.9" />
+      <circle cx="190" cy="170" r="4.5" fill="#FFFFFF" stroke="none" opacity="0.9" />
+      <path d="M318 112 Q328 124 330 140" fill="none" stroke="#FFFFFF" stroke-width="5" opacity="0.6" />
+      <path d="M168 178 Q168 84 256 82 Q344 84 344 178 Z" fill="none" />
+      <ellipse id="s16-collar" cx="256" cy="178" rx="94" ry="17" fill="#A7B0C8" stroke-width="7" />
+      <path d="M182 176 Q220 166 262 166" fill="none" stroke="#C9D0E2" stroke-width="4" />
+    </g>
+  </g>
+</g>
+</g>
+<g id="s17-alien-swarm-bob-03" transform="translate(960 175) scale(1.25 1.25) translate(-32 -64)"><defs><clipPath id="s17-swarm-clip"><circle cx="32" cy="38" r="19" /></clipPath></defs>
+  <g id="s17-swarm" transform="translate(32 57) translate(0 -3) scale(0.94 1.07) translate(-32 -57)" stroke="#2A1E3D" stroke-linecap="round" stroke-linejoin="round">
+    <g id="s17-body">
+      <circle id="s17-bubble" cx="32" cy="38" r="19" fill="#9FF3FF" stroke="none" />
+      <g clip-path="url(#s17-swarm-clip)" stroke="none">
+        <path id="s17-bubble-shade" d="M56 22 Q46 34 48 46 Q44 56 30 60 L58 62 Z" fill="#74D3E2" />
+      </g>
+      <path id="s17-bubble-sheen" d="M42 51 Q47 48 48 43" fill="none" stroke="#FFFFFF" stroke-width="1.8" opacity="0.9" />
+      <path id="s17-bubble-highlight" d="M19 37 Q19 27 28 23" fill="none" stroke="#FFFFFF" stroke-width="3.2" />
+      <circle cx="19.5" cy="42" r="1.4" fill="#FFFFFF" stroke="none" />
+      <circle id="s17-bubble-outline" cx="32" cy="38" r="19" fill="none" stroke-width="3.5" />
+    </g>
+    <g id="s17-face" stroke="none">
+      <ellipse cx="34" cy="37" rx="2.7" ry="3.2" fill="#2A1E3D" />
+      <ellipse cx="44" cy="36" rx="2.5" ry="3" fill="#2A1E3D" />
+      <circle cx="34.9" cy="35.8" r="1" fill="#FFFFFF" /><circle cx="44.8" cy="34.8" r="0.9" fill="#FFFFFF" />
+      <path id="s17-mouth" d="M35 43.5 Q39.5 47.5 44.5 43" fill="none" stroke="#2A1E3D" stroke-width="2.4" />
+    </g>
+  </g>
+</g>
+<g id="colony-done" transform="translate(512 1004) scale(1.08)" stroke="#2A1E3D" stroke-width="7.4" stroke-linejoin="round" stroke-linecap="round"><g id="dome-on-deck" transform="translate(0 -120)"><path d="M-345 0 V-50 A95 95 0 0 1 -155 -50 V0 Z" fill="#F4F1EA"/><clipPath id="pod-1-done"><path d="M-345 0 V-50 A95 95 0 0 1 -155 -50 V0 Z"/></clipPath><path clip-path="url(#pod-1-done)" d="M-190 -160 Q-170 -60 -210 10 H-140 V-160 Z" fill="#D8D2C4" stroke="none"/><path d="M-345 0 V-50 A95 95 0 0 1 -155 -50 V0 Z" fill="none"/><path d="M-345 -40 H-155" fill="none" stroke-width="4.1"/><circle cx="-250" cy="-82" r="22" fill="#FFE79A" stroke-width="4.1"/><path d="M-259 -92 Q-252 -98 -244 -96" fill="none" stroke="#FFFFFF" stroke-width="4.1"/><path d="M-320 -70 Q-310 -110 -275 -125" fill="none" stroke="#FFFFFF" stroke-width="8.1"/><path d="M155 0 V-50 A95 95 0 0 1 345 -50 V0 Z" fill="#F4F1EA"/><clipPath id="pod1-done"><path d="M155 0 V-50 A95 95 0 0 1 345 -50 V0 Z"/></clipPath><path clip-path="url(#pod1-done)" d="M310 -160 Q330 -60 290 10 H360 V-160 Z" fill="#D8D2C4" stroke="none"/><path d="M155 0 V-50 A95 95 0 0 1 345 -50 V0 Z" fill="none"/><path d="M155 -40 H345" fill="none" stroke-width="4.1"/><circle cx="250" cy="-82" r="22" fill="#FFE79A" stroke-width="4.1"/><path d="M241 -92 Q248 -98 256 -96" fill="none" stroke="#FFFFFF" stroke-width="4.1"/><path d="M180 -70 Q190 -110 225 -125" fill="none" stroke="#FFFFFF" stroke-width="8.1"/><rect x="-190" y="-70" width="380" height="58" rx="22" fill="#A7B0C8"/><path d="M-180 -26 H180" fill="none" stroke="#7F89A6" stroke-width="6.5"/><clipPath id="dome-done"><path d="M-210 -60 A210 210 0 0 1 210 -60 Z"/></clipPath><path d="M-210 -60 A210 210 0 0 1 210 -60 Z" fill="#F4F1EA"/><g clip-path="url(#dome-done)" stroke="none"><path d="M120 -300 Q200 -170 150 -40 L230 -40 L230 -300 Z" fill="#D8D2C4"/></g><g fill="none" stroke-width="4.1" opacity="0.8"><path d="M0 -270 V-60"/><path d="M-90 -250 Q-128 -160 -120 -60"/><path d="M90 -250 Q128 -160 120 -60"/><path d="M-200 -130 Q0 -110 200 -130"/></g><circle cx="-70" cy="-170" r="26" fill="#FFE79A" stroke-width="4.1"/><path d="M-81.7 -175.2 Q-77.8 -185.6 -67.4 -185.6" fill="none" stroke="#FFFFFF" stroke-width="4.1"/><circle cx="40" cy="-190" r="22" fill="#FFE79A" stroke-width="4.1"/><path d="M30.1 -194.4 Q33.4 -203.2 42.2 -203.2" fill="none" stroke="#FFFFFF" stroke-width="4.1"/><circle cx="130" cy="-130" r="18" fill="#FFE79A" stroke-width="4.1"/><path d="M121.9 -133.6 Q124.6 -140.8 131.8 -140.8" fill="none" stroke="#FFFFFF" stroke-width="4.1"/><path d="M-210 -60 A210 210 0 0 1 210 -60 Z" fill="none"/><path d="M-160 -120 Q-140 -200 -70 -235" fill="none" stroke="#FFFFFF" stroke-width="10.4"/><path d="M0 -270 V-340" fill="none"/><circle cx="0" cy="-352" r="20" fill="#FFD23F"/><circle cx="-6" cy="-358" r="5" fill="#FFFFFF" stroke="none"/><rect x="-230" y="-72" width="460" height="72" rx="26" fill="#A7B0C8"/><path d="M-210 -18 H210" fill="none" stroke="#7F89A6" stroke-width="7.3"/><path d="M-205 -54 H-120" fill="none" stroke="#C9D0E2" stroke-width="5.7"/><circle cx="-150" cy="-40" r="9" fill="#5BE0F0" stroke-width="3.3"/><circle cx="-100" cy="-40" r="9" fill="#5BE0F0" stroke-width="3.3"/><circle cx="100" cy="-40" r="9" fill="#5BE0F0" stroke-width="3.3"/><circle cx="150" cy="-40" r="9" fill="#5BE0F0" stroke-width="3.3"/><path d="M-46 0 V-60 A46 46 0 0 1 46 -60 V0 Z" fill="#3FB8AF"/><path d="M0 -104 V0" fill="none" stroke-width="4.1"/><path d="M-30 -60 Q-28 -84 -10 -92" fill="none" stroke="#8FE0DA" stroke-width="5.3"/></g><path d="M-400 -140 H400 Q420 -140 420 -120 V-12 Q420 0 400 0 H-400 Q-420 0 -420 -12 V-120 Q-420 -140 -400 -140 Z" fill="#F4F1EA"/><path d="M330 -116 Q360 -70.0 340 -4 H414 V-116 Z" fill="#D8D2C4" stroke="none"/><rect x="-424" y="-148" width="848" height="34" rx="14" fill="#A7B0C8"/><path d="M-404 -138 H-250" fill="none" stroke="#C9D0E2" stroke-width="5.3"/><rect x="-382" y="-84.0" width="44" height="36" rx="14" fill="#FFE79A" stroke-width="3.3"/><rect x="-292" y="-84.0" width="44" height="36" rx="14" fill="#FFE79A" stroke-width="3.3"/><rect x="-202" y="-84.0" width="44" height="36" rx="14" fill="#FFE79A" stroke-width="3.3"/><rect x="-112" y="-84.0" width="44" height="36" rx="14" fill="#FFE79A" stroke-width="3.3"/><rect x="-22" y="-84.0" width="44" height="36" rx="14" fill="#FFE79A" stroke-width="3.3"/><rect x="68" y="-84.0" width="44" height="36" rx="14" fill="#FFE79A" stroke-width="3.3"/><rect x="158" y="-84.0" width="44" height="36" rx="14" fill="#FFE79A" stroke-width="3.3"/><rect x="248" y="-84.0" width="44" height="36" rx="14" fill="#FFE79A" stroke-width="3.3"/><rect x="338" y="-84.0" width="44" height="36" rx="14" fill="#FFE79A" stroke-width="3.3"/></g>
+<g id="s18-nova-l1-idle-01" transform="translate(122 856.8) scale(0.84 0.84) translate(-128 -256)"><defs>
+    <clipPath id="s18-torso-clip"><path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" /></clipPath>
+    <clipPath id="s18-face-clip"><circle cx="128" cy="98" r="29" /></clipPath>
+  </defs>
+  <g id="s18-nova" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <g id="s18-body-back">
+      <g id="s18-backpack">
+        <rect x="68" y="138" width="36" height="60" rx="13" fill="#A7B0C8" />
+        <path d="M74 184 Q74 192 84 192 H98" fill="none" stroke="#7F89A6" stroke-width="5" />
+      </g>
+      <g id="s18-legs">
+        <rect x="97" y="190" width="25" height="42" rx="10" fill="#F4F1EA" />
+        <rect x="130" y="190" width="25" height="42" rx="10" fill="#F4F1EA" />
+        <rect x="101" y="210" width="17" height="10" rx="4" fill="#FF8A2A" stroke-width="4" />
+        <rect x="134" y="210" width="17" height="10" rx="4" fill="#FF8A2A" stroke-width="4" />
+      </g>
+    </g>
+    <g id="s18-boots">
+      <path d="M93 250 V236 Q93 226 103 226 H114 Q124 226 125 234 Q133 237 133 244 V250 Z" fill="#FF8A2A" />
+      <path d="M126 250 V236 Q126 226 136 226 H147 Q157 226 158 234 Q166 237 166 244 V250 Z" fill="#FF8A2A" />
+      <g stroke="none">
+        <rect x="97" y="242" width="33" height="5" rx="2" fill="#D9661A" />
+        <rect x="130" y="242" width="33" height="5" rx="2" fill="#D9661A" />
+      </g>
+      <path d="M99 236 Q99 231 104 231" fill="none" stroke="#FFC08A" stroke-width="3.5" />
+      <path d="M132 236 Q132 231 137 231" fill="none" stroke="#FFC08A" stroke-width="3.5" />
+    </g>
+    <g id="s18-body">
+      <g id="s18-arm-back" transform="rotate(128 92 146)">
+        <path d="M92 146 Q74 164 80 190" fill="none" stroke-width="26" />
+        <path d="M92 146 Q74 164 80 190" fill="none" stroke="#F4F1EA" stroke-width="12" />
+        <g id="s18-mitten-back" fill="#FF8A2A">
+          <circle cx="80" cy="194" r="10.5" />
+          <ellipse cx="90" cy="190" rx="5" ry="4" stroke-width="4" />
+        </g>
+      </g>
+      <g id="s18-torso">
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="#F4F1EA" />
+        <g clip-path="url(#s18-torso-clip)">
+          <path id="s18-chevron" d="M78 176 L174 136 L174 156 L78 196 Z" fill="#FF8A2A" stroke-width="4.5" />
+          <path id="s18-torso-shade" d="M156 132 H170 V214 H140 Q158 186 156 132 Z" fill="#2A1E3D" opacity="0.13" stroke="none" />
+                  </g>
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="none" />
+        <path id="s18-torso-highlight" d="M95 168 V152 Q95 143 103 141" fill="none" stroke="#FFFFFF" stroke-width="4.5" />
+      </g>
+      <ellipse id="s18-collar" cx="127" cy="141" rx="33" ry="9" fill="#A7B0C8" stroke-width="6" />
+      <g id="s18-arm-front">
+        <path d="M158 148 Q180 156 188 174" fill="none" stroke-width="26" />
+        <path d="M158 148 Q180 156 188 174" fill="none" stroke="#F4F1EA" stroke-width="12" />
+        <g id="s18-gadget" transform="rotate(-20 192 176)">
+          <circle id="s18-lens-glow" cx="228" cy="176" r="12" fill="#FFE79A" opacity="0.6" stroke="none" />
+          <rect x="186" y="165" width="36" height="22" rx="10" fill="#F4F1EA" stroke-width="6" />
+          <path d="M204 166 V186" fill="none" stroke="#FF8A2A" stroke-width="7" stroke-linecap="butt" />
+          <rect x="186" y="165" width="36" height="22" rx="10" fill="none" stroke-width="6" />
+          <circle id="s18-lens" cx="225" cy="176" r="8" fill="#FFF4D6" stroke-width="5" />
+          <circle cx="223" cy="174" r="2.5" fill="#FFFFFF" stroke="none" />
+        </g>
+        <g id="s18-mitten-front" fill="#FF8A2A">
+          <circle cx="190" cy="179" r="10.5" />
+          <ellipse cx="194" cy="169" rx="4" ry="5" stroke-width="4" />
+        </g>
+      </g>
+      <g id="s18-helmet">
+        <circle id="s18-glass" cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none" />
+        <g id="s18-head" stroke-width="4">
+          <g id="s18-hair-puffs" fill="#1E1A24">
+            <path d="M110.0 76.4 A6.1 6.1 0 0 1 103.2 83.7 A6.1 6.1 0 0 1 93.2 83.0 A6.1 6.1 0 0 1 87.6 74.7 A6.1 6.1 0 0 1 90.6 65.2 A6.1 6.1 0 0 1 99.9 61.5 A6.1 6.1 0 0 1 108.5 66.5 A6.1 6.1 0 0 1 110.0 76.4 Z" />
+            <path d="M167.9 73.1 A5.8 5.8 0 0 1 163.0 81.2 A5.8 5.8 0 0 1 153.5 82.4 A5.8 5.8 0 0 1 146.7 75.8 A5.8 5.8 0 0 1 147.6 66.3 A5.8 5.8 0 0 1 155.6 61.1 A5.8 5.8 0 0 1 164.7 64.1 A5.8 5.8 0 0 1 167.9 73.1 Z" />
+          </g>
+          <circle id="s18-face" cx="128" cy="98" r="29" fill="#FCE0CF" />
+          <path id="s18-face-shade" clip-path="url(#s18-face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#F2C3AA" stroke="none" />
+          <path id="s18-fringe" d="M99 93 Q98 68 128 67 Q158 68 157 91 Q153 83 147 85 Q142 77 134 82 Q127 75 120 82 Q111 77 99 93 Z" fill="#1E1A24" />
+          <g id="s18-face-features" stroke="none">
+            <ellipse cx="120" cy="101" rx="4.6" ry="6" fill="#2A1E3D" />
+            <ellipse cx="142" cy="100" rx="4.6" ry="6" fill="#2A1E3D" />
+            <circle cx="121.6" cy="98.3" r="1.9" fill="#FFFFFF" />
+            <circle cx="143.6" cy="97.3" r="1.9" fill="#FFFFFF" />
+            <ellipse cx="111" cy="110" rx="6.5" ry="4.2" fill="#F48A9A" opacity="0.75" />
+            <ellipse cx="152" cy="109" rx="5" ry="3.8" fill="#F48A9A" opacity="0.75" />
+          </g>
+          <path id="s18-mouth" d="M122 109 H146 Q144 122 134 122 Q124 122 122 109 Z" fill="#FFFFFF" stroke-width="3.5" />
+          <path d="M127 118 Q134 114 141 118 Q138 121.5 134 121.5 Q130 121.5 127 118 Z" fill="#F27C8C" stroke="none" />
+        </g>
+        <g id="s18-visor-rim">
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke-width="16" />
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke="#FF8A2A" stroke-width="9" />
+        </g>
+        <g id="s18-helmet-highlight" stroke="#FFFFFF" fill="none">
+          <path d="M88 70 Q98 54 116 49" stroke-width="7" opacity="0.9" />
+          <circle cx="83" cy="84" r="1.5" stroke-width="5" opacity="0.9" />
+        </g>
+        <circle id="s18-helmet-outline" cx="126" cy="94" r="50" fill="none" />
+      </g>
+    </g>
+  </g>
+</g>
+<g id="s19-pip-l1-idle-01" transform="translate(278 845) scale(0.84 0.84) translate(-128 -256)"><defs>
+    <clipPath id="s19-torso-clip"><path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" /></clipPath>
+    <clipPath id="s19-face-clip"><circle cx="128" cy="98" r="29" /></clipPath>
+    <clipPath id="s19-canister-back-clip"><circle cx="68" cy="120" r="25" /></clipPath>
+    <clipPath id="s19-canister-far-clip"><circle cx="84" cy="100" r="18" /></clipPath>
+  </defs>
+  <g id="s19-pip" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <g id="s19-body-back">
+      <g id="s19-backpack">
+        <rect x="68" y="138" width="36" height="60" rx="13" fill="#A7B0C8" />
+        <path d="M74 184 Q74 192 84 192 H98" fill="none" stroke="#7F89A6" stroke-width="5" />
+      </g>
+      <g id="s19-canisters">
+        
+        <g id="s19-canister-far">
+          <rect x="77" y="78" width="14" height="9" rx="4" fill="#A7B0C8" stroke-width="5" />
+          <circle cx="84" cy="100" r="18" fill="#8ED8FF" />
+          <path clip-path="url(#s19-canister-far-clip)" d="M101 89 Q101 117 73 119 L107 126 Z" fill="#5FB4E6" stroke="none" />
+          <circle cx="84" cy="100" r="18" fill="none" />
+          <path d="M72 98 Q73 89 81 87" fill="none" stroke="#FFFFFF" stroke-width="4" />
+        </g>
+        
+        <g id="s19-canister-near">
+          <rect x="58" y="89" width="18" height="11" rx="4" fill="#A7B0C8" stroke-width="5" />
+          <circle cx="68" cy="120" r="25" fill="#8ED8FF" />
+          <path clip-path="url(#s19-canister-back-clip)" d="M91 104 Q93 144 54 147 L98 156 Z" fill="#5FB4E6" stroke="none" />
+          <circle cx="68" cy="120" r="25" fill="none" />
+          <path d="M52 121 Q52 106 65 102" fill="none" stroke="#FFFFFF" stroke-width="5" />
+          <circle cx="54" cy="130" r="1.2" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="3.5" />
+        </g>
+      </g>
+      <g id="s19-legs">
+        <rect x="97" y="190" width="25" height="42" rx="10" fill="#F4F1EA" />
+        <rect x="130" y="190" width="25" height="42" rx="10" fill="#F4F1EA" />
+        <rect x="101" y="210" width="17" height="10" rx="4" fill="#8ED8FF" stroke-width="4" />
+        <rect x="134" y="210" width="17" height="10" rx="4" fill="#8ED8FF" stroke-width="4" />
+      </g>
+    </g>
+    <g id="s19-boots">
+      <path d="M93 250 V236 Q93 226 103 226 H114 Q124 226 125 234 Q133 237 133 244 V250 Z" fill="#8ED8FF" />
+      <path d="M126 250 V236 Q126 226 136 226 H147 Q157 226 158 234 Q166 237 166 244 V250 Z" fill="#8ED8FF" />
+      <g stroke="none">
+        <rect x="97" y="242" width="33" height="5" rx="2" fill="#5FB4E6" />
+        <rect x="130" y="242" width="33" height="5" rx="2" fill="#5FB4E6" />
+      </g>
+      <path d="M99 236 Q99 231 104 231" fill="none" stroke="#D2F0FF" stroke-width="3.5" />
+      <path d="M132 236 Q132 231 137 231" fill="none" stroke="#D2F0FF" stroke-width="3.5" />
+    </g>
+    <g id="s19-body">
+      <g id="s19-arm-back" transform="rotate(128 92 146)">
+        <path d="M92 146 Q74 164 80 190" fill="none" stroke-width="26" />
+        <path d="M92 146 Q74 164 80 190" fill="none" stroke="#F4F1EA" stroke-width="12" />
+        <g id="s19-mitten-back" fill="#8ED8FF">
+          <circle cx="80" cy="194" r="10.5" />
+          <ellipse cx="90" cy="190" rx="5" ry="4" stroke-width="4" />
+        </g>
+      </g>
+      <g id="s19-torso">
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="#8ED8FF" />
+        <g clip-path="url(#s19-torso-clip)">
+          
+          <rect x="80" y="186" width="92" height="24" fill="#F4F1EA" stroke-width="4.5" />
+          <path id="s19-torso-shade" d="M156 132 H170 V214 H140 Q158 186 156 132 Z" fill="#2A1E3D" opacity="0.13" stroke="none" />
+        </g>
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="none" />
+        <path id="s19-torso-highlight" d="M95 168 V152 Q95 143 103 141" fill="none" stroke="#D2F0FF" stroke-width="4.5" />
+        <g id="s19-emblem">
+          <circle cx="128" cy="167" r="15" fill="#F4F1EA" stroke-width="4" />
+          <g fill="none" stroke="#5FB4E6" stroke-width="3.5">
+            <path d="M128 157 V177 M119.3 162 L136.7 172 M119.3 172 L136.7 162" />
+          </g>
+          <circle cx="128" cy="167" r="3" fill="#5FB4E6" stroke="none" />
+        </g>
+      </g>
+      <ellipse id="s19-collar" cx="127" cy="141" rx="33" ry="9" fill="#A7B0C8" stroke-width="6" />
+      <g id="s19-arm-front">
+        <path d="M158 148 Q178 156 186 174" fill="none" stroke-width="26" />
+        <path d="M158 148 Q178 156 186 174" fill="none" stroke="#F4F1EA" stroke-width="12" />
+        <g id="s19-gadget">
+          <circle id="s19-tip-glow" cx="203" cy="110" r="16" fill="#CFF6FF" opacity="0.55" stroke="none" />
+          
+          <path d="M190 182 L201 124" fill="none" stroke-width="14" />
+          <path d="M190 182 L201 124" fill="none" stroke="#A7B0C8" stroke-width="6" />
+          
+          <g id="s19-wand-tip">
+            <path d="M203 98 V122 M192.6 104 L213.4 116 M192.6 116 L213.4 104" fill="none" stroke-width="13" />
+            <path d="M203 98 V122 M192.6 104 L213.4 116 M192.6 116 L213.4 104" fill="none" stroke="#CFF6FF" stroke-width="5" />
+            <circle cx="203" cy="110" r="4.5" fill="#8ED8FF" stroke="none" />
+            <circle cx="201" cy="99.5" r="1" fill="#FFFFFF" stroke="#FFFFFF" stroke-width="2.5" />
+          </g>
+        </g>
+        <g id="s19-mitten-front" fill="#8ED8FF">
+          <circle cx="189" cy="177" r="10.5" />
+          <ellipse cx="181" cy="171" rx="4" ry="5" stroke-width="4" />
+        </g>
+      </g>
+      <g id="s19-helmet">
+        <circle id="s19-glass" cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none" />
+        <g id="s19-head" stroke-width="4">
+          <circle id="s19-face" cx="128" cy="98" r="29" fill="#FBE4D5" />
+          <path id="s19-face-shade" clip-path="url(#s19-face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#EFC6AE" stroke="none" />
+          
+          <path id="s19-fringe" d="M99 93 Q97 74 110 68 Q106 59 115 55 Q117 63 124 64 Q126 53 137 53 Q134 61 140 65 Q148 60 153 64 Q148 68 150 72 Q158 79 157 91 Q152 82 144 85 Q140 77 132 82 Q125 76 118 82 Q110 77 99 93 Z" fill="#E07A3C" />
+          <path d="M108 77 Q113 70 121 69" fill="none" stroke="#F4A673" stroke-width="3" />
+          <g id="s19-face-features" stroke="none">
+            <ellipse cx="120" cy="101" rx="4.6" ry="6" fill="#2A1E3D" />
+            <ellipse cx="142" cy="100" rx="4.6" ry="6" fill="#2A1E3D" />
+            <circle cx="121.6" cy="98.3" r="1.9" fill="#FFFFFF" />
+            <circle cx="143.6" cy="97.3" r="1.9" fill="#FFFFFF" />
+            
+            <ellipse cx="111" cy="111" rx="7.5" ry="5" fill="#F48A9A" opacity="0.7" />
+            <ellipse cx="152" cy="110" rx="5.8" ry="4.4" fill="#F48A9A" opacity="0.7" />
+            
+            <g id="s19-freckles" fill="#B5653F">
+              <circle cx="106.5" cy="106" r="2.2" />
+              <circle cx="112.5" cy="105" r="2.2" />
+              <circle cx="109.5" cy="110" r="2.2" />
+              <circle cx="148.5" cy="106.5" r="2.2" />
+              <circle cx="153.5" cy="105" r="2.2" />
+              <circle cx="151" cy="110" r="2.2" />
+            </g>
+          </g>
+          
+          <path id="s19-mouth" d="M124 111 Q134 116 144 110 Q142 121 134 121 Q126 121 124 111 Z" fill="#FFFFFF" stroke-width="3.5" />
+          <path d="M128 118 Q134 115 140 118 Q137 120.5 134 120.5 Q131 120.5 128 118 Z" fill="#F27C8C" stroke="none" />
+        </g>
+        <g id="s19-visor-rim">
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke-width="16" />
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke="#8ED8FF" stroke-width="9" />
+        </g>
+        <g id="s19-helmet-highlight" stroke="#FFFFFF" fill="none">
+          <path d="M88 70 Q98 54 116 49" stroke-width="7" opacity="0.9" />
+          <circle cx="83" cy="84" r="1.5" stroke-width="5" opacity="0.9" />
+        </g>
+        <circle id="s19-helmet-outline" cx="126" cy="94" r="50" fill="none" />
+      </g>
+    </g>
+  </g>
+</g>
+<g id="s20-juno-l1-idle-01" transform="translate(434 856.8) scale(0.84 0.84) translate(-128 -256)"><defs>
+    <clipPath id="s20-torso-clip"><path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" /></clipPath>
+    <clipPath id="s20-face-clip"><circle cx="128" cy="98" r="29" /></clipPath>
+    <clipPath id="s20-ball-clip"><circle cx="70" cy="128" r="22" /></clipPath>
+  </defs>
+  <g id="s20-juno" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <g id="s20-body-back">
+      <g id="s20-backpack">
+        <rect x="68" y="138" width="36" height="60" rx="13" fill="#A7B0C8" />
+        <path d="M74 184 Q74 192 84 192 H98" fill="none" stroke="#7F89A6" stroke-width="5" />
+      </g>
+      <g id="s20-popper">
+        <g id="s20-funnel">
+          <rect id="s20-funnel-neck" x="60" y="62" width="24" height="46" rx="7" fill="#F4F1EA" />
+          <path d="M60 64 L50 34 H94 L84 64 Z" fill="#FFD23F" />
+          <path d="M78 62 L87 37" fill="none" stroke="#E0AE1F" stroke-width="4" />
+          <path d="M59 56 L55 43" fill="none" stroke="#FFEA99" stroke-width="4" />
+          <ellipse cx="72" cy="30" rx="24" ry="13" fill="#FFD23F" />
+          <ellipse id="s20-funnel-hole" cx="72" cy="30.5" rx="15" ry="7.5" fill="#2A1E3D" stroke="none" />
+        </g>
+        <g id="s20-popper-ball">
+          <circle cx="70" cy="128" r="22" fill="#FFD23F" />
+          <path clip-path="url(#s20-ball-clip)" d="M88 114 Q90 142 64 152 L96 156 L96 112 Z" fill="#E0AE1F" stroke="none" />
+          <path id="s20-ball-star" d="M0 -20 L5.3 -7.3 L19 -6.2 L8.6 2.8 L11.8 16.2 L0 9 L-11.8 16.2 L-8.6 2.8 L-19 -6.2 L-5.3 -7.3 Z" transform="translate(68 130) scale(0.36)" fill="#FFF4D6" stroke="none" />
+          <path d="M55 126 Q56 115 65 111" fill="none" stroke="#FFEA99" stroke-width="4" />
+          <circle cx="70" cy="128" r="22" fill="none" />
+        </g>
+      </g>
+      <g id="s20-legs">
+        <rect x="97" y="190" width="25" height="42" rx="10" fill="#F4F1EA" />
+        <rect x="130" y="190" width="25" height="42" rx="10" fill="#F4F1EA" />
+        <rect x="101" y="210" width="17" height="10" rx="4" fill="#FFD23F" stroke-width="4" />
+        <rect x="134" y="210" width="17" height="10" rx="4" fill="#FFD23F" stroke-width="4" />
+      </g>
+    </g>
+    <g id="s20-boots">
+      <path d="M93 250 V236 Q93 226 103 226 H114 Q124 226 125 234 Q133 237 133 244 V250 Z" fill="#FFD23F" />
+      <path d="M126 250 V236 Q126 226 136 226 H147 Q157 226 158 234 Q166 237 166 244 V250 Z" fill="#FFD23F" />
+      <g stroke="none">
+        <rect x="97" y="241" width="33" height="5.5" rx="2" fill="#E0AE1F" />
+        <rect x="130" y="241" width="33" height="5.5" rx="2" fill="#E0AE1F" />
+      </g>
+      <path d="M99 236 Q99 231 104 231" fill="none" stroke="#FFEA99" stroke-width="3.5" />
+      <path d="M132 236 Q132 231 137 231" fill="none" stroke="#FFEA99" stroke-width="3.5" />
+    </g>
+    <g id="s20-body">
+      <g id="s20-torso">
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="#FFD23F" />
+        <g clip-path="url(#s20-torso-clip)">
+          <path id="s20-torso-shade" d="M156 132 H170 V214 H140 Q158 186 156 132 Z" fill="#E0AE1F" stroke="none" />
+          <rect id="s20-chest-panel" x="102" y="145" width="40" height="30" rx="10" fill="#F4F1EA" stroke-width="4" />
+          <g id="s20-emblem" stroke="none">
+            <path d="M117 166 L130 153" fill="none" stroke="#FFD23F" stroke-width="5" stroke-linecap="round" />
+            <circle cx="117" cy="165" r="6" fill="#FFD23F" />
+          </g>
+          <rect id="s20-tool-belt" x="80" y="183" width="92" height="12" fill="#A7B0C8" stroke-width="4" />
+        </g>
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="none" />
+        <path id="s20-torso-highlight" d="M94 172 V152 Q94 143 102 141" fill="none" stroke="#FFEA99" stroke-width="4.5" />
+      </g>
+      <g id="s20-arm-back" transform="rotate(128 92 146)">
+        <path d="M92 147 Q70 160 82 182" fill="none" stroke-width="26" />
+        <path d="M92 147 Q70 160 82 182" fill="none" stroke="#F4F1EA" stroke-width="12" />
+        <g id="s20-mitten-back" fill="#FFD23F">
+          <circle cx="88" cy="185" r="10.5" />
+        </g>
+      </g>
+      <ellipse id="s20-collar" cx="127" cy="141" rx="33" ry="9" fill="#A7B0C8" stroke-width="6" />
+      <g id="s20-arm-front">
+        <path d="M158 148 Q178 158 176 178" fill="none" stroke-width="26" />
+        <path d="M158 148 Q178 158 176 178" fill="none" stroke="#F4F1EA" stroke-width="12" />
+        <g id="s20-mitten-front" fill="#FFD23F">
+          <circle cx="172" cy="190" r="10.5" />
+        </g>
+        <g id="s20-controller" transform="rotate(-8 184 184)">
+          <rect x="166" y="171" width="40" height="26" rx="11" fill="#A7B0C8" stroke-width="6" />
+          <path d="M172 192 H200" fill="none" stroke="#7F89A6" stroke-width="3" />
+          <circle id="s20-button-glow" cx="190" cy="181" r="12" fill="#FFE79A" opacity="0.6" stroke="none" />
+          <circle id="s20-button" cx="190" cy="181" r="8.5" fill="#FFD23F" stroke-width="4" />
+          <circle cx="187.5" cy="178.5" r="2.6" fill="#FFFFFF" stroke="none" />
+        </g>
+        <ellipse id="s20-mitten-thumb" cx="174" cy="178" rx="4.5" ry="5.5" fill="#FFD23F" stroke-width="4" />
+      </g>
+      <g id="s20-helmet">
+        <circle id="s20-glass" cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none" />
+        <g id="s20-head" stroke-width="4">
+          <path id="s20-hair-bob" d="M94 113 Q88 62 128 61 Q168 62 162 113 Q162 119 155 119 H101 Q94 119 94 113 Z" fill="#1E1A24" />
+          <circle id="s20-face" cx="128" cy="98" r="29" fill="#D9A27A" />
+          <path id="s20-face-shade" clip-path="url(#s20-face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#BC855F" stroke="none" />
+          <path id="s20-fringe" d="M99 95 Q96 64 128 63 Q160 64 157 93 Q156 84 149 84 H107 Q100 84 99 95 Z" fill="#1E1A24" />
+          <path id="s20-hair-sheen" d="M108 76 Q116 70 126 70" fill="none" stroke="#3B2A24" stroke-width="3.5" />
+          <g id="s20-face-features" stroke="none">
+            <ellipse cx="120" cy="101" rx="4.6" ry="6" fill="#2A1E3D" />
+            <ellipse cx="142" cy="100" rx="4.6" ry="6" fill="#2A1E3D" />
+            <circle cx="121.6" cy="98.3" r="1.9" fill="#FFFFFF" />
+            <circle cx="143.6" cy="97.3" r="1.9" fill="#FFFFFF" />
+            <ellipse cx="111" cy="110" rx="6" ry="3.8" fill="#E8806E" opacity="0.6" />
+            <ellipse cx="152" cy="109" rx="4.6" ry="3.4" fill="#E8806E" opacity="0.6" />
+          </g>
+          <g id="s20-mouth" fill="none" stroke-width="3.5">
+            <path d="M123 111 Q134 120 146 108" />
+            <path d="M143.5 106 L148 104.5" stroke-width="4" />
+          </g>
+        </g>
+        <g id="s20-visor-rim">
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke-width="16" />
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke="#FFD23F" stroke-width="9" />
+        </g>
+        <g id="s20-helmet-highlight" stroke="#FFFFFF" fill="none">
+          <path d="M86 78 Q92 64 102 57" stroke-width="7" opacity="0.9" />
+          <circle cx="83" cy="90" r="1.5" stroke-width="5" opacity="0.9" />
+        </g>
+        <circle id="s20-helmet-outline" cx="126" cy="94" r="50" fill="none" />
+        <g id="s20-goggles">
+          <path id="s20-goggle-strap" d="M83 68 Q91 55 104 48 M148 46 Q161 52 169 66" fill="none" stroke-width="14" />
+          <path d="M83 68 Q91 55 104 48 M148 46 Q161 52 169 66" fill="none" stroke="#E0AE1F" stroke-width="6" />
+          <g id="s20-goggle-frame" transform="rotate(-4 126 45)">
+            <rect x="95" y="32" width="62" height="27" rx="13.5" fill="#FFD23F" />
+            <circle cx="111" cy="45.5" r="8" fill="#8ED8FF" stroke-width="3.5" />
+            <circle cx="141" cy="45.5" r="8" fill="#8ED8FF" stroke-width="3.5" />
+            <circle cx="108.5" cy="43" r="2.6" fill="#FFFFFF" stroke="none" />
+            <circle cx="138.5" cy="43" r="2.6" fill="#FFFFFF" stroke="none" />
+            <path d="M101 40 Q101 36 105 35" fill="none" stroke="#FFEA99" stroke-width="3.5" />
+          </g>
+        </g>
+      </g>
+    </g>
+  </g>
+</g>
+<g id="s21-orion-l1-idle-01" transform="translate(590 845) scale(0.84 0.84) translate(-128 -256)"><defs>
+    <clipPath id="s21-torso-clip"><path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" /></clipPath>
+    <clipPath id="s21-face-clip"><circle cx="128" cy="98" r="29" /></clipPath>
+    <clipPath id="s21-tube-clip"><rect x="188" y="130" width="16" height="84" rx="5" /></clipPath>
+    <clipPath id="s21-brass-clip"><rect x="184" y="82" width="24" height="44" rx="6" /></clipPath>
+    <clipPath id="s21-hood-clip"><path d="M183 88 L177 54 Q176 48 182 48 H210 Q216 48 215 54 L209 88 Z" /></clipPath>
+  </defs>
+  <g id="s21-orion" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <g id="s21-body-back">
+      <g id="s21-backpack">
+        <rect x="68" y="138" width="36" height="60" rx="13" fill="#A7B0C8" />
+        <path d="M74 184 Q74 192 84 192 H98" fill="none" stroke="#7F89A6" stroke-width="5" />
+      </g>
+      <g id="s21-legs">
+        <rect x="97" y="190" width="25" height="42" rx="10" fill="#F4F1EA" />
+        <rect x="130" y="190" width="25" height="42" rx="10" fill="#F4F1EA" />
+        <rect x="101" y="210" width="17" height="10" rx="4" fill="#2E4A9E" stroke-width="4" />
+        <rect x="134" y="210" width="17" height="10" rx="4" fill="#2E4A9E" stroke-width="4" />
+      </g>
+    </g>
+    <g id="s21-boots">
+      <path d="M93 250 V236 Q93 226 103 226 H114 Q124 226 125 234 Q133 237 133 244 V250 Z" fill="#2E4A9E" />
+      <path d="M126 250 V236 Q126 226 136 226 H147 Q157 226 158 234 Q166 237 166 244 V250 Z" fill="#2E4A9E" />
+      <g stroke="none">
+        <rect x="97" y="242" width="33" height="5" rx="2" fill="#FFD86B" />
+        <rect x="130" y="242" width="33" height="5" rx="2" fill="#FFD86B" />
+      </g>
+      <path d="M99 236 Q99 231 104 231" fill="none" stroke="#5C78C8" stroke-width="3.52" />
+      <path d="M132 236 Q132 231 137 231" fill="none" stroke="#5C78C8" stroke-width="3.52" />
+    </g>
+    <g id="s21-body">
+      <g id="s21-torso">
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="#2E4A9E" />
+        <g clip-path="url(#s21-torso-clip)" stroke="none">
+          <g id="s21-emblem" fill="#FFD86B">
+            
+            <path transform="translate(104 156)" d="M0 -9 Q2.5 -2.5 9 0 Q2.5 2.5 0 9 Q-2.5 2.5 -9 0 Q-2.5 -2.5 0 -9 Z" />
+            <path transform="translate(140 148)" d="M0 -6 Q1.7 -1.7 6 0 Q1.7 1.7 0 6 Q-1.7 1.7 -6 0 Q-1.7 -1.7 0 -6 Z" />
+            <path transform="translate(128 176)" d="M0 -7.5 Q2.1 -2.1 7.5 0 Q2.1 2.1 0 7.5 Q-2.1 2.1 -7.5 0 Q-2.1 -2.1 0 -7.5 Z" />
+            <path transform="translate(153 186)" d="M0 -6 Q1.7 -1.7 6 0 Q1.7 1.7 0 6 Q-1.7 1.7 -6 0 Q-1.7 -1.7 0 -6 Z" />
+            <path transform="translate(102 192)" d="M0 -5 Q1.4 -1.4 5 0 Q1.4 1.4 0 5 Q-1.4 1.4 -5 0 Q-1.4 -1.4 0 -5 Z" />
+          </g>
+          <path id="s21-torso-shade" d="M156 132 H170 V214 H140 Q158 186 156 132 Z" fill="#22377A" opacity="0.85" />
+        </g>
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="none" />
+        <path id="s21-torso-highlight" d="M95 168 V152 Q95 143 103 141" fill="none" stroke="#5C78C8" stroke-width="4.48" />
+      </g>
+      <ellipse id="s21-collar" cx="127" cy="141" rx="33" ry="9" fill="#A7B0C8" stroke-width="6" />
+      <g id="s21-arm-back">
+        
+        <path d="M94 154 Q118 188 182 162" fill="none" stroke-width="26" />
+        <path d="M94 154 Q118 188 182 162" fill="none" stroke="#F4F1EA" stroke-width="12" />
+      </g>
+      <g id="s21-arm-front">
+        <path d="M158 148 Q178 158 190 172" fill="none" stroke-width="26" />
+        <path d="M158 148 Q178 158 190 172" fill="none" stroke="#F4F1EA" stroke-width="12" />
+        <g id="s21-gadget" transform="rotate(12 196 174)">
+          
+          <circle id="s21-lens-glow" cx="196" cy="46" r="12" fill="#FFE79A" opacity="0.6" stroke="none" />
+          <rect id="s21-eyepiece" x="191" y="212" width="10" height="16" rx="4" fill="#A7B0C8" stroke-width="5" />
+          <g id="s21-tube">
+            <rect x="188" y="130" width="16" height="84" rx="5" fill="#2E4A9E" />
+            <rect clip-path="url(#s21-tube-clip)" x="198" y="130" width="7" height="84" fill="#22377A" stroke="none" />
+            <rect x="188" y="130" width="16" height="84" rx="5" fill="none" />
+            <path d="M193 140 V202" fill="none" stroke="#5C78C8" stroke-width="3.52" />
+          </g>
+          <g id="s21-brass">
+            <rect x="184" y="82" width="24" height="44" rx="6" fill="#FFD86B" />
+            <rect clip-path="url(#s21-brass-clip)" x="200" y="82" width="9" height="44" fill="#E0AE1F" stroke="none" />
+            <rect x="184" y="82" width="24" height="44" rx="6" fill="none" />
+            <path d="M189 92 V110" fill="none" stroke="#FFFFFF" stroke-width="3.52" />
+          </g>
+          <rect id="s21-ring" x="185" y="122" width="22" height="10" rx="4" fill="#FFD86B" stroke-width="5" />
+          <g id="s21-hood">
+            <path d="M183 88 L177 54 Q176 48 182 48 H210 Q216 48 215 54 L209 88 Z" fill="#2E4A9E" />
+            <path clip-path="url(#s21-hood-clip)" d="M204 48 H218 V90 H200 Z" fill="#22377A" stroke="none" />
+            <path d="M183 88 L177 54 Q176 48 182 48 H210 Q216 48 215 54 L209 88 Z" fill="none" />
+            <path d="M178 60 H214" fill="none" stroke="#FFD86B" stroke-width="4.48" stroke-linecap="butt" />
+            <path d="M184 70 L186 82" fill="none" stroke="#5C78C8" stroke-width="3.52" />
+          </g>
+          <ellipse id="s21-lens" cx="196" cy="49" rx="18" ry="7" fill="#FFF4D6" stroke-width="5" />
+          <path d="M186 48 Q189 45 194 45" fill="none" stroke="#FFFFFF" stroke-width="3" />
+        </g>
+        <g id="s21-mitten-back" fill="#2E4A9E">
+          <circle cx="196" cy="150" r="10.5" />
+          <ellipse cx="190" cy="141" rx="4" ry="5" stroke-width="4" />
+        </g>
+        <g id="s21-mitten-front" fill="#2E4A9E">
+          <circle cx="193" cy="177" r="10.5" />
+          <ellipse cx="202" cy="170" rx="4" ry="5" stroke-width="4" />
+        </g>
+      </g>
+      <g id="s21-helmet">
+        <circle id="s21-glass" cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none" />
+        <g id="s21-head" stroke-width="4">
+          
+          <path id="s21-hair-back" d="M97 108 Q88 96 94 84 Q90 72 101 66 Q104 56 117 57 Q126 50 137 56 Q150 54 155 64 Q166 70 162 84 Q166 95 158 104 Z" fill="#3B2A24" />
+          <circle id="s21-face" cx="128" cy="98" r="29" fill="#D6AE84" />
+          <path id="s21-face-shade" clip-path="url(#s21-face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#B88F66" stroke="none" />
+          
+          <path id="s21-fringe" d="M99 96 Q96 68 126 66 Q156 66 158 90 Q152 80 144 82 Q138 74 128 80 Q118 74 110 82 Q104 84 99 96 Z" fill="#3B2A24" />
+          <path d="M112 72 Q120 68 128 71" fill="none" stroke="#5A463C" stroke-width="3" />
+          
+          <g id="s21-hearing-aid">
+            <path d="M102 92 Q98 95 100 99" fill="none" stroke-width="3" />
+            <circle cx="101" cy="104" r="5" fill="#3FB8AF" stroke="#2A1E3D" stroke-width="3" />
+            <circle cx="99.5" cy="102.5" r="1.3" fill="#FFFFFF" stroke="none" />
+          </g>
+          <g id="s21-face-features" stroke="none">
+            <ellipse cx="120" cy="101" rx="4.6" ry="6" fill="#2A1E3D" />
+            <ellipse cx="142" cy="100" rx="4.6" ry="6" fill="#2A1E3D" />
+            <circle cx="121.6" cy="98.3" r="1.9" fill="#FFFFFF" />
+            <circle cx="143.6" cy="97.3" r="1.9" fill="#FFFFFF" />
+            <ellipse cx="111" cy="110" rx="6" ry="3.8" fill="#F48A9A" opacity="0.45" />
+            <ellipse cx="152" cy="109" rx="4.5" ry="3.4" fill="#F48A9A" opacity="0.45" />
+          </g>
+          
+          <path id="s21-mouth" d="M125 113 Q134 119 143 112" fill="none" stroke-width="3.52" />
+        </g>
+        <g id="s21-visor-rim">
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke-width="16" />
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke="#2E4A9E" stroke-width="9" />
+        </g>
+        <g id="s21-helmet-highlight" stroke="#FFFFFF" fill="none">
+          <path d="M88 70 Q98 54 116 49" stroke-width="7" opacity="0.9" />
+          <circle cx="83" cy="84" r="1.5" stroke-width="5" opacity="0.9" />
+        </g>
+        <circle id="s21-helmet-outline" cx="126" cy="94" r="50" fill="none" />
+      </g>
+    </g>
+  </g>
+</g>
+<g id="s22-mira-l1-idle-01" transform="translate(746 856.8) scale(0.84 0.84) translate(-128 -256)"><defs>
+    <clipPath id="s22-torso-clip"><path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" /></clipPath>
+    <clipPath id="s22-shield-clip"><path d="M91 151 Q126 138 161 151 V170 Q161 194 126 205 Q91 194 91 170 Z" /></clipPath>
+    <clipPath id="s22-face-clip"><circle cx="128" cy="98" r="29" /></clipPath>
+  </defs>
+  <g id="s22-mira" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <g id="s22-body-back">
+      <g id="s22-backpack">
+        <rect x="68" y="138" width="36" height="60" rx="13" fill="#A7B0C8" />
+        <path d="M74 184 Q74 192 84 192 H98" fill="none" stroke="#7F89A6" stroke-width="5" />
+      </g>
+      <g id="s22-legs">
+        <rect x="97" y="190" width="25" height="42" rx="10" fill="#F4F1EA" />
+        <rect x="130" y="190" width="25" height="42" rx="10" fill="#F4F1EA" />
+        <rect x="101" y="210" width="17" height="10" rx="4" fill="#3DBE6E" stroke-width="4" />
+        <rect x="134" y="210" width="17" height="10" rx="4" fill="#3DBE6E" stroke-width="4" />
+      </g>
+    </g>
+    <g id="s22-boots">
+      <path d="M93 250 V236 Q93 226 103 226 H114 Q124 226 125 234 Q133 237 133 244 V250 Z" fill="#3DBE6E" />
+      <path d="M126 250 V236 Q126 226 136 226 H147 Q157 226 158 234 Q166 237 166 244 V250 Z" fill="#3DBE6E" />
+      <g stroke="none">
+        <rect x="97" y="242" width="33" height="5" rx="2" fill="#2A9653" />
+        <rect x="130" y="242" width="33" height="5" rx="2" fill="#2A9653" />
+      </g>
+      <path d="M99 236 Q99 231 104 231" fill="none" stroke="#8FE0AA" stroke-width="3.5" />
+      <path d="M132 236 Q132 231 137 231" fill="none" stroke="#8FE0AA" stroke-width="3.5" />
+    </g>
+    <g id="s22-body">
+      <g id="s22-arm-back" transform="rotate(128 92 146)">
+        <path d="M92 146 Q74 164 80 190" fill="none" stroke-width="26" />
+        <path d="M92 146 Q74 164 80 190" fill="none" stroke="#F4F1EA" stroke-width="12" />
+        <g id="s22-mitten-back" fill="#3DBE6E">
+          <circle cx="80" cy="194" r="10.5" />
+          <ellipse cx="90" cy="190" rx="5" ry="4" stroke-width="4" />
+        </g>
+      </g>
+      <g id="s22-torso">
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="#F4F1EA" />
+        <g clip-path="url(#s22-torso-clip)">
+          <path id="s22-torso-shade" d="M156 132 H170 V214 H140 Q158 186 156 132 Z" fill="#2A1E3D" opacity="0.13" stroke="none" />
+        </g>
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="none" />
+        
+        <g id="s22-emblem">
+          <path d="M91 151 Q126 138 161 151 V170 Q161 194 126 205 Q91 194 91 170 Z" fill="#3DBE6E" stroke-width="5" />
+          <g clip-path="url(#s22-shield-clip)" stroke="none">
+            <path id="s22-emblem-shade" d="M150 140 H166 V208 H120 Q154 192 150 140 Z" fill="#2A9653" />
+          </g>
+          <path id="s22-emblem-band" d="M101 158 Q126 149 151 158 V171 Q151 189 126 197 Q101 189 101 171 Z" fill="none" stroke="#F4F1EA" stroke-width="5" />
+          <path d="M91 151 Q126 138 161 151 V170 Q161 194 126 205 Q91 194 91 170 Z" fill="none" stroke-width="5" />
+          <path id="s22-emblem-highlight" d="M108 168 Q109 163 115 161" fill="none" stroke="#8FE0AA" stroke-width="4" />
+        </g>
+        <path id="s22-torso-highlight" d="M89 170 V156 Q89 148 94 145" fill="none" stroke="#FFFFFF" stroke-width="4" />
+      </g>
+      <ellipse id="s22-collar" cx="127" cy="141" rx="33" ry="9" fill="#A7B0C8" stroke-width="6" />
+      <g id="s22-arm-front">
+        <path d="M158 148 Q180 156 188 174" fill="none" stroke-width="26" />
+        <path d="M158 148 Q180 156 188 174" fill="none" stroke="#F4F1EA" stroke-width="12" />
+        
+        <g id="s22-gadget" transform="translate(210 156) rotate(40)">
+          <circle id="s22-lens-glow" cx="0" cy="-10" r="12" fill="#5BE0F0" opacity="0.6" stroke="none" />
+          <rect id="s22-handle" x="-4.5" y="6" width="9" height="26" rx="4.5" fill="#A7B0C8" stroke-width="5" />
+          <path id="s22-dish" d="M-25 0 Q-23 18 0 18 Q23 18 25 0 Z" fill="#F4F1EA" stroke-width="5" />
+          <path id="s22-dish-band" d="M-19 9 Q0 14.5 19 9" fill="none" stroke="#3DBE6E" stroke-width="4" />
+          <ellipse id="s22-dish-face" cx="0" cy="0" rx="25" ry="7" fill="#C9D0E2" stroke-width="5" />
+          <path id="s22-feed" d="M0 0 V-9" fill="none" stroke-width="4" />
+          <circle id="s22-lens" cx="0" cy="-10" r="4.5" fill="#5BE0F0" stroke-width="4" />
+          <circle cx="-1.5" cy="-11.5" r="1.4" fill="#FFFFFF" stroke="none" />
+        </g>
+        <g id="s22-mitten-front" fill="#3DBE6E">
+          <circle cx="190" cy="179" r="10.5" />
+          <ellipse cx="194" cy="169" rx="4" ry="5" stroke-width="4" />
+        </g>
+      </g>
+      <g id="s22-helmet">
+        <circle id="s22-glass" cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none" />
+        <g id="s22-head" stroke-width="4">
+          
+          <circle id="s22-hair-bun" cx="104" cy="70" r="12" fill="#3B2A24" />
+          <path d="M98 66 Q100 62 105 61" fill="none" stroke="#6A5048" stroke-width="3" />
+          <circle id="s22-face" cx="128" cy="98" r="29" fill="#A9714B" />
+          <path id="s22-face-shade" clip-path="url(#s22-face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#8A5A3A" stroke="none" />
+          
+          <path id="s22-fringe" d="M99 97 Q96 68 128 67 Q159 68 157 93 Q151 80 136 79 Q141 84 140 86 Q122 78 110 84 Q102 88 99 97 Z" fill="#3B2A24" />
+          <path d="M108 76 Q114 71 122 71" fill="none" stroke="#6A5048" stroke-width="3" stroke-linecap="round" />
+          <g id="s22-face-features" stroke="none">
+            <ellipse cx="120" cy="102" rx="4" ry="5.2" fill="#2A1E3D" />
+            <ellipse cx="142" cy="101" rx="4" ry="5.2" fill="#2A1E3D" />
+            <circle cx="121.4" cy="99.8" r="1.7" fill="#FFFFFF" />
+            <circle cx="143.4" cy="98.8" r="1.7" fill="#FFFFFF" />
+            <ellipse cx="110" cy="113" rx="6" ry="3.8" fill="#D9606E" opacity="0.6" />
+            <ellipse cx="152" cy="112" rx="4.6" ry="3.4" fill="#D9606E" opacity="0.6" />
+          </g>
+          
+          <g id="s22-glasses" stroke-width="3">
+            <circle cx="120" cy="101" r="9" fill="#FFFFFF" fill-opacity="0.22" />
+            <circle cx="142.5" cy="100" r="8.5" fill="#FFFFFF" fill-opacity="0.22" />
+            <path d="M129 100 Q131.3 97.5 134 99.5" fill="none" />
+            <path d="M111 99 L100 96" fill="none" />
+          </g>
+          <path id="s22-mouth" d="M124 114 Q133 121 143 113" fill="none" stroke-width="3.5" />
+        </g>
+        <g id="s22-visor-rim">
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke-width="16" />
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke="#3DBE6E" stroke-width="9" />
+        </g>
+        <g id="s22-helmet-highlight" stroke="#FFFFFF" fill="none">
+          <path d="M88 70 Q98 54 116 49" stroke-width="7" opacity="0.9" />
+          <circle cx="83" cy="84" r="1.5" stroke-width="5" opacity="0.9" />
+        </g>
+        <circle id="s22-helmet-outline" cx="126" cy="94" r="50" fill="none" />
+      </g>
+    </g>
+  </g>
+</g>
+<g id="s23-sol-l1-idle-01" transform="translate(902 856.8) scale(0.84 0.84) translate(-128 -384)"><defs>
+    <clipPath id="s23-torso-clip"><path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" /></clipPath>
+    <clipPath id="s23-face-clip"><circle cx="128" cy="98" r="29" /></clipPath>
+    <clipPath id="s23-bulb-clip"><circle cx="63" cy="-38" r="13" /></clipPath>
+  </defs>
+  <g id="s23-sol" transform="translate(0 128)" stroke="#2A1E3D" stroke-width="7" stroke-linejoin="round" stroke-linecap="round">
+    <g id="s23-body-back">
+      <g id="s23-antenna">
+        <g id="s23-antenna-mast">
+          <path d="M76 136 L64 -22" fill="none" stroke-width="12" />
+          <path d="M76 136 L64 -22" fill="none" stroke="#A7B0C8" stroke-width="5" />
+          <path d="M71 70 L67.6 25" fill="none" stroke="#E2403A" stroke-width="5" stroke-linecap="butt" />
+          <rect x="54" y="-27" width="18" height="10" rx="4" fill="#A7B0C8" stroke-width="4" />
+        </g>
+        <g id="s23-beacon">
+          <circle id="s23-beacon-glow" cx="63" cy="-38" r="20" fill="#FFE79A" opacity="0.5" stroke="none" />
+          <circle cx="63" cy="-38" r="13" fill="#F5B700" stroke="none" />
+          <path clip-path="url(#s23-bulb-clip)" d="M76 -44 Q72 -26 54 -24 L78 -20 Z" fill="#CC9600" stroke="none" />
+          <circle id="s23-bulb-outline" cx="63" cy="-38" r="13" fill="none" stroke-width="5" />
+          <path d="M56 -40 Q57 -45 62 -46" fill="none" stroke="#FFF4D6" stroke-width="3.5" />
+        </g>
+        <rect id="s23-antenna-mount" x="68" y="128" width="20" height="14" rx="5" fill="#A7B0C8" stroke-width="5" />
+      </g>
+      <g id="s23-backpack">
+        <rect x="68" y="138" width="36" height="60" rx="13" fill="#A7B0C8" />
+        <path d="M74 184 Q74 192 84 192 H98" fill="none" stroke="#7F89A6" stroke-width="5" />
+      </g>
+      <g id="s23-legs">
+        <rect x="97" y="190" width="25" height="42" rx="10" fill="#E2403A" />
+        <rect x="130" y="190" width="25" height="42" rx="10" fill="#E2403A" />
+        <rect x="101" y="210" width="17" height="10" rx="4" fill="#F5B700" stroke-width="4" />
+        <rect x="134" y="210" width="17" height="10" rx="4" fill="#F5B700" stroke-width="4" />
+      </g>
+    </g>
+    <g id="s23-boots">
+      <path d="M93 250 V236 Q93 226 103 226 H114 Q124 226 125 234 Q133 237 133 244 V250 Z" fill="#F5B700" />
+      <path d="M126 250 V236 Q126 226 136 226 H147 Q157 226 158 234 Q166 237 166 244 V250 Z" fill="#F5B700" />
+      <g stroke="none">
+        <rect x="97" y="242" width="33" height="5" rx="2" fill="#CC9600" />
+        <rect x="130" y="242" width="33" height="5" rx="2" fill="#CC9600" />
+      </g>
+      <path d="M99 236 Q99 231 104 231" fill="none" stroke="#FFF4D6" stroke-width="3.5" />
+      <path d="M132 236 Q132 231 137 231" fill="none" stroke="#FFF4D6" stroke-width="3.5" />
+    </g>
+    <g id="s23-body">
+      <g id="s23-arm-back">
+        <path d="M92 146 Q74 164 80 190" fill="none" stroke-width="26" />
+        <path d="M92 146 Q74 164 80 190" fill="none" stroke="#E2403A" stroke-width="12" />
+        <g id="s23-mitten-back" fill="#F5B700">
+          <circle cx="80" cy="194" r="10.5" />
+          <ellipse cx="90" cy="190" rx="5" ry="4" stroke-width="4" />
+        </g>
+      </g>
+      <g id="s23-torso">
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="#E2403A" />
+        <g clip-path="url(#s23-torso-clip)">
+          <path id="s23-torso-shade" d="M156 132 H170 V214 H140 Q158 186 156 132 Z" fill="#B52D28" stroke="none" />
+          <rect id="s23-belt" x="80" y="180" width="92" height="13" fill="#F5B700" stroke-width="4.5" />
+        </g>
+        <path d="M86 150 Q86 132 106 132 H148 Q166 132 166 150 V196 Q166 205 156 205 H96 Q86 205 86 196 Z" fill="none" />
+        <g id="s23-emblem">
+          <circle cx="114" cy="161" r="9" fill="#F5B700" stroke-width="4" />
+          <circle cx="114" cy="161" r="3.5" fill="#FFF4D6" stroke="none" />
+        </g>
+        <path id="s23-torso-highlight" d="M95 168 V152 Q95 143 103 141" fill="none" stroke="#F28480" stroke-width="4.5" />
+      </g>
+      <ellipse id="s23-collar" cx="127" cy="141" rx="33" ry="9" fill="#A7B0C8" stroke-width="6" />
+      <g id="s23-arm-front">
+        <path d="M158 148 Q190 156 188 124" fill="none" stroke-width="26" />
+        <path d="M158 148 Q190 156 188 124" fill="none" stroke="#E2403A" stroke-width="12" />
+        <g id="s23-mitten-front" fill="#F5B700">
+          <rect x="181" y="94" width="10" height="18" rx="5" stroke-width="4" />
+          <circle cx="189" cy="117" r="11" />
+          <path d="M183 112 Q188 110 194 113" fill="none" stroke-width="3" />
+        </g>
+      </g>
+      <g id="s23-helmet">
+        <circle id="s23-glass" cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none" />
+        <g id="s23-head" stroke-width="4">
+          <circle id="s23-face" cx="128" cy="98" r="29" fill="#6E4630" />
+          <path id="s23-face-shade" clip-path="url(#s23-face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#553424" stroke="none" />
+          <path id="s23-beard" d="M100 90 Q98 128 128 128 Q158 128 156 88 L151 90 Q151 108 141 110 Q134 106 128 108.5 Q122 106 115 110 Q105 108 105 91 Z" fill="#B9B4C4" />
+          <path id="s23-hair" d="M100 92 Q99 69 128 69 Q157 69 156 90 Q152 82 145 83 Q139 78 132 80 Q125 77 118 80 Q108 79 100 92 Z" fill="#B9B4C4" />
+          <g id="s23-face-features" stroke="none">
+            <ellipse cx="120" cy="96" rx="4.6" ry="6" fill="#1E1A24" />
+            <ellipse cx="142" cy="95" rx="4.6" ry="6" fill="#1E1A24" />
+            <circle cx="121.6" cy="93.3" r="1.9" fill="#FFFFFF" />
+            <circle cx="143.6" cy="92.3" r="1.9" fill="#FFFFFF" />
+            <ellipse cx="110" cy="104" rx="5.5" ry="3.5" fill="#F48A9A" opacity="0.4" />
+            <ellipse cx="152" cy="103" rx="4.5" ry="3.2" fill="#F48A9A" opacity="0.4" />
+          </g>
+          <path id="s23-mouth" d="M122 107 H146 Q144 120 134 120 Q124 120 122 107 Z" fill="#FFFFFF" stroke-width="3.5" />
+          <path d="M127 116 Q134 112 141 116 Q138 119.5 134 119.5 Q130 119.5 127 116 Z" fill="#F27C8C" stroke="none" />
+        </g>
+        <g id="s23-visor-rim">
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke-width="16" />
+          <path d="M83 121 Q126 152 169 121" fill="none" stroke="#F5B700" stroke-width="9" />
+        </g>
+        <g id="s23-helmet-highlight" stroke="#FFFFFF" fill="none">
+          <path d="M88 70 Q98 54 116 49" stroke-width="7" opacity="0.9" />
+          <circle cx="83" cy="84" r="1.5" stroke-width="5" opacity="0.9" />
+        </g>
+        <circle id="s23-helmet-outline" cx="126" cy="94" r="50" fill="none" />
+      </g>
+    </g>
+  </g>
+</g>
+</svg>
