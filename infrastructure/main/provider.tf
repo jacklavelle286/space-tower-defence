@@ -7,6 +7,11 @@ terraform {
       source  = "hashicorp/aws"
       version = ">= 6.73, < 7.0"
     }
+    # One-time and test-account passwords (accounts.tf, ADR-0022).
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.9.1"
+    }
   }
 
   # Filled in by the pipeline with -backend-config:
@@ -24,7 +29,7 @@ provider "aws" {
   }
 }
 
-# us-east-1: the CloudFront viewer certificate now; CloudFront alarms and their SNS mirror topic later (plan H.14).
+# us-east-1: the CloudFront viewer certificate, the CloudFront alarms and their SNS mirror topic (plan H.14).
 provider "aws" {
   alias               = "us_east_1"
   region              = "us-east-1"

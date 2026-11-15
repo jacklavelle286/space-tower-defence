@@ -8,7 +8,8 @@
 # Deliberately absent:
 # - username_attributes, alias_attributes, auto-verified attributes, schema: username + password only. Profile data is
 #   never a Cognito attribute (it would reach the ID token, E.7.1).
-# - aws_cognito_user / aws_cognito_user_in_group: people and group membership are owner runbook steps (H.9.1).
+# - aws_cognito_user / aws_cognito_user_in_group: the operator and test accounts live in infrastructure/main/accounts.tf
+#   (ADR-0022); children are never Terraform users.
 # - A client secret: a browser cannot keep one.
 #
 # Client attributes are narrowed to one harmless standard attribute (sources/05 §4.5; ADR-0012 "Phase 8"). An omitted
@@ -19,6 +20,9 @@
 # (docs/runbooks/operator-accounts.md, "Checks to record").
 
 locals {
+  # Site the invitation points at: the origin of the first callback URL (e.g. https://admin.aliens.jackgl.com).
+  sign_in_origin = regex("^https://[^/]+", var.callback_urls[0])
+
   # "game/play" -> resource server "game", scope "play".
   scope_parts       = split("/", var.scope)
   scope_server      = local.scope_parts[0]
@@ -44,6 +48,14 @@ resource "aws_cognito_user_pool" "this" {
 
   admin_create_user_config {
     allow_admin_create_user_only = var.allow_admin_create_user_only
+
+    # Sent only when a user is created without message_action = SUPPRESS (today: invited operators, ADR-0022).
+    # Cognito fills in {username} and {####} (the temporary password). Default Cognito sender (low daily limit).
+    invite_message_template {
+      email_subject = "Your Space Colony Defence admin account"
+      email_message = "Hello. An admin account has been made for you.<br><br>Username: {username}<br>Temporary password: {####}<br><br>Sign in at ${local.sign_in_origin} . You will choose your own password and set up an authenticator app. The temporary password expires in 7 days."
+      sms_message   = "Space Colony Defence admin: username {username}, temporary password {####}"
+    }
   }
 
   # No self-service recovery (no contact attributes): the owner resets passwords (E.7.1, ADR-0012 check 3).

@@ -32,6 +32,7 @@ The rules are in [J §J.6](../plan/J-execution-backlog.md#j6-decision-log-practi
 | [0019](0019-single-release-run-with-approval.md) | One release run with a manual approval (supersedes in part 0010, 0011 once accepted) | Accepted |
 | [0020](0020-spike-workflow-destroy-path.md) | A separate spike workflow whose destroy reaches spike state only (amends H §H.7 W-1 and the J M0 order for Phases 5–6) | Proposed |
 | [0021](0021-skip-remaining-spikes.md) | Skip the DynamoDB and browser-audio spikes (M0-13, M0-12); their questions move to Phases 17, 19 and 22 | Proposed |
+| [0022](0022-accounts-in-terraform.md) | Operator and test accounts in Terraform (supersedes, for those four accounts only, H §H.9.1's "no users in Terraform") | Proposed |
 
 ## Next in line
 

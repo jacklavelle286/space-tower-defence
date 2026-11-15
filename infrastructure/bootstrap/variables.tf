@@ -123,3 +123,15 @@ variable "tts_phoneme_engine" {
   type        = string
   default     = null
 }
+
+variable "operator_username" {
+  description = "Main-only; declared so bootstrap.sh's -var-file does not warn"
+  type        = string
+  default     = null
+}
+
+variable "operator_email" {
+  description = "Main-only; declared so bootstrap.sh's -var-file does not warn"
+  type        = string
+  default     = null
+}
