@@ -1,5 +1,5 @@
 # 0024. Content before game systems; offline play after launch
-Status: Proposed · Date: 2026-11-15
+Status: Accepted · Date: 2026-11-15
 
 Context: [Gate bundles](../build-phases.md#gate-bundles-owner-decision-2026-11-15) ran D → E (game systems) → F (run lifecycle)
 → G, H (admin, speech, selection) → I (content) → J (campaign) → K (offline) → L (polish, launch). Real learning content

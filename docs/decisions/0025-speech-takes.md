@@ -1,5 +1,5 @@
 # 0025. Speech takes: the draft's take is the clip key's generation
-Status: Proposed · Date: 2026-11-15
+Status: Accepted · Date: 2026-11-15
 
 Context: Polly's generative engine is not deterministic. The same canonical input for `phoneme-sh` (clip key `14cf642b…`)
 gave the owner's bake-off MP3 (6956 bytes, sha256 `9016a3dc…`) and, rendered again by production preview, a different MP3

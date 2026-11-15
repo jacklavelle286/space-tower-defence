@@ -1,5 +1,5 @@
 # 0017. Milestone 1 session scope: full server fence, a thin client
-Status: Proposed · Date: 2026-11-15
+Status: Accepted · Date: 2026-11-15
 
 Context: The account-wide play-session lease ([ADR-0008](0008-play-session-lease.md)) fences every op. Takeover, divergence
 and offline belong to M5, but generation stamping cannot be added later without changing how queued ops are stored

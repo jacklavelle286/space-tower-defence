@@ -1,5 +1,5 @@
 # 0018. The M1 clip goes through a minimal admin app on admin.aliens.jackgl.com
-Status: Proposed · Date: 2026-11-15
+Status: Accepted · Date: 2026-11-15
 
 Context: M1's one clip must take the real preview → approve path ([D §D9](../plan/D-ux-and-content-operations.md#d9-phonics-preview-review-and-the-quality-gate),
 spine S5.2), and the one activity must be published through the real gate. The operator app client's callback URLs are on

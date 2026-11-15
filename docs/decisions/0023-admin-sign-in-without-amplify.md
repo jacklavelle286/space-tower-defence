@@ -1,5 +1,5 @@
 # 0023. Admin sign-in: hand-written code + PKCE, tokens in sessionStorage, no refresh
-Status: Proposed · Date: 2026-11-15
+Status: Accepted · Date: 2026-11-15
 
 Context: Phase 20 (M1-19) needs operator sign-in on `admin.aliens.jackgl.com`: managed login, authorisation code + PKCE,
 the operator pool's client and the admin callback ([E §E.7.1–E.7.2](../plan/E-architecture.md#e71-design-summary), ADR-0002).

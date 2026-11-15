@@ -1,5 +1,5 @@
 # 0015. Browser audio storage and the Play rule in code
-Status: Proposed · Date: 2026-11-15
+Status: Accepted · Date: 2026-11-15
 
 Context: The Play rule is fixed by the owner (O-2, 2026-11-14; [spine S5.2](../plan/00-spine.md#s52-activities-templates-speech),
 [E §E.9](../plan/E-architecture.md#e9-audio-caching-and-playback)). The browser-audio spike (M0-12) that was to settle storage,

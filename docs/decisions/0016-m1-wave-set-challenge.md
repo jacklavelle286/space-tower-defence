@@ -1,5 +1,5 @@
 # 0016. The Milestone 1 wave set is a two-wave CHALLENGE
-Status: Proposed · Date: 2026-11-15
+Status: Accepted · Date: 2026-11-15
 
 Context: M1 has one phonics activity and one clip ([B §B3.2](../plan/B-scope-and-decisions.md#b32-side-by-side)). With the
 no-repeat rule, one activity fills exactly one slot, so the wave set has one activity interval and no `meteorAfter` (two

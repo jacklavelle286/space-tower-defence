@@ -30,17 +30,17 @@ The rules are in [J §J.6](../plan/J-execution-backlog.md#j6-decision-log-practi
 | [0012](0012-auth-spike.md) | Auth spike results: managed login for the player pool | Accepted |
 | [0013](0013-front-end-stack-versions.md) | Front-end stack versions | Accepted |
 | [0014](0014-listening-bake-off.md) | Listening bake-off: `tts_phoneme_engine`, per-sound verdicts and SSML templates | Accepted |
-| [0015](0015-browser-audio-storage.md) | Browser audio storage (IndexedDB `scd-<sub>`, memory fallback) and the Play rule in code | Proposed |
-| [0016](0016-m1-wave-set-challenge.md) | The Milestone 1 wave set is a two-wave CHALLENGE (J-1) | Proposed |
-| [0017](0017-m1-session-scope.md) | Milestone 1 session scope: full server fence, a thin client (J-2) | Proposed |
-| [0018](0018-m1-minimal-admin-app.md) | The M1 clip goes through a minimal admin app on `admin.aliens.jackgl.com` (J-3) | Proposed |
+| [0015](0015-browser-audio-storage.md) | Browser audio storage (IndexedDB `scd-<sub>`, memory fallback) and the Play rule in code | Accepted |
+| [0016](0016-m1-wave-set-challenge.md) | The Milestone 1 wave set is a two-wave CHALLENGE (J-1) | Accepted |
+| [0017](0017-m1-session-scope.md) | Milestone 1 session scope: full server fence, a thin client (J-2) | Accepted |
+| [0018](0018-m1-minimal-admin-app.md) | The M1 clip goes through a minimal admin app on `admin.aliens.jackgl.com` (J-3) | Accepted |
 | [0019](0019-single-release-run-with-approval.md) | One release run with a manual approval (supersedes in part 0010, 0011 once accepted) | Accepted |
 | [0020](0020-spike-workflow-destroy-path.md) | A separate spike workflow whose destroy reaches spike state only (amends H §H.7 W-1 and the J M0 order for Phases 5–6) | Accepted |
 | [0021](0021-skip-remaining-spikes.md) | Skip the DynamoDB and browser-audio spikes (M0-13, M0-12); their questions move to Phases 17, 19 and 22 | Accepted |
 | [0022](0022-accounts-in-terraform.md) | Operator and test accounts in Terraform (supersedes, for those four accounts only, H §H.9.1's "no users in Terraform") | Accepted |
-| [0024](0024-content-first-offline-after-launch.md) | Content before game systems; offline play after launch (gate order D, G, H1, I, E, F, J, L, then K) | Proposed |
-| [0023](0023-admin-sign-in-without-amplify.md) | Admin sign-in: hand-written code + PKCE, tokens in sessionStorage, no refresh (the player keeps Amplify, E.7.1) | Proposed |
-| [0025](0025-speech-takes.md) | Speech takes: a draft's `take` (1..50, absent = 1) is the clip key's generation, so the operator can re-roll a generative render | Proposed |
+| [0024](0024-content-first-offline-after-launch.md) | Content before game systems; offline play after launch (gate order D, G, H1, I, E, F, J, L, then K) | Accepted |
+| [0023](0023-admin-sign-in-without-amplify.md) | Admin sign-in: hand-written code + PKCE, tokens in sessionStorage, no refresh (the player keeps Amplify, E.7.1) | Accepted |
+| [0025](0025-speech-takes.md) | Speech takes: a draft's `take` (1..50, absent = 1) is the clip key's generation, so the operator can re-roll a generative render | Accepted |
 
 ## Next in line
 
