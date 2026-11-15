@@ -1,5 +1,5 @@
 # 0019. One release run with a manual approval
-Status: Proposed · Date: 2026-11-15
+Status: Accepted · Date: 2026-11-15
 
 Context: Phase 4 shipped the two-dispatch default ([H §H.7.1](../plan/H-infrastructure-and-delivery.md#h71-decisions) W-4,
 ADR-0010, ADR-0011 branch 1b): `release.yml` stops after the plan and the owner dispatches `apply.yml` with the plan's run ID.
