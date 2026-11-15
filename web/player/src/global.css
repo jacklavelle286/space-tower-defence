@@ -1,0 +1,14 @@
+/* Global font: Unkempt (owner's choice, 2026-11-15), self-hosted from @fontsource so the browser never contacts
+   Google (children's privacy, and the planned CSP allows only the site's own files). Latin subset only: the game is en-GB. */
+@import "@fontsource/unkempt/latin-400.css";
+@import "@fontsource/unkempt/latin-700.css";
+
+:root {
+  --font-ui: "Unkempt", "Comic Sans MS", system-ui, sans-serif;
+}
+
+html,
+body {
+  margin: 0;
+  font-family: var(--font-ui);
+}

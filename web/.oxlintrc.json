@@ -1,42 +1,110 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["typescript", "react", "import"],
+  "plugins": [
+    "typescript",
+    "react",
+    "import"
+  ],
   "categories": {
     "correctness": "error",
     "suspicious": "warn"
   },
-  "ignorePatterns": ["**/dist/**", "**/node_modules/**", "player/public/**"],
+  "ignorePatterns": [
+    "**/dist/**",
+    "**/node_modules/**",
+    "player/public/**"
+  ],
   "rules": {
-    "react/react-in-jsx-scope": "off"
+    "react/react-in-jsx-scope": "off",
+    "import/no-unassigned-import": [
+      "warn",
+      {
+        "allow": [
+          "**/*.css"
+        ]
+      }
+    ]
   },
   "overrides": [
     {
-      "files": ["game-core/**"],
+      "files": [
+        "game-core/**"
+      ],
       "rules": {
         "no-restricted-imports": [
           "error",
           {
             "paths": [
-              { "name": "phaser", "message": "game-core is pure: no Phaser (plan E.5.1)." },
-              { "name": "react", "message": "game-core is pure: no React (plan E.5.1)." },
-              { "name": "react-dom", "message": "game-core is pure: no React (plan E.5.1)." }
+              {
+                "name": "phaser",
+                "message": "game-core is pure: no Phaser (plan E.5.1)."
+              },
+              {
+                "name": "react",
+                "message": "game-core is pure: no React (plan E.5.1)."
+              },
+              {
+                "name": "react-dom",
+                "message": "game-core is pure: no React (plan E.5.1)."
+              }
             ],
             "patterns": [
-              { "group": ["phaser/*", "react/*", "react-dom/*", "@scd/player*", "@scd/admin*", "@scd/shared*"], "message": "game-core imports nothing from the apps or the DOM side (plan E.5.1)." }
+              {
+                "group": [
+                  "phaser/*",
+                  "react/*",
+                  "react-dom/*",
+                  "@scd/player*",
+                  "@scd/admin*",
+                  "@scd/shared*"
+                ],
+                "message": "game-core imports nothing from the apps or the DOM side (plan E.5.1)."
+              }
             ]
           }
         ],
-        "no-restricted-globals": ["error", "window", "self", "document", "location", "fetch", "indexedDB", "localStorage", "sessionStorage", "navigator", "requestAnimationFrame", "setTimeout", "setInterval", "performance", "process"]
+        "no-restricted-globals": [
+          "error",
+          "window",
+          "self",
+          "document",
+          "location",
+          "fetch",
+          "indexedDB",
+          "localStorage",
+          "sessionStorage",
+          "navigator",
+          "requestAnimationFrame",
+          "setTimeout",
+          "setInterval",
+          "performance",
+          "process"
+        ]
       }
     },
     {
-      "files": ["shared/**", "admin/**"],
+      "files": [
+        "shared/**",
+        "admin/**"
+      ],
       "rules": {
         "no-restricted-imports": [
           "error",
           {
-            "paths": [{ "name": "phaser", "message": "Only the player app uses Phaser (plan E.5.1)." }],
-            "patterns": [{ "group": ["phaser/*"], "message": "Only the player app uses Phaser (plan E.5.1)." }]
+            "paths": [
+              {
+                "name": "phaser",
+                "message": "Only the player app uses Phaser (plan E.5.1)."
+              }
+            ],
+            "patterns": [
+              {
+                "group": [
+                  "phaser/*"
+                ],
+                "message": "Only the player app uses Phaser (plan E.5.1)."
+              }
+            ]
           }
         ]
       }

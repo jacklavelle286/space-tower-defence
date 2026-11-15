@@ -37,10 +37,10 @@ export function App() {
   }, []);
 
   return (
-    <main style={{ margin: 0, minHeight: "100vh", background: "#141633", color: "#FFF4D6", fontFamily: "sans-serif" }}>
-      <h1 style={{ margin: 0, padding: "12px 16px", fontSize: 20 }}>Space Colony Defence</h1>
+    <main style={{ margin: 0, minHeight: "100vh", background: "#141633", color: "#FFF4D6" }}>
+      <h1 style={{ margin: 0, padding: "12px 16px", fontSize: 32 }}>Space Colony Defence</h1>
       <div ref={container} style={{ width: "100%", maxWidth: 1280, margin: "0 auto" }} />
-      <p style={{ padding: "8px 16px", fontSize: 12, opacity: 0.7 }}>
+      <p style={{ padding: "8px 16px", fontSize: 16, opacity: 0.8 }}>
         Walking skeleton. Rules version {MECHANICS_VERSION}.
       </p>
     </main>

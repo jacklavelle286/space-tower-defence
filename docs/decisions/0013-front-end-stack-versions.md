@@ -21,6 +21,9 @@ Phaser is imported by name (`import { Game } from "phaser"`) and split into its 
 `output.codeSplitting.groups`, not the deprecated `rollupOptions`/`manualChunks` aliases). Phaser's keyboard plugin is off
 (`input: { keyboard: false }`); keys go through the React DOM (E.5.2).
 
+Global font: Unkempt (owner's choice), self-hosted from `@fontsource/unkempt` 5.3.0 (Apache-2.0, Latin subset), never
+loaded from Google, so no third-party request and a `font-src 'self'` CSP works.
+
 Alternatives:
 - TypeScript 5.x: the plan pins 7; 7.0.2 type-checks all four packages cleanly, so no reason to fall back.
 - ESLint instead of oxlint: slower, more config; oxlint covers the import and globals rules needed now.
