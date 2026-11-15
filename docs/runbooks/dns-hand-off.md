@@ -216,7 +216,8 @@ is exactly what the apply creates.
    curl -sI https://aliens.jackgl.com/ | head -1                                    # HTTP/2 200
    curl -sI https://aliens.jackgl.com/index.html | grep -i cache-control            # cache-control: no-cache
    curl -sI https://admin.aliens.jackgl.com/ | head -1                              # HTTP/2 200
-   curl -s https://aliens.jackgl.com/config.json                                    # {"apiBase":"/api","releaseId":"…"}
+   curl -s https://aliens.jackgl.com/config.json                                    # from Phase 9: region, userPoolId, clientId, authDomain, scope, apiBase "/api", releaseId
+   curl -si https://aliens.jackgl.com/api/me | head -1                              # from Phase 9: HTTP/2 401 (JSON body from the gateway, not HTML)
    curl -sv https://aliens.jackgl.com/ -o /dev/null 2>&1 | grep -E 'subject:|issuer:'  # CN=aliens.jackgl.com, Amazon
    ```
 
@@ -224,7 +225,7 @@ is exactly what the apply creates.
    `config.json`):
 
    ```sh
-   python3 scripts/smoke.py --release-id <release_id> --hostname-mode require \
+   python3 scripts/smoke.py --release-id <release_id> --hostname-mode require --routes contracts/routes.json \
      --site player <player-domain>.cloudfront.net aliens.jackgl.com \
      --site admin <admin-domain>.cloudfront.net admin.aliens.jackgl.com
    ```

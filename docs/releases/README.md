@@ -53,6 +53,7 @@ separate `apply.yml` dispatch (before ADR-0019, or a hand dispatch) has two rows
 | Release run (plan, approval, apply) | [<run id>](https://github.com/<owner>/<repo>/actions/runs/<run id>) |
 | Plan | <n> to add, <n> to change, <n> to delete; Terraform <version> |
 | Smoke | green on both *.cloudfront.net names and both hostnames (or: hostnames skipped, DNS not live) |
+| API smoke | <n> routes refused without a token (401) on <n> names; gateway 404: `<body>` (or: not checked, before Phase 9) |
 | Finished | <UTC time> |
 | Previous release | `<release_id>` or none |
 | Record | `releases/<release_id>/record.json` in the artefacts bucket |
@@ -61,6 +62,12 @@ separate `apply.yml` dispatch (before ADR-0019, or a hand dispatch) has two rows
 
 - One line per change since the previous release, e.g. "P04: walking skeleton: both app shells live".
 ```
+
+From Phase 9 the smoke job also sends every route in `contracts/routes.json` without a token to all four names (expecting the
+gateway's 401) and `GET /api/does-not-exist` (expecting the gateway's JSON 404). The record keeps the first 401 and 404 bodies
+under `smoke.api.gateway` (`noToken401`, `unknownRoute404`): the evidence for register rows U-026 and U-027
+([unverified.md](../decisions/unverified.md)). The 429 and timeout bodies (U-027, U-028) are not probed by the smoke test.
+Entries written before Phase 9 have no "API smoke" row.
 
 Keep entries short. Anything that went wrong goes in "What changed" with a link to the run. Do not put e-mail addresses or
 other personal data in an entry.
