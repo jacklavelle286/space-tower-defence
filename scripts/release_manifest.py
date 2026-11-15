@@ -8,8 +8,12 @@
            hashed    Vite's content-hashed output (assets/*-<hash>.<ext>)  -> immutable
            unhashed  files copied unchanged from the app's public/ dir     -> no-cache (ADR-0013, until Phase 64)
          Any other file stops the build: an unclassified file cannot be given a safe cache header.
-`reuse`  writes the manifest for a rollback (`artefacts_from`, H.12): it copies the static entries of an archived
-         release's manifest, so nothing is rebuilt.
+         For each of the four Lambda zips it records the content-addressed key lambda/<key>/<sha256>.zip and the
+         SHA-256 (hex and base64), from the zip file itself (Phase 8; scripts/lambda_artifacts.py turns that section
+         into release.tfvars.json).
+`reuse`  writes the manifest for a rollback (`artefacts_from`, H.12): it copies the static and Lambda entries of an
+         archived release's manifest, so nothing is rebuilt. Only releases with schemaVersion 2 (Phase 8 on) can be
+         reused: an older manifest has no Lambda zips, and current Terraform needs them.
 
 The output is deterministic (sorted keys and lists, no timestamps of its own), so re-running the build job of the
 same release writes the same bytes and the create-only upload accepts it.
@@ -26,7 +30,10 @@ import sys
 from pathlib import Path
 from typing import Any
 
-SCHEMA_VERSION = 1
+import lambda_artifacts
+
+# 2: adds `lambdas` (Phase 8). 1: static archives only (Phases 4-7).
+SCHEMA_VERSION = 2
 RELEASE_ID = re.compile(r"^[0-9]{8}T[0-9]{4}Z-[0-9a-f]{7}$")
 SHA256_HEX = re.compile(r"^[0-9a-f]{64}$")
 # Vite's default asset name is assets/[name]-[hash].[ext]; Vite 8 (Rolldown) hashes are 8 URL-safe characters.
@@ -116,7 +123,27 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
     if not static:
         raise ManifestError("no --app given")
     manifest["static"] = static
+    manifest["lambdas"] = build_lambdas(args.lambda_zip)
     return manifest
+
+
+def build_lambdas(given: list[list[str]]) -> dict[str, dict[str, str]]:
+    """Exactly the four functions, each addressed by the SHA-256 of its zip file."""
+    lambdas: dict[str, dict[str, str]] = {}
+    for key, zip_path in given:
+        if key in lambdas:
+            raise ManifestError(f"Lambda {key!r} given twice")
+        path = Path(zip_path)
+        if not path.is_file():
+            raise ManifestError(f"Lambda {key}: {path} is not a file (was build_lambdas.py run?)")
+        try:
+            lambdas[key] = lambda_artifacts.entry(key, lambda_artifacts.file_sha256(path))
+        except lambda_artifacts.ArtifactError as exc:
+            raise ManifestError(str(exc)) from exc
+    try:
+        return lambda_artifacts.check_lambdas(lambdas, "build")
+    except lambda_artifacts.ArtifactError as exc:
+        raise ManifestError(f"{exc}; give --lambda KEY ZIP once per function") from exc
 
 
 def reuse(args: argparse.Namespace) -> dict[str, Any]:
@@ -128,7 +155,10 @@ def reuse(args: argparse.Namespace) -> dict[str, Any]:
     if not isinstance(archived, dict) or archived.get("releaseId") != source_id:
         raise ManifestError(f"the archived manifest is not for release {source_id}")
     if archived.get("schemaVersion") != SCHEMA_VERSION:
-        raise ManifestError(f"the archived manifest has schemaVersion {archived.get('schemaVersion')!r}, expected {SCHEMA_VERSION}")
+        raise ManifestError(
+            f"the archived manifest has schemaVersion {archived.get('schemaVersion')!r}, expected {SCHEMA_VERSION}: "
+            "releases from before Phase 8 have no Lambda zips and cannot be rolled back to"
+        )
     static = archived.get("static")
     if not isinstance(static, dict) or not static:
         raise ManifestError("the archived manifest has no static archives")
@@ -136,8 +166,13 @@ def reuse(args: argparse.Namespace) -> dict[str, Any]:
         check_sha256(str(entry.get("sha256")), f"archived {name} SHA-256")
         if not isinstance(entry.get("archiveKey"), str) or not isinstance(entry.get("files"), dict):
             raise ManifestError(f"archived {name} entry is incomplete")
+    try:
+        lambdas = lambda_artifacts.check_lambdas(archived.get("lambdas"), f"archived manifest of {source_id}")
+    except lambda_artifacts.ArtifactError as exc:
+        raise ManifestError(str(exc)) from exc
     manifest = base_manifest(args, artefacts_from=source_id)
     manifest["static"] = static
+    manifest["lambdas"] = lambdas
     return manifest
 
 
@@ -162,6 +197,15 @@ def main(argv: list[str] | None = None) -> int:
         metavar=("NAME", "DIST", "PUBLIC", "ARCHIVE_KEY", "SHA256"),
         help="one app; PUBLIC is its public/ dir, or - if it has none",
     )
+    p_build.add_argument(
+        "--lambda",
+        dest="lambda_zip",
+        nargs=2,
+        action="append",
+        default=[],
+        metavar=("KEY", "ZIP"),
+        help="one Lambda zip (scripts/build_lambdas.py output); all four keys are required",
+    )
     p_reuse = sub.add_parser("reuse", parents=[common], help="manifest for a rollback (artefacts_from)")
     p_reuse.add_argument("--artefacts-from", required=True)
     p_reuse.add_argument("--archived", required=True, help="the archived release's manifest.json")
@@ -176,6 +220,8 @@ def main(argv: list[str] | None = None) -> int:
     for name, entry in manifest["static"].items():
         counts = ", ".join(f"{len(v)} {k}" for k, v in entry["files"].items())
         print(f"release_manifest: {name}: {entry['archiveKey']} ({counts})")
+    for key, entry in manifest["lambdas"].items():
+        print(f"release_manifest: {key}: {entry['s3Key']}")
     return 0
 
 

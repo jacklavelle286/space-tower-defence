@@ -4,7 +4,8 @@ name: apply
 # release.yml run left under plans/<plan_run_id>/ in the artefacts bucket, then publishes the release's static build,
 # smoke-checks both sites and records the release.
 #
-#   0 config (no AWS) -> [approval: prod-apply] 5 apply -> 6 publish -> 7a smoke (no AWS) -> 7b record
+#   0 config (no AWS) -> [approval: prod-apply] 5 apply (+ per-function CodeSha256 check) -> 6 publish
+#     -> 7a smoke (no AWS) -> 7b record
 #
 # Two ways in:
 #   - workflow_call (the normal release): release.yml's last job calls this file with plan_run_id = its own run ID,
@@ -22,6 +23,8 @@ name: apply
 #     dispatched: plan_run_id is a successful release.yml run, dispatched on main, whose commit is on main (config);
 #   - plans/<id>/plan-info.json (the completion marker, uploaded last by the plan job) exists and names that commit;
 #   - the tarball's SHA-256 matches its .sha256 file and S3's stored checksum, and no plans/<id>/ key was ever overwritten;
+#   - the tarball's release.tfvars.json (lambda_artifacts) is exactly what its manifest gives, and the file plan-info.json
+#     recorded (scripts/lambda_artifacts.py);
 #   - no apply has started since the plan was made, and this plan was never applied (scripts/apply_guard.py, below).
 # Terraform's own "Saved plan is stale" check (state changed since the plan) still applies on top.
 #
@@ -207,6 +210,7 @@ jobs:
       admin_distribution_domain: ${{ steps.outputs.outputs.admin_distribution_domain }}
       hostname_mode: ${{ steps.previous.outputs.hostname_mode }}
       previous_release: ${{ steps.previous.outputs.previous_release }}
+      functions: ${{ steps.functions.outputs.functions }}
     env:
       PLAN_RUN_ID: ${{ needs.config.outputs.plan_run_id }}
       SHA: ${{ needs.config.outputs.sha }}
@@ -328,6 +332,13 @@ jobs:
             || { echo "::error::.terraform.lock.hcl differs from the one the plan recorded"; exit 1; }
           [[ -f infrastructure/main/tfplan && -d infrastructure/main/.terraform ]] \
             || { echo "::error::tfplan or .terraform/ missing from the tarball"; exit 1; }
+          # The Lambda keys the plan was made with came from this manifest and nothing else (H.9.1). The saved plan
+          # already holds the variable's value; this proves the recorded file is the manifest's, byte for byte.
+          [[ -f release/release.tfvars.json ]] || { echo "::error::release/release.tfvars.json missing from the tarball"; exit 1; }
+          python _src/scripts/lambda_artifacts.py check --manifest release/manifest.json --tfvars release/release.tfvars.json \
+            || { echo "::error::release.tfvars.json in the tarball is not the lambda_artifacts of release/manifest.json"; exit 1; }
+          [[ "$(sha256sum release/release.tfvars.json | cut -d' ' -f1)" == "$(jq -r .releaseTfvarsSha256 release/plan-info.json)" ]] \
+            || { echo "::error::release.tfvars.json differs from the one plan-info.json recorded"; exit 1; }
           echo "manifest_sha256=$(sha256sum release/manifest.json | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
 
       - name: Setup Terraform ${{ steps.info.outputs.tf_version }} (the version that made the plan)
@@ -380,6 +391,36 @@ jobs:
             jq -r 'to_entries[] | select(.key | test("_bucket$|_distribution_(id|domain)$|^cloudfront_hosted_zone_id$"))
                    | "| \(.key) | `\(.value.value)` |"' "$OUT/outputs.json"
           } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Each function runs the manifest's code (H.8.6 Lambda check, read-only)
+        id: functions
+        run: |
+          # The smoke job has no AWS credentials, so the per-function check runs here, straight after apply and before
+          # anything is published: LastUpdateStatus Successful, State Active, CodeSha256 = the manifest's sha256B64.
+          # The values go into the release record (H.8.7 "post-apply CodeSha256").
+          jq -e --slurpfile m release/manifest.json \
+              '(.lambda_function_names.value | type == "object") and ((.lambda_function_names.value | keys) == ($m[0].lambdas | keys))' \
+              "$OUT/outputs.json" > /dev/null \
+            || { echo "::error::terraform output lambda_function_names is missing or does not name the manifest's functions"; exit 1; }
+          echo '{}' > "$OUT/functions.json"
+          for key in $(jq -r '.lambdas | keys[]' release/manifest.json); do
+            name=$(jq -r --arg k "$key" '.lambda_function_names.value[$k]' "$OUT/outputs.json")
+            want=$(jq -r --arg k "$key" '.lambdas[$k].sha256B64' release/manifest.json)
+            # Terraform waits for each update; the waiter only covers a function still settling (it fails on Failed).
+            aws lambda wait function-updated --function-name "$name" \
+              || { echo "::error::$name ($key): the last update did not finish as Successful"; exit 1; }
+            aws lambda get-function-configuration --function-name "$name" --output json > "$OUT/function.json"
+            jq -e --arg want "$want" '.State == "Active" and .LastUpdateStatus == "Successful" and .CodeSha256 == $want' \
+                "$OUT/function.json" > /dev/null \
+              || { echo "::error::$name ($key) is not Active and Successful with CodeSha256 $want:"
+                   jq '{State, LastUpdateStatus, CodeSha256}' "$OUT/function.json"; exit 1; }
+            jq --arg k "$key" --arg n "$name" --slurpfile f "$OUT/function.json" \
+              '. + {($k): {functionName: $n, codeSha256: $f[0].CodeSha256, state: $f[0].State,
+                           lastUpdateStatus: $f[0].LastUpdateStatus}}' "$OUT/functions.json" > "$OUT/functions.next.json"
+            mv "$OUT/functions.next.json" "$OUT/functions.json"
+            echo "$name ($key): Active, Successful, CodeSha256 $want"
+          done
+          echo "functions=$(jq -c . "$OUT/functions.json")" >> "$GITHUB_OUTPUT"
 
       - name: Previous release (hostname smoke mode)
         id: previous
@@ -590,6 +631,7 @@ jobs:
       ADMIN_DOMAIN: ${{ needs.apply.outputs.admin_distribution_domain }}
       SMOKE_RESULTS: ${{ needs.smoke.outputs.results }}
       FINISHED_AT: ${{ needs.smoke.outputs.finished_at }}
+      FUNCTIONS: ${{ needs.apply.outputs.functions }}
     steps:
       - name: Work directory outside the checkout
         run: |
@@ -623,6 +665,7 @@ jobs:
           # stays as written and the complete record goes beside it: releases/<release_id>/record.json = the build
           # manifest + plan + apply + smoke. Built only from earlier jobs' outputs, so a re-run writes the same bytes.
           jq -n --slurpfile m "$OUT/manifest.json" --slurpfile p "$OUT/plan-info.json" --argjson smoke "$SMOKE_RESULTS" \
+            --argjson functions "$FUNCTIONS" \
             --arg plansha "$PLAN_SHA256" --arg run "$GITHUB_RUN_ID" --arg actor "$GITHUB_ACTOR" --arg fin "$FINISHED_AT" \
             --arg msha "$MANIFEST_SHA256" --arg pdist "$PLAYER_DISTRIBUTION_ID" --arg adist "$ADMIN_DISTRIBUTION_ID" \
             --arg pdom "$PLAYER_DOMAIN" --arg adom "$ADMIN_DOMAIN" '
@@ -632,6 +675,7 @@ jobs:
                 applyRunId: $run, applyActor: $actor, finishedAt: $fin,
                 sites: {player: {distributionId: $pdist, distributionDomain: $pdom},
                         admin: {distributionId: $adist, distributionDomain: $adom}},
+                functions: $functions,
                 smoke: $smoke
               }' > "$OUT/record.json"
           jq -e --arg rid "$RELEASE_ID" --arg sha "$SHA" '.releaseId == $rid and .gitSha == $sha and .smoke.passed == true' \

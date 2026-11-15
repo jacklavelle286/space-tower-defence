@@ -6,11 +6,17 @@ name: release
 #     the plan in this run's summary, then approve (Review deployments) or reject. After approval:
 #     5 apply the saved plan -> 6 publish -> 7 smoke -> record, all in this run.
 # Up to and including 3 nothing in production changes: the only writes are create-only uploads to the artefacts bucket
-# (static archives, the build manifest, the saved plan). Production changes only after the approval.
+# (static archives, Lambda zips, the build manifest, the saved plan). Production changes only after the approval.
+#
+# Lambda code (Phase 8, H.9.1): the build job makes four reproducible zips; upload stores each at
+# lambda/<key>/<sha256>.zip; the plan job turns the manifest's Lambda section into release.tfvars.json
+# (lambda_artifacts, scripts/lambda_artifacts.py) and plans with it. The manifest is the only source of those keys, and
+# Terraform is the only thing that points a function at new code.
 #
 # Rollback (H.12): dispatch with artefacts_from=<release_id>. The build is skipped; upload writes this release's
-# manifest from the archived one (same static archives, checked by SHA-256), the plan uses current main Terraform,
-# and apply.yml then publishes that archived build with a config.json naming this new release.
+# manifest from the archived one (same static archives and Lambda zips, each checked by SHA-256 in S3), the plan uses
+# current main Terraform with that release's Lambda keys, and apply.yml then publishes that archived build with a
+# config.json naming this new release. Only releases from Phase 8 on (manifest schemaVersion 2) can be reused.
 #
 # Rules this file keeps (H.7.1): workflow_dispatch only; inputs and other untrusted values reach shell only through
 # env: (W-9); only the jobs that assume the CI role have id-token: write and declare an environment (W-3; the called
@@ -213,19 +219,27 @@ jobs:
       - name: G-5 repository invariants
         run: python scripts/check_invariants.py
 
-      - name: Script tests (plan guard, asset scan, manifest, CloudFront Function)
+      # The release ships the Lambda code from Phase 8, so the API's own checks gate it here too (as in ci.yml).
+      - name: G-1/G-2 API (ruff, pytest with moto)
         run: |
-          python -m pip install --disable-pip-version-check pytest==9.2.0
-          python -m pytest scripts/tests -q
+          python -m pip install --disable-pip-version-check -r api/requirements-dev.txt
+          ruff check --config api/pyproject.toml api scripts/build_lambdas.py scripts/tests/test_build_lambdas.py
+          python -m pytest api -q
+
+      - name: Script tests (plan guard, asset scan, manifest, Lambda artefacts, CloudFront Function)
+        run: python -m pytest scripts/tests -q
 
       - name: Simulator self-test
         run: python -B tools/sim/selftest.py
 
-  # 2a. build: both apps (environment-free), G-6 scan, static archives and the build manifest.
+  # 2a. build: the four Lambda zips, both apps (environment-free), G-6 scan, static archives and the build manifest.
   # Deliberately NO id-token and NO environment: npm ci and the build run third-party code, and that code must
   # never be able to request an OIDC token for the CI role. The outputs travel to 2b as a short-lived GitHub
-  # artefact (public static content plus a manifest; W-4 bans only the saved plan as a GitHub artefact), and 2b
-  # checks every file's SHA-256 against this job's outputs before anything reaches S3.
+  # artefact (public static content, Lambda zips and a manifest; W-4 bans only the saved plan as a GitHub artefact),
+  # and 2b checks every file's SHA-256 against this job's outputs before anything reaches S3.
+  # The Lambda zips are built and hashed FIRST, before Node or any npm code exists on the runner: the hashes are fixed
+  # in a step output that later steps cannot change, so a build plugin that rewrote a zip on disk would be caught by
+  # 2b's comparison.
   build:
     needs: [config, checks]
     if: needs.config.outputs.artefacts_from == ''
@@ -236,6 +250,7 @@ jobs:
     outputs:
       player_sha256: ${{ steps.archives.outputs.player_sha256 }}
       admin_sha256: ${{ steps.archives.outputs.admin_sha256 }}
+      lambda_sha256: ${{ steps.lambdas.outputs.sha256 }}
       manifest_sha256: ${{ steps.local_manifest.outputs.sha256 }}
     env:
       SHA: ${{ needs.config.outputs.sha }}
@@ -256,6 +271,19 @@ jobs:
         uses: actions/setup-python@v7
         with:
           python-version-file: .python-version
+
+      - name: Lambda zips (reproducible, H.9.2; before any npm code runs)
+        id: lambdas
+        run: |
+          # build_lambdas.py downloads the pinned arm64 cp314 wheels from PyPI (--only-binary: no package code runs at
+          # install) and writes player-api, admin-api, tts and cognito-presignup .zip, byte-identical for the same commit.
+          python scripts/build_lambdas.py --out "$OUT/lambda"
+          # {"<key>": "<sha256 hex>", ...}, fixed here before Node is installed.
+          hashes=$(cd "$OUT/lambda" && sha256sum -- *.zip | jq -cRn '[inputs
+            | capture("^(?<h>[0-9a-f]{64})  (?<k>[a-z0-9-]+)[.]zip$") | {key: .k, value: .h}] | from_entries')
+          [[ "$(jq 'length' <<< "$hashes")" == 4 ]] || { echo "::error::expected four Lambda zips, got $hashes"; exit 1; }
+          echo "sha256=$hashes" >> "$GITHUB_OUTPUT"
+          jq -r 'to_entries[] | "\(.key): lambda/\(.key)/\(.value).zip"' <<< "$hashes"
 
       - name: Setup Node (version from .nvmrc)
         uses: actions/setup-node@v7
@@ -296,7 +324,11 @@ jobs:
             --release-id "$RELEASE_ID" --git-sha "$SHA" --ref "$INPUT_REF" --run-id "$GITHUB_RUN_ID" \
             --actor "$GITHUB_ACTOR" --started-at "$STARTED_AT" --out "$OUT/manifest.json" \
             --app player web/player/dist web/player/public "static/$PLAYER_SHA256/player.tar.gz" "$PLAYER_SHA256" \
-            --app admin web/admin/dist - "static/$ADMIN_SHA256/admin.tar.gz" "$ADMIN_SHA256"
+            --app admin web/admin/dist - "static/$ADMIN_SHA256/admin.tar.gz" "$ADMIN_SHA256" \
+            --lambda player-api "$OUT/lambda/player-api.zip" \
+            --lambda admin-api "$OUT/lambda/admin-api.zip" \
+            --lambda tts "$OUT/lambda/tts.zip" \
+            --lambda cognito-presignup "$OUT/lambda/cognito-presignup.zip"
 
       - name: Manifest hash
         id: local_manifest
@@ -309,12 +341,14 @@ jobs:
           path: |
             ${{ runner.temp }}/release/player.tar.gz
             ${{ runner.temp }}/release/admin.tar.gz
+            ${{ runner.temp }}/release/lambda/*.zip
             ${{ runner.temp }}/release/manifest.json
           retention-days: 1
           if-no-files-found: error
 
   # 2b. upload: assumes the CI role, runs no npm and no build code. Fresh release: verifies the build job's files by
-  # SHA-256, then uploads them create-only. Rollback (artefacts_from): reuses an archived build instead.
+  # SHA-256, then uploads them create-only (Lambda zips at lambda/<key>/<sha256>.zip; an identical existing object is
+  # accepted). Rollback (artefacts_from): reuses an archived build instead, after checking every object it names.
   upload:
     needs: [config, build]
     if: ${{ !cancelled() && needs.config.result == 'success' && (needs.build.result == 'success' || needs.build.result == 'skipped') }}
@@ -337,6 +371,7 @@ jobs:
       INPUT_REF: ${{ inputs.ref }}
       PLAYER_SHA256: ${{ needs.build.outputs.player_sha256 }}
       ADMIN_SHA256: ${{ needs.build.outputs.admin_sha256 }}
+      LAMBDA_SHA256: ${{ needs.build.outputs.lambda_sha256 }}
       BUILD_MANIFEST_SHA256: ${{ needs.build.outputs.manifest_sha256 }}
     steps:
       - name: Work directory outside the checkout
@@ -367,6 +402,9 @@ jobs:
           check "$OUT/player.tar.gz" "$PLAYER_SHA256"
           check "$OUT/admin.tar.gz" "$ADMIN_SHA256"
           check "$OUT/manifest.json" "$BUILD_MANIFEST_SHA256"
+          # The four zips: their bytes, the manifest's lambdas section and the hashes fixed before npm ran all agree.
+          python scripts/lambda_artifacts.py verify-build --manifest "$OUT/manifest.json" --zips "$OUT/lambda" \
+            --expected "$LAMBDA_SHA256"
 
       - name: Configure AWS credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v6
@@ -393,8 +431,10 @@ jobs:
             --artefacts-from "$ARTEFACTS_FROM" --archived "$OUT/archived-manifest.json" \
             --release-id "$RELEASE_ID" --git-sha "$SHA" --ref "$INPUT_REF" --run-id "$GITHUB_RUN_ID" \
             --actor "$GITHUB_ACTOR" --started-at "$STARTED_AT" --out "$OUT/manifest.json"
-          # Every archive the release names must still exist, with the bytes it recorded.
-          jq -r '.static | to_entries[] | "\(.value.archiveKey) \(.value.sha256)"' "$OUT/manifest.json" |
+          # Every archive and Lambda zip the release names must still exist, with the bytes it recorded.
+          # (reuse refuses a manifest without the four Lambda zips: releases before Phase 8 cannot be reused.)
+          { jq -r '.static | to_entries[] | "\(.value.archiveKey) \(.value.sha256)"' "$OUT/manifest.json"
+            python scripts/lambda_artifacts.py objects --manifest "$OUT/manifest.json"; } |
             while read -r key hex; do
               want=$(python -c 'import base64, sys; print(base64.b64encode(bytes.fromhex(sys.argv[1])).decode())' "$hex")
               got=$(aws s3api head-object --bucket "$ARTEFACTS_BUCKET" --key "$key" --checksum-mode ENABLED \
@@ -409,6 +449,17 @@ jobs:
           scripts/s3_put_create_only.sh "$ARTEFACTS_BUCKET" "static/$PLAYER_SHA256/player.tar.gz" "$OUT/player.tar.gz"
           scripts/s3_put_create_only.sh "$ARTEFACTS_BUCKET" "static/$ADMIN_SHA256/admin.tar.gz" "$OUT/admin.tar.gz"
 
+      - name: Upload Lambda zips (create-only, addressed by SHA-256)
+        if: needs.config.outputs.artefacts_from == ''
+        run: |
+          # An unchanged function has the same bytes as an earlier release, so its key exists already: the helper
+          # accepts that 412 when S3's stored SHA-256 equals this zip's, and fails on anything else.
+          python scripts/lambda_artifacts.py objects --manifest "$OUT/manifest.json" |
+            while read -r key _; do
+              name=${key#lambda/}
+              scripts/s3_put_create_only.sh "$ARTEFACTS_BUCKET" "$key" "$OUT/lambda/${name%%/*}.zip"
+            done
+
       - name: Upload the manifest (create-only)
         id: manifest
         run: |
@@ -421,6 +472,10 @@ jobs:
             echo "| App | Archive | Files (entry / hashed / unhashed) |"
             echo "|---|---|---|"
             jq -r '.static | to_entries[] | "| \(.key) | `\(.value.archiveKey)` | \(.value.files.entry | length) / \(.value.files.hashed | length) / \(.value.files.unhashed | length) |"' "$OUT/manifest.json"
+            echo ""
+            echo "| Function | Zip (lambda_artifacts) |"
+            echo "|---|---|"
+            jq -r '.lambdas | to_entries[] | "| \(.key) | `\(.value.s3Key)` |"' "$OUT/manifest.json"
             echo ""
             echo "Manifest: \`releases/$RELEASE_ID/manifest.json\` (SHA-256 \`$hash\`)"
           } >> "$GITHUB_STEP_SUMMARY"
@@ -493,6 +548,11 @@ jobs:
             release/manifest.json > /dev/null
           echo "$MANIFEST_SHA256  release/manifest.json" | sha256sum --check --strict
 
+      - name: release.tfvars.json (lambda_artifacts, from the manifest only)
+        run: |
+          # Generated, never committed (H.9.2). The manifest is the only input, so apply.yml can re-derive and compare.
+          python scripts/lambda_artifacts.py tfvars --manifest release/manifest.json --out release/release.tfvars.json
+
       - name: Terraform init (S3 backend, native locking, committed lock file)
         working-directory: infrastructure/main
         run: |
@@ -510,7 +570,8 @@ jobs:
           # Actions runs bash with -e; exit 2 means "changes", so capture the code: 0 and 2 pass, anything else fails.
           set +e
           terraform plan -input=false -lock-timeout=5m -detailed-exitcode -out=tfplan \
-            -var-file=../envs/common.auto.tfvars.json -var-file="../envs/$ENVIRONMENT.tfvars.json"
+            -var-file=../envs/common.auto.tfvars.json -var-file="../envs/$ENVIRONMENT.tfvars.json" \
+            -var-file=../../release/release.tfvars.json
           rc=$?
           set -e
           case "$rc" in
@@ -541,11 +602,14 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
           # The plan part of the manifest (H.8.7); apply.yml's record job merges it into releases/<id>/record.json.
+          tfvars="$GITHUB_WORKSPACE/release/release.tfvars.json"
           jq -n --arg rid "$RELEASE_ID" --arg sha "$SHA" --arg run "$GITHUB_RUN_ID" --arg tf "$TF_VERSION" \
             --arg lock "$(sha256sum .terraform.lock.hcl | cut -d' ' -f1)" --argjson rc "$PLAN_EXIT_CODE" \
             --argjson add "$add" --argjson change "$change" --argjson remove "$remove" \
+            --arg tvsha "$(sha256sum "$tfvars" | cut -d' ' -f1)" --slurpfile tv "$tfvars" \
             '{releaseId: $rid, gitSha: $sha, planRunId: $run, terraformVersion: $tf, lockFileSha256: $lock,
               planExitCode: $rc, planKey: ("plans/" + $run + "/plan.tar.gz"),
+              releaseTfvarsSha256: $tvsha, lambdaArtifacts: $tv[0].lambda_artifacts,
               summary: {add: $add, change: $change, delete: $remove}}' \
             > "$GITHUB_WORKSPACE/release/plan-info.json"
 
@@ -559,11 +623,12 @@ jobs:
           cat "$OUT/guard.md"
           exit "$rc"
 
-      - name: Plan tarball (.terraform/, lock file, tfplan, var files, manifest)
+      - name: Plan tarball (.terraform/, lock file, tfplan, var files, manifest, release.tfvars.json)
         id: tarball
         run: |
           # Everything apply.yml needs to apply this exact plan with the same providers (plan H.8.2 step 3):
-          # the root with .terraform/ and the lock file, the local modules it calls, both var files and the release files.
+          # the root with .terraform/ and the lock file, the local modules it calls, both var files and the release files
+          # (manifest.json, release.tfvars.json, plan-info.json).
           files=(
             infrastructure/main
             infrastructure/modules
@@ -575,7 +640,7 @@ jobs:
           tar --dereference --sort=name -czf "$OUT/plan.tar.gz" "${files[@]}"
           listing=$(tar -tzf "$OUT/plan.tar.gz")
           for must in infrastructure/main/.terraform/ infrastructure/main/.terraform.lock.hcl infrastructure/main/tfplan \
-            release/manifest.json release/plan-info.json; do
+            release/manifest.json release/release.tfvars.json release/plan-info.json; do
             grep -qxF "$must" <<< "$listing" || { echo "::error::plan tarball is missing $must"; exit 1; }
           done
           (cd "$OUT" && sha256sum plan.tar.gz > plan.tar.gz.sha256)

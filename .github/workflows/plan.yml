@@ -1,9 +1,11 @@
 name: plan
 
 # Manual drift check (plan H.8.8): a plan of main against production, with the plan guard, in the run summary.
-# It never applies and never uploads a plan, so apply.yml can never use it. "No changes" means production matches main.
-# From Phase 8 it also reads the Lambda keys from releases/latest.json, so "no changes" then means "matches the last
-# release and main".
+# It never applies and never uploads a plan, so apply.yml can never use it.
+# Lambda keys (Phase 8, H.8.8): lambda_artifacts comes from the last successful release, releases/latest.json ->
+# its record.json -> its build manifest (SHA-256 checked) -> scripts/lambda_artifacts.py, the same derivation the
+# release's plan used. So "no changes" means "production matches main and the last release's Lambda zips". With no
+# release yet (or only releases from before Phase 8) the run fails and says so: there are no keys to plan with.
 
 on:
   workflow_dispatch:
@@ -67,6 +69,7 @@ jobs:
             echo "tf_version=$TF_VERSION"
             echo "role_arn=arn:aws:iam::${ACCOUNT}:role/${PROJECT}-${ENVIRONMENT}-github-oidc"
             echo "state_bucket=${ENVIRONMENT}-state-bucket-${PROJECT}"
+            echo "artefacts_bucket=${ACCOUNT}-${REGION}-${ENVIRONMENT}-artifacts-bucket"
           } >> "$GITHUB_OUTPUT"
 
       - name: Setup Terraform ${{ steps.vars.outputs.tf_version }}
@@ -87,15 +90,52 @@ jobs:
           aws-region: ${{ steps.vars.outputs.region }}
           allowed-account-ids: ${{ steps.vars.outputs.account }}
 
-      - name: Verify AWS account and state bucket
+      - name: Verify AWS account and buckets
         env:
           ACCOUNT: ${{ steps.vars.outputs.account }}
           STATE_BUCKET: ${{ steps.vars.outputs.state_bucket }}
+          ARTEFACTS_BUCKET: ${{ steps.vars.outputs.artefacts_bucket }}
         run: |
           ACTUAL=$(aws sts get-caller-identity --query Account --output text)
           [[ "$ACTUAL" == "$ACCOUNT" ]] || { echo "::error::Account mismatch: $ACTUAL"; exit 1; }
           aws s3api head-bucket --bucket "$STATE_BUCKET" \
             || { echo "::error::State bucket $STATE_BUCKET not found"; exit 1; }
+          aws s3api head-bucket --bucket "$ARTEFACTS_BUCKET" \
+            || { echo "::error::Artefacts bucket $ARTEFACTS_BUCKET not found"; exit 1; }
+
+      - name: Lambda keys of the last release (releases/latest.json -> record -> manifest)
+        id: last
+        env:
+          ARTEFACTS_BUCKET: ${{ steps.vars.outputs.artefacts_bucket }}
+        run: |
+          if ! aws s3api get-object --bucket "$ARTEFACTS_BUCKET" --key releases/latest.json "$OUT/latest.json" \
+            > /dev/null 2> "$OUT/latest.err"; then
+            if grep -qE 'NoSuchKey|\(404\)|Not Found' "$OUT/latest.err"; then
+              echo "::error::No release yet: releases/latest.json does not exist. The drift check plans with the last release's Lambda zips, so dispatch release.yml first."
+            else
+              cat "$OUT/latest.err"; echo "::error::Could not read releases/latest.json"
+            fi
+            exit 1
+          fi
+          rid=$(jq -r '.releaseId' "$OUT/latest.json")
+          [[ "$rid" =~ ^[0-9]{8}T[0-9]{4}Z-[0-9a-f]{7}$ ]] || { echo "::error::releases/latest.json has no valid releaseId"; exit 1; }
+          [[ "$(jq -r '.recordKey' "$OUT/latest.json")" == "releases/$rid/record.json" ]] \
+            || { echo "::error::releases/latest.json does not point at releases/$rid/record.json"; exit 1; }
+          aws s3api get-object --bucket "$ARTEFACTS_BUCKET" --key "releases/$rid/record.json" "$OUT/record.json" > /dev/null \
+            || { echo "::error::Could not read releases/$rid/record.json"; exit 1; }
+          # The record names the build manifest and its SHA-256; the manifest is what the release's plan used.
+          [[ "$(jq -r '.releaseId' "$OUT/record.json")" == "$rid" \
+             && "$(jq -r '.buildManifest.key' "$OUT/record.json")" == "releases/$rid/manifest.json" ]] \
+            || { echo "::error::releases/$rid/record.json does not name releases/$rid/manifest.json"; exit 1; }
+          msha=$(jq -er '.buildManifest.sha256 | select(type == "string" and test("^[0-9a-f]{64}$"))' "$OUT/record.json") \
+            || { echo "::error::releases/$rid/record.json has no build manifest SHA-256"; exit 1; }
+          aws s3api get-object --bucket "$ARTEFACTS_BUCKET" --key "releases/$rid/manifest.json" "$OUT/manifest.json" > /dev/null \
+            || { echo "::error::Could not read releases/$rid/manifest.json"; exit 1; }
+          echo "$msha  $OUT/manifest.json" | sha256sum --check --strict \
+            || { echo "::error::releases/$rid/manifest.json differs from the SHA-256 its record names"; exit 1; }
+          python scripts/lambda_artifacts.py tfvars --manifest "$OUT/manifest.json" --out "$OUT/release.tfvars.json" \
+            || { echo "::error::Release $rid has no usable Lambda zips (released before Phase 8?): dispatch release.yml, then run the drift check again."; exit 1; }
+          echo "release_id=$rid" >> "$GITHUB_OUTPUT"
 
       - name: Terraform init (S3 backend, native locking, committed lock file)
         working-directory: infrastructure/main
@@ -115,16 +155,18 @@ jobs:
         working-directory: infrastructure/main
         env:
           ENVIRONMENT: ${{ steps.vars.outputs.environment }}
+          LAST_RELEASE: ${{ steps.last.outputs.release_id }}
         run: |
           # The plan file stays on this runner; it is only read back for the summary and the guard.
           set +e
           terraform plan -input=false -lock-timeout=5m -detailed-exitcode -out=tfplan \
-            -var-file=../envs/common.auto.tfvars.json -var-file="../envs/$ENVIRONMENT.tfvars.json"
+            -var-file=../envs/common.auto.tfvars.json -var-file="../envs/$ENVIRONMENT.tfvars.json" \
+            -var-file="$OUT/release.tfvars.json"
           rc=$?
           set -e
           case "$rc" in
-            0) verdict="No changes: production matches main." ;;
-            2) verdict="Changes: production differs from main (drift, or a commit not yet released)."
+            0) verdict="No changes: production matches main and release $LAST_RELEASE's Lambda zips." ;;
+            2) verdict="Changes: production differs from main with release $LAST_RELEASE's Lambda zips (drift, or a commit not yet released)."
                echo "::warning::Production differs from main; read the plan in the run summary." ;;
             *) echo "::error::terraform plan failed (exit $rc)"; exit 1 ;;
           esac
