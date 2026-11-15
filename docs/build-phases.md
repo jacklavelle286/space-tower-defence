@@ -259,14 +259,18 @@ entry below still says what it builds, how to test it and what to look at.
 | B | 10–14 | The game engine locally: clock, rules reducer (TypeScript and Python), first planet data, a playable battlefield slice |
 | C | 15–19 | Server side of a run: profiles, runs and the session lease, the ops endpoint, Polly checks, speech service |
 | D | 20–23 | First playable slice live: admin seed, player shell, learning panel with Play; playtest P1 |
-| E | 24–28 | Roster, targeting, aliens, bosses, meteor powers |
-| F | 29–34 | Run lifecycle, plausibility bounds, HUD and shop, saved games, backup runbook; playtest P2 |
 | G | 35–39 | Admin shell, activity API, the six interaction types, editor and preview-solve |
-| H | 40–44 | Speech lifecycle, templates, selection, learning summaries, withdrawal |
-| I | 45–49 | Content: worked records, maths, phonics, spelling, optional import |
+| H1 | 40–42 | Speech lifecycle, templates, selection |
+| I | 45–48 | Content: worked records, maths, phonics, spelling (49, spreadsheet import, only if the owner asks) |
+| E | 24–28 | Roster, targeting, aliens, bosses, meteor powers |
+| F | 29–34, 43–44 | Run lifecycle, plausibility bounds, HUD and shop, saved games, backup runbook, learning summaries, withdrawal; playtest P2 |
 | J | 50–56 | Campaign, meteor offers, badges, challenges, endless, resets; playtest P3 |
-| K | 57–63 | Offline: local database, queue, audio cache, divergence, takeover, versions, hard cases |
-| L | 64–74 | Art and sound polish, performance, accessibility, scoped CI role, drills, monitoring, acceptance P4, data freeze |
+| L | 64–74 | Art and sound polish, performance, accessibility, scoped CI role, drills, monitoring, acceptance P4 (without AC-30..34), data freeze: **launch, online only** |
+| K | 57–63 | **After launch.** Offline: local database, queue, audio cache, divergence, takeover, versions, hard cases; AC-30..34 accepted here |
+
+Order reworked by the owner on 2026-11-15: content before game systems, offline after launch
+([ADR-0024](decisions/0024-content-first-offline-after-launch.md)). Rows are in build order. Phase 69 and Phase 71 no longer
+wait for Phases 63 and 62.
 
 ## How each phase is described
 
