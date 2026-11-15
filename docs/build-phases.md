@@ -34,7 +34,7 @@ until then it was `release.yml` then `apply.yml`, and older rows still say "disp
 | 3 | Static sites and the release pipeline, plan side | M1 | M1-07 (part 1), M1-10 (part 1) | Release run ends at "dispatch apply.yml with plan_run_id" | Dispatch release; read plan |
 | 4 | Walking skeleton live | M1 | M1-10 (part 2), M1-11 (part 1) | `https://aliens.jackgl.com` shows the app shell | Dispatch apply; 2 alias records |
 | 5 | Spike workflow and auth spike | M0 | M0-15, M0-10, M0-14 | ADR-0012; spike stack destroyed | Dispatch spike runs; sign up in managed login |
-| 6 | DynamoDB and browser-audio spikes; spike tooling removed | M0 | M0-13, M0-12, M1-10 (part 3) | Real cancellation fixtures; offline playback notes; `spike.yml` gone | Dispatch spike runs; browser checks |
+| 6 | DynamoDB and browser-audio spikes; spike tooling removed (**slimmed**: spikes skipped, [ADR-0021](decisions/0021-skip-remaining-spikes.md)) | M0 | ~~M0-13, M0-12~~ (skipped), M0-15 (end), M1-10 (part 3) | `spike.yml` and `spikes/` gone; G-5 (first rules) green | — |
 | 7 | Python API skeleton | M1 | M1-09, M1-12 (part 1), M1-15 (part 1) | `pytest` + `ruff` green locally and in CI; identical zip hashes twice | — |
 | 8 | Data, sign-in and functions deployed | M1 | M1-04, M1-05, M1-06 (part 1), M1-10 (part 4) | Test child signs up through managed login; operator signs in with TOTP | Release; operator account; test accounts |
 | 9 | Same-origin API live | M1 | M1-06 (part 2), M1-07 (part 2), M1-08, M1-10 (part 5), M1-11 (part 2) | Every route 401 without a token on both hostnames; alarm e-mail | Release; confirm SNS |
@@ -162,7 +162,7 @@ the gate where it first appears. **[PROPOSAL]**
 | Phase | Call (who runs it) | What it changes | Plan basis | Label |
 |---|---|---|---|---|
 | 0 | Test-bucket clean-up, **only** in the fallback case (bucket exists but is not in any state): `aws s3 rb --force` (you) | Deletes a throwaway bucket and its objects | One-off **break-glass**, recorded as a line in ADR-0011. The preferred path is the interim pipeline (import, then apply), which needs no local write; see Phase 0 owner action 5 | **[PROPOSAL]** |
-| 6 | `spikes/ddb-transactions/capture.py` (you) | Items in the throwaway spike table only | Not covered by H §H.13.3 (that exception is for restore and seed). Needs your explicit yes at Phase 0; the alternative is a `run` action in `spike.yml` | **[PROPOSAL]** |
+| ~~6~~ | ~~`spikes/ddb-transactions/capture.py` (you)~~ | Withdrawn: the DynamoDB spike was skipped ([ADR-0021](decisions/0021-skip-remaining-spikes.md)); this write never happens | — | — |
 | 8, 72 | `cognito-idp admin-create-user` for the operator, `test-player-1`, `test-player-2`, `test-operator`; `admin-delete-user` for the self-signed-up test child (you) | Users in the two pools | [spine S1](plan/00-spine.md#s1-system-shape) (operator pool is AdminCreateUser-only); [I §I.2.10](plan/I-validation.md#i210-test-accounts-and-test-data) | **[PROPOSAL]** |
 | 9, 72 | `cloudwatch set-alarm-state` on one alarm (you) | An alarm's state, until its next evaluation | [I §I.2.9](plan/I-validation.md#i29-manual-and-operational-tests) alarm delivery; AC-40 | **[PROPOSAL]** |
 | 72 | `lambda invoke` of `player-api` with a malformed event (you) | Nothing persistent; produces one function error and log lines | I §I.3 AC-40 step 2 | **[PROPOSAL]** |
@@ -182,7 +182,7 @@ built, and part `b`'s gate checks the whole exit list. A release is dispatched a
 | Phase | Part a | Part b |
 |---|---|---|
 | 3 | `static_site` module; `scripts/plan_guard.py`, `scripts/scan_dist.py` and their tests | `release.yml` plan side (`config`, `checks`, `build`, `plan`) and `plan.yml` |
-| 6 | DynamoDB spike: fixtures and the moto comparison | Audio spike and ADR-0015; `spike.yml` and spike roots removed; G-5 (first rules) |
+| 6 | One gate (slimmed, [ADR-0021](decisions/0021-skip-remaining-spikes.md)): `spike.yml` and spike roots removed; G-5 (first rules) | — |
 | 8 | Both tables, audio bucket, `lambda_function` ×4 with roles, release build job (release and apply after `a`) | Both Cognito pools (the trigger function already exists) and the operator/test accounts (release and apply after `b`) |
 | 9 | `http_api`, `/api/*` behaviour, G-12, route smoke, full `config.json` (release and apply after `a`) | `monitoring`, SNS, alarms in `lambda_function`, the G-5 alarm rule, G-13 (release and apply after `b`) |
 | 11 | Schemas, limits, fixtures | Reducer and canonicaliser |
@@ -471,6 +471,12 @@ verifier proves); **access token versus ID token** (scopes live in the access to
 
 ### Phase 6 — DynamoDB and browser-audio spikes; spike tooling removed
 
+> **Slimmed (owner, 2026-11-15, [ADR-0021](decisions/0021-skip-remaining-spikes.md)).** The DynamoDB (M0-13) and browser-audio (M0-12)
+> spikes are skipped. Remaining scope: delete `spike.yml` and `spikes/` (end of M0-15), and add `scripts/check_invariants.py`
+> (G-5, first rules) with its tests, wired into `ci.yml` and `release.yml`. The cancellation shapes move to Phases 16 (G7) and 17 (G5),
+> tested against DynamoDB Local in CI (G-13; `api/tests/fixtures/ddb/` starts in Phase 16), the `sha256` source to Phase 19, IndexedDB, persist, quota and autoplay to
+> Phase 22 (ADR-0015 is written there). The table below is the original plan, kept for reference; only the G-5 and deletion parts apply.
+
 **Goal.** Capture real DynamoDB transaction failures as fixtures, prove browser audio storage and offline playback, then delete every spike stack and the spike workflow.
 
 **Why now.** The server code in Phases 7 and 15–17 classifies transaction cancellations, and the speech service (Phase 19) needs the
@@ -518,7 +524,7 @@ and smoke test have something to compare against. The first pytest + moto tests 
 | In scope | `api/functions/{player_api,admin_api,tts,cognito_presignup}/`; `api/shared/` (data-access helper with `ConsistentRead` and `ExpressionAttributeNames`, error envelope, allow-list logger, route-key authorisation that denies unknown keys before any lookup); Powertools, ruff (`target-version = "py312"` locally, see [How we work](#local-toolchain-and-how-tests-run-on-your-machine)), pytest + moto; `scripts/build_lambdas.py` (arm64, 3.14 wheels, fixed timestamps, sorted entries); `contracts/routes.json` (R1–R30 from [G §2](plan/G-api-contracts.md#2-route-catalogue)); the pre sign-up handler (auto-confirm, cap in `SYS#SIGNUPS`, raise at the cap, never `autoConfirmUser=false`); Python job in `ci.yml` on 3.14 |
 | Out of scope | Real route handlers (stubs answer catalogued routes with a `501` envelope **[ASSUMPTION]**); any deployment |
 | Files | `api/requirements.txt`, `api/requirements-dev.txt`, `api/pyproject.toml` (tool settings) **[ASSUMPTION]**; `api/functions/*/handler.py`; `api/shared/`; `api/tests/unit/`; `scripts/build_lambdas.py`, `scripts/tests/test_build_lambdas.py`; `contracts/routes.json`; `.github/workflows/ci.yml` |
-| Depends on | Phase 6 (DynamoDB fixtures), Phase 5 (authoriser event fixture) |
+| Depends on | Phase 5 (authoriser event fixture), Phase 6 (spike tooling gone). No DynamoDB fixtures: the data-access helper is written against the documented response shapes and moto; real cancellation shapes are tested in Phase 17 ([ADR-0021](decisions/0021-skip-remaining-spikes.md)) |
 | Owner actions | None beyond the review. Optional: install Python 3.14 (`uv python install 3.14`) |
 | Tests and how to run | `cd api && python3 -m venv .venv && . .venv/bin/activate && pip install -r requirements-dev.txt && pytest && ruff check .`; `python3 scripts/build_lambdas.py` twice, then `sha256sum build/*.zip` gives identical hashes |
 | Deployed / how to see | Nothing. CI shows the Python job green on 3.14 |
@@ -536,7 +542,7 @@ and smoke test have something to compare against. The first pytest + moto tests 
 7. `ci.yml`: the Python job uses 3.14; the local `ruff` target keeps the code 3.12-compatible.
 
 *Concepts worth learning:* **pytest fixtures** (setup shared between tests, injected by name) and **moto** (an in-process fake of AWS APIs:
-fast, but not a perfect copy, which is why the real fixtures from Phase 6 exist).
+fast, but not a perfect copy, which is why DynamoDB Local runs in CI from Phase 9 (G-13) and checks the transaction code from Phase 16).
 
 ---
 
@@ -816,18 +822,18 @@ the first full slice release. A good moment to show the children ([B §B3.1](pla
 | In scope | `POST /api/runs` (G7: lookup first, one transaction with `ConditionCheck PROFILE attribute_exists(pk)`, claim, run and slots; `takeover` and `409 TAKEOVER_CONFIRM_REQUIRED`; `409 CONTENT_VERSION_UNSUPPORTED`; `CONTENT_UNAVAILABLE{reason: PLANET_LOCKED}`), selection with threshold 1 (N-7), `GET /api/runs/{runId}`, `/pack`, `PUT`/`DELETE /api/session`; first `ddblocal` tests for G7 |
 | Out of scope | Ops (Phase 17); takeover UI (Phase 61) |
 | Files | `api/functions/player_api/`, `api/shared/selection/`, `api/tests/unit/`, `api/tests/integration/` |
-| Depends on | Phases 6 (fixtures), 12, 13, 15 |
+| Depends on | Phases 12, 13, 15; G-13 (DynamoDB Local in CI, Phase 9). No captured fixtures: the Phase 6 spike was skipped ([ADR-0021](decisions/0021-skip-remaining-spikes.md)) |
 | Owner actions | — (deployed with Phase 17's release) |
 | Tests and how to run | `cd api && pytest` locally (moto); `ddblocal` tests run in CI |
 | Deployed / how to see | Nothing new until Phase 17 |
 | Exit criteria | moto tests: repeating a create returns the same run; a second session gets `ACTIVE_SESSION_ELSEWHERE` with `deviceLabel`; a claim on a terminal run gets `409 RUN_TERMINAL`; a create without a profile is refused; another player's `runId` is `NOT_FOUND`; CI's G7 integration test green |
-| Risks | Mis-classifying a transaction cancellation (use the Phase 6 fixtures) |
+| Risks | Mis-classifying a transaction cancellation. The G7 `ddblocal` tests are the first real-shape evidence; record the shapes they see as the first files in `api/tests/fixtures/ddb/` (ADR-0021). DynamoDB Local may still differ from the real service (U-060) |
 
 **How to review this phase**
 
 1. The create path: a lookup first, so a repeat returns the existing run without a second transaction.
 2. The transaction's action list against [F §12.3](plan/F-state-and-data.md#123-transaction-composition-and-action-counts): count them.
-3. Cancellation handling reads `CancellationReasons` by position, matching the real fixtures.
+3. Cancellation handling reads `CancellationReasons` by position, matching the shapes the G7 `ddblocal` tests record in `api/tests/fixtures/ddb/`.
 4. `NOT_FOUND` for another child's run, never `FORBIDDEN` (no hint that it exists).
 5. The lease: renew never falls back to claim.
 
@@ -2607,8 +2613,8 @@ in the named phase.
 | M0-09 | 10 | |
 | M0-10 | 5 | |
 | M0-11 | 18 | Placed just before the speech service |
-| M0-12 | 6 | |
-| M0-13 | 6 | |
+| M0-12 | 6 (skipped) | Skipped, [ADR-0021](decisions/0021-skip-remaining-spikes.md); its questions move to Phases 19 and 22 |
+| M0-13 | 6 (skipped) | Skipped, [ADR-0021](decisions/0021-skip-remaining-spikes.md); its questions move to Phases 16 and 17 |
 | M0-14 | 5 | |
 | M0-15 | 5 (create), 6 (delete) | |
 | M1-01 | 2 | Declaration-only bootstrap change: plan, no apply |
@@ -2729,9 +2735,8 @@ Plan gates without a J task of their own ([H §H.10](plan/H-infrastructure-and-d
 - **Gates brought forward.** G-15 lands with the first game data (Phase 13) and G-14 with the first speech definition (Phase 19); J places
   the related work in M4-01 and M3-05. H already says "required from M1", so this follows H.
 - **Local AWS writes.** Every non-read-only call from the laptop is now listed in the
-  [local AWS writes table](#local-aws-writes-that-are-not-deployments), with its plan basis, for one confirmation at Phase 0. Two rows have
-  no plan basis yet: Phase 6's `capture.py` (H §H.13.3 covers restore and seed, not spike capture) and the Phase 0 break-glass bucket delete
-  (fallback only). The restore drill creates and deletes tables outside Terraform; H.13.3/H.13.4 sanction it, but spine S0.1's wording
+  [local AWS writes table](#local-aws-writes-that-are-not-deployments), with its plan basis, for one confirmation at Phase 0. One row has
+  no plan basis yet: the Phase 0 break-glass bucket delete (fallback only). (Phase 6's `capture.py` row is withdrawn, ADR-0021.) The restore drill creates and deletes tables outside Terraform; H.13.3/H.13.4 sanction it, but spine S0.1's wording
   ("read-only AWS calls are fine") should mention these exceptions.
 - **Phase sizes.** The split gates in [How we work](#phase-sizes-and-split-gates) keep the phase numbers; if you prefer one phase per gate,
   the overview table and cross-references need renumbering.

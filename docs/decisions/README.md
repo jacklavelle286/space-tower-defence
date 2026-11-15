@@ -31,6 +31,7 @@ The rules are in [J §J.6](../plan/J-execution-backlog.md#j6-decision-log-practi
 | [0013](0013-front-end-stack-versions.md) | Front-end stack versions | Accepted |
 | [0019](0019-single-release-run-with-approval.md) | One release run with a manual approval (supersedes in part 0010, 0011 once accepted) | Accepted |
 | [0020](0020-spike-workflow-destroy-path.md) | A separate spike workflow whose destroy reaches spike state only (amends H §H.7 W-1 and the J M0 order for Phases 5–6) | Proposed |
+| [0021](0021-skip-remaining-spikes.md) | Skip the DynamoDB and browser-audio spikes (M0-13, M0-12); their questions move to Phases 17, 19 and 22 | Proposed |
 
 ## Next in line
 
@@ -39,7 +40,7 @@ Reserved numbers, recorded when the work happens ([J §J.6.3](../plan/J-executio
 | ADR | Topic | Task |
 |---|---|---|
 | 0014 | Listening bake-off: `tts_phoneme_engine`, per-sound verdicts and SSML templates | M0-11 |
-| 0015 | Browser audio storage and the `sha256` source | M0-12 |
+| 0015 | Browser audio storage and the `sha256` source | M0-12 (spike skipped, [ADR-0021](0021-skip-remaining-spikes.md); written in Phase 22) |
 | 0016–0018 | M1 choices J-1, J-2, J-3 | M1-24 |
 
 After those: game data as immutable versioned files with `mechanics` compatibility, the fixed 60 Hz timestep, and the data-freeze point when it is named (M6-10).
