@@ -2,7 +2,8 @@
 // D §D8.4, C22.3). The server checks again: approval needs the previewed clip object (admin-api R21), publication
 // needs the checklist and the preview-solve revision (R27). These functions only decide what the buttons allow.
 
-import type { Definition } from "./api";
+import { LIMITS } from "@scd/shared";
+import type { Definition, SpeechDraft } from "./api";
 
 export type ChecklistItem = { readonly key: string; readonly label: string };
 
@@ -53,6 +54,18 @@ export function canApprove(state: ApproveState): Gate {
   }
   if (!allTicked(LISTENING_CHECKLIST, state.ticks)) return { ok: false, reason: "Tick every listening check." };
   return { ok: true };
+}
+
+/** The take "Try another take" saves next, or null at the limit (LIMITS.speechTake; admin-api refuses beyond it). */
+export function nextTake(take: number): number | null {
+  const next = Math.max(take, LIMITS.speechTake.min - 1) + 1;
+  return next > LIMITS.speechTake.max ? null : next;
+}
+
+/** The preview request for the SAVED draft: its body and its take, so the clip is the one approval checks. */
+export function previewBody(draft: SpeechDraft): ({ text: string } | { ssml: string }) & { take: number } {
+  const body = draft.ssml !== undefined ? { ssml: draft.ssml } : { text: draft.text ?? "" };
+  return { ...body, take: draft.take };
 }
 
 export type PublishState = {

@@ -102,6 +102,8 @@ export type SpeechDraft = {
   engine: string;
   voiceId: string;
   draftRevision: number;
+  /** Which render of this text the clip key names (1..LIMITS.speechTake.max); "Try another take" increments it. */
+  take: number;
   updatedAt: string;
   clipKey: string | null;
   text?: string;
@@ -116,11 +118,12 @@ export type SpeechVersion = {
   approvedAt: string;
   engine: string;
   voiceId: string;
+  take: number;
 };
 
 export type SpeechView = { header: SpeechSummary; draft: SpeechDraft; versions: SpeechVersion[] };
 export type Preview = { clipKey: string; url: string; expiresInSeconds: number };
-export type Approval = { versionId: string; clipKey: string; sha256: string };
+export type Approval = { versionId: string; clipKey: string; sha256: string; take: number };
 
 // --- Activities (R22-R27) -------------------------------------------------------------------------------------------
 
@@ -170,9 +173,9 @@ export function adminApi(request: Request) {
     createSpeech: (body: { speechId: string; title: string; kind: SpeechKind }) =>
       request("POST", "/admin/speech-definitions", body) as Promise<SpeechView>,
     getSpeech: (speechId: string) => request("GET", `/admin/speech-definitions/${id(speechId)}`) as Promise<SpeechView>,
-    saveSpeech: (speechId: string, body: { draftRevision: number; text?: string; ssml?: string }) =>
+    saveSpeech: (speechId: string, body: { draftRevision: number; text?: string; ssml?: string; take?: number }) =>
       request("PUT", `/admin/speech-definitions/${id(speechId)}`, body) as Promise<SpeechView>,
-    preview: (body: { kind: SpeechKind; speechId: string; text?: string; ssml?: string }) =>
+    preview: (body: { kind: SpeechKind; speechId: string; text?: string; ssml?: string; take?: number }) =>
       request("POST", "/admin/speech/preview", body) as Promise<Preview>,
     approve: (speechId: string, body: { draftRevision: number; reviewNote?: string }) =>
       request("POST", `/admin/speech-definitions/${id(speechId)}/approve`, body) as Promise<Approval>,

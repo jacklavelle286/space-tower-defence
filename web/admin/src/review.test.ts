@@ -1,6 +1,17 @@
 import { describe, expect, it } from "vitest";
-import type { Definition } from "./api";
-import { applyForm, canApprove, canPublish, formOf, isCorrect, LISTENING_CHECKLIST, PUBLISH_CHECKLIST } from "./review";
+import { LIMITS } from "@scd/shared";
+import type { Definition, SpeechDraft } from "./api";
+import {
+  applyForm,
+  canApprove,
+  canPublish,
+  formOf,
+  isCorrect,
+  LISTENING_CHECKLIST,
+  nextTake,
+  previewBody,
+  PUBLISH_CHECKLIST,
+} from "./review";
 
 const listened = Object.fromEntries(LISTENING_CHECKLIST.map((item) => [item.key, true]));
 const reviewed = Object.fromEntries(PUBLISH_CHECKLIST.map((item) => [item.key, true]));
@@ -83,5 +94,31 @@ describe("Preview-solve and the editor", () => {
     expect(edited.answerSpecification).toEqual({ accepted: ["c"] });
     expect(edited.speechDefinitionReferences).toEqual({});
     expect(edited["curriculumReference"]).toEqual(["EYFS26.ELG.WordReading-1"]);
+  });
+});
+
+describe("Takes", () => {
+  it("counts up to the speechTake limit and no further", () => {
+    expect(LIMITS.speechTake).toEqual({ min: 1, max: 50 });
+    expect(nextTake(1)).toBe(2);
+    expect(nextTake(LIMITS.speechTake.max - 1)).toBe(LIMITS.speechTake.max);
+    expect(nextTake(LIMITS.speechTake.max)).toBeNull();
+  });
+
+  it("previews the saved body with the saved take", () => {
+    const draft: SpeechDraft = {
+      kind: "WORD",
+      provider: "polly",
+      engine: "generative",
+      voiceId: "Amy",
+      draftRevision: 3,
+      take: 4,
+      updatedAt: "2026-11-15T10:00:00Z",
+      clipKey: "k",
+      text: "ship.",
+    };
+    expect(previewBody(draft)).toEqual({ text: "ship.", take: 4 });
+    const { text: _text, ...withoutText } = draft;
+    expect(previewBody({ ...withoutText, ssml: "<s>ship.</s>" })).toEqual({ ssml: "<s>ship.</s>", take: 4 });
   });
 });

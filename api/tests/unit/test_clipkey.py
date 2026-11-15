@@ -13,6 +13,8 @@ from conftest import REPO
 from shared.clipkey import (
     ALLOWED_VOICE_ENGINES,
     SSML_TAGS,
+    TAKE_MAX,
+    TAKE_MIN,
     ClipInputError,
     SpeechConfig,
     SpeechConfigError,
@@ -23,6 +25,7 @@ from shared.clipkey import (
     speech_input,
     speech_ssml,
     synthesis_input,
+    take_problem,
     wrap,
 )
 
@@ -140,3 +143,36 @@ def test_polly_request_is_the_hashed_document() -> None:
         "OutputFormat": doc["outputFormat"],
         "SampleRate": doc["sampleRate"],
     }
+
+
+# --- Takes ([PROPOSAL] 2026-11-15): the draft's take is the input's generation ---------------------------------------
+
+GENERATION_2 = next(v for v in VECTORS["vectors"] if v["input"]["generation"] == 2)
+
+
+def test_take_1_is_the_phase_18_key_and_take_2_is_the_generation_2_vector() -> None:
+    config = SpeechConfig.from_env(ENV)  # PHONEME on neural, as the generation-2 vector
+    body = GENERATION_2["input"]["text"].removeprefix(HEAD).removesuffix(TAIL)
+    take_1 = speech_input("PHONEME", config, ssml=body)
+    assert speech_input("PHONEME", config, ssml=body, take=1) == take_1  # absent = 1: every existing key unchanged
+    take_2 = speech_input("PHONEME", config, ssml=body, take=2)
+    assert take_2 == GENERATION_2["input"]
+    assert clip_key(take_2) == GENERATION_2["clipKey"] != clip_key(take_1)
+    assert polly_request(take_2) == polly_request(take_1)  # the take salts the key; Polly is sent the same request
+
+
+def test_take_limits_come_from_the_contract() -> None:
+    limits = json.loads((REPO / "contracts" / "limits.json").read_text(encoding="utf-8"))["speechTake"]
+    assert (TAKE_MIN, TAKE_MAX) == (limits["min"], limits["max"]) == (1, 50)
+    assert take_problem(1) is None and take_problem(TAKE_MAX) is None
+    assert [take_problem(v) for v in (0, TAKE_MAX + 1, "2", True, 2.0, None)] == [
+        "minimum",
+        "maximum",
+        "type",
+        "type",
+        "type",
+        "type",
+    ]
+    with pytest.raises(ClipInputError) as refused:
+        speech_input("WORD", SpeechConfig.from_env(ENV), text="ship.", take=0)
+    assert (refused.value.field, refused.value.rule) == ("take", "minimum")

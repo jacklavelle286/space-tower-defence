@@ -392,6 +392,21 @@ def test_a_permission_fault_on_head_is_internal_not_unavailable(api: Speech, pla
 # --- Preview route (R16) --------------------------------------------------------------------------------------------
 
 
+def test_another_take_is_a_new_key_and_a_fresh_render_leaving_take_1_untouched(api: Speech, player_event: dict) -> None:
+    """Generative renders are not repeatable [VERIFIED 2026-11-15], so a bad take 1 must not block a re-roll."""
+    _, absent = api.preview(player_event, WORD)
+    _, take_1 = api.preview(player_event, {**WORD, "take": 1})
+    before = api.stored(absent["clipKey"])
+    _, take_2 = api.preview(player_event, {**WORD, "take": 2})
+
+    assert take_1["clipKey"] == absent["clipKey"] == clip_key(speech_input("WORD", CONFIG, text="ship."))
+    assert take_2["clipKey"] == clip_key(speech_input("WORD", CONFIG, text="ship.", take=2)) != absent["clipKey"]
+    assert len(api.polly.calls) == 2  # take 1 once (absent and explicit are the same clip), take 2 once
+    assert api.polly.calls[0] == api.polly.calls[1]  # the same request: only the key differs
+    assert api.stored(absent["clipKey"]) == before  # never rewritten
+    assert api.s3.names().count("put_object") == 2
+
+
 def test_preview_stores_create_only_with_checksum_and_metadata(api: Speech, player_event: dict) -> None:
     status, body = api.preview(player_event, WORD)
 
@@ -490,6 +505,11 @@ def test_player_token_on_preview_is_forbidden_before_any_call(api: Speech, playe
         ({"kind": "PHONEME", "ssml": "<!DOCTYPE x>s"}, {"field": "ssml", "rule": "declaration"}),
         ({"kind": "PHONEME", "ssml": '<phoneme ph="s">s</phoneme>'}, {"field": "ssml", "rule": "attribute"}),
         ({"kind": "PHONEME", "ssml": '<prosody rate="500%">s</prosody>'}, {"field": "ssml", "rule": "attribute"}),
+        ({"kind": "WORD", "text": "a", "take": 0}, {"field": "take", "rule": "minimum"}),
+        ({"kind": "WORD", "text": "a", "take": 51}, {"field": "take", "rule": "maximum"}),
+        ({"kind": "WORD", "text": "a", "take": "2"}, {"field": "take", "rule": "type"}),
+        ({"kind": "WORD", "text": "a", "take": True}, {"field": "take", "rule": "type"}),
+        ({"kind": "WORD", "text": "a", "take": 2.5}, {"field": "take", "rule": "type"}),
     ],
 )
 def test_preview_validation(api: Speech, player_event: dict, body: dict, problem: dict) -> None:

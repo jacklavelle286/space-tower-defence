@@ -7,9 +7,10 @@ object is `503 SPEECH_UNAVAILABLE`, written at ERROR on the request's one log li
 metric filter counts. Ownership, slot and variant failures are one identical `404 NOT_FOUND`.
 
 R16 `POST /api/admin/speech/preview` (operator, exact group `admin`) is the only Polly path in the system. It builds the
-synthesis input (shared/clipkey.py: voice and engine from configuration, never the request), and calls Polly only if the
-object is absent. The object is stored with `If-None-Match: *` (never overwritten) and a SHA-256 checksum; a 412 means
-another request stored the same clip first, and that object is used.
+synthesis input (shared/clipkey.py: voice and engine from configuration, never the request; the optional `take`
+becomes the input's generation, absent = 1), and calls Polly only if the object is absent. The object is stored with
+`If-None-Match: *` (never overwritten) and a SHA-256 checksum; a 412 means another request stored the same clip first,
+and that object is used.
 
 Where `sha256` comes from (U-036, ADR-0021): see shared/audio.py, which `admin-api` shares for approval (R21).
 
@@ -42,6 +43,7 @@ from shared.body import json_object
 from shared.clipkey import (
     CLIP_KEY,
     CONTENT_TYPE,
+    GENERATION,
     KINDS,
     ClipInputError,
     SpeechConfig,
@@ -49,6 +51,7 @@ from shared.clipkey import (
     object_key,
     polly_request,
     speech_input,
+    take_problem,
 )
 from shared.data import GAME_TABLE_ENV, DynamoTable, table_from_env
 from shared.errors import ApiError, json_response
@@ -111,6 +114,7 @@ PREVIEW_FIELDS: dict[str, tuple[bool, Rule]] = {
     "speechId": (False, _pattern(SPEECH_ID)),
     "text": (False, _string),  # exactly one of text/ssml: checked after the field rules
     "ssml": (False, _string),
+    "take": (False, take_problem),  # [PROPOSAL] 2026-11-15: absent = 1 (the Phase 18 keys); see shared/clipkey.py
 }
 
 
@@ -231,7 +235,13 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         if "speechId" in body:
             request.log["speechId"] = body["speechId"]  # for logging only (G R16)
         try:
-            doc = speech_input(body["kind"], deps.config(), text=body.get("text"), ssml=body.get("ssml"))
+            doc = speech_input(
+                body["kind"],
+                deps.config(),
+                text=body.get("text"),
+                ssml=body.get("ssml"),
+                take=body.get("take", GENERATION),
+            )
         except ClipInputError as error:
             raise ApiError("VALIDATION_FAILED", details=[{"field": error.field, "rule": error.rule}]) from None
         key = clip_key(doc)

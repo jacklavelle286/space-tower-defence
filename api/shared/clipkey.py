@@ -10,9 +10,9 @@ sorted keys, no whitespace, UTF-8. The recipe and its vectors were frozen in Pha
 byte for byte and its test reads the same vectors. Two hashes are in play and must not be confused: `clipKey` hashes the
 synthesis *input*; `sha256` hashes the MP3 *bytes* (the client checks a download against it, E.9).
 
-One function, `speech_input(kind, text=... | ssml=..., config)`, turns a speech draft into that document. `tts` calls
-it for a preview (R16) and `admin-api` will call it at approval (R21, Phase 20) on the *saved* draft, so a preview made
-under the wrong kind is refused as `not_previewed` there.
+One function, `speech_input(kind, config, text=... | ssml=..., take=...)`, turns a speech draft into that document.
+`tts` calls it for a preview (R16) and `admin-api` calls it at approval (R21) on the *saved* draft and take, so a
+preview made under the wrong kind or take is refused as `not_previewed` there.
 
 What the server decides, never the request (E §E.4.1a, [CONFIRMED by owner, 2026-11-14]):
 - the voice (`TTS_VOICE_ID`), and the engine by kind: `TTS_ENGINE` for WORD, INSTRUCTION, DICTATION;
@@ -25,6 +25,12 @@ What the server decides, never the request (E §E.4.1a, [CONFIRMED by owner, 202
 Object keys are flat, `tts/v1/<clipKey>.mp3` (H §H.4.6). The player route knows only the pinned `clipKey` (the slot's
 clips map holds `{speechId, speechVersion, clipKey}`, and `tts` cannot read `content`), so the object key must be
 derivable from the clip key alone; ADR-0014 and the vectors' `objectKey` record the same flat key.
+
+Takes ([PROPOSAL], 2026-11-15; ADR-0025). Polly's generative engine is not deterministic: the same input
+can come back as different audio [VERIFIED 2026-11-15: one clip key, two different MP3s]. Clips are create-only, so a
+bad render would hold its key for ever. A speech draft therefore carries a `take` (1..`speechTake.max` in
+contracts/limits.json, absent = 1) that becomes the input's `generation`: take 1 is generation 1, so every existing key
+and vector is unchanged, and "Try another take" in the admin gives a new key and a fresh render of the same SSML.
 """
 
 from __future__ import annotations
@@ -55,6 +61,8 @@ CLIP_KEY = re.compile(r"[0-9a-f]{64}")  # use with fullmatch
 KINDS = ("WORD", "PHONEME", "LETTER_NAME", "INSTRUCTION", "DICTATION")
 PHONEME_KINDS = frozenset({"PHONEME", "LETTER_NAME"})
 TEXT_MAX: int = LIMITS["previewTextMaxLength"]
+TAKE_MIN: int = LIMITS["speechTake"]["min"]
+TAKE_MAX: int = LIMITS["speechTake"]["max"]
 
 # The voice/engine allow-list (E §E.4.1a: in code, because IAM cannot restrict them). en-GB voices and the engines
 # describe-voices lists for them in eu-west-2 [VERIFIED 2026-11-15, ADR-0014 evidence]: Amy is the confirmed voice;
@@ -258,12 +266,34 @@ def synthesis_input(ssml: str, *, engine: str, voice_id: str, generation: int = 
     }
 
 
+def take_problem(value: Any) -> str | None:
+    """The rule a take breaks ("type", "minimum", "maximum"), or None for an integer in the speechTake limits."""
+    if isinstance(value, bool) or not isinstance(value, int):
+        return "type"
+    if value < TAKE_MIN:
+        return "minimum"
+    if value > TAKE_MAX:
+        return "maximum"
+    return None
+
+
 def speech_input(
-    kind: str, config: SpeechConfig, *, text: str | None = None, ssml: str | None = None
+    kind: str,
+    config: SpeechConfig,
+    *,
+    text: str | None = None,
+    ssml: str | None = None,
+    take: int = GENERATION,
 ) -> dict[str, Any]:
-    """A speech draft (kind + text or ssml body) as the synthesis input, with voice and engine from `config`."""
+    """A speech draft (kind + text or ssml body + take) as the synthesis input, with voice and engine from `config`.
+    The take is the input's `generation`, so take 1 gives exactly the Phase 18 keys."""
+    rule = take_problem(take)
+    if rule is not None:
+        raise ClipInputError("take", rule)
     engine = config.engine_for(kind)
-    return synthesis_input(speech_ssml(engine, text=text, ssml=ssml), engine=engine, voice_id=config.voice_id)
+    return synthesis_input(
+        speech_ssml(engine, text=text, ssml=ssml), engine=engine, voice_id=config.voice_id, generation=take
+    )
 
 
 def canonical_json(doc: Mapping[str, Any]) -> bytes:

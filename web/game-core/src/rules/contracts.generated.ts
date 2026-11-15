@@ -60,6 +60,10 @@ export const LIMITS = {
   ],
   "deviceLabelMaxLength": 40,
   "previewTextMaxLength": 300,
+  "speechTake": {
+    "min": 1,
+    "max": 50
+  },
   "templateDomainMax": 5000,
   "speechUrlSeconds": 300,
   "lease": {

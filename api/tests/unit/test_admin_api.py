@@ -96,7 +96,7 @@ class Admin:
         response = self.router.handle(event)
         return response["statusCode"], json.loads(response["body"])
 
-    def preview(self, kind: str, **body: str) -> dict[str, Any]:
+    def preview(self, kind: str, **body: Any) -> dict[str, Any]:
         event = event_for(self.base, "POST /api/admin/speech/preview", cognito__groups="[admin]")
         event["body"] = json.dumps({"kind": kind, **body})
         response = self.tts.handle(event)
@@ -298,6 +298,70 @@ def test_speech_draft_save_checks_like_a_preview_and_uses_draft_revision(api: Ad
         "PUT /api/admin/speech-definitions/{id}", {"draftRevision": 1, "text": "  sh\n "}, id="phoneme-sh"
     )
     assert status == 200 and body["draft"]["text"] == "sh" and "ssml" not in body["draft"]
+
+
+# --- Takes ([PROPOSAL] 2026-11-15): generative renders are not repeatable, so a bad take can be re-rolled ----------
+
+
+def save(api: Admin, revision: int, **body: Any) -> tuple:
+    return api.call("PUT /api/admin/speech-definitions/{id}", {"draftRevision": revision, **body}, id="phoneme-sh")
+
+
+def test_another_take_needs_its_own_preview_and_the_version_records_it(api: Admin) -> None:
+    view = api.speech()
+    assert view["draft"]["take"] == 1  # a new draft is take 1: the Phase 18 key
+    take_1 = api.preview("PHONEME", speechId="phoneme-sh", ssml=SH_BODY)
+    assert take_1["clipKey"] == view["draft"]["clipKey"]
+
+    status, view = save(api, 1, ssml=SH_BODY, take=2)  # "Try another take": same SSML, next take, new revision
+    assert status == 200, view
+    draft = view["draft"]
+    assert (draft["take"], draft["draftRevision"], draft["ssml"]) == (2, 2, SH_BODY)
+    assert draft["clipKey"] != take_1["clipKey"]
+
+    status, body = api.approve("phoneme-sh", 2)  # only take 1 was rendered
+    assert (status, rules(body)) == (400, {("draft", "not_previewed")})
+
+    take_2 = api.preview("PHONEME", speechId="phoneme-sh", ssml=SH_BODY, take=2)
+    assert take_2["clipKey"] == draft["clipKey"]
+    status, body = api.approve("phoneme-sh", 2)
+    assert status == 200, body
+    assert (body["clipKey"], body["take"]) == (take_2["clipKey"], 2)
+    version = api.table.get_item("SPEECH#phoneme-sh", f"V#{body['versionId']}")
+    assert version is not None and (version["take"], version["clipKey"]) == (2, take_2["clipKey"])
+    stored = api.s3.get_object(Bucket=BUCKET, Key=f"{PREFIX}{take_2['clipKey']}.mp3")["Body"].read()
+    assert version["sha256"] == hashlib.sha256(stored).hexdigest()  # the bytes of the take that was heard
+    _, view = api.call("GET /api/admin/speech-definitions/{id}", id="phoneme-sh")
+    assert [(v["take"], v["clipKey"]) for v in view["versions"]] == [(2, take_2["clipKey"])]
+
+
+def test_approve_refuses_a_preview_of_another_take(api: Admin) -> None:
+    api.speech()
+    save(api, 1, ssml=SH_BODY, take=3)
+    api.preview("PHONEME", ssml=SH_BODY, take=2)  # a take that is not the saved one
+    api.preview("PHONEME", ssml=SH_BODY)
+    status, body = api.approve("phoneme-sh", 2)
+    assert (status, rules(body)) == (400, {("draft", "not_previewed")})
+
+
+def test_a_save_without_take_keeps_the_drafts_take(api: Admin) -> None:
+    api.speech()
+    save(api, 1, ssml=SH_BODY, take=4)
+    status, view = save(api, 2, text="sh")
+    assert status == 200 and view["draft"]["take"] == 4
+    expected = api.preview("PHONEME", text="sh", take=4)["clipKey"]
+    assert view["draft"]["clipKey"] == expected
+
+
+@pytest.mark.parametrize(
+    ("take", "rule"), [(0, "minimum"), (51, "maximum"), ("2", "type"), (True, "type"), (None, "type")]
+)
+def test_take_is_checked_on_save(api: Admin, take: Any, rule: str) -> None:
+    api.speech()
+    status, body = save(api, 1, ssml=SH_BODY, take=take)
+    assert (status, rules(body)) == (400, {("take", rule)})
+    _, view = api.call("GET /api/admin/speech-definitions/{id}", id="phoneme-sh")
+    assert (view["draft"]["take"], view["draft"]["draftRevision"]) == (1, 1)  # nothing was written
 
 
 def test_create_is_idempotent_and_lists(api: Admin) -> None:

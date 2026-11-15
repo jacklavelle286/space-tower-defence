@@ -44,6 +44,8 @@ Consequences:
   operator must hear the generative render in admin preview before approving them (the approve step re-renders anyway).
 - The owner marked the small-schwa picks `publishable` rather than `publishable-small-schwa`; G-14 treats both the same.
 - Sounds judged `word-only` are taught inside words only, or wait for a human recording (the owner's fallback).
+- Generative renders are not repeatable, so the admin preview, not this bake-off, chooses the take children hear
+  ([ADR-0025](0025-speech-takes.md), Proposed).
 
 Evidence: render run 2026-11-15, `spikes/polly-listening/render.py`, Amy, eu-west-2: 24 items, 41 SSML variants, 82 renders on
 `generative` and `neural`, **82 succeeded, 0 refused**. Second run 2026-11-15 after review, adding the D9.1 step 2 forms

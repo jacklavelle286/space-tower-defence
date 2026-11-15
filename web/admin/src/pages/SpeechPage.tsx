@@ -8,11 +8,16 @@ import {
   type SpeechSummary,
   type SpeechView,
 } from "../api";
-import { canApprove, LISTENING_CHECKLIST } from "../review";
+import { canApprove, LISTENING_CHECKLIST, nextTake, previewBody } from "../review";
 
 // A9 (D §D9.3): pick a definition, edit its draft, Preview (the only Polly path), Play, tick the listening checks,
 // Approve. Voice and engine are shown, never chosen. Approve is enabled only for the saved draft whose exact clip was
 // previewed in this session; admin-api checks the clip object again.
+//
+// Try another take ([PROPOSAL] 2026-11-15, ADR-0025): Polly's generative engine can render the same text differently
+// each time, and a stored clip is never replaced. When a preview sounds wrong, the button saves the same text with the
+// next take (a new draft revision, so a new clip key) and previews that. The take shown by the player is the one
+// Approve records.
 
 const PAGE = "speech";
 
@@ -119,7 +124,7 @@ function SpeechEditor({ api, speechId, onChange }: { readonly api: AdminApi; rea
   const [view, setView] = useState<SpeechView | null>(null);
   const [field, setField] = useState<Field>("text");
   const [value, setValue] = useState("");
-  const [preview, setPreview] = useState<(Preview & { draftRevision: number }) | null>(null);
+  const [preview, setPreview] = useState<(Preview & { draftRevision: number; take: number }) | null>(null);
   const [ticks, setTicks] = useState<Record<string, boolean>>({});
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
@@ -169,12 +174,24 @@ function SpeechEditor({ api, speechId, onChange }: { readonly api: AdminApi; rea
       onChange();
     });
 
-  const makePreview = () =>
+  const previewSaved = async (stored: SpeechView["draft"]) => {
+    const result = await api.preview({ kind: stored.kind, speechId, ...previewBody(stored) });
+    setPreview({ ...result, draftRevision: stored.draftRevision, take: stored.take });
+    setTicks({});
+  };
+
+  const makePreview = () => run(() => previewSaved(draft));
+
+  const next = nextTake(draft.take);
+  const anotherTake = () =>
     run(async () => {
-      const body = draft.ssml !== undefined ? { ssml: draft.ssml } : { text: draft.text ?? "" };
-      const result = await api.preview({ kind: draft.kind, speechId, ...body });
-      setPreview({ ...result, draftRevision: draft.draftRevision });
+      if (next === null) return;
+      const updated = await api.saveSpeech(speechId, { draftRevision: draft.draftRevision, ...previewBody(draft), take: next });
+      adopt(updated);
+      setPreview(null);
       setTicks({});
+      onChange();
+      await previewSaved(updated.draft);
     });
 
   const approve = () =>
@@ -211,7 +228,7 @@ function SpeechEditor({ api, speechId, onChange }: { readonly api: AdminApi; rea
       <p className="kind">{draft.kind.replace("_", " ")}</p>
       <p className="muted">
         Voice {draft.voiceId} · engine {draft.engine} · provider {draft.provider} (set by the server for this kind) · draft revision{" "}
-        {draft.draftRevision} · {header.state === "APPROVED" ? `approved version ${header.approvedVersion}` : "not approved yet"}
+        {draft.draftRevision} · take {draft.take} · {header.state === "APPROVED" ? `approved version ${header.approvedVersion}` : "not approved yet"}
       </p>
 
       <fieldset>
@@ -233,10 +250,22 @@ function SpeechEditor({ api, speechId, onChange }: { readonly api: AdminApi; rea
         <legend>Preview and listen</legend>
         <button type="button" onClick={() => void makePreview()} disabled={busy || dirty || draft.clipKey === null}>
           Preview
+        </button>{" "}
+        <button
+          type="button"
+          onClick={() => void anotherTake()}
+          disabled={busy || dirty || draft.clipKey === null || next === null}
+          title="Save the same text as the next take and preview it: a fresh render from Polly"
+        >
+          Try another take
         </button>
+        {next === null && <span className="muted"> No takes left (the limit is {draft.take}).</span>}
         {preview !== null && (
           <div className="player">
-            <audio ref={audio} src={preview.url} controls preload="auto" />
+            <p>
+              <strong>Take {preview.take}</strong>
+            </p>
+            <audio key={preview.clipKey} ref={audio} src={preview.url} controls preload="auto" />
             <button type="button" onClick={() => void audio.current?.play()}>
               Play
             </button>
@@ -282,6 +311,7 @@ function SpeechEditor({ api, speechId, onChange }: { readonly api: AdminApi; rea
               <th>Approved</th>
               <th>Rendered</th>
               <th>Voice / engine</th>
+              <th>Take</th>
               <th>Clip key</th>
               <th>SHA-256</th>
             </tr>
@@ -295,6 +325,7 @@ function SpeechEditor({ api, speechId, onChange }: { readonly api: AdminApi; rea
                 <td>
                   {v.voiceId} / {v.engine}
                 </td>
+                <td>{v.take}</td>
                 <td className="mono">{v.clipKey.slice(0, 12)}…</td>
                 <td className="mono">{v.sha256.slice(0, 12)}…</td>
               </tr>

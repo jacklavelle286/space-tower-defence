@@ -40,6 +40,7 @@ The rules are in [J §J.6](../plan/J-execution-backlog.md#j6-decision-log-practi
 | [0022](0022-accounts-in-terraform.md) | Operator and test accounts in Terraform (supersedes, for those four accounts only, H §H.9.1's "no users in Terraform") | Accepted |
 | [0024](0024-content-first-offline-after-launch.md) | Content before game systems; offline play after launch (gate order D, G, H1, I, E, F, J, L, then K) | Proposed |
 | [0023](0023-admin-sign-in-without-amplify.md) | Admin sign-in: hand-written code + PKCE, tokens in sessionStorage, no refresh (the player keeps Amplify, E.7.1) | Proposed |
+| [0025](0025-speech-takes.md) | Speech takes: a draft's `take` (1..50, absent = 1) is the clip key's generation, so the operator can re-roll a generative render | Proposed |
 
 ## Next in line
 

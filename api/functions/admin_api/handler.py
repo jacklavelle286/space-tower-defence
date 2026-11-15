@@ -14,7 +14,13 @@ picks the engine, with the same TTS_* configuration as `tts`) and requires that 
 exists only if `POST /api/admin/speech/preview` rendered exactly this draft's input, so "a preview of the same draft
 revision exists" is a fact the server can check, not a claim from the browser. A PHONEME definition also needs a
 publishable verdict in content/listening-verdicts.json (G-14, shared/verdicts.py). The version records `clipKey`, the
-`sha256` of the MP3 bytes, the render date (the object's LastModified), `engine`, `voiceId` and the review record.
+`sha256` of the MP3 bytes, the render date (the object's LastModified), `engine`, `voiceId`, `take` and the review
+record.
+
+Takes ([PROPOSAL], 2026-11-15; ADR-0025): the draft holds a `take` (absent = 1) that is part of the clip key
+(shared/clipkey.py). Generative renders are not repeatable, so when a preview sounds wrong the operator saves the same
+text with the next take ("Try another take", a new draft revision) and previews again; approval checks the clip of the
+saved take.
 
 Activity publication (R27, C4) checks the draft revision, the seven-line checklist, the preview-solve revision, the
 definition (C22.2 subset) and that every referenced speech definition is approved, then writes the immutable version,
@@ -37,7 +43,17 @@ from botocore.exceptions import ClientError
 from shared.audio import AudioStore, head_clip, s3_client, stored_sha256
 from shared.auth import OPERATOR
 from shared.body import json_object, query_param
-from shared.clipkey import KINDS, PROVIDER, ClipInputError, SpeechConfig, canonical_text, clip_key, object_key
+from shared.clipkey import (
+    GENERATION,
+    KINDS,
+    PROVIDER,
+    ClipInputError,
+    SpeechConfig,
+    canonical_text,
+    clip_key,
+    object_key,
+    take_problem,
+)
 from shared.clipkey import speech_input as clip_input
 from shared.content import (
     ACT_PK,
@@ -205,6 +221,12 @@ def speech_summary(header: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
+def draft_take(draft: Mapping[str, Any]) -> int:
+    """The draft's take; a draft saved before takes existed is take 1 (its key is unchanged)."""
+    take = as_int(draft.get("take"))
+    return GENERATION if take is None else take
+
+
 def speech_draft_view(draft: Mapping[str, Any], config: SpeechConfig) -> dict[str, Any]:
     """The draft as R19 shows it: engine and voiceId are what the server would use for its kind now (read-only), and
     `clipKey` is what a preview of the saved draft gives (None while the draft is empty or does not check)."""
@@ -216,6 +238,7 @@ def speech_draft_view(draft: Mapping[str, Any], config: SpeechConfig) -> dict[st
         "engine": config.engine_for(kind),
         "voiceId": config.voice_id,
         "draftRevision": as_int(draft.get("draftRevision")),
+        "take": draft_take(draft),
         "updatedAt": draft.get("updatedAt"),
         "clipKey": None,
     }
@@ -225,7 +248,7 @@ def speech_draft_view(draft: Mapping[str, Any], config: SpeechConfig) -> dict[st
         view["ssml"] = ssml
     if text is not None or ssml is not None:
         with contextlib.suppress(ClipInputError):  # a draft saved before a configuration change may no longer check
-            view["clipKey"] = clip_key(clip_input(kind, config, text=text, ssml=ssml))
+            view["clipKey"] = clip_key(clip_input(kind, config, text=text, ssml=ssml, take=view["take"]))
     return view
 
 
@@ -235,6 +258,7 @@ SPEECH_VERSION_FIELDS = ("clipKey", "sha256", "renderedAt", "approvedAt", "engin
 def speech_version_view(item: Mapping[str, Any]) -> dict[str, Any]:
     view = {"versionId": str(item["sk"]).removeprefix(VERSION_PREFIX)}
     view.update({name: plain(item.get(name)) for name in SPEECH_VERSION_FIELDS})
+    view["take"] = draft_take(item)  # a version approved before takes existed was take 1
     return view
 
 
@@ -319,16 +343,19 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         speech_id = path_id(request)
         request.log["speechId"] = speech_id
         body = json_object(request.event)
-        only_fields(body, {"draftRevision", "title", "text", "ssml"}, {"draftRevision"})
+        only_fields(body, {"draftRevision", "title", "text", "ssml", "take"}, {"draftRevision"})
         revision = draft_revision_of(body)
         if ("text" in body) == ("ssml" in body):
             raise invalid([problem("body", "oneOf")])
         if "title" in body and not valid_title(body["title"]):
             raise invalid([problem("title", "pattern")])
+        if "take" in body and (rule := take_problem(body["take"])) is not None:
+            raise invalid([problem("take", rule)])
         _, draft = speech_items(speech_id)
         field, other = ("text", "ssml") if "text" in body else ("ssml", "text")
+        take = body["take"] if "take" in body else draft_take(draft)  # absent: the draft keeps its take
         try:  # the same checks as a preview (G R20): length, characters, tags for the kind's engine
-            clip_input(str(draft.get("kind")), deps.config(), **{field: body[field]})
+            clip_input(str(draft.get("kind")), deps.config(), take=take, **{field: body[field]})
         except ClipInputError as error:
             raise invalid([problem(error.field, error.rule)]) from None
         now, by = iso_z(deps.now()), request.caller.sub
@@ -340,15 +367,23 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
             content.update_action(
                 speech_pk(speech_id),
                 DRAFT_SK,
-                update="SET #body = :body, #rev = #rev + :one, #by = :by, #at = :now REMOVE #other",
+                update="SET #body = :body, #take = :take, #rev = #rev + :one, #by = :by, #at = :now REMOVE #other",
                 names={
                     "#body": field,
                     "#other": other,
+                    "#take": "take",
                     "#rev": "draftRevision",
                     "#by": "updatedBy",
                     "#at": "updatedAt",
                 },
-                values={":body": canonical_text(body[field]), ":one": 1, ":by": by, ":now": now, ":r": revision},
+                values={
+                    ":body": canonical_text(body[field]),
+                    ":take": take,
+                    ":one": 1,
+                    ":by": by,
+                    ":now": now,
+                    ":r": revision,
+                },
                 condition="#rev = :r",
             ),
             content.update_action(
@@ -385,11 +420,12 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
 
         kind = str(draft.get("kind"))
         text, ssml = speech_body(draft)
+        take = draft_take(draft)
         config = deps.config()
         if text is None and ssml is None:
             raise invalid([problem("draft", "empty")])
         try:
-            doc = clip_input(kind, config, text=text, ssml=ssml)
+            doc = clip_input(kind, config, text=text, ssml=ssml, take=take)
         except ClipInputError as error:
             raise invalid([problem(error.field, error.rule)]) from None
         if kind == "PHONEME":
@@ -419,6 +455,7 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
             "engine": doc["engine"],
             "voiceId": doc["voiceId"],
             **({"text": text} if text is not None else {"ssml": ssml}),
+            "take": take,
             "clipKey": key,
             "sha256": sha256,
             "renderedAt": iso_z(rendered) if isinstance(rendered, datetime) else None,
@@ -776,6 +813,7 @@ def approve_result(version: Mapping[str, Any]) -> dict[str, Any]:
         "clipKey": version.get("clipKey"),
         "sha256": version.get("sha256"),
         "renderedAt": version.get("renderedAt"),
+        "take": draft_take(version),
     }
 
 
