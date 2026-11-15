@@ -6,7 +6,8 @@
   "description": "The children's game: React app around a Phaser battlefield.",
   "scripts": {
     "dev": "vite",
-    "typecheck": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json",
+    "test": "vitest run",
     "build": "vite build",
     "preview": "vite preview"
   },

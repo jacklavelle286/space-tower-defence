@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    // Node types for the tests (they read docs/art/asset-catalogue.json from disk) and for vite.config.ts.
+    "types": ["vite/client", "node"]
+  },
+  "include": ["src", "vite.config.ts", "vitest.config.ts"],
+  "exclude": []
+}

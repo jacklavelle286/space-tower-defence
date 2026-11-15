@@ -1,0 +1,186 @@
+/* Battlefield overlays (Phase 14). Colours from art/STYLE.md: plum outline #2A1E3D, cream #FFF4D6, night #141633. */
+.bf {
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.bf-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.bf-canvas {
+  width: 100%;
+  line-height: 0;
+}
+
+.bf-hud {
+  order: -1; /* above the canvas, so it never covers the top row of the map */
+  display: flex;
+  min-height: 52px;
+  margin-bottom: 6px;
+  align-items: center;
+  gap: 12px;
+  padding: 6px 12px;
+  border-radius: 16px;
+  background: rgb(42 30 61 / 80%);
+  color: #fff4d6;
+  font-size: 22px;
+}
+
+.bf-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bf-stat img,
+.bf-coin {
+  width: 28px;
+  height: 28px;
+  vertical-align: middle;
+}
+
+.bf-spacer {
+  flex: 1;
+}
+
+.bf button {
+  font: inherit;
+  cursor: pointer;
+}
+
+.bf button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.bf-big {
+  padding: 8px 22px;
+  border: 4px solid #2a1e3d;
+  border-radius: 18px;
+  background: #ffd36e;
+  color: #2a1e3d;
+  font-size: 24px;
+  font-weight: 700;
+}
+
+.bf-ready {
+  background: #7ee0b5;
+}
+
+.bf-small {
+  padding: 6px 14px;
+  border: 3px solid #2a1e3d;
+  border-radius: 14px;
+  background: #fff4d6;
+  color: #2a1e3d;
+  font-size: 18px;
+}
+
+.bf-icon {
+  width: 48px;
+  height: 48px;
+  padding: 4px;
+  border: 3px solid #2a1e3d;
+  border-radius: 14px;
+  background: #fff4d6;
+}
+
+.bf-icon img {
+  width: 100%;
+  height: 100%;
+}
+
+/* The speed toggle: the icon plus a "1x"/"2x" badge, so it never reads as a play arrow. */
+.bf-speed {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  width: auto;
+  min-width: 48px;
+}
+
+.bf-speed img {
+  width: 28px;
+  height: 28px;
+}
+
+.bf-speed-badge {
+  font-size: 18px;
+  font-weight: 700;
+  color: #2a1e3d;
+}
+
+.bf-panel {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border: 4px solid #2a1e3d;
+  border-radius: 20px;
+  background: #fff4d6;
+  color: #2a1e3d;
+  font-size: 20px;
+}
+
+.bf-panel p {
+  margin: 0;
+}
+
+.bf-card-button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 6px 10px;
+  border: 4px solid #2a1e3d;
+  border-radius: 16px;
+  background: #ffd36e;
+  color: #2a1e3d;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.bf-card-button > img {
+  width: 96px;
+  height: auto;
+}
+
+.bf-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(20 22 51 / 55%);
+}
+
+.bf-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  max-width: 520px;
+  padding: 20px 32px;
+  border: 5px solid #2a1e3d;
+  border-radius: 28px;
+  background: #fff4d6;
+  color: #2a1e3d;
+  text-align: center;
+  font-size: 22px;
+}
+
+.bf-card h2 {
+  margin: 0;
+  font-size: 34px;
+}
+
+.bf-card p {
+  margin: 0;
+}
