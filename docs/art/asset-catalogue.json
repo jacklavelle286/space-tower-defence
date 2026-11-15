@@ -1,17 +1,18 @@
 {
   "version": 1,
   "rules": {
-    "purpose": "Single list of every image the owner produces for Moonbeam Colony. The game (placeholders, manifest) and the art build tool (tools/art, to be built later) read this file. Source of the values: docs/art/chatgpt-asset-prompts.md (the pack) and plan D10; values not stated there are marked 'derived' in notes.",
+    "purpose": "Single list of every image in Moonbeam Colony. The art tools (tools/art/render.py, gallery.py, previews.py) and later the game's asset manifest read this file. Every entry is drawn as SVG in this repo: art/svg/<family>/ (house style art/STYLE.md) -> tools/art/render.py -> appPath. Sizes, anchors and names came from the superseded ChatGPT pack (docs/art/chatgpt-asset-prompts.md) and plan D10; values not stated there are marked 'derived' in notes.",
     "sources": [
-      "docs/art/chatgpt-asset-prompts.md",
+      "art/svg/<family>/ (the drawn sources) and art/STYLE.md",
       "docs/plan/D-ux-and-content-operations.md#d10-generated-art-and-audio-inventory",
-      "docs/plan/E-architecture.md (E.2.3 /assets/*, E.8.2 per-planet atlas from the asset manifest)"
+      "docs/plan/E-architecture.md (E.2.3 /assets/*, E.8.2 per-planet atlas from the asset manifest)",
+      "docs/art/chatgpt-asset-prompts.md (superseded; origin of the sizes, anchors and the 'conversation' and 'card' values)"
     ],
     "entries": "One entry per shipped still image, and one entry per animation. Animations are NOT expanded: they give 'frames' (count) and 'framePattern', where {nn} is the two-digit frame number 01..frames (D10.1 '<assetId>-<anim>-<nn>.png'). For an animation, 'file' is frame 01's name. Reference images that are never shipped (style anchor, character sheets, alien line-up, height guide, Glorp base) are included so progress can be tracked; they have appPath and atlas null.",
     "id": "Unique per entry, ^[a-z0-9-]{1,40}$ (spine S9.5): the file name without extension and without the -<nn> frame suffix. For animations this is '<D10 assetId>-<anim>' (for example nova-l1-attack for D10 asset nova-l1). Exceptions, where the PNG already uses the plain name and the extension is added to the id: logo-svg (logo.svg), logo-on-dark-svg (logo-on-dark.svg), luna-backdrop-png (luna-backdrop.png, the fallback of luna-backdrop.webp).",
-    "conversation": "ChatGPT conversation from pack 1.3 ('0', '1'..'6', '7a'..'7c', '8a'..'8c', '9a', '9b', '10'..'14', '15-17'). null when the file is not made in ChatGPT (SVG, or an owner edit of an accepted image).",
-    "source": "'chatgpt' = pixels come from ChatGPT image generation, including owner edits of an accepted ChatGPT image (locked silhouettes, used power icons, badge outlines, rotated or redrawn route tiles; these have conversation null and say 'owner edit' in notes). 'svg' = drawn as vector by the owner (pack: 'SVG / code - not ChatGPT'). 'css' = drawn by CSS at runtime (no entry uses it yet; reserved for the 'AI or CSS' effects if the owner chooses CSS).",
-    "canvas": "ChatGPT canvas to ask for (pack 1.4): 1024x1024, 1536x1024 or 1024x1536. null for SVG and for owner-made tiles.",
+    "conversation": "Historical: the ChatGPT conversation from the superseded pack 1.3 ('0', '1'..'6', '7a'..'7c', '8a'..'8c', '9a', '9b', '10'..'14', '15-17'), or null. Kept only to cross-reference the pack's cards; no tool uses it.",
+    "source": "'drawn-svg' = drawn as vector SVG in this repo (art/svg/<family>/<file stem>.svg, one SVG per frame) and rendered by tools/art/render.py. Every entry uses it. 'css' = drawn by CSS at runtime (no entry uses it; reserved). Earlier values 'chatgpt' and 'svg' were retired when all art was drawn in-repo.",
+    "canvas": "Historical: the ChatGPT canvas from the superseded pack 1.4, or null. Not used; render.py renders at authorSize.",
     "sizes": "displaySize = [w,h] in game/CSS px on the 1920x1056 logical canvas. authorSize = the 2x master the game ships (D10.1, pack 1.4), so authorSize = 2 x displaySize unless the card says otherwise (Juno blast 269 -> 538; backdrop 3840x2112). Where a card gives a range (64-128, 128-256) the top of the range is used so the game only ever shrinks. For SVG, authorSize is only the raster size for placeholders and any PNG fallback.",
     "anchor": "[x,y] normalised 0..1 from the top-left of the authorSize image. [0.5,1] bottom-centre for astronauts, aliens, bosses and things standing on the ground (feet on the route or pad; flyers keep it with the body drawn high, for shadow placement); [0.5,0.5] centre for effects, icons, pads, route tiles and flat ground items (D10.1); [0,0.5] left-middle for beams and tracers stretched from the gadget to the target at runtime; the drawn ground centre (about [0.5,0.62]) for flat items drawn 'centred low' (portal-idle, fx-place). Exceptions are marked 'derived' in notes.",
     "transparency": {
@@ -20,18 +21,19 @@
       "key-magenta": "as key-green but the fallback is flat #FF00FF, for green or lime subjects (pack 1.5)",
       "black-screen": "glow or translucent effect generated on flat #000000; the tool converts black to alpha, or the game draws it with additive/screen blending (pack 1.5, 4.5)",
       "none": "opaque image (backdrops, screen backgrounds, reference sheets)",
-      "alpha-required": "the subject contains both lime/green and magenta, so neither key is safe: the raw must have real alpha; the tool fails (reports the file) instead of keying, and the owner regenerates or cuts it out by hand"
+      "alpha-required": "the subject contains both lime/green and magenta, so neither key is safe: the raw must have real alpha; the tool fails (reports the file) instead of keying, and the owner regenerates or cuts it out by hand",
+      "_note": "Historical: describes how ChatGPT raws would have been keyed. The drawn SVGs render with real alpha (render.py uses a transparent background), so no keying happens; opaque images ('none') draw their own background."
     },
     "atlas": "'atlas-common' (astronauts, aliens, bosses, effects, powers) and 'atlas-luna-1' (Moonbeam map, colony, pads, decorations) are packed sprite atlases (D10.1). 'ui' and 'activity' are loose files served from those folders (DOM images). null = not packed (backdrop, full-screen overlays) or not shipped. The tool may split an atlas into pages if it exceeds the texture size limit (the 768 px boss frames are large).",
-    "rawPath": "art/source/<family>/<file name or framePattern>, always .png for ChatGPT sources (ChatGPT downloads PNG) and .svg for SVG sources, even where the shipped file is .webp or a rasterised .png. Exception: the style anchor at art/source/style-anchor.png (as the pack says). Family folder names other than 'astronauts' are derived (the pack names only art/source/<family>/ and art/source/astronauts/).",
-    "appPath": "web/player/public/assets/<group>/<file or framePattern> with group luna-1 | common | ui | activity (pack 1.6, a proposal that section E owns). The tool writes these plus the game's asset-manifest.json.",
+    "rawPath": "For reference images that are never shipped (appPath null), the PNG that tools/art/render.py writes (art/source/...). For every other entry it is the superseded ChatGPT raw location and is not used; the source is art/svg/<family>/<file stem>.svg.",
+    "appPath": "web/player/public/assets/<group>/<file or framePattern> with group luna-1 | common | ui | activity (pack 1.6, a proposal that section E owns). tools/art/render.py writes these: raster files rendered at authorSize, and .svg entries copied as-is. The game's asset-manifest.json is built later (build Phase 64).",
     "required": {
       "M1": "replace these placeholders first: art the first playable slice shows on screen (J M1-21, B3.2: one route, a few pads, Nova L1, Moon Blob, the colony and its damage states, defeat and leak effects, profile avatars, the sync chip (SYNCED, PENDING, RETRYING, AUTH_REQUIRED), a few HUD and Play icons, and the attempt and reward feedback of the one M1 activity ph-0102, which has no picture). B3.2 says M1 art is labelled placeholders, so M1 here means 'replace placeholders first', not 'blocks M1'",
       "core": "needed for the full planned game",
       "optional": "the pack marks it optional or reuses other art first"
     },
-    "placeholders": "Until rawPath exists, the game draws a labelled placeholder (coloured shape with the id) at authorSize and anchor, so building never waits for art (D10, prompt.md:1066).",
-    "progress": "An entry is accepted when its rawPath exists (for animations: every frame 01..frames exists).",
+    "placeholders": "Until an entry's rendered file exists at appPath, the game draws a labelled placeholder (coloured shape with the id) at authorSize and anchor, so building never waits for art (D10, prompt.md:1066). All 352 entries are drawn, so this applies only to entries added later.",
+    "progress": "An entry is drawn when its SVG source exists in art/svg/<family>/ for every frame 01..frames (python3 tools/art/render.py --check lists gaps), and rendered when its file exists at appPath (or rawPath for reference images).",
     "notEnumerated": [
       "activity.pic.age67-nouns: about 8 more pic-<word>.png, chosen when the age 6-7 banks are authored (128, author 256, key-green, activity)",
       "activity.demo.cards: demo-<conceptId>-<nn>.png, about 20, 256 (author 512), defined as concepts are authored"
@@ -53,7 +55,7 @@
       "family": "reference",
       "conversation": "0",
       "card": "3.3 Master reference: the style anchor (conversation 0)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1536x1024",
       "authorSize": [
         1536,
@@ -81,7 +83,7 @@
       "family": "astronauts",
       "conversation": "1",
       "card": "Master reference: Nova character sheet (not shipped)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1536x1024",
       "authorSize": [
         1536,
@@ -109,7 +111,7 @@
       "family": "astronauts",
       "conversation": null,
       "card": "1.3 One conversation per asset family (height guide)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -137,7 +139,7 @@
       "family": "astronauts",
       "conversation": "1",
       "card": "class.nova.l1.idle — Nova L1 idle",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -166,7 +168,7 @@
       "family": "astronauts",
       "conversation": "1",
       "card": "class.nova.l1.attack — Nova L1 attack",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -195,7 +197,7 @@
       "family": "astronauts",
       "conversation": "1",
       "card": "class.nova.l2.idle — Nova L2 idle",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -224,7 +226,7 @@
       "family": "astronauts",
       "conversation": "1",
       "card": "class.nova.l2.attack — Nova L2 attack",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -253,7 +255,7 @@
       "family": "astronauts",
       "conversation": "1",
       "card": "class.nova.l3.idle — Nova L3 idle",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -282,7 +284,7 @@
       "family": "astronauts",
       "conversation": "1",
       "card": "class.nova.l3.attack — Nova L3 attack",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -311,7 +313,7 @@
       "family": "astronauts",
       "conversation": "1",
       "card": "class.nova.portrait — Nova shop portrait",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -339,7 +341,7 @@
       "family": "astronauts",
       "conversation": null,
       "card": "class.nova.locked — Nova locked silhouette",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -367,7 +369,7 @@
       "family": "astronauts",
       "conversation": "2",
       "card": "Master reference: Pip character sheet (not shipped)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1536x1024",
       "authorSize": [
         1536,
@@ -395,7 +397,7 @@
       "family": "astronauts",
       "conversation": "2",
       "card": "class.pip.l1.idle — Pip L1 idle",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -424,7 +426,7 @@
       "family": "astronauts",
       "conversation": "2",
       "card": "class.pip.l1.attack — Pip L1 attack",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -453,7 +455,7 @@
       "family": "astronauts",
       "conversation": "2",
       "card": "class.pip.l2.idle — Pip L2 idle",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -482,7 +484,7 @@
       "family": "astronauts",
       "conversation": "2",
       "card": "class.pip.l2.attack — Pip L2 attack",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -511,7 +513,7 @@
       "family": "astronauts",
       "conversation": "2",
       "card": "class.pip.l3.idle — Pip L3 idle",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -540,7 +542,7 @@
       "family": "astronauts",
       "conversation": "2",
       "card": "class.pip.l3.attack — Pip L3 attack",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -569,7 +571,7 @@
       "family": "astronauts",
       "conversation": "2",
       "card": "class.pip.portrait — Pip shop portrait",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -597,7 +599,7 @@
       "family": "astronauts",
       "conversation": null,
       "card": "class.pip.locked — Pip locked silhouette",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -625,7 +627,7 @@
       "family": "astronauts",
       "conversation": "3",
       "card": "Master reference: Juno character sheet (not shipped)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1536x1024",
       "authorSize": [
         1536,
@@ -653,7 +655,7 @@
       "family": "astronauts",
       "conversation": "3",
       "card": "class.juno.l1.idle — Juno L1 idle",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -682,7 +684,7 @@
       "family": "astronauts",
       "conversation": "3",
       "card": "class.juno.l1.attack — Juno L1 attack",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -711,7 +713,7 @@
       "family": "astronauts",
       "conversation": "3",
       "card": "class.juno.l2.idle — Juno L2 idle",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -740,7 +742,7 @@
       "family": "astronauts",
       "conversation": "3",
       "card": "class.juno.l2.attack — Juno L2 attack",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -769,7 +771,7 @@
       "family": "astronauts",
       "conversation": "3",
       "card": "class.juno.l3.idle — Juno L3 idle",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -798,7 +800,7 @@
       "family": "astronauts",
       "conversation": "3",
       "card": "class.juno.l3.attack — Juno L3 attack",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -827,7 +829,7 @@
       "family": "astronauts",
       "conversation": "3",
       "card": "class.juno.portrait — Juno shop portrait",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -855,7 +857,7 @@
       "family": "astronauts",
       "conversation": null,
       "card": "class.juno.locked — Juno locked silhouette",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -883,7 +885,7 @@
       "family": "astronauts",
       "conversation": "4",
       "card": "Master reference: Orion character sheet (not shipped)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1536x1024",
       "authorSize": [
         1536,
@@ -911,7 +913,7 @@
       "family": "astronauts",
       "conversation": "4",
       "card": "class.orion.l1.idle — Orion L1 idle",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -940,7 +942,7 @@
       "family": "astronauts",
       "conversation": "4",
       "card": "class.orion.l1.attack — Orion L1 attack",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -969,7 +971,7 @@
       "family": "astronauts",
       "conversation": "4",
       "card": "class.orion.l2.idle — Orion L2 idle",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -998,7 +1000,7 @@
       "family": "astronauts",
       "conversation": "4",
       "card": "class.orion.l2.attack — Orion L2 attack",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -1027,7 +1029,7 @@
       "family": "astronauts",
       "conversation": "4",
       "card": "class.orion.l3.idle — Orion L3 idle",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -1056,7 +1058,7 @@
       "family": "astronauts",
       "conversation": "4",
       "card": "class.orion.l3.attack — Orion L3 attack",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -1085,7 +1087,7 @@
       "family": "astronauts",
       "conversation": "4",
       "card": "class.orion.portrait — Orion shop portrait",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -1113,7 +1115,7 @@
       "family": "astronauts",
       "conversation": null,
       "card": "class.orion.locked — Orion locked silhouette",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -1141,7 +1143,7 @@
       "family": "astronauts",
       "conversation": "5",
       "card": "Master reference: Mira character sheet (not shipped)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1536x1024",
       "authorSize": [
         1536,
@@ -1169,7 +1171,7 @@
       "family": "astronauts",
       "conversation": "5",
       "card": "class.mira.l1.idle — Mira L1 idle",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -1198,7 +1200,7 @@
       "family": "astronauts",
       "conversation": "5",
       "card": "class.mira.l1.emit — Mira L1 emit",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -1227,7 +1229,7 @@
       "family": "astronauts",
       "conversation": "5",
       "card": "class.mira.l2.idle — Mira L2 idle",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -1256,7 +1258,7 @@
       "family": "astronauts",
       "conversation": "5",
       "card": "class.mira.l2.emit — Mira L2 emit",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -1285,7 +1287,7 @@
       "family": "astronauts",
       "conversation": "5",
       "card": "class.mira.l3.idle — Mira L3 idle",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -1314,7 +1316,7 @@
       "family": "astronauts",
       "conversation": "5",
       "card": "class.mira.l3.emit — Mira L3 emit",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -1343,7 +1345,7 @@
       "family": "astronauts",
       "conversation": "5",
       "card": "class.mira.portrait — Mira shop portrait",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -1371,7 +1373,7 @@
       "family": "astronauts",
       "conversation": null,
       "card": "class.mira.locked — Mira locked silhouette",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -1399,7 +1401,7 @@
       "family": "astronauts",
       "conversation": "6",
       "card": "Master reference: Sol character sheet (not shipped)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1536x1024",
       "authorSize": [
         1536,
@@ -1427,7 +1429,7 @@
       "family": "astronauts",
       "conversation": "6",
       "card": "class.sol.l1.idle — Sol L1 idle",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1536",
       "authorSize": [
         256,
@@ -1456,7 +1458,7 @@
       "family": "astronauts",
       "conversation": "6",
       "card": "class.sol.l1.pulse — Sol L1 pulse",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1536",
       "authorSize": [
         256,
@@ -1485,7 +1487,7 @@
       "family": "astronauts",
       "conversation": "6",
       "card": "class.sol.l2.idle — Sol L2 idle",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1536",
       "authorSize": [
         256,
@@ -1514,7 +1516,7 @@
       "family": "astronauts",
       "conversation": "6",
       "card": "class.sol.l2.pulse — Sol L2 pulse",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1536",
       "authorSize": [
         256,
@@ -1543,7 +1545,7 @@
       "family": "astronauts",
       "conversation": "6",
       "card": "class.sol.l3.idle — Sol L3 idle",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1536",
       "authorSize": [
         256,
@@ -1572,7 +1574,7 @@
       "family": "astronauts",
       "conversation": "6",
       "card": "class.sol.l3.pulse — Sol L3 pulse",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1536",
       "authorSize": [
         256,
@@ -1601,7 +1603,7 @@
       "family": "astronauts",
       "conversation": "6",
       "card": "class.sol.portrait — Sol shop portrait",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -1629,7 +1631,7 @@
       "family": "astronauts",
       "conversation": null,
       "card": "class.sol.locked — Sol locked silhouette",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -1657,7 +1659,7 @@
       "family": "aliens",
       "conversation": "7a",
       "card": "4.2 Aliens, carrier and descendants (alien line-up reference)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1536x1024",
       "authorSize": [
         1536,
@@ -1685,7 +1687,7 @@
       "family": "aliens",
       "conversation": "7a",
       "card": "alien.blob.walk — Moon Blob walk",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -1714,7 +1716,7 @@
       "family": "aliens",
       "conversation": "7a",
       "card": "alien.mite.walk — Meteor Mite scurry",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         128,
@@ -1743,7 +1745,7 @@
       "family": "aliens",
       "conversation": "7a",
       "card": "alien.shellback.walk — Shellback plod",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -1772,7 +1774,7 @@
       "family": "aliens",
       "conversation": "7a",
       "card": "alien.swarm.bob — Bubble Swarm bubble",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         64,
@@ -1801,7 +1803,7 @@
       "family": "aliens",
       "conversation": "7a",
       "card": "alien.flutter.fly — Orbit Flutter fly",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -1830,7 +1832,7 @@
       "family": "aliens",
       "conversation": null,
       "card": "alien.flutter.shadow — Flutter ground shadow",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         128,
@@ -1858,7 +1860,7 @@
       "family": "aliens",
       "conversation": "7a",
       "card": "alien.guard.walk — Bubble Guard walk",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -1887,7 +1889,7 @@
       "family": "aliens",
       "conversation": null,
       "card": "alien.guard.bubble-layers — Bubble layer overlay",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         256,
@@ -1915,7 +1917,7 @@
       "family": "aliens",
       "conversation": null,
       "card": "alien.guard.bubble-layers — Bubble layer overlay",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         256,
@@ -1943,7 +1945,7 @@
       "family": "aliens",
       "conversation": null,
       "card": "alien.guard.bubble-layers — Bubble layer overlay",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         256,
@@ -1971,7 +1973,7 @@
       "family": "aliens",
       "conversation": null,
       "card": "alien.guard.bubble-layers — Bubble layer overlay",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         256,
@@ -1999,7 +2001,7 @@
       "family": "aliens",
       "conversation": "7a",
       "card": "alien.guard.bubble-pop — Bubble layer pop",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -2028,7 +2030,7 @@
       "family": "aliens",
       "conversation": "7b",
       "card": "alien.patchling.walk — Patchling walk",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -2057,7 +2059,7 @@
       "family": "aliens",
       "conversation": "7b",
       "card": "alien.patchling.heal-pulse — Patchling heal pulse",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         576,
@@ -2086,7 +2088,7 @@
       "family": "aliens",
       "conversation": "7b",
       "card": "alien.slime.walk — Split Slime ooze",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -2115,7 +2117,7 @@
       "family": "aliens",
       "conversation": "7b",
       "card": "alien.slime.split — Split Slime split",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -2144,7 +2146,7 @@
       "family": "aliens",
       "conversation": "7b",
       "card": "alien.slimelet.hop — Slimelet hop",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         128,
@@ -2173,7 +2175,7 @@
       "family": "aliens",
       "conversation": "7b",
       "card": "alien.craft.hover — Alien Craft hover",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         512,
@@ -2202,7 +2204,7 @@
       "family": "aliens",
       "conversation": "7b",
       "card": "alien.craft.release — Alien Craft doors-open release",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         512,
@@ -2231,7 +2233,7 @@
       "family": "trait-icons",
       "conversation": "7c",
       "card": "4.3 Trait icons (icon.trait.armour)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         64,
@@ -2259,7 +2261,7 @@
       "family": "trait-icons",
       "conversation": "7c",
       "card": "4.3 Trait icons (icon.trait.flying)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         64,
@@ -2287,7 +2289,7 @@
       "family": "trait-icons",
       "conversation": "7c",
       "card": "4.3 Trait icons (icon.trait.bubbles)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         64,
@@ -2315,7 +2317,7 @@
       "family": "trait-icons",
       "conversation": "7c",
       "card": "4.3 Trait icons (icon.trait.healer)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         64,
@@ -2343,7 +2345,7 @@
       "family": "trait-icons",
       "conversation": "7c",
       "card": "4.3 Trait icons (icon.trait.splitter)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         64,
@@ -2371,7 +2373,7 @@
       "family": "trait-icons",
       "conversation": "7c",
       "card": "4.3 Trait icons (icon.trait.carrier)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         64,
@@ -2399,7 +2401,7 @@
       "family": "trait-icons",
       "conversation": "7c",
       "card": "4.3 Trait icons (icon.lock)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         64,
@@ -2427,7 +2429,7 @@
       "family": "bosses",
       "conversation": "8a",
       "card": "boss.wobble.walk — King Wobble, phase 1 (Royal stroll)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -2456,7 +2458,7 @@
       "family": "bosses",
       "conversation": "8a",
       "card": "boss.wobble.dash — King Wobble, phase 2 (Wobble dash)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -2485,7 +2487,7 @@
       "family": "bosses",
       "conversation": "8a",
       "card": "boss.wobble.phase-change — King Wobble phase change",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -2514,7 +2516,7 @@
       "family": "bosses",
       "conversation": "8a",
       "card": "boss.clank.walk — Captain Clank (three plate states)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -2543,7 +2545,7 @@
       "family": "bosses",
       "conversation": "8a",
       "card": "boss.clank.walk — Captain Clank (three plate states)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -2572,7 +2574,7 @@
       "family": "bosses",
       "conversation": "8a",
       "card": "boss.clank.walk — Captain Clank (three plate states)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -2601,7 +2603,7 @@
       "family": "bosses",
       "conversation": "8a",
       "card": "boss.clank.plates-fall — Captain Clank plates fall",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -2630,7 +2632,7 @@
       "family": "bosses",
       "conversation": "8b",
       "card": "boss.bubbla.walk — Queen Bubbla",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -2659,7 +2661,7 @@
       "family": "bosses",
       "conversation": "8b",
       "card": "boss.bubbla.wand — Queen Bubbla wand wave",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -2688,7 +2690,7 @@
       "family": "bosses",
       "conversation": null,
       "card": "boss.bubbla.bubble — Queen Bubbla big bubble",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         768,
@@ -2716,7 +2718,7 @@
       "family": "bosses",
       "conversation": null,
       "card": "boss.bubbla.bubble — Queen Bubbla big bubble",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         768,
@@ -2744,7 +2746,7 @@
       "family": "bosses",
       "conversation": null,
       "card": "boss.bubbla.bubble — Queen Bubbla big bubble",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         768,
@@ -2772,7 +2774,7 @@
       "family": "bosses",
       "conversation": "8b",
       "card": "boss.mothership.hover — The Mothership",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -2801,7 +2803,7 @@
       "family": "bosses",
       "conversation": "8b",
       "card": "boss.mothership.hover — The Mothership",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -2830,7 +2832,7 @@
       "family": "bosses",
       "conversation": "8b",
       "card": "boss.mothership.hover — The Mothership",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -2859,7 +2861,7 @@
       "family": "bosses",
       "conversation": "8b",
       "card": "boss.mothership.hover — The Mothership",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -2888,7 +2890,7 @@
       "family": "bosses",
       "conversation": "8b",
       "card": "boss.mothership.door — Mothership door open",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -2917,7 +2919,7 @@
       "family": "bosses",
       "conversation": "8b",
       "card": "boss.mothership.door — Mothership door open",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -2946,7 +2948,7 @@
       "family": "bosses",
       "conversation": "8b",
       "card": "boss.mothership.door — Mothership door open",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -2975,7 +2977,7 @@
       "family": "bosses",
       "conversation": "8b",
       "card": "boss.mothership.release — Mothership defeat release (optional, proposed)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -3004,7 +3006,7 @@
       "family": "bosses",
       "conversation": "8c",
       "card": "boss.glorp.walk — The Great Glorp (four states) (base reference)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -3032,7 +3034,7 @@
       "family": "bosses",
       "conversation": "8c",
       "card": "boss.glorp.walk — The Great Glorp (four states)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -3061,7 +3063,7 @@
       "family": "bosses",
       "conversation": "8c",
       "card": "boss.glorp.walk — The Great Glorp (four states)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -3090,7 +3092,7 @@
       "family": "bosses",
       "conversation": "8c",
       "card": "boss.glorp.walk — The Great Glorp (four states)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -3119,7 +3121,7 @@
       "family": "bosses",
       "conversation": "8c",
       "card": "boss.glorp.walk — The Great Glorp (four states)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -3148,7 +3150,7 @@
       "family": "bosses",
       "conversation": "8c",
       "card": "boss.glorp.hatch — Great Glorp cargo hatch (proposed)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -3177,7 +3179,7 @@
       "family": "bosses",
       "conversation": "8c",
       "card": "boss.glorp.phase-change — Great Glorp phase change",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -3206,7 +3208,7 @@
       "family": "bosses",
       "conversation": "8c",
       "card": "fx.boss.arrive — Boss entrance shockwave",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -3235,7 +3237,7 @@
       "family": "bosses",
       "conversation": "8c",
       "card": "fx.boss.phase — Boss phase flash",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -3264,7 +3266,7 @@
       "family": "effects",
       "conversation": "9a",
       "card": "fx.nova.beam — Nova laser beam (L1, L2, L3)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1536x1024",
       "authorSize": [
         128,
@@ -3293,7 +3295,7 @@
       "family": "effects",
       "conversation": "9a",
       "card": "fx.nova.beam — Nova laser beam (L1, L2, L3)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1536x1024",
       "authorSize": [
         128,
@@ -3322,7 +3324,7 @@
       "family": "effects",
       "conversation": "9a",
       "card": "fx.nova.beam — Nova laser beam (L1, L2, L3)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1536x1024",
       "authorSize": [
         128,
@@ -3351,7 +3353,7 @@
       "family": "effects",
       "conversation": "9a",
       "card": "fx.pip.bolt — Pip frost bolt",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         128,
@@ -3380,7 +3382,7 @@
       "family": "effects",
       "conversation": "9a",
       "card": "fx.pip.slow-ring — Pip L3 area-slow ring",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         384,
@@ -3409,7 +3411,7 @@
       "family": "effects",
       "conversation": "9a",
       "card": "fx.slowed — Slowed overlay",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         128,
@@ -3438,7 +3440,7 @@
       "family": "effects",
       "conversation": "9a",
       "card": "fx.juno.comet — Juno comet projectile",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         128,
@@ -3467,7 +3469,7 @@
       "family": "effects",
       "conversation": "9a",
       "card": "fx.juno.blast — Juno comet blast (L1, L2, L3)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         384,
@@ -3496,7 +3498,7 @@
       "family": "effects",
       "conversation": "9a",
       "card": "fx.juno.blast — Juno comet blast (L1, L2, L3)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         538,
@@ -3525,7 +3527,7 @@
       "family": "effects",
       "conversation": "9a",
       "card": "fx.juno.blast — Juno comet blast (L1, L2, L3)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         538,
@@ -3554,7 +3556,7 @@
       "family": "effects",
       "conversation": "9a",
       "card": "fx.mira.shield-pulse — Mira shield pulse",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -3583,7 +3585,7 @@
       "family": "effects",
       "conversation": "9a",
       "card": "fx.mira.repair — Mira repair sparkle",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -3612,7 +3614,7 @@
       "family": "effects",
       "conversation": "9a",
       "card": "fx.orion.shot — Orion tracer",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1536x1024",
       "authorSize": [
         128,
@@ -3641,7 +3643,7 @@
       "family": "effects",
       "conversation": "9a",
       "card": "fx.sol.beacon — Sol beacon pulse",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -3670,7 +3672,7 @@
       "family": "effects",
       "conversation": "9a",
       "card": "fx.sol.buffed — Buffed chevron",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         64,
@@ -3699,7 +3701,7 @@
       "family": "effects",
       "conversation": "9b",
       "card": "fx.upgrade — Upgrade burst",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -3728,7 +3730,7 @@
       "family": "effects",
       "conversation": "9b",
       "card": "fx.place — Place puff",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -3757,7 +3759,7 @@
       "family": "effects",
       "conversation": "9b",
       "card": "fx.sell — Send home beam-up",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -3786,7 +3788,7 @@
       "family": "effects",
       "conversation": "9b",
       "card": "fx.armour.clonk — Armour clonk spark",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         128,
@@ -3815,7 +3817,7 @@
       "family": "effects",
       "conversation": "9b",
       "card": "fx.pop-stars — Pop into stars",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -3844,7 +3846,7 @@
       "family": "effects",
       "conversation": "9b",
       "card": "fx.leak — Leak boing puff",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -3873,7 +3875,7 @@
       "family": "effects",
       "conversation": "9b",
       "card": "fx.heal.received — Healed sparkle",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         128,
@@ -3902,7 +3904,7 @@
       "family": "effects",
       "conversation": "9b",
       "card": "fx.reward-credits — Credits reward burst",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -3931,7 +3933,7 @@
       "family": "effects",
       "conversation": "9b",
       "card": "fx.correct-sparkle — Correct answer sparkle",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -3960,7 +3962,7 @@
       "family": "powers",
       "conversation": "10",
       "card": "power.frost-pulse.icon — Frost Pulse icon",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -3988,7 +3990,7 @@
       "family": "powers",
       "conversation": null,
       "card": "power.frost-pulse.icon — Frost Pulse icon",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -4016,7 +4018,7 @@
       "family": "powers",
       "conversation": "10",
       "card": "power.frost-pulse.fx — Frost Pulse field effect",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1536x1024",
       "authorSize": [
         3840,
@@ -4045,7 +4047,7 @@
       "family": "powers",
       "conversation": "10",
       "card": "power.comet-burst.icon — Comet Burst icon",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -4073,7 +4075,7 @@
       "family": "powers",
       "conversation": null,
       "card": "power.comet-burst.icon — Comet Burst icon",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -4101,7 +4103,7 @@
       "family": "powers",
       "conversation": null,
       "card": "power.comet-burst.target — Comet Burst targeting ring",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         576,
@@ -4130,7 +4132,7 @@
       "family": "powers",
       "conversation": "10",
       "card": "power.comet-burst.impact — Comet Burst impact",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         512,
@@ -4159,7 +4161,7 @@
       "family": "powers",
       "conversation": "10",
       "card": "power.colony-shield.icon — Colony Shield icon",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -4187,7 +4189,7 @@
       "family": "powers",
       "conversation": null,
       "card": "power.colony-shield.icon — Colony Shield icon",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -4215,7 +4217,7 @@
       "family": "powers",
       "conversation": "10",
       "card": "power.colony-shield.fx — Colony Shield boost",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -4244,7 +4246,7 @@
       "family": "powers",
       "conversation": "10",
       "card": "meteor.offer.art — Meteor challenge offer art",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         512,
@@ -4272,7 +4274,7 @@
       "family": "map",
       "conversation": "11",
       "card": "map.luna.backdrop — Moonbeam Colony lunar backdrop",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1536x1024",
       "authorSize": [
         3840,
@@ -4300,7 +4302,7 @@
       "family": "map",
       "conversation": "11",
       "card": "map.luna.backdrop — Moonbeam Colony lunar backdrop",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1536x1024",
       "authorSize": [
         3840,
@@ -4328,7 +4330,7 @@
       "family": "map",
       "conversation": "11",
       "card": "map.luna.route.straight — Route tile, straight",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1536x1024",
       "authorSize": [
         192,
@@ -4356,7 +4358,7 @@
       "family": "map",
       "conversation": null,
       "card": "map.luna.route.straight — Route tile, straight",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         192,
@@ -4384,7 +4386,7 @@
       "family": "map",
       "conversation": null,
       "card": "map.luna.route.straight — Route tile, straight",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         192,
@@ -4412,7 +4414,7 @@
       "family": "map",
       "conversation": null,
       "card": "map.luna.route.corner — Route tile, corner",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         192,
@@ -4440,7 +4442,7 @@
       "family": "map",
       "conversation": null,
       "card": "map.luna.route.corner — Route tile, corner",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         192,
@@ -4468,7 +4470,7 @@
       "family": "map",
       "conversation": null,
       "card": "map.luna.route.corner — Route tile, corner",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         192,
@@ -4496,7 +4498,7 @@
       "family": "map",
       "conversation": null,
       "card": "map.luna.route.corner — Route tile, corner",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         192,
@@ -4524,7 +4526,7 @@
       "family": "map",
       "conversation": "11",
       "card": "map.luna.route.portal-end — Route start cap",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         192,
@@ -4552,7 +4554,7 @@
       "family": "map",
       "conversation": "11",
       "card": "map.luna.route.colony-end — Route end cap",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         192,
@@ -4580,7 +4582,7 @@
       "family": "map",
       "conversation": "11",
       "card": "map.luna.portal.idle — Alien arrival portal",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         512,
@@ -4609,7 +4611,7 @@
       "family": "map",
       "conversation": "11",
       "card": "map.luna.colony.healthy — Research colony, healthy",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -4637,7 +4639,7 @@
       "family": "map",
       "conversation": "11",
       "card": "map.luna.colony.worried — Research colony, worried",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -4665,7 +4667,7 @@
       "family": "map",
       "conversation": "11",
       "card": "map.luna.colony.very-worried — Research colony, very worried",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -4693,7 +4695,7 @@
       "family": "map",
       "conversation": "11",
       "card": "map.luna.colony.shield — Colony shield bubble",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -4722,7 +4724,7 @@
       "family": "map",
       "conversation": "11",
       "card": "map.luna.colony.shield — Colony shield bubble",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -4750,7 +4752,7 @@
       "family": "map",
       "conversation": "11",
       "card": "map.luna.colony.shield — Colony shield bubble",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         768,
@@ -4779,7 +4781,7 @@
       "family": "map",
       "conversation": "11",
       "card": "map.luna.pad.open — Build pad, open and empty",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -4811,7 +4813,7 @@
       "family": "map",
       "conversation": null,
       "card": "map.luna.pad.hover — Build pad, hover/focus",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         256,
@@ -4843,7 +4845,7 @@
       "family": "map",
       "conversation": null,
       "card": "map.luna.pad.valid-target — Build pad, valid target",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         256,
@@ -4875,7 +4877,7 @@
       "family": "map",
       "conversation": null,
       "card": "map.luna.pad.selected — Build pad, selected",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         256,
@@ -4907,7 +4909,7 @@
       "family": "map",
       "conversation": "11",
       "card": "map.luna.pad.locked — Build pad, locked (opens later)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -4939,7 +4941,7 @@
       "family": "map",
       "conversation": "11",
       "card": "map.luna.deco.crater — Decoration craters",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1536x1024",
       "authorSize": [
         256,
@@ -4967,7 +4969,7 @@
       "family": "map",
       "conversation": "11",
       "card": "map.luna.deco.crater — Decoration craters",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1536x1024",
       "authorSize": [
         256,
@@ -4995,7 +4997,7 @@
       "family": "map",
       "conversation": "11",
       "card": "map.luna.deco.crater — Decoration craters",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1536x1024",
       "authorSize": [
         256,
@@ -5023,7 +5025,7 @@
       "family": "map",
       "conversation": "11",
       "card": "map.luna.deco.rock — Decoration rocks",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1536x1024",
       "authorSize": [
         256,
@@ -5051,7 +5053,7 @@
       "family": "map",
       "conversation": "11",
       "card": "map.luna.deco.rock — Decoration rocks",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1536x1024",
       "authorSize": [
         256,
@@ -5079,7 +5081,7 @@
       "family": "map",
       "conversation": "11",
       "card": "map.luna.deco.rock — Decoration rocks",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1536x1024",
       "authorSize": [
         256,
@@ -5107,7 +5109,7 @@
       "family": "map",
       "conversation": "11",
       "card": "map.luna.deco.antenna — Decoration antenna",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -5135,7 +5137,7 @@
       "family": "map",
       "conversation": "11",
       "card": "map.luna.deco.lamp — Decoration lamp",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         128,
@@ -5165,7 +5167,7 @@
       "family": "map",
       "conversation": "11",
       "card": "map.luna.deco.lamp — Decoration lamp",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         128,
@@ -5195,7 +5197,7 @@
       "family": "map",
       "conversation": "11",
       "card": "map.luna.deco.flag — Decoration flag",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         128,
@@ -5223,7 +5225,7 @@
       "family": "planets",
       "conversation": "12",
       "card": "planet.luna-1 — Moonbeam Colony planet",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         512,
@@ -5251,7 +5253,7 @@
       "family": "planets",
       "conversation": null,
       "card": "planet.coming-later — Coming-later planet outline",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         512,
@@ -5279,7 +5281,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.hud.credits)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         64,
@@ -5307,7 +5309,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.hud.health)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         64,
@@ -5335,7 +5337,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.hud.shield)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         64,
@@ -5363,7 +5365,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.hud.wave)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         64,
@@ -5391,7 +5393,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.hud.pause)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         64,
@@ -5419,7 +5421,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.hud.play)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         64,
@@ -5447,7 +5449,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.hud.speed)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         64,
@@ -5475,7 +5477,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.hud.speed)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         64,
@@ -5503,7 +5505,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.hud.menu)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         64,
@@ -5531,7 +5533,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.target.mode)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         64,
@@ -5559,7 +5561,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.target.mode)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         64,
@@ -5587,7 +5589,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.target.mode)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         64,
@@ -5615,7 +5617,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.target.mode)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         64,
@@ -5643,7 +5645,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.shop.cap-token)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         64,
@@ -5671,7 +5673,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.shop.cap-token)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         64,
@@ -5699,7 +5701,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.subject)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         128,
@@ -5727,7 +5729,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.subject)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         128,
@@ -5755,7 +5757,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.subject)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         128,
@@ -5783,7 +5785,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.sound)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         128,
@@ -5811,7 +5813,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.sound)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         128,
@@ -5839,7 +5841,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.sound)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         128,
@@ -5867,7 +5869,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.sound)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         128,
@@ -5895,7 +5897,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.sound)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         128,
@@ -5923,7 +5925,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.sound)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         128,
@@ -5951,7 +5953,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.sync)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         64,
@@ -5979,7 +5981,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.sync)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         64,
@@ -6007,7 +6009,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.sync)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         64,
@@ -6035,7 +6037,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.sync)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         64,
@@ -6063,7 +6065,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.sync)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         64,
@@ -6091,7 +6093,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.sync)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         64,
@@ -6119,7 +6121,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.sync)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         64,
@@ -6147,7 +6149,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.offline)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         64,
@@ -6175,7 +6177,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.offline)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         64,
@@ -6203,7 +6205,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.offline)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         64,
@@ -6231,7 +6233,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.activity)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         64,
@@ -6259,7 +6261,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.activity)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         64,
@@ -6287,7 +6289,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.activity)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         64,
@@ -6315,7 +6317,7 @@
       "family": "ui-icons",
       "conversation": null,
       "card": "4.9 UI icons (mostly SVG) (icon.activity)",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         64,
@@ -6343,7 +6345,7 @@
       "family": "badges",
       "conversation": "13",
       "card": "4.10 Badges (conversation 13) (badge.first-steps)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -6371,7 +6373,7 @@
       "family": "badges",
       "conversation": null,
       "card": "4.10 Badges (conversation 13) (badge.first-steps, outline)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -6399,7 +6401,7 @@
       "family": "badges",
       "conversation": "13",
       "card": "4.10 Badges (conversation 13) (badge.boss-1)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -6427,7 +6429,7 @@
       "family": "badges",
       "conversation": null,
       "card": "4.10 Badges (conversation 13) (badge.boss-1, outline)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -6455,7 +6457,7 @@
       "family": "badges",
       "conversation": "13",
       "card": "4.10 Badges (conversation 13) (badge.boss-2)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -6483,7 +6485,7 @@
       "family": "badges",
       "conversation": null,
       "card": "4.10 Badges (conversation 13) (badge.boss-2, outline)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -6511,7 +6513,7 @@
       "family": "badges",
       "conversation": "13",
       "card": "4.10 Badges (conversation 13) (badge.boss-3)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -6539,7 +6541,7 @@
       "family": "badges",
       "conversation": null,
       "card": "4.10 Badges (conversation 13) (badge.boss-3, outline)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -6567,7 +6569,7 @@
       "family": "badges",
       "conversation": "13",
       "card": "4.10 Badges (conversation 13) (badge.boss-4)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -6595,7 +6597,7 @@
       "family": "badges",
       "conversation": null,
       "card": "4.10 Badges (conversation 13) (badge.boss-4, outline)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -6623,7 +6625,7 @@
       "family": "badges",
       "conversation": "13",
       "card": "4.10 Badges (conversation 13) (badge.campaign-luna-1)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -6651,7 +6653,7 @@
       "family": "badges",
       "conversation": "13",
       "card": "4.10 Badges (conversation 13) (badge.campaign-luna-1)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         512,
@@ -6679,7 +6681,7 @@
       "family": "badges",
       "conversation": null,
       "card": "4.10 Badges (conversation 13) (badge.campaign-luna-1, outline)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -6707,7 +6709,7 @@
       "family": "badges",
       "conversation": "13",
       "card": "4.10 Badges (conversation 13) (badge.endless-60)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -6735,7 +6737,7 @@
       "family": "badges",
       "conversation": null,
       "card": "4.10 Badges (conversation 13) (badge.endless-60, outline)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -6763,7 +6765,7 @@
       "family": "badges",
       "conversation": "13",
       "card": "4.10 Badges (conversation 13) (badge.safe-and-sound)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -6791,7 +6793,7 @@
       "family": "badges",
       "conversation": null,
       "card": "4.10 Badges (conversation 13) (badge.safe-and-sound, outline)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -6819,7 +6821,7 @@
       "family": "badges",
       "conversation": "13",
       "card": "4.10 Badges (conversation 13) (badge.full-crew)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -6847,7 +6849,7 @@
       "family": "badges",
       "conversation": null,
       "card": "4.10 Badges (conversation 13) (badge.full-crew, outline)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -6875,7 +6877,7 @@
       "family": "badges",
       "conversation": "13",
       "card": "4.10 Badges (conversation 13) (badge.top-team)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -6903,7 +6905,7 @@
       "family": "badges",
       "conversation": null,
       "card": "4.10 Badges (conversation 13) (badge.top-team, outline)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -6931,7 +6933,7 @@
       "family": "badges",
       "conversation": "13",
       "card": "4.10 Badges (conversation 13) (badge.meteor-catcher)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -6959,7 +6961,7 @@
       "family": "badges",
       "conversation": null,
       "card": "4.10 Badges (conversation 13) (badge.meteor-catcher, outline)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -6987,7 +6989,7 @@
       "family": "badges",
       "conversation": "13",
       "card": "4.10 Badges (conversation 13) (badge.keep-trying)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -7015,7 +7017,7 @@
       "family": "badges",
       "conversation": null,
       "card": "4.10 Badges (conversation 13) (badge.keep-trying, outline)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -7043,7 +7045,7 @@
       "family": "badges",
       "conversation": "13",
       "card": "4.10 Badges (conversation 13) (badge.bright-spark-10)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -7071,7 +7073,7 @@
       "family": "badges",
       "conversation": null,
       "card": "4.10 Badges (conversation 13) (badge.bright-spark-10, outline)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -7099,7 +7101,7 @@
       "family": "badges",
       "conversation": "13",
       "card": "4.10 Badges (conversation 13) (badge.bright-spark-50)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -7127,7 +7129,7 @@
       "family": "badges",
       "conversation": null,
       "card": "4.10 Badges (conversation 13) (badge.bright-spark-50, outline)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -7155,7 +7157,7 @@
       "family": "badges",
       "conversation": "13",
       "card": "4.10 Badges (conversation 13) (badge.all-rounder)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -7183,7 +7185,7 @@
       "family": "badges",
       "conversation": null,
       "card": "4.10 Badges (conversation 13) (badge.all-rounder, outline)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -7211,7 +7213,7 @@
       "family": "badges",
       "conversation": "13",
       "card": "4.10 Badges (conversation 13) (badge.challenge-blob-parade)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -7239,7 +7241,7 @@
       "family": "badges",
       "conversation": null,
       "card": "4.10 Badges (conversation 13) (badge.challenge-blob-parade, outline)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -7267,7 +7269,7 @@
       "family": "badges",
       "conversation": "13",
       "card": "4.10 Badges (conversation 13) (badge.challenge-bubble-trouble)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -7295,7 +7297,7 @@
       "family": "badges",
       "conversation": null,
       "card": "4.10 Badges (conversation 13) (badge.challenge-bubble-trouble, outline)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -7323,7 +7325,7 @@
       "family": "badges",
       "conversation": "13",
       "card": "4.10 Badges (conversation 13) (badge.challenge-wobble-rematch)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -7351,7 +7353,7 @@
       "family": "badges",
       "conversation": null,
       "card": "4.10 Badges (conversation 13) (badge.challenge-wobble-rematch, outline)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -7379,7 +7381,7 @@
       "family": "avatars",
       "conversation": "14",
       "card": "avatar — Profile avatars (12)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -7407,7 +7409,7 @@
       "family": "avatars",
       "conversation": "14",
       "card": "avatar — Profile avatars (12)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -7435,7 +7437,7 @@
       "family": "avatars",
       "conversation": "14",
       "card": "avatar — Profile avatars (12)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -7463,7 +7465,7 @@
       "family": "avatars",
       "conversation": "14",
       "card": "avatar — Profile avatars (12)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -7491,7 +7493,7 @@
       "family": "avatars",
       "conversation": "14",
       "card": "avatar — Profile avatars (12)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -7519,7 +7521,7 @@
       "family": "avatars",
       "conversation": "14",
       "card": "avatar — Profile avatars (12)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -7547,7 +7549,7 @@
       "family": "avatars",
       "conversation": "14",
       "card": "avatar — Profile avatars (12)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -7575,7 +7577,7 @@
       "family": "avatars",
       "conversation": "14",
       "card": "avatar — Profile avatars (12)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -7603,7 +7605,7 @@
       "family": "avatars",
       "conversation": "14",
       "card": "avatar — Profile avatars (12)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -7631,7 +7633,7 @@
       "family": "avatars",
       "conversation": "14",
       "card": "avatar — Profile avatars (12)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -7659,7 +7661,7 @@
       "family": "avatars",
       "conversation": "14",
       "card": "avatar — Profile avatars (12)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -7687,7 +7689,7 @@
       "family": "avatars",
       "conversation": "14",
       "card": "avatar — Profile avatars (12)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -7715,7 +7717,7 @@
       "family": "screens",
       "conversation": "12",
       "card": "screen.galaxy.background — Galaxy map background",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1536x1024",
       "authorSize": [
         3840,
@@ -7743,7 +7745,7 @@
       "family": "screens",
       "conversation": "12",
       "card": "brand.logo — Game logo",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         512,
@@ -7771,7 +7773,7 @@
       "family": "screens",
       "conversation": null,
       "card": "brand.logo — Game logo",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         512,
@@ -7799,7 +7801,7 @@
       "family": "screens",
       "conversation": null,
       "card": "brand.logo — Game logo",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         512,
@@ -7827,7 +7829,7 @@
       "family": "screens",
       "conversation": null,
       "card": "brand.logo — Game logo",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         512,
@@ -7855,7 +7857,7 @@
       "family": "screens",
       "conversation": "12",
       "card": "screen.landing.hero — Landing hero art (optional)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1536x1024",
       "authorSize": [
         3840,
@@ -7883,7 +7885,7 @@
       "family": "screens",
       "conversation": "12",
       "card": "screen.complete.illustration — Campaign complete illustration (optional)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         1024,
@@ -7911,7 +7913,7 @@
       "family": "screens",
       "conversation": "12",
       "card": "screen.defeat.illustration — Defeat illustration (optional)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         1024,
@@ -7939,7 +7941,7 @@
       "family": "screens",
       "conversation": "12",
       "card": "challenge.card.art — Quick challenge card art",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -7967,7 +7969,7 @@
       "family": "screens",
       "conversation": "12",
       "card": "challenge.card.art — Quick challenge card art",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -7995,7 +7997,7 @@
       "family": "screens",
       "conversation": "12",
       "card": "challenge.card.art — Quick challenge card art",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8023,7 +8025,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8051,7 +8053,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8079,7 +8081,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8107,7 +8109,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8135,7 +8137,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8163,7 +8165,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8191,7 +8193,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8219,7 +8221,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8247,7 +8249,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8275,7 +8277,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8303,7 +8305,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8331,7 +8333,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8359,7 +8361,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8387,7 +8389,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8415,7 +8417,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8443,7 +8445,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8471,7 +8473,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8499,7 +8501,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8527,7 +8529,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8555,7 +8557,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8583,7 +8585,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8611,7 +8613,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8639,7 +8641,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8667,7 +8669,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8695,7 +8697,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8723,7 +8725,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8751,7 +8753,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8779,7 +8781,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8807,7 +8809,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8835,7 +8837,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8863,7 +8865,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8891,7 +8893,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8919,7 +8921,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8947,7 +8949,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -8975,7 +8977,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age5-nouns — Age-5 starter noun pictures (35)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -9003,7 +9005,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age67-nouns — Age 6-7 noun pictures (~15)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -9031,7 +9033,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age67-nouns — Age 6-7 noun pictures (~15)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -9059,7 +9061,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age67-nouns — Age 6-7 noun pictures (~15)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -9087,7 +9089,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age67-nouns — Age 6-7 noun pictures (~15)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -9115,7 +9117,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age67-nouns — Age 6-7 noun pictures (~15)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -9143,7 +9145,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age67-nouns — Age 6-7 noun pictures (~15)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -9171,7 +9173,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.pic.age67-nouns — Age 6-7 noun pictures (~15)",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -9199,7 +9201,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.obj.counting — Counting objects",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -9227,7 +9229,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.obj.counting — Counting objects",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -9255,7 +9257,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.obj.counting — Counting objects",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -9283,7 +9285,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.obj.counting — Counting objects",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -9311,7 +9313,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.obj.counting — Counting objects",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -9339,7 +9341,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.obj.counting — Counting objects",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -9367,7 +9369,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.obj.alien — Counting alien",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -9395,7 +9397,7 @@
       "family": "activity",
       "conversation": null,
       "card": "activity.shape.2d — 2-D shapes",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         256,
@@ -9423,7 +9425,7 @@
       "family": "activity",
       "conversation": null,
       "card": "activity.shape.2d — 2-D shapes",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         256,
@@ -9451,7 +9453,7 @@
       "family": "activity",
       "conversation": null,
       "card": "activity.shape.2d — 2-D shapes",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         256,
@@ -9479,7 +9481,7 @@
       "family": "activity",
       "conversation": null,
       "card": "activity.shape.2d — 2-D shapes",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         256,
@@ -9507,7 +9509,7 @@
       "family": "activity",
       "conversation": null,
       "card": "activity.shape.2d — 2-D shapes",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         256,
@@ -9535,7 +9537,7 @@
       "family": "activity",
       "conversation": null,
       "card": "activity.shape.2d — 2-D shapes",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         256,
@@ -9563,7 +9565,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.shape.3d — 3-D shapes",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -9591,7 +9593,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.shape.3d — 3-D shapes",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -9619,7 +9621,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.shape.3d — 3-D shapes",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -9647,7 +9649,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.shape.3d — 3-D shapes",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -9675,7 +9677,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.shape.3d — 3-D shapes",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -9703,7 +9705,7 @@
       "family": "activity",
       "conversation": "15-17",
       "card": "activity.shape.3d — 3-D shapes",
-      "source": "chatgpt",
+      "source": "drawn-svg",
       "canvas": "1024x1024",
       "authorSize": [
         256,
@@ -9731,7 +9733,7 @@
       "family": "activity",
       "conversation": null,
       "card": "activity.number.frames — Number pictures",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         256,
@@ -9759,7 +9761,7 @@
       "family": "activity",
       "conversation": null,
       "card": "activity.number.frames — Number pictures",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         256,
@@ -9787,7 +9789,7 @@
       "family": "activity",
       "conversation": null,
       "card": "activity.number.frames — Number pictures",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         256,
@@ -9815,7 +9817,7 @@
       "family": "activity",
       "conversation": null,
       "card": "activity.number.frames — Number pictures",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         256,
@@ -9843,7 +9845,7 @@
       "family": "activity",
       "conversation": null,
       "card": "activity.number.frames — Number pictures",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         256,
@@ -9871,7 +9873,7 @@
       "family": "activity",
       "conversation": null,
       "card": "activity.number.frames — Number pictures",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         256,
@@ -9899,7 +9901,7 @@
       "family": "activity",
       "conversation": null,
       "card": "activity.number.frames — Number pictures",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         256,
@@ -9927,7 +9929,7 @@
       "family": "activity",
       "conversation": null,
       "card": "activity.number.frames — Number pictures",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         256,
@@ -9955,7 +9957,7 @@
       "family": "activity",
       "conversation": null,
       "card": "activity.sort.containers — Sorting bins, zones and tray",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         512,
@@ -9983,7 +9985,7 @@
       "family": "activity",
       "conversation": null,
       "card": "activity.sort.containers — Sorting bins, zones and tray",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         512,
@@ -10011,7 +10013,7 @@
       "family": "activity",
       "conversation": null,
       "card": "activity.sort.containers — Sorting bins, zones and tray",
-      "source": "svg",
+      "source": "drawn-svg",
       "canvas": null,
       "authorSize": [
         512,

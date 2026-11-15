@@ -91,9 +91,9 @@ gate; nothing deploys on push.
 | 61 | Takeover and lease timing | M5 | M5-05 | "Play here instead?" only after a lapse | Release; two browsers |
 | 62 | Version compatibility | M5 | M5-06 | `PROTOCOL_UNSUPPORTED` keeps the queue | Release |
 | 63 | Hard-case scenarios | M5 | M5-07 | Every automatable I §I.4 case green in CI | — |
-| 64 | Asset pipeline and manifest | M6 | M6-01a | Placeholder art loads through the manifest | Release |
-| 65 | Battlefield art | M6 | M6-01b | Every D10.2–D10.7 row final | Generate/approve art |
-| 66 | Interface art and combat sounds | M6 | M6-01c | Every D10.8–D10.10 row final | Generate/approve art |
+| 64 | Asset pipeline and manifest | M6 | M6-01a | The existing art loads through the manifest | Release |
+| 65 | Battlefield art | M6 | M6-01b | Every D10.2–D10.7 row integrated and polished | Review art in the game |
+| 66 | Interface art and combat sounds | M6 | M6-01c | Every D10.8–D10.10 row final, sounds and app icons made | Review art; approve sounds and font |
 | 67 | Performance against the budget | M6 | M6-02 | Measurement meets the C14 target | Measure |
 | 68 | Keyboard and accessibility pass | M6 | M6-03 | Keyboard-only journeys + axe clean | — |
 | 69 | Scoped CI role | M6 | M6-04 | Release with the scoped role; table delete denied | Bootstrap apply |
@@ -199,8 +199,8 @@ built, and part `b`'s gate checks the whole exit list. A release is dispatched a
 | 59 | Pack download and readiness | Audio cache |
 | 60 | Option (a) | Option (b) and the recovery download |
 | 63 | pytest cases | Playwright cases |
-| 65 | One gate per D10 group, D10.2 to D10.7 (six gates, `a`…`f`) | — |
-| 66 | One gate per D10 group, D10.8 to D10.10 (three gates, `a`…`c`) | — |
+| 65 | One gate per D10 group, D10.2 to D10.7 (six gates, `a`…`f`), if the polish list is long | — |
+| 66 | One gate per D10 group, D10.8 to D10.10 (three gates, `a`…`c`); favicon, app icons and font go with `a` | — |
 | 73 | AC evidence | Browser matrix and P4 |
 
 Optional: ADR-0001…0010 can move out of Phase 0 into a small docs-only gate `0b` straight after it, if Phase 0's diff feels too big.
@@ -231,10 +231,12 @@ A **task** is done when its "Done when" in J holds and J's definition of done ho
 
 ### Two things to settle before Phase 0 starts
 
-| Item | State | Suggestion |
+Both are settled.
+
+| Item | State | Outcome |
 |---|---|---|
-| The plan edits in `docs/plan/` and `docs/art/` are modified but not committed (git status at the start of this session) | **[VERIFIED]** `git status` | Commit them as one commit `docs: plan v0.3` before Phase 0, so the first gate's diff contains only Phase 0. |
-| `art/` (`STYLE.md`, `source/`, `svg/`, `review/`; about 6 MB at the time of writing) and `web/player/public/assets/` (PNG animation frames, still growing) are untracked | **[VERIFIED]** `git status`; [.gitignore](../.gitignore) already ignores `art/review/` | Your call: commit `art/` (minus `review/`) and the PNGs as art source, or keep them local until Phase 64. Phase 1 must not overwrite `web/player/public/assets/` either way. |
+| The plan edits in `docs/plan/` and `docs/art/` were modified but not committed | **Settled** | Committed as `1812208` "docs: plan v0.3, design doc and build phases", so the first gate's diff contains only Phase 0. |
+| `art/` and `web/player/public/assets/` were untracked | **Settled** | Committed as `bc454c2`: `art/` (minus `review/`, which [.gitignore](../.gitignore) ignores), `web/player/public/assets/`, the gallery and `tools/art/`. All 352 catalogue entries are drawn in-repo as SVG ([asset catalogue](art/asset-catalogue.json)); the ChatGPT prompt route is superseded. Phase 1 must not overwrite `web/player/public/assets/`. |
 
 ---
 ## How each phase is described
@@ -301,7 +303,7 @@ quick and sets the review rhythm before application code arrives ([J §J.4.2](pl
 | J tasks | M0-08a, M0-08b; plus the push CI workflow (an addition, see [How we work](#how-we-work)) |
 | In scope | npm workspaces `game-core`, `player`, `admin`, `shared`; Vitest in `game-core`; one React page per app; a Phaser scene drawing a rectangle in the player app with keyboard capture disabled; oxlint and `tsc -b`; a check that `game-core` imports no Phaser or DOM; `ci.yml` |
 | Out of scope | Any game rule (the clock is Phase 10); routing, sign-in, API calls; deployment |
-| Files | `web/package.json`, `web/package-lock.json`, `web/tsconfig.base.json`, `web/.oxlintrc.json`; `web/game-core/` (`package.json`, `tsconfig.json`, `vitest.config.ts`, `src/index.ts`, `src/purity.test.ts`); `web/player/` (`index.html`, `vite.config.ts`, `src/main.tsx`, `src/App.tsx`, `src/game/BootScene.ts`) — keeping the existing untracked `web/player/public/assets/` untouched; `web/admin/` (Vite + React page); `web/shared/` (empty package with its import rule); `.github/workflows/ci.yml`; `docs/decisions/0013-front-end-stack-versions.md` |
+| Files | `web/package.json`, `web/package-lock.json`, `web/tsconfig.base.json`, `web/.oxlintrc.json`; `web/game-core/` (`package.json`, `tsconfig.json`, `vitest.config.ts`, `src/index.ts`, `src/purity.test.ts`); `web/player/` (`index.html`, `vite.config.ts`, `src/main.tsx`, `src/App.tsx`, `src/game/BootScene.ts`) — keeping the existing committed `web/player/public/assets/` untouched; `web/admin/` (Vite + React page); `web/shared/` (empty package with its import rule); `.github/workflows/ci.yml`; `docs/decisions/0013-front-end-stack-versions.md` |
 | Depends on | Phase 0 (`.nvmrc`) |
 | Owner actions | Run the app locally once (`npm run dev -w player`) and look at it |
 | Tests and how to run | `cd web && nvm use && npm ci && npm run lint && npm run typecheck && npm test && npm run build`. `purity.test.ts` fails if any `game-core` source imports `phaser`, `react` or touches `window`/`document` |
@@ -736,7 +738,7 @@ never editing the one a saved run uses ([spine S5.1](plan/00-spine.md#s51-pins-a
 
 ### Phase 14 — Battlefield slice (local)
 
-**Goal.** Play the two-wave M1 run in a local browser: placeholder art, one route, a few pads, one class, one alien, a pause for the activity, completion and defeat.
+**Goal.** Play the two-wave M1 run in a local browser: the real art, one route, a few pads, one class, one alien, a pause for the activity, completion and defeat.
 
 **Why now.** It needs only the clock, the rules and the game data, not the deployed stack, so you can see and play the game long before
 the first full slice release. A good moment to show the children ([B §B3.1](plan/B-scope-and-decisions.md#b31-two-different-things)).
@@ -744,7 +746,7 @@ the first full slice release. A good moment to show the children ([B §B3.1](pla
 | Field | Detail |
 |---|---|
 | J tasks | M1-21 |
-| In scope | `game-core/src/sim/` (movement, firing, damage, wave flow, seeded RNG); Phaser scene drawing state only; `GameBridge` between React and Phaser; a local development entry that loads `game-data/` directly **[ASSUMPTION]**; placeholder art (or the existing frames in `web/player/public/assets/` if you committed them) |
+| In scope | `game-core/src/sim/` (movement, firing, damage, wave flow, seeded RNG); Phaser scene drawing state only; `GameBridge` between React and Phaser; a local development entry that loads `game-data/` directly **[ASSUMPTION]**; the real art from `web/player/public/assets/` (already drawn, see [Phase 64](#phase-64--asset-pipeline-and-manifest)), loaded by path until the manifest exists |
 | Out of scope | Sign-in, saving, the real learning panel (a placeholder "activity" pause stands in until Phase 22) |
 | Files | `web/game-core/src/sim/`, `web/player/src/game/`, `web/player/src/game/GameBridge.ts` |
 | Depends on | Phases 10, 11, 13 |
@@ -1120,7 +1122,7 @@ every number change goes through the simulator first.
 | Field | Detail |
 |---|---|
 | J tasks | M2-03 |
-| In scope | Catalogue, traits, carrier release per C6.3, object caps; scene drawing them with placeholders |
+| In scope | Catalogue, traits, carrier release per C6.3, object caps; scene drawing them with the existing art from `web/player/public/assets/` |
 | Out of scope | Bosses |
 | Files | `web/game-core/src/sim/`, `web/player/src/game/` |
 | Depends on | Phase 25 |
@@ -1360,7 +1362,7 @@ every number change goes through the simulator first.
 | Tests and how to run | The measurement procedure in the record |
 | Deployed / how to see | Production build on the children's laptop |
 | Exit criteria | A recorded measurement with device, wave and frame-time figures; the AC-42 target written in an ADR; P2 notes |
-| Risks | Measuring on a faster machine; placeholder art understating draw cost |
+| Risks | Measuring on a faster machine; art not yet packed into atlases (Phase 64) giving a different draw cost |
 
 **How to review this phase**
 1. The device is the one the children use.
@@ -2230,25 +2232,34 @@ handling (`prompt.md:1282-1283`). The freeze comes no earlier than the end of th
 
 ## Stage G — Art, performance and release confidence, M6 (phases 64–74)
 
-Goal of the milestone: consistent generated art, measured frame rate and audio latency, full keyboard coverage, verified backup and
+Goal of the milestone: the existing drawn art served through a manifest, the missing sounds and icons made, measured frame rate and audio latency, full keyboard coverage, verified backup and
 restore, compatible rollback, and documentation of what was built (`prompt.md:1285-1286`).
+
+All 352 images in the [asset catalogue](art/asset-catalogue.json) already exist: drawn as SVG in `art/svg/` following `art/STYLE.md`,
+rendered by [tools/art/render.py](../tools/art/render.py) into `web/player/public/assets/`, and viewable in the
+[gallery](art/gallery.html). Phases 64–66 therefore wire the art in and polish it rather than produce it. Still to make: the 25 combat
+and feedback sounds of D10.10 (including the correct chime and the not-quite "bloop",
+[D §D6.4](plan/D-ux-and-content-operations.md#d64-feedback-words)), the favicon and app icons (from the logo), the choice of UI font,
+and the rest of [D10.9](plan/D-ux-and-content-operations.md#d109-activity-pictures): the remaining age 6–7 noun pictures (about 8,
+chosen while authoring those banks) and the demonstration card art (about 20, one per concept as authored), drawn here in the same style.
 
 ### Phase 64 — Asset pipeline and manifest
 
-**Goal.** Asset-manifest versions, naming conventions and a loader.
-**Why now.** Final art loads through it. (It depends only on M1, so you may move it earlier at any gate if you want real art sooner.)
+**Goal.** Asset-manifest versions, naming conventions and a loader, built from the [asset catalogue](art/asset-catalogue.json).
+**Why now.** Until now the game loads the existing art from `web/player/public/assets/` by path; production needs hashed, versioned
+URLs and atlases. (It depends only on M1, so you may move it earlier at any gate.)
 
 | Field | Detail |
 |---|---|
 | J tasks | M6-01a |
-| In scope | `asset-manifest` game-data kind; loader; placeholders through the manifest; the art tools in [tools/art/](../tools/art/render.py) and the house style in `art/STYLE.md` (if committed) |
-| Out of scope | Final art |
+| In scope | `asset-manifest` game-data kind generated from the catalogue; loader; atlas packing (D10.1); the existing art through the manifest; labelled placeholders only for entries added later; the art tools in [tools/art/](../tools/art/render.py) and the house style in `art/STYLE.md` |
+| Out of scope | Polishing the art (Phases 65, 66) |
 | Files | `game-data/asset-manifest/`, `web/player/src/assets/` |
 | Depends on | Phase 23 |
 | Owner actions | Dispatch the release and apply |
 | Tests and how to run | `cd web && npm test` |
-| Deployed / how to see | Placeholders still render on production |
-| Exit criteria | Placeholder art loads through the manifest |
+| Deployed / how to see | The existing art renders on production through the manifest |
+| Exit criteria | The existing art loads through the manifest |
 | Risks | Manifest edits after the freeze (additive only) |
 
 **How to review this phase**
@@ -2264,28 +2275,29 @@ restore, compatible rollback, and documentation of what was built (`prompt.md:12
 
 ### Phase 65 — Battlefield art
 
-**Goal.** Final planet, colony, astronauts × levels, aliens, bosses and power effects.
-**Why now.** Performance must be measured with real art.
+**Goal.** Integrate and polish the existing planet, colony, astronauts × levels, aliens, bosses and power effects: check each in the
+game at 1x and 2x and redraw any SVG that reads badly there.
+**Why now.** Performance must be measured with the final art.
 
 | Field | Detail |
 |---|---|
 | J tasks | M6-01b |
-| In scope | Every D10.2–D10.7 row |
+| In scope | Every D10.2–D10.7 row: in-game check, anchors and stand points, animation timing, fixes to `art/svg/` re-rendered with `tools/art/render.py` |
 | Out of scope | Interface art |
-| Files | `web/player/public/` or `web/player/src/assets/`, `game-data/asset-manifest/` |
+| Files | `art/svg/`, `web/player/public/assets/`, `game-data/asset-manifest/` |
 | Depends on | Phase 64 |
-| Owner actions | Generate or approve art; dispatch the release and apply |
+| Owner actions | Review the art in the game; dispatch the release and apply |
 | Tests and how to run | Manifest completeness test |
 | Deployed / how to see | Release |
 | Exit criteria | Every D10.2–D10.7 row has a final asset in the manifest |
-| Risks | Inconsistent style |
+| Risks | Inconsistent style between redrawn and untouched SVGs |
 
 **How to review this phase**
 1. Contact sheets at 1x and 2x.
-2. Style matches the anchor.
+2. Style matches `art/STYLE.md` and the style anchor.
 3. Sizes within the budget.
 4. Every row ticked.
-5. Licence/source noted.
+5. Source noted (drawn in-repo; `source` is `drawn-svg` in the catalogue).
 
 *Concept:* none new.
 
@@ -2293,21 +2305,23 @@ restore, compatible rollback, and documentation of what was built (`prompt.md:12
 
 ### Phase 66 — Interface art and combat sounds
 
-**Goal.** Interface art, activity pictures and the small combat sound set.
+**Goal.** Integrate and polish the existing interface art and activity pictures, and make what is still missing: the D10.10 sound set
+(25 sounds, including the correct chime `sfx-correct` and the not-quite "bloop" `sfx-not-quite`), the favicon and app icons (from the
+logo), the UI font choice, and the rest of D10.9 (remaining age 6–7 noun pictures, about 8; demonstration card art, about 20).
 **Why now.** Completes the inventory.
 
 | Field | Detail |
 |---|---|
 | J tasks | M6-01c |
-| In scope | Every D10.8–D10.10 row |
+| In scope | Every D10.8–D10.10 row, including the remaining age 6–7 noun pictures and the demonstration card art (D10.9), drawn in-repo in the same style; favicon and app icons; the UI font (a free, child-friendly face with a single-storey "a"; which one is your call at this gate) |
 | Out of scope | Speech (Polly clips are content) |
-| Files | as Phase 65 |
+| Files | as Phase 65, plus the sound files and their provenance note in the manifest (paths settled in Phase 64) |
 | Depends on | Phase 64 |
-| Owner actions | Generate or approve art and sounds; dispatch the release and apply |
+| Owner actions | Review the art in the game; approve the sounds and the font; dispatch the release and apply |
 | Tests and how to run | Manifest completeness test |
 | Deployed / how to see | Release |
-| Exit criteria | Every D10.8–D10.10 row has a final asset |
-| Risks | Picture count larger than estimated |
+| Exit criteria | Every D10.8–D10.10 row has a final asset; favicon and app icons ship; the font is chosen and loaded |
+| Risks | Picture count larger than estimated (new words each need a drawn picture); sound licence or provenance unclear |
 
 **How to review this phase**
 1. Activity pictures are text-free where required.
@@ -2653,9 +2667,9 @@ in the named phase.
 | M5-05 | 61 | |
 | M5-06 | 62 | |
 | M5-07 | 63 | |
-| M6-01a | 64 | |
-| M6-01b | 65 | |
-| M6-01c | 66 | |
+| M6-01a | 64 | J's "Placeholder art loads through the manifest" is met with the existing drawn art |
+| M6-01b | 65 | Art already drawn in-repo; the phase integrates and polishes it |
+| M6-01c | 66 | Art already drawn in-repo; the sounds, favicon, app icons and font are still to make |
 | M6-02 | 67 | |
 | M6-03 | 68 | |
 | M6-04 | 69 | Your local bootstrap apply |
@@ -2716,5 +2730,8 @@ Plan gates without a J task of their own ([H §H.10](plan/H-infrastructure-and-d
 - **Token-level checks of deployed routes before the player shell.** Phases 15–19 deploy routes that can only be exercised with a token from
   managed login; this file defers token-level checks to Phase 21 and E2E-D. If you want them earlier, a small local script that drives managed
   login with Playwright would do it.
-- **The untracked art** (`art/`, `web/player/public/assets/`) has no J task until M6-01a/b; whether to commit it now is your decision.
+- **The art is already drawn** (committed in `bc454c2`), so J's M6-01b/c ("generated" art, "inconsistent style across generations") describe
+  work that is now integration and polish; J could say so. The phase numbers stay (64–66 were not moved earlier, as first suggested
+  to you): instead the art is used early, from Phase 14, by loading it by path until the Phase 64 manifest exists. Phase 64 can still
+  be moved earlier at any gate if you prefer.
 - Phase 37's "local preview page" for interaction types is an **[ASSUMPTION]**; D does not specify a development preview.
