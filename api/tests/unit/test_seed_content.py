@@ -136,7 +136,7 @@ def test_a_bad_seed_stops_before_any_call(tmp_path: Path, content: Any, capsys: 
         ["--apply", "--seed-dir", str(seed_dir)], client_factory=lambda p, r: calls.append("client") or content
     )
     assert code == 1 and calls == []
-    assert "answerSpecification.accepted not_an_option" in capsys.readouterr().err
+    assert "answerSpecification.accepted.0 not_an_option" in capsys.readouterr().err
 
 
 def test_a_phoneme_without_a_publishable_verdict_is_refused(tmp_path: Path) -> None:

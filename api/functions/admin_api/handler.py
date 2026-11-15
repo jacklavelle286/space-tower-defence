@@ -5,9 +5,10 @@ Every route needs the operator authoriser at the gateway and, here, `token_use =
 operator authoriser refuses another pool's issuer with 401. Audit fields (`createdBy`, `updatedBy`, `listenedBy`,
 `publishedBy`) always come from the token's `sub`, never the body.
 
-Phase 20 answers the minimal admin path (D §D8.6): speech definitions R17-R21 and activities R22-R27. Retire, withdraw
-and bank status (R28-R30) still answer 501 NOT_IMPLEMENTED until Phases 35-40. Item shapes and checks are in
-shared/content.py.
+Phase 20 answered the minimal admin path (D §D8.6): speech definitions R17-R21 and activities R22-R27. Phase 36 (M3-02)
+adds the activity lifecycle: validation of all six interaction types and two-step activities, retire (R28) and
+withdraw (R29). Bank status (R30) still answers 501 NOT_IMPLEMENTED until Phase 42 (M3-07), which owns the counting
+function it shares with selection. Item shapes and checks are in shared/content.py and shared/activity_types.py.
 
 Speech approval (R21, F §12.6 C7, D §D9.3) never synthesises. It recomputes the clip key from the SAVED draft (its kind
 picks the engine, with the same TTS_* configuration as `tts`) and requires that object in the audio bucket: the object
@@ -27,6 +28,13 @@ definition (C22.2 subset) and that every referenced speech definition is approve
 the header, and an audit item in one transaction that also re-checks the draft revision and each speech definition's
 approved version. R21 and R27 are safe to retry: a repeat whose `draftRevision` equals the header's
 `fromDraftRevision` returns the version already written.
+
+Immutability by condition (Phase 36): a version is written only with `attribute_not_exists(pk)`, so the database
+refuses a second write to it; the only later change to a version is withdraw adding `withdrawn`, under
+`attribute_not_exists(withdrawn)`. Two tabs publishing the same draft revision at once: the header update is
+conditioned on the `publishedVersion` that was read, so only one transaction can win; the loser re-reads the header,
+finds its own `draftRevision` already published, and answers like a replay (200, the winner's version). Retire (C5)
+and withdraw (C6) write their audit item in the same transaction as the change.
 """
 
 from __future__ import annotations
@@ -115,6 +123,8 @@ ROUTES: dict[str, str] = {
 DRAFT_MAX_BYTES: int = LIMITS["bodyMaxBytes"]["adminActivityDraft"]  # 64 KB for PUT .../draft (G §12)
 LIST_LIMIT: dict[str, int] = LIMITS["adminListLimit"]
 REVIEW_NOTE_MAX = 500  # [ASSUMPTION]
+WITHDRAW_REASON_MAX = 200  # G R29 [ASSUMPTION]
+WRITE_TRIES = 3  # retire and withdraw re-read and retry when a concurrent change refused their transaction
 
 
 def _utc_now() -> datetime:
@@ -737,16 +747,24 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         }
         names = {f"#h{i}": name for i, name in enumerate(header_set)}
         values = {f":h{i}": value for i, value in enumerate(header_set.values())}
-        audit_pk, audit_sk = audit_key(moment, activity_id)
+        update = "SET " + ", ".join(f"{n} = {v}" for n, v in zip(names, values, strict=True))
+        # Two tabs: only the transaction that still sees the publishedVersion it read can move the header.
+        pv = next(n for n, name in names.items() if name == "publishedVersion")
+        if published:
+            header_condition = f"attribute_exists(#pk) AND {pv} = :prev"
+            values[":prev"] = str(published)
+        else:
+            header_condition = f"attribute_exists(#pk) AND attribute_not_exists({pv})"
+        audit_pk, audit_sk = audit_key(moment, f"{activity_id}#publish#{vid}")
         actions = [
             content.put_action(version, condition="attribute_not_exists(#pk)", names={"#pk": "pk"}),
             content.update_action(
                 ACT_PK,
                 activity_id,
-                update="SET " + ", ".join(f"{n} = {v}" for n, v in zip(names, values, strict=True)),
+                update=update,
                 names={**names, "#pk": "pk"},
                 values=values,
-                condition="attribute_exists(#pk)",
+                condition=header_condition,
             ),
             content.condition_check_action(
                 activity_pk(activity_id),
@@ -776,8 +794,122 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
             )
         )
         if transact(content, actions) is not None:
+            now_header = content.get_item(ACT_PK, activity_id)
+            if now_header is not None and as_int(now_header.get("fromDraftRevision")) == revision:
+                won = str(now_header.get("publishedVersion"))  # another tab published this revision first
+                request.log["versionId"] = won
+                return json_response(200, publish_result(content, activity_id, won))
             raise ApiError("DRAFT_CONFLICT")  # the draft, or an approved clip it uses, changed while publishing
         return json_response(201, publish_result(content, activity_id, vid))
+
+    def retire_activity(request: Request) -> dict[str, Any]:
+        """R28 (F §12.6 C5): header state RETIRED + audit; versions untouched, so pinned runs play on unchanged."""
+        activity_id = path_id(request)
+        request.log.update(activityId=activity_id, action="retire")
+        only_fields(json_object(request.event), set(), set())
+        content = table()
+        for _ in range(WRITE_TRIES):
+            header = content.get_item(ACT_PK, activity_id)
+            if header is None:
+                raise ApiError("NOT_FOUND")
+            if header.get("state") == "RETIRED":
+                return json_response(200, retire_view(header))  # idempotent: already retired, unchanged
+            published = header.get("publishedVersion")
+            if header.get("state") != "PUBLISHED" or not published:
+                raise invalid([problem("state", "not_published")])  # a draft that was never published
+            moment = deps.now()
+            audit_pk, audit_sk = audit_key(moment, f"{activity_id}#retire#{published}")
+            actions = [
+                content.update_action(
+                    ACT_PK,
+                    activity_id,
+                    update="SET #state = :retired, #at = :now",
+                    names={"#state": "state", "#at": "updatedAt", "#pv": "publishedVersion"},
+                    values={":retired": "RETIRED", ":now": iso_z(moment), ":published": "PUBLISHED", ":pv": published},
+                    condition="#state = :published AND #pv = :pv",
+                ),
+                content.put_action(
+                    audit_item(
+                        audit_pk,
+                        audit_sk,
+                        "retire",
+                        request.caller.sub,
+                        moment,
+                        activityId=activity_id,
+                        versionId=str(published),
+                    ),
+                    condition="attribute_not_exists(#pk)",
+                    names={"#pk": "pk"},
+                ),
+            ]
+            if transact(content, actions) is None:
+                request.log["versionId"] = str(published)
+                return json_response(200, retire_view(content.get_item(ACT_PK, activity_id) or header))
+        raise ApiError("THROTTLED")  # the header kept changing under us; the client retries the same request
+
+    def withdraw_activity(request: Request) -> dict[str, Any]:
+        """R29 (F §12.6 C6): `withdrawn {at, reason}` on one version + audit; the published version also retires."""
+        activity_id = path_id(request)
+        request.log.update(activityId=activity_id, action="withdraw")
+        body = json_object(request.event)
+        only_fields(body, {"version", "reason"}, {"version", "reason"})
+        wanted, reason = body["version"], body["reason"]
+        problems = []
+        if not (isinstance(wanted, str) and VERSION_ID.fullmatch(wanted)):
+            problems.append(problem("version", "pattern"))
+        if not (isinstance(reason, str) and valid_reason(reason)):
+            problems.append(problem("reason", "length"))
+        if problems:
+            raise invalid(problems)
+        request.log["versionId"] = wanted
+        content = table()
+        for _ in range(WRITE_TRIES):
+            header = content.get_item(ACT_PK, activity_id)
+            # `pk` in the projection: with only `withdrawn`, a version never withdrawn may come back with no Item.
+            version_sk = f"{VERSION_PREFIX}{wanted}"
+            version = content.get_item(activity_pk(activity_id), version_sk, attributes=("pk", "withdrawn"))
+            if header is None or version is None:
+                raise ApiError("NOT_FOUND")
+            if version.get("withdrawn"):  # idempotent: the first record stands
+                return json_response(200, {"versionId": wanted, "withdrawn": plain(version["withdrawn"])})
+            moment = deps.now()
+            record = {"at": iso_z(moment), "reason": reason.strip()}
+            retire = header.get("publishedVersion") == wanted and header.get("state") == "PUBLISHED"
+            audit_pk, audit_sk = audit_key(moment, f"{activity_id}#withdraw#{wanted}")
+            audit = audit_item(
+                audit_pk, audit_sk, "withdraw", request.caller.sub, moment, activityId=activity_id, versionId=wanted
+            )
+            audit.update(reason=record["reason"], retired=retire)
+            actions = [
+                content.update_action(
+                    activity_pk(activity_id),
+                    f"{VERSION_PREFIX}{wanted}",
+                    update="SET #w = :w",
+                    names={"#w": "withdrawn", "#pk": "pk"},
+                    values={":w": record},
+                    condition="attribute_exists(#pk) AND attribute_not_exists(#w)",
+                ),
+                content.put_action(audit, condition="attribute_not_exists(#pk)", names={"#pk": "pk"}),
+            ]
+            if retire:
+                actions.append(
+                    content.update_action(
+                        ACT_PK,
+                        activity_id,
+                        update="SET #state = :retired, #at = :now",
+                        names={"#state": "state", "#at": "updatedAt", "#pv": "publishedVersion"},
+                        values={
+                            ":retired": "RETIRED",
+                            ":now": iso_z(moment),
+                            ":published": "PUBLISHED",
+                            ":pv": wanted,
+                        },
+                        condition="#state = :published AND #pv = :pv",
+                    )
+                )
+            if transact(content, actions) is None:
+                return json_response(200, {"versionId": wanted, "withdrawn": record})
+        raise ApiError("THROTTLED")
 
     handlers = {
         "GET /api/admin/speech-definitions": list_speech,
@@ -791,6 +923,8 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         "PUT /api/admin/activities/{id}/draft": save_activity,
         "POST /api/admin/activities/{id}/validate": validate_activity,
         "POST /api/admin/activities/{id}/publish": publish_activity,
+        "POST /api/admin/activities/{id}/retire": retire_activity,
+        "POST /api/admin/activities/{id}/withdraw": withdraw_activity,
     }
     return Router(routes=ROUTES, handlers=handlers, logger=logger)
 
@@ -801,6 +935,17 @@ def create_actions(table: DynamoTable, header: Mapping[str, Any], draft: Mapping
         table.put_action(header, condition="attribute_not_exists(#pk)", names={"#pk": "pk"}),
         table.put_action(draft, condition="attribute_not_exists(#pk)", names={"#pk": "pk"}),
     ]
+
+
+def valid_reason(value: str) -> bool:
+    """A withdrawal reason: 1-200 characters once trimmed, no control characters (it is shown to the operator)."""
+    trimmed = value.strip()
+    return 0 < len(trimmed) <= WITHDRAW_REASON_MAX and not any(ord(ch) < 32 or ord(ch) == 127 for ch in trimmed)
+
+
+def retire_view(header: Mapping[str, Any]) -> dict[str, Any]:
+    """R28's body: the header, as R24 shows it."""
+    return {**activity_summary(header), "fromDraftRevision": as_int(header.get("fromDraftRevision"))}
 
 
 def audit_item(pk: str, sk: str, action: str, by: str, moment: datetime, **ids: str) -> dict[str, Any]:

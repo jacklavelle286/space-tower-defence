@@ -15,7 +15,9 @@ from typing import Any
 import pytest
 from conftest import REPO
 
+from shared.content import INTERACTION_TYPES
 from shared.rules import current_slot_id, next_phase, reduce, slot_id_for, validate
+from shared.rules.contracts import LIMITS
 
 FIXTURES = REPO / "contracts" / "fixtures"
 OPS_DIR = FIXTURES / "ops"
@@ -214,7 +216,36 @@ def test_answer_shape_vector(vector: dict[str, Any]) -> None:
 
 
 def test_every_canonical_answer_passes_the_shape_check() -> None:
-    outputs = [v["expected"] for v in ANSWERS["canonical"] if "expected" in v]
+    outputs = [v["expected"] for v in ANSWERS["canonical"] + ANSWERS["twoStep"] if "expected" in v]
     assert outputs
     for answer in outputs:
         assert answer_problems(answer) == [], answer
+
+
+def test_answer_vectors_cover_all_six_interaction_types() -> None:
+    """Shape only on this side (C20.1): Python never canonicalises. The vectors name only real interaction types, and
+    every one of the six (MULTIPLE_CHOICE; PICTURE_SELECT and NUMBER_SELECT from Phase 37; OBJECT_MOVE, ARRANGE and
+    TYPED from Phase 38, each mode) has an accepted output that passes the shape check."""
+    types = {v["interactionType"] for v in ANSWERS["canonical"]}
+    assert types == set(INTERACTION_TYPES)
+    for interaction_type in INTERACTION_TYPES:
+        vectors = [v for v in ANSWERS["canonical"] if v["interactionType"] == interaction_type]
+        outputs = [v["expected"] for v in vectors if "expected" in v]
+        assert outputs, interaction_type
+        assert all(answer_problems(answer) == [] for answer in outputs), interaction_type
+    modes = {v["mode"] for v in ANSWERS["canonical"] if "mode" in v and "expected" in v}
+    assert modes == {"DISTRIBUTE", "SORT", "LETTERS", "SEQUENCE", "NUMERIC", "WORD"}
+
+
+def test_two_step_answers_are_the_step_answers_joined_by_the_step_joiner() -> None:
+    """C20.3: a two-step answer is "<step 1>|<step 2>", one string of at most 64 characters; each part alone is also
+    of the canonical shape, and the limit's stepJoiner is the one reserved separator no step answer contains."""
+    joiner = LIMITS["answer"]["stepJoiner"]
+    assert joiner in LIMITS["answer"]["reservedSeparators"]
+    accepted = [v for v in ANSWERS["twoStep"] if "expected" in v]
+    assert accepted
+    for vector in accepted:
+        parts = vector["expected"].split(joiner)
+        assert len(parts) == len(vector["steps"]), vector["name"]
+        assert all(answer_problems(part) == [] for part in parts), vector["name"]
+    assert any(v.get("refused") == "NOT_CANONICAL" and "64" in v["name"] for v in ANSWERS["twoStep"])

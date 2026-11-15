@@ -126,13 +126,56 @@ class _Group:
         return None
 
 
+ORDERED_OPTION_TYPES = ("MULTIPLE_CHOICE", "PICTURE_SELECT")
+TILE_DRAWS = 8  # re-draws of a tile shuffle that spells the answer before falling back to the stored order
+
+
+def spells_answer(values: Sequence[str], mode: object, accepted: Sequence[str]) -> bool:
+    """True when tiles shown in this order already give an accepted answer (C24.4 step 7, C20.1): for LETTERS, any
+    run of neighbouring tiles that spells an accepted word; for SEQUENCE, the whole row in an accepted order. The
+    publish rule (`shared.activity_types`) uses the same test on the stored order."""
+    if mode == "SEQUENCE":
+        return ",".join(values) in accepted
+    words = set(accepted)
+    return any("".join(values[i:j]) in words for i in range(len(values)) for j in range(i + 1, len(values) + 1))
+
+
+def _tile_order(slot_id: str, payload: Mapping[str, Any], accepted: Sequence[str], seed: str) -> list[str]:
+    """ARRANGE tile order for the slot: a seeded shuffle, re-drawn (with a new label) while it spells an accepted
+    answer. After TILE_DRAWS tries the stored order is kept, which publish validation already checked."""
+    tiles = [t for t in payload.get("tiles") or [] if isinstance(t, Mapping)]
+    if not all(isinstance(t.get("id"), str) and isinstance(t.get("value"), str) for t in tiles):
+        return []
+    by_id = {str(t["id"]): str(t["value"]) for t in tiles}
+    ids = list(by_id)
+    if len(ids) != len(tiles):
+        return []
+    for attempt in range(TILE_DRAWS):
+        order = shuffle(ids, seed, f"tiles:{slot_id}" if attempt == 0 else f"tiles:{slot_id}:{attempt}")
+        if not spells_answer([by_id[i] for i in order], payload.get("mode"), accepted):
+            return order
+    return ids
+
+
 def _presentation(slot_id: str, version: Mapping[str, Any], seed: str) -> dict[str, Any]:
-    """Option order fixed at creation (C24.4 step 7), so a reload shows the same layout. Only MULTIPLE_CHOICE in
-    Milestone 1; the other five types arrive with their panels (M3-03)."""
-    if version.get("interactionType") != "MULTIPLE_CHOICE":
-        return {}
+    """Option and tile order fixed at creation (C24.4 step 7), so a reload shows the same layout but each run differs.
+    MULTIPLE_CHOICE and PICTURE_SELECT get `optionOrder`; ARRANGE gets `tileOrder`, re-drawn while it spells the
+    answer. NUMBER_SELECT has no order to fix (the numbers are shown in counting order). [ASSUMPTION] OBJECT_MOVE
+    objects and the second part of a two-step activity keep their authored order: neither can give the answer away
+    by its order alone."""
     payload = version.get("activityPayload")
-    options = payload.get("options") if isinstance(payload, Mapping) else None
+    if not isinstance(payload, Mapping):
+        return {}
+    kind = version.get("interactionType")
+    if kind == "ARRANGE":
+        spec = version.get("answerSpecification")
+        raw = spec.get("accepted") if isinstance(spec, Mapping) else None
+        accepted = [a for a in raw or [] if isinstance(a, str)]
+        order = _tile_order(slot_id, payload, accepted, seed)
+        return {"tileOrder": order} if order else {}
+    if kind not in ORDERED_OPTION_TYPES:
+        return {}
+    options = payload.get("options")
     ids = [o["id"] for o in options or [] if isinstance(o, Mapping) and isinstance(o.get("id"), str)]
     return {"optionOrder": shuffle(ids, seed, f"order:{slot_id}")} if ids else {}
 

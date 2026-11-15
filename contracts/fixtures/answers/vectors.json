@@ -1,8 +1,9 @@
 {
   "name": "answer-vectors",
-  "description": "Answer canonicalisation (C 20.1). canonical: raw input from the learning panel -> the one canonical string sent in SUBMIT_ATTEMPT, or a refusal (no op is created). Only MULTIPLE_CHOICE so far (Phase 11); the other five types are added in Phases 37-38. shape: what the Python side checks (one string of at most 64 characters, allowed characters only); every canonical output above must also pass it.",
+  "description": "Answer canonicalisation (C 20.1, C 20.3). canonical: raw input from the learning panel -> the one canonical string sent in SUBMIT_ATTEMPT, or a refusal (no op is created). MULTIPLE_CHOICE (Phase 11), PICTURE_SELECT and NUMBER_SELECT (Phase 37), OBJECT_MOVE, ARRANGE and TYPED (Phase 38). Choice types carry optionIds; NUMBER_SELECT carries values; OBJECT_MOVE carries mode and zoneIds, sourceCount, requireAllPlaced (DISTRIBUTE; input zone -> count) or objectIds, binIds (SORT; input object -> bin); ARRANGE carries mode, tiles {id, value} and slots (input: the tile ID in each space); TYPED carries mode, maxLength and caseSensitive (input: the text typed). twoStep: steps (each a spec as above) and one raw input per step -> the step answers joined by |. shape: what the Python side checks (one string of at most 64 characters, allowed characters only); every canonical output above must also pass it.",
   "sources": [
-    "C 20.1 (MULTIPLE_CHOICE: the option ID; no trim, Number() or case folding)",
+    "C 20.1 (MULTIPLE_CHOICE and PICTURE_SELECT: the option ID; NUMBER_SELECT and TYPED NUMERIC: decimal integer, no sign, no leading zeros; OBJECT_MOVE: id=value pairs sorted by ID joined by ;; ARRANGE: tile values; TYPED WORD: explicit whitespace, apostrophe, hyphen and A-Z steps; no trim, Number() or case folding)",
+    "C 20.3 (two-step answers joined by |)",
     "spine S3.3 and S9.5 (one string of at most 64 characters; reserved separators)",
     "I 2.3 (answer vectors)"
   ],
@@ -152,6 +153,2706 @@
       ],
       "input": "D",
       "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "picture: selected card",
+      "interactionType": "PICTURE_SELECT",
+      "optionIds": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "input": "b",
+      "expected": "b"
+    },
+    {
+      "name": "picture: sixth card",
+      "interactionType": "PICTURE_SELECT",
+      "optionIds": [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f"
+      ],
+      "input": "f",
+      "expected": "f"
+    },
+    {
+      "name": "picture: nothing selected",
+      "interactionType": "PICTURE_SELECT",
+      "optionIds": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "input": null,
+      "refused": "INCOMPLETE"
+    },
+    {
+      "name": "picture: empty string",
+      "interactionType": "PICTURE_SELECT",
+      "optionIds": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "input": "",
+      "refused": "INCOMPLETE"
+    },
+    {
+      "name": "picture: not one of this activity's cards",
+      "interactionType": "PICTURE_SELECT",
+      "optionIds": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "input": "e",
+      "refused": "NOT_AN_OPTION"
+    },
+    {
+      "name": "picture: no case folding",
+      "interactionType": "PICTURE_SELECT",
+      "optionIds": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "input": "B",
+      "refused": "NOT_AN_OPTION"
+    },
+    {
+      "name": "picture: no trimming",
+      "interactionType": "PICTURE_SELECT",
+      "optionIds": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "input": "b ",
+      "refused": "NOT_AN_OPTION"
+    },
+    {
+      "name": "picture: the asset ID instead of the option ID",
+      "interactionType": "PICTURE_SELECT",
+      "optionIds": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "input": "pic-cat",
+      "refused": "NOT_AN_OPTION"
+    },
+    {
+      "name": "picture: the alt text instead of the option ID",
+      "interactionType": "PICTURE_SELECT",
+      "optionIds": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "input": "cat",
+      "refused": "NOT_AN_OPTION"
+    },
+    {
+      "name": "picture: an authored option ID outside a-f is never sent",
+      "interactionType": "PICTURE_SELECT",
+      "optionIds": [
+        "a",
+        "b",
+        "c",
+        "D"
+      ],
+      "input": "D",
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "number: on a track 0-10",
+      "interactionType": "NUMBER_SELECT",
+      "values": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "input": "8",
+      "expected": "8"
+    },
+    {
+      "name": "number: zero",
+      "interactionType": "NUMBER_SELECT",
+      "values": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "input": "0",
+      "expected": "0"
+    },
+    {
+      "name": "number: one hundred on a hundred square",
+      "interactionType": "NUMBER_SELECT",
+      "values": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100
+      ],
+      "input": "100",
+      "expected": "100"
+    },
+    {
+      "name": "number: a range with a step of ten",
+      "interactionType": "NUMBER_SELECT",
+      "values": [
+        0,
+        10,
+        20,
+        30,
+        40,
+        50,
+        60,
+        70,
+        80,
+        90,
+        100
+      ],
+      "input": "40",
+      "expected": "40"
+    },
+    {
+      "name": "number: leading zero dropped",
+      "interactionType": "NUMBER_SELECT",
+      "values": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "input": "08",
+      "expected": "8"
+    },
+    {
+      "name": "number: several leading zeros dropped",
+      "interactionType": "NUMBER_SELECT",
+      "values": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100
+      ],
+      "input": "0042",
+      "expected": "42"
+    },
+    {
+      "name": "number: all zeros is zero",
+      "interactionType": "NUMBER_SELECT",
+      "values": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "input": "00",
+      "expected": "0"
+    },
+    {
+      "name": "number: nothing selected",
+      "interactionType": "NUMBER_SELECT",
+      "values": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "input": null,
+      "refused": "INCOMPLETE"
+    },
+    {
+      "name": "number: empty string",
+      "interactionType": "NUMBER_SELECT",
+      "values": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "input": "",
+      "refused": "INCOMPLETE"
+    },
+    {
+      "name": "number: not on this track",
+      "interactionType": "NUMBER_SELECT",
+      "values": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "input": "11",
+      "refused": "NOT_AN_OPTION"
+    },
+    {
+      "name": "number: between the steps",
+      "interactionType": "NUMBER_SELECT",
+      "values": [
+        0,
+        10,
+        20,
+        30,
+        40,
+        50,
+        60,
+        70,
+        80,
+        90,
+        100
+      ],
+      "input": "45",
+      "refused": "NOT_AN_OPTION"
+    },
+    {
+      "name": "number: zero when the square starts at one",
+      "interactionType": "NUMBER_SELECT",
+      "values": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100
+      ],
+      "input": "000",
+      "refused": "NOT_AN_OPTION"
+    },
+    {
+      "name": "number: minus sign",
+      "interactionType": "NUMBER_SELECT",
+      "values": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "input": "-3",
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "number: plus sign",
+      "interactionType": "NUMBER_SELECT",
+      "values": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "input": "+8",
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "number: no trimming (leading space)",
+      "interactionType": "NUMBER_SELECT",
+      "values": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "input": " 8",
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "number: no trimming (trailing newline)",
+      "interactionType": "NUMBER_SELECT",
+      "values": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "input": "8\n",
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "number: decimal point",
+      "interactionType": "NUMBER_SELECT",
+      "values": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "input": "8.0",
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "number: exponent",
+      "interactionType": "NUMBER_SELECT",
+      "values": [
+        0,
+        10,
+        20,
+        30,
+        40,
+        50,
+        60,
+        70,
+        80,
+        90,
+        100
+      ],
+      "input": "1e1",
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "number: hexadecimal",
+      "interactionType": "NUMBER_SELECT",
+      "values": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "input": "0x8",
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "number: a number word",
+      "interactionType": "NUMBER_SELECT",
+      "values": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "input": "eight",
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "number: full-width digit",
+      "interactionType": "NUMBER_SELECT",
+      "values": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "input": "８",
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "number: Arabic-Indic digit",
+      "interactionType": "NUMBER_SELECT",
+      "values": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "input": "٨",
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "number: thousands separator",
+      "interactionType": "NUMBER_SELECT",
+      "values": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100
+      ],
+      "input": "1,0",
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "share: every zone sorted by zone ID",
+      "interactionType": "OBJECT_MOVE",
+      "mode": "DISTRIBUTE",
+      "zoneIds": [
+        "z2",
+        "z1"
+      ],
+      "sourceCount": 6,
+      "requireAllPlaced": true,
+      "input": {
+        "z1": 3,
+        "z2": 3
+      },
+      "expected": "z1=3;z2=3"
+    },
+    {
+      "name": "share: unequal counts (still canonical; judged wrong by the accepted list)",
+      "interactionType": "OBJECT_MOVE",
+      "mode": "DISTRIBUTE",
+      "zoneIds": [
+        "z2",
+        "z1"
+      ],
+      "sourceCount": 6,
+      "requireAllPlaced": true,
+      "input": {
+        "z2": 4,
+        "z1": 2
+      },
+      "expected": "z1=2;z2=4"
+    },
+    {
+      "name": "share: an empty zone is written as 0",
+      "interactionType": "OBJECT_MOVE",
+      "mode": "DISTRIBUTE",
+      "zoneIds": [
+        "z1",
+        "z2"
+      ],
+      "sourceCount": 8,
+      "requireAllPlaced": false,
+      "input": {
+        "z2": 5
+      },
+      "expected": "z1=0;z2=5"
+    },
+    {
+      "name": "count: one zone, some placed",
+      "interactionType": "OBJECT_MOVE",
+      "mode": "DISTRIBUTE",
+      "zoneIds": [
+        "z1"
+      ],
+      "sourceCount": 8,
+      "requireAllPlaced": false,
+      "input": {
+        "z1": 5
+      },
+      "expected": "z1=5"
+    },
+    {
+      "name": "count: double-digit count",
+      "interactionType": "OBJECT_MOVE",
+      "mode": "DISTRIBUTE",
+      "zoneIds": [
+        "z1"
+      ],
+      "sourceCount": 12,
+      "requireAllPlaced": false,
+      "input": {
+        "z1": 10
+      },
+      "expected": "z1=10"
+    },
+    {
+      "name": "share: nothing placed",
+      "interactionType": "OBJECT_MOVE",
+      "mode": "DISTRIBUTE",
+      "zoneIds": [
+        "z2",
+        "z1"
+      ],
+      "sourceCount": 6,
+      "requireAllPlaced": true,
+      "input": {},
+      "refused": "INCOMPLETE"
+    },
+    {
+      "name": "share: nothing moved yet (null)",
+      "interactionType": "OBJECT_MOVE",
+      "mode": "DISTRIBUTE",
+      "zoneIds": [
+        "z2",
+        "z1"
+      ],
+      "sourceCount": 6,
+      "requireAllPlaced": true,
+      "input": null,
+      "refused": "INCOMPLETE"
+    },
+    {
+      "name": "share: all zones empty",
+      "interactionType": "OBJECT_MOVE",
+      "mode": "DISTRIBUTE",
+      "zoneIds": [
+        "z2",
+        "z1"
+      ],
+      "sourceCount": 6,
+      "requireAllPlaced": true,
+      "input": {
+        "z1": 0,
+        "z2": 0
+      },
+      "refused": "INCOMPLETE"
+    },
+    {
+      "name": "share: not all placed when all are required",
+      "interactionType": "OBJECT_MOVE",
+      "mode": "DISTRIBUTE",
+      "zoneIds": [
+        "z2",
+        "z1"
+      ],
+      "sourceCount": 6,
+      "requireAllPlaced": true,
+      "input": {
+        "z1": 3,
+        "z2": 2
+      },
+      "refused": "INCOMPLETE"
+    },
+    {
+      "name": "share: more placed than there are",
+      "interactionType": "OBJECT_MOVE",
+      "mode": "DISTRIBUTE",
+      "zoneIds": [
+        "z2",
+        "z1"
+      ],
+      "sourceCount": 6,
+      "requireAllPlaced": true,
+      "input": {
+        "z1": 4,
+        "z2": 3
+      },
+      "refused": "NOT_AN_OPTION"
+    },
+    {
+      "name": "share: a zone the activity does not have",
+      "interactionType": "OBJECT_MOVE",
+      "mode": "DISTRIBUTE",
+      "zoneIds": [
+        "z2",
+        "z1"
+      ],
+      "sourceCount": 6,
+      "requireAllPlaced": true,
+      "input": {
+        "z1": 3,
+        "z3": 3
+      },
+      "refused": "NOT_AN_OPTION"
+    },
+    {
+      "name": "share: negative count",
+      "interactionType": "OBJECT_MOVE",
+      "mode": "DISTRIBUTE",
+      "zoneIds": [
+        "z2",
+        "z1"
+      ],
+      "sourceCount": 6,
+      "requireAllPlaced": true,
+      "input": {
+        "z1": -1,
+        "z2": 7
+      },
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "share: fractional count",
+      "interactionType": "OBJECT_MOVE",
+      "mode": "DISTRIBUTE",
+      "zoneIds": [
+        "z2",
+        "z1"
+      ],
+      "sourceCount": 6,
+      "requireAllPlaced": true,
+      "input": {
+        "z1": 2.5,
+        "z2": 3.5
+      },
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "share: count as text",
+      "interactionType": "OBJECT_MOVE",
+      "mode": "DISTRIBUTE",
+      "zoneIds": [
+        "z2",
+        "z1"
+      ],
+      "sourceCount": 6,
+      "requireAllPlaced": true,
+      "input": {
+        "z1": "3",
+        "z2": "3"
+      },
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "share: a string instead of a count map",
+      "interactionType": "OBJECT_MOVE",
+      "mode": "DISTRIBUTE",
+      "zoneIds": [
+        "z2",
+        "z1"
+      ],
+      "sourceCount": 6,
+      "requireAllPlaced": true,
+      "input": "z1=3;z2=3",
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "sort: every object, sorted by object ID (code-unit order: o10 before o2)",
+      "interactionType": "OBJECT_MOVE",
+      "mode": "SORT",
+      "objectIds": [
+        "o3",
+        "o1",
+        "o2",
+        "o4",
+        "o10"
+      ],
+      "binIds": [
+        "ee",
+        "e"
+      ],
+      "input": {
+        "o1": "ee",
+        "o2": "e",
+        "o3": "ee",
+        "o4": "e",
+        "o10": "ee"
+      },
+      "expected": "o1=ee;o10=ee;o2=e;o3=ee;o4=e"
+    },
+    {
+      "name": "sort: all in one bin (canonical; publish validation keeps it from being accepted)",
+      "interactionType": "OBJECT_MOVE",
+      "mode": "SORT",
+      "objectIds": [
+        "o3",
+        "o1",
+        "o2",
+        "o4",
+        "o10"
+      ],
+      "binIds": [
+        "ee",
+        "e"
+      ],
+      "input": {
+        "o1": "e",
+        "o2": "e",
+        "o3": "e",
+        "o4": "e",
+        "o10": "e"
+      },
+      "expected": "o1=e;o10=e;o2=e;o3=e;o4=e"
+    },
+    {
+      "name": "sort: nothing sorted",
+      "interactionType": "OBJECT_MOVE",
+      "mode": "SORT",
+      "objectIds": [
+        "o3",
+        "o1",
+        "o2",
+        "o4",
+        "o10"
+      ],
+      "binIds": [
+        "ee",
+        "e"
+      ],
+      "input": {},
+      "refused": "INCOMPLETE"
+    },
+    {
+      "name": "sort: one object still in the tray",
+      "interactionType": "OBJECT_MOVE",
+      "mode": "SORT",
+      "objectIds": [
+        "o3",
+        "o1",
+        "o2",
+        "o4",
+        "o10"
+      ],
+      "binIds": [
+        "ee",
+        "e"
+      ],
+      "input": {
+        "o1": "ee",
+        "o2": "e",
+        "o3": "ee",
+        "o4": "e"
+      },
+      "refused": "INCOMPLETE"
+    },
+    {
+      "name": "sort: an object sent back to the tray (null)",
+      "interactionType": "OBJECT_MOVE",
+      "mode": "SORT",
+      "objectIds": [
+        "o3",
+        "o1",
+        "o2",
+        "o4",
+        "o10"
+      ],
+      "binIds": [
+        "ee",
+        "e"
+      ],
+      "input": {
+        "o1": "ee",
+        "o2": "e",
+        "o3": "ee",
+        "o4": "e",
+        "o10": null
+      },
+      "refused": "INCOMPLETE"
+    },
+    {
+      "name": "sort: a bin the activity does not have",
+      "interactionType": "OBJECT_MOVE",
+      "mode": "SORT",
+      "objectIds": [
+        "o3",
+        "o1",
+        "o2",
+        "o4",
+        "o10"
+      ],
+      "binIds": [
+        "ee",
+        "e"
+      ],
+      "input": {
+        "o1": "ee",
+        "o2": "oo",
+        "o3": "ee",
+        "o4": "e",
+        "o10": "e"
+      },
+      "refused": "NOT_AN_OPTION"
+    },
+    {
+      "name": "sort: an object the activity does not have",
+      "interactionType": "OBJECT_MOVE",
+      "mode": "SORT",
+      "objectIds": [
+        "o3",
+        "o1",
+        "o2",
+        "o4",
+        "o10"
+      ],
+      "binIds": [
+        "ee",
+        "e"
+      ],
+      "input": {
+        "o1": "ee",
+        "o2": "e",
+        "o3": "ee",
+        "o4": "e",
+        "o10": "e",
+        "o9": "e"
+      },
+      "refused": "NOT_AN_OPTION"
+    },
+    {
+      "name": "sort: no case folding of bin IDs",
+      "interactionType": "OBJECT_MOVE",
+      "mode": "SORT",
+      "objectIds": [
+        "o3",
+        "o1",
+        "o2",
+        "o4",
+        "o10"
+      ],
+      "binIds": [
+        "ee",
+        "e"
+      ],
+      "input": {
+        "o1": "EE",
+        "o2": "e",
+        "o3": "ee",
+        "o4": "e",
+        "o10": "e"
+      },
+      "refused": "NOT_AN_OPTION"
+    },
+    {
+      "name": "sort: a list instead of an object map",
+      "interactionType": "OBJECT_MOVE",
+      "mode": "SORT",
+      "objectIds": [
+        "o3",
+        "o1",
+        "o2",
+        "o4",
+        "o10"
+      ],
+      "binIds": [
+        "ee",
+        "e"
+      ],
+      "input": [
+        "ee",
+        "e"
+      ],
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "letters: tile values in order, concatenated",
+      "interactionType": "ARRANGE",
+      "mode": "LETTERS",
+      "tiles": [
+        {
+          "id": "t1",
+          "value": "c"
+        },
+        {
+          "id": "t2",
+          "value": "a"
+        },
+        {
+          "id": "t3",
+          "value": "t"
+        },
+        {
+          "id": "t4",
+          "value": "o"
+        },
+        {
+          "id": "t5",
+          "value": "n"
+        }
+      ],
+      "slots": 3,
+      "input": [
+        "t1",
+        "t2",
+        "t3"
+      ],
+      "expected": "cat"
+    },
+    {
+      "name": "letters: a wrong word is still canonical",
+      "interactionType": "ARRANGE",
+      "mode": "LETTERS",
+      "tiles": [
+        {
+          "id": "t1",
+          "value": "c"
+        },
+        {
+          "id": "t2",
+          "value": "a"
+        },
+        {
+          "id": "t3",
+          "value": "t"
+        },
+        {
+          "id": "t4",
+          "value": "o"
+        },
+        {
+          "id": "t5",
+          "value": "n"
+        }
+      ],
+      "slots": 3,
+      "input": [
+        "t1",
+        "t4",
+        "t3"
+      ],
+      "expected": "cot"
+    },
+    {
+      "name": "letters: the two o tiles are interchangeable (values, not IDs)",
+      "interactionType": "ARRANGE",
+      "mode": "LETTERS",
+      "tiles": [
+        {
+          "id": "t1",
+          "value": "o"
+        },
+        {
+          "id": "t2",
+          "value": "m"
+        },
+        {
+          "id": "t3",
+          "value": "n"
+        },
+        {
+          "id": "t4",
+          "value": "o"
+        }
+      ],
+      "slots": 4,
+      "input": [
+        "t2",
+        "t4",
+        "t1",
+        "t3"
+      ],
+      "expected": "moon"
+    },
+    {
+      "name": "letters: the same word with the o tiles swapped",
+      "interactionType": "ARRANGE",
+      "mode": "LETTERS",
+      "tiles": [
+        {
+          "id": "t1",
+          "value": "o"
+        },
+        {
+          "id": "t2",
+          "value": "m"
+        },
+        {
+          "id": "t3",
+          "value": "n"
+        },
+        {
+          "id": "t4",
+          "value": "o"
+        }
+      ],
+      "slots": 4,
+      "input": [
+        "t2",
+        "t1",
+        "t4",
+        "t3"
+      ],
+      "expected": "moon"
+    },
+    {
+      "name": "letters: sh + i + p",
+      "interactionType": "ARRANGE",
+      "mode": "LETTERS",
+      "tiles": [
+        {
+          "id": "t1",
+          "value": "sh"
+        },
+        {
+          "id": "t2",
+          "value": "i"
+        },
+        {
+          "id": "t3",
+          "value": "p"
+        },
+        {
+          "id": "t4",
+          "value": "s"
+        },
+        {
+          "id": "t5",
+          "value": "h"
+        }
+      ],
+      "slots": 3,
+      "input": [
+        "t1",
+        "t2",
+        "t3"
+      ],
+      "expected": "ship"
+    },
+    {
+      "name": "letters: s + h + i + p equals sh + i + p",
+      "interactionType": "ARRANGE",
+      "mode": "LETTERS",
+      "tiles": [
+        {
+          "id": "t1",
+          "value": "sh"
+        },
+        {
+          "id": "t2",
+          "value": "i"
+        },
+        {
+          "id": "t3",
+          "value": "p"
+        },
+        {
+          "id": "t4",
+          "value": "s"
+        },
+        {
+          "id": "t5",
+          "value": "h"
+        }
+      ],
+      "slots": 4,
+      "input": [
+        "t4",
+        "t5",
+        "t2",
+        "t3"
+      ],
+      "expected": "ship"
+    },
+    {
+      "name": "letters: nothing placed (null)",
+      "interactionType": "ARRANGE",
+      "mode": "LETTERS",
+      "tiles": [
+        {
+          "id": "t1",
+          "value": "c"
+        },
+        {
+          "id": "t2",
+          "value": "a"
+        },
+        {
+          "id": "t3",
+          "value": "t"
+        },
+        {
+          "id": "t4",
+          "value": "o"
+        },
+        {
+          "id": "t5",
+          "value": "n"
+        }
+      ],
+      "slots": 3,
+      "input": null,
+      "refused": "INCOMPLETE"
+    },
+    {
+      "name": "letters: no spaces filled",
+      "interactionType": "ARRANGE",
+      "mode": "LETTERS",
+      "tiles": [
+        {
+          "id": "t1",
+          "value": "c"
+        },
+        {
+          "id": "t2",
+          "value": "a"
+        },
+        {
+          "id": "t3",
+          "value": "t"
+        },
+        {
+          "id": "t4",
+          "value": "o"
+        },
+        {
+          "id": "t5",
+          "value": "n"
+        }
+      ],
+      "slots": 3,
+      "input": [],
+      "refused": "INCOMPLETE"
+    },
+    {
+      "name": "letters: an empty space",
+      "interactionType": "ARRANGE",
+      "mode": "LETTERS",
+      "tiles": [
+        {
+          "id": "t1",
+          "value": "c"
+        },
+        {
+          "id": "t2",
+          "value": "a"
+        },
+        {
+          "id": "t3",
+          "value": "t"
+        },
+        {
+          "id": "t4",
+          "value": "o"
+        },
+        {
+          "id": "t5",
+          "value": "n"
+        }
+      ],
+      "slots": 3,
+      "input": [
+        "t1",
+        null,
+        "t3"
+      ],
+      "refused": "INCOMPLETE"
+    },
+    {
+      "name": "letters: two spaces filled of three",
+      "interactionType": "ARRANGE",
+      "mode": "LETTERS",
+      "tiles": [
+        {
+          "id": "t1",
+          "value": "c"
+        },
+        {
+          "id": "t2",
+          "value": "a"
+        },
+        {
+          "id": "t3",
+          "value": "t"
+        },
+        {
+          "id": "t4",
+          "value": "o"
+        },
+        {
+          "id": "t5",
+          "value": "n"
+        }
+      ],
+      "slots": 3,
+      "input": [
+        "t1",
+        "t2"
+      ],
+      "refused": "INCOMPLETE"
+    },
+    {
+      "name": "letters: a tile ID the activity does not have",
+      "interactionType": "ARRANGE",
+      "mode": "LETTERS",
+      "tiles": [
+        {
+          "id": "t1",
+          "value": "c"
+        },
+        {
+          "id": "t2",
+          "value": "a"
+        },
+        {
+          "id": "t3",
+          "value": "t"
+        },
+        {
+          "id": "t4",
+          "value": "o"
+        },
+        {
+          "id": "t5",
+          "value": "n"
+        }
+      ],
+      "slots": 3,
+      "input": [
+        "t1",
+        "t2",
+        "t9"
+      ],
+      "refused": "NOT_AN_OPTION"
+    },
+    {
+      "name": "letters: one tile in two spaces",
+      "interactionType": "ARRANGE",
+      "mode": "LETTERS",
+      "tiles": [
+        {
+          "id": "t1",
+          "value": "c"
+        },
+        {
+          "id": "t2",
+          "value": "a"
+        },
+        {
+          "id": "t3",
+          "value": "t"
+        },
+        {
+          "id": "t4",
+          "value": "o"
+        },
+        {
+          "id": "t5",
+          "value": "n"
+        }
+      ],
+      "slots": 3,
+      "input": [
+        "t1",
+        "t1",
+        "t3"
+      ],
+      "refused": "NOT_AN_OPTION"
+    },
+    {
+      "name": "letters: the tile's value instead of its ID",
+      "interactionType": "ARRANGE",
+      "mode": "LETTERS",
+      "tiles": [
+        {
+          "id": "t1",
+          "value": "c"
+        },
+        {
+          "id": "t2",
+          "value": "a"
+        },
+        {
+          "id": "t3",
+          "value": "t"
+        },
+        {
+          "id": "t4",
+          "value": "o"
+        },
+        {
+          "id": "t5",
+          "value": "n"
+        }
+      ],
+      "slots": 3,
+      "input": [
+        "c",
+        "a",
+        "t"
+      ],
+      "refused": "NOT_AN_OPTION"
+    },
+    {
+      "name": "letters: more tiles than spaces",
+      "interactionType": "ARRANGE",
+      "mode": "LETTERS",
+      "tiles": [
+        {
+          "id": "t1",
+          "value": "c"
+        },
+        {
+          "id": "t2",
+          "value": "a"
+        },
+        {
+          "id": "t3",
+          "value": "t"
+        },
+        {
+          "id": "t4",
+          "value": "o"
+        },
+        {
+          "id": "t5",
+          "value": "n"
+        }
+      ],
+      "slots": 3,
+      "input": [
+        "t1",
+        "t2",
+        "t3",
+        "t4"
+      ],
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "letters: a typed string instead of tiles",
+      "interactionType": "ARRANGE",
+      "mode": "LETTERS",
+      "tiles": [
+        {
+          "id": "t1",
+          "value": "c"
+        },
+        {
+          "id": "t2",
+          "value": "a"
+        },
+        {
+          "id": "t3",
+          "value": "t"
+        },
+        {
+          "id": "t4",
+          "value": "o"
+        },
+        {
+          "id": "t5",
+          "value": "n"
+        }
+      ],
+      "slots": 3,
+      "input": "cat",
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "sequence: tile values in order, joined by commas",
+      "interactionType": "ARRANGE",
+      "mode": "SEQUENCE",
+      "tiles": [
+        {
+          "id": "a",
+          "value": "38"
+        },
+        {
+          "id": "b",
+          "value": "83"
+        },
+        {
+          "id": "c",
+          "value": "30"
+        },
+        {
+          "id": "d",
+          "value": "80"
+        }
+      ],
+      "slots": 4,
+      "input": [
+        "c",
+        "a",
+        "d",
+        "b"
+      ],
+      "expected": "30,38,80,83"
+    },
+    {
+      "name": "sequence: a wrong order is still canonical",
+      "interactionType": "ARRANGE",
+      "mode": "SEQUENCE",
+      "tiles": [
+        {
+          "id": "a",
+          "value": "38"
+        },
+        {
+          "id": "b",
+          "value": "83"
+        },
+        {
+          "id": "c",
+          "value": "30"
+        },
+        {
+          "id": "d",
+          "value": "80"
+        }
+      ],
+      "slots": 4,
+      "input": [
+        "a",
+        "b",
+        "c",
+        "d"
+      ],
+      "expected": "38,83,30,80"
+    },
+    {
+      "name": "sequence: an empty space",
+      "interactionType": "ARRANGE",
+      "mode": "SEQUENCE",
+      "tiles": [
+        {
+          "id": "a",
+          "value": "38"
+        },
+        {
+          "id": "b",
+          "value": "83"
+        },
+        {
+          "id": "c",
+          "value": "30"
+        },
+        {
+          "id": "d",
+          "value": "80"
+        }
+      ],
+      "slots": 4,
+      "input": [
+        "c",
+        "a",
+        null,
+        "b"
+      ],
+      "refused": "INCOMPLETE"
+    },
+    {
+      "name": "sequence: a tile in two spaces",
+      "interactionType": "ARRANGE",
+      "mode": "SEQUENCE",
+      "tiles": [
+        {
+          "id": "a",
+          "value": "38"
+        },
+        {
+          "id": "b",
+          "value": "83"
+        },
+        {
+          "id": "c",
+          "value": "30"
+        },
+        {
+          "id": "d",
+          "value": "80"
+        }
+      ],
+      "slots": 4,
+      "input": [
+        "c",
+        "c",
+        "d",
+        "b"
+      ],
+      "refused": "NOT_AN_OPTION"
+    },
+    {
+      "name": "typed number: digits",
+      "interactionType": "TYPED",
+      "mode": "NUMERIC",
+      "maxLength": 3,
+      "input": "16",
+      "expected": "16"
+    },
+    {
+      "name": "typed number: zero",
+      "interactionType": "TYPED",
+      "mode": "NUMERIC",
+      "maxLength": 3,
+      "input": "0",
+      "expected": "0"
+    },
+    {
+      "name": "typed number: leading zero dropped",
+      "interactionType": "TYPED",
+      "mode": "NUMERIC",
+      "maxLength": 3,
+      "input": "08",
+      "expected": "8"
+    },
+    {
+      "name": "typed number: all zeros is zero",
+      "interactionType": "TYPED",
+      "mode": "NUMERIC",
+      "maxLength": 3,
+      "input": "000",
+      "expected": "0"
+    },
+    {
+      "name": "typed number: spaces around removed",
+      "interactionType": "TYPED",
+      "mode": "NUMERIC",
+      "maxLength": 3,
+      "input": " 16 ",
+      "expected": "16"
+    },
+    {
+      "name": "typed number: tab, newline, CR and no-break space removed",
+      "interactionType": "TYPED",
+      "mode": "NUMERIC",
+      "maxLength": 3,
+      "input": "\t1 6\r\n",
+      "expected": "16"
+    },
+    {
+      "name": "typed number: a space inside removed",
+      "interactionType": "TYPED",
+      "mode": "NUMERIC",
+      "maxLength": 3,
+      "input": "1 6",
+      "expected": "16"
+    },
+    {
+      "name": "typed number: three digits",
+      "interactionType": "TYPED",
+      "mode": "NUMERIC",
+      "maxLength": 3,
+      "input": "999",
+      "expected": "999"
+    },
+    {
+      "name": "typed number: nothing typed (null)",
+      "interactionType": "TYPED",
+      "mode": "NUMERIC",
+      "maxLength": 3,
+      "input": null,
+      "refused": "INCOMPLETE"
+    },
+    {
+      "name": "typed number: empty",
+      "interactionType": "TYPED",
+      "mode": "NUMERIC",
+      "maxLength": 3,
+      "input": "",
+      "refused": "INCOMPLETE"
+    },
+    {
+      "name": "typed number: only spaces",
+      "interactionType": "TYPED",
+      "mode": "NUMERIC",
+      "maxLength": 3,
+      "input": "   ",
+      "refused": "INCOMPLETE"
+    },
+    {
+      "name": "typed number: four digits",
+      "interactionType": "TYPED",
+      "mode": "NUMERIC",
+      "maxLength": 3,
+      "input": "1000",
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "typed number: leading zeros make four digits",
+      "interactionType": "TYPED",
+      "mode": "NUMERIC",
+      "maxLength": 3,
+      "input": "0008",
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "typed number: minus sign",
+      "interactionType": "TYPED",
+      "mode": "NUMERIC",
+      "maxLength": 3,
+      "input": "-3",
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "typed number: plus sign",
+      "interactionType": "TYPED",
+      "mode": "NUMERIC",
+      "maxLength": 3,
+      "input": "+8",
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "typed number: decimal point",
+      "interactionType": "TYPED",
+      "mode": "NUMERIC",
+      "maxLength": 3,
+      "input": "8.0",
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "typed number: a number word (not accepted in v1)",
+      "interactionType": "TYPED",
+      "mode": "NUMERIC",
+      "maxLength": 3,
+      "input": "eight",
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "typed number: full-width digit",
+      "interactionType": "TYPED",
+      "mode": "NUMERIC",
+      "maxLength": 3,
+      "input": "８",
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "typed number: Arabic-Indic digit",
+      "interactionType": "TYPED",
+      "mode": "NUMERIC",
+      "maxLength": 3,
+      "input": "٨",
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "typed number: other whitespace (em space) is not in the set",
+      "interactionType": "TYPED",
+      "mode": "NUMERIC",
+      "maxLength": 3,
+      "input": "1 6",
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "typed number: a list instead of text",
+      "interactionType": "TYPED",
+      "mode": "NUMERIC",
+      "maxLength": 3,
+      "input": [
+        "1",
+        "6"
+      ],
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "typed word: lower case",
+      "interactionType": "TYPED",
+      "mode": "WORD",
+      "maxLength": 12,
+      "input": "hopping",
+      "expected": "hopping"
+    },
+    {
+      "name": "typed word: capitals lowered (A-Z only)",
+      "interactionType": "TYPED",
+      "mode": "WORD",
+      "maxLength": 12,
+      "input": "Hopping",
+      "expected": "hopping"
+    },
+    {
+      "name": "typed word: all capitals",
+      "interactionType": "TYPED",
+      "mode": "WORD",
+      "maxLength": 12,
+      "input": "HOPPING",
+      "expected": "hopping"
+    },
+    {
+      "name": "typed word: spaces around trimmed",
+      "interactionType": "TYPED",
+      "mode": "WORD",
+      "maxLength": 12,
+      "input": "  hopping \n",
+      "expected": "hopping"
+    },
+    {
+      "name": "typed word: internal spaces kept, runs collapsed to one",
+      "interactionType": "TYPED",
+      "mode": "WORD",
+      "maxLength": 12,
+      "input": "foot \t ball",
+      "expected": "foot ball"
+    },
+    {
+      "name": "typed word: curly apostrophe U+2019",
+      "interactionType": "TYPED",
+      "mode": "WORD",
+      "maxLength": 12,
+      "input": "don’t",
+      "expected": "don't"
+    },
+    {
+      "name": "typed word: left single quote U+2018",
+      "interactionType": "TYPED",
+      "mode": "WORD",
+      "maxLength": 12,
+      "input": "don‘t",
+      "expected": "don't"
+    },
+    {
+      "name": "typed word: modifier apostrophe U+02BC",
+      "interactionType": "TYPED",
+      "mode": "WORD",
+      "maxLength": 12,
+      "input": "donʼt",
+      "expected": "don't"
+    },
+    {
+      "name": "typed word: straight apostrophe kept",
+      "interactionType": "TYPED",
+      "mode": "WORD",
+      "maxLength": 12,
+      "input": "didn't",
+      "expected": "didn't"
+    },
+    {
+      "name": "typed word: en dash becomes hyphen",
+      "interactionType": "TYPED",
+      "mode": "WORD",
+      "maxLength": 12,
+      "input": "x–ray",
+      "expected": "x-ray"
+    },
+    {
+      "name": "typed word: hyphen U+2010 becomes hyphen",
+      "interactionType": "TYPED",
+      "mode": "WORD",
+      "maxLength": 12,
+      "input": "x‐ray",
+      "expected": "x-ray"
+    },
+    {
+      "name": "typed word: em dash becomes hyphen",
+      "interactionType": "TYPED",
+      "mode": "WORD",
+      "maxLength": 12,
+      "input": "x—ray",
+      "expected": "x-ray"
+    },
+    {
+      "name": "typed word: exactly maxLength",
+      "interactionType": "TYPED",
+      "mode": "WORD",
+      "maxLength": 5,
+      "input": "hello",
+      "expected": "hello"
+    },
+    {
+      "name": "typed word: case-sensitive keeps lower case",
+      "interactionType": "TYPED",
+      "mode": "WORD",
+      "maxLength": 12,
+      "caseSensitive": true,
+      "input": "hopping",
+      "expected": "hopping"
+    },
+    {
+      "name": "typed word: nothing typed (null)",
+      "interactionType": "TYPED",
+      "mode": "WORD",
+      "maxLength": 12,
+      "input": null,
+      "refused": "INCOMPLETE"
+    },
+    {
+      "name": "typed word: empty",
+      "interactionType": "TYPED",
+      "mode": "WORD",
+      "maxLength": 12,
+      "input": "",
+      "refused": "INCOMPLETE"
+    },
+    {
+      "name": "typed word: only whitespace",
+      "interactionType": "TYPED",
+      "mode": "WORD",
+      "maxLength": 12,
+      "input": " \t ",
+      "refused": "INCOMPLETE"
+    },
+    {
+      "name": "typed word: longer than maxLength",
+      "interactionType": "TYPED",
+      "mode": "WORD",
+      "maxLength": 5,
+      "input": "hopping",
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "typed word: a digit",
+      "interactionType": "TYPED",
+      "mode": "WORD",
+      "maxLength": 12,
+      "input": "h0pping",
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "typed word: accented letter (no Unicode folding)",
+      "interactionType": "TYPED",
+      "mode": "WORD",
+      "maxLength": 12,
+      "input": "café",
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "typed word: dotted capital I (no Unicode case folding)",
+      "interactionType": "TYPED",
+      "mode": "WORD",
+      "maxLength": 12,
+      "input": "İt",
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "typed word: full-width letter",
+      "interactionType": "TYPED",
+      "mode": "WORD",
+      "maxLength": 12,
+      "input": "ｈop",
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "typed word: a reserved separator",
+      "interactionType": "TYPED",
+      "mode": "WORD",
+      "maxLength": 12,
+      "input": "hop|ping",
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "typed word: case-sensitive refuses a capital",
+      "interactionType": "TYPED",
+      "mode": "WORD",
+      "maxLength": 12,
+      "caseSensitive": true,
+      "input": "Hopping",
+      "refused": "NOT_CANONICAL"
+    }
+  ],
+  "twoStep": [
+    {
+      "name": "two-step: choice then typed number, joined by |",
+      "steps": [
+        {
+          "interactionType": "MULTIPLE_CHOICE",
+          "optionIds": [
+            "a",
+            "b",
+            "c",
+            "d"
+          ]
+        },
+        {
+          "interactionType": "TYPED",
+          "mode": "NUMERIC",
+          "maxLength": 2
+        }
+      ],
+      "input": [
+        "c",
+        "30"
+      ],
+      "expected": "c|30"
+    },
+    {
+      "name": "two-step: a wrong second step is still canonical",
+      "steps": [
+        {
+          "interactionType": "MULTIPLE_CHOICE",
+          "optionIds": [
+            "a",
+            "b",
+            "c",
+            "d"
+          ]
+        },
+        {
+          "interactionType": "TYPED",
+          "mode": "NUMERIC",
+          "maxLength": 2
+        }
+      ],
+      "input": [
+        "c",
+        "35"
+      ],
+      "expected": "c|35"
+    },
+    {
+      "name": "two-step: each step canonicalised on its own (leading zero, spaces)",
+      "steps": [
+        {
+          "interactionType": "MULTIPLE_CHOICE",
+          "optionIds": [
+            "a",
+            "b",
+            "c",
+            "d"
+          ]
+        },
+        {
+          "interactionType": "TYPED",
+          "mode": "NUMERIC",
+          "maxLength": 2
+        }
+      ],
+      "input": [
+        "c",
+        " 08 "
+      ],
+      "expected": "c|8"
+    },
+    {
+      "name": "two-step: letters then sequence",
+      "steps": [
+        {
+          "interactionType": "ARRANGE",
+          "mode": "LETTERS",
+          "tiles": [
+            {
+              "id": "t1",
+              "value": "c"
+            },
+            {
+              "id": "t2",
+              "value": "a"
+            },
+            {
+              "id": "t3",
+              "value": "t"
+            },
+            {
+              "id": "t4",
+              "value": "o"
+            },
+            {
+              "id": "t5",
+              "value": "n"
+            }
+          ],
+          "slots": 3
+        },
+        {
+          "interactionType": "ARRANGE",
+          "mode": "SEQUENCE",
+          "tiles": [
+            {
+              "id": "a",
+              "value": "38"
+            },
+            {
+              "id": "b",
+              "value": "83"
+            },
+            {
+              "id": "c",
+              "value": "30"
+            },
+            {
+              "id": "d",
+              "value": "80"
+            }
+          ],
+          "slots": 4
+        }
+      ],
+      "input": [
+        [
+          "t1",
+          "t2",
+          "t3"
+        ],
+        [
+          "c",
+          "a",
+          "d",
+          "b"
+        ]
+      ],
+      "expected": "cat|30,38,80,83"
+    },
+    {
+      "name": "two-step: sort then share",
+      "steps": [
+        {
+          "interactionType": "OBJECT_MOVE",
+          "mode": "SORT",
+          "objectIds": [
+            "o3",
+            "o1",
+            "o2",
+            "o4",
+            "o10"
+          ],
+          "binIds": [
+            "ee",
+            "e"
+          ]
+        },
+        {
+          "interactionType": "OBJECT_MOVE",
+          "mode": "DISTRIBUTE",
+          "zoneIds": [
+            "z2",
+            "z1"
+          ],
+          "sourceCount": 6,
+          "requireAllPlaced": true
+        }
+      ],
+      "input": [
+        {
+          "o1": "ee",
+          "o2": "e",
+          "o3": "ee",
+          "o4": "e",
+          "o10": "ee"
+        },
+        {
+          "z1": 3,
+          "z2": 3
+        }
+      ],
+      "expected": "o1=ee;o10=ee;o2=e;o3=ee;o4=e|z1=3;z2=3"
+    },
+    {
+      "name": "two-step: first step not answered",
+      "steps": [
+        {
+          "interactionType": "MULTIPLE_CHOICE",
+          "optionIds": [
+            "a",
+            "b",
+            "c",
+            "d"
+          ]
+        },
+        {
+          "interactionType": "TYPED",
+          "mode": "NUMERIC",
+          "maxLength": 2
+        }
+      ],
+      "input": [
+        null,
+        "30"
+      ],
+      "refused": "INCOMPLETE"
+    },
+    {
+      "name": "two-step: second step not answered",
+      "steps": [
+        {
+          "interactionType": "MULTIPLE_CHOICE",
+          "optionIds": [
+            "a",
+            "b",
+            "c",
+            "d"
+          ]
+        },
+        {
+          "interactionType": "TYPED",
+          "mode": "NUMERIC",
+          "maxLength": 2
+        }
+      ],
+      "input": [
+        "c",
+        ""
+      ],
+      "refused": "INCOMPLETE"
+    },
+    {
+      "name": "two-step: incomplete wins over another step's refusal",
+      "steps": [
+        {
+          "interactionType": "MULTIPLE_CHOICE",
+          "optionIds": [
+            "a",
+            "b",
+            "c",
+            "d"
+          ]
+        },
+        {
+          "interactionType": "TYPED",
+          "mode": "NUMERIC",
+          "maxLength": 2
+        }
+      ],
+      "input": [
+        "e",
+        null
+      ],
+      "refused": "INCOMPLETE"
+    },
+    {
+      "name": "two-step: a step's refusal is the activity's",
+      "steps": [
+        {
+          "interactionType": "MULTIPLE_CHOICE",
+          "optionIds": [
+            "a",
+            "b",
+            "c",
+            "d"
+          ]
+        },
+        {
+          "interactionType": "TYPED",
+          "mode": "NUMERIC",
+          "maxLength": 2
+        }
+      ],
+      "input": [
+        "e",
+        "30"
+      ],
+      "refused": "NOT_AN_OPTION"
+    },
+    {
+      "name": "two-step: a separator typed into a step",
+      "steps": [
+        {
+          "interactionType": "MULTIPLE_CHOICE",
+          "optionIds": [
+            "a",
+            "b",
+            "c",
+            "d"
+          ]
+        },
+        {
+          "interactionType": "TYPED",
+          "mode": "WORD",
+          "maxLength": 12
+        }
+      ],
+      "input": [
+        "c",
+        "a|b"
+      ],
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "two-step: only one step's answer given",
+      "steps": [
+        {
+          "interactionType": "MULTIPLE_CHOICE",
+          "optionIds": [
+            "a",
+            "b",
+            "c",
+            "d"
+          ]
+        },
+        {
+          "interactionType": "TYPED",
+          "mode": "NUMERIC",
+          "maxLength": 2
+        }
+      ],
+      "input": [
+        "c"
+      ],
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "two-step: joined answer longer than 64 characters",
+      "steps": [
+        {
+          "interactionType": "TYPED",
+          "mode": "WORD",
+          "maxLength": 40
+        },
+        {
+          "interactionType": "TYPED",
+          "mode": "WORD",
+          "maxLength": 40
+        }
+      ],
+      "input": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ],
+      "refused": "NOT_CANONICAL"
+    },
+    {
+      "name": "two-step: joined answer of exactly 64 characters",
+      "steps": [
+        {
+          "interactionType": "TYPED",
+          "mode": "WORD",
+          "maxLength": 40
+        },
+        {
+          "interactionType": "TYPED",
+          "mode": "WORD",
+          "maxLength": 40
+        }
+      ],
+      "input": [
+        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      ],
+      "expected": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa|bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
     }
   ],
   "shape": [
@@ -208,11 +2909,11 @@
       "valid": false
     },
     {
-      "answer": "caf\u00e9",
+      "answer": "café",
       "valid": false
     },
     {
-      "answer": "it\u2019s",
+      "answer": "it’s",
       "valid": false
     },
     {
@@ -221,6 +2922,26 @@
     },
     {
       "answer": "a\tb",
+      "valid": false
+    },
+    {
+      "answer": "cat|30,38,80,83",
+      "valid": true
+    },
+    {
+      "answer": "z1=0;z2=5",
+      "valid": true
+    },
+    {
+      "answer": "x-ray",
+      "valid": true
+    },
+    {
+      "answer": "Cat",
+      "valid": false
+    },
+    {
+      "answer": "a b",
       "valid": false
     }
   ]

@@ -1,0 +1,329 @@
+{
+  "$comment": "Phase 39 (M3-04): one activity draft per editor kind, exactly as the admin editor builds it (web/admin/src/editor/model.ts toDefinition). Read by web/admin/src/editor/contract.test.ts (the editor rebuilds each one from its form and the panel shows it) and api/tests/unit/test_activity_fixtures.py (admin-api's validation finds no problem in any of them). Written from C20.1, C20.3, C22.1 and the C22 worked examples; the IDs ma-91xx, ph-91xx and sp-91xx are test IDs only.",
+  "drafts": [
+    {
+      "kind": "MULTIPLE_CHOICE",
+      "speech": ["phoneme-sh"],
+      "solve": "b",
+      "definition": {
+        "schemaVersion": 1,
+        "activityId": "ph-9101",
+        "title": "Which letters make sh",
+        "subject": "phonics",
+        "topicId": "phonics-gpc-consonant-digraphs",
+        "rewardCategory": "NORMAL",
+        "interactionType": "MULTIPLE_CHOICE",
+        "authoringMode": "FIXED",
+        "minAge": 5,
+        "maxAge": 6,
+        "source": "HANDWRITTEN",
+        "audioRequirement": "REQUIRED",
+        "curriculumReference": ["EYFS26.ELG.WordReading-1"],
+        "prompt": { "text": "Listen. Which letters make this sound?" },
+        "activityPayload": {
+          "optionStyle": "GRAPHEME",
+          "options": [
+            { "id": "a", "text": "s" },
+            { "id": "b", "text": "sh" },
+            { "id": "c", "text": "ch" },
+            { "id": "d", "text": "th" }
+          ]
+        },
+        "answerSpecification": { "accepted": ["b"] },
+        "speechDefinitionReferences": { "prompt": { "speechId": "phoneme-sh" } }
+      }
+    },
+    {
+      "kind": "PICTURE_SELECT",
+      "speech": [],
+      "solve": "b",
+      "definition": {
+        "schemaVersion": 1,
+        "activityId": "sp-9102",
+        "title": "Which one is a knight",
+        "subject": "spelling",
+        "topicId": "spelling-y2-homophones",
+        "rewardCategory": "NORMAL",
+        "interactionType": "PICTURE_SELECT",
+        "authoringMode": "FIXED",
+        "minAge": 7,
+        "maxAge": 7,
+        "source": "HANDWRITTEN",
+        "audioRequirement": "NONE",
+        "curriculumReference": ["NC14.En.Y2.Sp-6"],
+        "prompt": { "text": "Which picture is a knight?" },
+        "activityPayload": {
+          "layout": "GRID",
+          "options": [
+            { "id": "a", "assetId": "pic-night-sky", "alt": "a night sky" },
+            { "id": "b", "assetId": "pic-knight", "alt": "a knight" },
+            { "id": "c", "assetId": "pic-kite", "alt": "a kite" },
+            { "id": "d", "assetId": "pic-knot", "alt": "a knot" }
+          ]
+        },
+        "answerSpecification": { "accepted": ["b"] },
+        "speechDefinitionReferences": {},
+        "visualAssetReferences": ["pic-night-sky", "pic-knight", "pic-kite", "pic-knot"]
+      }
+    },
+    {
+      "kind": "NUMBER_SELECT",
+      "speech": [],
+      "solve": "5",
+      "definition": {
+        "schemaVersion": 1,
+        "activityId": "ma-9103",
+        "title": "How many dots",
+        "subject": "maths",
+        "topicId": "maths-count-objects-to10",
+        "rewardCategory": "NORMAL",
+        "interactionType": "NUMBER_SELECT",
+        "authoringMode": "FIXED",
+        "minAge": 5,
+        "maxAge": 5,
+        "source": "HANDWRITTEN",
+        "audioRequirement": "NONE",
+        "curriculumReference": ["EYFS26.ELG.Number-1"],
+        "prompt": { "text": "How many dots?" },
+        "activityPayload": {
+          "numberSet": { "kind": "RANGE", "min": 0, "max": 10, "step": 1 },
+          "display": "TRACK",
+          "stimulus": { "assetId": "dice-5", "alt": "a dice with five dots" }
+        },
+        "answerSpecification": { "accepted": ["5"] },
+        "speechDefinitionReferences": {},
+        "visualAssetReferences": ["dice-5"]
+      }
+    },
+    {
+      "kind": "DISTRIBUTE",
+      "speech": [],
+      "solve": "z1=3;z2=3",
+      "definition": {
+        "schemaVersion": 1,
+        "activityId": "ma-9104",
+        "title": "Share six stars",
+        "subject": "maths",
+        "topicId": "maths-share-equal-groups",
+        "rewardCategory": "NORMAL",
+        "interactionType": "OBJECT_MOVE",
+        "authoringMode": "FIXED",
+        "minAge": 5,
+        "maxAge": 5,
+        "source": "HANDWRITTEN",
+        "audioRequirement": "NONE",
+        "curriculumReference": ["EYFS26.ELG.Number-1"],
+        "prompt": { "text": "Share the stars fairly." },
+        "activityPayload": {
+          "mode": "DISTRIBUTE",
+          "objectAssetId": "obj-star",
+          "objectAlt": "a star",
+          "sourceCount": 6,
+          "zones": [
+            { "id": "z1", "label": "Nova" },
+            { "id": "z2", "label": "Pip" }
+          ],
+          "requireAllPlaced": true
+        },
+        "answerSpecification": { "accepted": ["z1=3;z2=3"] },
+        "speechDefinitionReferences": {},
+        "visualAssetReferences": ["obj-star"]
+      }
+    },
+    {
+      "kind": "SORT",
+      "speech": ["instruction-sort-by-sound"],
+      "solve": "o1=b1;o2=b2;o3=b1;o4=b2",
+      "definition": {
+        "schemaVersion": 1,
+        "activityId": "ph-9105",
+        "title": "Sort ea words by sound",
+        "subject": "phonics",
+        "topicId": "phonics-alt-pronunciation",
+        "rewardCategory": "NORMAL",
+        "interactionType": "OBJECT_MOVE",
+        "authoringMode": "FIXED",
+        "minAge": 6,
+        "maxAge": 7,
+        "source": "HANDWRITTEN",
+        "audioRequirement": "OPTIONAL",
+        "curriculumReference": ["NC14.En.Y1.WR-3"],
+        "prompt": { "text": "Sort the words by their sound." },
+        "activityPayload": {
+          "mode": "SORT",
+          "objects": [
+            { "id": "o1", "text": "sea", "alt": "sea" },
+            { "id": "o2", "text": "head", "alt": "head" },
+            { "id": "o3", "text": "dream", "alt": "dream" },
+            { "id": "o4", "text": "bread", "alt": "bread" }
+          ],
+          "bins": [
+            { "id": "b1", "label": "like tree" },
+            { "id": "b2", "label": "like bed" }
+          ]
+        },
+        "answerSpecification": { "accepted": ["o1=b1;o2=b2;o3=b1;o4=b2"] },
+        "speechDefinitionReferences": { "instruction": { "speechId": "instruction-sort-by-sound" } }
+      }
+    },
+    {
+      "kind": "LETTERS",
+      "speech": [],
+      "solve": "cat",
+      "definition": {
+        "schemaVersion": 1,
+        "activityId": "sp-9106",
+        "title": "Build the word cat",
+        "subject": "spelling",
+        "topicId": "spelling-cvc-build",
+        "rewardCategory": "NORMAL",
+        "interactionType": "ARRANGE",
+        "authoringMode": "FIXED",
+        "minAge": 5,
+        "maxAge": 5,
+        "source": "HANDWRITTEN",
+        "audioRequirement": "NONE",
+        "curriculumReference": ["NC14.En.Y1.Sp-1"],
+        "prompt": { "text": "Make the word for the picture." },
+        "activityPayload": {
+          "mode": "LETTERS",
+          "tiles": [
+            { "id": "t1", "value": "t" },
+            { "id": "t2", "value": "a" },
+            { "id": "t3", "value": "c" },
+            { "id": "t4", "value": "o" },
+            { "id": "t5", "value": "n" }
+          ],
+          "slots": 3,
+          "cue": { "assetId": "pic-cat", "alt": "a cat" }
+        },
+        "answerSpecification": { "accepted": ["cat"] },
+        "speechDefinitionReferences": {},
+        "visualAssetReferences": ["pic-cat"]
+      }
+    },
+    {
+      "kind": "SEQUENCE",
+      "speech": [],
+      "solve": "30,38,80,83",
+      "definition": {
+        "schemaVersion": 1,
+        "activityId": "ma-9107",
+        "title": "Order four numbers",
+        "subject": "maths",
+        "topicId": "maths-compare-symbols-to100",
+        "rewardCategory": "NORMAL",
+        "interactionType": "ARRANGE",
+        "authoringMode": "FIXED",
+        "minAge": 7,
+        "maxAge": 7,
+        "source": "HANDWRITTEN",
+        "audioRequirement": "NONE",
+        "curriculumReference": ["NC14.Ma.Y2.NPV-3"],
+        "prompt": { "text": "Put the numbers in order." },
+        "activityPayload": {
+          "mode": "SEQUENCE",
+          "tiles": [
+            { "id": "t1", "value": "38" },
+            { "id": "t2", "value": "83" },
+            { "id": "t3", "value": "30" },
+            { "id": "t4", "value": "80" }
+          ],
+          "slots": 4,
+          "orderLabel": "smallest first"
+        },
+        "answerSpecification": { "accepted": ["30,38,80,83"] },
+        "speechDefinitionReferences": {}
+      }
+    },
+    {
+      "kind": "NUMERIC",
+      "speech": [],
+      "solve": "7",
+      "definition": {
+        "schemaVersion": 1,
+        "activityId": "ma-9108",
+        "title": "One more than six",
+        "subject": "maths",
+        "topicId": "maths-number-one-more-less-to10",
+        "rewardCategory": "METEOR",
+        "interactionType": "TYPED",
+        "authoringMode": "FIXED",
+        "minAge": 5,
+        "maxAge": 5,
+        "source": "HANDWRITTEN",
+        "audioRequirement": "NONE",
+        "curriculumReference": ["EYFS26.ELG.Number-2"],
+        "prompt": { "text": "What is one more than 6?" },
+        "activityPayload": { "mode": "NUMERIC", "maxLength": 2 },
+        "answerSpecification": { "accepted": ["7"] },
+        "speechDefinitionReferences": {}
+      }
+    },
+    {
+      "kind": "WORD",
+      "speech": [],
+      "solve": "hopping",
+      "definition": {
+        "schemaVersion": 1,
+        "activityId": "sp-9109",
+        "title": "Add ing to hop",
+        "subject": "spelling",
+        "topicId": "spelling-y2-suffix-rules",
+        "rewardCategory": "NORMAL",
+        "interactionType": "TYPED",
+        "authoringMode": "FIXED",
+        "minAge": 7,
+        "maxAge": 7,
+        "source": "HANDWRITTEN",
+        "audioRequirement": "NONE",
+        "curriculumReference": ["NC14.En.Y2.Sp-4"],
+        "prompt": { "text": "Write the new word." },
+        "activityPayload": { "mode": "WORD", "maxLength": 8, "cue": { "text": "hop + ing" } },
+        "answerSpecification": { "accepted": ["hopping"] },
+        "speechDefinitionReferences": {}
+      }
+    },
+    {
+      "kind": "TWO_STEP",
+      "speech": [],
+      "solve": "c|30",
+      "definition": {
+        "schemaVersion": 1,
+        "activityId": "ma-9110",
+        "title": "Five times table two parts",
+        "subject": "maths",
+        "topicId": "maths-times-tables-2-5-10",
+        "rewardCategory": "METEOR",
+        "interactionType": "MULTIPLE_CHOICE",
+        "authoringMode": "FIXED",
+        "minAge": 7,
+        "maxAge": 7,
+        "source": "HANDWRITTEN",
+        "audioRequirement": "NONE",
+        "curriculumReference": ["NC14.Ma.Y2.MD-1", "NC14.Ma.Y2.MD-2"],
+        "prompt": { "text": "Two parts. Do both, then press Check." },
+        "activityPayload": {
+          "optionStyle": "NUMERAL",
+          "options": [
+            { "id": "a", "text": "12" },
+            { "id": "b", "text": "18" },
+            { "id": "c", "text": "25" },
+            { "id": "d", "text": "32" }
+          ],
+          "partPrompt": "Which number is in the 5 times table?"
+        },
+        "additionalSteps": [
+          {
+            "interactionType": "TYPED",
+            "prompt": { "text": "5 × 6 = ?" },
+            "activityPayload": { "mode": "NUMERIC", "maxLength": 2 },
+            "answerSpecification": { "accepted": ["30"] }
+          }
+        ],
+        "answerSpecification": { "accepted": ["c|30"] },
+        "speechDefinitionReferences": {}
+      }
+    }
+  ]
+}

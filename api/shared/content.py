@@ -21,9 +21,14 @@ A speech draft does not store `engine` or `voiceId`: they come from server confi
 shown on read (R19) and recorded on the approved version. The version ID is the UTC time of approval or publication,
 `20261120T120000Z`; "v3" is derived by counting (spine S8.3).
 
-Activity definitions: the subset of C22.1 that Milestone 1 needs, FIXED MULTIPLE_CHOICE only. Other types, templates,
-pictures, extra steps and demonstrations are refused with rule `not_supported_yet` until their phases (35-41). A draft
-saves freely (only its size, its ID and the locked identity fields are checked); validate and publish run every check.
+Activity definitions (C22.1): FIXED activities of all six interaction types, with pictures from the asset manifest and
+at most one additional step (Phase 36; the per-type payload and answer checks are in shared/activity_types.py).
+Templates and demonstrations are refused with rule `not_supported_yet` until their phases. A draft saves freely (only
+its size, its ID and the locked identity fields are checked); validate and publish run every check.
+
+Lifecycle items written by admin-api (Phase 36): retire sets the header `state` RETIRED; withdraw adds
+`withdrawn {at, reason}` to one version (the only attribute ever added to a version, under `attribute_not_exists`)
+and, when it is the published version, also retires the activity (F §12.6 C5, C6).
 """
 
 from __future__ import annotations
@@ -36,6 +41,16 @@ from datetime import UTC, datetime
 from decimal import Decimal
 from typing import Any
 
+from shared.activity_types import (
+    INTERACTION_TYPES,
+    STEP_JOINER,
+    Step,
+    accepted_list,
+    answer_shape_ok,
+    asset_manifest,
+    check_answers,
+    check_payload,
+)
 from shared.clipkey import KINDS, PROVIDER
 from shared.rules.contracts import LIMITS
 
@@ -51,15 +66,12 @@ TITLE_MAX = 80
 AGE_BANDS: tuple[int, ...] = tuple(LIMITS["ageBands"])
 SUBJECTS = ("maths", "phonics", "spelling")
 REWARD_CATEGORIES = ("NORMAL", "METEOR")
-INTERACTION_TYPES = ("MULTIPLE_CHOICE", "PICTURE_SELECT", "NUMBER_SELECT", "TYPED", "ARRANGE", "OBJECT_MOVE")
 AUTHORING_MODES = ("FIXED", "TEMPLATE")
 AUDIO_REQUIREMENTS = ("NONE", "OPTIONAL", "REQUIRED")
-OPTION_STYLES = ("TEXT", "GRAPHEME", "WORD", "NUMERAL")
 SOURCES = ("HANDWRITTEN", "TEMPLATE", "IMPORT", "AI_ASSISTED")
 IDENTITY_FIELDS = ("subject", "topicId", "rewardCategory", "authoringMode", "interactionType")  # spine S5.2
 DEFINITION_MAX_BYTES = 8192  # C22.1: a published definition is capped at 8 KB of JSON
 CURRICULUM_CODE = re.compile(r"[A-Za-z0-9.-]{1,40}")
-OPTION_IDS = ("a", "b", "c", "d", "e", "f")
 
 # D §D8.4 / C22.3: the seven publish checklist lines, all required (rule checklist_incomplete). Names [ASSUMPTION].
 CHECKLIST = (
@@ -308,7 +320,7 @@ def locked_problems(header: Mapping[str, Any], definition: Mapping[str, Any]) ->
     ]
 
 
-# --- Definition checks (validate and publish, C22.2 subset) ----------------------------------------------------------
+# --- Definition checks (validate and publish, C22.2) ----------------------------------------------------------------
 
 DEFINITION_FIELDS = frozenset(
     {
@@ -321,11 +333,14 @@ DEFINITION_FIELDS = frozenset(
         "visualAssetReferences",
         "activityPayload",
         "answerSpecification",
+        "additionalSteps",
         "speechDefinitionReferences",
         "source",
+        "reviewNote",
     }
 )
-NOT_YET = frozenset({"additionalSteps", "introductionContent", "template"})  # their phases add them
+# Demonstrations (C22.6) and templates (C25, Phase 41) have no player or generator yet.
+NOT_YET = frozenset({"introductionContent", "template"})
 REQUIRED_DEFINITION_FIELDS = (
     "schemaVersion",
     *CREATE_FIELDS,
@@ -336,43 +351,112 @@ REQUIRED_DEFINITION_FIELDS = (
     "answerSpecification",
     "speechDefinitionReferences",
 )
+STEP_FIELDS = frozenset({"interactionType", "prompt", "activityPayload", "answerSpecification"})
+MAX_ADDITIONAL_STEPS = 1  # C20.3: one primary step and at most one more in version one
+REVIEW_NOTE_MAX = 200  # [ASSUMPTION], as a withdrawal reason
 
 
 def _text(value: Any, low: int, high: int) -> bool:
     return isinstance(value, str) and low <= len(value) <= high and value == value.strip() and not _has_control(value)
 
 
-def _options_problems(payload: Any) -> tuple[list[Problem], list[str]]:
-    if not isinstance(payload, Mapping):
-        return [problem("activityPayload", "type")], []
-    allowed = {"optionStyle", "options"}
-    problems = [problem(f"activityPayload.{k}", "additionalProperties") for k in payload if k not in allowed]
-    if payload.get("optionStyle") not in OPTION_STYLES:
-        problems.append(problem("activityPayload.optionStyle", "enum"))
-    options = payload.get("options")
-    if not isinstance(options, list):
-        return [*problems, problem("activityPayload.options", "type")], []
-    if not 4 <= len(options) <= 6:
-        problems.append(problem("activityPayload.options", "count"))  # at least four (C20.2)
-    ids: list[str] = []
-    seen_texts: set[str] = set()
-    for index, option in enumerate(options):
-        field = f"activityPayload.options.{index}"
-        if not isinstance(option, Mapping) or set(option) != {"id", "text"}:
-            problems.append(problem(field, "shape"))
+def _prompt_problems(prompt: Any, name: str) -> list[Problem]:
+    if not (isinstance(prompt, Mapping) and set(prompt) == {"text"} and _text(prompt["text"], 3, 120)):
+        return [problem(f"{name}.text", "length")]
+    if "<" in prompt["text"] or ">" in prompt["text"]:
+        return [problem(f"{name}.text", "markup")]
+    return []
+
+
+def _additional_step(value: Any) -> tuple[list[Problem], Step | None, list[str] | None]:
+    """additionalSteps (C20.3): (problems, the checked step or None, its accepted answers or None)."""
+    if not isinstance(value, list):
+        return [problem("additionalSteps", "type")], None, None
+    if len(value) > MAX_ADDITIONAL_STEPS:
+        return [problem("additionalSteps", "count")], None, None
+    if not value:
+        return [], None, None
+    raw, name = value[0], "additionalSteps.0"
+    if not isinstance(raw, Mapping):
+        return [problem(name, "type")], None, None
+    problems = [problem(f"{name}.{k}", "additionalProperties") for k in raw if k not in STEP_FIELDS]
+    problems += [
+        problem(f"{name}.{k}", "required")
+        for k in ("interactionType", "activityPayload", "answerSpecification")
+        if k not in raw
+    ]
+    if problems:
+        return problems, None, None
+    if raw["interactionType"] not in INTERACTION_TYPES:
+        return [problem(f"{name}.interactionType", "enum")], None, None
+    if "prompt" in raw:
+        problems += _prompt_problems(raw["prompt"], f"{name}.prompt")
+    step = check_payload(raw["interactionType"], raw["activityPayload"], f"{name}.activityPayload")
+    problems += step.problems
+    spec_problems, accepted = accepted_list(raw["answerSpecification"], f"{name}.answerSpecification", step)
+    problems += spec_problems
+    if accepted is not None:
+        answer_problems = check_answers(step, accepted, f"{name}.answerSpecification.accepted")
+        problems += answer_problems
+        if answer_problems:
+            accepted = None  # the joined answers are not compared with a list that is itself wrong
+    return problems, step, accepted
+
+
+def _joined_answers(joined: list[str], primary: Step, second: Step, second_accepted: list[str] | None) -> list[Problem]:
+    """A two-step activity's own `answerSpecification.accepted` is every pair of step answers, joined by `|` (C20.1,
+    C20.3): the primary step's answers (checked against the primary payload) times the additional step's."""
+    name = "answerSpecification.accepted"
+    problems: list[Problem] = []
+    firsts: list[str] = []
+    pairs: set[tuple[str, str]] = set()
+    for index, answer in enumerate(joined):
+        parts = answer.split(STEP_JOINER)
+        if len(parts) != 2 or not answer_shape_ok(answer):
+            problems.append(problem(f"{name}.{index}", "answer_shape"))  # "<primary>|<second>", <= 64 characters
             continue
-        option_id, text = option["id"], option["text"]
-        if option_id not in OPTION_IDS or option_id in ids:
-            problems.append(problem(f"{field}.id", "unique_a_to_f"))
-        else:
-            ids.append(option_id)
-        if not _text(text, 1, 24):
-            problems.append(problem(f"{field}.text", "length"))
-        elif text.casefold() in seen_texts:
-            problems.append(problem(f"{field}.text", "duplicate"))
-        else:
-            seen_texts.add(text.casefold())
-    return problems, ids
+        first, rest = parts
+        if first not in firsts:
+            firsts.append(first)
+        pairs.add((first, rest))
+        if second_accepted is not None and rest not in second_accepted:
+            problems.append(problem(f"{name}.{index}", "not_in_step"))
+    if problems:
+        return problems
+    problems += check_answers(primary, firsts, name)
+    if second_accepted is not None and not problems:
+        expected = {(a, b) for a in firsts for b in second_accepted}
+        if pairs != expected or len(joined) != len(expected):
+            problems.append(problem(name, "steps_product"))  # every combination of right step answers, once
+    return problems
+
+
+def _asset_problems(definition: Mapping[str, Any], steps: list[Step]) -> list[Problem]:
+    """C22.2 rule 4: every picture is in the asset manifest, flagged text-free, and listed in visualAssetReferences;
+    nothing is listed that is not used."""
+    manifest = asset_manifest()
+    problems: list[Problem] = []
+    used: dict[str, str] = {}
+    for step in steps:
+        for name, asset_id in step.assets:
+            entry = manifest.get(asset_id)
+            if entry is None:
+                problems.append(problem(name, "unknown_asset"))
+            elif entry.get("textFree") is not True:
+                problems.append(problem(name, "not_text_free"))
+            used.setdefault(asset_id, name)
+    listed = definition.get("visualAssetReferences", [])
+    if not (isinstance(listed, list) and all(isinstance(a, str) for a in listed)):
+        return [*problems, problem("visualAssetReferences", "type")]
+    if len(set(listed)) != len(listed):
+        problems.append(problem("visualAssetReferences", "duplicate"))
+    for asset_id, name in used.items():
+        if asset_id not in listed:
+            problems.append(problem(name, "asset_not_listed"))
+    for index, asset_id in enumerate(listed):
+        if asset_id not in used:
+            problems.append(problem(f"visualAssetReferences.{index}", "asset_unused"))
+    return problems
 
 
 def definition_problems(definition: Any, activity_id: str) -> list[Problem]:
@@ -398,8 +482,6 @@ def definition_problems(definition: Any, activity_id: str) -> list[Problem]:
     problems.extend(_identity_problems(definition, ""))
     if definition["activityId"] != activity_id:
         problems.append(problem("activityId", "matches_path"))
-    if definition["interactionType"] in INTERACTION_TYPES and definition["interactionType"] != "MULTIPLE_CHOICE":
-        problems.append(problem("interactionType", "not_supported_yet"))  # other panels arrive in M3 (Phase 37-38)
     if definition["authoringMode"] == "TEMPLATE":
         problems.append(problem("authoringMode", "not_supported_yet"))  # generators arrive in Phase 41
     if definition["audioRequirement"] not in AUDIO_REQUIREMENTS:
@@ -411,45 +493,100 @@ def definition_problems(definition: Any, activity_id: str) -> list[Problem]:
         problems.append(problem("curriculumNote", "length"))
     if "source" in definition and definition["source"] not in SOURCES:
         problems.append(problem("source", "enum"))
-    if "visualAssetReferences" in definition and definition["visualAssetReferences"] != []:
-        problems.append(problem("visualAssetReferences", "not_supported_yet"))  # asset manifest check: Phase 36
-    prompt = definition["prompt"]
-    if not (isinstance(prompt, Mapping) and set(prompt) == {"text"} and _text(prompt["text"], 3, 120)):
-        problems.append(problem("prompt.text", "length"))
-    elif "<" in prompt["text"] or ">" in prompt["text"]:
-        problems.append(problem("prompt.text", "markup"))
+    if "reviewNote" in definition and not _text(definition["reviewNote"], 1, REVIEW_NOTE_MAX):
+        problems.append(problem("reviewNote", "length"))
+    problems.extend(_prompt_problems(definition["prompt"], "prompt"))
 
-    option_problems, option_ids = _options_problems(definition["activityPayload"])
-    problems.extend(option_problems)
-    answer = definition["answerSpecification"]
-    accepted = answer.get("accepted") if isinstance(answer, Mapping) and set(answer) == {"accepted"} else None
-    if not (isinstance(accepted, list) and len(accepted) == 1 and isinstance(accepted[0], str)):
-        problems.append(problem("answerSpecification.accepted", "exactly_one"))
-    elif accepted[0] not in option_ids:
-        problems.append(problem("answerSpecification.accepted", "not_an_option"))
+    # The primary step, and the additional one (C20.3).
+    two_step = isinstance(definition.get("additionalSteps"), list) and bool(definition["additionalSteps"])
+    payload, part_problems = _part_prompt(definition["activityPayload"], two_step)
+    problems.extend(part_problems)
+    primary = check_payload(definition["interactionType"], payload, "activityPayload")
+    problems.extend(primary.problems)
+    second_problems, second, second_accepted = (
+        _additional_step(definition["additionalSteps"]) if "additionalSteps" in definition else ([], None, None)
+    )
+    problems.extend(second_problems)
+    spec_problems, accepted = accepted_list(definition["answerSpecification"], "answerSpecification", primary)
+    problems.extend(spec_problems)
+    if accepted is not None:
+        if not two_step:
+            problems.extend(check_answers(primary, accepted, "answerSpecification.accepted"))
+        elif second is not None and not second_problems:
+            problems.extend(_joined_answers(accepted, primary, second, second_accepted))
+    steps = [primary] if second is None else [primary, second]
+    firsts = {a.split(STEP_JOINER)[0] for a in accepted or []}
+    counts = ((primary, len(firsts)), (second, len(set(second_accepted or []))))
+    many = [s for s, n in counts if s is not None and n > 1]
+    if any(s.note_when_many for s in many) and "reviewNote" not in definition:
+        problems.append(problem("reviewNote", "review_note_required"))  # more than one accepted entry (C20.1)
+    problems.extend(_asset_problems(definition, steps))
+    problems.extend(_typed_word_age_problems(definition))
 
     speech = definition["speechDefinitionReferences"]
     if not isinstance(speech, Mapping):
         problems.append(problem("speechDefinitionReferences", "type"))
         return problems
+    option_ids = {o for s in steps for o in s.option_ids}
+    bin_ids = {b for s in steps for b in s.bin_ids}
     for variant, ref in speech.items():
         field = f"speechDefinitionReferences.{variant}"
         if not (isinstance(variant, str) and VARIANT.fullmatch(variant)):
             problems.append(problem(field, "variant"))
         elif variant.startswith("option-") and variant.removeprefix("option-") not in option_ids:
             problems.append(problem(field, "not_an_option"))
-        elif variant.startswith(("bin-", "intro-")):
-            problems.append(problem(field, "not_supported_yet"))
+        elif variant.startswith("bin-") and variant.removeprefix("bin-") not in bin_ids:
+            problems.append(problem(field, "not_a_bin"))
+        elif variant.startswith("intro-"):
+            problems.append(problem(field, "not_supported_yet"))  # demonstrations (C22.6)
         if not (isinstance(ref, Mapping) and set(ref) == {"speechId"} and isinstance(ref["speechId"], str)):
             problems.append(problem(field, "shape"))
         elif not KEY_ID.fullmatch(ref["speechId"]):
             problems.append(problem(f"{field}.speechId", "pattern"))
+    for index, step in enumerate(steps):
+        if step.needs_cue and not step.has_cue and "prompt" not in speech:
+            prefix = "activityPayload" if index == 0 else "additionalSteps.0.activityPayload"
+            problems.append(problem(f"{prefix}.cue", "cue_required"))  # a picture, rule text or a prompt clip
     clip_variants = [v for v in speech if isinstance(v, str) and (v == "prompt" or v.startswith(("option-", "bin-")))]
     if definition["audioRequirement"] == "REQUIRED" and not clip_variants:
         problems.append(problem("speechDefinitionReferences", "audio_required"))  # C22.2 rule 5
     if definition["subject"] == "phonics" and not speech:
         problems.append(problem("speechDefinitionReferences", "phonics_needs_clip"))  # C22.2 rule 6, D9.5 Q6
     return problems
+
+
+def _typed_word_age_problems(definition: Mapping[str, Any]) -> list[Problem]:
+    """Decision D-7 (B, C20): no typed word answers at age 5; letter tiles (ARRANGE LETTERS) instead. A TYPED
+    WORD step, primary or second, is refused when the activity is for age 5."""
+    if as_int(definition.get("minAge")) != 5:
+        return []
+    parts = [("activityPayload", definition.get("interactionType"), definition.get("activityPayload"))]
+    extra = definition.get("additionalSteps")
+    if isinstance(extra, list) and extra and isinstance(extra[0], Mapping):
+        second = extra[0]
+        kind, payload = second.get("interactionType"), second.get("activityPayload")
+        parts.append(("additionalSteps.0.activityPayload", kind, payload))
+    return [
+        problem(f"{prefix}.mode", "typed_word_age5")
+        for prefix, kind, payload in parts
+        if kind == "TYPED" and isinstance(payload, Mapping) and payload.get("mode") == "WORD"
+    ]
+
+
+def _part_prompt(payload: Any, two_step: bool) -> tuple[Any, list[Problem]]:
+    """A two-step activity's primary payload may carry `partPrompt`, the first part's own question (the C22 worked
+    example `ma-0307`; the player panel shows it as that part's heading). It is checked as a prompt (3-120 characters,
+    plain text) and taken out before the per-type payload check. On a one-step activity it stays in, so the payload
+    check refuses it as an unknown field (Phase 39)."""
+    if not (two_step and isinstance(payload, Mapping) and "partPrompt" in payload):
+        return payload, []
+    text = payload["partPrompt"]
+    rest = {key: value for key, value in payload.items() if key != "partPrompt"}
+    if not _text(text, 3, 120):
+        return rest, [problem("activityPayload.partPrompt", "length")]
+    if "<" in text or ">" in text:
+        return rest, [problem("activityPayload.partPrompt", "markup")]
+    return rest, []
 
 
 def _curriculum(value: Any) -> bool:

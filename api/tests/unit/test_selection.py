@@ -18,6 +18,7 @@ from shared.selection.plan import (
     pack_id,
     plan_slots,
     slot_specs,
+    spells_answer,
 )
 
 CAMPAIGN_REWARDS = [30] * 9 + [40] * 10 + [50] * 10 + [60] * 10 + [75] * 10  # C9.2, intervals 1-49
@@ -206,3 +207,62 @@ def test_a_missing_or_withdrawn_chosen_version_is_bank_not_ready() -> None:
     withdrawn = {("ph-0001", "20261120T120000Z"): {**mc_version(), "withdrawn": {"at": "x", "reason": "y"}}}
     with pytest.raises(BankNotReady):
         plan_slots(specs, chosen, withdrawn, "s")
+
+
+@pytest.mark.parametrize(("interaction_type", "ordered"), [("PICTURE_SELECT", True), ("NUMBER_SELECT", False)])
+def test_picture_cards_are_shuffled_numbers_are_not(interaction_type: str, ordered: bool) -> None:
+    """Phase 37: picture cards get a fixed shuffled order like multiple choice; a number track keeps counting order."""
+    specs = slot_specs(2, [], [30])
+    version = {
+        "interactionType": interaction_type,
+        "activityPayload": {
+            "options": [{"id": o, "assetId": f"pic-{o}", "alt": o} for o in "abcd"],
+            "numberSet": {"kind": "RANGE", "min": 0, "max": 10, "step": 1},
+        },
+    }
+    plans = plan_slots(specs, [unit("ma-0001", "maths", "t")], {("ma-0001", "20261120T120000Z"): version}, "seed")
+    if ordered:
+        assert sorted(plans[0].presentation["optionOrder"]) == list("abcd")
+    else:
+        assert plans[0].presentation == {}
+
+
+
+def _arrange(mode: str, values: list[str], accepted: list[str], slots: int) -> dict:
+    return {
+        "interactionType": "ARRANGE",
+        "activityPayload": {"mode": mode, "tiles": [{"id": f"t{i}", "value": v} for i, v in enumerate(values)],
+                            "slots": slots},
+        "answerSpecification": {"accepted": accepted},
+    }  # fmt: skip
+
+
+def test_arrange_tiles_get_a_seeded_order_that_never_spells_the_answer() -> None:
+    """C24.4 step 7: ARRANGE tiles are shuffled with the seed and stored on the slot; a shuffle that spells an
+    accepted answer (any run of neighbouring tiles for LETTERS, the whole row for SEQUENCE) is re-drawn."""
+    specs = slot_specs(2, [], [30])
+    chosen = [unit("sp-0001", "spelling", "t")]
+    letters = _arrange("LETTERS", ["o", "c", "a", "t"], ["cat"], 3)
+    seen = set()
+    for n in range(60):
+        plans = plan_slots(specs, chosen, {("sp-0001", "20261120T120000Z"): letters}, f"seed-{n}")
+        order = plans[0].presentation["tileOrder"]
+        assert sorted(order) == ["t0", "t1", "t2", "t3"]
+        shown = "".join({"t0": "o", "t1": "c", "t2": "a", "t3": "t"}[i] for i in order)
+        assert "cat" not in shown
+        assert plan_slots(specs, chosen, {("sp-0001", "20261120T120000Z"): letters}, f"seed-{n}") == plans
+        seen.add(tuple(order))
+    assert len(seen) > 1  # the layout changes between runs
+
+    two = _arrange("SEQUENCE", ["2", "1"], ["1,2"], 2)
+    for n in range(20):
+        plans = plan_slots(specs, chosen, {("sp-0001", "20261120T120000Z"): two}, f"seed-{n}")
+        assert plans[0].presentation["tileOrder"] == ["t0", "t1"]  # the only order that does not give the answer
+
+
+def test_spells_answer_finds_a_run_anywhere_in_the_row() -> None:
+    assert spells_answer(["o", "c", "a", "t"], "LETTERS", ["cat"])
+    assert spells_answer(["r", "ai", "n", "a"], "LETTERS", ["rain"])
+    assert not spells_answer(["t", "a", "c", "o"], "LETTERS", ["cat"])
+    assert spells_answer(["1", "2"], "SEQUENCE", ["1,2"])
+    assert not spells_answer(["2", "1"], "SEQUENCE", ["1,2"])

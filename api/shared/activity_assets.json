@@ -1,0 +1,294 @@
+{
+  "$comment": "The activity pictures admin-api accepts in an activity (C22.2 rule 4, C20.1 PICTURE_SELECT; Phase 36). Generated from the 'activity' family of docs/art/asset-catalogue.json (entries with an appPath); api/tests/unit/test_activity_types.py fails when the two differ. textFree is true for every entry because art/STYLE.md forbids text, numbers and letter-like marks in all art. Alt text is written per use in the activity (option alt, stimulus alt), because one picture can need different neutral words in different questions.",
+  "version": 1,
+  "assets": [
+    {
+      "id": "bin-plain",
+      "textFree": true
+    },
+    {
+      "id": "dice-1",
+      "textFree": true
+    },
+    {
+      "id": "dice-2",
+      "textFree": true
+    },
+    {
+      "id": "dice-3",
+      "textFree": true
+    },
+    {
+      "id": "dice-4",
+      "textFree": true
+    },
+    {
+      "id": "dice-5",
+      "textFree": true
+    },
+    {
+      "id": "dice-6",
+      "textFree": true
+    },
+    {
+      "id": "group-frame",
+      "textFree": true
+    },
+    {
+      "id": "obj-alien",
+      "textFree": true
+    },
+    {
+      "id": "obj-alien-egg",
+      "textFree": true
+    },
+    {
+      "id": "obj-comet",
+      "textFree": true
+    },
+    {
+      "id": "obj-moon-rock",
+      "textFree": true
+    },
+    {
+      "id": "obj-planet",
+      "textFree": true
+    },
+    {
+      "id": "obj-rocket",
+      "textFree": true
+    },
+    {
+      "id": "obj-star",
+      "textFree": true
+    },
+    {
+      "id": "pic-bed",
+      "textFree": true
+    },
+    {
+      "id": "pic-bell",
+      "textFree": true
+    },
+    {
+      "id": "pic-bird",
+      "textFree": true
+    },
+    {
+      "id": "pic-boat",
+      "textFree": true
+    },
+    {
+      "id": "pic-box",
+      "textFree": true
+    },
+    {
+      "id": "pic-bus",
+      "textFree": true
+    },
+    {
+      "id": "pic-cat",
+      "textFree": true
+    },
+    {
+      "id": "pic-chip",
+      "textFree": true
+    },
+    {
+      "id": "pic-cup",
+      "textFree": true
+    },
+    {
+      "id": "pic-dog",
+      "textFree": true
+    },
+    {
+      "id": "pic-duck",
+      "textFree": true
+    },
+    {
+      "id": "pic-fish",
+      "textFree": true
+    },
+    {
+      "id": "pic-flag",
+      "textFree": true
+    },
+    {
+      "id": "pic-football",
+      "textFree": true
+    },
+    {
+      "id": "pic-fox",
+      "textFree": true
+    },
+    {
+      "id": "pic-foxes",
+      "textFree": true
+    },
+    {
+      "id": "pic-frog",
+      "textFree": true
+    },
+    {
+      "id": "pic-hat",
+      "textFree": true
+    },
+    {
+      "id": "pic-jam",
+      "textFree": true
+    },
+    {
+      "id": "pic-kite",
+      "textFree": true
+    },
+    {
+      "id": "pic-knight",
+      "textFree": true
+    },
+    {
+      "id": "pic-knot",
+      "textFree": true
+    },
+    {
+      "id": "pic-log",
+      "textFree": true
+    },
+    {
+      "id": "pic-map",
+      "textFree": true
+    },
+    {
+      "id": "pic-moon",
+      "textFree": true
+    },
+    {
+      "id": "pic-mug",
+      "textFree": true
+    },
+    {
+      "id": "pic-net",
+      "textFree": true
+    },
+    {
+      "id": "pic-night-sky",
+      "textFree": true
+    },
+    {
+      "id": "pic-pan",
+      "textFree": true
+    },
+    {
+      "id": "pic-peg",
+      "textFree": true
+    },
+    {
+      "id": "pic-pen",
+      "textFree": true
+    },
+    {
+      "id": "pic-pig",
+      "textFree": true
+    },
+    {
+      "id": "pic-pin",
+      "textFree": true
+    },
+    {
+      "id": "pic-rain",
+      "textFree": true
+    },
+    {
+      "id": "pic-ring",
+      "textFree": true
+    },
+    {
+      "id": "pic-ship",
+      "textFree": true
+    },
+    {
+      "id": "pic-shop",
+      "textFree": true
+    },
+    {
+      "id": "pic-sock",
+      "textFree": true
+    },
+    {
+      "id": "pic-sun",
+      "textFree": true
+    },
+    {
+      "id": "pic-van",
+      "textFree": true
+    },
+    {
+      "id": "pic-web",
+      "textFree": true
+    },
+    {
+      "id": "pic-zip",
+      "textFree": true
+    },
+    {
+      "id": "shape-circle",
+      "textFree": true
+    },
+    {
+      "id": "shape-cone",
+      "textFree": true
+    },
+    {
+      "id": "shape-cube",
+      "textFree": true
+    },
+    {
+      "id": "shape-cuboid",
+      "textFree": true
+    },
+    {
+      "id": "shape-cylinder",
+      "textFree": true
+    },
+    {
+      "id": "shape-hexagon",
+      "textFree": true
+    },
+    {
+      "id": "shape-pentagon",
+      "textFree": true
+    },
+    {
+      "id": "shape-pyramid",
+      "textFree": true
+    },
+    {
+      "id": "shape-rectangle",
+      "textFree": true
+    },
+    {
+      "id": "shape-sphere",
+      "textFree": true
+    },
+    {
+      "id": "shape-square",
+      "textFree": true
+    },
+    {
+      "id": "shape-triangle",
+      "textFree": true
+    },
+    {
+      "id": "ten-frame",
+      "textFree": true
+    },
+    {
+      "id": "tray",
+      "textFree": true
+    },
+    {
+      "id": "zone-plain",
+      "textFree": true
+    }
+  ]
+}

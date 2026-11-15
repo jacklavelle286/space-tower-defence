@@ -380,7 +380,8 @@ def test_create_is_idempotent_and_lists(api: Admin) -> None:
 def test_unknown_ids_are_not_found(api: Admin) -> None:
     assert api.call("GET /api/admin/speech-definitions/{id}", id="nothing-here")[0] == 404
     assert api.call("GET /api/admin/activities/{id}", id="SPEECH#x")[0] == 404
-    assert api.call("POST /api/admin/activities/{id}/retire", {}, id="ph-0102")[0] == 501  # Phases 35-40
+    assert api.call("POST /api/admin/activities/{id}/retire", {}, id="ph-0102")[0] == 404
+    assert api.call("GET /api/admin/bank-status")[0] == 501  # Phase 42 (M3-07)
 
 
 # --- Activities: draft, validate, publish --------------------------------------------------------------------------
@@ -481,15 +482,15 @@ def test_definition_checks(api: Admin) -> None:
         "topicId": "maths-count-objects-to10",
         "activityPayload": {"optionStyle": "GRAPHEME", "options": [{"id": "a", "text": "s"}, {"id": "a", "text": "S"}]},
         "answerSpecification": {"accepted": ["z"]},
-        "additionalSteps": [],
+        "introductionContent": {},
     }
     api.activity()
     status, _ = api.call("PUT /api/admin/activities/{id}/draft", {"draftRevision": 1, "definition": bad}, id="ph-0102")
     assert status == 200  # drafts save freely
     status, body = api.call("POST /api/admin/activities/{id}/validate", {"draftRevision": 2}, id="ph-0102")
     assert status == 200 and body["valid"] is False
-    assert {(p["field"], p["rule"]) for p in body["problems"]} == {("additionalSteps", "not_supported_yet")}
-    del bad["additionalSteps"]
+    assert {(p["field"], p["rule"]) for p in body["problems"]} == {("introductionContent", "not_supported_yet")}
+    del bad["introductionContent"]
     api.call("PUT /api/admin/activities/{id}/draft", {"draftRevision": 2, "definition": bad}, id="ph-0102")
     status, body = api.call("POST /api/admin/activities/{id}/validate", {"draftRevision": 3}, id="ph-0102")
     assert {(p["field"], p["rule"]) for p in body["problems"]} == {
@@ -498,7 +499,7 @@ def test_definition_checks(api: Admin) -> None:
         ("activityPayload.options", "count"),
         ("activityPayload.options.1.id", "unique_a_to_f"),
         ("activityPayload.options.1.text", "duplicate"),
-        ("answerSpecification.accepted", "not_an_option"),
+        ("answerSpecification.accepted.0", "not_an_option"),
     }
 
 
