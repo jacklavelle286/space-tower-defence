@@ -13,6 +13,11 @@ name: release
 # (lambda_artifacts, scripts/lambda_artifacts.py) and plans with it. The manifest is the only source of those keys, and
 # Terraform is the only thing that points a function at new code.
 #
+# Game data (Phase 13, H.8.5 b and e): the build job checks game-data/ and writes it, with the generated bounds file,
+# into the player's dist/ under game-data/ (web/game-core/scripts/build-bounds.ts, no AWS). It travels inside the player
+# archive; the manifest lists it in its own groups, and apply.yml's publish uploads each versioned file create-only
+# (If-None-Match: *) and current.json last among them, the only game-data file ever overwritten.
+#
 # Rollback (H.12): dispatch with artefacts_from=<release_id>. The build is skipped; upload writes this release's
 # manifest from the archived one (same static archives and Lambda zips, each checked by SHA-256 in S3), the plan uses
 # current main Terraform with that release's Lambda keys, and apply.yml then publishes that archived build with a
@@ -159,8 +164,9 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
   # 1. checks: the gates that exist now (H.10): G-1 lint and type-check, G-2 unit tests, G-4 Terraform fmt and
-  # validate, G-5 repository invariants, G-13 DynamoDB Local integration tests, plus the script tests (G-6/G-7/G-12
-  # tooling) and the simulator self-test. No AWS: DynamoDB Local runs as a service container on this runner.
+  # validate, G-5 repository invariants, G-13 DynamoDB Local integration tests, G-15 game-data build check, plus the
+  # script tests (G-6/G-7/G-12 tooling) and the simulator self-test. No AWS: DynamoDB Local runs as a service container
+  # on this runner.
   checks:
     needs: config
     runs-on: ubuntu-24.04
@@ -202,6 +208,10 @@ jobs:
       - name: G-2 unit tests
         working-directory: web
         run: npm test
+
+      - name: G-15 game data (every file parses, wave sets within 100 create-run actions, bounds fixture current)
+        working-directory: web
+        run: node game-core/scripts/build-bounds.ts --check
 
       - name: Setup Terraform ${{ needs.config.outputs.tf_version }}
         uses: hashicorp/setup-terraform@v4
@@ -317,6 +327,12 @@ jobs:
         run: |
           npm ci --ignore-scripts
           npm run build
+
+      - name: Game data into the player build (checked; bounds generated, never hand-edited)
+        working-directory: web
+        run: |
+          # /game-data/<kind>/<version>.json and current.json (H.8.5). Fails, writing nothing, on any game-data problem.
+          node game-core/scripts/build-bounds.ts --out player/dist/game-data
 
       - name: G-6 built-asset scan
         run: python scripts/scan_dist.py web/player/dist web/admin/dist
@@ -489,9 +505,9 @@ jobs:
           {
             echo "### Build"
             echo ""
-            echo "| App | Archive | Files (entry / hashed / unhashed) |"
+            echo "| App | Archive | Files (entry / hashed / unhashed / game data) |"
             echo "|---|---|---|"
-            jq -r '.static | to_entries[] | "| \(.key) | `\(.value.archiveKey)` | \(.value.files.entry | length) / \(.value.files.hashed | length) / \(.value.files.unhashed | length) |"' "$OUT/manifest.json"
+            jq -r '.static | to_entries[] | "| \(.key) | `\(.value.archiveKey)` | \(.value.files.entry | length) / \(.value.files.hashed | length) / \(.value.files.unhashed | length) / \((.value.files.gameData // []) + (.value.files.gameDataCurrent // []) | length) |"' "$OUT/manifest.json"
             echo ""
             echo "| Function | Zip (lambda_artifacts) |"
             echo "|---|---|"

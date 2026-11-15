@@ -1,0 +1,106 @@
+{
+  "kind": "bounds",
+  "rulesetVersion": "r1",
+  "campaignVersion": "luna-1-c1",
+  "mechanics": 1,
+  "colony": {
+    "maxHealth": 20,
+    "shieldCap": 10
+  },
+  "powerInventoryCap": 2,
+  "sell": {
+    "refundPct": 70,
+    "roundDownTo": 5
+  },
+  "classes": {
+    "nova": {
+      "unlockAfterWave": 0,
+      "deployCap": null,
+      "targeting": [
+        "FRONT",
+        "FAST"
+      ],
+      "levelCosts": [
+        50,
+        60,
+        150
+      ],
+      "cumulativeCosts": [
+        50,
+        110,
+        260
+      ]
+    }
+  },
+  "pads": {
+    "p01": {
+      "opensAfterWave": 20
+    },
+    "p02": {
+      "opensAfterWave": 0
+    },
+    "p03": {
+      "opensAfterWave": 5
+    },
+    "p04": {
+      "opensAfterWave": 0
+    },
+    "p05": {
+      "opensAfterWave": 0
+    },
+    "p06": {
+      "opensAfterWave": 15
+    },
+    "p07": {
+      "opensAfterWave": 15
+    },
+    "p08": {
+      "opensAfterWave": 10
+    },
+    "p09": {
+      "opensAfterWave": 0
+    },
+    "p10": {
+      "opensAfterWave": 25
+    },
+    "p11": {
+      "opensAfterWave": 10
+    },
+    "p12": {
+      "opensAfterWave": 0
+    },
+    "p13": {
+      "opensAfterWave": 5
+    },
+    "p14": {
+      "opensAfterWave": 25
+    },
+    "p15": {
+      "opensAfterWave": 20
+    },
+    "p16": {
+      "opensAfterWave": 0
+    }
+  },
+  "waveSets": {
+    "first-contact": {
+      "mode": "CHALLENGE",
+      "finalWave": 2,
+      "meteorAfter": [],
+      "startCredits": 150,
+      "colonyHealth": 20,
+      "classes": [
+        "nova"
+      ],
+      "padsOpenAsForWave": 1,
+      "createRunActions": 4,
+      "maxBounty": [
+        24,
+        32
+      ],
+      "normalRewardByInterval": [
+        30
+      ]
+    }
+  }
+}

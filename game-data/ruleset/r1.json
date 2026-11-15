@@ -1,0 +1,68 @@
+{
+  "$comment": "Ruleset r1, mechanics 1 (M1-23, spine S5.1, C15): the Milestone 1 slice - Nova and the Moon Blob - plus the general numbers every later ruleset keeps. Seeded from tools/sim/game_data.json; a Vitest test (web/game-core/src/data/sim-agreement.test.ts) checks every number here against it. Published create-only to /game-data/ruleset/r1.json: never edit a published version, add r2.",
+  "kind": "ruleset",
+  "version": "r1",
+  "mechanics": 1,
+  "simulation": {
+    "tickRateHz": 60
+  },
+  "colony": {
+    "maxHealth": 20,
+    "shieldCap": 10,
+    "shieldAbsoluteCap": 20,
+    "repairOnBossClear": 3,
+    "miraRepairCapPerWave": 1
+  },
+  "classes": {
+    "nova": {
+      "name": "Nova",
+      "role": "Laser Scout",
+      "unlockAfterWave": 0,
+      "deployCap": null,
+      "attack": "single",
+      "targeting": ["FRONT", "FAST"],
+      "defaultTargeting": "FRONT",
+      "levels": [
+        { "level": 1, "cost": 50, "range": 2.5, "period": 1.0, "damage": 10 },
+        { "level": 2, "cost": 60, "range": 2.5, "period": 0.6, "damage": 10 },
+        { "level": 3, "cost": 150, "range": 3.0, "period": 0.6, "damage": 16 }
+      ]
+    }
+  },
+  "aliens": {
+    "blob": {
+      "name": "Moon Blob",
+      "hp": 24,
+      "speed": 1.0,
+      "leak": 1,
+      "bounty": 4
+    }
+  },
+  "economy": {
+    "startingCredits": 150,
+    "waveClearBonus": 0,
+    "learningRewardByBlock": [
+      { "afterWaveFrom": 1, "afterWaveTo": 9, "credits": 30 },
+      { "afterWaveFrom": 10, "afterWaveTo": 19, "credits": 40 },
+      { "afterWaveFrom": 20, "afterWaveTo": 29, "credits": 50 },
+      { "afterWaveFrom": 30, "afterWaveTo": 39, "credits": 60 },
+      { "afterWaveFrom": 40, "afterWaveTo": 49, "credits": 75 }
+    ],
+    "endlessLearningReward": 75
+  },
+  "sell": {
+    "refundPct": 70,
+    "roundDownTo": 5
+  },
+  "caps": {
+    "maxActiveAliens": 60,
+    "scheduledSpawnSoftCap": 48,
+    "maxLiveDescendants": 24,
+    "descendantReleaseGap": 0.25,
+    "deferredSpawnGap": 0.25,
+    "maxDescendantDepth": 2
+  },
+  "powerRules": {
+    "inventoryCapPerPower": 2
+  }
+}

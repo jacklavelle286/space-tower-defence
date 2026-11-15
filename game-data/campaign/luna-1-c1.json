@@ -1,0 +1,56 @@
+{
+  "$comment": "Planet document luna-1-c1 (M1-23, spine S3.1, F 3.7, C3, C13): the Moonbeam Colony map and the Milestone 1 wave set (J-1: CHALLENGE, two waves, slot N-001 only, no meteorAfter). `waves` holds the authored campaign waves that some wave set references (only 1 and 2 so far; the 50-wave campaign arrives in Phase 50). Seeded from tools/sim/game_data.json and checked against it by web/game-core/src/data/sim-agreement.test.ts. Published create-only to /game-data/campaign/luna-1-c1.json: never edit a published version, add a new one.",
+  "kind": "campaign",
+  "version": "luna-1-c1",
+  "planetId": "luna-1",
+  "name": "Moonbeam Colony",
+  "map": {
+    "grid": { "cols": 20, "rows": 11 },
+    "route": [[0, 2], [4, 2], [4, 8], [8, 8], [8, 3], [12, 3], [12, 8], [16, 8], [16, 3], [19, 3]],
+    "pads": [
+      { "id": "p01", "x": 2, "y": 0, "opensAfterWave": 20 },
+      { "id": "p02", "x": 2, "y": 4, "opensAfterWave": 0 },
+      { "id": "p03", "x": 6, "y": 3, "opensAfterWave": 5 },
+      { "id": "p04", "x": 6, "y": 5, "opensAfterWave": 0 },
+      { "id": "p05", "x": 6, "y": 7, "opensAfterWave": 0 },
+      { "id": "p06", "x": 6, "y": 10, "opensAfterWave": 15 },
+      { "id": "p07", "x": 10, "y": 1, "opensAfterWave": 15 },
+      { "id": "p08", "x": 10, "y": 4, "opensAfterWave": 10 },
+      { "id": "p09", "x": 10, "y": 6, "opensAfterWave": 0 },
+      { "id": "p10", "x": 10, "y": 8, "opensAfterWave": 25 },
+      { "id": "p11", "x": 14, "y": 3, "opensAfterWave": 10 },
+      { "id": "p12", "x": 14, "y": 5, "opensAfterWave": 0 },
+      { "id": "p13", "x": 14, "y": 7, "opensAfterWave": 5 },
+      { "id": "p14", "x": 14, "y": 10, "opensAfterWave": 25 },
+      { "id": "p15", "x": 18, "y": 1, "opensAfterWave": 20 },
+      { "id": "p16", "x": 18, "y": 5, "opensAfterWave": 0 }
+    ]
+  },
+  "waves": [
+    {
+      "wave": 1,
+      "groups": [{ "type": "blob", "count": 6, "at": 0.0, "gap": 2.5 }],
+      "hpMult": 1.0,
+      "speedMult": 1.0
+    },
+    {
+      "wave": 2,
+      "groups": [{ "type": "blob", "count": 8, "at": 0.0, "gap": 2.0 }],
+      "hpMult": 1.05,
+      "speedMult": 1.0
+    }
+  ],
+  "waveSets": {
+    "first-contact": {
+      "mode": "CHALLENGE",
+      "name": "First Contact",
+      "waves": [1, 2],
+      "meteorAfter": [],
+      "startCredits": 150,
+      "colonyHealth": 20,
+      "classes": ["nova"],
+      "padsOpenAsForWave": 1,
+      "presetPlacements": []
+    }
+  }
+}

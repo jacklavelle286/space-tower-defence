@@ -7,7 +7,10 @@
            entry     index.html                                   -> no-cache, uploaded last
            hashed    Vite's content-hashed output (assets/*-<hash>.<ext>)  -> immutable
            unhashed  files copied unchanged from the app's public/ dir     -> no-cache (ADR-0013, until Phase 64)
-         Any other file stops the build: an unclassified file cannot be given a safe cache header.
+           gameData         game-data/<kind>/<version>.json (Phase 13)   -> immutable, uploaded create-only first
+           gameDataCurrent  game-data/current.json                       -> no-cache, after the files it names
+         (the release writes the game-data tree into the player's dist/ with web/game-core/scripts/build-bounds.ts;
+         H.8.5 b and e). Any other file stops the build: an unclassified file cannot be given a safe cache header.
          For each of the four Lambda zips it records the content-addressed key lambda/<key>/<sha256>.zip and the
          SHA-256 (hex and base64), from the zip file itself (Phase 8; scripts/lambda_artifacts.py turns that section
          into release.tfvars.json).
@@ -39,6 +42,14 @@ SHA256_HEX = re.compile(r"^[0-9a-f]{64}$")
 # Vite's default asset name is assets/[name]-[hash].[ext]; Vite 8 (Rolldown) hashes are 8 URL-safe characters.
 VITE_HASHED = re.compile(r"^assets/.+-[A-Za-z0-9_-]{8}\.[A-Za-z0-9]+$")
 ENTRY_FILES = frozenset({"index.html"})
+# Game data on the player site (H.8.5): /game-data/<kind>/<version>.json, versions ^[a-z0-9.-]{1,40}$, and a bounds
+# file named by its pair <rulesetVersion>__<campaignVersion>; plus the one mutable pointer, current.json.
+GAME_DATA_PREFIX = "game-data/"
+GAME_DATA_CURRENT = "game-data/current.json"
+_VERSION = r"[a-z0-9.-]{1,40}"  # contracts/limits.json gameData.versionPattern; scripts/tests checks the copy
+GAME_DATA_VERSIONED = re.compile(
+    rf"^game-data/(?:(?:ruleset|campaign|asset-manifest)/{_VERSION}|bounds/{_VERSION}__{_VERSION})\.json\Z"
+)
 
 
 class ManifestError(Exception):
@@ -53,12 +64,19 @@ def classify_dist(dist: Path, public: Path | None) -> dict[str, list[str]]:
     if public is not None and public.is_dir():
         public_files = {p.relative_to(public).as_posix() for p in public.rglob("*") if p.is_file()}
 
-    groups: dict[str, list[str]] = {"entry": [], "hashed": [], "unhashed": []}
+    groups: dict[str, list[str]] = {"entry": [], "hashed": [], "unhashed": [], "gameData": [], "gameDataCurrent": []}
     unknown: list[str] = []
     for path in sorted(p for p in dist.rglob("*") if p.is_file()):
         rel = path.relative_to(dist).as_posix()
         if rel in ENTRY_FILES:
             groups["entry"].append(rel)
+        elif rel.startswith(GAME_DATA_PREFIX):
+            if rel == GAME_DATA_CURRENT:
+                groups["gameDataCurrent"].append(rel)
+            elif GAME_DATA_VERSIONED.match(rel):
+                groups["gameData"].append(rel)
+            else:
+                unknown.append(rel)
         elif rel in public_files:  # checked first: a public file is never treated as hashed, whatever its name
             groups["unhashed"].append(rel)
         elif VITE_HASHED.match(rel):
@@ -73,6 +91,8 @@ def classify_dist(dist: Path, public: Path | None) -> dict[str, list[str]]:
         )
     if not groups["entry"]:
         raise ManifestError(f"{dist}: no index.html")
+    if bool(groups["gameData"]) != bool(groups["gameDataCurrent"]):
+        raise ManifestError(f"{dist}: game data needs both versioned files and game-data/current.json, or neither")
     return groups
 
 

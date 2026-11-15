@@ -5,6 +5,7 @@ from __future__ import annotations
 import base64
 import hashlib
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -176,3 +177,50 @@ def test_reuse_refuses_a_manifest_for_another_release(tmp_path: Path) -> None:
     rc = release_manifest.main(["reuse", *common_args(tmp_path / "n.json"),
                                 "--artefacts-from", "20261102T0900Z-abcdef1", "--archived", str(old)])
     assert rc == 1
+
+
+def test_classify_game_data_into_its_own_groups(player: tuple[Path, Path]) -> None:
+    """Phase 13: build-bounds.ts writes game-data/ into the player's dist/; publish uploads it create-only (H.8.5)."""
+    dist, public = player
+    for rel in ("game-data/ruleset/r1.json", "game-data/campaign/luna-1-c1.json", "game-data/bounds/r1__luna-1-c1.json",
+                "game-data/current.json"):
+        touch(dist, rel)
+    groups = release_manifest.classify_dist(dist, public)
+    assert groups["gameData"] == ["game-data/bounds/r1__luna-1-c1.json", "game-data/campaign/luna-1-c1.json",
+                                  "game-data/ruleset/r1.json"]
+    assert groups["gameDataCurrent"] == ["game-data/current.json"]
+    assert not any(p.startswith("game-data/") for p in groups["hashed"] + groups["unhashed"])
+
+
+def test_build_without_game_data_has_empty_game_data_groups(player: tuple[Path, Path]) -> None:
+    dist, public = player
+    groups = release_manifest.classify_dist(dist, public)
+    assert groups["gameData"] == [] and groups["gameDataCurrent"] == []
+
+
+@pytest.mark.parametrize(
+    "rel",
+    ["game-data/ruleset/R1.json", "game-data/ruleset/r_1.json", "game-data/bounds/r1.json", "game-data/notes.txt",
+     "game-data/sounds/r1.json", "game-data/ruleset/r1.json.bak"],
+)
+def test_game_data_path_that_is_not_a_version_stops_the_build(player: tuple[Path, Path], rel: str) -> None:
+    dist, public = player
+    touch(dist, "game-data/current.json")
+    touch(dist, "game-data/ruleset/r1.json")
+    touch(dist, rel)
+    with pytest.raises(release_manifest.ManifestError, match=re.escape(rel)):
+        release_manifest.classify_dist(dist, public)
+
+
+def test_game_data_without_current_json_stops_the_build(player: tuple[Path, Path]) -> None:
+    dist, public = player
+    touch(dist, "game-data/ruleset/r1.json")
+    with pytest.raises(release_manifest.ManifestError, match="current.json"):
+        release_manifest.classify_dist(dist, public)
+
+
+def test_game_data_version_pattern_matches_the_limits_file() -> None:
+    # release_manifest.py is standard-library only and runs before anything is installed, so it keeps its own copy
+    # of the game-data version pattern; this keeps the copy equal to the one source.
+    limits = json.loads((SCRIPTS.parent / "contracts" / "limits.json").read_text(encoding="utf-8"))
+    assert f"^{release_manifest._VERSION}$" == limits["gameData"]["versionPattern"]

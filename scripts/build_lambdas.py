@@ -4,6 +4,8 @@
 Each zip holds, at its root:
   handler.py (and anything else in api/functions/<function>/)   the entry point, `handler.handler`
   shared/                                                       api/shared, the helpers every function imports
+  contracts/limits.json, contracts/schemas/*.schema.json        the shared contracts shared/rules reads (Phase 12);
+                                                                fixtures and routes.json stay out
   the runtime dependencies from api/requirements.txt            installed for Lambda's python3.14 on arm64
 
 Dependencies are installed once per build into a staging directory with
@@ -60,6 +62,7 @@ PIP_TARGET = [
 ]  # fmt: skip
 _SKIPPED_DIRS = frozenset({"__pycache__"})
 _SKIPPED_SUFFIXES = frozenset({".pyc", ".pyo"})
+CONTRACT_FILES = ("limits.json", "schemas/*.schema.json")  # globs under contracts/, the files the code reads
 _PIN = re.compile(r"^([A-Za-z0-9][A-Za-z0-9._-]*)(\[[^\]]*\])?==\S+")
 
 
@@ -140,9 +143,23 @@ def install_dependencies(requirements: Path, target: Path) -> None:
         )
 
 
+def contract_entries(contracts: Path) -> dict[str, Path]:
+    """The contract files shared/rules reads at import time, as contracts/<path> (it looks next to shared/ first)."""
+    if not (contracts / "limits.json").is_file():
+        raise BuildError(f"{contracts}: no limits.json")
+    files: dict[str, Path] = {}
+    for pattern in CONTRACT_FILES:
+        for path in sorted(contracts.glob(pattern)):
+            if path.is_file():
+                files["contracts/" + path.relative_to(contracts).as_posix()] = path
+    return files
+
+
 def zip_entries(api: Path, function: str, deps: Path | None) -> dict[str, Path]:
+    """Every file of one function's zip; the contracts are read from the folder next to `api` (the repository's)."""
     layers: Iterable[dict[str, Path]] = (
         collect(deps) if deps else {},
+        contract_entries(api.parent / "contracts"),
         collect(api / "shared", "shared/"),
         collect(api / "functions" / function),
     )

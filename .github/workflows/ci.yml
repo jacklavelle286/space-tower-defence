@@ -50,6 +50,11 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: G-15 game data, into the player build as the release does
+        run: |
+          node game-core/scripts/build-bounds.ts --check
+          node game-core/scripts/build-bounds.ts --out player/dist/game-data
+
       - name: G-6 built-asset scan
         working-directory: .
         run: python3 scripts/scan_dist.py web/player/dist web/admin/dist

@@ -225,3 +225,94 @@ def test_cli_dry_run(tmp_path, capsys):
 def test_cli_empty_bucket_fails(tmp_path):
     assert ps.main(["--app", "player", "--manifest", "m", "--archive", "a", "--bucket", "", "--release-id", RELEASE_ID,
                     "--site-config", "c", "--work", str(tmp_path)]) == 1
+
+
+# ---- game data (Phase 13, H.8.5 b and e) -------------------------------------------------------------------------
+
+GAME_DATA = ["game-data/bounds/r1__luna-1-c1.json", "game-data/campaign/luna-1-c1.json", "game-data/ruleset/r1.json"]
+GAME_FILES = {**FILES, "gameData": GAME_DATA, "gameDataCurrent": ["game-data/current.json"]}
+
+
+@pytest.fixture
+def published_with_game_data(tmp_path: Path):
+    archive = make_archive(tmp_path, ["index.html", *HASHED, *UNHASHED, *GAME_DATA, "game-data/current.json"])
+    commands: list[list[str]] = []
+    plan = ps.publish("player", manifest_for(archive, GAME_FILES), archive, "site-bucket", RELEASE_ID,
+                      tmp_path / "work", commands.append, auth=AUTH)
+    return plan, commands, tmp_path / "work"
+
+
+def test_game_data_order_follows_h85(published_with_game_data):
+    plan, _, _ = published_with_game_data
+    order = ["game-data", "hashed", "unhashed", "game-data-current", "config", "entry"]
+    labels = [b.label for b in plan]
+    assert labels == sorted(labels, key=order.index)
+    assert labels[0] == "game-data" and labels[-3:] == ["game-data-current", "config", "entry"]
+
+
+def test_versioned_game_data_is_create_only_one_put_per_file(published_with_game_data):
+    plan, commands, work = published_with_game_data
+    create_only = [c for c in commands if c[0] == str(ps.CREATE_ONLY_SCRIPT)]
+    assert [c[2] for c in create_only] == sorted(GAME_DATA)  # the object key is the site path
+    for cmd in create_only:
+        _, bucket, key, source, cache, ctype = cmd
+        assert bucket == "site-bucket"
+        assert source == str(work / "site" / key)
+        assert cache == ps.CACHE_IMMUTABLE and ctype == "application/json"
+    assert commands[: len(GAME_DATA)] == create_only  # before anything else (H.8.5 b)
+    assert ps.CREATE_ONLY_SCRIPT.name == "s3_put_create_only.sh" and ps.CREATE_ONLY_SCRIPT.is_file()
+    assert all(b.create_only == (b.label == "game-data") for b in plan)
+
+
+def test_current_json_is_the_only_game_data_overwrite(published_with_game_data):
+    _, commands, _ = published_with_game_data
+    cp = [c for c in commands if c[:3] == ["aws", "s3", "cp"]]
+    game_data_cp = [c for c in cp if "game-data" in " ".join(c)]
+    assert len(game_data_cp) == 1
+    cmd = game_data_cp[0]
+    assert cmd[4] == "s3://site-bucket/game-data/current.json"
+    assert cmd[cmd.index("--cache-control") + 1] == ps.CACHE_NO_CACHE
+    assert cmd[cmd.index("--content-type") + 1] == "application/json"
+    # after every versioned file and the app's own files, before config.json and index.html
+    assert commands.index(cmd) == len(commands) - 3
+    for c in commands:
+        assert "--delete" not in c and "sync" not in c
+
+
+def test_game_data_refused_on_the_admin_site(tmp_path):
+    archive = make_archive(tmp_path, ["index.html", *GAME_DATA, "game-data/current.json"])
+    files = {"entry": ["index.html"], "hashed": [], "unhashed": [], "gameData": GAME_DATA,
+             "gameDataCurrent": ["game-data/current.json"]}
+    manifest = manifest_for(archive, files)
+    manifest["static"]["admin"] = manifest["static"].pop("player")
+    commands: list[list[str]] = []
+    with pytest.raises(ps.PublishError, match="player site only"):
+        ps.publish("admin", manifest, archive, "b", RELEASE_ID, tmp_path / "w", commands.append, auth=AUTH)
+    assert commands == []
+
+
+@pytest.mark.parametrize(
+    ("versioned", "current", "match"),
+    [
+        (["game-data/ruleset/R1.json"], ["game-data/current.json"], "game-data/<kind>/<version>.json"),
+        (["game-data/sounds/r1.json"], ["game-data/current.json"], "game-data/<kind>/<version>.json"),
+        (["game-data/bounds/r1.json"], ["game-data/current.json"], "game-data/<kind>/<version>.json"),
+        (GAME_DATA, [], "exactly"),
+        ([], ["game-data/current.json"], "exactly"),
+    ],
+)
+def test_malformed_game_data_lists_refused_before_any_upload(tmp_path, versioned, current, match):
+    archive = make_archive(tmp_path, ["index.html", *versioned, *current])
+    files = {"entry": ["index.html"], "hashed": [], "unhashed": [], "gameData": versioned, "gameDataCurrent": current}
+    commands: list[list[str]] = []
+    with pytest.raises(ps.PublishError, match=match):
+        ps.publish("player", manifest_for(archive, files), archive, "b", RELEASE_ID, tmp_path / "w", commands.append,
+                   auth=AUTH)
+    assert commands == []
+
+
+def test_manifest_without_game_data_lists_still_publishes(published):
+    """A manifest from before Phase 13 (or a rollback to one) has no game-data lists: nothing to publish there."""
+    plan, commands, _ = published
+    assert not any(b.create_only for b in plan)
+    assert not any("game-data" in " ".join(c) for c in commands)

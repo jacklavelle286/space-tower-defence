@@ -15,16 +15,22 @@ What it does, in this order:
   3. Checks that the extracted files are exactly the files the manifest lists, so no file is published without a
      cache class chosen for it at build time (scripts/release_manifest.py).
   4. Uploads, never deleting anything (no --delete, no sync: old hashed assets must survive for open tabs and
-     rollback, H.7.2):
-       a. content-hashed Vite output ("hashed")      Cache-Control: public, max-age=31536000, immutable
-       b. unhashed files copied from public/          Cache-Control: no-cache   (ADR-0013, until Phase 64 hashes them)
-       c. config.json, generated here                 Cache-Control: no-cache   (the site config + releaseId, H.8.5 f)
-       d. index.html, LAST                            Cache-Control: no-cache
+     rollback, H.7.2), in the order of H.8.5 (b) to (g):
+       a. game data, player only ("gameData")         Cache-Control: public, max-age=31536000, immutable
+          /game-data/<kind>/<version>.json, CREATE-ONLY: one PutObject with If-None-Match: * per file through
+          scripts/s3_put_create_only.sh. A 412 for a file already published with the same bytes is accepted (a
+          re-run or a rollback); a published file with different bytes stops the publish (H.8.5 b, spine S5.1).
+       b. content-hashed Vite output ("hashed")      Cache-Control: public, max-age=31536000, immutable
+       c. unhashed files copied from public/          Cache-Control: no-cache   (ADR-0013, until Phase 64 hashes them)
+       d. game-data/current.json ("gameDataCurrent")  Cache-Control: no-cache   (the only game-data overwrite; after
+                                                      the files it names, H.8.5 e)
+       e. config.json, generated here                 Cache-Control: no-cache   (the site config + releaseId, H.8.5 f)
+       f. index.html, LAST                            Cache-Control: no-cache
      so a browser that loads the new index.html finds every file it names. Every upload sets an explicit
      Content-Type from the table below; an extension that is not in the table stops the publish before any upload.
+     A manifest from before Phase 13 has no game-data lists; they count as empty.
 
-Game data (H.8.5 b and e: /game-data/<kind>/<version>.json create-only, then current.json) joins this order in
-Phase 13, between (b) and (c). Waiting for the distribution and the invalidation stay in the workflow (apply.yml).
+Waiting for the distribution and the invalidation (which includes /game-data/current.json) stay in apply.yml.
 
 Uploads go through the AWS CLI (`aws s3 cp`), one call per (cache class, content type) batch, so several hundred
 art files take a handful of calls. Standard library only; runs on Python 3.12 and 3.14.
@@ -44,10 +50,17 @@ from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 from typing import Any, Callable, Sequence
 
+from release_manifest import GAME_DATA_CURRENT, GAME_DATA_VERSIONED  # one definition of the game-data paths
+
 CACHE_IMMUTABLE = "public, max-age=31536000, immutable"
 CACHE_NO_CACHE = "no-cache"
 CONFIG_FILE = "config.json"
 ENTRY_FILE = "index.html"
+CREATE_ONLY_SCRIPT = Path(__file__).resolve().parent / "s3_put_create_only.sh"
+# The manifest's file groups (scripts/release_manifest.py). The game-data groups exist from Phase 13 on.
+REQUIRED_GROUPS = ("entry", "hashed", "unhashed")
+GAME_DATA_GROUPS = ("gameData", "gameDataCurrent")
+GAME_DATA_APP = "player"  # H.8.5 b and e: game data lives on the player site only
 
 # Explicit types: the CLI's own guess depends on the runner's mime database. Text types carry the charset.
 CONTENT_TYPES: dict[str, str] = {
@@ -87,6 +100,7 @@ class Batch:
     cache_control: str
     content_type: str
     files: list[str] = field(default_factory=list)  # paths relative to the site root, with '/'
+    create_only: bool = False  # one s3_put_create_only.sh call per file instead of one `aws s3 cp`
 
 
 def content_type(path: str) -> str:
@@ -112,11 +126,32 @@ def app_entry(manifest: dict[str, Any], app: str) -> dict[str, Any]:
         raise PublishError(f"the release manifest has no static entry for {app!r}")
     entry = static[app]
     files = entry.get("files")
-    if not isinstance(files, dict) or not all(isinstance(files.get(k), list) for k in ("entry", "hashed", "unhashed")):
+    if not isinstance(files, dict) or not all(isinstance(files.get(k), list) for k in REQUIRED_GROUPS):
         raise PublishError(f"the manifest's {app} entry has no entry/hashed/unhashed file lists")
+    if not all(isinstance(files.get(k, []), list) for k in GAME_DATA_GROUPS):
+        raise PublishError(f"the manifest's {app} game-data file lists are not lists")
     if files["entry"] != [ENTRY_FILE]:
         raise PublishError(f"the manifest's {app} entry files are {files['entry']!r}, expected [{ENTRY_FILE!r}]")
+    check_game_data(app, files.get("gameData", []), files.get("gameDataCurrent", []))
     return entry
+
+
+def check_game_data(app: str, versioned: list[str], current: list[str]) -> None:
+    """Game data only on the player site, only at /game-data/<kind>/<version>.json, and with its current.json."""
+    if not versioned and not current:
+        return
+    if app != GAME_DATA_APP:
+        raise PublishError(f"the manifest gives the {app} site game data; it belongs on the {GAME_DATA_APP} site only")
+    bad = [p for p in versioned if not GAME_DATA_VERSIONED.match(p)]
+    if bad:
+        raise PublishError(f"game-data paths not of the form game-data/<kind>/<version>.json: {bad[:5]}")
+    if current != [GAME_DATA_CURRENT] or not versioned:
+        raise PublishError(f"game data needs its versioned files and exactly [{GAME_DATA_CURRENT!r}], got {current!r}")
+
+
+def group(files: dict[str, list[str]], name: str) -> list[str]:
+    """One of the manifest's file lists; the game-data lists are missing (empty) in manifests before Phase 13."""
+    return list(files.get(name, []))
 
 
 def safe_extract(archive: Path, dest: Path) -> None:
@@ -140,7 +175,7 @@ def list_files(root: Path) -> set[str]:
 
 
 def check_file_set(extracted: set[str], files: dict[str, list[str]]) -> None:
-    listed = set(files["entry"]) | set(files["hashed"]) | set(files["unhashed"])
+    listed = {path for name in (*REQUIRED_GROUPS, *GAME_DATA_GROUPS) for path in group(files, name)}
     if CONFIG_FILE in extracted:
         raise PublishError(f"the build contains its own {CONFIG_FILE}; it must come from the release (H.9.2)")
     missing = sorted(listed - extracted)
@@ -203,10 +238,15 @@ def _grouped(label: str, cache_control: str, paths: Sequence[str]) -> list[Batch
 
 
 def build_plan(files: dict[str, list[str]]) -> list[Batch]:
-    """The ordered upload batches. The order is the whole point: hashed, unhashed, config.json, index.html."""
+    """The ordered upload batches. The order is the whole point (H.8.5): versioned game data (create-only), hashed,
+    unhashed, game-data/current.json, config.json, index.html."""
     plan: list[Batch] = []
+    for batch in _grouped("game-data", CACHE_IMMUTABLE, group(files, "gameData")):
+        batch.create_only = True
+        plan.append(batch)
     plan += _grouped("hashed", CACHE_IMMUTABLE, files["hashed"])
     plan += _grouped("unhashed", CACHE_NO_CACHE, files["unhashed"])
+    plan += _grouped("game-data-current", CACHE_NO_CACHE, group(files, "gameDataCurrent"))
     plan.append(Batch("config", CACHE_NO_CACHE, content_type(CONFIG_FILE), [CONFIG_FILE]))
     plan.append(Batch("entry", CACHE_NO_CACHE, content_type(ENTRY_FILE), [ENTRY_FILE]))
     return plan
@@ -230,6 +270,11 @@ def cp_command(batch: Batch, source: Path, bucket: str) -> list[str]:
     if len(batch.files) == 1:
         return ["aws", "s3", "cp", str(source / batch.files[0]), f"s3://{bucket}/{batch.files[0]}", *common]
     return ["aws", "s3", "cp", str(source), f"s3://{bucket}/", "--recursive", *common]
+
+
+def create_only_command(batch: Batch, rel: str, site_root: Path, bucket: str) -> list[str]:
+    """One create-only PutObject (If-None-Match: *) for a game-data file, with its cache and content headers."""
+    return [str(CREATE_ONLY_SCRIPT), bucket, rel, str(site_root / rel), batch.cache_control, batch.content_type]
 
 
 def publish(
@@ -260,6 +305,10 @@ def publish(
 
     plan = build_plan(entry["files"])
     for i, batch in enumerate(plan):
+        if batch.create_only:
+            for rel in batch.files:
+                run(create_only_command(batch, rel, site_root, bucket))
+            continue
         source = site_root if len(batch.files) == 1 else stage(batch, site_root, work / f"batch-{i:02d}")
         run(cp_command(batch, source, bucket))
     return plan
@@ -302,9 +351,9 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     rows = [{"order": i + 1, "label": b.label, "cacheControl": b.cache_control, "contentType": b.content_type,
-             "files": len(b.files)} for i, b in enumerate(plan)]
+             "files": len(b.files), "createOnly": b.create_only} for i, b in enumerate(plan)]
     for row in rows:
-        print(f"publish_static: {args.app}: {row['order']:>2}. {row['label']:<8} {row['files']:>4} file(s)  "
+        print(f"publish_static: {args.app}: {row['order']:>2}. {row['label']:<17} {row['files']:>4} file(s)  "
               f"{row['contentType']:<28} {row['cacheControl']}")
     if args.summary:
         args.summary.write_text(json.dumps({"app": args.app, "bucket": args.bucket, "batches": rows}, indent=2) + "\n",

@@ -515,7 +515,7 @@ jobs:
           # With artefacts_from (rollback, H.12) the manifest names the archived build of that release; nothing differs here.
           jq -r '"Static build: \(if .artefactsFrom then "reused from release \(.artefactsFrom) (rollback)" else "fresh" end)"' "$OUT/manifest.json"
 
-      - name: Publish player, then admin (assets, config.json, index.html last; invalidate entry points)
+      - name: Publish player, then admin (game data create-only, assets, current.json, config.json, index.html last; invalidate entry points)
         run: |
           publish_site() {
             local app=$1 bucket=$2 distribution=$3; shift 3
@@ -546,7 +546,10 @@ jobs:
             echo "$app $distribution $id ${paths[*]}" >> "$OUT/invalidations.txt"
             echo "$app: invalidation $id for ${paths[*]}"
           }
-          # Exactly the entry points, never /* (H.8.5 h). /game-data/current.json exists from Phase 13 (P25).
+          # The player archive carries game-data/ (Phase 13): publish_static.py puts each /game-data/<kind>/<version>.json
+          # create-only through scripts/s3_put_create_only.sh (a published file with other bytes stops the publish), then
+          # current.json with no-cache after the files it names (H.8.5 b, e). A pre-Phase-13 archive has none.
+          # Exactly the entry points, never /* (H.8.5 h); current.json is the only game-data file that changes.
           publish_site player "$PLAYER_BUCKET" "$PLAYER_DISTRIBUTION_ID" /index.html /config.json /game-data/current.json
           publish_site admin "$ADMIN_BUCKET" "$ADMIN_DISTRIBUTION_ID" /index.html /config.json
 

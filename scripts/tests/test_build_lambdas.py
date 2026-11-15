@@ -77,7 +77,8 @@ def test_real_functions_build_twice_to_the_same_hashes(tmp_path: Path) -> None:
     copy = tmp_path / "api-copy"
     shutil.copytree(REPO / "api" / "functions", copy / "functions", ignore=shutil.ignore_patterns("__pycache__"))
     shutil.copytree(REPO / "api" / "shared", copy / "shared", ignore=shutil.ignore_patterns("__pycache__"))
-    for path in copy.rglob("*"):
+    shutil.copytree(REPO / "contracts", tmp_path / "contracts")  # zip_entries reads the contracts next to api/
+    for path in [*copy.rglob("*"), *(tmp_path / "contracts").rglob("*")]:
         os.utime(path, (1_234_567_890, 1_234_567_890))
 
     first = build_lambdas.build(REPO / "api", tmp_path / "out1", deps=None)
@@ -91,6 +92,13 @@ def test_real_functions_build_twice_to_the_same_hashes(tmp_path: Path) -> None:
         names = archive.namelist()
     assert "handler.py" in names and "shared/__init__.py" in names and "shared/router.py" in names
     assert not any("__pycache__" in name or name.endswith(".pyc") for name in names)
+    schemas = sorted(f"contracts/schemas/{p.name}" for p in (REPO / "contracts" / "schemas").glob("*.schema.json"))
+    assert sorted(n for n in names if n.startswith("contracts/")) == ["contracts/limits.json", *schemas]
+
+
+def test_contracts_are_required(tmp_path: Path) -> None:
+    with pytest.raises(build_lambdas.BuildError, match=r"no limits\.json"):
+        build_lambdas.contract_entries(tmp_path / "contracts")
 
 
 def test_each_zip_imports_with_the_lambda_layout(tmp_path: Path) -> None:
@@ -105,7 +113,13 @@ def test_each_zip_imports_with_the_lambda_layout(tmp_path: Path) -> None:
         root = tmp_path / "extracted" / Path(zip_path).stem
         with zipfile.ZipFile(zip_path) as archive:
             archive.extractall(root)
-        probe = f"import sys; sys.path.insert(0, {str(root)!r}); import handler; assert callable(handler.handler)"
+        # shared.rules reads contracts/ at import: it must find the copy inside the zip, not the repository's.
+        probe = (
+            f"import sys; sys.path.insert(0, {str(root)!r}); import handler; assert callable(handler.handler); "
+            f"import shared.rules.contracts as c; assert c.CONTRACTS_DIR == __import__('pathlib').Path({str(root)!r})"
+            " / 'contracts', c.CONTRACTS_DIR; assert c.LIMITS['attemptsPerSlot'] == 3; "
+            "from shared.rules import reduce"
+        )
         result = subprocess.run(  # noqa: S603 - fixed arguments, no shell
             [sys.executable, "-I", "-c", probe], cwd=tmp_path, capture_output=True, text=True, check=False
         )
