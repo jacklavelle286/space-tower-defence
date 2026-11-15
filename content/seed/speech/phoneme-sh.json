@@ -1,0 +1,7 @@
+{
+  "$comment": "Seed speech definition (Phase 20, M1-19; D §D8.6). Loaded as a DRAFT by scripts/seed_content.py (create-only), then previewed, listened to and approved on admin.aliens.jackgl.com. The SSML body is the clip form the owner chose in content/listening-verdicts.json (sounds.sh.clip, variant 'schwa'); the server wraps it in the ADR-0014 breaks, so with voice Amy on the generative engine its clip key equals that file's sounds.sh.clip.clipKey (checked by api/tests/unit/test_seed_content.py).",
+  "speechId": "phoneme-sh",
+  "title": "Sound sh, as in shop",
+  "kind": "PHONEME",
+  "ssml": "<prosody rate=\"130%\"><phoneme alphabet=\"x-sampa\" ph=\"S@\">sh</phoneme></prosody>."
+}

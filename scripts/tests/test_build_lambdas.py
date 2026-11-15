@@ -78,7 +78,9 @@ def test_real_functions_build_twice_to_the_same_hashes(tmp_path: Path) -> None:
     shutil.copytree(REPO / "api" / "functions", copy / "functions", ignore=shutil.ignore_patterns("__pycache__"))
     shutil.copytree(REPO / "api" / "shared", copy / "shared", ignore=shutil.ignore_patterns("__pycache__"))
     shutil.copytree(REPO / "contracts", tmp_path / "contracts")  # zip_entries reads the contracts next to api/
-    for path in [*copy.rglob("*"), *(tmp_path / "contracts").rglob("*")]:
+    (tmp_path / "content").mkdir()
+    shutil.copy2(REPO / "content" / "listening-verdicts.json", tmp_path / "content" / "listening-verdicts.json")
+    for path in [*copy.rglob("*"), *(tmp_path / "contracts").rglob("*"), *(tmp_path / "content").rglob("*")]:
         os.utime(path, (1_234_567_890, 1_234_567_890))
 
     first = build_lambdas.build(REPO / "api", tmp_path / "out1", deps=None)
@@ -94,6 +96,15 @@ def test_real_functions_build_twice_to_the_same_hashes(tmp_path: Path) -> None:
     assert not any("__pycache__" in name or name.endswith(".pyc") for name in names)
     schemas = sorted(f"contracts/schemas/{p.name}" for p in (REPO / "contracts" / "schemas").glob("*.schema.json"))
     assert sorted(n for n in names if n.startswith("contracts/")) == ["contracts/limits.json", *schemas]
+    assert not any(n.startswith("content/") for n in names)
+    with zipfile.ZipFile(tmp_path / "out1" / "admin-api.zip") as archive:
+        assert "content/listening-verdicts.json" in archive.namelist()  # G-14 at approval (Phase 20)
+
+
+def test_function_files_are_required(tmp_path: Path) -> None:
+    with pytest.raises(build_lambdas.BuildError, match=r"listening-verdicts\.json is missing"):
+        build_lambdas.function_file_entries(tmp_path, "admin_api")
+    assert build_lambdas.function_file_entries(tmp_path, "player_api") == {}
 
 
 def test_contracts_are_required(tmp_path: Path) -> None:
@@ -118,7 +129,9 @@ def test_each_zip_imports_with_the_lambda_layout(tmp_path: Path) -> None:
             f"import sys; sys.path.insert(0, {str(root)!r}); import handler; assert callable(handler.handler); "
             f"import shared.rules.contracts as c; assert c.CONTRACTS_DIR == __import__('pathlib').Path({str(root)!r})"
             " / 'contracts', c.CONTRACTS_DIR; assert c.LIMITS['attemptsPerSlot'] == 3; "
-            "from shared.rules import reduce"
+            "from shared.rules import reduce; import shared.verdicts as v; "
+            f"assert v.verdicts_path() in (None, __import__('pathlib').Path({str(root)!r}) / 'content' / "
+            "'listening-verdicts.json'), v.verdicts_path()"
         )
         result = subprocess.run(  # noqa: S603 - fixed arguments, no shell
             [sys.executable, "-I", "-c", probe], cwd=tmp_path, capture_output=True, text=True, check=False

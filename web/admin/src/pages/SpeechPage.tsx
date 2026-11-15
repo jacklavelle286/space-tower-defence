@@ -1,0 +1,307 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  describeError,
+  SPEECH_KINDS,
+  type AdminApi,
+  type Preview,
+  type SpeechKind,
+  type SpeechSummary,
+  type SpeechView,
+} from "../api";
+import { canApprove, LISTENING_CHECKLIST } from "../review";
+
+// A9 (D §D9.3): pick a definition, edit its draft, Preview (the only Polly path), Play, tick the listening checks,
+// Approve. Voice and engine are shown, never chosen. Approve is enabled only for the saved draft whose exact clip was
+// previewed in this session; admin-api checks the clip object again.
+
+const PAGE = "speech";
+
+type Props = { readonly api: AdminApi; readonly initial: string | null };
+
+export function SpeechPage({ api, initial }: Props) {
+  const [items, setItems] = useState<SpeechSummary[]>([]);
+  const [selected, setSelected] = useState<string | null>(initial);
+  const [message, setMessage] = useState<string | null>(null);
+  const select = (id: string) => {
+    setSelected(id);
+    window.history.replaceState(null, "", `#${PAGE}/${id}`);
+  };
+
+  const refresh = useCallback(() => {
+    api.listSpeech().then(
+      (page) => setItems(page.items),
+      (error: unknown) => setMessage(describeError(error)),
+    );
+  }, [api]);
+
+  useEffect(() => {
+    api.listSpeech().then(
+      (page) => setItems(page.items),
+      (error: unknown) => setMessage(describeError(error)),
+    );
+  }, [api]);
+
+  return (
+    <div className="split">
+      <section className="list">
+        <h2>Speech</h2>
+        {message !== null && <p className="error">{message}</p>}
+        <ul>
+          {items.map((item) => (
+            <li key={item.speechId}>
+              <button type="button" aria-pressed={selected === item.speechId} onClick={() => select(item.speechId)}>
+                <span>{item.speechId}</span>
+                <small>
+                  {item.kind} · {item.state === "APPROVED" ? "approved" : "draft"}
+                </small>
+              </button>
+            </li>
+          ))}
+        </ul>
+        <NewSpeech
+          api={api}
+          onCreated={(id) => {
+            refresh();
+            select(id);
+          }}
+        />
+      </section>
+      <section className="detail">
+        {selected === null ? <p>Choose a speech definition.</p> : <SpeechEditor key={selected} api={api} speechId={selected} onChange={refresh} />}
+      </section>
+    </div>
+  );
+}
+
+function NewSpeech({ api, onCreated }: { readonly api: AdminApi; readonly onCreated: (id: string) => void }) {
+  const [speechId, setSpeechId] = useState("");
+  const [title, setTitle] = useState("");
+  const [kind, setKind] = useState<SpeechKind>("WORD");
+  const [message, setMessage] = useState<string | null>(null);
+  return (
+    <form
+      className="new"
+      onSubmit={(event) => {
+        event.preventDefault();
+        api.createSpeech({ speechId, title, kind }).then(
+          (view) => {
+            setMessage(null);
+            onCreated(view.header.speechId);
+          },
+          (error: unknown) => setMessage(describeError(error)),
+        );
+      }}
+    >
+      <h3>New speech definition</h3>
+      <label>
+        ID <input value={speechId} onChange={(e) => setSpeechId(e.target.value)} placeholder="word-ship" pattern="[a-z0-9-]{1,40}" required />
+      </label>
+      <label>
+        Title <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={80} required />
+      </label>
+      <label>
+        Kind{" "}
+        <select value={kind} onChange={(e) => setKind(e.target.value as SpeechKind)}>
+          {SPEECH_KINDS.map((k) => (
+            <option key={k}>{k}</option>
+          ))}
+        </select>
+      </label>
+      <button type="submit">Create</button>
+      {message !== null && <p className="error">{message}</p>}
+    </form>
+  );
+}
+
+type Field = "text" | "ssml";
+
+function SpeechEditor({ api, speechId, onChange }: { readonly api: AdminApi; readonly speechId: string; readonly onChange: () => void }) {
+  const [view, setView] = useState<SpeechView | null>(null);
+  const [field, setField] = useState<Field>("text");
+  const [value, setValue] = useState("");
+  const [preview, setPreview] = useState<(Preview & { draftRevision: number }) | null>(null);
+  const [ticks, setTicks] = useState<Record<string, boolean>>({});
+  const [note, setNote] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const audio = useRef<HTMLAudioElement>(null);
+
+  const adopt = useCallback((next: SpeechView) => {
+    setView(next);
+    setField(next.draft.ssml !== undefined ? "ssml" : "text");
+    setValue(next.draft.ssml ?? next.draft.text ?? "");
+  }, []);
+
+  useEffect(() => {
+    api.getSpeech(speechId).then(adopt, (error: unknown) => setMessage(describeError(error)));
+  }, [api, speechId, adopt]);
+
+  if (view === null) return <p>{message ?? "Loading…"}</p>;
+  const { header, draft } = view;
+  const saved = draft.ssml ?? draft.text ?? "";
+  const savedField: Field = draft.ssml !== undefined ? "ssml" : "text";
+  const dirty = value !== saved || (saved !== "" && field !== savedField);
+  const gate = canApprove({
+    dirty,
+    draftRevision: draft.draftRevision,
+    draftClipKey: draft.clipKey,
+    preview: preview === null ? null : { draftRevision: preview.draftRevision, clipKey: preview.clipKey },
+    ticks,
+  });
+
+  const run = async (action: () => Promise<void>) => {
+    setBusy(true);
+    setMessage(null);
+    try {
+      await action();
+    } catch (error) {
+      setMessage(describeError(error));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const save = () =>
+    run(async () => {
+      adopt(await api.saveSpeech(speechId, { draftRevision: draft.draftRevision, [field]: value }));
+      setPreview(null);
+      setTicks({});
+      onChange();
+    });
+
+  const makePreview = () =>
+    run(async () => {
+      const body = draft.ssml !== undefined ? { ssml: draft.ssml } : { text: draft.text ?? "" };
+      const result = await api.preview({ kind: draft.kind, speechId, ...body });
+      setPreview({ ...result, draftRevision: draft.draftRevision });
+      setTicks({});
+    });
+
+  const approve = () =>
+    run(async () => {
+      const result = await api.approve(speechId, {
+        draftRevision: draft.draftRevision,
+        ...(note.trim() === "" ? {} : { reviewNote: note.trim() }),
+      });
+      setMessage(`Approved as version ${result.versionId}.`);
+      adopt(await api.getSpeech(speechId));
+      setPreview(null);
+      setTicks({});
+      setNote("");
+      onChange();
+    });
+
+  const playTwice = () => {
+    const element = audio.current;
+    if (element === null) return;
+    element.currentTime = 0;
+    element.onended = () => {
+      element.onended = null;
+      element.currentTime = 0;
+      void element.play();
+    };
+    void element.play();
+  };
+
+  return (
+    <div>
+      <h2>
+        {header.title} <small>{header.speechId}</small>
+      </h2>
+      <p className="kind">{draft.kind.replace("_", " ")}</p>
+      <p className="muted">
+        Voice {draft.voiceId} · engine {draft.engine} · provider {draft.provider} (set by the server for this kind) · draft revision{" "}
+        {draft.draftRevision} · {header.state === "APPROVED" ? `approved version ${header.approvedVersion}` : "not approved yet"}
+      </p>
+
+      <fieldset>
+        <legend>Draft</legend>
+        <label>
+          <input type="radio" checked={field === "text"} onChange={() => setField("text")} /> Plain text
+        </label>{" "}
+        <label>
+          <input type="radio" checked={field === "ssml"} onChange={() => setField("ssml")} /> SSML body (inside the speak element)
+        </label>
+        <textarea value={value} onChange={(e) => setValue(e.target.value)} rows={3} maxLength={300} spellCheck={false} />
+        <button type="button" onClick={() => void save()} disabled={busy || !dirty || value.trim() === ""}>
+          Save draft
+        </button>
+        {dirty && <span className="muted"> Unsaved changes.</span>}
+      </fieldset>
+
+      <fieldset>
+        <legend>Preview and listen</legend>
+        <button type="button" onClick={() => void makePreview()} disabled={busy || dirty || draft.clipKey === null}>
+          Preview
+        </button>
+        {preview !== null && (
+          <div className="player">
+            <audio ref={audio} src={preview.url} controls preload="auto" />
+            <button type="button" onClick={() => void audio.current?.play()}>
+              Play
+            </button>
+            <button type="button" onClick={playTwice}>
+              Play twice
+            </button>
+            <p className="muted mono">clip {preview.clipKey}</p>
+          </div>
+        )}
+      </fieldset>
+
+      <fieldset disabled={preview === null}>
+        <legend>Listening checks (D9.4)</legend>
+        {LISTENING_CHECKLIST.map((item) => (
+          <label key={item.key} className="check">
+            <input
+              type="checkbox"
+              checked={ticks[item.key] === true}
+              onChange={(e) => setTicks({ ...ticks, [item.key]: e.target.checked })}
+            />{" "}
+            {item.label}
+          </label>
+        ))}
+        <label>
+          Review note (optional) <input value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} />
+        </label>
+        <button type="button" className="primary" onClick={() => void approve()} disabled={busy || !gate.ok}>
+          Approve
+        </button>
+        {!gate.ok && <span className="muted"> {gate.reason}</span>}
+      </fieldset>
+
+      {message !== null && <p className={message.startsWith("Approved") ? "ok" : "error"}>{message}</p>}
+
+      <h3>Approved versions</h3>
+      {view.versions.length === 0 ? (
+        <p className="muted">None yet.</p>
+      ) : (
+        <table>
+          <thead>
+            <tr>
+              <th>Version</th>
+              <th>Approved</th>
+              <th>Rendered</th>
+              <th>Voice / engine</th>
+              <th>Clip key</th>
+              <th>SHA-256</th>
+            </tr>
+          </thead>
+          <tbody>
+            {view.versions.map((v) => (
+              <tr key={v.versionId}>
+                <td>{v.versionId}</td>
+                <td>{v.approvedAt}</td>
+                <td>{v.renderedAt ?? "?"}</td>
+                <td>
+                  {v.voiceId} / {v.engine}
+                </td>
+                <td className="mono">{v.clipKey.slice(0, 12)}…</td>
+                <td className="mono">{v.sha256.slice(0, 12)}…</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
+  );
+}

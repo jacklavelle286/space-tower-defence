@@ -1,0 +1,54 @@
+{
+  "$comment": "Seed activity (Phase 20, M1-19; C §C25.5 Example B, the recommended Milestone 1 activity). Loaded as a DRAFT by scripts/seed_content.py (create-only), then validated, preview-solved, reviewed and published on admin.aliens.jackgl.com. Milestone 1 has one clip, so only the prompt variant is referenced (B3.2: one activity, one clip); the instruction clip of C25.5 comes with the full admin app.",
+  "schemaVersion": 1,
+  "activityId": "ph-0102",
+  "title": "Which letters make /sh/?",
+  "subject": "phonics",
+  "topicId": "phonics-gpc-consonant-digraphs",
+  "minAge": 5,
+  "maxAge": 6,
+  "rewardCategory": "NORMAL",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "REQUIRED",
+  "curriculumReference": [
+    "EYFS26.ELG.WordReading-1",
+    "LS07.Phase3"
+  ],
+  "prompt": {
+    "text": "Listen. Which letters make this sound?"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "optionStyle": "GRAPHEME",
+    "options": [
+      {
+        "id": "a",
+        "text": "s"
+      },
+      {
+        "id": "b",
+        "text": "sh"
+      },
+      {
+        "id": "c",
+        "text": "ch"
+      },
+      {
+        "id": "d",
+        "text": "th"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "b"
+    ]
+  },
+  "speechDefinitionReferences": {
+    "prompt": {
+      "speechId": "phoneme-sh"
+    }
+  },
+  "source": "HANDWRITTEN"
+}

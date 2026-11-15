@@ -6,6 +6,8 @@ Each zip holds, at its root:
   shared/                                                       api/shared, the helpers every function imports
   contracts/limits.json, contracts/schemas/*.schema.json        the shared contracts shared/rules reads (Phase 12);
                                                                 fixtures and routes.json stay out
+  content/listening-verdicts.json (admin-api only)              the G-14 verdicts shared/verdicts.py reads when a
+                                                                PHONEME speech definition is approved (Phase 20)
   the runtime dependencies from api/requirements.txt            installed for Lambda's python3.14 on arm64
 
 Dependencies are installed once per build into a staging directory with
@@ -63,6 +65,8 @@ PIP_TARGET = [
 _SKIPPED_DIRS = frozenset({"__pycache__"})
 _SKIPPED_SUFFIXES = frozenset({".pyc", ".pyo"})
 CONTRACT_FILES = ("limits.json", "schemas/*.schema.json")  # globs under contracts/, the files the code reads
+# Repository files one function reads at run time, at the same relative path in its zip (Phase 20).
+FUNCTION_FILES: Mapping[str, tuple[str, ...]] = {"admin_api": ("content/listening-verdicts.json",)}
 _PIN = re.compile(r"^([A-Za-z0-9][A-Za-z0-9._-]*)(\[[^\]]*\])?==\S+")
 
 
@@ -155,11 +159,24 @@ def contract_entries(contracts: Path) -> dict[str, Path]:
     return files
 
 
+def function_file_entries(repo: Path, function: str) -> dict[str, Path]:
+    """The repository files `function` reads at run time (FUNCTION_FILES), each required."""
+    files: dict[str, Path] = {}
+    for relative in FUNCTION_FILES.get(function, ()):
+        path = repo / relative
+        if not path.is_file():
+            raise BuildError(f"{function}: {relative} is missing")
+        files[relative] = path
+    return files
+
+
 def zip_entries(api: Path, function: str, deps: Path | None) -> dict[str, Path]:
-    """Every file of one function's zip; the contracts are read from the folder next to `api` (the repository's)."""
+    """Every file of one function's zip; the contracts (and FUNCTION_FILES) are read from the folder next to `api`
+    (the repository's)."""
     layers: Iterable[dict[str, Path]] = (
         collect(deps) if deps else {},
         contract_entries(api.parent / "contracts"),
+        function_file_entries(api.parent, function),
         collect(api / "shared", "shared/"),
         collect(api / "functions" / function),
     )

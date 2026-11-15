@@ -3,12 +3,232 @@
 @import "@fontsource/unkempt/latin-400.css";
 @import "@fontsource/unkempt/latin-700.css";
 
+/* The admin is for grown-ups at a desk (D §D8): plain forms, readable contrast, no decoration. */
 :root {
   --font-ui: "Unkempt", "Comic Sans MS", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --ink: #1d2433;
+  --muted: #5b6475;
+  --line: #c9cfdb;
+  --paper: #ffffff;
+  --panel: #f3f5f9;
+  --accent: #2456c7;
+  --ok: #1f7a3a;
+  --error: #b42318;
 }
 
 html,
 body {
   margin: 0;
   font-family: var(--font-ui);
+  color: var(--ink);
+  background: var(--paper);
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--panel);
+  padding: 4px 12px;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+button[aria-pressed="true"] {
+  border-color: var(--accent);
+  outline: 2px solid var(--accent);
+}
+
+.top {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+}
+
+.top nav {
+  display: flex;
+  gap: 8px;
+}
+
+.top .who {
+  margin-left: auto;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.centre {
+  max-width: 560px;
+  margin: 15vh auto;
+  padding: 0 16px;
+  text-align: center;
+}
+
+.page {
+  padding: 16px 24px;
+}
+
+.split {
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.list ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+  display: grid;
+  gap: 6px;
+}
+
+.list li button {
+  width: 100%;
+  text-align: left;
+  display: grid;
+}
+
+.list small,
+.muted {
+  color: var(--muted);
+}
+
+h2 small {
+  color: var(--muted);
+  font-size: 0.7em;
+}
+
+.kind {
+  font-size: 1.6em;
+  font-weight: 700;
+  margin: 0;
+}
+
+fieldset {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+fieldset label {
+  display: block;
+}
+
+textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: var(--font-mono);
+}
+
+.mono,
+pre {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+}
+
+pre {
+  background: var(--panel);
+  padding: 8px;
+  overflow: auto;
+  max-width: 100%;
+}
+
+.player {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.check {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.new {
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+  display: grid;
+  gap: 6px;
+}
+
+/* Preview and solve: the same reading font and sizes as the child's learning panel (shared panel.css: heading
+   32px bold, option tiles at least 96px tall with 44px text). */
+.prompt {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.25;
+  margin: 0;
+}
+
+.choices {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  max-width: 680px;
+}
+
+.choice {
+  min-height: 96px;
+  padding: 12px 8px;
+  font-size: 44px;
+  line-height: 1.1;
+}
+
+input.wide {
+  width: 44ch;
+}
+
+.options {
+  display: grid;
+  gap: 4px;
+}
+
+.problems {
+  margin: 0;
+}
+
+.ok {
+  color: var(--ok);
+}
+
+.error {
+  color: var(--error);
+}
+
+table {
+  border-collapse: collapse;
+}
+
+th,
+td {
+  border-bottom: 1px solid var(--line);
+  padding: 4px 10px;
+  text-align: left;
 }

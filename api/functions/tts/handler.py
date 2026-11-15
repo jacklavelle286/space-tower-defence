@@ -11,11 +11,7 @@ synthesis input (shared/clipkey.py: voice and engine from configuration, never t
 object is absent. The object is stored with `If-None-Match: *` (never overwritten) and a SHA-256 checksum; a 412 means
 another request stored the same clip first, and that object is used.
 
-Where `sha256` comes from (U-036, ADR-0021): preview sends the MP3's SHA-256 as the S3 checksum (S3 verifies it on
-receipt) and also stores the same value, as hex, in the object metadata `sha256`. R15 asks HeadObject for the checksum
-(`ChecksumMode=ENABLED`) and uses it when S3 returns a full-object SHA-256; otherwise it uses the metadata. Both are
-written so R15 works whichever way the real bucket answers; Phase 19 could not check the real bucket (that needs a
-write). An object with neither is unusable and answers 503 like a missing one.
+Where `sha256` comes from (U-036, ADR-0021): see shared/audio.py, which `admin-api` shares for approval (R21).
 
 Everything a test controls comes in through `Deps`; the clients are created on first use, after authorisation.
 """
@@ -23,9 +19,7 @@ Everything a test controls comes in through `Deps`; the clients are created on f
 from __future__ import annotations
 
 import base64
-import binascii
 import hashlib
-import os
 import re
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
@@ -33,9 +27,16 @@ from functools import cache
 from typing import Any
 
 import boto3
-from botocore.config import Config
 from botocore.exceptions import BotoCoreError, ClientError
 
+from shared.audio import (
+    METADATA_SHA256,
+    AudioStore,
+    client_error_code,
+    head_clip,
+    s3_client,
+    stored_sha256,
+)
 from shared.auth import OPERATOR, PLAYER
 from shared.body import json_object
 from shared.clipkey import (
@@ -67,34 +68,7 @@ UUID = re.compile(LIMITS["ids"]["uuid"].removeprefix("^").removesuffix("$"))
 SLOT_ID = re.compile(LIMITS["ids"]["slotId"].removeprefix("^").removesuffix("$"))
 SPEECH_ID = re.compile(LIMITS["ids"]["keyId"].removeprefix("^").removesuffix("$"))
 VARIANT = re.compile(r"prompt|instruction|answer|option-[a-f]|bin-[a-z0-9]{1,8}|intro-[1-3]")  # G R15
-SHA256_HEX = re.compile(r"[0-9a-f]{64}")
-METADATA_SHA256 = "sha256"  # x-amz-meta-sha256
-MISSING = frozenset({"404", "NoSuchKey", "NotFound"})
 LOST_RACE = frozenset({"PreconditionFailed", "ConditionalRequestConflict"})  # 412; 409 while another put is in flight
-
-
-@dataclass(frozen=True)
-class AudioStore:
-    """Where clips live: the audio bucket and its clip prefix (AUDIO_BUCKET, CLIP_PREFIX)."""
-
-    bucket: str
-    clip_prefix: str
-
-    @classmethod
-    def from_env(cls) -> AudioStore:
-        return cls(bucket=os.environ["AUDIO_BUCKET"], clip_prefix=os.environ["CLIP_PREFIX"])
-
-
-def s3_client() -> Any:
-    """SigV4 on the regional virtual-hosted endpoint, so a presigned URL names the bucket's own region and the
-    browser's GET is never redirected (a redirect would break the CORS fetch)."""
-    region = os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION") or "eu-west-2"
-    return boto3.client(
-        "s3",
-        region_name=region,
-        endpoint_url=f"https://s3.{region}.amazonaws.com",
-        config=Config(signature_version="s3v4", s3={"addressing_style": "virtual"}),
-    )
 
 
 _container_s3 = cache(s3_client)  # one client per Lambda container, made on first use
@@ -161,35 +135,8 @@ def _checked(body: Mapping[str, Any], fields: Mapping[str, tuple[bool, Rule]]) -
 # --- S3 helpers -----------------------------------------------------------------------------------------------------
 
 
-def _code(error: ClientError) -> str:
-    return str(error.response.get("Error", {}).get("Code", ""))
-
-
-def _head(s3: Any, store: AudioStore, key: str) -> dict[str, Any] | None:
-    """HeadObject with checksum mode, or None when the object is missing (404: the role has the prefix-scoped
-    ListBucket, so S3 says 404 rather than 403; a 403 is a real permission fault and is raised, E §E.4.2)."""
-    try:
-        return s3.head_object(Bucket=store.bucket, Key=key, ChecksumMode="ENABLED")
-    except ClientError as error:
-        if _code(error) in MISSING:
-            return None
-        raise
-
-
-def stored_sha256(head: Mapping[str, Any]) -> str | None:
-    """Hex SHA-256 of the object's bytes: S3's full-object checksum if it returned one, else the metadata value."""
-    checksum = head.get("ChecksumSHA256")
-    composite = head.get("ChecksumType") == "COMPOSITE" or (isinstance(checksum, str) and "-" in checksum)
-    if isinstance(checksum, str) and not composite:
-        try:
-            digest = base64.b64decode(checksum, validate=True)
-        except (binascii.Error, ValueError):
-            digest = b""
-        if len(digest) == 32:
-            return digest.hex()
-    metadata = head.get("Metadata")
-    value = metadata.get(METADATA_SHA256) if isinstance(metadata, Mapping) else None
-    return value if isinstance(value, str) and SHA256_HEX.fullmatch(value) else None
+_code = client_error_code
+_head = head_clip
 
 
 def _url(s3: Any, store: AudioStore, key: str) -> str:
