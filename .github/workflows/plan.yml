@@ -191,3 +191,13 @@ jobs:
           cat "$OUT/guard.md" >> "$GITHUB_STEP_SUMMARY"
           cat "$OUT/guard.md"
           exit "$rc"
+
+      - name: G-12 route keys
+        run: |
+          set +e
+          python scripts/check_route_keys.py "$OUT/tfplan.json" --routes contracts/routes.json > "$OUT/route-keys.md"
+          rc=$?
+          set -e
+          cat "$OUT/route-keys.md" >> "$GITHUB_STEP_SUMMARY"
+          cat "$OUT/route-keys.md"
+          exit "$rc"

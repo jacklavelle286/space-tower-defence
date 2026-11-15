@@ -208,6 +208,8 @@ jobs:
       admin_distribution_id: ${{ steps.outputs.outputs.admin_distribution_id }}
       player_distribution_domain: ${{ steps.outputs.outputs.player_distribution_domain }}
       admin_distribution_domain: ${{ steps.outputs.outputs.admin_distribution_domain }}
+      player_config: ${{ steps.outputs.outputs.player_config }}
+      admin_config: ${{ steps.outputs.outputs.admin_config }}
       hostname_mode: ${{ steps.previous.outputs.hostname_mode }}
       previous_release: ${{ steps.previous.outputs.previous_release }}
       functions: ${{ steps.functions.outputs.functions }}
@@ -383,6 +385,15 @@ jobs:
             [[ "$v" =~ $re ]] || { echo "::error::terraform output $k is missing or malformed: '$v'"; exit 1; }
             echo "$k=$v" >> "$GITHUB_OUTPUT"
           done
+          # Each site's config.json values (H.8.5 f): identifiers only. publish_static.py checks every value's shape;
+          # here they must at least be objects naming a user pool, and the two sites must name different pools.
+          for k in player_config admin_config; do
+            v=$(jq -c --arg k "$k" '.[$k].value | select(type == "object" and (.userPoolId | type) == "string")' "$OUT/outputs.json")
+            [[ -n "$v" ]] || { echo "::error::terraform output $k is missing or has no userPoolId"; exit 1; }
+            echo "$k=$v" >> "$GITHUB_OUTPUT"
+          done
+          jq -e '.player_config.value.userPoolId != .admin_config.value.userPoolId' "$OUT/outputs.json" > /dev/null \
+            || { echo "::error::player_config and admin_config name the same user pool"; exit 1; }
           {
             echo "### Applied plan $PLAN_RUN_ID"
             echo ""
@@ -460,11 +471,17 @@ jobs:
       ADMIN_BUCKET: ${{ needs.apply.outputs.admin_bucket }}
       PLAYER_DISTRIBUTION_ID: ${{ needs.apply.outputs.player_distribution_id }}
       ADMIN_DISTRIBUTION_ID: ${{ needs.apply.outputs.admin_distribution_id }}
+      # Terraform outputs player_config / admin_config (compact JSON): each site's config.json values.
+      PLAYER_CONFIG: ${{ needs.apply.outputs.player_config }}
+      ADMIN_CONFIG: ${{ needs.apply.outputs.admin_config }}
     steps:
       - name: Work directory outside the checkout
         run: |
           echo "OUT=$RUNNER_TEMP/publish" >> "$GITHUB_ENV"
           mkdir -p "$RUNNER_TEMP/publish"
+          # The player site signs in against the player pool, the admin site against the operator pool.
+          printf '%s\n' "$PLAYER_CONFIG" > "$RUNNER_TEMP/publish/player-config.json"
+          printf '%s\n' "$ADMIN_CONFIG" > "$RUNNER_TEMP/publish/admin-config.json"
 
       - name: Checkout this workflow's scripts (nothing is built or installed)
         uses: actions/checkout@v7
@@ -518,7 +535,7 @@ jobs:
             echo "::group::$app: upload to s3://$bucket"
             python scripts/publish_static.py --app "$app" --manifest "$OUT/manifest.json" \
               --archive "$OUT/$app/archive.tar.gz" --bucket "$bucket" --release-id "$RELEASE_ID" \
-              --work "$OUT/$app/work" --summary "$OUT/$app/summary.json"
+              --site-config "$OUT/$app-config.json" --work "$OUT/$app/work" --summary "$OUT/$app/summary.json"
             echo "::endgroup::"
 
             local id
@@ -556,7 +573,8 @@ jobs:
             while read -r app distribution id paths; do echo "- $app (\`$distribution\`): \`$id\` $paths"; done < "$OUT/invalidations.txt"
           } >> "$GITHUB_STEP_SUMMARY"
 
-  # 7a. smoke: read-only HTTPS checks (H.8.6). No AWS credentials: plain GETs against public URLs.
+  # 7a. smoke: read-only HTTPS checks (H.8.6). No AWS credentials and no tokens: plain requests against public URLs,
+  # including every route in contracts/routes.json without a token (401 expected) on all four names (Phase 9).
   smoke:
     needs: [config, apply, publish]
     runs-on: ubuntu-24.04
@@ -580,18 +598,29 @@ jobs:
           ref: ${{ github.sha }}
           persist-credentials: false
 
+      # The route catalogue of the commit that was planned and applied (the same as github.sha in a one-run release;
+      # older when apply.yml is dispatched by hand), so the sweep checks the routes that were actually deployed.
+      - name: Checkout the released route catalogue (contracts/ only)
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.config.outputs.sha }}
+          path: _released
+          sparse-checkout: contracts
+          persist-credentials: false
+
       - name: Setup Python (version from .python-version)
         uses: actions/setup-python@v7
         with:
           python-version-file: .python-version
 
-      - name: Smoke checks (both *.cloudfront.net names; hostnames per DNS)
+      - name: Smoke checks (both *.cloudfront.net names; hostnames per DNS; every API route without a token)
         id: smoke
         run: |
           set +e
           python scripts/smoke.py --release-id "$RELEASE_ID" --hostname-mode "$HOSTNAME_MODE" \
             --site player "$PLAYER_DOMAIN" "$PLAYER_HOSTNAME" \
             --site admin "$ADMIN_DOMAIN" "$ADMIN_HOSTNAME" \
+            --routes _released/contracts/routes.json \
             --json-out "$RUNNER_TEMP/smoke.json" --markdown-out "$GITHUB_STEP_SUMMARY"
           rc=$?
           set -e
@@ -721,6 +750,9 @@ jobs:
           jq -r --arg prev "$PREVIOUS_RELEASE" --arg repo "$GITHUB_REPOSITORY" '
             def smoke_line: if .smoke.hostnamesLive then "green on both *.cloudfront.net names and both hostnames"
                             else "green on both *.cloudfront.net names; hostnames skipped (DNS not live)" end;
+            def api_line: if (.smoke.api.routesChecked // 0) == 0 then "not checked"
+                          else "\(.smoke.api.routesChecked) routes refused without a token (401) on \(.smoke.api.hostsChecked | length) names; " +
+                               "gateway 404: `\(.smoke.api.gateway.unknownRoute404.body // "not recorded")`" end;
             "# Release \(.releaseId)\n\n" +
             "| Field | Value |\n|---|---|\n" +
             "| Release ID | `\(.releaseId)` |\n" +
@@ -735,6 +767,7 @@ jobs:
             end) +
             "| Plan | \(.plan.summary.add) to add, \(.plan.summary.change) to change, \(.plan.summary.delete) to delete; Terraform \(.plan.terraformVersion) |\n" +
             "| Smoke | \(smoke_line) |\n" +
+            "| API smoke | \(api_line) |\n" +
             "| Finished | \(.finishedAt) |\n" +
             "| Previous release | \(if $prev == "none" then "none" else "`\($prev)`" end) |\n" +
             "| Record | `releases/\(.releaseId)/record.json` in the artefacts bucket |\n\n" +

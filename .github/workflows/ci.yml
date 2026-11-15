@@ -86,7 +86,7 @@ jobs:
         run: python3 -B tools/sim/selftest.py
 
   scripts:
-    name: scripts (G-5 invariants, plan guard, asset scan, manifest, CloudFront Function tests)
+    name: scripts (G-5 invariants, plan guard, route keys, asset scan, manifest, publish, smoke, CloudFront Function tests)
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -110,9 +110,15 @@ jobs:
         run: python -m pytest scripts/tests -q
 
   api:
-    name: api (ruff, pytest + moto, reproducible Lambda zips)
+    name: api (ruff, pytest + moto + DynamoDB Local, reproducible Lambda zips)
     runs-on: ubuntu-24.04
     timeout-minutes: 15
+    services:
+      # G-13: the same pinned image as release.yml's checks job.
+      dynamodb:
+        image: amazon/dynamodb-local:3.3.2@sha256:6ada631ec7aa5fc83446855eb17233e3dad184fec47477e8140c6c569cfe0c86
+        ports:
+          - 8000:8000
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -134,8 +140,19 @@ jobs:
       - name: Ruff
         run: ruff check --config api/pyproject.toml api scripts/build_lambdas.py scripts/tests/test_build_lambdas.py
 
-      - name: Pytest
-        run: python -m pytest api
+      - name: Wait for DynamoDB Local
+        run: |
+          for _ in $(seq 1 30); do
+            if curl -s -o /dev/null http://localhost:8000; then echo "DynamoDB Local is up"; exit 0; fi
+            sleep 1
+          done
+          echo "::error::DynamoDB Local did not answer on localhost:8000"; exit 1
+
+      # DDB_LOCAL_ENDPOINT makes the ddblocal tests (G-13) run and required (unreachable is an error, not a skip).
+      - name: Pytest (unit with moto; integration with DynamoDB Local)
+        env:
+          DDB_LOCAL_ENDPOINT: http://localhost:8000
+        run: python -m pytest api -rs
 
       # The build-script tests again, here where the runtime packages are installed, so the zip import test runs
       # (it is skipped in the `scripts` job).
