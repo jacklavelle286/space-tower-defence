@@ -1,6 +1,7 @@
 name: terraform-per-env
 
-# Manual Terraform plan / apply / destroy for infrastructure/main.
+# Manual Terraform plan / apply for infrastructure/main (interim, until release.yml + apply.yml replace it).
+# There is deliberately no destroy action (plan H.7, ADR-0010).
 # Adapted from the owner's existing pattern (workflow_dispatch, env JSON files read with jq, OIDC role, account guard).
 # Changes: this repo's CI role and state bucket, S3 native locking, saved plan applied in the same job,
 # no application secrets, Terraform version from the env files.
@@ -22,12 +23,7 @@ on:
         options:
           - plan
           - apply
-          - destroy
         default: plan
-      confirm:
-        description: "Type CONFIRM to allow destroy in prod"
-        required: false
-        default: ""
 
 permissions:
   id-token: write # needed to request the GitHub OIDC token
@@ -52,11 +48,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-
-      - name: Refuse destroy in prod without confirmation
-        if: ${{ inputs.action == 'destroy' && inputs.env == 'prod' }}
-        run: |
-          [[ "${{ inputs.confirm }}" == "CONFIRM" ]] || { echo "Destroy in prod requires confirm=CONFIRM"; exit 1; }
 
       - name: Load shared and env-specific vars
         id: vars
@@ -118,12 +109,10 @@ jobs:
 
       - name: Terraform plan
         run: |
-          DESTROY=""
-          [[ "${{ inputs.action }}" == "destroy" ]] && DESTROY="-destroy"
-          terraform plan -input=false $DESTROY ${{ steps.vars.outputs.var_files }} -out=tfplan
+          terraform plan -input=false ${{ steps.vars.outputs.var_files }} -out=tfplan
           terraform show -no-color tfplan > plan.txt
           { echo '### Terraform plan (${{ inputs.action }})'; echo '```'; tail -n 60 plan.txt; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Terraform apply (the exact saved plan)
-        if: ${{ inputs.action == 'apply' || inputs.action == 'destroy' }}
+        if: ${{ inputs.action == 'apply' }}
         run: terraform apply -input=false tfplan
