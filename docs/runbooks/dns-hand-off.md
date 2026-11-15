@@ -23,7 +23,7 @@ The zone will later move to a shared DNS account; see [Moving the zone](#moving-
 |---|---|---|---|---|
 | 1 | `_<token>.aliens.jackgl.com.` (validation for `aliens.jackgl.com`) | CNAME | `terraform output acm_validation_records`, or `aws acm describe-certificate` while the first apply waits | Phase 2, during the interim pipeline's apply |
 | 2 | `_<token>.admin.aliens.jackgl.com.` (validation for `admin.aliens.jackgl.com`) | CNAME | same | same |
-| 3 | `aliens.jackgl.com` | A **and** AAAA alias | `player_distribution_domain`; alias zone `cloudfront_hosted_zone_id` = `Z2FDTNDATAQYW2`; evaluate target health = no | Phase 4, after the first release |
+| 3 | `aliens.jackgl.com` | A **and** AAAA alias | `player_distribution_domain`; alias zone `cloudfront_hosted_zone_id` = `Z2FDTNDATAQYW2`; evaluate target health = no | Phase 4, after the first `apply.yml` succeeds |
 | 4 | `admin.aliens.jackgl.com` | A **and** AAAA alias | `admin_distribution_domain`; same zone ID | Phase 4, same |
 
 The `<token>` parts and the CNAME values (ending `.acm-validations.aws.`) are only known once ACM has received the request, so
@@ -39,6 +39,10 @@ Nothing else needs DNS: the API is same-origin (`/api/*` on each site), the Cogn
 uses its regional S3 endpoint.
 
 ## Phase 2: validation CNAMEs (records 1 and 2)
+
+Done in Phase 2, through the interim workflow `terraform-per-env` (`tf-apply-destroy-env.yml`, deleted in Phase 4). The steps
+stay as a record. If the certificate ever has to be requested again, the same steps apply with `release.yml` then `apply.yml`
+in place of the interim `plan` and `apply` dispatches.
 
 1. Run DNS-2 and DNS-3 below if more than a few days have passed since the results recorded here.
 2. Dispatch `terraform-per-env` with `action = plan`. The plan should show `module.certificate.aws_acm_certificate.this` and
@@ -120,8 +124,130 @@ the same names in the same account ACM normally gives the same CNAMEs, so record
 
 ## Phase 4: alias records (records 3 and 4)
 
-Written in full at Phase 4. Shape, per hostname: two records (A and AAAA), each an alias to the distribution domain from
-`terraform output`, alias hosted zone `Z2FDTNDATAQYW2`, evaluate target health off, action `CREATE`.
+Four records: A and AAAA (IPv6 is on) for each hostname, each an alias to that site's distribution. Create them **only after
+`apply.yml` has succeeded**: before that the distributions, and so the alias targets, do not exist. A record that points at a
+distribution which does not list the hostname as an alternate domain name just returns errors; a distribution that does list it
+is exactly what the apply creates.
+
+1. **Get the two distribution domains** (read-only, workload account). Either from the apply run's summary ("Applied plan N"
+   table: `player_distribution_domain`, `admin_distribution_domain`, `cloudfront_hosted_zone_id`), or:
+
+   ```sh
+   aws cloudfront list-distributions --profile space-tower-defence \
+     --query "DistributionList.Items[].[Aliases.Items[0],DomainName,Status]" --output table
+   ```
+
+   Expect `aliens.jackgl.com` and `admin.aliens.jackgl.com`, each with a `d…cloudfront.net` domain and status `Deployed`.
+   Check each answers before creating any record:
+
+   ```sh
+   curl -sI https://<player-domain>.cloudfront.net/ | head -1        # HTTP/2 200
+   curl -sI https://<admin-domain>.cloudfront.net/ | head -1         # HTTP/2 200
+   ```
+
+2. **Check nothing exists yet for the two names** (DNS account, read-only). Both commands should print nothing:
+
+   ```sh
+   aws route53 list-resource-record-sets --profile productivity-prod --hosted-zone-id Z015416730SXD3BLJNAR2 \
+     --query "ResourceRecordSets[?Name=='aliens.jackgl.com.' || Name=='admin.aliens.jackgl.com.']" --output text
+   dig +short aliens.jackgl.com; dig +short admin.aliens.jackgl.com
+   ```
+
+3. **Create the four records** in one change batch. Replace the two `<…>` domains with step 1's values (keep the trailing dot).
+   `Z2FDTNDATAQYW2` is CloudFront's fixed alias zone ID (the `cloudfront_hosted_zone_id` output); it is **not** the
+   `jackgl.com` zone, which goes in `--hosted-zone-id`.
+
+   ```sh
+   cat > /tmp/aliens-alias.json <<'JSON'
+   {
+     "Comment": "Alias records for aliens.jackgl.com and admin.aliens.jackgl.com (space-tower-defence), after the first apply.",
+     "Changes": [
+       {
+         "Action": "CREATE",
+         "ResourceRecordSet": {
+           "Name": "aliens.jackgl.com.",
+           "Type": "A",
+           "AliasTarget": { "HostedZoneId": "Z2FDTNDATAQYW2", "DNSName": "<player-domain>.cloudfront.net.", "EvaluateTargetHealth": false }
+         }
+       },
+       {
+         "Action": "CREATE",
+         "ResourceRecordSet": {
+           "Name": "aliens.jackgl.com.",
+           "Type": "AAAA",
+           "AliasTarget": { "HostedZoneId": "Z2FDTNDATAQYW2", "DNSName": "<player-domain>.cloudfront.net.", "EvaluateTargetHealth": false }
+         }
+       },
+       {
+         "Action": "CREATE",
+         "ResourceRecordSet": {
+           "Name": "admin.aliens.jackgl.com.",
+           "Type": "A",
+           "AliasTarget": { "HostedZoneId": "Z2FDTNDATAQYW2", "DNSName": "<admin-domain>.cloudfront.net.", "EvaluateTargetHealth": false }
+         }
+       },
+       {
+         "Action": "CREATE",
+         "ResourceRecordSet": {
+           "Name": "admin.aliens.jackgl.com.",
+           "Type": "AAAA",
+           "AliasTarget": { "HostedZoneId": "Z2FDTNDATAQYW2", "DNSName": "<admin-domain>.cloudfront.net.", "EvaluateTargetHealth": false }
+         }
+       }
+     ]
+   }
+   JSON
+
+   aws route53 change-resource-record-sets --profile productivity-prod \
+     --hosted-zone-id Z015416730SXD3BLJNAR2 --change-batch file:///tmp/aliens-alias.json
+   ```
+
+   `CREATE` again, never `UPSERT` (DNS-1): if any of the four already exists the whole batch fails and nothing changes. The
+   command prints a change ID; `aws route53 get-change --profile productivity-prod --id <id>` shows `INSYNC` within a minute.
+   Console alternative: Create record → name `aliens` (then `admin.aliens`) → type A → Alias on → "Alias to CloudFront
+   distribution" → pick the distribution → Evaluate target health off; repeat with type AAAA.
+
+4. **Verify** (read-only):
+
+   ```sh
+   dig +short A aliens.jackgl.com; dig +short AAAA aliens.jackgl.com              # CloudFront addresses
+   dig +short A admin.aliens.jackgl.com; dig +short AAAA admin.aliens.jackgl.com
+   curl -sI https://aliens.jackgl.com/ | head -1                                    # HTTP/2 200
+   curl -sI https://aliens.jackgl.com/index.html | grep -i cache-control            # cache-control: no-cache
+   curl -sI https://admin.aliens.jackgl.com/ | head -1                              # HTTP/2 200
+   curl -s https://aliens.jackgl.com/config.json                                    # {"apiBase":"/api","releaseId":"…"}
+   curl -sv https://aliens.jackgl.com/ -o /dev/null 2>&1 | grep -E 'subject:|issuer:'  # CN=aliens.jackgl.com, Amazon
+   ```
+
+   Or run the release's own smoke checks from the laptop (plain HTTPS GETs, no AWS credentials; the release ID is in
+   `config.json`):
+
+   ```sh
+   python3 scripts/smoke.py --release-id <release_id> --hostname-mode require \
+     --site player <player-domain>.cloudfront.net aliens.jackgl.com \
+     --site admin <admin-domain>.cloudfront.net admin.aliens.jackgl.com
+   ```
+
+   Then open both sites in a browser and check the padlock shows the certificate for `aliens.jackgl.com`.
+
+5. **Check the apex still answers as before** (DNS-1). Only the four new records may have appeared:
+
+   ```sh
+   curl -sI https://jackgl.com/ | head -1; curl -sI https://www.jackgl.com/ | head -1
+   aws route53 list-resource-record-sets --profile productivity-prod --hosted-zone-id Z015416730SXD3BLJNAR2 \
+     --query "ResourceRecordSets[].[Name,Type]" --output text
+   ```
+
+   Expected: the apex A, `www` A, NS, SOA, the two apex ACM CNAMEs, our two validation CNAMEs and the four new aliases.
+
+6. **Make the hostname smoke checks count.** The first apply could only report the hostnames as "skipped: DNS not live"
+   ([H §H.8.6](../plan/H-infrastructure-and-delivery.md#h86-smoke-checks-step-7-read-only)). Dispatch `release.yml` and then
+   `apply.yml` once more (the plan should show no changes). That release's smoke job finds the hostnames resolving, so it must
+   pass on them; its `releases/latest.json` then records `hostnamesLive: true`, and every later release fails if either hostname
+   stops answering. This second release is the Phase 4 exit evidence "smoke green on both hostnames".
+
+To undo (only if something is wrong before anyone uses the sites): the same change batch with `"Action": "DELETE"` and the same
+values removes exactly these four records.
 
 ## Checks
 

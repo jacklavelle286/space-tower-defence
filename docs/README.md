@@ -57,10 +57,13 @@ The art is hand-drawn SVG made in this repository, rendered to PNG by [tools/art
 | [art/chatgpt-asset-prompts.md](art/chatgpt-asset-prompts.md) | **Historical.** The ChatGPT prompt pack, not used: the art was drawn in-repo instead. STYLE.md still builds on its style bible (section 2) |
 | [art/single-conversation-sequence.md](art/single-conversation-sequence.md) | **Historical.** Running order for the ChatGPT route, not used |
 
+## Releases
+
+[releases/](releases/): one short entry per production release ([format](releases/README.md)).
+
 ## Planned folders (to create)
 
 | Folder | For |
 |---|---|
-| `runbooks/` | Restore, rollback, DNS hand-off and operator procedures |
-| `releases/` | One short entry per production release |
+| `runbooks/` | Restore, rollback and operator procedures (the DNS hand-off runbook exists: [runbooks/dns-hand-off.md](runbooks/dns-hand-off.md)) |
 | `validation/` | Playtests, performance, acceptance evidence, browser matrix |

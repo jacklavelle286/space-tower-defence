@@ -19,7 +19,7 @@ and [spine S0.1](docs/plan/00-spine.md#s01-way-of-working-confirmed-by-owner-202
   (`P<nn> <area>: <summary>`, J task IDs and checks in the body). Claude or the owner may commit and push to `main`.
 - **Deployment only through GitHub Actions**, by manual workflow dispatch in the GitHub UI. Never deploy from the laptop, except
   the owner's bootstrap apply (below).
-- **The owner dispatches every deploying workflow** (the interim pipeline, `release.yml`, `apply.yml`, spike runs) after approving
+- **The owner dispatches every deploying workflow** (`release.yml`, `apply.yml`, spike runs) after approving
   the gate. Claude does not dispatch them, even if `gh` is authenticated.
 - **Never run `terraform apply` locally on [infrastructure/main](infrastructure/main/).** Fine locally: `terraform fmt`,
   `validate`, `init -backend=false`, `plan` with read-only credentials, and read-only AWS calls (`describe-*`, `get-*`,
@@ -66,13 +66,14 @@ Exists now:
 | [tools/art/](tools/art/) | Render, gallery and preview scripts |
 | [tools/sim/](tools/sim/) | Balance simulator |
 | [infrastructure/](infrastructure/) | `bootstrap/` (owner-applied), `main/` (pipeline-applied), `envs/` (tfvars JSON) |
-| [.github/workflows/](.github/workflows/) | `oidc-smoke.yml` and the interim `tf-apply-destroy-env.yml` (plan and apply only) |
+| [.github/workflows/](.github/workflows/) | `ci.yml` (push checks), `release.yml` then `apply.yml` (the two release dispatches), `plan.yml` (drift check), `oidc-smoke.yml`. The interim `tf-apply-destroy-env.yml` was deleted in Phase 4 |
+| [scripts/](scripts/) | Release tooling (manifest, plan guard, asset scan, apply guard, publish, smoke) and its tests in `scripts/tests/` |
+| [docs/runbooks/](docs/runbooks/), [docs/releases/](docs/releases/) | Runbooks (DNS hand-off); one entry per production release |
 | [web/player/public/assets/](web/player/public/assets/) | Rendered game PNGs. Do not overwrite when scaffolding `web/` |
 
 Planned (not yet created; see [E §E.5.1](docs/plan/E-architecture.md#e51-workspace-layout-all-to-create) and
 [H §H.2](docs/plan/H-infrastructure-and-delivery.md#h2-repository-layout-after-this-plan)): `web/{game-core,player,admin,shared}`,
-`contracts/`, `api/`, `game-data/`, `content/`, `scripts/`, `spikes/`, `infrastructure/modules/`,
-`docs/{runbooks,releases,validation}/`, and the workflows `ci.yml`, `release.yml`, `apply.yml`, `plan.yml`.
+`contracts/`, `api/`, `game-data/`, `content/`, `spikes/`, more `infrastructure/modules/`, `docs/validation/`.
 
 ## Toolchain
 

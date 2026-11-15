@@ -50,7 +50,7 @@ The state of `main` at commit `f88439c`, after the Phase 0 commits `8e669ff` and
 | `infrastructure/modules/` | Does not exist | **[VERIFIED]** |
 | Env files | `common.auto.tfvars.json` holds `project`, `region`, `trusted_subs`, `role_policy_arns`, `terraform_version` (`1.17.2`, [common.auto.tfvars.json:8](../../infrastructure/envs/common.auto.tfvars.json#L8)). `prod.tfvars.json` holds `environment`, `aws_account_id`, `role_policy_arns`. | **[VERIFIED]** |
 | Terraform | Local CLI 1.17.2. The bootstrap root requires `>= 1.10.0` ([main.tf:2](../../infrastructure/bootstrap/main.tf#L2)) and AWS provider `>= 6.0, < 7.0` ([main.tf:7](../../infrastructure/bootstrap/main.tf#L7)); its lock file has 6.73.0. | **[VERIFIED]** |
-| Workflows | The verbatim copies from the reference product arrived in `8e669ff` ([deploy.yml](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml), [tf-apply-destroy-env.yml](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/tf-apply-destroy-env.yml); [A §4](A-repository-findings.md#4-the-two-workflow-files-what-they-reference-that-does-not-exist-here)). `dee3f51` deleted `deploy.yml`, rewrote [tf-apply-destroy-env.yml](../../.github/workflows/tf-apply-destroy-env.yml) as the interim Phase 0 plan/apply pipeline (it still offers `destroy` until J M0-01 removes it) and added [oidc-smoke.yml](../../.github/workflows/oidc-smoke.yml). | **[VERIFIED]** |
+| Workflows | The verbatim copies from the reference product arrived in `8e669ff` ([deploy.yml](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml), [tf-apply-destroy-env.yml](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/tf-apply-destroy-env.yml); [A §4](A-repository-findings.md#4-the-two-workflow-files-what-they-reference-that-does-not-exist-here)). `dee3f51` deleted `deploy.yml`, rewrote [tf-apply-destroy-env.yml](https://github.com/jacklavelle286/space-tower-defence/blob/61160df0788cabc79f387f68e6713af878c172e3/.github/workflows/tf-apply-destroy-env.yml) as the interim Phase 0 plan/apply pipeline (it still offers `destroy` until J M0-01 removes it) and added [oidc-smoke.yml](../../.github/workflows/oidc-smoke.yml). | **[VERIFIED]** |
 | `.gitignore` | [.gitignore](../../.gitignore) exists (from `8e669ff`) and ignores `.terraform/` and `.terraform-*/`; H.16 is the checklist to review it against. | **[VERIFIED]** |
 
 ---
@@ -63,10 +63,10 @@ Only the `infrastructure/`, `.github/`, `scripts/` and root files are owned here
 ```
 space-tower-defence/
 ├── .github/workflows/
-│   ├── release.yml            (to create)  replaces the removed deploy.yml
-│   ├── apply.yml              (to create)  apply-a-reviewed-plan (second dispatch)
-│   ├── plan.yml               (to create)  plan-only drift check; replaces tf-apply-destroy-env.yml
-│   ├── tf-apply-destroy-env.yml (exists)  interim Phase 0 pipeline; deleted by J M1-10
+│   ├── release.yml            (exists)  replaces the removed deploy.yml
+│   ├── apply.yml              (exists)  apply-a-reviewed-plan (second dispatch)
+│   ├── plan.yml               (exists)  plan-only drift check; replaces tf-apply-destroy-env.yml
+│   ├── tf-apply-destroy-env.yml (deleted in Phase 4)  interim Phase 0 pipeline; deleted by J M1-10
 │   └── oidc-smoke.yml         (exists)  OIDC smoke test; kept afterwards as a manual workflow
 ├── infrastructure/
 │   ├── bootstrap/             (exists; owner-applied only; small edits and the artefacts bucket in H.5)
@@ -82,12 +82,13 @@ space-tower-defence/
 ├── game-data/                 (to create)  rulesets, planet documents, asset manifests (JSON); published (H.8.5)
 ├── content/seed/              (to create)  seed activities and speech drafts (JSON) for the seed script; never published
 ├── content/listening-verdicts.json  (to create)  per-sound listening verdicts read by gate G-14
-├── scripts/                   (to create)  build_lambdas.py, plan_guard.py, gamedata_lock_check.py, seed_content.py,
-│                                       restore_copy.py, verify_pins.py
+├── scripts/                   (exists)  release_manifest.py, s3_put_create_only.sh, plan_guard.py, scan_dist.py,
+│                                       apply_guard.py, publish_static.py, smoke.py; to create: build_lambdas.py,
+│                                       gamedata_lock_check.py, seed_content.py, restore_copy.py, verify_pins.py
 ├── tools/sim/                 (exists)  balance simulator; `python3 -B tools/sim/selftest.py`
 ├── spikes/                    (to create)  M0 spikes (auth, listening bake-off, scaffold)
 ├── docs/runbooks/             (to create)  restore, operator password reset, sign-up kill switch, rollback, speech withdrawal
-├── docs/releases/             (to create)  one short entry per production release
+├── docs/releases/             (exists)  one short entry per production release
 ├── docs/decisions/            (to create)  ADRs, including the M0 OIDC outcome (H.5)
 ├── docs/validation/           (to create)  playtests/, performance/, acceptance/, browsers.md (owned by I)
 ├── .gitignore                 (exists; reviewed against H.16)
@@ -420,7 +421,7 @@ left blank here.
 
 | File | Key | Value | Read by | Label |
 |---|---|---|---|---|
-| `common.auto.tfvars.json` | `terraform_version` | `1.17.2` (your local CLI) | CI `setup-terraform`. Already set ([common.auto.tfvars.json:8](../../infrastructure/envs/common.auto.tfvars.json#L8)); the interim workflow reads it at [tf-apply-destroy-env.yml:70](../../.github/workflows/tf-apply-destroy-env.yml#L70) and passes it to `setup-terraform` at [line 101](../../.github/workflows/tf-apply-destroy-env.yml#L101). | **[VERIFIED]** |
+| `common.auto.tfvars.json` | `terraform_version` | `1.17.2` (your local CLI) | CI `setup-terraform`. Already set ([common.auto.tfvars.json:8](../../infrastructure/envs/common.auto.tfvars.json#L8)); the interim workflow reads it at [tf-apply-destroy-env.yml:70](https://github.com/jacklavelle286/space-tower-defence/blob/61160df0788cabc79f387f68e6713af878c172e3/.github/workflows/tf-apply-destroy-env.yml#L70) and passes it to `setup-terraform` at [line 101](https://github.com/jacklavelle286/space-tower-defence/blob/61160df0788cabc79f387f68e6713af878c172e3/.github/workflows/tf-apply-destroy-env.yml#L101). | **[VERIFIED]** |
 | `common.auto.tfvars.json` | `trusted_subs` | narrowed (H.5 B-1, B-2) | bootstrap | **[PROPOSAL]** |
 | `prod.tfvars.json` | `domain_name` | `jackgl.com` | main | **[CONFIRMED]** value |
 | `prod.tfvars.json` | `player_hostname`, `admin_hostname` | `aliens.jackgl.com`, `admin.aliens.jackgl.com` | main | **[CONFIRMED]** values |
@@ -448,7 +449,7 @@ changes, which keeps "additional environments" possible (`prompt.md:976`). **[PR
 
 | # | Decision | Label |
 |---|---|---|
-| W-1 | `release.yml` takes over from the removed [deploy.yml](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml); `release.yml`, `apply.yml` and `plan.yml` together replace the interim [tf-apply-destroy-env.yml](../../.github/workflows/tf-apply-destroy-env.yml); `apply.yml` applies a reviewed plan; [oidc-smoke.yml](../../.github/workflows/oidc-smoke.yml) (M0) stays as a manual workflow. **No destroy workflow exists.** These pipelines are the only way anything reaches production ([spine S11.1](00-spine.md#s111-workflows)). | **[PROPOSAL]** spine S11.1; pipelines-only **[CONFIRMED by owner]** |
+| W-1 | `release.yml` takes over from the removed [deploy.yml](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml); `release.yml`, `apply.yml` and `plan.yml` together replace the interim [tf-apply-destroy-env.yml](https://github.com/jacklavelle286/space-tower-defence/blob/61160df0788cabc79f387f68e6713af878c172e3/.github/workflows/tf-apply-destroy-env.yml); `apply.yml` applies a reviewed plan; [oidc-smoke.yml](../../.github/workflows/oidc-smoke.yml) (M0) stays as a manual workflow. **No destroy workflow exists.** These pipelines are the only way anything reaches production ([spine S11.1](00-spine.md#s111-workflows)). | **[PROPOSAL]** spine S11.1; pipelines-only **[CONFIRMED by owner]** |
 | W-2 | All four are `workflow_dispatch` only, with `permissions: id-token: write, contents: read` (the reference habit, [deploy.yml:50-52](https://github.com/jacklavelle286/space-tower-defence/blob/8e669ff/.github/workflows/deploy.yml#L50-L52)). The job that pushes the release tag widens to `contents: write`. | **[PROPOSAL]** |
 | W-3 | Every job that assumes the CI role declares `environment: prod`, so its OIDC `sub` ends `:environment:prod` (spine S11.1). In the reviewer variant (W-5) only the apply job declares `prod-apply` instead. Under fallback B-3, no job declares an environment. Checks and builds that need no AWS access do not assume the role. | **[PROPOSAL]** spine S11.1 |
 | W-4 | **Default approval: two dispatches.** `release.yml` stops after the plan. You read the plan in the run summary, then dispatch `apply.yml` with `plan_run_id`; it fetches the saved plan from the artefacts bucket under `plans/<plan_run_id>/` (H.8.2 step 5). The plan is never a GitHub artefact, because on a public repository anyone with read access could download it, and it holds `notification_email` and the whole configuration ([sources/08-aws-data-ops.md](sources/08-aws-data-ops.md) §f.4). This works whatever the repository's visibility (D-13). | **[PROPOSAL]** spine S11.1 |
@@ -535,7 +536,7 @@ the site never points at infrastructure that does not exist yet.
 | 4 | approval | Default: the run ends with "dispatch `apply.yml` with plan_run_id = N". Reviewer mode: the apply job, on environment `prod-apply`, waits. | — | **[PROPOSAL]** |
 | 5 | `apply` (yes) | Downloads `plans/<plan_run_id>/plan.tar.gz` from the artefacts bucket; verifies it is for the same commit and that its SHA-256 matches the one recorded by the plan job; untars to the same path; `terraform apply -input=false tfplan`. If the state changed since the plan, Terraform refuses with "Saved plan is stale" ([sources/08-aws-data-ops.md](sources/08-aws-data-ops.md) §f.4); the answer is to re-run the release. Captures `terraform output -json`. | stale plan; digest mismatch; apply error | **[PROPOSAL]** |
 | 6 | `publish` (yes) | H.8.5. With `artefacts_from`, publishes that release's archived static build and game data. | any upload or invalidation error | **[PROPOSAL]** |
-| 7 | `smoke` + `record` (yes) | H.8.6; then write `releases/<release_id>/manifest.json` (final), `releases/latest.json`, a run summary, a git tag `release-<release_id>`, and a line in `docs/releases/` (in the next commit on `main`) | any smoke check | **[PROPOSAL]** |
+| 7 | `smoke` + `record` (yes) | H.8.6; then write `releases/<release_id>/record.json` (the final manifest, create-only; H.8.3), `releases/latest.json`, a run summary, a git tag `release-<release_id>`, and a line in `docs/releases/` (in the next commit on `main`) | any smoke check | **[PROPOSAL]** |
 
 Apply runs in step 5 even when the plan is empty (`-detailed-exitcode` 0). Static files can change without
 infrastructure changes, and the approval still covers what is published. **[PROPOSAL]**
@@ -546,7 +547,9 @@ infrastructure changes, and the approval still covers what is published. **[PROP
 |---|---|---|---|---|
 | `lambda/<key>/<sha256-hex>.zip` | One function zip | build | forever (tiny) | **[PROPOSAL]** |
 | `static/<build-hash>/player.tar.gz`, `…/admin.tar.gz` | The exact `dist/` trees published | build | forever | **[PROPOSAL]** |
-| `releases/<release_id>/manifest.json` | H.8.7 | build, completed by record | forever | **[PROPOSAL]** |
+| `releases/<release_id>/manifest.json` | H.8.7, build part | build (create-only, so never changed afterwards) | forever | **[PROPOSAL]** |
+| `releases/<release_id>/record.json` | H.8.7, complete: the build manifest plus plan, apply and smoke. This is how "completed by record" works under the create-only rule (H.9.1). Added in Phase 4 | record | forever | **[PROPOSAL]** |
+| `applied/<plan_run_id>.json` | Marker written create-only just before `terraform apply`; `scripts/apply_guard.py` refuses a plan that has a marker or is older than the newest marker (stale plan). Added in Phase 4 | apply | forever (tiny) | **[PROPOSAL]** |
 | `releases/latest.json` | Pointer to the last successful release | record | overwritten | **[PROPOSAL]** |
 | `plans/<run_id>/plan.tar.gz` (+ its SHA-256 in the manifest) | The saved plan with `.terraform/`, the lock file, the var file and the manifest | plan | 30 days (lifecycle rule, H.5 B-6) **[ASSUMPTION]** | **[PROPOSAL]** spine S11.1 |
 

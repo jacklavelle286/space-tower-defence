@@ -18,7 +18,8 @@ Decision:
    [infrastructure/bootstrap/artifacts.tf](../../infrastructure/bootstrap/artifacts.tf) beside the module call, not inside it.
    Public access blocked, BucketOwnerEnforced, SSE-S3, versioning, TLS-only policy, `prevent_destroy`, no `force_destroy`;
    incomplete multipart uploads aborted after 1 day; `plans/` expires after 30 days. Output: `artifacts_bucket_name`.
-4. No destroy path: the interim [tf-apply-destroy-env.yml](../../.github/workflows/tf-apply-destroy-env.yml) offers only `plan` and `apply`.
+4. No destroy path: the interim [tf-apply-destroy-env.yml](https://github.com/jacklavelle286/space-tower-defence/blob/61160df0788cabc79f387f68e6713af878c172e3/.github/workflows/tf-apply-destroy-env.yml) offers only `plan` and `apply`. (It was deleted in
+   Phase 4; `release.yml` and `apply.yml`, which replace it, have no destroy path either.)
 
 Alternatives:
 - Classic subject `repo:jacklavelle286/space-tower-defence:environment:prod`: not what GitHub sends for this repository.

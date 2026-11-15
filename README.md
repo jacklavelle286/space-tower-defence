@@ -14,9 +14,10 @@ It will run as two static web apps (player and admin) on AWS, with a small Pytho
 ## How deploys work
 
 Only through GitHub Actions, by manual workflow dispatch on `main`. Nothing is applied from a laptop, except the bootstrap root
-([infrastructure/bootstrap](infrastructure/bootstrap/)), which creates the CI role's trust and is applied by the owner. Until the
-release pipeline exists, the interim workflow is
-[tf-apply-destroy-env.yml](.github/workflows/tf-apply-destroy-env.yml) (plan and apply only; no destroy).
+([infrastructure/bootstrap](infrastructure/bootstrap/)), which creates the CI role's trust and is applied by the owner. A
+release is two dispatches: [release.yml](.github/workflows/release.yml) (checks, build and a saved plan), then
+[apply.yml](.github/workflows/apply.yml) with that run's ID (apply the saved plan, publish, smoke checks, record). Releases are
+listed in [docs/releases/](docs/releases/). The interim workflow [tf-apply-destroy-env.yml](https://github.com/jacklavelle286/space-tower-defence/blob/61160df0788cabc79f387f68e6713af878c172e3/.github/workflows/tf-apply-destroy-env.yml) was deleted in Phase 4.
 
 ## Repository layout
 
