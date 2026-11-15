@@ -1,5 +1,10 @@
 # Single-conversation sequence — every ChatGPT image in one conversation
 
+> **Superseded (2026-11-15).** The ChatGPT route is no longer used. Every image in the [asset catalogue](asset-catalogue.json) is
+> now drawn as SVG in `art/svg/` (house style `art/STYLE.md`) and rendered by [tools/art/render.py](../../tools/art/render.py);
+> see the [gallery](gallery.html). This file is kept for reference only.
+> **Cast changed (2026-11-15):** every human character is now a white European man; see `art/STYLE.md` section 6.
+
 **Status:** paste-ready running order for making every ChatGPT-generated image in **one** ChatGPT conversation, in order.
 **Source of truth:** [`chatgpt-asset-prompts.md`](chatgpt-asset-prompts.md) (the pack). Each step below is a pack card in a shorter
 form: it relies on the STYLE BIBLE you have already pasted, but keeps every specific requirement of the card (subject, pose and

@@ -403,23 +403,23 @@
       <g id="s32-helmet">
         <circle id="s32-glass" cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none" />
         <g id="s32-head" stroke-width="4">
-          <g id="s32-hair-puffs" fill="#1E1A24">
-            <path d="M110.0 76.4 A6.1 6.1 0 0 1 103.2 83.7 A6.1 6.1 0 0 1 93.2 83.0 A6.1 6.1 0 0 1 87.6 74.7 A6.1 6.1 0 0 1 90.6 65.2 A6.1 6.1 0 0 1 99.9 61.5 A6.1 6.1 0 0 1 108.5 66.5 A6.1 6.1 0 0 1 110.0 76.4 Z" />
-            <path d="M167.9 73.1 A5.8 5.8 0 0 1 163.0 81.2 A5.8 5.8 0 0 1 153.5 82.4 A5.8 5.8 0 0 1 146.7 75.8 A5.8 5.8 0 0 1 147.6 66.3 A5.8 5.8 0 0 1 155.6 61.1 A5.8 5.8 0 0 1 164.7 64.1 A5.8 5.8 0 0 1 167.9 73.1 Z" />
-          </g>
-          <circle id="s32-face" cx="128" cy="98" r="29" fill="#FCE0CF" />
-          <path id="s32-face-shade" clip-path="url(#s32-face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#F2C3AA" stroke="none" />
-          <path id="s32-fringe" d="M99 93 Q98 68 128 67 Q158 68 157 91 Q153 83 147 85 Q142 77 134 82 Q127 75 120 82 Q111 77 99 93 Z" fill="#1E1A24" />
+          <path id="s32-hair-back" d="M100.9 111.3 A5.7 5.7 0 0 1 97.3 101.9 A5.7 5.7 0 0 1 96.9 91.7 A5.7 5.7 0 0 1 99.8 82 A5.7 5.7 0 0 1 105.7 73.7 A5.7 5.7 0 0 1 113.9 67.7 A5.7 5.7 0 0 1 123.5 64.7 A5.7 5.7 0 0 1 133.7 64.9 A5.7 5.7 0 0 1 143.2 68.3 A5.7 5.7 0 0 1 151.2 74.6 A5.7 5.7 0 0 1 156.7 83.1 A5.7 5.7 0 0 1 159.2 93 L128 103.8 Z" fill="#1E1A24"/>
+          <circle id="s32-face" cx="128" cy="98" r="29" fill="#FCE0CF"/>
+          <path id="s32-face-shade" clip-path="url(#s32-face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#F2C3AA" stroke="none"/>
+          <path id="s32-fringe" d="M98.5 90.6 Q97.9 70.5 128 67.5 Q157.9 70.5 157.3 89.6 A4.5 4.5 0 0 1 149.7 89.7 A4.9 4.9 0 0 1 142 87.2 A4.9 4.9 0 0 1 134 86 A5 5 0 0 1 125.6 86 A5.3 5.3 0 0 1 116.8 87.2 A5.7 5.7 0 0 1 107.7 89.7 A5.6 5.6 0 0 1 98.5 90.6 Z" fill="#1E1A24"/>
+          <path d="M113 75.5 Q113.5 71 117 71.5" fill="none" stroke="#4A4458" stroke-width="2.5"/>
+          <path d="M129 72.5 Q129.5 68 133 68.5" fill="none" stroke="#4A4458" stroke-width="2.5"/>
+          <path d="M143 77.5 Q143.5 73 147 73.5" fill="none" stroke="#4A4458" stroke-width="2.5"/>
           <g id="s32-face-features" stroke="none">
-            <ellipse cx="120" cy="101" rx="4.6" ry="6" fill="#2A1E3D" />
-            <ellipse cx="142" cy="100" rx="4.6" ry="6" fill="#2A1E3D" />
-            <circle cx="121.6" cy="98.3" r="1.9" fill="#FFFFFF" />
-            <circle cx="143.6" cy="97.3" r="1.9" fill="#FFFFFF" />
-            <ellipse cx="111" cy="110" rx="6.5" ry="4.2" fill="#F48A9A" opacity="0.75" />
-            <ellipse cx="152" cy="109" rx="5" ry="3.8" fill="#F48A9A" opacity="0.75" />
+            <ellipse cx="120" cy="101" rx="4.6" ry="6" fill="#2A1E3D"/>
+            <ellipse cx="142" cy="100" rx="4.6" ry="6" fill="#2A1E3D"/>
+            <circle cx="121.6" cy="98.3" r="1.9" fill="#FFFFFF"/>
+            <circle cx="143.6" cy="97.3" r="1.9" fill="#FFFFFF"/>
+            <ellipse cx="111" cy="110" rx="6.5" ry="4.2" fill="#F48A9A" opacity="0.75"/>
+            <ellipse cx="152" cy="109" rx="5" ry="3.8" fill="#F48A9A" opacity="0.75"/>
           </g>
-          <path id="s32-mouth" d="M122 109 H146 Q144 122 134 122 Q124 122 122 109 Z" fill="#FFFFFF" stroke-width="3.5" />
-          <path d="M127 118 Q134 114 141 118 Q138 121.5 134 121.5 Q130 121.5 127 118 Z" fill="#F27C8C" stroke="none" />
+          <path id="s32-mouth" d="M122 109 H146 Q144 122 134 122 Q124 122 122 109 Z" fill="#FFFFFF" stroke-width="3.5"/>
+          <path d="M127 118 Q134 114 141 118 Q138 121.5 134 121.5 Q130 121.5 127 118 Z" fill="#F27C8C" stroke="none"/>
         </g>
         <g id="s32-visor-rim">
           <path d="M83 121 Q126 152 169 121" fill="none" stroke-width="16" />
@@ -533,32 +533,32 @@
       <g id="s33-helmet">
         <circle id="s33-glass" cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none" />
         <g id="s33-head" stroke-width="4">
-          <circle id="s33-face" cx="128" cy="98" r="29" fill="#FBE4D5" />
-          <path id="s33-face-shade" clip-path="url(#s33-face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#EFC6AE" stroke="none" />
-          
-          <path id="s33-fringe" d="M99 93 Q97 74 110 68 Q106 59 115 55 Q117 63 124 64 Q126 53 137 53 Q134 61 140 65 Q148 60 153 64 Q148 68 150 72 Q158 79 157 91 Q152 82 144 85 Q140 77 132 82 Q125 76 118 82 Q110 77 99 93 Z" fill="#E07A3C" />
+          <circle id="s33-face" cx="128" cy="98" r="29" fill="#FBE4D5"/>
+          <path id="s33-face-shade" clip-path="url(#s33-face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#EFC6AE" stroke="none"/>
+          <!-- tufty ginger hair: a cap with three rounded tufts sticking up -->
+          <path id="s33-fringe" d="M99 93 Q97 74 110 68 Q106 59 115 55 Q117 63 124 64 Q126 53 137 53 Q134 61 140 65 Q148 60 153 64 Q148 68 150 72 Q158 79 157 91 Q152 82 144 85 Q140 77 132 82 Q125 76 118 82 Q110 77 99 93 Z" fill="#E07A3C"/>
           <path d="M108 77 Q113 70 121 69" fill="none" stroke="#F4A673" stroke-width="3" />
           <g id="s33-face-features" stroke="none">
-            <ellipse cx="120" cy="101" rx="4.6" ry="6" fill="#2A1E3D" />
-            <ellipse cx="142" cy="100" rx="4.6" ry="6" fill="#2A1E3D" />
-            <circle cx="121.6" cy="98.3" r="1.9" fill="#FFFFFF" />
-            <circle cx="143.6" cy="97.3" r="1.9" fill="#FFFFFF" />
-            
-            <ellipse cx="111" cy="111" rx="7.5" ry="5" fill="#F48A9A" opacity="0.7" />
-            <ellipse cx="152" cy="110" rx="5.8" ry="4.4" fill="#F48A9A" opacity="0.7" />
-            
+            <ellipse cx="120" cy="101" rx="4.6" ry="6" fill="#2A1E3D"/>
+            <ellipse cx="142" cy="100" rx="4.6" ry="6" fill="#2A1E3D"/>
+            <circle cx="121.6" cy="98.3" r="1.9" fill="#FFFFFF"/>
+            <circle cx="143.6" cy="97.3" r="1.9" fill="#FFFFFF"/>
+            <!-- round cheeks, a little bigger than Nova's -->
+            <ellipse cx="111" cy="111" rx="7.5" ry="5" fill="#F48A9A" opacity="0.75"/>
+            <ellipse cx="152" cy="110" rx="5.8" ry="4.4" fill="#F48A9A" opacity="0.75"/>
+            <!-- freckles over the nose and cheeks -->
             <g id="s33-freckles" fill="#B5653F">
-              <circle cx="106.5" cy="106" r="2.2" />
-              <circle cx="112.5" cy="105" r="2.2" />
-              <circle cx="109.5" cy="110" r="2.2" />
-              <circle cx="148.5" cy="106.5" r="2.2" />
-              <circle cx="153.5" cy="105" r="2.2" />
-              <circle cx="151" cy="110" r="2.2" />
+              <circle cx="106.5" cy="106" r="2.2"/>
+              <circle cx="112.5" cy="105" r="2.2"/>
+              <circle cx="109.5" cy="110" r="2.2"/>
+              <circle cx="148.5" cy="106.5" r="2.2"/>
+              <circle cx="153.5" cy="105" r="2.2"/>
+              <circle cx="151" cy="110" r="2.2"/>
             </g>
           </g>
-          
-          <path id="s33-mouth" d="M124 111 Q134 116 144 110 Q142 121 134 121 Q126 121 124 111 Z" fill="#FFFFFF" stroke-width="3.5" />
-          <path d="M128 118 Q134 115 140 118 Q137 120.5 134 120.5 Q131 120.5 128 118 Z" fill="#F27C8C" stroke="none" />
+          <!-- playful smile with a little tongue -->
+          <path id="s33-mouth" d="M124 111 Q134 116 144 110 Q142 121 134 121 Q126 121 124 111 Z" fill="#FFFFFF" stroke-width="3.5"/>
+          <path d="M128 118 Q134 115 140 118 Q137 120.5 134 120.5 Q131 120.5 128 118 Z" fill="#F27C8C" stroke="none"/>
         </g>
         <g id="s33-visor-rim">
           <path d="M83 121 Q126 152 169 121" fill="none" stroke-width="16" />
@@ -659,22 +659,23 @@
       <g id="s34-helmet">
         <circle id="s34-glass" cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none" />
         <g id="s34-head" stroke-width="4">
-          <path id="s34-hair-bob" d="M94 113 Q88 62 128 61 Q168 62 162 113 Q162 119 155 119 H101 Q94 119 94 113 Z" fill="#1E1A24" />
-          <circle id="s34-face" cx="128" cy="98" r="29" fill="#D9A27A" />
-          <path id="s34-face-shade" clip-path="url(#s34-face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#BC855F" stroke="none" />
-          <path id="s34-fringe" d="M99 95 Q96 64 128 63 Q160 64 157 93 Q156 84 149 84 H107 Q100 84 99 95 Z" fill="#1E1A24" />
-          <path id="s34-hair-sheen" d="M108 76 Q116 70 126 70" fill="none" stroke="#3B2A24" stroke-width="3.5" />
+          <path id="s34-hair-back" d="M100 106 Q90 92 95 76 Q104 62 128 62 L128 84 Z" fill="#E8C15A"/>
+          <circle id="s34-face" cx="128" cy="98" r="29" fill="#F7D7C4"/>
+          <path id="s34-face-shade" clip-path="url(#s34-face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#EBBDA5" stroke="none"/>
+          <path id="s34-fringe" d="M100 104 Q95 66 128 64 Q158 65 158 90 Q153 82 147 83 Q149 88 147 92 Q134 80 114 83 Q106 85 105 92 L105 102 Q103 106 100 104 Z" fill="#E8C15A"/>
+          <path id="s34-hair-shade" d="M150 72 Q156 78 156 86 M132 74 Q142 76 147 83" fill="none" stroke="#C9A13E" stroke-width="3"/>
+          <path id="s34-hair-sheen" d="M108 76 Q116 70 126 70" fill="none" stroke="#FFEA99" stroke-width="3.5"/>
           <g id="s34-face-features" stroke="none">
-            <ellipse cx="120" cy="101" rx="4.6" ry="6" fill="#2A1E3D" />
-            <ellipse cx="142" cy="100" rx="4.6" ry="6" fill="#2A1E3D" />
-            <circle cx="121.6" cy="98.3" r="1.9" fill="#FFFFFF" />
-            <circle cx="143.6" cy="97.3" r="1.9" fill="#FFFFFF" />
-            <ellipse cx="111" cy="110" rx="6" ry="3.8" fill="#E8806E" opacity="0.6" />
-            <ellipse cx="152" cy="109" rx="4.6" ry="3.4" fill="#E8806E" opacity="0.6" />
+            <ellipse cx="120" cy="101" rx="4.6" ry="6" fill="#2A1E3D"/>
+            <ellipse cx="142" cy="100" rx="4.6" ry="6" fill="#2A1E3D"/>
+            <circle cx="121.6" cy="98.3" r="1.9" fill="#FFFFFF"/>
+            <circle cx="143.6" cy="97.3" r="1.9" fill="#FFFFFF"/>
+            <ellipse cx="111" cy="110" rx="6.5" ry="4.2" fill="#F48A9A" opacity="0.75"/>
+            <ellipse cx="152" cy="109" rx="5" ry="3.8" fill="#F48A9A" opacity="0.75"/>
           </g>
           <g id="s34-mouth" fill="none" stroke-width="3.5">
-            <path d="M123 111 Q134 120 146 108" />
-            <path d="M143.5 106 L148 104.5" stroke-width="4" />
+            <path d="M123 111 Q134 120 146 108"/>
+            <path d="M143.5 106 L148 104.5" stroke-width="4"/>
           </g>
         </g>
         <g id="s34-visor-rim">
@@ -797,29 +798,29 @@
       <g id="s35-helmet">
         <circle id="s35-glass" cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none" />
         <g id="s35-head" stroke-width="4">
-          
-          <path id="s35-hair-back" d="M97 108 Q88 96 94 84 Q90 72 101 66 Q104 56 117 57 Q126 50 137 56 Q150 54 155 64 Q166 70 162 84 Q166 95 158 104 Z" fill="#3B2A24" />
-          <circle id="s35-face" cx="128" cy="98" r="29" fill="#D6AE84" />
-          <path id="s35-face-shade" clip-path="url(#s35-face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#B88F66" stroke="none" />
-          
-          <path id="s35-fringe" d="M99 96 Q96 68 126 66 Q156 66 158 90 Q152 80 144 82 Q138 74 128 80 Q118 74 110 82 Q104 84 99 96 Z" fill="#3B2A24" />
-          <path d="M112 72 Q120 68 128 71" fill="none" stroke="#5A463C" stroke-width="3" />
-          
+          <!-- wavy dark hair: a back mass behind the face with a wavy edge -->
+          <path id="s35-hair-back" d="M97 108 Q88 96 94 84 Q90 72 101 66 Q104 56 117 57 Q126 50 137 56 Q150 54 155 64 Q166 70 162 84 Q166 95 158 104 Z" fill="#3B2A24"/>
+          <circle id="s35-face" cx="128" cy="98" r="29" fill="#F1CDB2"/>
+          <path id="s35-face-shade" clip-path="url(#s35-face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#E2B394" stroke="none"/>
+          <!-- side-swept wavy fringe -->
+          <path id="s35-fringe" d="M99 96 Q96 68 126 66 Q156 66 158 90 Q152 80 144 82 Q138 74 128 80 Q118 74 110 82 Q104 84 99 96 Z" fill="#3B2A24"/>
+          <path d="M112 72 Q120 68 128 71" fill="none" stroke="#5A463C" stroke-width="3"/>
+          <!-- bright teal hearing aid on the near cheek edge -->
           <g id="s35-hearing-aid">
-            <path d="M102 92 Q98 95 100 99" fill="none" stroke-width="3" />
-            <circle cx="101" cy="104" r="5" fill="#3FB8AF" stroke="#2A1E3D" stroke-width="3" />
-            <circle cx="99.5" cy="102.5" r="1.3" fill="#FFFFFF" stroke="none" />
+            <path d="M102 92 Q98 95 100 99" fill="none" stroke-width="3"/>
+            <circle cx="101" cy="104" r="5" fill="#3FB8AF" stroke="#2A1E3D" stroke-width="3"/>
+            <circle cx="99.5" cy="102.5" r="1.3" fill="#FFFFFF" stroke="none"/>
           </g>
           <g id="s35-face-features" stroke="none">
-            <ellipse cx="120" cy="101" rx="4.6" ry="6" fill="#2A1E3D" />
-            <ellipse cx="142" cy="100" rx="4.6" ry="6" fill="#2A1E3D" />
-            <circle cx="121.6" cy="98.3" r="1.9" fill="#FFFFFF" />
-            <circle cx="143.6" cy="97.3" r="1.9" fill="#FFFFFF" />
-            <ellipse cx="111" cy="110" rx="6" ry="3.8" fill="#F48A9A" opacity="0.45" />
-            <ellipse cx="152" cy="109" rx="4.5" ry="3.4" fill="#F48A9A" opacity="0.45" />
+            <ellipse cx="120" cy="101" rx="4.6" ry="6" fill="#2A1E3D"/>
+            <ellipse cx="142" cy="100" rx="4.6" ry="6" fill="#2A1E3D"/>
+            <circle cx="121.6" cy="98.3" r="1.9" fill="#FFFFFF"/>
+            <circle cx="143.6" cy="97.3" r="1.9" fill="#FFFFFF"/>
+            <ellipse cx="111" cy="110" rx="6" ry="3.8" fill="#F48A9A" opacity="0.75"/>
+            <ellipse cx="152" cy="109" rx="4.5" ry="3.4" fill="#F48A9A" opacity="0.75"/>
           </g>
-          
-          <path id="s35-mouth" d="M125 113 Q134 119 143 112" fill="none" stroke-width="3.52" />
+          <!-- thoughtful calm smile -->
+          <path id="s35-mouth" d="M125 113 Q134 119 143 112" fill="none" stroke-width="3.52"/>
         </g>
         <g id="s35-visor-rim">
           <path d="M83 121 Q126 152 169 121" fill="none" stroke-width="16" />
@@ -912,30 +913,31 @@
       <g id="s36-helmet">
         <circle id="s36-glass" cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none" />
         <g id="s36-head" stroke-width="4">
-          
-          <circle id="s36-hair-bun" cx="104" cy="70" r="12" fill="#3B2A24" />
-          <path d="M98 66 Q100 62 105 61" fill="none" stroke="#6A5048" stroke-width="3" />
-          <circle id="s36-face" cx="128" cy="98" r="29" fill="#A9714B" />
-          <path id="s36-face-shade" clip-path="url(#s36-face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#8A5A3A" stroke="none" />
-          
-          <path id="s36-fringe" d="M99 97 Q96 68 128 67 Q159 68 157 93 Q151 80 136 79 Q141 84 140 86 Q122 78 110 84 Q102 88 99 97 Z" fill="#3B2A24" />
-          <path d="M108 76 Q114 71 122 71" fill="none" stroke="#6A5048" stroke-width="3" stroke-linecap="round" />
+          <circle id="s36-face" cx="128" cy="98" r="29" fill="#F5D5BF"/>
+          <path id="s36-face-shade" clip-path="url(#s36-face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#E8BBA0" stroke="none"/>
+          <!-- short tidy beard: a soft rounded band along the jaw, clipped to the face, under the smile -->
+          <path id="s36-beard" clip-path="url(#s36-face-clip)" d="M96 94 L103 94 Q104 112 114 119 Q127 122.5 141 119.5 Q152 116 153 93 L162 93 L162 132 L94 132 Z" fill="#6B4A35" stroke="none"/>
+          <path id="s36-beard-edge" d="M103 94 Q104 112 114 119 Q127 122.5 141 119.5 Q152 116 153 93" fill="none" stroke-width="3.00"/>
+          <circle id="s36-face-outline" cx="128" cy="98" r="29" fill="none"/>
+          <!-- neat short hair cap with a side parting -->
+          <path id="s36-fringe" d="M99 97 Q96 68 128 67 Q159 68 157 93 Q151 80 136 79 Q141 84 140 86 Q122 78 110 84 Q102 88 99 97 Z" fill="#6B4A35"/>
+          <path d="M108 76 Q114 71 122 71" fill="none" stroke="#93705A" stroke-width="3.00" stroke-linecap="round"/>
           <g id="s36-face-features" stroke="none">
-            <ellipse cx="120" cy="102" rx="4" ry="5.2" fill="#2A1E3D" />
-            <ellipse cx="142" cy="101" rx="4" ry="5.2" fill="#2A1E3D" />
-            <circle cx="121.4" cy="99.8" r="1.7" fill="#FFFFFF" />
-            <circle cx="143.4" cy="98.8" r="1.7" fill="#FFFFFF" />
-            <ellipse cx="110" cy="113" rx="6" ry="3.8" fill="#D9606E" opacity="0.6" />
-            <ellipse cx="152" cy="112" rx="4.6" ry="3.4" fill="#D9606E" opacity="0.6" />
+            <ellipse cx="120" cy="102" rx="4" ry="5.2" fill="#2A1E3D"/>
+            <ellipse cx="142" cy="101" rx="4" ry="5.2" fill="#2A1E3D"/>
+            <circle cx="121.4" cy="99.8" r="1.7" fill="#FFFFFF"/>
+            <circle cx="143.4" cy="98.8" r="1.7" fill="#FFFFFF"/>
+            <ellipse cx="112" cy="110" rx="5" ry="3.4" fill="#F48A9A" opacity="0.75"/>
+            <ellipse cx="149" cy="109" rx="4" ry="3" fill="#F48A9A" opacity="0.75"/>
           </g>
-          
-          <g id="s36-glasses" stroke-width="3">
-            <circle cx="120" cy="101" r="9" fill="#FFFFFF" fill-opacity="0.22" />
-            <circle cx="142.5" cy="100" r="8.5" fill="#FFFFFF" fill-opacity="0.22" />
-            <path d="M129 100 Q131.3 97.5 134 99.5" fill="none" />
-            <path d="M111 99 L100 96" fill="none" />
+          <!-- round glasses -->
+          <g id="s36-glasses" stroke-width="3.00">
+            <circle cx="120" cy="101" r="9" fill="#FFFFFF" fill-opacity="0.22"/>
+            <circle cx="142.5" cy="100" r="8.5" fill="#FFFFFF" fill-opacity="0.22"/>
+            <path d="M129 100 Q131.3 97.5 134 99.5" fill="none"/>
+            <path d="M111 99 L100 96" fill="none"/>
           </g>
-          <path id="s36-mouth" d="M124 114 Q133 121 143 113" fill="none" stroke-width="3.5" />
+          <path id="s36-mouth" d="M124 113 Q133 120 143 112" fill="none" stroke-width="3.50"/>
         </g>
         <g id="s36-visor-rim">
           <path d="M83 121 Q126 152 169 121" fill="none" stroke-width="16" />
@@ -1029,20 +1031,24 @@
       <g id="s37-helmet">
         <circle id="s37-glass" cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none" />
         <g id="s37-head" stroke-width="4">
-          <circle id="s37-face" cx="128" cy="98" r="29" fill="#6E4630" />
-          <path id="s37-face-shade" clip-path="url(#s37-face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#553424" stroke="none" />
-          <path id="s37-beard" d="M100 90 Q98 128 128 128 Q158 128 156 88 L151 90 Q151 108 141 110 Q134 106 128 108.5 Q122 106 115 110 Q105 108 105 91 Z" fill="#B9B4C4" />
-          <path id="s37-hair" d="M100 92 Q99 69 128 69 Q157 69 156 90 Q152 82 145 83 Q139 78 132 80 Q125 77 118 80 Q108 79 100 92 Z" fill="#B9B4C4" />
+          <circle id="s37-face" cx="128" cy="98" r="29" fill="#F2CDB8"/>
+          <path id="s37-face-shade" clip-path="url(#s37-face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#E2AE96" stroke="none"/>
+          <path id="s37-beard" d="M100 90 Q98 128 128 128 Q158 128 156 88 L151 90 Q151 108 141 110 Q134 106 128 108.5 Q122 106 115 110 Q105 108 105 91 Z" fill="#B9B4C4"/>
+          <path id="s37-hair" d="M100 92 Q99 69 128 69 Q157 69 156 90 Q152 82 145 83 Q139 78 132 80 Q125 77 118 80 Q108 79 100 92 Z" fill="#B9B4C4"/>
           <g id="s37-face-features" stroke="none">
-            <ellipse cx="120" cy="96" rx="4.6" ry="6" fill="#1E1A24" />
-            <ellipse cx="142" cy="95" rx="4.6" ry="6" fill="#1E1A24" />
-            <circle cx="121.6" cy="93.3" r="1.9" fill="#FFFFFF" />
-            <circle cx="143.6" cy="92.3" r="1.9" fill="#FFFFFF" />
-            <ellipse cx="110" cy="104" rx="5.5" ry="3.5" fill="#F48A9A" opacity="0.4" />
-            <ellipse cx="152" cy="103" rx="4.5" ry="3.2" fill="#F48A9A" opacity="0.4" />
+            <ellipse cx="120" cy="96" rx="4.6" ry="6" fill="#1E1A24"/>
+            <ellipse cx="142" cy="95" rx="4.6" ry="6" fill="#1E1A24"/>
+            <circle cx="121.6" cy="93.3" r="1.9" fill="#FFFFFF"/>
+            <circle cx="143.6" cy="92.3" r="1.9" fill="#FFFFFF"/>
+            <ellipse cx="110" cy="104" rx="5.5" ry="3.5" fill="#F48A9A" opacity="0.85"/>
+            <ellipse cx="152" cy="103" rx="4.5" ry="3.2" fill="#F48A9A" opacity="0.85"/>
+            <g id="s37-smile-lines" fill="none" stroke="#B9806A" stroke-width="2.2" stroke-linecap="round" opacity="0.8">
+              <path d="M112 92 Q109.5 95 111.5 98.5"/>
+              <path d="M149.5 91 Q151.5 94 149.5 97.5"/>
+            </g>
           </g>
-          <path id="s37-mouth" d="M122 107 H146 Q144 120 134 120 Q124 120 122 107 Z" fill="#FFFFFF" stroke-width="3.5" />
-          <path d="M127 116 Q134 112 141 116 Q138 119.5 134 119.5 Q130 119.5 127 116 Z" fill="#F27C8C" stroke="none" />
+          <path id="s37-mouth" d="M122 107 H146 Q144 120 134 120 Q124 120 122 107 Z" fill="#FFFFFF" stroke-width="3.5"/>
+          <path d="M127 116 Q134 112 141 116 Q138 119.5 134 119.5 Q130 119.5 127 116 Z" fill="#F27C8C" stroke="none"/>
         </g>
         <g id="s37-visor-rim">
           <path d="M83 121 Q126 152 169 121" fill="none" stroke-width="16" />

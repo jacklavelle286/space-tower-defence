@@ -120,8 +120,8 @@
             <circle cx="121.6" cy="98.3" r="1.9" fill="#FFFFFF"/>
             <circle cx="143.6" cy="97.3" r="1.9" fill="#FFFFFF"/>
             <!-- round cheeks, a little bigger than Nova's -->
-            <ellipse cx="111" cy="111" rx="7.5" ry="5" fill="#F48A9A" opacity="0.7"/>
-            <ellipse cx="152" cy="110" rx="5.8" ry="4.4" fill="#F48A9A" opacity="0.7"/>
+            <ellipse cx="111" cy="111" rx="7.5" ry="5" fill="#F48A9A" opacity="0.75"/>
+            <ellipse cx="152" cy="110" rx="5.8" ry="4.4" fill="#F48A9A" opacity="0.75"/>
             <!-- freckles over the nose and cheeks -->
             <g id="freckles" fill="#B5653F">
               <circle cx="106.5" cy="106" r="2.2"/>

@@ -82,8 +82,8 @@
       <g id="helmet">
         <circle id="glass" cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none"/>
         <g id="head" transform="translate(3 -1)" stroke-width="4">
-          <circle id="face" cx="128" cy="98" r="29" fill="#6E4630"/>
-          <path id="face-shade" clip-path="url(#face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#553424" stroke="none"/>
+          <circle id="face" cx="128" cy="98" r="29" fill="#F2CDB8"/>
+          <path id="face-shade" clip-path="url(#face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#E2AE96" stroke="none"/>
           <path id="beard" d="M100 90 Q98 128 128 128 Q158 128 156 88 L151 90 Q151 108 141 110 Q134 106 128 108.5 Q122 106 115 110 Q105 108 105 91 Z" fill="#B9B4C4"/>
           <path id="hair" d="M100 92 Q99 69 128 69 Q157 69 156 90 Q152 82 145 83 Q139 78 132 80 Q125 77 118 80 Q108 79 100 92 Z" fill="#B9B4C4"/>
           <g id="face-features" stroke="none">
@@ -91,8 +91,12 @@
             <ellipse cx="142" cy="95" rx="4.6" ry="6" fill="#1E1A24"/>
             <circle cx="121.6" cy="93.3" r="1.9" fill="#FFFFFF"/>
             <circle cx="143.6" cy="92.3" r="1.9" fill="#FFFFFF"/>
-            <ellipse cx="110" cy="104" rx="5.5" ry="3.5" fill="#F48A9A" opacity="0.4"/>
-            <ellipse cx="152" cy="103" rx="4.5" ry="3.2" fill="#F48A9A" opacity="0.4"/>
+            <ellipse cx="110" cy="104" rx="5.5" ry="3.5" fill="#F48A9A" opacity="0.85"/>
+            <ellipse cx="152" cy="103" rx="4.5" ry="3.2" fill="#F48A9A" opacity="0.85"/>
+            <g id="smile-lines" fill="none" stroke="#B9806A" stroke-width="2.2" stroke-linecap="round" opacity="0.8">
+              <path d="M112 92 Q109.5 95 111.5 98.5"/>
+              <path d="M149.5 91 Q151.5 94 149.5 97.5"/>
+            </g>
           </g>
           <path id="mouth" d="M122 107 H146 Q144 120 134 120 Q124 120 122 107 Z" fill="#FFFFFF" stroke-width="3.5"/>
           <path d="M127 116 Q134 112 141 116 Q138 119.5 134 119.5 Q130 119.5 127 116 Z" fill="#F27C8C" stroke="none"/>

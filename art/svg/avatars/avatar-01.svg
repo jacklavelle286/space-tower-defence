@@ -41,8 +41,8 @@
       <g id="helmet">
         <circle id="glass" cx="128" cy="116" r="62" fill="#CFE9FF" fill-opacity="0.6" stroke="none"/>
         <g id="head" stroke-width="4">
-          <circle id="face" cx="128" cy="124" r="36" fill="#D9A27A"/>
-          <path id="face-shade" clip-path="url(#face-clip)" d="M161 112 Q158 152 118 160 L170 166 Z" fill="#BC855F" stroke="none"/>
+          <circle id="face" cx="128" cy="124" r="36" fill="#F7D7C4"/>
+          <path id="face-shade" clip-path="url(#face-clip)" d="M161 112 Q158 152 118 160 L170 166 Z" fill="#EBBDA5" stroke="none"/>
           <circle cx="128" cy="124" r="36" fill="none"/>
           <path id="fringe" d="M92 122 Q88 84 128 84 Q168 84 165 120 Q160 104 146 100 Q124 96 110 106 Q100 112 92 122 Z" fill="#3B2A24"/>
           <g id="face-features" stroke="none">

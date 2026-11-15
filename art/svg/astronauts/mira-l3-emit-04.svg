@@ -98,30 +98,31 @@
       <g id="helmet">
         <circle id="glass" cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none"/>
         <g id="head" stroke-width="4">
-          <!-- neat bun at the back of the head (viewer's left, top) -->
-          <circle id="hair-bun" cx="104" cy="70" r="12" fill="#3B2A24"/>
-          <path d="M98 66 Q100 62 105 61" fill="none" stroke="#6A5048" stroke-width="3"/>
-          <circle id="face" cx="128" cy="98" r="29" fill="#A9714B"/>
-          <path id="face-shade" clip-path="url(#face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#8A5A3A" stroke="none"/>
-          <!-- smooth swept hair cap with a side parting -->
-          <path id="fringe" d="M99 97 Q96 68 128 67 Q159 68 157 93 Q151 80 136 79 Q141 84 140 86 Q122 78 110 84 Q102 88 99 97 Z" fill="#3B2A24"/>
-          <path d="M108 76 Q114 71 122 71" fill="none" stroke="#6A5048" stroke-width="3" stroke-linecap="round"/>
+          <circle id="face" cx="128" cy="98" r="29" fill="#F5D5BF"/>
+          <path id="face-shade" clip-path="url(#face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#E8BBA0" stroke="none"/>
+          <!-- short tidy beard: a soft rounded band along the jaw, clipped to the face, under the smile -->
+          <path id="beard" clip-path="url(#face-clip)" d="M96 94 L103 94 Q104 112 114 119 Q127 122.5 141 119.5 Q152 116 153 93 L162 93 L162 132 L94 132 Z" fill="#6B4A35" stroke="none"/>
+          <path id="beard-edge" d="M103 94 Q104 112 114 119 Q127 122.5 141 119.5 Q152 116 153 93" fill="none" stroke-width="3.00"/>
+          <circle id="face-outline" cx="128" cy="98" r="29" fill="none"/>
+          <!-- neat short hair cap with a side parting -->
+          <path id="fringe" d="M99 97 Q96 68 128 67 Q159 68 157 93 Q151 80 136 79 Q141 84 140 86 Q122 78 110 84 Q102 88 99 97 Z" fill="#6B4A35"/>
+          <path d="M108 76 Q114 71 122 71" fill="none" stroke="#93705A" stroke-width="3.00" stroke-linecap="round"/>
           <g id="face-features" stroke="none">
             <ellipse cx="120" cy="102" rx="4" ry="5.2" fill="#2A1E3D"/>
             <ellipse cx="142" cy="101" rx="4" ry="5.2" fill="#2A1E3D"/>
             <circle cx="121.4" cy="99.8" r="1.7" fill="#FFFFFF"/>
             <circle cx="143.4" cy="98.8" r="1.7" fill="#FFFFFF"/>
-            <ellipse cx="110" cy="113" rx="6" ry="3.8" fill="#D9606E" opacity="0.6"/>
-            <ellipse cx="152" cy="112" rx="4.6" ry="3.4" fill="#D9606E" opacity="0.6"/>
+            <ellipse cx="112" cy="110" rx="5" ry="3.4" fill="#F48A9A" opacity="0.75"/>
+            <ellipse cx="149" cy="109" rx="4" ry="3" fill="#F48A9A" opacity="0.75"/>
           </g>
           <!-- round glasses -->
-          <g id="glasses" stroke-width="3">
+          <g id="glasses" stroke-width="3.00">
             <circle cx="120" cy="101" r="9" fill="#FFFFFF" fill-opacity="0.22"/>
             <circle cx="142.5" cy="100" r="8.5" fill="#FFFFFF" fill-opacity="0.22"/>
             <path d="M129 100 Q131.3 97.5 134 99.5" fill="none"/>
             <path d="M111 99 L100 96" fill="none"/>
           </g>
-          <path id="mouth" d="M124 114 Q133 121 143 113" fill="none" stroke-width="3.5"/>
+          <path id="mouth" d="M124 113 Q133 120 143 112" fill="none" stroke-width="3.50"/>
         </g>
         <g id="visor-rim">
           <path d="M83 121 Q126 152 169 121" fill="none" stroke-width="16"/>

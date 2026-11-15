@@ -37,7 +37,7 @@
       <path d="M82 120 V86 Q82 42 128 42 Q174 42 174 86 V120 Q174 132 162 132 H94 Q82 132 82 120 Z" fill="none"/>
       <path id="crest" d="M128 46 V68" fill="none" stroke-width="4"/>
       <path id="helmet-highlight" d="M92 92 Q92 66 108 54" fill="none" stroke="#C9D0E2" stroke-width="5"/>
-      <rect id="face-opening" x="98" y="72" width="60" height="46" rx="16" fill="#D9A27A" stroke-width="5"/>
+      <rect id="face-opening" x="98" y="72" width="60" height="46" rx="16" fill="#F7D7C4" stroke-width="5"/>
       <g id="face-features" stroke="none">
         <ellipse cx="118" cy="93" rx="4" ry="5.2" fill="#2A1E3D"/>
         <ellipse cx="140" cy="92" rx="4" ry="5.2" fill="#2A1E3D"/>

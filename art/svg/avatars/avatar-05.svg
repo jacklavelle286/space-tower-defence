@@ -31,18 +31,8 @@
       <g id="helmet">
         <circle id="glass" cx="128" cy="116" r="62" fill="#CFE9FF" fill-opacity="0.6" stroke="none"/>
         <g id="head" stroke-width="4">
-          <g id="hair-braids" stroke-width="4">
-            <ellipse cx="91" cy="128" rx="7.5" ry="8.5" fill="#1E1A24"/>
-            <ellipse cx="90" cy="142" rx="7.5" ry="8.5" fill="#1E1A24"/>
-            <ellipse cx="89" cy="156" rx="7.5" ry="8.5" fill="#1E1A24"/>
-            <circle cx="88" cy="167" r="4.5" fill="#FFB38A"/>
-            <ellipse cx="165" cy="128" rx="7.5" ry="8.5" fill="#1E1A24"/>
-            <ellipse cx="166" cy="142" rx="7.5" ry="8.5" fill="#1E1A24"/>
-            <ellipse cx="167" cy="156" rx="7.5" ry="8.5" fill="#1E1A24"/>
-            <circle cx="168" cy="167" r="4.5" fill="#FFB38A"/>
-          </g>
-          <circle id="face" cx="128" cy="124" r="36" fill="#A9714B"/>
-          <path id="face-shade" clip-path="url(#face-clip)" d="M161 112 Q158 152 118 160 L170 166 Z" fill="#8A5A3A" stroke="none"/>
+          <circle id="face" cx="128" cy="124" r="36" fill="#F1CDB2"/>
+          <path id="face-shade" clip-path="url(#face-clip)" d="M161 112 Q158 152 118 160 L170 166 Z" fill="#E2B394" stroke="none"/>
           <circle cx="128" cy="124" r="36" fill="none"/>
           <path id="fringe" d="M93 118 Q94 88 128 88 Q162 88 163 118 Q150 102 128 101 Q106 102 93 118 Z" fill="#1E1A24"/>
           <g id="face-features" stroke="none">
@@ -50,8 +40,8 @@
             <ellipse cx="141" cy="127" rx="5.6" ry="7.3" fill="#2A1E3D"/>
             <circle cx="117" cy="123.6" r="2.3" fill="#FFFFFF"/>
             <circle cx="143" cy="123.6" r="2.3" fill="#FFFFFF"/>
-            <ellipse cx="104" cy="139" rx="6.5" ry="4.2" fill="#F48A9A" opacity="0.55"/>
-            <ellipse cx="152" cy="139" rx="6.5" ry="4.2" fill="#F48A9A" opacity="0.55"/>
+            <ellipse cx="104" cy="139" rx="6.5" ry="4.2" fill="#F48A9A" opacity="0.75"/>
+            <ellipse cx="152" cy="139" rx="6.5" ry="4.2" fill="#F48A9A" opacity="0.75"/>
           </g>
           <path id="mouth" d="M117 138 H139 Q137 151 128 151 Q119 151 117 138 Z" fill="#FFFFFF" stroke-width="3.5"/>
           <path d="M121.5 147 Q128 143 134.5 147 Q132 150.5 128 150.5 Q124 150.5 121.5 147 Z" fill="#F27C8C" stroke="none"/>

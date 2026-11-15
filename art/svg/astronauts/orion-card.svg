@@ -54,8 +54,8 @@
       <g transform="translate(128 106) scale(1.45) translate(-128 -98)">
         <g id="head" stroke-width="4">
           <path id="hair-back" d="M97 108 Q88 96 94 84 Q90 72 101 66 Q104 56 117 57 Q126 50 137 56 Q150 54 155 64 Q166 70 162 84 Q166 95 158 104 Z" fill="#3B2A24"/>
-          <circle id="face" cx="128" cy="98" r="29" fill="#D6AE84"/>
-          <path id="face-shade" clip-path="url(#face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#B88F66" stroke="none"/>
+          <circle id="face" cx="128" cy="98" r="29" fill="#F1CDB2"/>
+          <path id="face-shade" clip-path="url(#face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#E2B394" stroke="none"/>
           <path id="fringe" d="M99 96 Q96 68 126 66 Q156 66 158 90 Q152 80 144 82 Q138 74 128 80 Q118 74 110 82 Q104 84 99 96 Z" fill="#3B2A24"/>
           <path d="M112 72 Q120 68 128 71" fill="none" stroke="#5A463C" stroke-width="3"/>
           <g id="hearing-aid">
@@ -67,8 +67,8 @@
             <ellipse cx="138" cy="101" rx="4.6" ry="6" fill="#2A1E3D"/>
             <circle cx="119.6" cy="98.3" r="1.9" fill="#FFFFFF"/>
             <circle cx="139.6" cy="98.3" r="1.9" fill="#FFFFFF"/>
-            <ellipse cx="108" cy="110" rx="5.5" ry="3.6" fill="#F48A9A" opacity="0.5"/>
-            <ellipse cx="148" cy="110" rx="5.5" ry="3.6" fill="#F48A9A" opacity="0.5"/>
+            <ellipse cx="108" cy="110" rx="5.5" ry="3.6" fill="#F48A9A" opacity="0.75"/>
+            <ellipse cx="148" cy="110" rx="5.5" ry="3.6" fill="#F48A9A" opacity="0.75"/>
           </g>
           <path id="mouth" d="M120 112 Q128 119 136 112" fill="none" stroke-width="3.52"/>
         </g>

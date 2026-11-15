@@ -31,11 +31,10 @@
       <g id="helmet">
         <circle id="glass" cx="128" cy="116" r="62" fill="#CFE9FF" fill-opacity="0.6" stroke="none"/>
         <g id="head" stroke-width="4">
-          <path id="hair-back" d="M84 160 Q76 84 128 80 Q180 84 172 160 Q160 166 150 158 L106 158 Q96 166 84 160 Z" fill="#6B4A2E"/>
-          <circle id="face" cx="128" cy="124" r="36" fill="#E9B48A"/>
-          <path id="face-shade" clip-path="url(#face-clip)" d="M161 112 Q158 152 118 160 L170 166 Z" fill="#D39A6E" stroke="none"/>
+          <circle id="face" cx="128" cy="124" r="36" fill="#FCE0CF"/>
+          <path id="face-shade" clip-path="url(#face-clip)" d="M161 112 Q158 152 118 160 L170 166 Z" fill="#F2C3AA" stroke="none"/>
           <circle cx="128" cy="124" r="36" fill="none"/>
-          <path id="fringe" d="M92 112 Q92 86 128 86 Q164 86 164 112 Q128 104 92 112 Z" fill="#6B4A2E"/>
+          <path id="fringe" d="M92 112 Q92 86 128 86 Q164 86 164 112 Q128 104 92 112 Z" fill="#6B4A35"/>
           <g id="face-features" stroke="none">
             <ellipse cx="115" cy="127" rx="5.6" ry="7.3" fill="#2A1E3D"/>
             <ellipse cx="141" cy="127" rx="5.6" ry="7.3" fill="#2A1E3D"/>

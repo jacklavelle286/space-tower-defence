@@ -32,11 +32,10 @@
       <g id="helmet">
         <circle id="glass" cx="128" cy="116" r="62" fill="#CFE9FF" fill-opacity="0.6" stroke="none"/>
         <g id="head" stroke-width="4">
-          <path id="hair-curls" d="M128 71 A11.1 11.1 0 0 1 148.5 76.5 A11.1 11.1 0 0 1 163.5 91.5 A11.1 11.1 0 0 1 169 112 A11.1 11.1 0 0 1 163.5 132.5 A11.1 11.1 0 0 1 148.5 147.5 A11.1 11.1 0 0 1 128 153 A11.1 11.1 0 0 1 107.5 147.5 A11.1 11.1 0 0 1 92.5 132.5 A11.1 11.1 0 0 1 87 112 A11.1 11.1 0 0 1 92.5 91.5 A11.1 11.1 0 0 1 107.5 76.5 A11.1 11.1 0 0 1 128 71 Z" fill="#1E1A24"/>
-          <circle id="face" cx="128" cy="124" r="36" fill="#D9A27A"/>
-          <path id="face-shade" clip-path="url(#face-clip)" d="M161 112 Q158 152 118 160 L170 166 Z" fill="#BC855F" stroke="none"/>
+          <circle id="face" cx="128" cy="124" r="36" fill="#F2CDB8"/>
+          <path id="face-shade" clip-path="url(#face-clip)" d="M161 112 Q158 152 118 160 L170 166 Z" fill="#E2AE96" stroke="none"/>
           <circle cx="128" cy="124" r="36" fill="none"/>
-          <path id="fringe" d="M93 118 Q94 88 128 87 Q162 88 163 118 Q158 106 150 109 Q145 99 136 104 Q128 96 120 104 Q111 99 106 109 Q98 106 93 118 Z" fill="#1E1A24"/>
+          <path id="fringe" d="M93 118 Q94 88 128 87 Q162 88 163 118 Q158 106 150 109 Q145 99 136 104 Q128 96 120 104 Q111 99 106 109 Q98 106 93 118 Z" fill="#6B4A35"/>
           <g id="face-features" stroke="none">
             <ellipse cx="115" cy="127" rx="5.6" ry="7.3" fill="#2A1E3D"/>
             <ellipse cx="141" cy="127" rx="5.6" ry="7.3" fill="#2A1E3D"/>

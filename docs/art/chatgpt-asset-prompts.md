@@ -1,5 +1,11 @@
 # ChatGPT asset prompt pack — Moonbeam Colony (working title "Space Colony Defence")
 
+> **Superseded (2026-11-15).** The ChatGPT route is no longer used. Every image in the [asset catalogue](asset-catalogue.json) is
+> now drawn as SVG in `art/svg/` (house style `art/STYLE.md`) and rendered by [tools/art/render.py](../../tools/art/render.py);
+> see the [gallery](gallery.html). This file is kept for reference only: the catalogue's sizes, anchors and `card` values came from it.
+> **Cast changed (2026-11-15):** every human character is now a white European man. The appearances below are out of date;
+> `art/STYLE.md` section 6 is the current cast description.
+
 **Status:** prompts for the owner to paste into ChatGPT image generation. Nothing in this pack has been generated yet.
 **Sources:** `prompt.md` (ASTRONAUT ROSTER, ALIENS, CARRIERS AND BOSSES, CAMPAIGN, ART AND AUDIO ASSET PLAN, screens, exclusions),
 plan section D10 (`docs/plan/D-ux-and-content-operations.md`) and plan section C (`docs/plan/C-game-and-learning-design.md`: map, classes,

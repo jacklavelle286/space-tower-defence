@@ -95,22 +95,23 @@
 <g id="helmet">
 <circle id="glass" cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none"/>
 <g id="head" stroke-width="4">
-<path id="hair-bob" d="M94 113 Q88 62 128 61 Q168 62 162 113 Q162 119 155 119 H101 Q94 119 94 113 Z" fill="#1E1A24"/>
-<circle id="face" cx="128" cy="98" r="29" fill="#D9A27A"/>
-<path id="face-shade" clip-path="url(#face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#BC855F" stroke="none"/>
-<path id="fringe" d="M99 95 Q96 64 128 63 Q160 64 157 93 Q156 84 149 84 H107 Q100 84 99 95 Z" fill="#1E1A24"/>
-<path id="hair-sheen" d="M108 76 Q116 70 126 70" fill="none" stroke="#3B2A24" stroke-width="3.5"/>
+<path id="hair-back" d="M100 106 Q90 92 95 76 Q104 62 128 62 L128 84 Z" fill="#E8C15A"/>
+<circle id="face" cx="128" cy="98" r="29" fill="#F7D7C4"/>
+<path id="face-shade" clip-path="url(#face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#EBBDA5" stroke="none"/>
+<path id="fringe" d="M100 104 Q95 66 128 64 Q158 65 158 90 Q153 82 147 83 Q149 88 147 92 Q134 80 114 83 Q106 85 105 92 L105 102 Q103 106 100 104 Z" fill="#E8C15A"/>
+<path id="hair-shade" d="M150 72 Q156 78 156 86 M132 74 Q142 76 147 83" fill="none" stroke="#C9A13E" stroke-width="3"/>
+<path id="hair-sheen" d="M108 76 Q116 70 126 70" fill="none" stroke="#FFEA99" stroke-width="3.5"/>
 <g id="face-features" stroke="none">
-<ellipse cx="120" cy="101" rx="4.6" ry="6" fill="#2A1E3D"/>
-<ellipse cx="142" cy="100" rx="4.6" ry="6" fill="#2A1E3D"/>
-<circle cx="121.6" cy="98.3" r="1.9" fill="#FFFFFF"/>
-<circle cx="143.6" cy="97.3" r="1.9" fill="#FFFFFF"/>
-<ellipse cx="111" cy="110" rx="6" ry="3.8" fill="#E8806E" opacity="0.6"/>
-<ellipse cx="152" cy="109" rx="4.6" ry="3.4" fill="#E8806E" opacity="0.6"/>
+  <ellipse cx="120" cy="101" rx="4.6" ry="6" fill="#2A1E3D"/>
+  <ellipse cx="142" cy="100" rx="4.6" ry="6" fill="#2A1E3D"/>
+  <circle cx="121.6" cy="98.3" r="1.9" fill="#FFFFFF"/>
+  <circle cx="143.6" cy="97.3" r="1.9" fill="#FFFFFF"/>
+  <ellipse cx="111" cy="110" rx="6.5" ry="4.2" fill="#F48A9A" opacity="0.75"/>
+  <ellipse cx="152" cy="109" rx="5" ry="3.8" fill="#F48A9A" opacity="0.75"/>
 </g>
-<g id="mouth">
-<path d="M123 108 H146 Q144.5 121 134.5 121 Q124.5 121 123 108 Z" fill="#FFFFFF" stroke-width="3.5"/>
-<path d="M128.5 117.5 Q134.5 114 140.5 117.5 Q138 120 134.5 120 Q131 120 128.5 117.5 Z" fill="#F27C8C" stroke="none"/>
+<g id="mouth" fill="none" stroke-width="3.5">
+  <path d="M123 111 Q134 120 146 108"/>
+  <path d="M143.5 106 L148 104.5" stroke-width="4"/>
 </g>
 </g>
 <g id="visor-rim">

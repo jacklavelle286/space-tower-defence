@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
   <!-- Juno shop portrait (class.juno.portrait), L1 look: head and shoulders facing the viewer, goggles on the helmet,
-       the comet popper funnel rising straight up over her right shoulder (viewer's left).
+       the comet popper funnel rising straight up over his right shoulder (viewer's left).
        Anchor centre (128,128). Drawn in sprite coordinates and scaled x1.13 (outline 6 -> 6.8 px). See art/STYLE.md. -->
   <defs>
     <clipPath id="bust-clip"><path d="M78 196 V170 Q78 136 112 134 H144 Q178 136 178 170 V196 Q178 204 170 204 H86 Q78 204 78 196 Z"/></clipPath>
@@ -36,22 +36,22 @@
     <g id="helmet">
 <circle id="glass" cx="128" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none"/>
 <g id="head" stroke-width="4">
-<path id="hair-bob" d="M96 113 Q90 62 128 61 Q166 62 160 113 Q160 119 153 119 H103 Q96 119 96 113 Z" fill="#1E1A24"/>
-<circle id="face" cx="128" cy="98" r="29" fill="#D9A27A"/>
-<path id="face-shade" clip-path="url(#face-clip)" d="M156 92 Q150 122 118 127 L160 129 Z" fill="#BC855F" stroke="none"/>
-<path id="fringe" d="M100 95 Q97 64 128 63 Q159 64 156 95 Q155 84 148 84 H108 Q101 84 100 95 Z" fill="#1E1A24"/>
-<path id="hair-sheen" d="M108 76 Q116 70 126 70" fill="none" stroke="#3B2A24" stroke-width="3.5"/>
+<circle id="face" cx="128" cy="98" r="29" fill="#F7D7C4"/>
+<path id="face-shade" clip-path="url(#face-clip)" d="M156 92 Q150 122 118 127 L160 129 Z" fill="#EBBDA5" stroke="none"/>
+<path id="fringe" d="M100 104 Q95 65 128 63 Q161 65 156 104 Q153 106 151 103 L151 93 Q150 85 143 84 Q142 89 139 91 Q126 79 110 84 Q105 86 105 93 L105 102 Q103 106 100 104 Z" fill="#E8C15A"/>
+<path id="hair-shade" d="M146 70 Q153 76 153 86 M126 73 Q136 75 143 84" fill="none" stroke="#C9A13E" stroke-width="3"/>
+<path id="hair-sheen" d="M108 76 Q116 70 126 70" fill="none" stroke="#FFEA99" stroke-width="3.5"/>
 <g id="face-features" stroke="none">
-<ellipse cx="117" cy="100" rx="4.6" ry="6" fill="#2A1E3D"/>
-<ellipse cx="139" cy="100" rx="4.6" ry="6" fill="#2A1E3D"/>
-<circle cx="118.6" cy="97.3" r="1.9" fill="#FFFFFF"/>
-<circle cx="140.6" cy="97.3" r="1.9" fill="#FFFFFF"/>
-<ellipse cx="107" cy="109" rx="5.5" ry="3.6" fill="#E8806E" opacity="0.6"/>
-<ellipse cx="149" cy="109" rx="5.5" ry="3.6" fill="#E8806E" opacity="0.6"/>
+  <ellipse cx="117" cy="100" rx="4.6" ry="6" fill="#2A1E3D"/>
+  <ellipse cx="139" cy="100" rx="4.6" ry="6" fill="#2A1E3D"/>
+  <circle cx="118.6" cy="97.3" r="1.9" fill="#FFFFFF"/>
+  <circle cx="140.6" cy="97.3" r="1.9" fill="#FFFFFF"/>
+  <ellipse cx="107" cy="109" rx="5.5" ry="3.6" fill="#F48A9A" opacity="0.75"/>
+  <ellipse cx="149" cy="109" rx="5.5" ry="3.6" fill="#F48A9A" opacity="0.75"/>
 </g>
 <g id="mouth" fill="none" stroke-width="3.5">
-<path d="M117 110 Q128 120 140 108"/>
-<path d="M137.5 106 L142 104.5" stroke-width="4"/>
+  <path d="M117 110 Q128 120 140 108"/>
+  <path d="M137.5 106 L142 104.5" stroke-width="4"/>
 </g>
 </g>
 <g id="visor-rim">

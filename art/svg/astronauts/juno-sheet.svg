@@ -77,22 +77,22 @@
 <g id="front-helmet">
 <circle id="front-glass" cx="128" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none"/>
 <g id="front-head" stroke-width="4">
-<path id="front-hair-bob" d="M96 113 Q90 62 128 61 Q166 62 160 113 Q160 119 153 119 H103 Q96 119 96 113 Z" fill="#1E1A24"/>
-<circle id="front-face" cx="128" cy="98" r="29" fill="#D9A27A"/>
-<path id="front-face-shade" clip-path="url(#front-face-clip)" d="M156 92 Q150 122 118 127 L160 129 Z" fill="#BC855F" stroke="none"/>
-<path id="front-fringe" d="M100 95 Q97 64 128 63 Q159 64 156 95 Q155 84 148 84 H108 Q101 84 100 95 Z" fill="#1E1A24"/>
-<path id="front-hair-sheen" d="M108 76 Q116 70 126 70" fill="none" stroke="#3B2A24" stroke-width="3.5"/>
+<circle id="front-face" cx="128" cy="98" r="29" fill="#F7D7C4"/>
+<path id="front-face-shade" clip-path="url(#front-face-clip)" d="M156 92 Q150 122 118 127 L160 129 Z" fill="#EBBDA5" stroke="none"/>
+<path id="front-fringe" d="M100 104 Q95 65 128 63 Q161 65 156 104 Q153 106 151 103 L151 93 Q150 85 143 84 Q142 89 139 91 Q126 79 110 84 Q105 86 105 93 L105 102 Q103 106 100 104 Z" fill="#E8C15A"/>
+<path id="front-hair-shade" d="M146 70 Q153 76 153 86 M126 73 Q136 75 143 84" fill="none" stroke="#C9A13E" stroke-width="3"/>
+<path id="front-hair-sheen" d="M108 76 Q116 70 126 70" fill="none" stroke="#FFEA99" stroke-width="3.5"/>
 <g id="front-face-features" stroke="none">
-<ellipse cx="117" cy="100" rx="4.6" ry="6" fill="#2A1E3D"/>
-<ellipse cx="139" cy="100" rx="4.6" ry="6" fill="#2A1E3D"/>
-<circle cx="118.6" cy="97.3" r="1.9" fill="#FFFFFF"/>
-<circle cx="140.6" cy="97.3" r="1.9" fill="#FFFFFF"/>
-<ellipse cx="107" cy="109" rx="5.5" ry="3.6" fill="#E8806E" opacity="0.6"/>
-<ellipse cx="149" cy="109" rx="5.5" ry="3.6" fill="#E8806E" opacity="0.6"/>
+  <ellipse cx="117" cy="100" rx="4.6" ry="6" fill="#2A1E3D"/>
+  <ellipse cx="139" cy="100" rx="4.6" ry="6" fill="#2A1E3D"/>
+  <circle cx="118.6" cy="97.3" r="1.9" fill="#FFFFFF"/>
+  <circle cx="140.6" cy="97.3" r="1.9" fill="#FFFFFF"/>
+  <ellipse cx="107" cy="109" rx="5.5" ry="3.6" fill="#F48A9A" opacity="0.75"/>
+  <ellipse cx="149" cy="109" rx="5.5" ry="3.6" fill="#F48A9A" opacity="0.75"/>
 </g>
 <g id="front-mouth" fill="none" stroke-width="3.5">
-<path d="M117 110 Q128 120 140 108"/>
-<path d="M137.5 106 L142 104.5" stroke-width="4"/>
+  <path d="M117 110 Q128 120 140 108"/>
+  <path d="M137.5 106 L142 104.5" stroke-width="4"/>
 </g>
 </g>
 <g id="front-visor-rim">
@@ -207,18 +207,19 @@
       <g id="three-quarter-helmet">
         <circle id="three-quarter-glass" cx="126" cy="94" r="50" fill="#CFE9FF" fill-opacity="0.6" stroke="none"/>
         <g id="three-quarter-head" stroke-width="4">
-          <path id="three-quarter-hair-bob" d="M94 113 Q88 62 128 61 Q168 62 162 113 Q162 119 155 119 H101 Q94 119 94 113 Z" fill="#1E1A24"/>
-          <circle id="three-quarter-face" cx="128" cy="98" r="29" fill="#D9A27A"/>
-          <path id="three-quarter-face-shade" clip-path="url(#three-quarter-face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#BC855F" stroke="none"/>
-          <path id="three-quarter-fringe" d="M99 95 Q96 64 128 63 Q160 64 157 93 Q156 84 149 84 H107 Q100 84 99 95 Z" fill="#1E1A24"/>
-          <path id="three-quarter-hair-sheen" d="M108 76 Q116 70 126 70" fill="none" stroke="#3B2A24" stroke-width="3.5"/>
+          <path id="three-quarter-hair-back" d="M100 106 Q90 92 95 76 Q104 62 128 62 L128 84 Z" fill="#E8C15A"/>
+          <circle id="three-quarter-face" cx="128" cy="98" r="29" fill="#F7D7C4"/>
+          <path id="three-quarter-face-shade" clip-path="url(#three-quarter-face-clip)" d="M155 89 Q152 121 120 127 L160 129 Z" fill="#EBBDA5" stroke="none"/>
+          <path id="three-quarter-fringe" d="M100 104 Q95 66 128 64 Q158 65 158 90 Q153 82 147 83 Q149 88 147 92 Q134 80 114 83 Q106 85 105 92 L105 102 Q103 106 100 104 Z" fill="#E8C15A"/>
+          <path id="three-quarter-hair-shade" d="M150 72 Q156 78 156 86 M132 74 Q142 76 147 83" fill="none" stroke="#C9A13E" stroke-width="3"/>
+          <path id="three-quarter-hair-sheen" d="M108 76 Q116 70 126 70" fill="none" stroke="#FFEA99" stroke-width="3.5"/>
           <g id="three-quarter-face-features" stroke="none">
             <ellipse cx="120" cy="101" rx="4.6" ry="6" fill="#2A1E3D"/>
             <ellipse cx="142" cy="100" rx="4.6" ry="6" fill="#2A1E3D"/>
             <circle cx="121.6" cy="98.3" r="1.9" fill="#FFFFFF"/>
             <circle cx="143.6" cy="97.3" r="1.9" fill="#FFFFFF"/>
-            <ellipse cx="111" cy="110" rx="6" ry="3.8" fill="#E8806E" opacity="0.6"/>
-            <ellipse cx="152" cy="109" rx="4.6" ry="3.4" fill="#E8806E" opacity="0.6"/>
+            <ellipse cx="111" cy="110" rx="6.5" ry="4.2" fill="#F48A9A" opacity="0.75"/>
+            <ellipse cx="152" cy="109" rx="5" ry="3.8" fill="#F48A9A" opacity="0.75"/>
           </g>
           <g id="three-quarter-mouth" fill="none" stroke-width="3.5">
             <path d="M123 111 Q134 120 146 108"/>
@@ -282,9 +283,10 @@
 <g id="back-helmet">
 <rect id="back-goggle-frame-top" x="97" y="32" width="62" height="27" rx="13.5" fill="#FFD23F"/>
 <circle id="back-glass" cx="128" cy="94" r="50" fill="#CFE9FF" stroke="none"/>
-<path id="back-hair-back" d="M95 104 Q93 62 128 62 Q163 62 161 104 V113 Q161 121 153 121 H103 Q95 121 95 113 Z" fill="#1E1A24" stroke-width="4"/>
-<path d="M108 80 Q118 70 132 70" fill="none" stroke="#3B2A24" stroke-width="3.5"/>
-<path d="M104 98 Q106 88 112 84" fill="none" stroke="#3B2A24" stroke-width="3.5"/>
+<rect id="back-neck" x="112" y="100" width="32" height="26" rx="8" fill="#F7D7C4" stroke-width="4"/>
+<path id="back-hair-back" d="M97 102 Q93 62 128 62 Q163 62 159 102 Q158 112 148 114 H108 Q98 112 97 102 Z" fill="#E8C15A" stroke-width="4"/>
+<path d="M108 80 Q118 70 132 70" fill="none" stroke="#FFEA99" stroke-width="3.5"/>
+<path d="M150 82 Q154 92 151 104 M120 100 Q128 104 138 100" fill="none" stroke="#C9A13E" stroke-width="3"/>
 <g id="back-goggle-strap">
 <path d="M80 80 Q128 48 176 80" fill="none" stroke-width="14"/>
 <path d="M80 80 Q128 48 176 80" fill="none" stroke="#E0AE1F" stroke-width="6"/>

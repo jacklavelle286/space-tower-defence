@@ -31,12 +31,6 @@
       <g id="helmet">
         <circle id="glass" cx="128" cy="116" r="62" fill="#CFE9FF" fill-opacity="0.6" stroke="none"/>
         <g id="head" stroke-width="4">
-          <g id="hair-pigtails" stroke-width="4">
-            <ellipse cx="84" cy="132" rx="10" ry="17" fill="#E0AE1F" transform="rotate(18 84 132)"/>
-            <circle cx="91" cy="116" r="5" fill="#8ED8FF"/>
-            <ellipse cx="172" cy="132" rx="10" ry="17" fill="#E0AE1F" transform="rotate(-18 172 132)"/>
-            <circle cx="165" cy="116" r="5" fill="#8ED8FF"/>
-          </g>
           <circle id="face" cx="128" cy="124" r="36" fill="#FCE0CF"/>
           <path id="face-shade" clip-path="url(#face-clip)" d="M161 112 Q158 152 118 160 L170 166 Z" fill="#F2C3AA" stroke="none"/>
           <circle cx="128" cy="124" r="36" fill="none"/>

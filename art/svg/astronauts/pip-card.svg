@@ -57,8 +57,8 @@
           <ellipse cx="144" cy="118" rx="6.5" ry="8.5" fill="#2A1E3D"/>
           <circle cx="114.3" cy="114.5" r="2.6" fill="#FFFFFF"/>
           <circle cx="146.3" cy="114.5" r="2.6" fill="#FFFFFF"/>
-          <ellipse cx="98" cy="132" rx="10" ry="6.5" fill="#F48A9A" opacity="0.7"/>
-          <ellipse cx="158" cy="132" rx="10" ry="6.5" fill="#F48A9A" opacity="0.7"/>
+          <ellipse cx="98" cy="132" rx="10" ry="6.5" fill="#F48A9A" opacity="0.75"/>
+          <ellipse cx="158" cy="132" rx="10" ry="6.5" fill="#F48A9A" opacity="0.75"/>
           <g id="freckles" fill="#B5653F">
             <circle cx="92" cy="126" r="2.6"/><circle cx="100" cy="124.5" r="2.6"/><circle cx="96" cy="131" r="2.6"/>
             <circle cx="156" cy="124.5" r="2.6"/><circle cx="164" cy="126" r="2.6"/><circle cx="160" cy="131" r="2.6"/>

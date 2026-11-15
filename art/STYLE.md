@@ -138,19 +138,20 @@ About 2.5 heads tall when you count the helmet as the head; chunky toy proportio
 | Visor rim | the class-colour tinted band along the lower glass: outlined band 16 / 9, `M83 121 Q126 152 169 121` |
 | Head | face circle r 29 at (128,98), inner line 4, inside the glass; skin shade crescent clipped bottom-right |
 
-Skin tones (base / shade / cheek blush): Nova fair `#FCE0CF` / `#F2C3AA` / `#F48A9A` at 75%. Other cast members
-(cast sheet 3.1): pale with freckles `#FBE4D5` / `#EFC6AE`, light-brown `#D9A27A` / `#BC855F`, olive `#D6AE84` /
-`#B88F66`, medium-brown `#A9714B` / `#8A5A3A`, dark-brown `#6E4630` / `#553424`. Hair: black `#1E1A24`, ginger
-`#E07A3C`, grey `#B9B4C4`, dark brown `#3B2A24`.
+**Cast (owner decision, 2026-11-15): every human character is a white European man**, in the friendly toy style.
+Skin (base / shade), cheek blush `#F48A9A` at 75% unless noted; hair:
 
-Curly hair puffs are bumpy circles (7 bumps); a scalloped fringe sits over the top of the face:
+| Astronaut | Skin | Hair and face |
+|---|---|---|
+| Nova | `#FCE0CF` / `#F2C3AA` | young; short black (`#1E1A24`) curly crop: curly cap behind the face, fringe edged with 7 small round curls, a few `#4A4458` curl strokes; big open grin |
+| Pip | `#FBE4D5` / `#EFC6AE`, freckles | young; tufty ginger (`#E07A3C`); round cheeks |
+| Juno | `#F7D7C4` / `#EBBDA5` | young; short straight blond (`#E8C15A`, strands `#C9A13E`, sheen `#FFEA99`) with a side-swept fringe; confident smile |
+| Orion | `#F1CDB2` / `#E2B394` | young; short wavy dark brown (`#3B2A24`); thoughtful; small bright hearing aid |
+| Mira | `#F5D5BF` / `#E8BBA0` | adult; neat short mid-brown (`#6B4A35`) side parting, short tidy rounded beard; round glasses; calm smile |
+| Sol | `#F2CDB8` / `#E2AE96`, slightly stronger blush | older; short grey (`#B9B4C4`) hair and short grey beard; warm grin |
 
-```svg
-<!-- puff: circle of r 11 drawn as 7 arcs -->
-<path d="M110.0 76.4 A6.1 6.1 0 0 1 103.2 83.7 A6.1 6.1 0 0 1 93.2 83.0 A6.1 6.1 0 0 1 87.6 74.7 A6.1 6.1 0 0 1 90.6 65.2 A6.1 6.1 0 0 1 99.9 61.5 A6.1 6.1 0 0 1 108.5 66.5 A6.1 6.1 0 0 1 110.0 76.4 Z" fill="#1E1A24" stroke-width="4"/>
-<!-- scalloped fringe -->
-<path d="M99 93 Q98 68 128 67 Q158 68 157 91 Q153 83 147 85 Q142 77 134 82 Q127 75 120 82 Q111 77 99 93 Z" fill="#1E1A24" stroke-width="4"/>
-```
+Profile avatars (01-05, 08-11) are cheerful boys with light skin and short hair in varied colours. Copy a head from the
+character's `<name>-l1-idle-01.svg` rather than redrawing it, so every frame and scene matches.
 
 ### Astronaut face (copy, then move it with the head group)
 
@@ -242,7 +243,7 @@ nearly empty.
 
 - Astronauts: `body-back` (backpack, legs), `backpack`, `legs`, `boots`, `body`, `arm-back`, `mitten-back`, `torso`,
   `chevron`/`emblem`, `collar`, `arm-front`, `gadget` (`lens`, `lens-glow`), `mitten-front`, `helmet` (`glass`,
-  `head`, `hair-puffs`, `face`, `fringe`, `face-features`, `mouth`, `visor-rim`, `helmet-highlight`, `helmet-outline`).
+  `head`, `hair-back`, `face`, `fringe`, `face-features`, `mouth`, `visor-rim`, `helmet-highlight`, `helmet-outline`).
 - Aliens: `body` (`dome`/shape, `*-shade`, `belly`, `*-highlight`, spots, `*-outline`), `antennae`
   (`antenna-back`, `antenna-front`), `limbs`, `face` (`eyes`, `mouth`), `wings`.
 - Effects: `burst`, `ring`, `glow`, `stars`.

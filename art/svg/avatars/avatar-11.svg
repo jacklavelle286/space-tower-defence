@@ -42,17 +42,17 @@
       <g id="helmet">
         <circle id="glass" cx="128" cy="116" r="62" fill="#CFE9FF" fill-opacity="0.6" stroke="none"/>
         <g id="head" stroke-width="4">
-          <circle id="face" cx="128" cy="124" r="36" fill="#6E4630"/>
-          <path id="face-shade" clip-path="url(#face-clip)" d="M161 112 Q158 152 118 160 L170 166 Z" fill="#553424" stroke="none"/>
+          <circle id="face" cx="128" cy="124" r="36" fill="#FCE0CF"/>
+          <path id="face-shade" clip-path="url(#face-clip)" d="M161 112 Q158 152 118 160 L170 166 Z" fill="#F2C3AA" stroke="none"/>
           <circle cx="128" cy="124" r="36" fill="none"/>
-          <path id="fringe" d="M95 112 Q95 87 128 87 Q161 87 161 112 Q150 101 128 100 Q106 101 95 112 Z" fill="#1E1A24"/>
+          <path id="fringe" d="M95 112 Q95 87 128 87 Q161 87 161 112 Q150 101 128 100 Q106 101 95 112 Z" fill="#E8C15A"/>
           <g id="face-features" stroke="none">
             <ellipse cx="115" cy="127" rx="5.6" ry="7.3" fill="#2A1E3D"/>
             <ellipse cx="141" cy="127" rx="5.6" ry="7.3" fill="#2A1E3D"/>
             <circle cx="117" cy="123.6" r="2.3" fill="#FFFFFF"/>
             <circle cx="143" cy="123.6" r="2.3" fill="#FFFFFF"/>
-            <ellipse cx="104" cy="139" rx="6.5" ry="4.2" fill="#F48A9A" opacity="0.55"/>
-            <ellipse cx="152" cy="139" rx="6.5" ry="4.2" fill="#F48A9A" opacity="0.55"/>
+            <ellipse cx="104" cy="139" rx="6.5" ry="4.2" fill="#F48A9A" opacity="0.75"/>
+            <ellipse cx="152" cy="139" rx="6.5" ry="4.2" fill="#F48A9A" opacity="0.75"/>
           </g>
           <path id="mouth" d="M117 138 H139 Q137 151 128 151 Q119 151 117 138 Z" fill="#FFFFFF" stroke-width="3.5"/>
           <path d="M121.5 147 Q128 143 134.5 147 Q132 150.5 128 150.5 Q124 150.5 121.5 147 Z" fill="#F27C8C" stroke="none"/>
