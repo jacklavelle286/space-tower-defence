@@ -29,6 +29,7 @@ The rules are in [J §J.6](../plan/J-execution-backlog.md#j6-decision-log-practi
 | [0011](0011-oidc-trust-environments-and-artefacts-bucket.md) | OIDC trust, GitHub environments and the artefacts bucket | Accepted |
 | [0012](0012-auth-spike.md) | Auth spike results: managed login for the player pool | Accepted |
 | [0013](0013-front-end-stack-versions.md) | Front-end stack versions | Accepted |
+| [0014](0014-listening-bake-off.md) | Listening bake-off: `tts_phoneme_engine`, per-sound verdicts and SSML templates | Proposed |
 | [0019](0019-single-release-run-with-approval.md) | One release run with a manual approval (supersedes in part 0010, 0011 once accepted) | Accepted |
 | [0020](0020-spike-workflow-destroy-path.md) | A separate spike workflow whose destroy reaches spike state only (amends H §H.7 W-1 and the J M0 order for Phases 5–6) | Accepted |
 | [0021](0021-skip-remaining-spikes.md) | Skip the DynamoDB and browser-audio spikes (M0-13, M0-12); their questions move to Phases 17, 19 and 22 | Accepted |
@@ -40,7 +41,6 @@ Reserved numbers, recorded when the work happens ([J §J.6.3](../plan/J-executio
 
 | ADR | Topic | Task |
 |---|---|---|
-| 0014 | Listening bake-off: `tts_phoneme_engine`, per-sound verdicts and SSML templates | M0-11 |
 | 0015 | Browser audio storage and the `sha256` source | M0-12 (spike skipped, [ADR-0021](0021-skip-remaining-spikes.md); written in Phase 22) |
 | 0016–0018 | M1 choices J-1, J-2, J-3 | M1-24 |
 

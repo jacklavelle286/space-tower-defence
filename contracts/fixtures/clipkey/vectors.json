@@ -1,0 +1,227 @@
+{
+  "description": "Clip-key vectors (Phase 18, M0-11). Each input document's canonical JSON (sorted keys, no whitespace, UTF-8) hashed with SHA-256 gives clipKey. Written by spikes/polly-listening/canonical.py; Phase 19's api/shared/clipkey.py must reproduce every vector byte for byte (its test reads this file). 'build' is how the spike's SSML templates produced 'input.text'. 'objectKey' is the flat S3 key under the clip prefix tts/v1/ (H section H.4.6).",
+  "sources": [
+    "docs/plan/00-spine.md S5.2",
+    "docs/decisions/0009-speech-render-path-and-voice.md",
+    "docs/plan/sources/06-polly-tts.md sections 9 and 12",
+    "docs/plan/H-infrastructure-and-delivery.md H.4.6 (object key)"
+  ],
+  "vectors": [
+    {
+      "name": "phoneme s slow70 neural",
+      "build": {
+        "form": "SLOW70",
+        "ph": "s",
+        "text": "s"
+      },
+      "input": {
+        "keySchema": 1,
+        "provider": "polly",
+        "engine": "neural",
+        "voiceId": "Amy",
+        "languageCode": "en-GB",
+        "textType": "ssml",
+        "text": "<speak><break time=\"150ms\"/><prosody rate=\"70%\"><phoneme alphabet=\"x-sampa\" ph=\"s\">s</phoneme></prosody>.<break time=\"250ms\"/></speak>",
+        "outputFormat": "mp3",
+        "sampleRate": "24000",
+        "lexicons": [],
+        "generation": 1
+      },
+      "canonicalJson": "{\"engine\":\"neural\",\"generation\":1,\"keySchema\":1,\"languageCode\":\"en-GB\",\"lexicons\":[],\"outputFormat\":\"mp3\",\"provider\":\"polly\",\"sampleRate\":\"24000\",\"text\":\"<speak><break time=\\\"150ms\\\"/><prosody rate=\\\"70%\\\"><phoneme alphabet=\\\"x-sampa\\\" ph=\\\"s\\\">s</phoneme></prosody>.<break time=\\\"250ms\\\"/></speak>\",\"textType\":\"ssml\",\"voiceId\":\"Amy\"}",
+      "clipKey": "10b5bd0ce84a88c57e584ff325dd0e9f9070f4593edb2737c31e59f0f8041936",
+      "objectKey": "tts/v1/10b5bd0ce84a88c57e584ff325dd0e9f9070f4593edb2737c31e59f0f8041936.mp3"
+    },
+    {
+      "name": "same ssml, generative engine (engine changes the key)",
+      "build": {
+        "form": "SLOW70",
+        "ph": "s",
+        "text": "s"
+      },
+      "input": {
+        "keySchema": 1,
+        "provider": "polly",
+        "engine": "generative",
+        "voiceId": "Amy",
+        "languageCode": "en-GB",
+        "textType": "ssml",
+        "text": "<speak><break time=\"150ms\"/><prosody rate=\"70%\"><phoneme alphabet=\"x-sampa\" ph=\"s\">s</phoneme></prosody>.<break time=\"250ms\"/></speak>",
+        "outputFormat": "mp3",
+        "sampleRate": "24000",
+        "lexicons": [],
+        "generation": 1
+      },
+      "canonicalJson": "{\"engine\":\"generative\",\"generation\":1,\"keySchema\":1,\"languageCode\":\"en-GB\",\"lexicons\":[],\"outputFormat\":\"mp3\",\"provider\":\"polly\",\"sampleRate\":\"24000\",\"text\":\"<speak><break time=\\\"150ms\\\"/><prosody rate=\\\"70%\\\"><phoneme alphabet=\\\"x-sampa\\\" ph=\\\"s\\\">s</phoneme></prosody>.<break time=\\\"250ms\\\"/></speak>\",\"textType\":\"ssml\",\"voiceId\":\"Amy\"}",
+      "clipKey": "4a8f5362de03342647cada06753b94e3c6dea09f3ea7b872933e1914aee38518",
+      "objectKey": "tts/v1/4a8f5362de03342647cada06753b94e3c6dea09f3ea7b872933e1914aee38518.mp3"
+    },
+    {
+      "name": "same input, generation 2 (generation changes the key)",
+      "build": {
+        "form": "SLOW70",
+        "ph": "s",
+        "text": "s"
+      },
+      "input": {
+        "keySchema": 1,
+        "provider": "polly",
+        "engine": "neural",
+        "voiceId": "Amy",
+        "languageCode": "en-GB",
+        "textType": "ssml",
+        "text": "<speak><break time=\"150ms\"/><prosody rate=\"70%\"><phoneme alphabet=\"x-sampa\" ph=\"s\">s</phoneme></prosody>.<break time=\"250ms\"/></speak>",
+        "outputFormat": "mp3",
+        "sampleRate": "24000",
+        "lexicons": [],
+        "generation": 2
+      },
+      "canonicalJson": "{\"engine\":\"neural\",\"generation\":2,\"keySchema\":1,\"languageCode\":\"en-GB\",\"lexicons\":[],\"outputFormat\":\"mp3\",\"provider\":\"polly\",\"sampleRate\":\"24000\",\"text\":\"<speak><break time=\\\"150ms\\\"/><prosody rate=\\\"70%\\\"><phoneme alphabet=\\\"x-sampa\\\" ph=\\\"s\\\">s</phoneme></prosody>.<break time=\\\"250ms\\\"/></speak>\",\"textType\":\"ssml\",\"voiceId\":\"Amy\"}",
+      "clipKey": "a1af43a7d2b78bad6b112e16295641d91a584c952be406b83cc7bdc0d469942b",
+      "objectKey": "tts/v1/a1af43a7d2b78bad6b112e16295641d91a584c952be406b83cc7bdc0d469942b.mp3"
+    },
+    {
+      "name": "same input, voice Brian (voice changes the key)",
+      "build": {
+        "form": "SLOW70",
+        "ph": "s",
+        "text": "s"
+      },
+      "input": {
+        "keySchema": 1,
+        "provider": "polly",
+        "engine": "neural",
+        "voiceId": "Brian",
+        "languageCode": "en-GB",
+        "textType": "ssml",
+        "text": "<speak><break time=\"150ms\"/><prosody rate=\"70%\"><phoneme alphabet=\"x-sampa\" ph=\"s\">s</phoneme></prosody>.<break time=\"250ms\"/></speak>",
+        "outputFormat": "mp3",
+        "sampleRate": "24000",
+        "lexicons": [],
+        "generation": 1
+      },
+      "canonicalJson": "{\"engine\":\"neural\",\"generation\":1,\"keySchema\":1,\"languageCode\":\"en-GB\",\"lexicons\":[],\"outputFormat\":\"mp3\",\"provider\":\"polly\",\"sampleRate\":\"24000\",\"text\":\"<speak><break time=\\\"150ms\\\"/><prosody rate=\\\"70%\\\"><phoneme alphabet=\\\"x-sampa\\\" ph=\\\"s\\\">s</phoneme></prosody>.<break time=\\\"250ms\\\"/></speak>\",\"textType\":\"ssml\",\"voiceId\":\"Brian\"}",
+      "clipKey": "ac45b00555905d90de101a2e71f9d7332f086f1485b014509692b9b2995b8c48",
+      "objectKey": "tts/v1/ac45b00555905d90de101a2e71f9d7332f086f1485b014509692b9b2995b8c48.mp3"
+    },
+    {
+      "name": "x-sampa needing escapes is plain ascii: a = {",
+      "build": {
+        "form": "PH",
+        "ph": "{",
+        "text": "a"
+      },
+      "input": {
+        "keySchema": 1,
+        "provider": "polly",
+        "engine": "neural",
+        "voiceId": "Amy",
+        "languageCode": "en-GB",
+        "textType": "ssml",
+        "text": "<speak><break time=\"150ms\"/><phoneme alphabet=\"x-sampa\" ph=\"{\">a</phoneme>.<break time=\"250ms\"/></speak>",
+        "outputFormat": "mp3",
+        "sampleRate": "24000",
+        "lexicons": [],
+        "generation": 1
+      },
+      "canonicalJson": "{\"engine\":\"neural\",\"generation\":1,\"keySchema\":1,\"languageCode\":\"en-GB\",\"lexicons\":[],\"outputFormat\":\"mp3\",\"provider\":\"polly\",\"sampleRate\":\"24000\",\"text\":\"<speak><break time=\\\"150ms\\\"/><phoneme alphabet=\\\"x-sampa\\\" ph=\\\"{\\\">a</phoneme>.<break time=\\\"250ms\\\"/></speak>\",\"textType\":\"ssml\",\"voiceId\":\"Amy\"}",
+      "clipKey": "ea5a5b44aaf0330e1f6dd7a95a80fe34e7afd84d55fc348f6bc6dd2f6bbcd41c",
+      "objectKey": "tts/v1/ea5a5b44aaf0330e1f6dd7a95a80fe34e7afd84d55fc348f6bc6dd2f6bbcd41c.mp3"
+    },
+    {
+      "name": "small schwa b",
+      "build": {
+        "form": "FAST130",
+        "ph": "b@",
+        "text": "b"
+      },
+      "input": {
+        "keySchema": 1,
+        "provider": "polly",
+        "engine": "neural",
+        "voiceId": "Amy",
+        "languageCode": "en-GB",
+        "textType": "ssml",
+        "text": "<speak><break time=\"150ms\"/><prosody rate=\"130%\"><phoneme alphabet=\"x-sampa\" ph=\"b@\">b</phoneme></prosody>.<break time=\"250ms\"/></speak>",
+        "outputFormat": "mp3",
+        "sampleRate": "24000",
+        "lexicons": [],
+        "generation": 1
+      },
+      "canonicalJson": "{\"engine\":\"neural\",\"generation\":1,\"keySchema\":1,\"languageCode\":\"en-GB\",\"lexicons\":[],\"outputFormat\":\"mp3\",\"provider\":\"polly\",\"sampleRate\":\"24000\",\"text\":\"<speak><break time=\\\"150ms\\\"/><prosody rate=\\\"130%\\\"><phoneme alphabet=\\\"x-sampa\\\" ph=\\\"b@\\\">b</phoneme></prosody>.<break time=\\\"250ms\\\"/></speak>\",\"textType\":\"ssml\",\"voiceId\":\"Amy\"}",
+      "clipKey": "b0c265c20129816bace369362868a9dd13afb060174244d35270cfa2b8838e77",
+      "objectKey": "tts/v1/b0c265c20129816bace369362868a9dd13afb060174244d35270cfa2b8838e77.mp3"
+    },
+    {
+      "name": "word plain text",
+      "build": {
+        "form": "TEXT",
+        "ph": null,
+        "text": "ship."
+      },
+      "input": {
+        "keySchema": 1,
+        "provider": "polly",
+        "engine": "generative",
+        "voiceId": "Amy",
+        "languageCode": "en-GB",
+        "textType": "ssml",
+        "text": "<speak><break time=\"150ms\"/>ship.<break time=\"250ms\"/></speak>",
+        "outputFormat": "mp3",
+        "sampleRate": "24000",
+        "lexicons": [],
+        "generation": 1
+      },
+      "canonicalJson": "{\"engine\":\"generative\",\"generation\":1,\"keySchema\":1,\"languageCode\":\"en-GB\",\"lexicons\":[],\"outputFormat\":\"mp3\",\"provider\":\"polly\",\"sampleRate\":\"24000\",\"text\":\"<speak><break time=\\\"150ms\\\"/>ship.<break time=\\\"250ms\\\"/></speak>\",\"textType\":\"ssml\",\"voiceId\":\"Amy\"}",
+      "clipKey": "935db036328c7248d5bbd38ed9622d40ce651ab47c9ece45dd84f392448c42b0",
+      "objectKey": "tts/v1/935db036328c7248d5bbd38ed9622d40ce651ab47c9ece45dd84f392448c42b0.mp3"
+    },
+    {
+      "name": "instruction at 90%",
+      "build": {
+        "form": "TEXT90",
+        "ph": null,
+        "text": "Listen to the sound. Which letters make this sound?"
+      },
+      "input": {
+        "keySchema": 1,
+        "provider": "polly",
+        "engine": "generative",
+        "voiceId": "Amy",
+        "languageCode": "en-GB",
+        "textType": "ssml",
+        "text": "<speak><break time=\"150ms\"/><prosody rate=\"90%\">Listen to the sound. Which letters make this sound?</prosody><break time=\"250ms\"/></speak>",
+        "outputFormat": "mp3",
+        "sampleRate": "24000",
+        "lexicons": [],
+        "generation": 1
+      },
+      "canonicalJson": "{\"engine\":\"generative\",\"generation\":1,\"keySchema\":1,\"languageCode\":\"en-GB\",\"lexicons\":[],\"outputFormat\":\"mp3\",\"provider\":\"polly\",\"sampleRate\":\"24000\",\"text\":\"<speak><break time=\\\"150ms\\\"/><prosody rate=\\\"90%\\\">Listen to the sound. Which letters make this sound?</prosody><break time=\\\"250ms\\\"/></speak>\",\"textType\":\"ssml\",\"voiceId\":\"Amy\"}",
+      "clipKey": "c06bdc4a9e51b1f4f2b5a5ea445950b2a9a021da160571b90e7c4b4df4f018eb",
+      "objectKey": "tts/v1/c06bdc4a9e51b1f4f2b5a5ea445950b2a9a021da160571b90e7c4b4df4f018eb.mp3"
+    },
+    {
+      "name": "text with xml-reserved characters",
+      "build": {
+        "form": "TEXT",
+        "ph": null,
+        "text": "Tom & Sam's \"cat\" < dog."
+      },
+      "input": {
+        "keySchema": 1,
+        "provider": "polly",
+        "engine": "generative",
+        "voiceId": "Amy",
+        "languageCode": "en-GB",
+        "textType": "ssml",
+        "text": "<speak><break time=\"150ms\"/>Tom &amp; Sam&apos;s &quot;cat&quot; &lt; dog.<break time=\"250ms\"/></speak>",
+        "outputFormat": "mp3",
+        "sampleRate": "24000",
+        "lexicons": [],
+        "generation": 1
+      },
+      "canonicalJson": "{\"engine\":\"generative\",\"generation\":1,\"keySchema\":1,\"languageCode\":\"en-GB\",\"lexicons\":[],\"outputFormat\":\"mp3\",\"provider\":\"polly\",\"sampleRate\":\"24000\",\"text\":\"<speak><break time=\\\"150ms\\\"/>Tom &amp; Sam&apos;s &quot;cat&quot; &lt; dog.<break time=\\\"250ms\\\"/></speak>\",\"textType\":\"ssml\",\"voiceId\":\"Amy\"}",
+      "clipKey": "ab2797544d299b8b9859540c08d4431b4b9421559567dcc0c16d507c26264497",
+      "objectKey": "tts/v1/ab2797544d299b8b9859540c08d4431b4b9421559567dcc0c16d507c26264497.mp3"
+    }
+  ]
+}

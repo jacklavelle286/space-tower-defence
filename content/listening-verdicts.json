@@ -1,0 +1,53 @@
+{
+  "$comment": "Phase 18 (M0-11) listening verdicts. Written by the owner from spikes/polly-listening/out/index.html after listening; ADR-0014 records the decision. Read by gate G-14 (Phase 19) and the R21 approve check: a PHONEME speech definition for sound <id> (speechId convention phoneme-<id>) is refused unless sounds[<id>].verdict is publishable or publishable-small-schwa. A sound that is missing, pending or word-only is refused (fail closed).",
+  "schemaVersion": 1,
+  "status": "pending",
+  "adr": "docs/decisions/0014-listening-bake-off.md",
+  "voiceId": "Amy",
+  "languageCode": "en-GB",
+  "phonemeEngine": null,
+  "verdictValues": {
+    "PHONEME": ["publishable", "publishable-small-schwa", "word-only"],
+    "other": ["publishable", "rejected"]
+  },
+  "listening": {
+    "date": null,
+    "listeners": null,
+    "devices": []
+  },
+  "kinds": {
+    "PHONEME": {"engine": null, "amySuits": null},
+    "LETTER_NAME": {"engine": null, "amySuits": null},
+    "WORD": {"engine": "generative", "amySuits": null},
+    "INSTRUCTION": {"engine": "generative", "amySuits": null},
+    "DICTATION": {"engine": "generative", "amySuits": null}
+  },
+  "sounds": {
+    "s": {"example": "sun", "xsampa": "s", "tier": "B", "verdict": "pending", "clip": null, "heardAs": null, "notes": null},
+    "m": {"example": "man", "xsampa": "m", "tier": "B", "verdict": "pending", "clip": null, "heardAs": null, "notes": null},
+    "f": {"example": "fan", "xsampa": "f", "tier": "B", "verdict": "pending", "clip": null, "heardAs": null, "notes": null},
+    "sh": {"example": "shop", "xsampa": "S", "tier": "B", "verdict": "pending", "clip": null, "heardAs": null, "notes": null},
+    "th": {"example": "thin", "xsampa": "T", "tier": "C", "verdict": "pending", "clip": null, "heardAs": null, "notes": null},
+    "ng": {"example": "ring", "xsampa": "N", "tier": "C", "verdict": "pending", "clip": null, "heardAs": null, "notes": null},
+    "a": {"example": "ant", "xsampa": "{", "tier": "B", "verdict": "pending", "clip": null, "heardAs": null, "notes": null},
+    "i": {"example": "in", "xsampa": "I", "tier": "B", "verdict": "pending", "clip": null, "heardAs": null, "notes": null},
+    "ee": {"example": "feet", "xsampa": "i", "tier": "B", "verdict": "pending", "clip": null, "heardAs": null, "notes": null},
+    "igh": {"example": "night", "xsampa": "aI", "tier": "B", "verdict": "pending", "clip": null, "heardAs": null, "notes": null},
+    "oa": {"example": "boat", "xsampa": "@U", "tier": "B", "verdict": "pending", "clip": null, "heardAs": null, "notes": null},
+    "b": {"example": "bed", "xsampa": "b", "tier": "C", "verdict": "pending", "clip": null, "heardAs": null, "notes": null},
+    "t": {"example": "tap", "xsampa": "t", "tier": "C", "verdict": "pending", "clip": null, "heardAs": null, "notes": null},
+    "g": {"example": "got", "xsampa": "g", "tier": "C", "verdict": "pending", "clip": null, "heardAs": null, "notes": null},
+    "ch": {"example": "chip", "xsampa": "tS", "tier": "B", "verdict": "pending", "clip": null, "heardAs": null, "notes": null},
+    "w": {"example": "win", "xsampa": "w", "tier": "C", "verdict": "pending", "clip": null, "heardAs": null, "notes": null},
+    "h": {"example": "hat", "xsampa": "h", "tier": "C", "verdict": "pending", "clip": null, "heardAs": null, "notes": null}
+  },
+  "items": {
+    "letter-s": {"kind": "LETTER_NAME", "verdict": "pending", "clip": null, "heardAs": null, "notes": null},
+    "letter-a": {"kind": "LETTER_NAME", "verdict": "pending", "clip": null, "heardAs": null, "notes": null},
+    "word-ship": {"kind": "WORD", "verdict": "pending", "clip": null, "heardAs": null, "notes": null},
+    "word-the": {"kind": "WORD", "verdict": "pending", "clip": null, "heardAs": null, "notes": null},
+    "word-said": {"kind": "WORD", "verdict": "pending", "clip": null, "heardAs": null, "notes": null},
+    "word-chom": {"kind": "WORD", "verdict": "pending", "clip": null, "heardAs": null, "notes": null},
+    "instruction-listen": {"kind": "INSTRUCTION", "verdict": "pending", "clip": null, "heardAs": null, "notes": null}
+  }
+}

@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Polly Listening Bake-off</title>
+<style>
+:root { --bg:#f7f7f5; --panel:#fff; --ink:#1d1d1b; --muted:#666; --line:#ddd; --accent:#2457c5; --err:#b3261e; --ok:#1e7b3a; }
+@media (prefers-color-scheme: dark) { :root { --bg:#151515; --panel:#202020; --ink:#eee; --muted:#9a9a9a; --line:#383838;
+  --accent:#8fb0ff; --err:#ff8a80; --ok:#7bd88f; } }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font:15px/1.45 system-ui, sans-serif; }
+main { max-width:1100px; margin:0 auto; padding:16px; }
+h1 { font-size:1.4rem; margin:.2rem 0 .4rem; }
+.intro { color:var(--muted); max-width:70ch; }
+.panel { background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:14px 16px; margin:14px 0; }
+.item h2 { font-size:1.05rem; margin:0 0 4px; display:flex; gap:10px; align-items:baseline; flex-wrap:wrap; }
+.tag { font-size:.75rem; padding:1px 7px; border:1px solid var(--line); border-radius:99px; color:var(--muted); }
+table { width:100%; border-collapse:collapse; margin:8px 0; }
+th, td { text-align:left; padding:6px 6px; border-top:1px solid var(--line); vertical-align:top; }
+th { font-size:.8rem; color:var(--muted); font-weight:600; }
+code { font-size:.78rem; word-break:break-all; color:var(--muted); }
+audio { width:220px; max-width:100%; height:34px; }
+.err { color:var(--err); font-size:.8rem; max-width:320px; word-break:break-word; }
+.controls { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:10px 18px; margin-top:6px; }
+fieldset { border:1px solid var(--line); border-radius:8px; padding:6px 10px; margin:0; }
+legend { font-size:.8rem; color:var(--muted); padding:0 4px; }
+label { display:block; cursor:pointer; }
+input[type=text], textarea { width:100%; font:inherit; padding:5px 7px; border:1px solid var(--line); border-radius:6px;
+  background:var(--bg); color:var(--ink); }
+textarea { min-height:220px; font:12px/1.4 ui-monospace, monospace; }
+button { font:inherit; padding:6px 14px; border-radius:6px; border:1px solid var(--accent); background:var(--accent); color:var(--panel); cursor:pointer; }
+.blind .label, .blind code, .blind .tag { visibility:hidden; }
+.summary { font-size:.85rem; color:var(--muted); }
+.done { border-left:4px solid var(--ok); }
+@media (max-width:700px) { .hide-sm { display:none; } audio { width:160px; } }
+</style>
+</head>
+<body>
+<main>
+<h1>Polly listening bake-off</h1>
+<p class="intro">Phase 18. Each item was rendered with Amy on the generative and the neural engine, from exactly the input its clip key hashes.
+Listen on laptop speakers and on headphones, with a second adult. For a blind pass, tick "Hide labels" and let the other adult say what they hear
+first. Then choose a verdict and the best clip for each item, press <b>Build JSON</b>, and copy the result into <code>content/listening-verdicts.json</code>
+(or paste it back to Claude). Your choices are kept in this browser while you work.</p>
+<p class="summary" id="summary"></p>
+
+<section class="panel">
+  <div class="controls">
+    <label><input type="checkbox" id="blind"> Hide labels (blind listening)</label>
+    <div><label for="date">Date</label><input type="text" id="date" placeholder="YYYY-MM-DD"></div>
+    <div><label for="listeners">Who listened (roles only, no names)</label><input type="text" id="listeners" placeholder="owner + second adult; one child for the shortlist"></div>
+    <fieldset><legend>Devices</legend>
+      <label><input type="checkbox" name="devices" value="laptop speakers"> laptop speakers</label>
+      <label><input type="checkbox" name="devices" value="headphones"> headphones</label></fieldset>
+  </div>
+</section>
+
+<div id="items"></div>
+
+<section class="panel">
+  <h2 style="font-size:1.05rem;margin-top:0">Decisions per kind</h2>
+  <div class="controls" id="kinds"></div>
+  <p><button type="button" id="build">Build JSON</button> <button type="button" id="copy">Copy</button> <span class="summary" id="copied"></span></p>
+  <textarea id="out" readonly spellcheck="false"></textarea>
+</section>
+</main>
+<script>
+const DATA = __DATA__;
+const KEY = "polly-bakeoff-v1";
+let state = {};
+try { state = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { state = {}; }
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+function el(tag, attrs, ...kids) {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) { if (k === "class") n.className = v; else if (v !== undefined) n.setAttribute(k, v); }
+  for (const kid of kids) n.append(kid instanceof Node ? kid : document.createTextNode(String(kid)));
+  return n;
+}
+const VERDICTS = DATA.template.verdictValues;
+const byItem = {};
+for (const r of DATA.renders) {
+  const k = r.itemId + "|" + r.variant + "|" + r.voiceId;
+  (byItem[r.itemId] ||= {})[k] ||= { variant: r.variant, voiceId: r.voiceId, ssml: r.ssml, engines: {} };
+  byItem[r.itemId][k].engines[r.engine] = r;
+}
+const engines = [...new Set(DATA.renders.map(r => r.engine))].sort();
+let ok = 0, bad = 0; for (const r of DATA.renders) r.status === "ok" ? ok++ : bad++;
+document.getElementById("summary").textContent =
+  `${DATA.items.length} items, ${DATA.renders.length} renders (${ok} ok, ${bad} failed). Rendered ${DATA.generatedAt || "?"}.`;
+
+function radio(name, value, text, checked, onchange) {
+  const i = el("input", { type: "radio", name, value }); i.checked = checked; i.addEventListener("change", onchange);
+  return el("label", {}, i, " " + text);
+}
+function itemState(id) { return (state.items ||= {})[id] ||= {}; }
+const root = document.getElementById("items");
+for (const item of DATA.items) {
+  const s = itemState(item.id);
+  const box = el("section", { class: "panel item", id: "item-" + item.id });
+  box.append(el("h2", {}, el("span", {}, "Item " + (DATA.items.indexOf(item) + 1)),
+    el("span", { class: "label" }, item.id + ": " + item.label),
+    el("span", { class: "tag" }, item.kind), item.risk ? el("span", { class: "tag" }, "risk " + item.risk) : ""));
+  const table = el("table");
+  const head = el("tr", {}, el("th", {}, "Variant"), el("th", { class: "hide-sm" }, "SSML (the hashed text)"));
+  for (const e of engines) head.append(el("th", {}, e));
+  table.append(head);
+  const rows = Object.values(byItem[item.id] || {});
+  for (const row of rows) {
+    const tr = el("tr", {}, el("td", {}, row.variant + (row.voiceId !== "Amy" ? " (" + row.voiceId + ")" : "")),
+      el("td", { class: "hide-sm" }, el("code", {}, row.ssml)));
+    for (const e of engines) {
+      const r = row.engines[e];
+      if (!r) { tr.append(el("td", {}, "-")); continue; }
+      if (r.status === "ok") tr.append(el("td", {}, el("audio", { controls: "", preload: "none", src: "clips/" + r.clipKey + ".mp3" })));
+      else tr.append(el("td", {}, el("div", { class: "err" }, "Failed: " + r.error)));
+    }
+    table.append(tr);
+  }
+  if (!rows.length) table.append(el("tr", {}, el("td", { colspan: 2 + engines.length }, "Not rendered yet.")));
+  box.append(table);
+  const controls = el("div", { class: "controls" });
+  const vf = el("fieldset", {}, el("legend", {}, "Verdict"));
+  const values = item.kind === "PHONEME" ? VERDICTS.PHONEME : VERDICTS.other;
+  for (const v of values) vf.append(radio("v-" + item.id, v, v, s.verdict === v, () => { s.verdict = v; save(); mark(); }));
+  const bf = el("fieldset", {}, el("legend", {}, "Best clip"));
+  for (const row of rows) for (const e of engines) {
+    const r = row.engines[e]; if (!r || r.status !== "ok") continue;
+    bf.append(radio("b-" + item.id, r.clipKey, row.variant + " / " + row.voiceId + " / " + e, s.best === r.clipKey,
+      () => { s.best = r.clipKey; save(); mark(); }));
+  }
+  bf.append(radio("b-" + item.id, "", "none passes", s.best === "", () => { s.best = ""; save(); mark(); }));
+  const heard = el("input", { type: "text", placeholder: "what the second adult heard, before seeing the label" });
+  heard.value = s.heardAs || ""; heard.addEventListener("input", () => { s.heardAs = heard.value; save(); });
+  const notes = el("input", { type: "text", placeholder: "notes: added vowel? clipped edge? letter name?" });
+  notes.value = s.notes || ""; notes.addEventListener("input", () => { s.notes = notes.value; save(); });
+  controls.append(vf, bf, el("div", {}, el("label", {}, "Heard as"), heard, el("label", {}, "Notes"), notes));
+  box.append(controls);
+  function mark() { box.classList.toggle("done", !!s.verdict && s.best !== undefined); }
+  mark();
+  root.append(box);
+}
+
+const kindsBox = document.getElementById("kinds");
+state.kinds ||= {};
+for (const [kind, k] of Object.entries(DATA.template.kinds)) {
+  const ks = state.kinds[kind] ||= {};
+  const f = el("fieldset", {}, el("legend", {}, kind));
+  if (kind === "PHONEME" || kind === "LETTER_NAME") {
+    f.append(el("div", { class: "summary" }, "Engine (tts_phoneme_engine; neural unless generative passes)"));
+    for (const e of ["neural", "generative"]) f.append(radio("ke-" + kind, e, e, ks.engine === e, () => { ks.engine = e; save(); }));
+  } else {
+    f.append(el("div", { class: "summary" }, "Engine: " + k.engine + " (tts_engine)"));
+  }
+  f.append(el("div", { class: "summary" }, "Amy suits this kind?"));
+  for (const [v, t] of [[true, "yes"], [false, "no"]]) f.append(radio("ka-" + kind, String(v), t, ks.amySuits === v, () => { ks.amySuits = v; save(); }));
+  kindsBox.append(f);
+}
+
+const blind = document.getElementById("blind");
+blind.checked = !!state.blind; document.body.classList.toggle("blind", blind.checked);
+blind.addEventListener("change", () => { state.blind = blind.checked; document.body.classList.toggle("blind", blind.checked); save(); });
+for (const id of ["date", "listeners"]) {
+  const i = document.getElementById(id); i.value = state[id] || "";
+  i.addEventListener("input", () => { state[id] = i.value; save(); });
+}
+for (const c of document.querySelectorAll("input[name=devices]")) {
+  c.checked = (state.devices || []).includes(c.value);
+  c.addEventListener("change", () => { state.devices = [...document.querySelectorAll("input[name=devices]:checked")].map(x => x.value); save(); });
+}
+
+const renderByKey = Object.fromEntries(DATA.renders.map(r => [r.clipKey, r]));
+function clipOf(s) {
+  const r = s.best ? renderByKey[s.best] : null;
+  return r ? { voiceId: r.voiceId, engine: r.engine, variant: r.variant, ssml: r.ssml, clipKey: r.clipKey, sha256: r.sha256 } : null;
+}
+function build() {
+  const out = JSON.parse(JSON.stringify(DATA.template));
+  out.listening = { date: state.date || null, listeners: state.listeners || null, devices: state.devices || [] };
+  for (const [kind, ks] of Object.entries(state.kinds || {})) {
+    if (!out.kinds[kind]) continue;
+    if (ks.engine) out.kinds[kind].engine = ks.engine;
+    if (ks.amySuits !== undefined) out.kinds[kind].amySuits = ks.amySuits;
+  }
+  out.phonemeEngine = (state.kinds.PHONEME || {}).engine || null;
+  for (const item of DATA.items) {
+    const s = itemState(item.id);
+    const target = item.kind === "PHONEME" ? out.sounds[item.id] : out.items[item.id];
+    if (!target) continue;
+    target.verdict = s.verdict || "pending";
+    target.clip = clipOf(s);
+    target.heardAs = s.heardAs || null;
+    target.notes = s.notes || null;
+  }
+  const all = [...Object.values(out.sounds), ...Object.values(out.items)];
+  out.status = all.every(x => x.verdict !== "pending") && out.phonemeEngine ? "decided" : "pending";
+  document.getElementById("out").value = JSON.stringify(out, null, 2) + "\n";
+}
+document.getElementById("build").addEventListener("click", build);
+document.getElementById("copy").addEventListener("click", async () => {
+  build(); const t = document.getElementById("out");
+  try { await navigator.clipboard.writeText(t.value); document.getElementById("copied").textContent = "Copied."; }
+  catch (e) { t.select(); document.execCommand("copy"); document.getElementById("copied").textContent = "Selected; copy with Ctrl+C if needed."; }
+});
+build();
+</script>
+</body>
+</html>

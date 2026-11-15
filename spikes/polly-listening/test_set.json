@@ -1,0 +1,123 @@
+{
+  "description": "Phase 18 (M0-11) listening test set: the minimum subset of docs/plan/sources/09-learning-design.md section 6.4 (D9.1 asks for about 24 items), with variants for medium and high risk sounds (D9.1 step 2: bare <phoneme>, slower and faster prosody rate, and the small-schwa form for each consonant; schwa does not apply to vowels). X-SAMPA, examples and predicted risk from docs/plan/sources/06-polly-tts.md section 5.5 (symbols VERIFIED against Polly's en-GB table; risk UNVERIFIED until heard). Each variant is rendered with Amy on generative and neural. Body forms are defined in canonical.py.",
+  "voices": {
+    "default": "Amy",
+    "fallback": ["Emma", "Brian", "Arthur"]
+  },
+  "items": [
+    {"id": "s", "kind": "PHONEME", "label": "/s/ as in sun", "example": "sun", "tier": "B", "risk": "medium",
+     "variants": [
+       {"id": "main", "form": "SLOW70", "ph": "s", "text": "s"},
+       {"id": "bare", "form": "PH", "ph": "s", "text": "s"},
+       {"id": "fast", "form": "FAST130", "ph": "s", "text": "s"},
+       {"id": "schwa", "form": "FAST130", "ph": "s@", "text": "s"}]},
+    {"id": "m", "kind": "PHONEME", "label": "/m/ as in man", "example": "man", "tier": "B", "risk": "medium",
+     "variants": [
+       {"id": "main", "form": "SLOW70", "ph": "m", "text": "m"},
+       {"id": "bare", "form": "PH", "ph": "m", "text": "m"},
+       {"id": "fast", "form": "FAST130", "ph": "m", "text": "m"},
+       {"id": "schwa", "form": "FAST130", "ph": "m@", "text": "m"}]},
+    {"id": "f", "kind": "PHONEME", "label": "/f/ as in fan", "example": "fan", "tier": "B", "risk": "medium",
+     "variants": [
+       {"id": "main", "form": "SLOW70", "ph": "f", "text": "f"},
+       {"id": "bare", "form": "PH", "ph": "f", "text": "f"},
+       {"id": "fast", "form": "FAST130", "ph": "f", "text": "f"},
+       {"id": "schwa", "form": "FAST130", "ph": "f@", "text": "f"}]},
+    {"id": "sh", "kind": "PHONEME", "label": "/sh/ as in shop", "example": "shop", "tier": "B", "risk": "medium",
+     "variants": [
+       {"id": "main", "form": "SLOW70", "ph": "S", "text": "sh"},
+       {"id": "bare", "form": "PH", "ph": "S", "text": "sh"},
+       {"id": "shh", "form": "SLOW70", "ph": "S", "text": "shh"},
+       {"id": "fast", "form": "FAST130", "ph": "S", "text": "sh"},
+       {"id": "schwa", "form": "FAST130", "ph": "S@", "text": "sh"}]},
+    {"id": "th", "kind": "PHONEME", "label": "/th/ as in thin (unvoiced)", "example": "thin", "tier": "C", "risk": "high",
+     "variants": [
+       {"id": "main", "form": "SLOW70", "ph": "T", "text": "th"},
+       {"id": "bare", "form": "PH", "ph": "T", "text": "th"},
+       {"id": "fast", "form": "FAST130", "ph": "T", "text": "th"},
+       {"id": "schwa", "form": "FAST130", "ph": "T@", "text": "th"}]},
+    {"id": "ng", "kind": "PHONEME", "label": "/ng/ as in ring", "example": "ring", "tier": "C", "risk": "high",
+     "variants": [
+       {"id": "main", "form": "SLOW70", "ph": "N", "text": "ng"},
+       {"id": "bare", "form": "PH", "ph": "N", "text": "ng"},
+       {"id": "fast", "form": "FAST130", "ph": "N", "text": "ng"},
+       {"id": "schwa", "form": "FAST130", "ph": "N@", "text": "ng"}]},
+    {"id": "a", "kind": "PHONEME", "label": "/a/ as in ant", "example": "ant", "tier": "B", "risk": "medium",
+     "variants": [
+       {"id": "main", "form": "PH", "ph": "{", "text": "a"},
+       {"id": "slow", "form": "SLOW70", "ph": "{", "text": "a"},
+       {"id": "fast", "form": "FAST130", "ph": "{", "text": "a"}]},
+    {"id": "i", "kind": "PHONEME", "label": "/i/ as in in", "example": "in", "tier": "B", "risk": "medium",
+     "variants": [
+       {"id": "main", "form": "PH", "ph": "I", "text": "i"},
+       {"id": "slow", "form": "SLOW70", "ph": "I", "text": "i"},
+       {"id": "fast", "form": "FAST130", "ph": "I", "text": "i"}]},
+    {"id": "ee", "kind": "PHONEME", "label": "/ee/ as in feet", "example": "feet", "tier": "B", "risk": "low",
+     "variants": [
+       {"id": "main", "form": "PH", "ph": "i", "text": "ee"}]},
+    {"id": "igh", "kind": "PHONEME", "label": "/igh/ as in night", "example": "night", "tier": "B", "risk": "low",
+     "variants": [
+       {"id": "main", "form": "PH", "ph": "aI", "text": "eye"}]},
+    {"id": "oa", "kind": "PHONEME", "label": "/oa/ as in boat", "example": "boat", "tier": "B", "risk": "low",
+     "variants": [
+       {"id": "main", "form": "PH", "ph": "@U", "text": "oh"}]},
+    {"id": "b", "kind": "PHONEME", "label": "/b/ as in bed", "example": "bed", "tier": "C", "risk": "high",
+     "variants": [
+       {"id": "main", "form": "PH", "ph": "b", "text": "b"},
+       {"id": "schwa", "form": "FAST130", "ph": "b@", "text": "b"},
+       {"id": "slow", "form": "SLOW70", "ph": "b", "text": "b"},
+       {"id": "fast", "form": "FAST130", "ph": "b", "text": "b"}]},
+    {"id": "t", "kind": "PHONEME", "label": "/t/ as in tap", "example": "tap", "tier": "C", "risk": "high",
+     "variants": [
+       {"id": "main", "form": "PH", "ph": "t", "text": "t"},
+       {"id": "fast", "form": "FAST130", "ph": "t", "text": "t"},
+       {"id": "slow", "form": "SLOW70", "ph": "t", "text": "t"},
+       {"id": "schwa", "form": "FAST130", "ph": "t@", "text": "t"}]},
+    {"id": "g", "kind": "PHONEME", "label": "/g/ as in got", "example": "got", "tier": "C", "risk": "high",
+     "variants": [
+       {"id": "main", "form": "PH", "ph": "g", "text": "g"},
+       {"id": "schwa", "form": "FAST130", "ph": "g@", "text": "g"},
+       {"id": "slow", "form": "SLOW70", "ph": "g", "text": "g"},
+       {"id": "fast", "form": "FAST130", "ph": "g", "text": "g"}]},
+    {"id": "ch", "kind": "PHONEME", "label": "/ch/ as in chip", "example": "chip", "tier": "B", "risk": "medium",
+     "variants": [
+       {"id": "main", "form": "PH", "ph": "tS", "text": "ch"},
+       {"id": "fast", "form": "FAST130", "ph": "tS", "text": "ch"},
+       {"id": "slow", "form": "SLOW70", "ph": "tS", "text": "ch"},
+       {"id": "schwa", "form": "FAST130", "ph": "tS@", "text": "ch"}]},
+    {"id": "w", "kind": "PHONEME", "label": "/w/ as in win", "example": "win", "tier": "C", "risk": "high",
+     "variants": [
+       {"id": "main", "form": "FAST130", "ph": "w@", "text": "w"},
+       {"id": "bare", "form": "PH", "ph": "w", "text": "w"},
+       {"id": "slow", "form": "SLOW70", "ph": "w", "text": "w"},
+       {"id": "fast", "form": "FAST130", "ph": "w", "text": "w"}]},
+    {"id": "h", "kind": "PHONEME", "label": "/h/ as in hat", "example": "hat", "tier": "C", "risk": "high",
+     "variants": [
+       {"id": "main", "form": "PH", "ph": "h", "text": "h"},
+       {"id": "slow", "form": "SLOW70", "ph": "h", "text": "h"},
+       {"id": "fast", "form": "FAST130", "ph": "h", "text": "h"},
+       {"id": "schwa", "form": "FAST130", "ph": "h@", "text": "h"}]},
+    {"id": "letter-s", "kind": "LETTER_NAME", "label": "letter name S (\"ess\")", "example": "S",
+     "variants": [
+       {"id": "main", "form": "PH", "ph": "Es", "text": "S"}]},
+    {"id": "letter-a", "kind": "LETTER_NAME", "label": "letter name A (\"ay\", not the word \"a\")", "example": "A",
+     "variants": [
+       {"id": "main", "form": "PH", "ph": "eI", "text": "A"},
+       {"id": "plain", "form": "TEXT", "text": "A."}]},
+    {"id": "word-ship", "kind": "WORD", "label": "word: ship", "example": "ship",
+     "variants": [{"id": "main", "form": "TEXT", "text": "ship."}]},
+    {"id": "word-the", "kind": "WORD", "label": "word: the", "example": "the",
+     "variants": [{"id": "main", "form": "TEXT", "text": "the."}]},
+    {"id": "word-said", "kind": "WORD", "label": "word: said", "example": "said",
+     "variants": [{"id": "main", "form": "TEXT", "text": "said."}]},
+    {"id": "word-chom", "kind": "WORD", "label": "pseudo-word: chom (via phoneme)", "example": "chom",
+     "variants": [
+       {"id": "main", "form": "PH", "ph": "tSQm", "text": "chom"},
+       {"id": "plain", "form": "TEXT", "text": "chom."}]},
+    {"id": "instruction-listen", "kind": "INSTRUCTION", "label": "instruction: Listen to the sound. Which letters make this sound?",
+     "example": "Listen to the sound. Which letters make this sound?",
+     "variants": [
+       {"id": "main", "form": "TEXT", "text": "Listen to the sound. Which letters make this sound?"},
+       {"id": "rate90", "form": "TEXT90", "text": "Listen to the sound. Which letters make this sound?"}]}
+  ]
+}
