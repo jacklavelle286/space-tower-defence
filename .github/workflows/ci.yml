@@ -111,6 +111,9 @@ jobs:
       - name: G-5 repository invariants
         run: python scripts/check_invariants.py
 
+      - name: G-14 speech definitions against the listening verdicts
+        run: python scripts/check_speech_defs.py
+
       - name: Script tests
         run: python -m pytest scripts/tests -q
 

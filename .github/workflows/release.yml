@@ -236,6 +236,9 @@ jobs:
       - name: G-5 repository invariants
         run: python scripts/check_invariants.py
 
+      - name: G-14 speech definitions against the listening verdicts
+        run: python scripts/check_speech_defs.py
+
       - name: Wait for DynamoDB Local (G-13 service container)
         run: |
           # The image has no health check; any HTTP answer (400 for a bare GET) means it is up.
