@@ -1,0 +1,8 @@
+# Backlog: ideas not yet scheduled
+
+Things the owner wants to do later but that are not in any build phase yet. When one is picked up, it gets a phase (or joins
+one) in [build-phases.md](build-phases.md), and an ADR if it changes a plan rule. Newest first.
+
+| # | Added | Item | Why | What it involves | Changes a plan rule? |
+|---|---|---|---|---|---|
+| B-1 | 2026-11-15 | **Manage this project's DNS records with Terraform** instead of by hand | Avoid hand-made records: the two ACM validation CNAMEs (Phase 2) and the two CloudFront alias records (Phase 4) | A new role in the DNS account (today 060421969689, zone `Z015416730SXD3BLJNAR2`), created once by the owner outside the pipeline. Trust: only `space-tower-defence-prod-github-oidc` in 263185198757. Permissions: `route53:ChangeResourceRecordSets`, `ListResourceRecordSets`, `GetChange` on that zone only, with `route53:ChangeResourceRecordSetsNormalizedRecordNames` limited to `aliens.jackgl.com`, `admin.aliens.jackgl.com` and their `_*` validation names, so the apex, `www` and other records stay untouchable. Main stack: a second provider assuming that role; Route 53 record resources for validation and aliases (adopt the existing CNAMEs with `import` blocks, never `allow_overwrite`). No existing role fits (checked 2026-11-15: `AdminRole` and `terraform-role` trust only an IAM user; `github-federation` trusts only `jacks-productivity-tool`). When DNS moves to a shared account, only the role and zone ID change | Yes: reverses "DNS is the owner's, no Route 53 in this repo" ([E §E.3.3](plan/E-architecture.md#e33-dns-integration-points-no-redesign), [runbook](runbooks/dns-hand-off.md)); needs an ADR |

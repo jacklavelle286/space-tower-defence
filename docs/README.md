@@ -9,6 +9,7 @@ Rules for an AI assistant are in [CLAUDE.md](../CLAUDE.md). The original specifi
 |---|---|
 | [design.md](design.md) | Design overview: the plan distilled into one document for validating it |
 | [build-phases.md](build-phases.md) | Build phases, owner actions, review guides and the gate log |
+| [backlog.md](backlog.md) | Ideas the owner wants later, not yet in a phase |
 
 ## Plan (v0.3, accepted 2026-11-14)
 
