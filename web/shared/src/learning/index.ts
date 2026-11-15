@@ -2,6 +2,32 @@
 // app that shows it. The canonicaliser stays in the main "@scd/shared" entry too (no CSS there).
 export { PANEL_COPY } from "./copy";
 export {
+  answerSpecOf,
+  answerWords,
+  CHOICE_OPTIONS,
+  emptyAnswer,
+  NUMBER_SELECT_LIMITS,
+  numberSetValues,
+  PANEL_TYPES,
+  panelSteps,
+  restoreAnswer,
+  STEP_LIMITS,
+  stepAnswerWords,
+  toPanelActivity,
+  type ActivitySource,
+  type ArrangeActivity,
+  type AssetResolver,
+  type DistributeActivity,
+  type MultipleChoiceActivity,
+  type NumberSelectActivity,
+  type PanelCue,
+  type PanelStep,
+  type PictureSelectActivity,
+  type SortActivity,
+  type StepFields,
+  type TypedActivity,
+} from "./activity";
+export {
   LearningPanel,
   type CheckResult,
   type LearningPanelProps,
@@ -9,5 +35,7 @@ export {
   type PanelAttempt,
   type PanelAudio,
   type PanelOption,
+  type PanelPicture,
   type PanelStatus,
+  type PanelStimulus,
 } from "./LearningPanel";

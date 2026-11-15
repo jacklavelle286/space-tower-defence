@@ -8,6 +8,7 @@ import { PANEL_COPY as COPY } from "./copy";
 import { LearningPanel, type CheckResult, type PanelActivity, type PanelAttempt, type PanelAudio, type PanelStatus } from "./LearningPanel";
 
 const ACTIVITY: PanelActivity = {
+  interactionType: "MULTIPLE_CHOICE",
   slotId: "N-001",
   prompt: "Listen. Which letters make this sound?",
   // presentation order from the slot, not the authored order

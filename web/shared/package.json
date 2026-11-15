@@ -9,6 +9,7 @@
     "./audio": "./src/audio/index.ts",
     "./learning": "./src/learning/index.ts",
     "./learning/reading.css": "./src/learning/reading.css",
+    "./learning/testing": "./src/learning/keyboardTesting.ts",
     "./audio/testing": "./src/audio/testing.ts"
   },
   "scripts": {

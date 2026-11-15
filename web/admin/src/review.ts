@@ -3,7 +3,7 @@
 // needs the checklist and the preview-solve revision (R27). These functions only decide what the buttons allow.
 
 import { LIMITS } from "@scd/shared";
-import type { Definition, SpeechDraft } from "./api";
+import type { SpeechDraft } from "./api";
 
 export type ChecklistItem = { readonly key: string; readonly label: string };
 
@@ -85,56 +85,4 @@ export function canPublish(state: PublishState): Gate {
   if (state.solvedRevision !== state.draftRevision) return { ok: false, reason: "Solve the preview of this revision first." };
   if (!allTicked(PUBLISH_CHECKLIST, state.ticks)) return { ok: false, reason: "Tick every review line." };
   return { ok: true };
-}
-
-/** Preview-solve for MULTIPLE_CHOICE: the answer is the option ID (C20.1). */
-export function isCorrect(definition: Definition, optionId: string): boolean {
-  const accepted = definition.answerSpecification?.accepted;
-  return Array.isArray(accepted) && accepted.length === 1 && accepted[0] === optionId;
-}
-
-/** The fields the minimal activity editor changes (D §D8.4: structured fields, not raw JSON). */
-export type ActivityForm = {
-  readonly title: string;
-  readonly minAge: number;
-  readonly maxAge: number;
-  readonly promptText: string;
-  readonly options: readonly { readonly id: string; readonly text: string }[];
-  readonly correct: string;
-  readonly promptSpeechId: string;
-  readonly audioRequirement: string;
-};
-
-export function formOf(definition: Definition): ActivityForm {
-  return {
-    title: definition.title ?? "",
-    minAge: definition.minAge,
-    maxAge: definition.maxAge,
-    promptText: definition.prompt?.text ?? "",
-    options: definition.activityPayload?.options ?? [],
-    correct: definition.answerSpecification?.accepted?.[0] ?? "",
-    promptSpeechId: definition.speechDefinitionReferences?.["prompt"]?.speechId ?? "",
-    audioRequirement: definition.audioRequirement ?? "REQUIRED",
-  };
-}
-
-/** The draft with the form's edits applied; every other field is kept exactly as it was. */
-export function applyForm(definition: Definition, form: ActivityForm): Definition {
-  const refs = { ...definition.speechDefinitionReferences };
-  if (form.promptSpeechId.trim() === "") delete refs["prompt"];
-  else refs["prompt"] = { speechId: form.promptSpeechId.trim() };
-  return {
-    ...definition,
-    title: form.title.trim(),
-    minAge: form.minAge,
-    maxAge: form.maxAge,
-    audioRequirement: form.audioRequirement,
-    prompt: { text: form.promptText.trim() },
-    activityPayload: {
-      ...definition.activityPayload,
-      options: form.options.map((option) => ({ id: option.id, text: option.text.trim() })),
-    },
-    answerSpecification: { accepted: form.correct === "" ? [] : [form.correct] },
-    speechDefinitionReferences: refs,
-  };
 }

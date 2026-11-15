@@ -128,6 +128,8 @@ export type Approval = { versionId: string; clipKey: string; sha256: string; tak
 // --- Activities (R22-R27) -------------------------------------------------------------------------------------------
 
 export type Option = { id: string; text: string };
+/** An activity draft (C22.1). The payload's shape depends on the interaction type: editor/model.ts holds each type's
+ * shape, as admin-api checks it (api/shared/activity_types.py). */
 export type Definition = {
   activityId: string;
   title: string;
@@ -140,17 +142,37 @@ export type Definition = {
   rewardCategory: string;
   audioRequirement?: string;
   prompt?: { text: string };
-  activityPayload?: { optionStyle?: string; options?: Option[] };
+  activityPayload?: { optionStyle?: string; options?: Option[]; [other: string]: unknown };
   answerSpecification?: { accepted?: string[] };
   speechDefinitionReferences?: Record<string, { speechId: string }>;
   [other: string]: unknown;
 };
 
+/** R23's body: the identity fields, every one required (api/shared/content.py CREATE_FIELDS). */
+export type NewActivity = {
+  activityId: string;
+  title: string;
+  subject: string;
+  topicId: string;
+  rewardCategory: string;
+  interactionType: string;
+  authoringMode: string;
+  minAge: number;
+  maxAge: number;
+};
+
+export type ActivityState = "DRAFT" | "PUBLISHED" | "RETIRED";
+
+/** One row of R22 (G §12): the activity header, no definition body. */
 export type ActivitySummary = {
   activityId: string;
   title: string;
   subject: string;
-  state: "DRAFT" | "PUBLISHED" | "RETIRED";
+  topicId: string;
+  rewardCategory: string;
+  interactionType: string;
+  authoringMode: string;
+  state: ActivityState;
   publishedVersion: string | null;
   minAge: number;
   maxAge: number;
@@ -180,6 +202,8 @@ export function adminApi(request: Request) {
     approve: (speechId: string, body: { draftRevision: number; reviewNote?: string }) =>
       request("POST", `/admin/speech-definitions/${id(speechId)}/approve`, body) as Promise<Approval>,
     listActivities: () => request("GET", "/admin/activities?limit=200") as Promise<{ items: ActivitySummary[] }>,
+    /** R23: 201 for a new activity; 200 with the existing one when the ID is already taken (create is idempotent). */
+    createActivity: (body: NewActivity) => request("POST", "/admin/activities", body) as Promise<ActivityView>,
     getActivity: (activityId: string) => request("GET", `/admin/activities/${id(activityId)}`) as Promise<ActivityView>,
     saveActivity: (activityId: string, body: { draftRevision: number; definition: Definition }) =>
       request("PUT", `/admin/activities/${id(activityId)}/draft`, body) as Promise<ActivityView>,

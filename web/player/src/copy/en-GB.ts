@@ -28,6 +28,9 @@ export const COPY = {
     day: "Day",
     month: "Month",
     year: "Year",
+    // B-5: tap-friendly birthday pickers instead of three native selects. [PROPOSAL]
+    partValue: (part: string, value: string | null) => (value === null ? `${part}, not chosen` : `${part}: ${value}`),
+    choosePart: (part: string) => `Choose the ${part.toLowerCase()}`,
     done: "Done",
     saving: "Saving…",
     failed: "We couldn't save that. Please try again.", // [PROPOSAL]

@@ -3,6 +3,9 @@
 // Used by the development backend (devServices.ts, `npm run dev` only, never in dist) and by the run screen tests.
 //
 // It is deliberately small: one wave set, one multiple-choice activity (the M1 seed, C25.5 Example B), one clip.
+// A caller may pass a rotation of activities instead (slot 1 gets the first, slot 2 the second, …), which is how the
+// Phase 37 picture and number activities are played locally (DEV_ACTIVITIES; devServices.ts `?devActivities=phase37`),
+// and the Phase 38 types (PHASE38_ACTIVITIES; `?devActivities=phase38`).
 // No selection, no bounds, no fencing beyond "the generation must match".
 import { compileBattleConfig, initialRunState, reduce, type RunState } from "@scd/game-core";
 import { sha256Hex } from "@scd/shared/audio";
@@ -61,6 +64,193 @@ export const SEED_ACTIVITY = {
   presentation: { optionOrder: ["c", "a", "d", "b"] },
 } as const;
 
+/** One activity as the pack carries it (the allow-listed version fields plus the slot's presentation). */
+export interface FakeActivity {
+  readonly activityId: string;
+  readonly activityVersion: string;
+  readonly interactionType: string;
+  readonly prompt: { readonly text: string };
+  readonly activityPayload: unknown;
+  readonly answerSpecification: { readonly accepted: readonly string[]; readonly caseSensitive?: boolean };
+  readonly additionalSteps?: readonly unknown[];
+  readonly presentation?: { readonly optionOrder?: readonly string[]; readonly tileOrder?: readonly string[] };
+}
+
+/** An activity in the rotation, and whether its slot has the prompt clip (phonics) or no sound. */
+export interface FakeActivityEntry {
+  readonly activity: FakeActivity;
+  readonly promptClip: boolean;
+}
+
+const SEED_ENTRY: FakeActivityEntry = { activity: SEED_ACTIVITY, promptClip: true };
+
+/**
+ * Made-up local activities of the Phase 37 types, using existing art only (pic-*, dice-*). Not content: they are
+ * never seeded or published, and exist so the run screen can be played with each type in `npm run dev`.
+ */
+export const DEV_ACTIVITIES: readonly FakeActivityEntry[] = [
+  {
+    activity: {
+      activityId: "dev-picture-1",
+      activityVersion: "20261115T120000Z",
+      interactionType: "PICTURE_SELECT",
+      prompt: { text: "Which one begins with s?" },
+      activityPayload: {
+        layout: "GRID",
+        options: [
+          { id: "a", assetId: "pic-cat", alt: "a cat" },
+          { id: "b", assetId: "pic-sun", alt: "the sun" },
+          { id: "c", assetId: "pic-pig", alt: "a pig" },
+          { id: "d", assetId: "pic-dog", alt: "a dog" },
+        ],
+      },
+      answerSpecification: { accepted: ["b"] },
+      presentation: { optionOrder: ["c", "b", "d", "a"] },
+    },
+    promptClip: false,
+  },
+  {
+    activity: {
+      activityId: "dev-number-1",
+      activityVersion: "20261115T120000Z",
+      interactionType: "NUMBER_SELECT",
+      prompt: { text: "How many dots?" },
+      activityPayload: {
+        numberSet: { kind: "RANGE", min: 0, max: 10, step: 1 },
+        display: "TRACK",
+        stimulus: { assetId: "dice-5", alt: "a dice with five dots" },
+      },
+      answerSpecification: { accepted: ["5"] },
+    },
+    promptClip: false,
+  },
+  {
+    activity: {
+      activityId: "dev-number-2",
+      activityVersion: "20261115T120000Z",
+      interactionType: "NUMBER_SELECT",
+      prompt: { text: "Which number comes after 47?" },
+      activityPayload: { numberSet: { kind: "RANGE", min: 1, max: 100, step: 1 }, display: "GRID" },
+      answerSpecification: { accepted: ["48"] },
+    },
+    promptClip: false,
+  },
+  SEED_ENTRY,
+];
+
+const local = (activity: Omit<FakeActivity, "activityVersion">): FakeActivityEntry => ({
+  activity: { ...activity, activityVersion: "20261115T120000Z" },
+  promptClip: false,
+});
+
+/**
+ * Made-up local activities of the Phase 38 types (C16.2 examples), using existing art only (obj-star, pic-cat,
+ * pic-rain). Not content: never seeded or published. `?devActivities=phase38` plays them on the run screen.
+ */
+export const PHASE38_ACTIVITIES: readonly FakeActivityEntry[] = [
+  local({
+    activityId: "dev-share-1",
+    interactionType: "OBJECT_MOVE",
+    prompt: { text: "Share the stars fairly." },
+    activityPayload: {
+      mode: "DISTRIBUTE",
+      objectAssetId: "obj-star",
+      objectAlt: "a star",
+      sourceCount: 6,
+      requireAllPlaced: true,
+      zones: [
+        { id: "z1", label: "Nova" },
+        { id: "z2", label: "Pip" },
+      ],
+    },
+    answerSpecification: { accepted: ["z1=3;z2=3"] },
+  }),
+  local({
+    activityId: "dev-sort-1",
+    interactionType: "OBJECT_MOVE",
+    prompt: { text: "Sort the words by the sound of ea." },
+    activityPayload: {
+      mode: "SORT",
+      objects: ["sea", "head", "dream", "bread", "meat", "instead"].map((word, i) => ({ id: `o${i + 1}`, text: word, alt: word })),
+      bins: [
+        { id: "ee", label: "like tree" },
+        { id: "e", label: "like bed" },
+      ],
+    },
+    answerSpecification: { accepted: ["o1=ee;o2=e;o3=ee;o4=e;o5=ee;o6=e"] },
+  }),
+  local({
+    activityId: "dev-letters-1",
+    interactionType: "ARRANGE",
+    prompt: { text: "Build the word." },
+    activityPayload: {
+      mode: "LETTERS",
+      slots: 3,
+      cue: { assetId: "pic-cat", alt: "a cat" },
+      tiles: ["t", "o", "c", "a", "n"].map((value, i) => ({ id: `t${i + 1}`, value })),
+    },
+    answerSpecification: { accepted: ["cat"] },
+  }),
+  local({
+    activityId: "dev-letters-2",
+    interactionType: "ARRANGE",
+    prompt: { text: "Build the word." },
+    activityPayload: {
+      mode: "LETTERS",
+      slots: 3,
+      cue: { assetId: "pic-rain", alt: "rain" },
+      tiles: ["n", "ay", "r", "a", "ai"].map((value, i) => ({ id: `t${i + 1}`, value })),
+    },
+    answerSpecification: { accepted: ["rain"] },
+  }),
+  local({
+    activityId: "dev-order-1",
+    interactionType: "ARRANGE",
+    prompt: { text: "Put the numbers in order." },
+    activityPayload: {
+      mode: "SEQUENCE",
+      slots: 4,
+      orderLabel: "smallest first",
+      tiles: ["38", "83", "30", "80"].map((value, i) => ({ id: "abcd"[i] ?? "x", value })),
+    },
+    answerSpecification: { accepted: ["30,38,80,83"] },
+  }),
+  local({
+    activityId: "dev-typed-1",
+    interactionType: "TYPED",
+    prompt: { text: "7 = ? − 9" },
+    activityPayload: { mode: "NUMERIC", maxLength: 2 },
+    answerSpecification: { accepted: ["16"] },
+  }),
+  local({
+    activityId: "dev-typed-2",
+    interactionType: "TYPED",
+    prompt: { text: "Add the ending. Type the new word." },
+    activityPayload: { mode: "WORD", maxLength: 12, cue: { text: "hop + ing" } },
+    answerSpecification: { accepted: ["hopping"] },
+  }),
+  local({
+    activityId: "dev-two-step-1",
+    interactionType: "MULTIPLE_CHOICE",
+    prompt: { text: "Two parts. Do both, then press Check." },
+    activityPayload: {
+      partPrompt: "Which number is in the 5 times table?",
+      optionStyle: "NUMERAL",
+      options: [
+        { id: "a", text: "12" },
+        { id: "b", text: "18" },
+        { id: "c", text: "25" },
+        { id: "d", text: "32" },
+      ],
+    },
+    additionalSteps: [
+      { interactionType: "TYPED", prompt: { text: "5 × 6 = ?" }, activityPayload: { mode: "NUMERIC", maxLength: 2 }, answerSpecification: { accepted: ["30"] } },
+    ],
+    answerSpecification: { accepted: ["c|30"] },
+    presentation: { optionOrder: ["a", "b", "c", "d"] },
+  }),
+]
+
 const err = (status: number, code: string, details?: unknown): FakeReply => ({
   status,
   body: { error: { code, message: code, ...(details === undefined ? {} : { details }) } },
@@ -72,6 +262,7 @@ export class FakeRunServer {
   readonly #urlFor: (clip: FakeClip) => string;
   readonly #now: () => string;
   readonly #seen: (state: FakeServerState) => void;
+  readonly #activities: readonly FakeActivityEntry[];
   #state: FakeServerState;
   /** Every request, for tests: "METHOD path". */
   readonly log: string[] = [];
@@ -83,12 +274,15 @@ export class FakeRunServer {
     now?: () => string;
     initial?: FakeServerState;
     onChange?: (state: FakeServerState) => void;
+    /** The activity rotation (default: the M1 seed in every slot). */
+    activities?: readonly FakeActivityEntry[];
   }) {
     this.#data = options.data;
     this.#clip = options.clip;
     this.#urlFor = options.urlFor;
     this.#now = options.now ?? (() => new Date().toISOString());
     this.#seen = options.onChange ?? (() => undefined);
+    this.#activities = options.activities !== undefined && options.activities.length > 0 ? options.activities : [SEED_ENTRY];
     this.#state = options.initial ?? { runs: [], lease: null };
   }
 
@@ -98,6 +292,11 @@ export class FakeRunServer {
 
   #save(): void {
     this.#seen(this.#state);
+  }
+
+  /** The activity in slot `index` (0-based, in slot order). */
+  #entry(index: number): FakeActivityEntry {
+    return this.#activities[index % this.#activities.length] ?? SEED_ENTRY;
   }
 
   #run(runId: string): StoredRun | undefined {
@@ -190,13 +389,18 @@ export class FakeRunServer {
       campaignVersion: String(body.campaignVersion),
       createdAt: now,
       lastPlayedAt: now,
-      state: initialRunState(this.#data.ruleset, config, [...SEED_ACTIVITY.answerSpecification.accepted]),
+      state: this.#initialState(config),
       recentOpIds: [],
     };
     this.#state.runs.push(run);
     const lease = this.#claim(runId, sessionId);
     this.#save();
     return { status: 201, body: { run: this.#view(run), session: this.#leaseView(lease) } };
+  }
+
+  #initialState(config: ReturnType<typeof compileBattleConfig>): RunState {
+    const state = initialRunState(this.#data.ruleset, config, [...SEED_ACTIVITY.answerSpecification.accepted]);
+    return { ...state, slots: state.slots.map((slot, i) => ({ ...slot, accepted: [...this.#entry(i).activity.answerSpecification.accepted] })) };
   }
 
   async getRun(runId: string): Promise<FakeReply> {
@@ -212,15 +416,16 @@ export class FakeRunServer {
     const run = this.#run(runId);
     if (run === undefined) return err(404, "NOT_FOUND");
     const slots = run.state.slots
-      .filter((s) => s.status === "UNRESOLVED")
-      .map((s) => ({
+      .map((s, i) => ({ s, entry: this.#entry(i) }))
+      .filter(({ s }) => s.status === "UNRESOLVED")
+      .map(({ s, entry }) => ({
         slotId: s.slotId,
         kind: s.kind,
         subject: "phonics",
         topicId: "phonics-gpc-consonant-digraphs",
-        ...SEED_ACTIVITY,
+        ...entry.activity,
         intro: null,
-        clips: { prompt: this.#clip.clipKey },
+        clips: entry.promptClip ? { prompt: this.#clip.clipKey } : {},
         reward: s.reward,
         withdrawn: s.withdrawn,
       }));

@@ -1,6 +1,6 @@
 // The Play rule (O-2, CONFIRMED by owner 2026-11-14; D6.5, E.4.2, E.9, G R15), with a fake audio element and a fake
 // speech service writing to one ordered event log.
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { ClipPlayer, type ClipLogEvent } from "./clipPlayer";
 import { memoryClipStore, type ClipStore } from "./clipStore";
 import { clipBytes, FakeAudio, FakeSpeech, keyFor, settle, type AudioEvent } from "./testing";
@@ -94,7 +94,8 @@ describe("Play, clip not stored yet", () => {
     const t = setUp();
     t.speech.forbidNextDownload = true;
     t.player.press(REF);
-    await settle(5);
+    // Two round trips: wait for the start rather than a fixed delay, which a busy machine can outrun.
+    await vi.waitFor(() => expect(t.player.state(REF)).toBe("playing"));
     expect(t.kinds()).toEqual(["prime", "request", "download", "request", "download", "start"]);
     expect(t.player.state(REF)).toBe("playing");
   });

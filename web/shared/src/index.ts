@@ -3,11 +3,21 @@
 export { LIMITS, type Limits } from "./limits";
 export {
   canonicalise,
+  canonicaliseSteps,
+  decimal,
   isCanonicalAnswerShape,
+  splitSteps,
   type AnswerSpec,
+  type ArrangeSpec,
   type CanonicalResult,
+  type DistributeSpec,
   type InteractionType,
   type MultipleChoiceSpec,
+  type NumberSelectSpec,
+  type PictureSelectSpec,
+  type RawAnswer,
   type RefusalReason,
+  type SortSpec,
+  type TypedSpec,
 } from "./learning/canonical";
 export * from "./api";

@@ -1,12 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { LIMITS } from "@scd/shared";
-import type { Definition, SpeechDraft } from "./api";
+import type { SpeechDraft } from "./api";
 import {
-  applyForm,
   canApprove,
   canPublish,
-  formOf,
-  isCorrect,
   LISTENING_CHECKLIST,
   nextTake,
   previewBody,
@@ -15,33 +12,6 @@ import {
 
 const listened = Object.fromEntries(LISTENING_CHECKLIST.map((item) => [item.key, true]));
 const reviewed = Object.fromEntries(PUBLISH_CHECKLIST.map((item) => [item.key, true]));
-
-const PH_0102: Definition = {
-  schemaVersion: 1,
-  activityId: "ph-0102",
-  title: "Which letters make /sh/?",
-  subject: "phonics",
-  topicId: "phonics-gpc-consonant-digraphs",
-  minAge: 5,
-  maxAge: 6,
-  rewardCategory: "NORMAL",
-  interactionType: "MULTIPLE_CHOICE",
-  authoringMode: "FIXED",
-  audioRequirement: "REQUIRED",
-  curriculumReference: ["EYFS26.ELG.WordReading-1"],
-  prompt: { text: "Listen. Which letters make this sound?" },
-  activityPayload: {
-    optionStyle: "GRAPHEME",
-    options: [
-      { id: "a", text: "s" },
-      { id: "b", text: "sh" },
-      { id: "c", text: "ch" },
-      { id: "d", text: "th" },
-    ],
-  },
-  answerSpecification: { accepted: ["b"] },
-  speechDefinitionReferences: { prompt: { speechId: "phoneme-sh" } },
-};
 
 describe("Approve", () => {
   const base = { dirty: false, draftRevision: 2, draftClipKey: "k2", preview: { draftRevision: 2, clipKey: "k2" }, ticks: listened };
@@ -79,21 +49,6 @@ describe("Publish", () => {
       "noTraps",
       "nothingPersonal",
     ]);
-  });
-});
-
-describe("Preview-solve and the editor", () => {
-  it("judges the option ID against the answer key", () => {
-    expect(isCorrect(PH_0102, "b")).toBe(true);
-    expect(isCorrect(PH_0102, "a")).toBe(false);
-  });
-
-  it("round-trips a draft unchanged and keeps fields the form does not show", () => {
-    expect(applyForm(PH_0102, formOf(PH_0102))).toEqual(PH_0102);
-    const edited = applyForm(PH_0102, { ...formOf(PH_0102), correct: "c", promptSpeechId: "" });
-    expect(edited.answerSpecification).toEqual({ accepted: ["c"] });
-    expect(edited.speechDefinitionReferences).toEqual({});
-    expect(edited["curriculumReference"]).toEqual(["EYFS26.ELG.WordReading-1"]);
   });
 });
 

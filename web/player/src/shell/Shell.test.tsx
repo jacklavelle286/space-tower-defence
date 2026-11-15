@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { unsignedToken } from "@scd/shared";
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { press, tab } from "@scd/shared/learning/testing";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { AuthPort } from "../auth/types";
@@ -52,6 +53,14 @@ function renderShell(path: string, services: Services) {
   );
 }
 
+/** Choose a birthday with the mouse: open each part, click the value. */
+function chooseBirthday(day: string, month: string, year: string) {
+  for (const [part, value] of [["Day", day], ["Month", month], ["Year", year]] as const) {
+    fireEvent.click(screen.getByRole("button", { name: new RegExp(`^${part}(:|, not chosen)`) }));
+    fireEvent.click(within(screen.getByRole("group", { name: `Choose the ${part.toLowerCase()}` })).getByRole("button", { name: value }));
+  }
+}
+
 afterEach(cleanup);
 
 describe("Shell", () => {
@@ -80,9 +89,7 @@ describe("Shell", () => {
 
     fireEvent.change(await screen.findByLabelText(/Your name/), { target: { value: "  Star Kid " } });
     fireEvent.click(screen.getByRole("radio", { name: "robot astronaut" }));
-    fireEvent.change(screen.getByLabelText("Day"), { target: { value: "9" } });
-    fireEvent.change(screen.getByLabelText("Month"), { target: { value: "3" } });
-    fireEvent.change(screen.getByLabelText("Year"), { target: { value: String(new Date().getFullYear() - 6) } });
+    chooseBirthday("9", "March", String(new Date().getFullYear() - 6));
     fireEvent.click(screen.getByRole("button", { name: "Done" }));
 
     expect(await screen.findByRole("heading", { name: "Hi, Star Kid!" })).toBeTruthy();
@@ -189,8 +196,96 @@ describe("ProfileSetup rules", () => {
   it("offers twelve pictures as one radio group and the last ten years", () => {
     render(<ProfileSetup save={vi.fn(async () => true)} today={new Date(2026, 10, 15)} />);
     expect(screen.getAllByRole("radio")).toHaveLength(12);
-    const years = Array.from((screen.getByLabelText("Year") as HTMLSelectElement).options).map((o) => o.value).filter(Boolean);
+    fireEvent.click(screen.getByRole("button", { name: "Year, not chosen" }));
+    const years = within(screen.getByRole("group", { name: "Choose the year" })).getAllByRole("button").map((b) => b.textContent);
     expect(years[0]).toBe("2026");
     expect(years.at(-1)).toBe("2016");
+  });
+
+  // Backlog B-5: no native selects (their lists closed at once on Chrome for Linux); big buttons and a grid instead.
+  it("birthday, mouse only: each part opens a grid in the page, a click chooses and closes it; no select anywhere", async () => {
+    const save = vi.fn(async () => true);
+    render(<ProfileSetup save={save} today={new Date(2026, 10, 15)} />);
+    expect(document.querySelector("select")).toBeNull();
+    fireEvent.change(screen.getByLabelText(/Your name/), { target: { value: "Star Kid" } });
+    const day = screen.getByRole("button", { name: "Day, not chosen" });
+    expect(day.getAttribute("aria-expanded")).toBe("false");
+    fireEvent.click(day);
+    expect(day.getAttribute("aria-expanded")).toBe("true");
+    expect(within(screen.getByRole("group", { name: "Choose the day" })).getAllByRole("button")).toHaveLength(31);
+    fireEvent.click(screen.getByRole("button", { name: "9" }));
+    expect(screen.queryByRole("group", { name: "Choose the day" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Day: 9" })).toBeTruthy();
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "Day: 9" }));
+    fireEvent.click(screen.getByRole("button", { name: "Month, not chosen" }));
+    fireEvent.click(screen.getByRole("button", { name: "March" }));
+    fireEvent.click(screen.getByRole("button", { name: "Year, not chosen" }));
+    fireEvent.click(screen.getByRole("button", { name: "2020" }));
+    // a part can be changed again; the chosen value is marked
+    fireEvent.click(screen.getByRole("button", { name: "Day: 9" }));
+    expect(screen.getByRole("button", { name: "9" }).getAttribute("aria-pressed")).toBe("true");
+    fireEvent.click(screen.getByRole("button", { name: "Day: 9" })); // closes again
+    expect(screen.queryByRole("group", { name: "Choose the day" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Done" }));
+    await waitFor(() => expect(save).toHaveBeenCalledWith({ nickname: "Star Kid", avatarId: "avatar-01", dob: "2020-03-09" }));
+  });
+
+  it("birthday, keyboard only: Enter opens a part on its first value, arrows move, Enter chooses, Esc closes", async () => {
+    const save = vi.fn(async () => true);
+    render(<ProfileSetup save={save} today={new Date(2026, 10, 15)} />);
+    fireEvent.change(screen.getByLabelText(/Your name/), { target: { value: "Pip" } });
+    let el = tab();
+    while (el.getAttribute("aria-label") !== "Day, not chosen") el = tab();
+    press("Enter");
+    expect(document.activeElement?.textContent).toBe("1");
+    press("ArrowDown"); // a row of seven
+    press("ArrowRight");
+    expect(document.activeElement?.textContent).toBe("9");
+    press("Enter");
+    expect(document.activeElement?.getAttribute("aria-label")).toBe("Day: 9");
+    tab();
+    press(" ");
+    press("ArrowDown");
+    press("Escape"); // closes without choosing
+    expect(document.activeElement?.getAttribute("aria-label")).toBe("Month, not chosen");
+    press("Enter");
+    press("End");
+    expect(document.activeElement?.textContent).toBe("December");
+    press("Home");
+    press("ArrowRight");
+    press("ArrowRight"); // March
+    press("Enter");
+    tab();
+    press("Enter");
+    expect(document.activeElement?.textContent).toBe("2026");
+    press("ArrowDown");
+    press("ArrowRight"); // 2021
+    press("Enter");
+    expect(document.activeElement?.getAttribute("aria-label")).toBe("Year: 2021");
+    fireEvent.click(screen.getByRole("button", { name: "Done" }));
+    await waitFor(() => expect(save).toHaveBeenCalledWith(expect.objectContaining({ dob: "2021-03-09" })));
+  });
+
+  it("birthday: Done with a missing or impossible date shows the problem and focuses the part to fix", () => {
+    const save = vi.fn(async () => true);
+    render(<ProfileSetup save={save} today={new Date(2026, 10, 15)} />);
+    fireEvent.change(screen.getByLabelText(/Your name/), { target: { value: "Pip" } });
+    fireEvent.click(screen.getByRole("button", { name: "Done" }));
+    expect(document.activeElement?.getAttribute("aria-label")).toBe("Day, not chosen");
+    expect(document.activeElement?.getAttribute("aria-invalid")).toBe("true");
+    expect(screen.getByRole("alert").textContent).toContain("Please choose a real date.");
+    fireEvent.click(screen.getByRole("button", { name: "Day, not chosen" }));
+    fireEvent.click(screen.getByRole("button", { name: "31" }));
+    fireEvent.click(screen.getByRole("button", { name: "Done" }));
+    expect(document.activeElement?.getAttribute("aria-label")).toBe("Month, not chosen");
+    fireEvent.click(screen.getByRole("button", { name: "Month, not chosen" }));
+    fireEvent.click(screen.getByRole("button", { name: "February" }));
+    fireEvent.click(screen.getByRole("button", { name: "Done" }));
+    expect(document.activeElement?.getAttribute("aria-label")).toBe("Year, not chosen");
+    fireEvent.click(screen.getByRole("button", { name: "Year, not chosen" }));
+    fireEvent.click(screen.getByRole("button", { name: "2020" }));
+    fireEvent.click(screen.getByRole("button", { name: "Done" })); // 31 February
+    expect(document.activeElement?.getAttribute("aria-label")).toBe("Day: 31");
+    expect(save).not.toHaveBeenCalled();
   });
 });

@@ -1,41 +1,37 @@
-// The learning panel (D6; M1-22): one activity, three tries, one reward. Multiple choice only in Milestone 1; the
-// other five interaction types join in Phases 37-38 (M3-03). It lives in web/shared with no Phaser, so the admin
-// preview-solve can show children's exact panel later (E.5.1).
+// The learning panel (D6; M1-22, M3-03): one activity, three tries, one reward. The shell (heading, Play, tries,
+// Check, feedback) is the same for every interaction type; only the answer area changes, chosen by each step's
+// interactionType: MULTIPLE_CHOICE (Milestone 1), PICTURE_SELECT and NUMBER_SELECT (Phase 37), OBJECT_MOVE, ARRANGE
+// and TYPED (Phase 38). A two-step activity (C20.3) shows both parts on the panel with one Check. It lives in
+// web/shared with no Phaser, so the admin preview-solve can show children's exact panel (E.5.1).
 //
 // What the panel decides, and what it does not:
-// - It turns the selection into the canonical answer (canonical.ts) and hands it to `onCheck`. Whether it was right,
-//   and how many tries are used, come back through the props from the run's saved slot (`attempts`, `status`), so a
-//   refresh shows exactly what was recorded (spine S3.7: resume from the saved slot, not from memory).
-// - Greyed tries are a client-only guard (D-8): an option already tried is dimmed, labelled "tried" and cannot be
-//   chosen again. The server still counts every attempt it receives.
+// - It turns the steps' raw answers into the one canonical answer (canonical.ts; two steps joined by "|") and hands it
+//   to `onCheck`. Whether it was right, and how many tries are used, come back through the props from the run's saved
+//   slot (`attempts`, `status`), so a refresh shows exactly what was recorded (spine S3.7: resume from the saved slot).
+// - Client-only guards (D6.2, D-8): on the choice types an option already tried is dimmed, labelled "tried" and
+//   cannot be chosen again; on the other types Check with exactly an earlier answer says "You've tried that one".
+//   The server still counts every attempt it receives.
+// - After a wrong try (D6.3): a wrong choice is cleared; an arrangement, a sort, a share and a typed answer stay as
+//   they were. In a two-step activity a right part is locked with a tick and a wrong one says "Try this part again";
+//   the per-part marks come from the recorded answer and the pack's accepted answers, so a refresh shows them too.
 // - Feedback waits for durability (D6.2): while `onCheck` is pending the panel says "Checking…" and shows the
 //   attempts as they were when Check was pressed, so the result is never shown before it is saved.
-// - Nothing here uses up a try except `onCheck`: Play, a sound that fails, selecting, and Check with nothing chosen
-//   never do (D6.2, AC-22).
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+// - Nothing here uses up a try except `onCheck`: Play, a sound that fails, choosing, moving, typing, and Check on an
+//   incomplete answer never do (D6.2, AC-22).
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ClipAvailability } from "../audio/useClip";
 import type { PlayState } from "../audio/clipPlayer";
 import { LIMITS } from "../limits";
-import { canonicalise } from "./canonical";
+import { answerSpecOf, answerWords, emptyAnswer, isChoiceStep, panelSteps, restoreAnswer, type PanelActivity, type PanelCue, type PanelStep } from "./activity";
+import { ArrangeArea } from "./ArrangeArea";
+import { canonicalise, canonicaliseSteps, splitSteps, type RawAnswer } from "./canonical";
+import { ChoiceStep } from "./ChoiceArea";
 import { PANEL_COPY as COPY } from "./copy";
+import { DistributeArea, SortArea } from "./ObjectMoveArea";
+import { TypedArea } from "./TypedArea";
 import "./panel.css";
 
-export interface PanelOption {
-  readonly id: string;
-  readonly text: string;
-}
-
-/** What the panel shows for one slot, built from the pack entry (G R10). Options are already in presentation order. */
-export interface PanelActivity {
-  readonly slotId: string;
-  readonly prompt: string;
-  readonly options: readonly PanelOption[];
-  /** Accepted option IDs, for "The answer was …" once the activity has ended (never shown before). */
-  readonly accepted: readonly string[];
-  /** Phonics: the answer area waits for the sound, and Check asks for Play first (D6.2, D6.5). */
-  readonly audioRequired: boolean;
-  readonly reward: { readonly credits: number; readonly powerName?: string };
-}
+export type { PanelActivity, PanelOption, PanelPicture, PanelStimulus } from "./activity";
 
 export interface PanelAttempt {
   readonly answer: string;
@@ -69,14 +65,53 @@ export interface LearningPanelProps {
   onSaveAndExit?: () => void;
 }
 
-type Note = "none" | "chooseFirst" | "playFirst" | "notSaved" | "afterCheck";
+type Note = "none" | "incomplete" | "playFirst" | "notSaved" | "afterCheck" | "triedThat";
+
+/** What one step's answer area shows after the last try: nothing yet, a locked right part, or "try this part again". */
+type StepMark = "none" | "right" | "again";
+
+/** The step answers of an attempt, one per step, or null when the recorded answer has another number of parts. */
+function partsOf(answer: string, steps: readonly PanelStep[]): string[] | null {
+  return steps.length === 1 ? [answer] : splitSteps(answer, steps.length);
+}
+
+/**
+ * Where each step starts when the panel opens (also after a refresh): a locked right part shows its recorded answer;
+ * an arrangement, sort, share or typed answer shows the last try (it "stays", D6.3); a choice starts empty.
+ */
+function startingAnswers(steps: readonly PanelStep[], attempts: readonly PanelAttempt[]): RawAnswer[] {
+  const last = attempts.at(-1);
+  const parts = last === undefined || last.correct ? null : partsOf(last.answer, steps);
+  return steps.map((step, i) => {
+    const part = parts?.[i];
+    if (part === undefined) return emptyAnswer(step);
+    const right = steps.length > 1 && step.accepted.includes(part);
+    if (isChoiceStep(step) && !right) return emptyAnswer(step);
+    return restoreAnswer(step, part) ?? emptyAnswer(step);
+  });
+}
+
+/** D6.4: the nudge for Check on an incomplete answer depends on what the child still has to do. */
+function incompleteLine(step: PanelStep | undefined): string {
+  switch (step?.interactionType) {
+    case "ARRANGE":
+      return COPY.fillFirst;
+    case "OBJECT_MOVE":
+      return COPY.moveFirst;
+    case "TYPED":
+      return COPY.typeFirst;
+    default:
+      return COPY.chooseFirst;
+  }
+}
 
 export function LearningPanel({ activity, attempts, status, audio = null, readToMe = null, onCheck, onContinue, onSaveAndExit }: LearningPanelProps) {
   const maxTries = LIMITS.attemptsPerSlot;
   const heading = useRef<HTMLHeadingElement>(null);
   const continueButton = useRef<HTMLButtonElement>(null);
-  const optionButtons = useRef(new Map<string, HTMLButtonElement>());
-  const [selected, setSelected] = useState<string | null>(null);
+  const steps = useMemo(() => panelSteps(activity), [activity]);
+  const specs = useMemo(() => steps.map(answerSpecOf), [steps]);
+  const [answers, setAnswers] = useState<RawAnswer[]>(() => startingAnswers(steps, attempts));
   const [checking, setChecking] = useState(false);
   const [frozen, setFrozen] = useState<{ attempts: readonly PanelAttempt[]; status: PanelStatus } | null>(null);
   const [note, setNote] = useState<Note>("none");
@@ -86,10 +121,26 @@ export function LearningPanel({ activity, attempts, status, audio = null, readTo
   const shownAttempts = frozen?.attempts ?? attempts;
   const shownStatus = frozen?.status ?? status;
   const resolved = shownStatus !== "UNRESOLVED";
-  const tried = new Set(shownAttempts.filter((a) => !a.correct).map((a) => a.answer));
   const triesLeft = Math.max(0, maxTries - shownAttempts.length);
-  const choosable = activity.options.filter((o) => !tried.has(o.id));
   const soundGate = activity.audioRequired && audio !== null && audio.availability !== "ready";
+  const twoStep = steps.length > 1;
+
+  // Per step: the parts tried and wrong (greyed on choice steps, listed as "Tried: …" on arrange and typed steps), and
+  // the mark from the last wrong try (two-step only).
+  const wrongTries = shownAttempts.filter((a) => !a.correct).map((a) => partsOf(a.answer, steps));
+  const tried = steps.map((step, i) => new Set(wrongTries.flatMap((parts) => (parts?.[i] !== undefined && !step.accepted.includes(parts[i]) ? [parts[i]] : []))));
+  const lastAttempt = shownAttempts.at(-1);
+  const lastParts = lastAttempt !== undefined && !lastAttempt.correct ? partsOf(lastAttempt.answer, steps) : null;
+  const marks: StepMark[] = steps.map((step, i) => {
+    const part = lastParts?.[i];
+    if (!twoStep || resolved || part === undefined) return "none";
+    return step.accepted.includes(part) ? "right" : "again";
+  });
+  const current = canonicaliseSteps(specs, answers);
+  const firstIncomplete = steps.find((step, i) => {
+    const result = canonicalise(specs[i] ?? answerSpecOf(step), answers[i] ?? null);
+    return !result.ok && result.reason === "INCOMPLETE";
+  });
 
   // The panel is keyed by slot, so this runs once per activity: focus starts on the heading (D6.1).
   useEffect(() => heading.current?.focus(), []);
@@ -97,10 +148,10 @@ export function LearningPanel({ activity, attempts, status, audio = null, readTo
     if (resolved && !checking) continueButton.current?.focus();
   }, [resolved, checking]);
 
-  function choose(id: string) {
-    if (checking || resolved || tried.has(id)) return;
-    setSelected(id);
-    if (note === "chooseFirst" || note === "notSaved") setNote("none");
+  function change(index: number, value: RawAnswer) {
+    if (checking || resolved || marks[index] === "right") return;
+    setAnswers((list) => list.map((v, i) => (i === index ? value : v)));
+    if (note === "incomplete" || note === "notSaved" || note === "triedThat") setNote("none");
   }
 
   function pressPlay(control: PanelAudio) {
@@ -115,9 +166,12 @@ export function LearningPanel({ activity, attempts, status, audio = null, readTo
       setNote("playFirst");
       return;
     }
-    const answer = canonicalise({ interactionType: "MULTIPLE_CHOICE", optionIds: activity.options.map((o) => o.id) }, selected);
-    if (!answer.ok || tried.has(answer.answer)) {
-      setNote("chooseFirst");
+    if (!current.ok) {
+      setNote("incomplete");
+      return;
+    }
+    if (shownAttempts.some((a) => a.answer === current.answer)) {
+      setNote("triedThat");
       return;
     }
     // Latched until the op is durable, so a double-click is one try (D6.2).
@@ -125,64 +179,98 @@ export function LearningPanel({ activity, attempts, status, audio = null, readTo
     setFrozen({ attempts, status });
     let result: CheckResult;
     try {
-      result = await onCheck(answer.answer);
+      result = await onCheck(current.answer);
     } catch {
       result = { kind: "not-saved" };
     }
     setFrozen(null);
     setChecking(false);
-    setSelected(null);
+    if (result.kind === "recorded") {
+      // A wrong choice is cleared so a new one can be made; everything else stays as it was (D6.3).
+      const parts = partsOf(current.answer, steps);
+      setAnswers((list) => list.map((v, i) => {
+        const step = steps[i];
+        return step !== undefined && isChoiceStep(step) && !step.accepted.includes(parts?.[i] ?? "") ? emptyAnswer(step) : v;
+      }));
+    }
     setNote(result.kind === "recorded" ? "afterCheck" : "notSaved");
   }
 
-  function onOptionKey(event: KeyboardEvent<HTMLDivElement>) {
-    if (checking || resolved) return;
-    const digit = Number.parseInt(event.key, 10);
-    if (Number.isInteger(digit) && digit >= 1 && digit <= activity.options.length) {
-      const option = activity.options[digit - 1];
-      if (option !== undefined && !tried.has(option.id)) {
-        choose(option.id);
-        optionButtons.current.get(option.id)?.focus();
-      }
-      event.preventDefault();
-      return;
-    }
-    const forward = event.key === "ArrowRight" || event.key === "ArrowDown";
-    const back = event.key === "ArrowLeft" || event.key === "ArrowUp";
-    if (!forward && !back) return;
-    event.preventDefault();
-    if (choosable.length === 0) return;
-    const at = choosable.findIndex((o) => o.id === selected);
-    const next = at === -1 ? (forward ? 0 : choosable.length - 1) : (at + (forward ? 1 : -1) + choosable.length) % choosable.length;
-    const option = choosable[next];
-    if (option === undefined) return;
-    choose(option.id);
-    optionButtons.current.get(option.id)?.focus();
-  }
-
-  const lastAttempt = shownAttempts.at(-1);
   let line: string | null = null;
   if (checking) line = COPY.checking;
-  else if (note === "chooseFirst") line = COPY.chooseFirst;
+  else if (note === "incomplete") line = incompleteLine(firstIncomplete);
   else if (note === "playFirst") line = COPY.playFirst;
   else if (note === "notSaved") line = COPY.notSaved;
+  else if (note === "triedThat") line = COPY.triedThat;
   else if (shownStatus === "SUCCEEDED") line = COPY.correct;
   else if (shownStatus === "FAILED") line = COPY.failed;
   else if (note === "afterCheck" && lastAttempt !== undefined && !lastAttempt.correct) line = COPY.notQuite;
 
-  const answerText = activity.options.filter((o) => activity.accepted.includes(o.id)).map((o) => o.text).join(", ");
+  const answerText = answerWords(activity);
   const rewardLine =
     shownStatus === "SUCCEEDED"
       ? activity.reward.powerName !== undefined
         ? COPY.rewardPower(activity.reward.powerName)
         : COPY.rewardCredits(activity.reward.credits)
       : null;
-  const tabStop = selected ?? choosable[0]?.id ?? null;
+  const headingId = `lp-heading-${activity.slotId}`;
+  const wide = steps.some((s) => (s.interactionType === "NUMBER_SELECT" && s.display === "GRID") || s.interactionType === "OBJECT_MOVE") || twoStep;
+
+  // D6.4 (D-4): after the last wrong try, an arrangement, sort, share or typed answer is shown completed, read-only, in
+  // the answer area itself (not only as words a 5-year-old may not read yet). Choice steps mark the right card instead.
+  const shownAnswer = shownStatus === "FAILED" && activity.accepted[0] !== undefined ? partsOf(activity.accepted[0], steps) : null;
+
+  function area(step: PanelStep, index: number, labelledBy: string) {
+    const part = isChoiceStep(step) ? undefined : shownAnswer?.[index];
+    const value = (part !== undefined ? restoreAnswer(step, part) : null) ?? answers[index] ?? null;
+    const locked = checking || resolved || marks[index] === "right";
+    const onChange = (v: RawAnswer) => change(index, v);
+    switch (step.interactionType) {
+      case "MULTIPLE_CHOICE":
+      case "PICTURE_SELECT":
+      case "NUMBER_SELECT":
+        return (
+          <ChoiceStep
+            step={step}
+            labelledBy={labelledBy}
+            selected={typeof value === "string" ? value : null}
+            tried={tried[index] ?? new Set()}
+            resolved={resolved}
+            busy={checking || marks[index] === "right"}
+            onChoose={onChange}
+          />
+        );
+      case "OBJECT_MOVE":
+        return step.mode === "DISTRIBUTE" ? (
+          <DistributeArea step={step} labelledBy={labelledBy} value={value} disabled={locked} onChange={onChange} />
+        ) : (
+          <SortArea step={step} labelledBy={labelledBy} value={value} disabled={locked} onChange={onChange} />
+        );
+      case "ARRANGE":
+        return <ArrangeArea step={step} labelledBy={labelledBy} value={value} disabled={locked} onChange={onChange} />;
+      case "TYPED":
+        return <TypedArea step={step} labelledBy={labelledBy} value={value} disabled={locked} onChange={onChange} onSubmit={() => void check()} />;
+    }
+  }
+
+  function stepBody(step: PanelStep, index: number, labelledBy: string) {
+    const cue = step.interactionType === "ARRANGE" || step.interactionType === "TYPED" ? step.cue : undefined;
+    const triedHere = [...(tried[index] ?? [])];
+    const listTried = !resolved && triedHere.length > 0 && (step.interactionType === "ARRANGE" || step.interactionType === "TYPED");
+    return (
+      <>
+        {step.stimulus !== undefined ? <img className="lp-stimulus" src={step.stimulus.imageUrl} alt={step.stimulus.alt} /> : null}
+        {cue !== undefined ? <Cue cue={cue} /> : null}
+        {area(step, index, labelledBy)}
+        {listTried ? <p className="lp-tried-list lp-reading">{COPY.triedList(triedHere)}</p> : null}
+      </>
+    );
+  }
 
   return (
     <div className="lp-backdrop">
-      <section className="lp" role="dialog" aria-modal="true" aria-labelledby={`lp-heading-${activity.slotId}`}>
-        <h2 className="lp-heading lp-reading" id={`lp-heading-${activity.slotId}`} tabIndex={-1} ref={heading}>
+      <section className={wide ? "lp lp-wide" : "lp"} role="dialog" aria-modal="true" aria-labelledby={headingId}>
+        <h2 className="lp-heading lp-reading" id={headingId} tabIndex={-1} ref={heading}>
           {activity.prompt}
         </h2>
 
@@ -206,51 +294,33 @@ export function LearningPanel({ activity, attempts, status, audio = null, readTo
               <p>{COPY.loading}</p>
             )}
           </div>
+        ) : twoStep ? (
+          steps.map((step, index) => {
+            const partId = `${headingId}-part-${index + 1}`;
+            const mark = marks[index] ?? "none";
+            return (
+              <section key={index} className={mark === "right" ? "lp-step is-right" : "lp-step"} aria-labelledby={partId}>
+                <h3 className="lp-part lp-reading" id={partId}>
+                  {step.prompt ?? COPY.partLabel(index + 1)}
+                </h3>
+                {mark !== "none" ? (
+                  <p className={mark === "right" ? "lp-mark is-right" : "lp-mark"}>
+                    {mark === "right" ? (
+                      <>
+                        <span aria-hidden="true">✓ </span>
+                        {COPY.partRight}
+                      </>
+                    ) : (
+                      COPY.partAgain
+                    )}
+                  </p>
+                ) : null}
+                {stepBody(step, index, partId)}
+              </section>
+            );
+          })
         ) : (
-          <div
-            className="lp-options"
-            role="radiogroup"
-            aria-labelledby={`lp-heading-${activity.slotId}`}
-            aria-disabled={checking || resolved ? true : undefined}
-            onKeyDown={onOptionKey}
-          >
-            {activity.options.map((option, index) => {
-              const isTried = tried.has(option.id);
-              const isAnswer = resolved && activity.accepted.includes(option.id);
-              const isSelected = selected === option.id;
-              const className = ["lp-option", isSelected ? "is-selected" : "", isTried ? "is-tried" : "", isAnswer ? "is-answer" : ""]
-                .filter(Boolean)
-                .join(" ");
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  role="radio"
-                  className={className}
-                  aria-checked={isSelected}
-                  aria-disabled={isTried || resolved || checking ? true : undefined}
-                  aria-label={isTried ? COPY.triedLabel(index + 1, option.text) : COPY.optionLabel(index + 1, option.text)}
-                  tabIndex={option.id === tabStop && !resolved ? 0 : -1}
-                  ref={(el) => {
-                    if (el) optionButtons.current.set(option.id, el);
-                    else optionButtons.current.delete(option.id);
-                  }}
-                  onClick={() => choose(option.id)}
-                >
-                  <span className="lp-badge" aria-hidden="true">
-                    {index + 1}
-                  </span>
-                  <span className="lp-reading lp-option-text">{option.text}</span>
-                  {isSelected ? (
-                    <span className="lp-tick" aria-hidden="true">
-                      ✓
-                    </span>
-                  ) : null}
-                  {isTried ? <span className="lp-tried">{COPY.tried}</span> : null}
-                </button>
-              );
-            })}
-          </div>
+          steps[0] !== undefined && stepBody(steps[0], 0, headingId)
         )}
 
         <div className="lp-footer">
@@ -278,7 +348,7 @@ export function LearningPanel({ activity, attempts, status, audio = null, readTo
             <button
               type="button"
               className="lp-btn lp-go"
-              aria-disabled={selected === null || checking || soundGate ? true : undefined}
+              aria-disabled={!current.ok || checking || soundGate ? true : undefined}
               onClick={() => void check()}
             >
               {checking ? COPY.checking : COPY.check}
@@ -293,6 +363,16 @@ export function LearningPanel({ activity, attempts, status, audio = null, readTo
           </button>
         ) : null}
       </section>
+    </div>
+  );
+}
+
+/** ARRANGE LETTERS and TYPED WORD: the picture and/or rule text that says which word ("hop + ing"). */
+function Cue({ cue }: { cue: PanelCue }) {
+  return (
+    <div className="lp-cue">
+      {cue.imageUrl !== undefined ? <img className="lp-stimulus" src={cue.imageUrl} alt={cue.alt ?? ""} /> : null}
+      {cue.text !== undefined ? <p className="lp-reading lp-cue-text">{cue.text}</p> : null}
     </div>
   );
 }

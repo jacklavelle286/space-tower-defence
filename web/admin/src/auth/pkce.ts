@@ -80,6 +80,9 @@ export type AccessClaims = {
   readonly username: string;
   readonly exp: number;
   readonly tokenUse: string;
+  /** The app client the token was issued to, and the pool that issued it: the route guard compares both with config.json. */
+  readonly clientId: string;
+  readonly issuer: string;
   readonly groups: readonly string[];
 };
 
@@ -104,6 +107,8 @@ export function readClaims(token: string): AccessClaims | null {
       username: typeof claims["username"] === "string" ? claims["username"] : "",
       exp,
       tokenUse: typeof claims["token_use"] === "string" ? claims["token_use"] : "",
+      clientId: typeof claims["client_id"] === "string" ? claims["client_id"] : "",
+      issuer: typeof claims["iss"] === "string" ? claims["iss"] : "",
       groups: Array.isArray(groups) ? groups.filter((g): g is string => typeof g === "string") : [],
     };
   } catch {

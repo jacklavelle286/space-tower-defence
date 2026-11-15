@@ -1,6 +1,7 @@
 import { LIMITS, type ProfileInput } from "@scd/shared";
 import { useId, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { COPY } from "../copy/en-GB";
+import { BirthdayPicker, type BirthdayPickerHandle, type BirthdayValue } from "./BirthdayPicker";
 import { useOnline } from "./useOnline";
 
 const NICKNAME = new RegExp(LIMITS.nickname.pattern);
@@ -41,8 +42,8 @@ function Hint({ id, problem, hint }: { id?: string; problem: string | null; hint
 }
 
 /**
- * P3 Profile setup (D4): name, one of the twelve avatars, and the birthday as three selects (day, month name, year from
- * the last ten years). The birthday goes to the server once and is never shown again or kept in the browser (spine S2:
+ * P3 Profile setup (D4): name, one of the twelve avatars, and the birthday as three big pickers (day, month name, year
+ * from the last ten years; BirthdayPicker, backlog B-5). The birthday goes to the server once and is never shown again or kept in the browser (spine S2:
  * write-only). Needs a connection (spine S7.4).
  */
 export function ProfileSetup({ save, today: fixedToday }: { save: (input: ProfileInput) => Promise<boolean>; today?: Date }) {
@@ -52,17 +53,16 @@ export function ProfileSetup({ save, today: fixedToday }: { save: (input: Profil
   const ids = useId();
   const [nickname, setNickname] = useState("");
   const [avatarId, setAvatarId] = useState<string>(LIMITS.avatarIds[0]);
-  const [day, setDay] = useState("");
-  const [month, setMonth] = useState("");
-  const [year, setYear] = useState("");
+  const [birthday, setBirthday] = useState<BirthdayValue>({ day: null, month: null, year: null });
   const [touched, setTouched] = useState(false);
   const [saving, setSaving] = useState(false);
   const [failed, setFailed] = useState(false);
   const nameInput = useRef<HTMLInputElement>(null);
-  const daySelect = useRef<HTMLSelectElement>(null);
+  const picker = useRef<BirthdayPickerHandle>(null);
 
   const name = validNickname(nickname);
-  const dob = day && month && year ? dobString(Number(year), Number(month), Number(day), today) : null;
+  const { day, month, year } = birthday;
+  const dob = day !== null && month !== null && year !== null ? dobString(year, month, day, today) : null;
   const years = Array.from({ length: 11 }, (_, i) => today.getFullYear() - i);
 
   async function submit(event: FormEvent) {
@@ -70,7 +70,7 @@ export function ProfileSetup({ save, today: fixedToday }: { save: (input: Profil
     setTouched(true);
     // Move to the first field with a problem, so the child (or grown-up) sees what to fix.
     if (name === null) nameInput.current?.focus();
-    else if (dob === null) daySelect.current?.focus();
+    else if (dob === null) picker.current?.focus(month === null && day !== null ? "month" : year === null && day !== null && month !== null ? "year" : "day");
     if (name === null || dob === null || !online || saving) return;
     setSaving(true);
     setFailed(false);
@@ -127,39 +127,14 @@ export function ProfileSetup({ save, today: fixedToday }: { save: (input: Profil
         <div className="setup-bottom">
           <fieldset className="field">
             <legend className="field-label">{COPY.setup.birthdayLabel}</legend>
-            <div className="dob">
-              <select
-                ref={daySelect}
-                aria-label={COPY.setup.day}
-                aria-invalid={touched && dob === null}
-                aria-describedby={`${ids}-dob-hint`}
-                value={day}
-                onChange={(e) => setDay(e.target.value)}
-              >
-                <option value="">{COPY.setup.day}</option>
-                {Array.from({ length: 31 }, (_, i) => (
-                  <option key={i + 1} value={i + 1}>
-                    {i + 1}
-                  </option>
-                ))}
-              </select>
-              <select aria-label={COPY.setup.month} value={month} onChange={(e) => setMonth(e.target.value)}>
-                <option value="">{COPY.setup.month}</option>
-                {COPY.months.map((m, i) => (
-                  <option key={m} value={i + 1}>
-                    {m}
-                  </option>
-                ))}
-              </select>
-              <select aria-label={COPY.setup.year} value={year} onChange={(e) => setYear(e.target.value)}>
-                <option value="">{COPY.setup.year}</option>
-                {years.map((y) => (
-                  <option key={y} value={y}>
-                    {y}
-                  </option>
-                ))}
-              </select>
-            </div>
+            <BirthdayPicker
+              ref={picker}
+              value={birthday}
+              years={years}
+              invalid={touched && dob === null}
+              describedBy={`${ids}-dob-hint`}
+              onChange={setBirthday}
+            />
             <Hint id={`${ids}-dob-hint`} problem={touched && dob === null ? COPY.setup.birthdayInvalid : null} hint={COPY.setup.birthdayHint} />
           </fieldset>
           <button type="submit" className="btn btn-big btn-go" disabled={!online || saving}>

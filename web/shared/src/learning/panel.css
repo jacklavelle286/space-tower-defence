@@ -218,3 +218,462 @@
     font-size: 36px;
   }
 }
+
+/* Phase 37: picture cards (PICTURE_SELECT) and the number track or hundred square (NUMBER_SELECT). Pictures are drawn
+   at 128 px (asset catalogue displaySize); numbers keep the 64 x 64 px target with 12 px between (D1 rule 8). */
+.lp.lp-wide {
+  width: min(840px, 100%);
+}
+
+/* A hundred square is taller than a laptop screen at 64 px a number, so the panel scrolls; the tries line and Check
+   stay pinned to the bottom of the panel, so Check is never scrolled out of sight. */
+.lp.lp-wide .lp-footer {
+  position: sticky;
+  bottom: -20px;
+  margin-bottom: -20px;
+  padding: 12px 0 20px;
+  background: #fff4d6;
+  border-top: 3px solid #2a1e3d;
+}
+
+.lp-stimulus {
+  align-self: center;
+  width: 160px;
+  height: 160px;
+  object-fit: contain;
+}
+
+.lp-pictures {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.lp-picture {
+  gap: 4px;
+  min-height: 170px;
+}
+
+.lp-picture-img {
+  width: 128px;
+  height: 128px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.lp-caption {
+  font-size: 26px;
+  line-height: 1.1;
+}
+
+.lp-numbers {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.lp-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 64px);
+  justify-content: center;
+}
+
+.lp-option.lp-number {
+  width: 64px;
+  min-width: 64px;
+  min-height: 64px;
+  height: 64px;
+  padding: 0;
+  border-radius: 14px;
+}
+
+.lp-number-text {
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.lp-number .lp-tick {
+  top: -2px;
+  right: 3px;
+  font-size: 16px;
+}
+
+.lp-number .lp-tried {
+  position: absolute;
+  bottom: 1px;
+  font-size: 12px;
+}
+
+.lp-option.lp-number.is-selected {
+  border-width: 7px;
+}
+
+@media (max-width: 860px) {
+  .lp-grid {
+    grid-template-columns: repeat(10, minmax(0, 64px));
+    gap: 6px;
+  }
+
+  .lp-grid .lp-option.lp-number {
+    width: auto;
+    min-width: 0;
+  }
+}
+
+/* Phase 38: object move (share/count, sort), arrange (letters, sequence), typed (number, word) and two-step. Same
+   rules: targets at least 64 x 64 px with 12 px between (D1 rule 8); "lifted" = thick outline + raised, never colour
+   alone (D1 rule 7); letters, words and numbers children read in Andika. */
+.lp-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.lp-object:focus-visible,
+.lp-zone-drop:focus-visible,
+.lp-sort-object:focus-visible,
+.lp-bin-drop:focus-visible,
+.lp-space:focus-visible,
+.lp-tile:focus-visible,
+.lp-typed-input:focus-visible {
+  outline: 5px solid #00e5ff;
+  outline-offset: 3px;
+}
+
+/* Two-step: one section per part, one Check for both. */
+.lp-step {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 16px 16px;
+  border: 3px solid #2a1e3d;
+  border-radius: 20px;
+}
+
+.lp-step.is-right {
+  background: #e4f9e7;
+}
+
+.lp-part {
+  margin: 0;
+  font-size: 28px;
+}
+
+.lp-mark {
+  margin: 0;
+  font-weight: 700;
+}
+
+.lp-cue {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+}
+
+.lp-cue .lp-stimulus {
+  align-self: auto;
+}
+
+.lp-cue-text {
+  margin: 0;
+  font-size: 40px;
+  font-weight: 700;
+}
+
+.lp-tried-list,
+.lp-order-label {
+  margin: 0;
+  text-align: center;
+  font-size: 24px;
+}
+
+.lp-order-label {
+  font-weight: 700;
+}
+
+/* Object move. */
+.lp-move {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.lp-tray {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  align-items: center;
+  min-height: 88px;
+  padding: 8px;
+  border: 4px dashed #2a1e3d;
+  border-radius: 20px;
+}
+
+.lp-tray.is-lifted {
+  border-style: solid;
+  border-width: 7px;
+  background: #ffe9a8;
+}
+
+.lp-object {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  padding: 2px;
+  border: 3px solid #2a1e3d;
+  border-radius: 14px;
+  background: #ffffff;
+  cursor: pointer;
+}
+
+.lp-object img {
+  width: 54px;
+  height: 54px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.lp-zones,
+.lp-bins {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.lp-zone,
+.lp-bin {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  border: 4px solid #2a1e3d;
+  border-radius: 20px;
+  background: #ffffff;
+}
+
+.lp-zone-drop,
+.lp-bin-drop {
+  position: relative;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  min-height: 64px;
+  padding: 6px 12px;
+  border: 4px solid #2a1e3d;
+  border-radius: 16px;
+  background: #ffd23f;
+  color: #2a1e3d;
+  font: inherit;
+  cursor: pointer;
+}
+
+.lp-zone-img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.lp-zone-label,
+.lp-bin-label {
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.lp-zone,
+.lp-bin.is-target {
+  cursor: pointer; /* the whole card takes a drop (ObjectMoveArea onCardBody) */
+}
+
+.lp-zone-objects,
+.lp-bin-objects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  min-height: 72px;
+}
+
+.lp-bin-drop[aria-disabled="true"] {
+  cursor: default;
+  background: #fff4d6;
+}
+
+.lp-move.is-lifting .lp-bin-drop {
+  border-style: dashed;
+  border-width: 6px;
+}
+
+.lp-sort-object {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 64px;
+  min-height: 64px;
+  padding: 4px 14px;
+  border: 4px solid #2a1e3d;
+  border-radius: 16px;
+  background: #ffffff;
+  color: #2a1e3d;
+  font: inherit;
+  cursor: pointer;
+}
+
+.lp-sort-object.is-lifted {
+  border-width: 8px;
+  background: #ffe9a8;
+  transform: translateY(-6px);
+  box-shadow: 0 6px 0 #2a1e3d;
+}
+
+.lp-sort-text {
+  font-size: 32px;
+  line-height: 1.1;
+}
+
+.lp-sort-img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+.lp-tray-drop {
+  align-self: center;
+}
+
+/* Arrange. */
+.lp-arrange {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.lp-spaces,
+.lp-tiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+}
+
+.lp-space,
+.lp-tile {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 72px;
+  min-height: 80px;
+  padding: 4px 10px;
+  border: 4px solid #2a1e3d;
+  border-radius: 16px;
+  color: #2a1e3d;
+  font: inherit;
+  cursor: pointer;
+}
+
+.lp-space {
+  border-style: dashed;
+  background: #fff4d6;
+}
+
+.lp-space.is-filled {
+  border-style: solid;
+  background: #ffffff;
+}
+
+.lp-space.is-lifted {
+  border-width: 8px;
+  background: #ffe9a8;
+  transform: translateY(-6px);
+  box-shadow: 0 6px 0 #2a1e3d;
+}
+
+.lp-tile {
+  background: #ffd23f;
+}
+
+/* A placed tile leaves its gap, so the other tiles stay where they were. */
+.lp-tile.is-placed {
+  visibility: hidden;
+}
+
+.lp-tile-text {
+  font-size: 44px;
+  line-height: 1;
+}
+
+.lp-tile-img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/* Typed. */
+.lp-typed {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.lp-typed-input {
+  box-sizing: content-box;
+  min-height: 72px;
+  max-width: 100%;
+  padding: 4px 16px;
+  border: 4px solid #2a1e3d;
+  border-radius: 16px;
+  background: #ffffff;
+  color: #2a1e3d;
+  font-size: 44px;
+  text-align: center;
+}
+
+.lp-typed-input[readonly] {
+  background: #fff4d6;
+}
+
+.lp-keypad {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+
+.lp-typed-numeric .lp-keypad {
+  grid-template-columns: repeat(6, 64px);
+  justify-content: center;
+}
+
+.lp-key {
+  min-width: 64px;
+  min-height: 64px;
+  border: 4px solid #2a1e3d;
+  border-radius: 14px;
+  background: #ffffff;
+  color: #2a1e3d;
+  font-size: 32px;
+  cursor: pointer;
+}
+
+.lp-key-delete {
+  background: #ffd23f;
+  font-family: inherit;
+}
+
+@media (max-width: 480px) {
+  .lp-typed-numeric .lp-keypad {
+    grid-template-columns: repeat(4, 64px);
+  }
+}

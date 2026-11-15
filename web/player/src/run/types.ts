@@ -81,9 +81,12 @@ export interface PackSlot {
   activityVersion: string;
   interactionType?: string;
   prompt?: { text?: string };
-  activityPayload?: { options?: { id: string; text: string }[] };
-  answerSpecification?: { accepted?: string[] };
-  presentation?: { optionOrder?: string[] };
+  /** Per interaction type (C20.1); the learning panel reads it (toPanelActivity in web/shared). */
+  activityPayload?: unknown;
+  answerSpecification?: { accepted?: string[]; caseSensitive?: boolean };
+  /** Two-step activities (C20.3): the second part, as authored. */
+  additionalSteps?: unknown[];
+  presentation?: { optionOrder?: string[]; tileOrder?: string[] };
   intro?: string | null;
   clips: Record<string, string>;
   reward: { credits: number; powerId?: string };

@@ -6,7 +6,7 @@ import { parsePlanet, parseRuleset, type Op, type RunState } from "@scd/game-cor
 import type { ApiResult } from "@scd/shared";
 import { keyFor } from "@scd/shared/audio/testing";
 import type { PlayerApi } from "../api/playerApi";
-import { FakeRunServer, type FakeClip, type FakeReply } from "../dev/fakeRunServer";
+import { FakeRunServer, type FakeActivityEntry, type FakeClip, type FakeReply } from "../dev/fakeRunServer";
 import type { GameData } from "../game/gameData";
 
 const GAME_DATA = join(import.meta.dirname, "..", "..", "..", "..", "game-data");
@@ -50,8 +50,14 @@ function opId(): string {
 }
 
 /** A server with one run that has just cleared wave 1, so its activity N-001 is waiting (phase ACTIVITY). */
-export async function serverAtActivity(): Promise<{ server: FakeRunServer; generation: number }> {
-  const server = new FakeRunServer({ data: testGameData(), clip: CLIP, urlFor: () => "https://audio.example.test/x", now: () => "2026-11-15T10:00:00Z" });
+export async function serverAtActivity(activities?: readonly FakeActivityEntry[]): Promise<{ server: FakeRunServer; generation: number }> {
+  const server = new FakeRunServer({
+    data: testGameData(),
+    clip: CLIP,
+    urlFor: () => "https://audio.example.test/x",
+    now: () => "2026-11-15T10:00:00Z",
+    ...(activities !== undefined ? { activities } : {}),
+  });
   const created = await server.createRun({
     runId: RUN_ID,
     planetId: "luna-1",

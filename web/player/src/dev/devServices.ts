@@ -13,7 +13,7 @@ import type { AuthPort } from "../auth/types";
 import type { PlayerConfig } from "../config";
 import { loadGameData } from "../game/gameData";
 import type { Services } from "../shell/services";
-import { FakeRunServer, type FakeClip, type FakeServerState } from "./fakeRunServer";
+import { DEV_ACTIVITIES, FakeRunServer, PHASE38_ACTIVITIES, type FakeClip, type FakeServerState } from "./fakeRunServer";
 
 const PREFIX = "CognitoIdentityServiceProvider.scd-dev-client.";
 const TOKEN_KEY = `${PREFIX}accessToken`;
@@ -121,6 +121,20 @@ function toneWav(): Uint8Array {
 const DEV_CLIP: FakeClip = { clipKey: "de".repeat(32), bytes: toneWav(), contentType: "audio/wav" };
 const servers = new Map<string, Promise<FakeRunServer>>();
 
+/**
+ * Which activities the fake server puts in the slots. `?devActivities=phase37` on any page switches to the Phase 37
+ * rotation (picture select, number track, hundred square, then the seed); `?devActivities=phase38` to the Phase 38
+ * rotation (share, sort, letters, order, typed number and word, two-step); `?devActivities=seed` switches back. The
+ * choice is remembered in localStorage. Start a new game after switching: a run keeps the answers it was created with.
+ */
+function devActivities() {
+  const key = `${API_PREFIX}activities`;
+  const asked = new URL(window.location.href).searchParams.get("devActivities");
+  if (asked === "phase37" || asked === "phase38" || asked === "seed") localStorage.setItem(key, asked);
+  const chosen = localStorage.getItem(key);
+  return chosen === "phase37" ? { activities: DEV_ACTIVITIES } : chosen === "phase38" ? { activities: PHASE38_ACTIVITIES } : {};
+}
+
 /** One fake run server per fake account, kept in localStorage so a reload keeps the run (as the cloud would). */
 function runServer(sub: string): Promise<FakeRunServer> {
   const key = `${API_PREFIX}runs.${sub}`;
@@ -134,6 +148,7 @@ function runServer(sub: string): Promise<FakeRunServer> {
         urlFor: (clip) => URL.createObjectURL(new Blob([clip.bytes.slice()], { type: clip.contentType })),
         ...(saved ? { initial: JSON.parse(saved) as FakeServerState } : {}),
         onChange: (state) => localStorage.setItem(key, JSON.stringify(state)),
+        ...devActivities(),
       });
     });
     servers.set(sub, server);

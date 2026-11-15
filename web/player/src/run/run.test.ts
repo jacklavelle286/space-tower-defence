@@ -10,6 +10,7 @@ import { deviceLabel, PlayLease } from "./lease";
 import { loadRun } from "./loadRun";
 import { createRun } from "./newGame";
 import { SyncedRun } from "./syncedRun";
+import { DEV_ACTIVITIES, PHASE38_ACTIVITIES } from "../dev/fakeRunServer";
 import { apiFor, reply, RUN_ID, serverAtActivity, SESSION_ID, testGameData } from "./testing";
 import { parsePack, parseRunDetail } from "./types";
 
@@ -33,10 +34,59 @@ describe("buildRunState and panelActivity", () => {
     const { server } = await serverAtActivity();
     const pack = parsePack((await server.getPack(RUN_ID)).body);
     const activity = panelActivity(pack.slots[0]!);
-    expect(activity?.options.map((o) => o.text)).toEqual(["ch", "s", "th", "sh"]);
+    expect(activity?.interactionType).toBe("MULTIPLE_CHOICE");
+    expect(activity?.interactionType === "MULTIPLE_CHOICE" ? activity.options.map((o) => o.text) : null).toEqual(["ch", "s", "th", "sh"]);
     expect(activity?.audioRequired).toBe(true);
     expect(panelActivity({ ...pack.slots[0]!, withdrawn: true })).toBeNull();
     expect(panelActivity({ ...pack.slots[0]!, interactionType: "ARRANGE" })).toBeNull();
+  });
+
+  it("dispatches by interactionType: picture select gets its pictures' URLs, number select its numbers (Phase 37)", async () => {
+    // The test wave set has one activity slot, so each type gets its own run.
+    const firstSlot = async (index: number) => {
+      const { server } = await serverAtActivity(DEV_ACTIVITIES.slice(index));
+      return parsePack((await server.getPack(RUN_ID)).body).slots[0]!;
+    };
+    const pictureSlot = await firstSlot(0);
+    const [pictures, track, grid] = [panelActivity(pictureSlot), panelActivity(await firstSlot(1)), panelActivity(await firstSlot(2))];
+    expect(pictures).toMatchObject({
+      interactionType: "PICTURE_SELECT",
+      audioRequired: false,
+      options: [
+        { id: "c", imageUrl: "/assets/activity/pic-pig.png", alt: "a pig" },
+        { id: "b", imageUrl: "/assets/activity/pic-sun.png", alt: "the sun" },
+        { id: "d", imageUrl: "/assets/activity/pic-dog.png", alt: "a dog" },
+        { id: "a", imageUrl: "/assets/activity/pic-cat.png", alt: "a cat" },
+      ],
+    });
+    expect(track).toMatchObject({ interactionType: "NUMBER_SELECT", display: "TRACK", stimulus: { imageUrl: "/assets/activity/dice-5.svg" } });
+    expect(grid).toMatchObject({ interactionType: "NUMBER_SELECT", display: "GRID", accepted: ["48"] });
+    // a picture this app does not have: the slot cannot be shown, rather than a card with a broken image
+    const slot = pictureSlot;
+    const payload = slot.activityPayload as { options: { id: string; assetId: string; alt: string }[] };
+    const broken = { ...payload, options: payload.options.map((o, i) => (i === 0 ? { ...o, assetId: "pic-unicorn" } : o)) };
+    expect(panelActivity({ ...slot, activityPayload: broken })).toBeNull();
+  });
+
+  it("every Phase 38 type and the two-step activity come through the pack and can be shown (Phase 38)", async () => {
+    const shown = [];
+    for (let i = 0; i < PHASE38_ACTIVITIES.length; i += 1) {
+      const { server } = await serverAtActivity(PHASE38_ACTIVITIES.slice(i));
+      shown.push(panelActivity(parsePack((await server.getPack(RUN_ID)).body).slots[0]!));
+    }
+    expect(shown.map((a) => (a === null ? null : `${a.interactionType}${"mode" in a ? ` ${a.mode}` : ""}`))).toEqual([
+      "OBJECT_MOVE DISTRIBUTE",
+      "OBJECT_MOVE SORT",
+      "ARRANGE LETTERS",
+      "ARRANGE LETTERS",
+      "ARRANGE SEQUENCE",
+      "TYPED NUMERIC",
+      "TYPED WORD",
+      "MULTIPLE_CHOICE",
+    ]);
+    expect(shown[0]).toMatchObject({ object: { imageUrl: "/assets/activity/obj-star.png" } });
+    expect(shown[2]).toMatchObject({ cue: { imageUrl: "/assets/activity/pic-cat.png", alt: "a cat" } });
+    expect(shown[7]?.additionalStep).toMatchObject({ interactionType: "TYPED", mode: "NUMERIC", prompt: "5 × 6 = ?" });
   });
 
   it("a run that has ended loads as 'ended', and an unknown run as 'not-found'", async () => {

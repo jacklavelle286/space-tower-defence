@@ -72,8 +72,10 @@ describe("callback", () => {
 
 describe("claims", () => {
   it("reads who is signed in and matches the admin group exactly", () => {
-    const claims = readClaims(jwt({ sub: "s", username: "op", exp: 10, token_use: "access", "cognito:groups": ["admin"] }));
-    expect(claims).toEqual({ sub: "s", username: "op", exp: 10, tokenUse: "access", groups: ["admin"] });
+    const claims = readClaims(
+      jwt({ sub: "s", username: "op", exp: 10, token_use: "access", client_id: "c", iss: "i", "cognito:groups": ["admin"] }),
+    );
+    expect(claims).toEqual({ sub: "s", username: "op", exp: 10, tokenUse: "access", clientId: "c", issuer: "i", groups: ["admin"] });
     expect(claims !== null && isAdmin(claims)).toBe(true);
     for (const groups of [[], ["administrators"], ["admin2"], ["admin-x"]]) {
       const other = readClaims(jwt({ sub: "s", exp: 10, "cognito:groups": groups }));

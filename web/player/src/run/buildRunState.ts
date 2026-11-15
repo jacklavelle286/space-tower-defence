@@ -2,7 +2,8 @@
 // never from memory). R9 gives the run, every slot's status and the current slot's recorded answers; R10 gives each
 // unresolved slot's accepted answers and reward; the pinned ruleset gives the power cap.
 import type { Ruleset, RunPhase, RunState, Slot, Targeting } from "@scd/game-core";
-import type { PanelActivity } from "@scd/shared/learning";
+import { toPanelActivity, type PanelActivity } from "@scd/shared/learning";
+import { activityAssetUrl } from "./activityAssets";
 import type { Pack, PackSlot, RunDetail } from "./types";
 
 /**
@@ -61,26 +62,25 @@ export function buildRunState(detail: RunDetail, pack: Pack, ruleset: Ruleset): 
 
 /**
  * What the learning panel shows for one pack entry, or null when it cannot be shown: withdrawn (the definition is
- * omitted), or an interaction type this client does not have yet (Milestone 1: multiple choice only).
+ * omitted), or a type or payload this client cannot show (toPanelActivity in web/shared decides, by interactionType:
+ * all six types, and two-step activities).
  */
 export function panelActivity(slot: PackSlot): PanelActivity | null {
-  if (slot.withdrawn || slot.interactionType !== "MULTIPLE_CHOICE") return null;
-  const options = slot.activityPayload?.options ?? [];
-  const byId = new Map(options.map((o) => [o.id, o]));
-  const order = slot.presentation?.optionOrder ?? options.map((o) => o.id);
-  const ordered = order.flatMap((id) => {
-    const o = byId.get(id);
-    return o === undefined ? [] : [{ id: o.id, text: o.text }];
-  });
-  if (ordered.length !== options.length || ordered.length === 0) return null;
-  return {
-    slotId: slot.slotId,
-    prompt: slot.prompt?.text ?? "",
-    options: ordered,
-    accepted: [...(slot.answerSpecification?.accepted ?? [])],
-    // The pack carries no audioRequirement (G R10 allow-list). A slot with a prompt clip is treated as needing its
-    // sound: true for every Milestone 1 activity (phonics, B3.2). [ASSUMPTION] until the pack carries the flag.
-    audioRequired: slot.clips["prompt"] !== undefined,
-    reward: { credits: slot.reward.credits },
-  };
+  if (slot.withdrawn) return null;
+  return toPanelActivity(
+    {
+      slotId: slot.slotId,
+      ...(slot.interactionType !== undefined ? { interactionType: slot.interactionType } : {}),
+      ...(slot.prompt !== undefined ? { prompt: slot.prompt } : {}),
+      activityPayload: slot.activityPayload,
+      ...(slot.answerSpecification !== undefined ? { answerSpecification: slot.answerSpecification } : {}),
+      ...(slot.additionalSteps !== undefined ? { additionalSteps: slot.additionalSteps } : {}),
+      ...(slot.presentation !== undefined ? { presentation: slot.presentation } : {}),
+      // The pack carries no audioRequirement (G R10 allow-list). A slot with a prompt clip is treated as needing its
+      // sound: true for every Milestone 1 activity (phonics, B3.2). [ASSUMPTION] until the pack carries the flag.
+      audioRequired: slot.clips["prompt"] !== undefined,
+      reward: { credits: slot.reward.credits },
+    },
+    activityAssetUrl,
+  );
 }

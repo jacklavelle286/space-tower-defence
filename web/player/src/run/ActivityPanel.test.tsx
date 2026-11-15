@@ -9,12 +9,14 @@ import { PANEL_COPY as COPY } from "@scd/shared/learning";
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { IDBFactory } from "fake-indexeddb";
 import { afterEach, describe, expect, it } from "vitest";
+import { press, tab } from "@scd/shared/learning/testing";
 import { PROTOCOL_VERSION } from "../sync/protocol";
 import { SyncQueue } from "../sync/queue";
 import { AckTracker } from "./ackTracker";
 import { ActivityPanel } from "./ActivityPanel";
 import { loadRun } from "./loadRun";
 import { SyncedRun } from "./syncedRun";
+import { DEV_ACTIVITIES, PHASE38_ACTIVITIES } from "../dev/fakeRunServer";
 import { apiFor, CLIP, RUN_ID, serverAtActivity, SESSION_ID, testGameData } from "./testing";
 
 afterEach(cleanup);
@@ -139,5 +141,116 @@ describe("learning panel on a saved run (Phase 22 exit criteria)", () => {
     expect(screen.queryByText(COPY.notQuite)).toBeNull();
     await screen.findByText(COPY.notQuite);
     expect(serverSlot(setup).attempts).toHaveLength(1);
+  });
+});
+
+describe("Phase 37 types on a saved run", () => {
+  const picture = DEV_ACTIVITIES.filter((e) => e.activity.interactionType === "PICTURE_SELECT");
+  const track = DEV_ACTIVITIES.filter((e) => e.activity.interactionType === "NUMBER_SELECT" && (e.activity.activityPayload as { display: string }).display === "TRACK");
+  const card = (name: string) => screen.getByRole("radio", { name: new RegExp(`^\\d: ${name}(, tried)?$`) });
+
+  it("PICTURE_SELECT, mouse only: two wrong cards, refresh shows them greyed, the third try is right and rewarded once", async () => {
+    const setup = await serverAtActivity(picture);
+    const factory = new IDBFactory();
+    const first = await pageLoad(setup, factory);
+    expect(screen.queryByRole("button", { name: /Play/ })).toBeNull(); // no clip on this activity
+    expect(screen.getAllByRole("radio").map((r) => r.getAttribute("aria-label"))).toEqual(["1: a pig", "2: the sun", "3: a dog", "4: a cat"]);
+    fireEvent.click(card("a pig"));
+    fireEvent.click(screen.getByRole("button", { name: COPY.check }));
+    await screen.findByText(COPY.notQuite);
+    fireEvent.click(card("a cat"));
+    fireEvent.click(screen.getByRole("button", { name: COPY.check }));
+    await waitFor(() => expect(serverSlot(setup).attempts.map((a) => a.answer)).toEqual(["c", "a"]));
+    first.view.unmount();
+    first.player.dispose();
+    first.db.close();
+
+    await pageLoad(setup, factory);
+    expect(card("a pig").getAttribute("aria-label")).toBe("1: a pig, tried");
+    expect(card("a cat").getAttribute("aria-label")).toBe("4: a cat, tried");
+    const credits = setup.server.state.runs[0]!.state.snapshot!.credits;
+    fireEvent.click(card("the sun"));
+    fireEvent.click(screen.getByRole("button", { name: COPY.check }));
+    await screen.findByText(COPY.correct);
+    expect(serverSlot(setup).status).toBe("SUCCEEDED");
+    expect(setup.server.state.runs[0]!.state.snapshot!.credits).toBe(credits + serverSlot(setup).reward.credits);
+  });
+
+  it("NUMBER_SELECT, keyboard only: Tab to the track, arrows to the number, Tab to Check, Enter; the server judges '5'", async () => {
+    const setup = await serverAtActivity(track);
+    await pageLoad(setup, new IDBFactory());
+    expect(screen.getByRole("img", { name: "a dice with five dots" })).toBeTruthy();
+    tab();
+    expect(document.activeElement?.getAttribute("aria-label")).toBe("0");
+    press("End");
+    press("ArrowLeft");
+    press("ArrowLeft");
+    press("ArrowLeft");
+    press("ArrowLeft");
+    press("ArrowLeft");
+    expect(document.activeElement?.getAttribute("aria-label")).toBe("5");
+    expect(tab().textContent).toMatch(COPY.check);
+    press("Enter");
+    await screen.findByText(COPY.correct);
+    expect(serverSlot(setup).attempts).toMatchObject([{ answer: "5", correct: true }]);
+    expect(serverSlot(setup).status).toBe("SUCCEEDED");
+  });
+});
+
+describe("Phase 38 types on a saved run", () => {
+  const byId = (id: string) => PHASE38_ACTIVITIES.filter((e) => e.activity.activityId === id);
+
+  it("ARRANGE, keyboard only: a wrong word is recorded, survives a refresh, then the right word resolves", async () => {
+    const setup = await serverAtActivity(byId("dev-letters-1"));
+    const factory = new IDBFactory();
+    const first = await pageLoad(setup, factory);
+    expect(screen.getByRole("img", { name: "a cat" })).toBeTruthy();
+    let el = tab();
+    while (!el.className.includes("lp-tile")) el = tab();
+    press("c");
+    press("o");
+    press("t");
+    while (!(el.textContent ?? "").includes(COPY.check)) el = tab();
+    press("Enter");
+    await screen.findByText(COPY.notQuite);
+    expect(serverSlot(setup).attempts.map((a) => a.answer)).toEqual(["cot"]);
+    first.view.unmount();
+    first.player.dispose();
+    first.db.close();
+
+    await pageLoad(setup, factory);
+    expect(screen.getByRole("button", { name: "Space 2 of 3: o" })).toBeTruthy(); // the arrangement stays
+    expect(screen.getByText(COPY.triedList(["cot"]))).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Space 2 of 3: o" }));
+    fireEvent.click(screen.getByRole("button", { name: "Space 3 of 3: t" }));
+    fireEvent.click(screen.getByRole("button", { name: "a" }));
+    fireEvent.click(screen.getByRole("button", { name: "t" }));
+    fireEvent.click(screen.getByRole("button", { name: COPY.check }));
+    await screen.findByText(COPY.correct);
+    expect(serverSlot(setup).attempts).toMatchObject([{ answer: "cot" }, { answer: "cat", correct: true }]);
+  });
+
+  it("two-step, mouse only: one Check, one attempt joined by '|'; the right part is still locked after a refresh", async () => {
+    const setup = await serverAtActivity(byId("dev-two-step-1"));
+    const factory = new IDBFactory();
+    const first = await pageLoad(setup, factory);
+    fireEvent.click(screen.getByRole("radio", { name: "3: 25" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "5 × 6 = ?" }), { target: { value: "35" } });
+    fireEvent.click(screen.getByRole("button", { name: COPY.check }));
+    await screen.findByText(COPY.notQuite);
+    expect(serverSlot(setup).attempts).toMatchObject([{ answer: "c|35", correct: false }]);
+    first.view.unmount();
+    first.player.dispose();
+    first.db.close();
+
+    await pageLoad(setup, factory);
+    expect(screen.getByText(COPY.partRight)).toBeTruthy();
+    expect(screen.getByText(COPY.partAgain)).toBeTruthy();
+    expect(screen.getByRole("radio", { name: "3: 25" }).getAttribute("aria-checked")).toBe("true");
+    fireEvent.change(screen.getByRole("textbox", { name: "5 × 6 = ?" }), { target: { value: "30" } });
+    fireEvent.click(screen.getByRole("button", { name: COPY.check }));
+    await screen.findByText(COPY.correct);
+    expect(serverSlot(setup).attempts).toHaveLength(2);
+    expect(serverSlot(setup).status).toBe("SUCCEEDED");
   });
 });
