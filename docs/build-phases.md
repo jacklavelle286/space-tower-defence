@@ -979,7 +979,7 @@ clips instead of silently changing approved ones (O-1).
 | Files | `api/functions/admin_api/`; `scripts/seed_content.py`; `content/seed/`; `web/admin/src/` |
 | Depends on | Phases 8, 9, 19 |
 | Owner actions | Dispatch the release and apply. Run the seed: dry run, then for real (it makes conditional writes to the `content` table from your laptop: data, not infrastructure **[PROPOSAL]**). Sign in as the operator; preview, listen, approve the clip; validate and publish the activity |
-| Tests and how to run | `cd api && pytest`; `cd web && npm test -w admin`; `python3 scripts/seed_content.py --dry-run` |
+| Tests and how to run | `cd api && pytest`; `cd web && npm test -w admin`; `api/.venv/bin/python scripts/seed_content.py --profile space-tower-defence --dry-run` (dry run is also the default; `--apply` writes) |
 | Deployed / how to see | `https://admin.aliens.jackgl.com`: sign in, Speech page, Activity page |
 | Exit criteria | The approved version records the same `clipKey` as the preview; a second seed run reports "skipped, exists"; a player token is refused on every `/api/admin/*` route (401, never 2xx); an operator without `admin` gets `403 FORBIDDEN` |
 | Risks | The seed overwriting (must be conditional); approving a clip that was never previewed |
@@ -1074,7 +1074,7 @@ combinations impossible ([F §7](plan/F-state-and-data.md#7-client-sync-state-ma
 | Files | `docs/releases/`, `docs/decisions/0016-…` to `0018-…`, `docs/validation/playtests/`, `docs/validation/performance/`, `docs/validation/browsers.md`, `web/player/e2e/deployed/` |
 | Depends on | Phase 22 |
 | Owner actions | Run P1 with the children (notes without names); run the E2E-D journey from your laptop; measure Play latency per browser |
-| Tests and how to run | `cd web && npx playwright test e2e/deployed` (with test-account passwords from your local environment, never committed) |
+| Tests and how to run | `cd web/player && npx playwright test e2e/deployed` (Playwright is a dev dependency of `web/player`, whose config holds the deployed journeys; test-account passwords from SSM into your shell only, never committed: [web/player/e2e/deployed/README.md](../web/player/e2e/deployed/README.md)) |
 | Deployed / how to see | The slice on production |
 | Exit criteria | A clip plays through the real service; three attempts and one reward; refresh keeps the attempts; leaving and returning resumes from the cloud save; release entry; P1 notes; latency and browser rows recorded |
 | Risks | Declaring done on `*.cloudfront.net` only |
@@ -1722,7 +1722,7 @@ review (`prompt.md:1276-1277`). D-1, D-2, D-4, D-5, D-7 and D-9 are built in her
 | Files | `content/seed/`; `docs/validation/content-c-keyboard-checklist.md` |
 | Depends on | Phases 39, 40 |
 | Owner actions | Run `seed_content.py` dry run, then real; preview, listen, approve, publish; fill in the keyboard/mouse checklist |
-| Tests and how to run | G-14 in CI; `python3 scripts/seed_content.py --dry-run` |
+| Tests and how to run | G-14 in CI; `api/.venv/bin/python scripts/seed_content.py --profile space-tower-defence --dry-run` (dry run is also the default; `--apply` writes) |
 | Deployed / how to see | Admin bank status; a child account plays them |
 | Exit criteria | The admin bank-status page shows the C-phase counts (about 17 published activities, 12 approved clips, each clip with a review record); a keyboard/mouse checklist (each type and mode, mouse-only and keyboard-only, pass or fail) recorded in `docs/validation/` and linked from the gate log |
 | Risks | Answer-key mistakes |
@@ -1751,7 +1751,7 @@ review (`prompt.md:1276-1277`). D-1, D-2, D-4, D-5, D-7 and D-9 are built in her
 | Files | `content/seed/`, `api/shared/generators/` |
 | Depends on | Phases 41, 42, 45 |
 | Owner actions | Dispatch the release and apply (the new generator kinds in `api/shared/generators/` must be deployed before their rows can be published); run `seed_content.py` dry run, then real; review rows; publish |
-| Tests and how to run | `cd api && pytest -k generators`; `python3 scripts/seed_content.py --dry-run` |
+| Tests and how to run | `cd api && pytest -k generators`; `api/.venv/bin/python scripts/seed_content.py --profile space-tower-defence --dry-run` (dry run is also the default; `--apply` writes) |
 | Deployed / how to see | Bank status |
 | Exit criteria | Maths groups at threshold in every band |
 | Risks | Domains too small for the no-repeat rule |
@@ -1780,7 +1780,7 @@ review (`prompt.md:1276-1277`). D-1, D-2, D-4, D-5, D-7 and D-9 are built in her
 | Files | `content/seed/` |
 | Depends on | Phases 42, 45 |
 | Owner actions | Run `seed_content.py` dry run, then real; listening sessions; approval; publish |
-| Tests and how to run | G-14 in CI; `python3 scripts/seed_content.py --dry-run` |
+| Tests and how to run | G-14 in CI; `api/.venv/bin/python scripts/seed_content.py --profile space-tower-defence --dry-run` (dry run is also the default; `--apply` writes) |
 | Deployed / how to see | Bank status |
 | Exit criteria | Phonics groups at threshold; every clip has a review record |
 | Risks | Listening fatigue; tier B/C sounds |
@@ -1809,7 +1809,7 @@ review (`prompt.md:1276-1277`). D-1, D-2, D-4, D-5, D-7 and D-9 are built in her
 | Files | `content/seed/` |
 | Depends on | Phases 42, 45 |
 | Owner actions | Run `seed_content.py` dry run, then real; review, approve, publish |
-| Tests and how to run | G-14; validation; `python3 scripts/seed_content.py --dry-run` |
+| Tests and how to run | G-14; validation; `api/.venv/bin/python scripts/seed_content.py --profile space-tower-defence --dry-run` (dry run is also the default; `--apply` writes) |
 | Deployed / how to see | Bank status |
 | Exit criteria | Spelling groups at threshold |
 | Risks | British spelling errors in AI-assisted drafts |
@@ -2620,6 +2620,7 @@ Claude fills "Summary" at each gate; you fill "Approved". The last approved comm
 | A (7–9) | `fdfd597` | **Phase 7** API skeleton (4 functions, router denying unknown routes first, allow-list logger, fail-closed sign-up cap, 30-route catalogue, reproducible zips). **Phase 6 slimmed** (ADR-0021: spikes skipped; G-5 invariants in CI/release; spike tooling deleted). **Phase 8** tables (PITR, deletion protection), audio bucket, two Cognito pools per ADR-0012, four functions with E.6.4 roles; Lambda build/upload by hash; post-apply CodeSha256 check; provider bug (rotation grace null) fixed `fa0d263`; operator login by e-mail invitation + test accounts in Terraform (ADR-0022). **Phase 9** HTTP API behind `/api/*` (30 JWT routes from `routes.json`, explicit throttles 20/40, access-log allow-list), 19 alarms + SNS in two regions, G-12/G-13, route sweep smoke, full `config.json`; `routes.json` added to the plan tarball (`fdfd597`). Releases `20261115T1227Z-fa0d263`, `20261115T1311Z-fdfd597`. Owner: admin login CONFIRMED with TOTP (PreferredMfaSetting reads null; MFA is required by the pool), both SNS subscriptions confirmed. Recorded [PROPOSAL]s: duration alarms, DynamoDB throttle metric math, `/api/*` https-only, shared CSP connect-src; throttles above Lambda concurrency 10 (request a quota increase before players). Test-child sign-up on the narrowed client: works (owner, then deleted). Skipped by the owner: alarm e-mail test, signed-in API call (runbook §7). | 2026-11-15, owner (in chat). ADR-0012, 0020, 0021, 0022 Accepted. |
 | B (10–14) | `24b7f29` | **10** clock (integer accumulator, 60 steps/s at any frame rate, clamp, MAX 30, pause). **11** op schemas + generated types, one `contracts/limits.json`, op-sequence/answer fixtures, TS reducer + next-phase rule, MC canonicaliser. **12** Python reducer mirror, same fixtures. **13** ruleset r1, luna-1 with the M1 CHALLENGE wave set, `current.json`, bounds file (with per-class targeting), `load_bounds`, G-15, create-only game-data publish. **14** pure deterministic sim, Phaser draws state only, GameBridge, two-wave local run in the real art with a placeholder activity pause, completion and defeat (screenshots checked). Review: 7 findings fixed (fixture pads, endless fixture, bounds targeting, single-sourced limits, HUD speed toggle). Tests: web 324, api+scripts 476. Owner: play locally; release (publishes game data). | 2026-11-15, owner (in chat): "looks great". |
 | C (15–19) | `8ec4ef6` | **15** profile routes (GET /api/me, PUT/PATCH profile, GET /api/planets): DOB validated and stored, never returned or logged (leak test over every route and log line); age band from the Europe/London date (tzdata bundled, ~500 KB per zip); limits.json gains nickname, avatars, dob, age bands. **16** POST /api/runs: selection pinned per run, session lease with a monotonic generation (race tests pin each DynamoDB condition); replay of an ended run answers 409 RUN_TERMINAL [PROPOSAL]. **17** POST /api/runs/{runId}/ops (G-5, G-7 on DynamoDB Local in CI); R12 endless still 501. **18** Polly bake-off: 24 items, 68 variants, 136 renders on generative and neural, 0 failures; owner listened on headphones; `tts_phoneme_engine` = generative, generative SSML allow-list gains `phoneme`; 12 sounds publishable, th/ch/ng/a/i and letter S pending (refused by G-14); ADR-0014 Proposed; U-048 closed. **19** speech service: clip key byte-identical to the spike (vectors), cached synthesis to `tts/v1/<key>.mp3`, G-14 in ci.yml and release.yml. Review: 6 findings fixed (generation-pin race tests, R8 terminal replay documented, flat object key in ADR/vectors/spike, D9.1 step 2 forms). Tests: api+scripts+spike 812 passed (12 ddblocal skipped locally, run in CI), web 324; ruff, invariants, terraform fmt/validate, gen-contracts clean; CI green on `e3a4c31`. Owner: approve the gate; R8 409 decision; dispatch release (plan shows Lambda code + `TTS_PHONEME_ENGINE` env change) and approve prod-apply. | 2026-11-15, owner (in chat). ADR-0014 Accepted; R8 terminal replay 409 confirmed. |
+| D (20–23) | (this commit range) | **20** admin-api R17–R27 (speech draft/preview/approve: approve recomputes the clip key and refuses unless that clip exists, G-14 verdict check incl. `phoneme_no_verdict`; activity draft/validate/publish for FIXED MULTIPLE_CHOICE), group check in the function (15 routes × 5 non-operator tokens → 403, no DB call), `scripts/seed_content.py` (dry run default, create-only transaction, "skipped, exists"), seed `phoneme-sh` (owner's chosen clip form) + `ph-0102`; admin web: hand-written PKCE sign-in (ADR-0023), Speech and Activity pages, no Phaser (245 kB). **21** player shell: config.json, managed-login PKCE via Amplify, profile setup, Home, ownerSub check, serial generation-stamped queue, sync chip (SYNCED/PENDING/RETRYING/AUTH_REQUIRED, D7 copy), one page load = one account. **22** learning panel in web/shared (Andika, greyed tries, one reward, resume from the saved slot), audio module with the O-2 Play rule (local bytes play first, request still sent; sha256 before storing; failure is not an attempt; ADR-0015), battlefield wired to the real run, lease and ops. CSP Report-Only gains cognito-idp and the audio bucket origin (CORS already in place). **23 prep** E2E-D Playwright journey (passwords from env only), done-when checklist, P1/browser/latency templates, ADR-0016…0018 drafts, release entries for the four earlier releases. Review: 12 findings fixed (retry keeps runId, DOM presses no longer reach pads, run screen fits 1024×768, Andika in admin preview, single Save and exit, profile form fit and errors). Tests: api+scripts+spike 917 passed (12 ddblocal skipped locally), web 239+89+115+21; ruff, invariants, G-14, terraform fmt/validate, gen-contracts clean. Owner: release; seed dry run then `--apply`; admin approve + publish; play as test-player-1; E2E-D; playtest P1; decisions: ADR-0023 (admin re-signs in hourly), profile layout, error colours, wave-restart wording. | |
 
 (One row is added per phase as it reaches its gate; a phase with [split gates](#phase-sizes-and-split-gates) gets one row per part, e.g. `8a`, `8b`.)
 

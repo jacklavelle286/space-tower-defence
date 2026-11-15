@@ -61,9 +61,12 @@ The art is hand-drawn SVG made in this repository, rendered to PNG by [tools/art
 
 [releases/](releases/): one short entry per production release ([format](releases/README.md)).
 
+## Validation
+
+[validation/](validation/README.md): Milestone 1 "done when" checklist, playtest notes, speech latency, browser checks.
+
 ## Planned folders (to create)
 
 | Folder | For |
 |---|---|
 | `runbooks/` | Restore, rollback and operator procedures (the DNS hand-off runbook exists: [runbooks/dns-hand-off.md](runbooks/dns-hand-off.md)) |
-| `validation/` | Playtests, performance, acceptance evidence, browser matrix |
