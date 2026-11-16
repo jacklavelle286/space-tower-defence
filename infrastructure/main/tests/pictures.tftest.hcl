@@ -140,11 +140,11 @@ run "job_queue" {
   assert {
     condition = (
       aws_sqs_queue.picture_jobs.sqs_managed_sse_enabled &&
-      aws_sqs_queue.picture_jobs.visibility_timeout_seconds >= 600 &&
+      aws_sqs_queue.picture_jobs.visibility_timeout_seconds > 840 &&
       aws_sqs_queue.picture_jobs.message_retention_seconds > aws_sqs_queue.picture_jobs.visibility_timeout_seconds &&
       aws_sqs_queue.picture_jobs_dlq.sqs_managed_sse_enabled
     )
-    error_message = "the job queue is encrypted, outlasts the 600 s function timeout, and a failed delivery reaches the DLQ before it expires"
+    error_message = "the job queue is encrypted, outlasts the 840 s function timeout (Gate P2 background), and a failed delivery reaches the DLQ before it expires"
   }
 
   assert {

@@ -354,8 +354,11 @@ module "admin_api" {
   role_name     = "${local.name_prefix}-admin-api-role"
   policy_json   = data.aws_iam_policy_document.admin_api.json
 
-  memory_size        = 512 # the pure-Python PNG canonicaliser (R34) runs faster with more CPU (Phase 42a)
-  timeout            = 15
+  # One full vCPU for the pure-Python PNG canonicaliser (R34): a 1920 x 1056 background photo took 1.4 s on a laptop,
+  # an estimated 2-3 s here at 1769 MB and 9-13 s at 512 MB, too close to the timeout (Gate P2 measurement,
+  # 2026-11-16; [UNVERIFIED] until the first background upload's REPORT line). Billed only per request.
+  memory_size        = 1769
+  timeout            = 20                           # margin over the worst background upload; still under the 30 s HTTP API limit
   log_retention_days = var.audit_log_retention_days # audit lines outlive a week (spine S8.3)
 
   s3_bucket              = data.aws_s3_bucket.artifacts.id

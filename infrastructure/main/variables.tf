@@ -197,7 +197,7 @@ variable "bedrock_model_id" {
 }
 
 variable "bedrock_max_tokens" {
-  description = "max_tokens for each generation (thinking plus output): the per-call cost ceiling."
+  description = "max_tokens for each generation (thinking plus output) of a kind without its own maxTokens in contracts/limits.json: the per-call cost ceiling for those kinds. A background has its own (32000, Gate P2), capped at this variable's 64000 validation ceiling, and weighs 3 in the drawing caps instead."
   type        = number
   default     = 16000
 

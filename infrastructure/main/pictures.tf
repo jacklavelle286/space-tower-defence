@@ -109,14 +109,16 @@ resource "aws_sqs_queue" "picture_jobs" {
   name                    = "${local.name_prefix}-picture-jobs"
   sqs_managed_sse_enabled = true
 
-  # Above the function's 600 s timeout (Lambda requires at least that), so a message is never delivered again while
+  # Above the function's 840 s timeout (Lambda requires at least that), so a message is never delivered again while
   # its first delivery may still be running. [PROPOSAL] 900 rather than the design's 3600: with retention at 3600, a
   # failed delivery becomes visible again after 900 s and so reaches the DLQ (receive count 2) before it expires.
   visibility_timeout_seconds = 900
   # An hour, so a failed delivery lives long enough to reach the DLQ. A message is stale long before that: picture-gen
-  # answers any job older than 13 minutes (from its start) with error.json timed_out without calling Bedrock, and
-  # admin-api fails a job nobody has claimed 15 minutes after its start (api/shared/pictures.py QUEUE_MAX_AGE and
-  # JOB_TIMEOUT). A claimed job is timed out only 15 minutes after its claim, so a job that waited is still drawn.
+  # answers any job older than 15 minutes (from its start) with error.json timed_out without calling Bedrock, and
+  # admin-api fails a job nobody has claimed 17 minutes after its start (api/shared/pictures.py QUEUE_MAX_AGE and
+  # JOB_TIMEOUT; Gate P2 raised both by 2 minutes so a job queued behind a whole 840 s run is still drawn). A claimed
+  # job is timed out only 15 minutes after its claim (DRAW_TIMEOUT, past the 840 s function timeout), so a background
+  # that takes 12 minutes is not given up on.
   message_retention_seconds = 3600
 }
 
@@ -271,9 +273,15 @@ module "picture_gen" {
   role_name     = "${local.name_prefix}-picture-gen-role"
   policy_json   = data.aws_iam_policy_document.picture_gen.json
 
-  memory_size          = 512
-  timeout              = 600                          # the SDK allows two attempts of 280 s each (design section 4)
+  memory_size = 512
+  # Gate P2: covers the longest kind. A background takes 7-12 minutes (one SDK attempt); every other kind two attempts
+  # of 280 s (580 s with connects). The SDK's read timeout limits only each gap in the stream, so picture-gen stops its
+  # own call 780 s after the run starts (handler CALL_SECONDS: this timeout less 60 s for writing the outcome). 840
+  # stays under the queue's 900 s visibility timeout and Lambda's 900 s, and under admin-api's 15-minute claim deadline
+  # (api/shared/pictures.py WORKER_TIMEOUT and DRAW_TIMEOUT; an api test reads this value).
+  timeout              = 840
   max_timeout          = 900                          # no API route invokes it, so the 29 s API ceiling does not apply
+  duration_alarm_ratio = 0.9                          # alarm at 756 s: past a 12-minute background, before the timeout
   reserved_concurrency = 2                            # at most two paid calls at once, whatever the queue holds
   log_retention_days   = var.audit_log_retention_days # the usage lines are the cost history
 
@@ -305,8 +313,11 @@ resource "aws_lambda_event_source_mapping" "picture_gen" {
 
 # ---------------------------------------------------------------------------
 # Hourly output-token alarm (42b). picture-gen logs one {"metric": "picture_usage", "outputTokens": N, ...} line per
-# job with its token counts (api/shared/log.py allow-list; never the prompt or the SVG). 150,000 output tokens in an hour is roughly ten jobs at max_tokens, far above
-# normal use, so a breach means something is looping or the caps are wrong.
+# job with its token counts (api/shared/log.py allow-list; never the prompt or the SVG). 150,000 output tokens in an
+# hour is roughly nine 256-kind jobs at max_tokens (16,000) or four backgrounds at theirs (32,000; Gate P2), above
+# normal use. A breach means something is looping or the caps are wrong, or an unusually busy hour of backgrounds:
+# check the picture_usage lines' `kind` before treating it as a fault. [PROPOSAL] threshold unchanged; owner to
+# confirm at the gate.
 # ---------------------------------------------------------------------------
 
 resource "aws_cloudwatch_log_metric_filter" "picture_output_tokens" {
