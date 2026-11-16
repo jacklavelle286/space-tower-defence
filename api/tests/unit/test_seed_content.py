@@ -449,7 +449,9 @@ def test_the_pack_waits_only_for_speech_approval(content: Any, capsys: pytest.Ca
     other activity would still publish."""
     refs = pack_speech_refs()
     waiting = sorted(a for a, ids in refs.items() if ids - {"phoneme-sh"})
-    assert len(waiting) == 21  # the phonics items that were held in content/seed-held (ADR-0028)
+    # Every pack activity that names a clip other than phoneme-sh: the 21 held phonics items (ADR-0028) plus the Gate I
+    # batches that use new or other clips. Counted from the pack, so a new batch does not need this number edited.
+    assert len(waiting) >= 21
     approve_speech(content)
     capsys.readouterr()
     assert run(content, "--dry-run", "--publish", seed_dir=PACK) == 3
@@ -486,7 +488,8 @@ def test_approving_the_speech_publishes_the_waiting_activities(
     capsys.readouterr()
     assert run(content, "--apply", "--publish", seed_dir=PACK) == 0
     out = capsys.readouterr().out
-    assert "failed: 0" in out and "published: 21" in out
+    waiting = [a for a, ids in pack_speech_refs().items() if ids - {"phoneme-sh"}]
+    assert "failed: 0" in out and f"published: {len(waiting)}" in out
     table = DynamoTable(content, CONTENT)
     header = table.get_item("ACT", "ph-1019")
     assert header is not None and header["state"] == "PUBLISHED"
