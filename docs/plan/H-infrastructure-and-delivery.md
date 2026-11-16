@@ -333,6 +333,24 @@ assets keep their real status codes.
 `release_id` is **not** a Lambda environment variable or a resource tag. If it were, every release would change every
 function and every tagged resource, and the plan would stop showing what really changed. **[PROPOSAL]**
 
+**Amended for Gate P (Phases 42a, 42b; ADR-0031, Proposed until the gate is approved).** The module is called five times:
+the fifth function is `picture-gen` (`…-picture-gen`, role `space-tower-defence-prod-picture-gen-role`), invoked only by
+the SQS queue `space-tower-defence-prod-picture-jobs` (batch 1, maximum concurrency 2), never by an API route. The
+module gains `max_timeout` (default 29, so every API function keeps the 29 s ceiling) and `reserved_concurrency` (default
+null); picture-gen sets 512 MB, timeout 600 s, `max_timeout` 900 and reserved concurrency 2. U-020 is settled: the
+account's concurrency limit is 1000 **[VERIFIED]** (`aws lambda get-account-settings`, 2026-11-16). `admin-api` moves to
+512 MB and gains narrow S3 writes on the pictures bucket (`store/*`, `pictures/v1/*` only), `s3:GetObject` on `jobs/*`,
+`sqs:SendMessage` on the job queue and `cloudfront:CreateInvalidation` on the two distributions; it gets no Bedrock
+access. picture-gen gets the queue, `s3:GetObject`/`PutObject` on `jobs/*` and Bedrock `InvokeModel`/
+`InvokeModelWithResponseStream` on the EU inference profile plus the foundation model through that profile only. The
+wiring is [infrastructure/main/pictures.tf](../../infrastructure/main/pictures.tf); the design is ADR-0031 and the
+amended ADR-0026. The pictures bucket policy makes each prefix single-writer whatever IAM a principal holds:
+`store/*` and `pictures/v1/*` deny `s3:Put*`, `s3:Delete*`, `s3:Replicate*` and `s3:RestoreObject` to every principal
+but admin-api, and `jobs/*` the same to every principal but picture-gen. The bucket is versioned, so the version-level
+actions matter: removing a delete marker (`s3:DeleteObjectVersion`) would otherwise bring a deleted picture back.
+picture-gen refuses a job older than 13 minutes from its start without calling Bedrock (`error.json` `timed_out`), so
+a message that waits in the queue (retention 1 hour) is never drawn after admin-api has given up on it. **[PROPOSAL]**
+
 ### H.4.5 `cognito_pool` (called twice)
 
 The settings are in [E §E.7](E-architecture.md#e7-authentication-and-authorisation) and [sources/05-cognito-auth.md](sources/05-cognito-auth.md) §11. Only the
@@ -611,6 +629,7 @@ names versions the server does not support (for example after a rollback), `POST
 | A hashed asset named in `index.html` | 200 with the immutable header | **[PROPOSAL]** |
 | Every route in `contracts/routes.json`, with no token, through **both** distributions | 401 from the gateway (every route has its authoriser and `/api/*` routing works on both sites) | **[PROPOSAL]** [spine S11.6](00-spine.md#s116-validation-gates) |
 | `/missing.js` | 404 or 403, **not** 200 HTML (no distribution-wide rewrite) | **[PROPOSAL]** |
+| `/pictures/v1/lib-<32 zeros>.png` (Gate P, `missing-picture`) | 403 or 404 and not HTML: the `/pictures/*` behaviour reaches the pictures bucket (CloudFront may read approved pictures only, with no ListBucket) and never the SPA fallback | **[PROPOSAL]** |
 | Each Lambda | `LastUpdateStatus = Successful` and `CodeSha256` equals the manifest | **[PROPOSAL]** |
 | Hostnames `aliens.jackgl.com`, `admin.aliens.jackgl.com` | Same checks once DNS resolves to the distribution. Reported as "skipped: DNS not live" until you have created the alias records, then required. | **[PROPOSAL]** |
 
@@ -664,6 +683,7 @@ Lambda versions and aliases) would each add a second owner or a second rollback 
 | Pinned `api/requirements.txt`; test tools only in `requirements-dev.txt` | Reproducible zips; small artefacts | **[PROPOSAL]** |
 | Static builds contain no environment values and no `VITE_*` API variable; the client reads `apiBase` from `config.json` (H.8.5(f)) only | One build for any environment, one source of truth for the API base ([spine S11.1](00-spine.md#s111-workflows)) | **[PROPOSAL]** |
 | The `release.tfvars.json` var file is generated, never committed | It is release data, not configuration | **[PROPOSAL]** |
+| `picture-gen` (Gate P) installs from its own hash-pinned lock, `api/requirements-picture-gen.txt`, with `pip --require-hashes` into its own staging directory; the lock is generated from `api/requirements.txt` plus `api/requirements-picture-gen.in` by `python3 scripts/build_lambdas.py --lock picture_gen` and must keep every shared pin at the same version. The other four zips are byte-identical to before | Backlog B-4 for the function with the largest dependency tree (Anthropic SDK with the Bedrock extra, boto3 and botocore included) | **[CONFIRMED by owner]** B-4 in this gate (2026-11-16); mechanism **[PROPOSAL]** |
 
 ---
 
@@ -774,6 +794,7 @@ Rolling back **Terraform code** is not a rollback in this sense. It is a normal 
 | The release added a ruleset `mechanics` number **and** an IN_PROGRESS run pins it | **Do not roll back past it.** The older client cannot play that run. Fix forward. Runbook check: scan IN_PROGRESS runs' pins first. | **[PROPOSAL]** spine S5.1 |
 | The release raised `protocolVersion` and queued clients may hold new-version ops | Do not roll back past it; the API accepts current and previous versions only. Fix forward. If it happens anyway, the older server answers a newer batch with `409 PROTOCOL_UNSUPPORTED`; the client keeps its queue in `RETRYING` ("Saving paused while the game updates") and never marks it REJECTED, so nothing is lost once a newer release is out again. | **[PROPOSAL]** spine S5.1, [S7.2](00-spine.md#s72-client-sync-engine) |
 | The release changed infrastructure (a new route, alarm, table attribute) | Not touched by an `artefacts_from` rollback, because Terraform stays at `main`. The older Lambda code must tolerate the addition (expand, then contract, below). To remove the addition, make a forward commit; review and the plan guard apply as usual. | **[PROPOSAL]** spine S11.2 |
+| Gate P added the fifth function, `picture-gen` (Phase 42b) | An `artefacts_from` rollback can only name a release from Phase 42b on: `scripts/lambda_artifacts.py` requires exactly the five Lambda keys, and current Terraform needs picture-gen's zip. To go back further, fix forward. | **[PROPOSAL]** |
 | The release replaced a Cognito app client | Not possible after the freeze (guard). Before it, everyone signs in again. | **[PROPOSAL]** |
 
 Design rule that keeps rollback possible: changes are **expand, then contract**. Additions (new attributes, routes,
@@ -889,6 +910,15 @@ Notes:
 - Log metric filters need the JSON logs from H.4.4 and the allow-listed fields from [G §15](G-api-contracts.md#15-logging-allow-list). **[PROPOSAL]**
 - No dashboard is required. One `space-tower-defence-prod-overview` dashboard (API, Lambda, DynamoDB) is a cheap later
   addition. **[ASSUMPTION]**
+- **Amended for Gate P (Phase 42b).** picture-gen has the module's three alarms (duration at 0.8 × 600 s). Added:
+  `picture-jobs-dlq` (`AWS/SQS ApproximateNumberOfMessagesVisible` on the DLQ, Maximum ≥ 1 in 5 min) and
+  `picture-gen-tokens-hourly` (metric filter `{ $.metric = "picture_usage" }` on the picture-gen log group, value
+  `$.outputTokens`, `SpaceTowerDefence/Pictures OutputTokens`, Sum ≥ 150,000 in 3600 s). The account gets an AWS Budgets
+  monthly cost budget `space-tower-defence-prod-monthly`, USD 65 (owner: GBP 50; **[ASSUMPTION]** the account bills in USD),
+  alerting at 50 % and 80 % actual and 100 % forecast to the eu-west-2 alerts topic. That topic now has an explicit policy:
+  SNS's default owner statement (reproduced exactly, **[VERIFIED]** against the live topic 2026-11-16) plus `budgets.amazonaws.com`
+  `SNS:Publish` limited to this account's budgets. Checked offline by `terraform test` (mock providers) in CI.
+  **[CONFIRMED by owner]** amounts and thresholds (2026-11-16); shape **[PROPOSAL]**
 
 ---
 
@@ -1011,6 +1041,11 @@ build/
 
 `infrastructure/main/.terraform.lock.hcl` is committed. That is a deliberate change from the reference, which ignores it
 ([A §8.2](A-repository-findings.md#82-jacks-productivity-tool-reference-product-pattern-source-only)), so CI and your laptop use identical provider builds. **[PROPOSAL]**
+
+**Amended for Gate P (ADR-0031, Proposed).** The two modules with `terraform test` suites
+(`infrastructure/modules/monitoring` and `static_site`) also commit a `.terraform.lock.hcl`, holding exactly the
+root's `hashicorp/aws` entry (`scripts/tests/test_terraform_locks.py` checks it). CI and the release checks job init
+every test folder with `-lockfile=readonly`, so a new provider release cannot change a gate result. **[PROPOSAL]**
 
 ---
 

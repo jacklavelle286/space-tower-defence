@@ -120,6 +120,13 @@ Handlers then write **named attributes only**; a request body is never merged in
 | R30 | `GET /api/admin/bank-status` | admin-api | operator | operator | counts vs thresholds per age × subject × category |
 | R31 | `DELETE /api/admin/activities/{id}` | admin-api | operator | operator | delete the activity: header, draft, every version (owner decision 2026-11-16) **[CONFIRMED by owner]** |
 | R32 | `DELETE /api/admin/speech-definitions/{id}` | admin-api | operator | operator | delete a speech definition no activity uses: header, draft, every approved version (owner ask 2026-11-16, "I can't delete sounds") |
+| R33 | `GET /api/admin/pictures` | admin-api | operator | operator | library pictures, today's and this month's drawing counts, open drawing jobs (Gate P, 42a) |
+| R34 | `POST /api/admin/pictures` | admin-api | operator | operator | add a picture (canonical 256 × 256 PNG, base64 JSON), optionally approve it (42a) |
+| R35 | `GET /api/admin/pictures/{id}` | admin-api | operator | operator | one picture, the activities using it, a draft's PNG (42a) |
+| R36 | `POST /api/admin/pictures/{id}/approve` | admin-api | operator | operator | approve a draft picture (text-free tick required) (42a) |
+| R37 | `DELETE /api/admin/pictures/{id}` | admin-api | operator | operator | delete a draft, or an approved picture no activity uses (42a) |
+| R38 | `POST /api/admin/picture-jobs` | admin-api | operator | operator | start a drawing with Claude (daily and monthly caps) (42b) |
+| R39 | `GET /api/admin/picture-jobs/{jobId}` | admin-api | operator | operator | a drawing's state, read from picture-gen's job objects (42b) |
 
 All routes **[PROPOSAL]** ([spine S9](00-spine.md#s9-api-surface-proposal-all-routes-under-api-json-authorization-bearer-access-token)); the spec says its own route names are proposals (`prompt.md:888`).
 The machine-readable copy of this table is `contracts/routes.json` (to create). Two checks keep it honest **[PROPOSAL]**
@@ -681,6 +688,8 @@ response status.
 | `CONTENT_UNAVAILABLE {reason}` | Lambda | 409 | R8 (and `reason` in R6); `reason` ∈ `AGE_OUT_OF_RANGE` \| `BANK_NOT_READY` \| `PLANET_LOCKED` | honest message; no other-age fallback | — |
 | `SPEECH_UNAVAILABLE` | tts | 503 | R15 | Retry button; never an attempt | Speech unavailable |
 | `SPEECH_SYNTHESIS_FAILED` | tts | 502 | R16 | operator retries | Synthesis failed |
+| `PAYLOAD_TOO_LARGE` | Lambda | 413 | R34 (decoded picture over 512 KiB, or body over 768 KiB) | admin app: "Picture too detailed" | Request invalid |
+| `PICTURE_CAP_REACHED {period, resetsAt?, dailyCap, monthlyCap}` | Lambda | 429 | R38; `period` ∈ `day` \| `month` \| `off` (a cap of 0 or no queue: "Drawing is switched off") | admin app: "You've drawn 100 pictures today…" (Gate P) | — |
 | `INTERNAL` | Lambda | 500 | any | `RETRYING` | — |
 | `OFFLINE_PACK_INCOMPLETE` | **client only** | — | never sent by the server | stop at the first wave/interval without content | Offline pack incomplete |
 | `ALREADY_APPLIED` | per-op **result**, not an error | 200 | R11, R12 | treat as applied | Already processed (original logical result) |
@@ -768,6 +777,27 @@ There is no speech retire or withdraw route in v1: a wrong approved clip is hand
 | R31 `DELETE /api/admin/activities/{id}` | — | `200 {activityId, deletedVersions[]}` | 403, 404 (nothing left to delete) | deletes the header, the draft and every version, and writes one `delete` audit item (`versionIds`, by `sub`); one transaction up to 97 versions, else versions first then the rest, so a retry finishes a partial delete; the header delete is conditioned on the `publishedVersion` read, so a racing publish makes it re-read; a run that pinned a deleted version reads it as withdrawn (VOID with reward when reached) |
 | R32 `DELETE /api/admin/speech-definitions/{id}` | — | `200 {speechId, deletedVersions[]}` | 400 `VALIDATION_FAILED` with one `{field: "usedBy.<activityId>", rule: "speech_in_use"}` per activity whose draft or any version (withdrawn and retired included) references it; 403; 404 (nothing left to delete) | built like R31: header, draft and every approved version, one `delete` audit item (`speechId`, `versionIds`, by `sub`); the header delete is conditioned on the `approvedVersion` and the `publishRefs` counter read before the use check (R27 adds 1 to `publishRefs` on every definition it resolves, so a publish that commits during the check refuses the delete and the check runs again); a retry finishes a partial delete, and R18 on an ID with versions but no header (a delete that stopped part way) removes those versions before creating. Clips in S3 are content-addressed and may be shared, so they are never deleted. The use check reads the `ACT` header partition, every draft (BatchGetItem) and the versions of activities ever published (no Scan). Known gap: a draft save adding a reference during the delete, and not published before it commits, is not blocked; validate and publish then refuse it (`speech_not_approved`) **[PROPOSAL, owner ask 2026-11-16]** |
 
+### 12.3 Library pictures and drawing with Claude (Gate P, Phases 42a and 42b)
+
+Built in `api/shared/picture_admin.py` (routes), `api/shared/pictures.py` (items `PIC`, `PICJOB`, `PICCAP`),
+`api/shared/png_canon.py` and `api/shared/svg_sanitise.py`, per the Gate P design and ADR-0031 (Proposed). Picture ID:
+`lib-` + the first 32 hex characters of the canonical PNG's SHA-256. **[PROPOSAL, owner decisions 2026-11-16]**
+
+| Route | Request | Success | Errors | Notes |
+|---|---|---|---|---|
+| R33 `GET /api/admin/pictures` | query `state?` (`DRAFT` \| `APPROVED`) | `200 {pictures[{id, name, state, source, textFree, createdAt, approvedAt?, jobId?, description?, url?}], generation{usedToday, dailyCap, usedMonth, monthlyCap, drawingOn}, openJobs[{jobId, state, description, startedAt, previousJobId?, change?}]}` | 400, 403 | `url` = `/pictures/v1/<id>.png` for approved pictures; open jobs = QUEUED or READY, started in the last 24 h, and no picture saved from them yet (R34 sets the job's `pictureId`) |
+| R34 `POST /api/admin/pictures` | `{name 1-40, source UPLOAD\|GENERATED, jobId? (GENERATED, a READY job), pngBase64, approve, textFree}` (body ≤ 768 KiB) | `201 {picture, duplicate: false}`; `200 {picture, duplicate: true}` for the same pixels again | 400 (`not_png`, `png_shape`, `blank`, `base64`, `not_text_free`, `unknown_job`, `job_not_ready`, `job_used` (a different picture was already saved from this drawing), …), 403, 413 `PAYLOAD_TOO_LARGE` | rewritten from its pixels (strict chunk walk, bounded inflate, fresh encode); `store/<id>.png` with If-None-Match; a GENERATED picture first marks its job with `pictureId` (conditioned on READY and no other picture); header + audit `picture-create` create-only |
+| R35 `GET /api/admin/pictures/{id}` | — | `200 {picture, usedBy[activityId], pngBase64? (DRAFT only)}` | 403, 404 | |
+| R36 `POST /api/admin/pictures/{id}/approve` | `{textFree: true, name?}` | `200 {picture}` | 400 `not_text_free`, 403, 404 | CopyObject to `pictures/v1/` (image/png, one-year immutable), then DRAFT → APPROVED + audit `picture-approve`; idempotent; if the transaction fails or raises while the header is still DRAFT, the copy is deleted again |
+| R37 `DELETE /api/admin/pictures/{id}` | — | `200 {pictureId, deleted, invalidated?}` | 400 `VALIDATION_FAILED` with `{field: "usedBy.<activityId>", rule: "picture_in_use"}` per activity (draft or any version); 403; 404 | as R32: conditioned on the `publishRefs` read before the use check (R27 adds 1 per library picture it publishes); deletes both objects and invalidates `/pictures/v1/<id>.png` on both distributions; a draft with a served copy left by an unfinished approve has it deleted and invalidated too |
+| R38 `POST /api/admin/picture-jobs` | `{jobId (UUID, idempotency key), description 3-200, previousJobId?, change? ≤ 200}` | `202 {jobId, state: QUEUED, usedToday, dailyCap, usedMonth, monthlyCap, drawingOn}`; a repeated `jobId` answers its job without counting | 400, 403, 429 `PICTURE_CAP_REACHED`, 503 `THROTTLED` (send failed: job FAILED `could_not_start`, both counters refunded) | one transaction: London day and month counters (`ADD`, each under its cap), the job (create-only), audit `picture-job-start`; then SQS. Caps 100 a day, 150 a month (owner 2026-11-16); when both are full the 429 says `month` (the later reset). The SQS message adds `startedAt` |
+| R39 `GET /api/admin/picture-jobs/{jobId}` | — | `200 {jobId, state: QUEUED\|DRAWING\|READY\|FAILED, description, startedAt, …}`; DRAWING adds `{phase, elapsedSeconds, outputTokens}`; READY adds `{svg (re-sanitised), warnings}`; FAILED adds `{error, message}` | 403, 404 | `error` ∈ `declined`, `too_long`, `unusable`, `throttled`, `bedrock_error`, `could_not_start`, `timed_out`, `expired`. `timed_out`: not claimed 15 min after the start, or claimed with no outcome 15 min after the claim, or refused by picture-gen as older than 13 min (never drawn). `warnings`: re-computed, plus picture-gen's `colours_outside_palette` (only names the sanitiser gives) |
+
+Validate and publish (R26, R27): a `lib-` asset must name an existing, APPROVED, text-free picture header (rules
+`unknown_asset`, `picture_not_approved`, `not_text_free`), and publish adds 1 to each picture's `publishRefs` under
+the condition that it is still APPROVED and text-free. The player pack carries the ID unchanged; the player loads
+`/pictures/v1/<id>.png`.
+
 Publish, retire, withdraw and approve each write an audit item (`AUDIT#<yyyy-mm>`) and an audit log line (§15).
 
 ## 13. Revisions, save semantics and sync — summary
@@ -808,6 +838,7 @@ One shared limits file is read by the client and by the handlers ([spine S9.5](0
 | Admin preview text/SSML | ≤ 300 characters; tag allow-list per engine (R16) |
 | Speech take (R16, R20) | 1..50 (`speechTake`) **[PROPOSAL, 2026-11-15]** |
 | Template domain | exhaustive check cap 5,000 instances |
+| Pictures (Gate P) | body ≤ 768 KiB (R34); decoded PNG ≤ 512 KiB, exactly 256 × 256; browser: PNG or JPEG only, ≤ 5 MB original, ≤ 4096 px a side, no SVG (`picture` in `contracts/limits.json`); description 3-200, change ≤ 200, name 1-40 **[CONFIRMED by owner, 2026-11-16]** for the upload limits |
 | Speech URL | 300 s (and no longer than the signing credentials) |
 | Lease / renew | 180 s / 60 s |
 | Throttles (Terraform; shared by all callers, best effort) | stage 20 rps / burst 40; `POST /api/runs` 1 / 5; `POST /api/speech` 20 / 40; admin speech 2 / 5 |
@@ -828,6 +859,7 @@ Logs are an **allow-list**: a field not in this table is never written by any of
 | `result`, error/rejection `code` | every line |
 | `revision`, `generation` | player-api |
 | admin audit: `action`, `activityId`/`speechId`, `versionId` | admin-api audit lines (an addition to the spine S2 list for audit lines only; no player data) **[PROPOSAL]** |
+| pictures: `pictureId`, `jobId`, `capPeriod`, `usedToday`, `usedMonth`, `invalidated`; picture-gen's usage line `metric` (`picture_usage`), `inputTokens`, `outputTokens`, `cacheReadTokens`, `cacheWriteTokens`, `stopReason`, `model`, `queuedSeconds` (a stale job refused as `timed_out`) | admin-api picture routes and picture-gen (Gate P); counts and IDs only, never a description, a change note, a prompt or an SVG **[PROPOSAL]** |
 | `level`, `droppedFields`, `errorType` | every function line: the log level; the count of fields the allow-list refused (never their names or values); an exception's class name only, never its message or stack trace, on `INTERNAL` errors and failed sign-up writes (added in Phase 7, `api/shared/log.py`) **[PROPOSAL]** |
 
 Never logged: raw events, request or response bodies, the `Authorization` header or any token, presigned URLs, answers,
