@@ -45,7 +45,7 @@ The rules are in [J §J.6](../plan/J-execution-backlog.md#j6-decision-log-practi
 | [0027](0027-editor-topics-auto-ids-either-slot.md) | Editor: topic registry, automatic IDs, activities for either slot (`BOTH`), one review tick | Accepted |
 | [0028](0028-in-app-listening-verdict-and-auto-published-starter-pack.md) | In-app listening is the phoneme verdict (only `word-only` refused); the starter pack is auto-published by the seed | Accepted |
 | [0029](0029-activity-hard-delete.md) | Activities can be deleted (R31): header, draft and versions; audit item kept; in-progress slots read as withdrawn | Proposed |
-| [0030](0030-gate-h1-speech-templates-selection.md) | Gate H1: approve bound to the played clip, 17 template generators (5,000-instance check), starter rules until an age is eligible | Proposed |
+| [0030](0030-gate-h1-speech-templates-selection.md) | Gate H1: approve bound to the played clip, 17 template generators (5,000-instance check), starter rules until an age is eligible | Accepted |
 
 ## Next in line
 

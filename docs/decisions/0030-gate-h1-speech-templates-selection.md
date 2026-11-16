@@ -1,5 +1,5 @@
 # 0030. Gate H1: speech contract, templates, and starter rules until an age is ready
-Status: Proposed · Date: 2026-11-16
+Status: Accepted · Date: 2026-11-16
 
 Context: Gate H1 builds Phases 40–42: the speech lifecycle, templates (C25) and selection with real thresholds (C24). Two facts
 shaped it:
