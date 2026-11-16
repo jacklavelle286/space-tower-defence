@@ -1,5 +1,8 @@
-// What a selected pad offers: place Nova on an open empty pad, or upgrade / sell the astronaut on it. The prices
-// come from the bridge (game-core's numbers); the simulation still checks every command (AC-09).
+// What a selected pad offers: a card for each class the wave set lists, on an open empty pad, or upgrade / sell for
+// the astronaut on it. Prices and refusals come from the bridge, which asks game-core (checkCommand); the simulation
+// still checks every command when it applies (AC-09). With ruleset r1 the wave set lists only Nova, so the live game
+// shows the single Nova card it always did. The full shop (D4: role, explanation, "Need 15 more", cap tokens, Aim) is
+// the Phase 31 HUD; this is the Phase 24 minimum to place the new classes on the local battlefield.
 import type { GameBridge } from "../game/GameBridge";
 import { useSelection } from "./useBridge";
 
@@ -12,25 +15,31 @@ export function PadPanel({ bridge, credits }: { bridge: GameBridge; credits: num
   return (
     <div className="bf-panel" role="dialog" aria-label="Pad">
       {tower === null && !selection.open && <p>This pad opens later in the game.</p>}
-      {tower === null && selection.placeCost !== null && (
-        <button
-          type="button"
-          className="bf-card-button"
-          disabled={credits < selection.placeCost}
-          onClick={() => {
-            bridge.place(padId, "nova");
-          }}
-        >
-          <img src="/assets/ui/nova-card.png" alt="" />
-          <span>
-            Nova <img className="bf-coin" src="/assets/ui/icon-credits.svg" alt="credits" /> {selection.placeCost}
-          </span>
-        </button>
-      )}
+      {selection.offers.map((offer) => {
+        // A locked class shows its silhouette card and when it unlocks (D4, C5.9).
+        const locked = offer.refusal === "CLASS_LOCKED";
+        return (
+          <button
+            key={offer.classId}
+            type="button"
+            className="bf-card-button"
+            disabled={offer.refusal !== null}
+            onClick={() => {
+              bridge.place(padId, offer.classId);
+            }}
+          >
+            <img src={`/assets/ui/${offer.classId}-card${locked ? "-locked" : ""}.png`} alt="" />
+            <span>
+              {offer.name} <img className="bf-coin" src="/assets/ui/icon-credits.svg" alt="credits" /> {offer.cost}
+            </span>
+            {locked && <span className="bf-card-note">Unlocks after wave {offer.unlockAfterWave}</span>}
+          </button>
+        );
+      })}
       {tower !== null && (
         <>
           <p>
-            Nova, level {tower.level}
+            {tower.name}, level {tower.level}
           </p>
           {selection.upgradeCost !== null && (
             <button type="button" className="bf-big" disabled={credits < selection.upgradeCost} onClick={() => bridge.upgrade(padId)}>

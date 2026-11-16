@@ -18,6 +18,7 @@
 // tab that comes back from the background stays paused until the child presses Resume.
 import {
   battleSnapshot,
+  checkCommand,
   createBattle,
   drainEvents,
   giveCommand,
@@ -61,12 +62,25 @@ export interface HudState {
   readonly highestCompletedWave: number;
 }
 
+/** One class the pad panel can offer for an empty pad (Phase 24): its price, and why it cannot be bought now. */
+export interface PlaceOffer {
+  readonly classId: string;
+  readonly name: string;
+  /** The level-1 price from the ruleset (C5.2). */
+  readonly cost: number;
+  /** For a locked card's "Unlocks after wave N" (C5.9). */
+  readonly unlockAfterWave: number;
+  /** null when placing it here would be accepted now; otherwise game-core's reason (credits, cap, locked...). */
+  readonly refusal: RejectReason | null;
+}
+
 export interface Selection {
   readonly padId: string;
   readonly open: boolean;
-  readonly tower: { readonly classId: string; readonly level: number; readonly targeting: Targeting } | null;
-  /** Price to place Nova here (empty pad) or to upgrade (occupied, below level 3); null if not possible. */
-  readonly placeCost: number | null;
+  readonly tower: { readonly classId: string; readonly name: string; readonly level: number; readonly targeting: Targeting } | null;
+  /** The classes the wave set lists, in its order, for an open empty pad while preparing or fighting; else empty. */
+  readonly offers: readonly PlaceOffer[];
+  /** Price to upgrade (occupied, below level 3); null if not possible. */
   readonly upgradeCost: number | null;
   readonly sellRefund: number | null;
 }
@@ -194,14 +208,26 @@ export class GameBridge {
     const pad = this.config.pads.find((p) => p.id === padId);
     if (pad === undefined) return null;
     const tower = b.towers.find((t) => t.padId === padId) ?? null;
-    const nova = this.config.classes["nova"];
     const cls = tower === null ? undefined : this.config.classes[tower.classId];
     const fighting = b.status === "PREP" || b.status === "IN_WAVE";
+    // Every offer is game-core's own check of the purchase (checkCommand), so the panel can never offer what the
+    // simulation would refuse; the simulation still checks the real command when it applies (AC-09).
+    const offers: PlaceOffer[] = [];
+    if (fighting && tower === null && pad.open) {
+      for (const classId of this.config.waveSet.classes) {
+        const offered = this.config.classes[classId];
+        const cost = offered?.levels[0]?.cost;
+        if (offered === undefined || cost === undefined) continue;
+        const check = checkCommand(b, { kind: "place", padId, classId });
+        offers.push({ classId, name: offered.name, cost, unlockAfterWave: offered.unlockAfterWave, refusal: check.ok ? null : check.reason });
+      }
+    }
     return {
       padId,
       open: pad.open,
-      tower: tower === null ? null : { classId: tower.classId, level: tower.level, targeting: tower.targeting },
-      placeCost: fighting && tower === null && pad.open ? (nova?.levels[0]?.cost ?? null) : null,
+      tower:
+        tower === null ? null : { classId: tower.classId, name: cls?.name ?? tower.classId, level: tower.level, targeting: tower.targeting },
+      offers,
       upgradeCost: fighting && tower !== null ? (cls?.levels[tower.level]?.cost ?? null) : null,
       sellRefund:
         fighting && tower !== null && cls !== undefined ? sellRefund(cls.levels[tower.level - 1]?.invested ?? 0, this.config.sell) : null,

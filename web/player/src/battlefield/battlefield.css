@@ -120,6 +120,9 @@
   bottom: 12px;
   transform: translateX(-50%);
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: calc(100% - 24px);
   align-items: center;
   gap: 12px;
   padding: 10px 16px;
@@ -150,6 +153,11 @@
 .bf-card-button > img {
   width: 96px;
   height: auto;
+}
+
+.bf-card-note {
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .bf-overlay {

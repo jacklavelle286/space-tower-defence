@@ -1,6 +1,6 @@
 import { compileBattleConfig, initialRunState, type RunState } from "@scd/game-core";
 import { useEffect, useMemo, useState } from "react";
-import { loadGameData, type GameData } from "../game/gameData";
+import { loadCurrent, loadGameDataVersions, type GameData } from "../game/gameData";
 import { LocalRun } from "../game/localRun";
 import { ActivityPlaceholder, PLACEHOLDER_ANSWER } from "./ActivityPlaceholder";
 import { Battlefield, WAVE_SET_ID } from "./Battlefield";
@@ -23,29 +23,66 @@ interface LocalOptions {
    */
   readonly autoPlay: AutoPlayMode | null;
   readonly speed: 1 | 2;
+  /** Play this ruleset version instead of the one current.json names (e.g. r2, the six-class roster of Phase 24). */
+  readonly ruleset: string | null;
+  /** Offer every class in the ruleset in the local wave set, not only the classes the wave set lists. */
+  readonly allClasses: boolean;
+  /** Start with this many credits instead of the wave set's starting credits. */
+  readonly credits: number | null;
 }
 
 /**
  * Development options from the page URL (local slice only): ?seed=<text>, ?colony=<1..20> (start with less colony
  * health), ?auto=1 (plays by itself, placing Novas: it usually wins), ?auto=lose (presses Ready with no Novas placed,
  * so the aliens get through: with ?colony=1 the defeat screen comes in seconds), ?speed=2.
+ *
+ * Phase 24 adds three for trying the six-class roster: ?ruleset=r2 (play that ruleset version on the current planet
+ * document), ?roster=all (the local wave set offers every class in the ruleset) and ?credits=<0..100000>. For example
+ * /play/local?ruleset=r2&roster=all&credits=2000. They change only this development page: game data, current.json
+ * and the real run screen are untouched.
  */
 function localOptions(search: string): LocalOptions {
   const params = new URLSearchParams(search);
   const colony = Number.parseInt(params.get("colony") ?? "", 10);
+  const credits = Number.parseInt(params.get("credits") ?? "", 10);
   return {
     seed: params.get("seed") ?? "local-dev-seed",
     colonyHealth: Number.isInteger(colony) && colony >= 1 && colony <= 20 ? colony : null,
     autoPlay: params.get("auto") === "1" ? "play" : params.get("auto") === "lose" ? "lose" : null,
     speed: params.get("speed") === "2" ? 2 : 1,
+    ruleset: params.get("ruleset"),
+    allClasses: params.get("roster") === "all",
+    credits: Number.isInteger(credits) && credits >= 0 && credits <= 100_000 ? credits : null,
   };
+}
+
+/** The game data for the local slice: current.json's versions, or ?ruleset=, with ?roster=all applied. */
+async function localGameData(options: LocalOptions): Promise<GameData> {
+  const current = await loadCurrent();
+  const data = await loadGameDataVersions(options.ruleset ?? current.rulesetVersion, current.campaignVersion);
+  const waveSet = data.planet.waveSets[WAVE_SET_ID];
+  if (!options.allClasses || waveSet === undefined) return data;
+  // A copy of the planet document whose local wave set lists every class, in the ruleset's unlock order. A CHALLENGE
+  // wave set ignores unlock waves (C13), so every class can be placed from wave 1.
+  const classes = Object.entries(data.ruleset.classes)
+    .sort(([, a], [, b]) => a.unlockAfterWave - b.unlockAfterWave)
+    .map(([id]) => id);
+  return { ...data, planet: { ...data.planet, waveSets: { ...data.planet.waveSets, [WAVE_SET_ID]: { ...waveSet, classes } } } };
 }
 
 function startingRun(data: GameData, options: LocalOptions): RunState {
   const config = compileBattleConfig(data.ruleset, data.planet, WAVE_SET_ID);
   const run = initialRunState(data.ruleset, config, [PLACEHOLDER_ANSWER]);
-  if (options.colonyHealth === null || run.snapshot === undefined) return run;
-  return { ...run, snapshot: { ...run.snapshot, colony: { ...run.snapshot.colony, health: options.colonyHealth } } };
+  if (run.snapshot === undefined) return run;
+  const { snapshot } = run;
+  return {
+    ...run,
+    snapshot: {
+      ...snapshot,
+      credits: options.credits ?? snapshot.credits,
+      colony: { ...snapshot.colony, health: options.colonyHealth ?? snapshot.colony.health },
+    },
+  };
 }
 
 /**
@@ -61,7 +98,7 @@ export function LocalSlice() {
 
   useEffect(() => {
     let live = true;
-    loadGameData().then(
+    localGameData(options).then(
       (loaded) => {
         if (!live) return;
         setData(loaded);

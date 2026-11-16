@@ -118,11 +118,42 @@ describe("GameBridge", () => {
     bridge.place("p03", "nova"); // closed until after wave 5
     expect(seen.commandRejected).toEqual([{ command: { kind: "place", padId: "p03", classId: "nova" }, reason: "PAD_CLOSED" }]);
     bridge.selectPad("p02");
-    expect(bridge.selection()).toEqual({ padId: "p02", open: true, tower: null, placeCost: 50, upgradeCost: null, sellRefund: null });
+    expect(bridge.selection()).toEqual({
+      padId: "p02",
+      open: true,
+      tower: null,
+      offers: [{ classId: "nova", name: "Nova", cost: 50, unlockAfterWave: 0, refusal: null }],
+      upgradeCost: null,
+      sellRefund: null,
+    });
     bridge.place("p02", "nova");
-    expect(bridge.selection()).toMatchObject({ tower: { classId: "nova", level: 1 }, placeCost: null, upgradeCost: 60, sellRefund: 35 });
+    expect(bridge.selection()).toMatchObject({ tower: { classId: "nova", name: "Nova", level: 1 }, offers: [], upgradeCost: 60, sellRefund: 35 });
     frames(bridge, HUD_INTERVAL_MS, 1);
     expect(seen.selectionChanged.at(-1)).toMatchObject({ padId: "p02", upgradeCost: 60 });
+  });
+
+  it("offers each class the wave set lists, with game-core's refusal (Phase 24: ruleset r2, every class listed)", () => {
+    const r2 = parseRuleset(readJson("ruleset/r2.json"));
+    const raw = structuredClone(readJson("campaign/luna-1-c1.json")) as { waveSets: Record<string, { classes: string[] }> };
+    const set = raw.waveSets["first-contact"];
+    if (set !== undefined) set.classes = ["nova", "pip", "juno", "orion", "mira", "sol"];
+    const everyClass = compileBattleConfig(r2, parsePlanet(raw, r2), "first-contact");
+    const start = initialRunState(r2, everyClass, ["continue"]);
+    if (start.snapshot === undefined) throw new Error("a new run has a snapshot");
+    const bridge = new GameBridge(everyClass, new LocalRun({ ...start, snapshot: { ...start.snapshot, credits: 430 } }), "test-seed");
+    bridge.place("p02", "mira");
+    bridge.place("p04", "mira"); // Mira's cap is 2 (C5.8); 430 - 320 = 110 credits left
+    bridge.selectPad("p05");
+    expect(bridge.selection()?.offers.map((o) => [o.classId, o.cost, o.refusal])).toEqual([
+      ["nova", 50, null],
+      ["pip", 60, null],
+      ["juno", 110, null],
+      ["orion", 170, "NOT_ENOUGH_CREDITS"],
+      ["mira", 160, "DEPLOY_CAP"],
+      ["sol", 150, "NOT_ENOUGH_CREDITS"],
+    ]);
+    bridge.selectPad("p02");
+    expect(bridge.selection()).toMatchObject({ tower: { classId: "mira", name: "Mira", level: 1 }, offers: [], upgradeCost: 180, sellRefund: 110 });
   });
 
   it("stays paused until an explicit resume, whatever frames arrive", () => {

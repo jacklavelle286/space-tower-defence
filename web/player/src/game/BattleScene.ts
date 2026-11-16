@@ -7,7 +7,7 @@
 // last frame. Beams are drawn from the tower's last shot (tick and landing point), so they are state, not timers.
 import { routePoint, type Battle, type BattleEvent } from "@scd/game-core";
 import { GameObjects, Scene, type Input } from "phaser";
-import { allFrames, ART, astronautArt, beamArt, frameKey, type ArtAsset } from "./assets";
+import { allFrames, ART, ASTRONAUT_LOOPED, ASTRONAUT_ONE_SHOT, astronautArt, beamArt, frameKey, type ArtAsset } from "./assets";
 import type { GameBridge } from "./GameBridge";
 import { pressedOnCanvas } from "./pointer";
 import { colonyArt, routeTiles, TILE_PX, tileToPx, unitsToPx } from "./layout";
@@ -19,7 +19,7 @@ const BEAM_TICKS = 8;
 /** Feet offsets: where a sprite's anchor sits relative to its tile centre, in pixels (art fit, see layout notes). */
 const ALIEN_FEET_DY = 30;
 const ASTRONAUT_FEET_DY = 18;
-/** Beam start: Nova's gadget, relative to her feet. */
+/** Beam start: Nova's gadget, relative to her feet (only Nova's beam is drawn). */
 const GADGET_DX = 34;
 const GADGET_DY = -46;
 const BEAM_THICKNESS = 40;
@@ -29,19 +29,11 @@ const COLONY_PX = 240;
 const COLONY_DX = -72;
 const COLONY_DY = 74;
 
-const LOOPED: readonly ArtAsset[] = [
-  ART.portal,
-  ART.blobWalk,
-  ART.novaIdle1,
-  ART.novaIdle2,
-  ART.novaIdle3,
-  ART.novaBeam1,
-  ART.novaBeam2,
-  ART.novaBeam3,
-];
-const ONE_SHOT: readonly ArtAsset[] = [ART.novaAttack1, ART.novaAttack2, ART.novaAttack3, ART.popStars, ART.leak, ART.place];
+const LOOPED: readonly ArtAsset[] = [ART.portal, ART.blobWalk, ...ASTRONAUT_LOOPED, ART.novaBeam1, ART.novaBeam2, ART.novaBeam3];
+const ONE_SHOT: readonly ArtAsset[] = [...ASTRONAUT_ONE_SHOT, ART.popStars, ART.leak, ART.place];
 
 interface TowerView {
+  readonly classId: string;
   readonly sprite: GameObjects.Sprite;
   readonly beam: GameObjects.Sprite;
   level: number;
@@ -160,10 +152,11 @@ export class BattleScene extends Scene {
     const tower = battle?.towers.find((t) => t.padId === selected);
     const pad = this.#bridge.config.pads.find((p) => p.id === selected);
     if (tower === undefined || pad === undefined) return;
-    const level = this.#bridge.config.classes[tower.classId]?.levels[tower.level - 1];
-    if (level === undefined) return;
-    range.fillStyle(0xfff4d6, 0.12).fillCircle(tileToPx(pad.x), tileToPx(pad.y), level.rangeTiles * TILE_PX);
-    range.lineStyle(4, 0xfff4d6, 0.7).strokeCircle(tileToPx(pad.x), tileToPx(pad.y), level.rangeTiles * TILE_PX);
+    // Mira and Sol have no shot, so no attack range to preview (Sol's buff ring belongs to Phase 25).
+    const shot = this.#bridge.config.classes[tower.classId]?.levels[tower.level - 1]?.shot;
+    if (shot === undefined || shot === null) return;
+    range.fillStyle(0xfff4d6, 0.12).fillCircle(tileToPx(pad.x), tileToPx(pad.y), shot.rangeTiles * TILE_PX);
+    range.lineStyle(4, 0xfff4d6, 0.7).strokeCircle(tileToPx(pad.x), tileToPx(pad.y), shot.rangeTiles * TILE_PX);
   }
 
   #drawTowers(battle: Readonly<Battle>): void {
@@ -176,12 +169,18 @@ export class BattleScene extends Scene {
       const y = tileToPx(pad.y) + ASTRONAUT_FEET_DY;
       const art = astronautArt(tower.classId, tower.level);
       let view = this.#towers.get(tower.padId);
+      // A sale and a purchase on the same pad within one frame (or one tick) leave a different class there.
+      if (view !== undefined && view.classId !== tower.classId) {
+        view.sprite.destroy();
+        view.beam.destroy();
+        view = undefined;
+      }
       if (view === undefined) {
         const sprite = this.add.sprite(x, y, frameKey(art.idle, 1));
         place(sprite, art.idle);
         sprite.setDepth(10 + y / 1000).play(art.idle.id);
         const beam = this.add.sprite(x, y, frameKey(beamArt(tower.level), 1)).setVisible(false).setDepth(9);
-        view = { sprite, beam, level: tower.level, lastShotSeen: tower.lastShotTick };
+        view = { classId: tower.classId, sprite, beam, level: tower.level, lastShotSeen: tower.lastShotTick };
         this.#towers.set(tower.padId, view);
         if (!this.#restored.has(tower.padId)) this.#playOnce(ART.place, x, y - 8, 9);
       }
@@ -195,8 +194,13 @@ export class BattleScene extends Scene {
         if (shot !== null) view.sprite.setFlipX(unitsToPx(shot.x) < x);
         view.sprite.play(art.attack.id).chain(art.idle.id);
       }
+      // Only Nova has a beam; the other classes' shot effects (frost, comet, orbit shot) are not drawn yet.
       const showBeam =
-        battle.status === "IN_WAVE" && shot !== null && tower.lastShotTick >= 0 && battle.tick - tower.lastShotTick < BEAM_TICKS;
+        tower.classId === "nova" &&
+        battle.status === "IN_WAVE" &&
+        shot !== null &&
+        tower.lastShotTick >= 0 &&
+        battle.tick - tower.lastShotTick < BEAM_TICKS;
       view.beam.setVisible(showBeam);
       if (showBeam) {
         const beamAsset = beamArt(tower.level);

@@ -62,6 +62,37 @@ export const ART = {
   novaAttack2: anim("nova-l2-attack", C, 4, FEET, [128, 128]),
   novaIdle3: anim("nova-l3-idle", C, 4, FEET, [128, 128]),
   novaAttack3: anim("nova-l3-attack", C, 4, FEET, [128, 128]),
+  pipIdle1: anim("pip-l1-idle", C, 4, FEET, [128, 128]),
+  pipAttack1: anim("pip-l1-attack", C, 4, FEET, [128, 128]),
+  pipIdle2: anim("pip-l2-idle", C, 4, FEET, [128, 128]),
+  pipAttack2: anim("pip-l2-attack", C, 4, FEET, [128, 128]),
+  pipIdle3: anim("pip-l3-idle", C, 4, FEET, [128, 128]),
+  pipAttack3: anim("pip-l3-attack", C, 4, FEET, [128, 128]),
+  junoIdle1: anim("juno-l1-idle", C, 4, FEET, [128, 128]),
+  junoAttack1: anim("juno-l1-attack", C, 6, FEET, [128, 128]),
+  junoIdle2: anim("juno-l2-idle", C, 4, FEET, [128, 128]),
+  junoAttack2: anim("juno-l2-attack", C, 6, FEET, [128, 128]),
+  junoIdle3: anim("juno-l3-idle", C, 4, FEET, [128, 128]),
+  junoAttack3: anim("juno-l3-attack", C, 6, FEET, [128, 128]),
+  orionIdle1: anim("orion-l1-idle", C, 4, FEET, [128, 128]),
+  orionAttack1: anim("orion-l1-attack", C, 6, FEET, [128, 128]),
+  orionIdle2: anim("orion-l2-idle", C, 4, FEET, [128, 128]),
+  orionAttack2: anim("orion-l2-attack", C, 6, FEET, [128, 128]),
+  orionIdle3: anim("orion-l3-idle", C, 4, FEET, [128, 128]),
+  orionAttack3: anim("orion-l3-attack", C, 6, FEET, [128, 128]),
+  // Mira and Sol never fire; their second animation (emit, pulse) is what plays when their effect happens (Phase 25).
+  miraIdle1: anim("mira-l1-idle", C, 4, FEET, [128, 128]),
+  miraEmit1: anim("mira-l1-emit", C, 4, FEET, [128, 128]),
+  miraIdle2: anim("mira-l2-idle", C, 4, FEET, [128, 128]),
+  miraEmit2: anim("mira-l2-emit", C, 4, FEET, [128, 128]),
+  miraIdle3: anim("mira-l3-idle", C, 4, FEET, [128, 128]),
+  miraEmit3: anim("mira-l3-emit", C, 4, FEET, [128, 128]),
+  solIdle1: anim("sol-l1-idle", C, 4, FEET, [128, 192]),
+  solPulse1: anim("sol-l1-pulse", C, 4, FEET, [128, 192]),
+  solIdle2: anim("sol-l2-idle", C, 4, FEET, [128, 192]),
+  solPulse2: anim("sol-l2-pulse", C, 4, FEET, [128, 192]),
+  solIdle3: anim("sol-l3-idle", C, 4, FEET, [128, 192]),
+  solPulse3: anim("sol-l3-pulse", C, 4, FEET, [128, 192]),
   novaBeam1: anim("fx-nova-beam-l1", C, 3, [0, 0.5], [64, 64]),
   novaBeam2: anim("fx-nova-beam-l2", C, 3, [0, 0.5], [64, 64]),
   novaBeam3: anim("fx-nova-beam-l3", C, 3, [0, 0.5], [64, 64]),
@@ -92,14 +123,52 @@ export function allFrames(): [string, string][] {
   return out;
 }
 
-/** The idle and attack animations for an astronaut level (only Nova in mechanics 1). */
+/** Each class's idle and action animations by level (index 0 = level 1). For Mira the action is "emit", for Sol "pulse". */
+const ASTRONAUTS: Readonly<Record<string, readonly { readonly idle: ArtAsset; readonly attack: ArtAsset }[]>> = {
+  nova: [
+    { idle: ART.novaIdle1, attack: ART.novaAttack1 },
+    { idle: ART.novaIdle2, attack: ART.novaAttack2 },
+    { idle: ART.novaIdle3, attack: ART.novaAttack3 },
+  ],
+  pip: [
+    { idle: ART.pipIdle1, attack: ART.pipAttack1 },
+    { idle: ART.pipIdle2, attack: ART.pipAttack2 },
+    { idle: ART.pipIdle3, attack: ART.pipAttack3 },
+  ],
+  juno: [
+    { idle: ART.junoIdle1, attack: ART.junoAttack1 },
+    { idle: ART.junoIdle2, attack: ART.junoAttack2 },
+    { idle: ART.junoIdle3, attack: ART.junoAttack3 },
+  ],
+  orion: [
+    { idle: ART.orionIdle1, attack: ART.orionAttack1 },
+    { idle: ART.orionIdle2, attack: ART.orionAttack2 },
+    { idle: ART.orionIdle3, attack: ART.orionAttack3 },
+  ],
+  mira: [
+    { idle: ART.miraIdle1, attack: ART.miraEmit1 },
+    { idle: ART.miraIdle2, attack: ART.miraEmit2 },
+    { idle: ART.miraIdle3, attack: ART.miraEmit3 },
+  ],
+  sol: [
+    { idle: ART.solIdle1, attack: ART.solPulse1 },
+    { idle: ART.solIdle2, attack: ART.solPulse2 },
+    { idle: ART.solIdle3, attack: ART.solPulse3 },
+  ],
+};
+
+/** The animations that loop (idle) and play once (attack, emit, pulse), for the scene to register. */
+export const ASTRONAUT_LOOPED: readonly ArtAsset[] = Object.values(ASTRONAUTS).flatMap((levels) => levels.map((l) => l.idle));
+export const ASTRONAUT_ONE_SHOT: readonly ArtAsset[] = Object.values(ASTRONAUTS).flatMap((levels) => levels.map((l) => l.attack));
+
+/** The idle and attack animations for an astronaut level: all six classes of C5.1 have art. */
 export function astronautArt(classId: string, level: number): { idle: ArtAsset; attack: ArtAsset } {
-  if (classId !== "nova") throw new Error(`no art wired for class ${classId} yet`);
-  if (level === 3) return { idle: ART.novaIdle3, attack: ART.novaAttack3 };
-  if (level === 2) return { idle: ART.novaIdle2, attack: ART.novaAttack2 };
-  return { idle: ART.novaIdle1, attack: ART.novaAttack1 };
+  const art = ASTRONAUTS[classId]?.[level - 1];
+  if (art === undefined) throw new Error(`no art for class ${classId} level ${level}`);
+  return art;
 }
 
+/** Nova's beam, drawn from her gadget to the alien she hit. Other classes' shot effects are not drawn yet. */
 export function beamArt(level: number): ArtAsset {
   return level === 3 ? ART.novaBeam3 : level === 2 ? ART.novaBeam2 : ART.novaBeam1;
 }
