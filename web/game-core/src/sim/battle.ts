@@ -5,7 +5,7 @@
 // Math.random, and the order inside a tick is fixed (C2.3):
 //   1. queued player commands, in arrival order, each validated against the state at that moment (AC-09)
 //   2. scheduled spawns that are due (and not held back by the soft cap)
-//   3. support timers (none in mechanics 1: no Mira, no healers)
+//   3. support timers (none yet: Mira's pulses arrive in Phase 25, healers in Phase 26)
 //   4. astronaut attacks, in pad order p01 -> p16 (C2.4: instant hits)
 //   5. alien movement, in id order; an alien reaching the end leaks at once
 //   6. defeat check (colony health <= 0), then the wave-complete check
@@ -17,7 +17,7 @@
 // object; copying every tick would only cost time). They read nothing else and return nothing hidden, so the same
 // Battle and the same calls always give the same result.
 import type { Placement, Snapshot, Targeting } from "../rules";
-import type { BattleConfig, ClassStats, LevelStats, PadInfo } from "./config";
+import type { BattleConfig, ClassStats, LevelStats, PadInfo, ShotStats } from "./config";
 import { sellRefund, speedToUnitsPerTick, waveHealth } from "./config";
 import { nextInt, waveSeed } from "./rng";
 import { routePoint, withinRange, type Point } from "./route";
@@ -39,7 +39,10 @@ export type RejectReason =
   | "PAD_CLOSED"
   | "PAD_OCCUPIED"
   | "PAD_EMPTY"
+  /** The class is not offered by this wave set (C13), or not in the ruleset at all. */
   | "CLASS_UNAVAILABLE"
+  /** The class is in the wave set but not unlocked yet at this wave (C5.9). */
+  | "CLASS_LOCKED"
   | "DEPLOY_CAP"
   | "NOT_ENOUGH_CREDITS"
   | "MAX_LEVEL"
@@ -72,6 +75,7 @@ export interface AlienState {
   readonly look: number;
 }
 
+/** `shot`: one per alien a shot damages (a blast gives one per alien inside it), with the damage dealt. */
 export type BattleEvent =
   | { readonly kind: "shot"; readonly tick: number; readonly padId: string; readonly alienId: number; readonly damage: number }
   | { readonly kind: "defeated"; readonly tick: number; readonly alienId: number; readonly bounty: number; readonly at: Point }
@@ -118,6 +122,12 @@ export interface Battle {
 
 function padIndex(config: BattleConfig, padId: string): number {
   return config.pads.findIndex((p) => p.id === padId);
+}
+
+function classOf(config: BattleConfig, classId: string): ClassStats {
+  const cls = config.classes[classId];
+  if (cls === undefined) throw new Error(`battle: unknown class ${classId}`);
+  return cls;
 }
 
 function levelOf(cls: ClassStats, level: number): LevelStats {
@@ -168,8 +178,25 @@ export function createBattle(config: BattleConfig, snapshot: Snapshot, wave: num
   return battle;
 }
 
-/** Check and apply one command against the state at this moment. Never lets credits go negative (AC-09). */
-function applyCommand(battle: Battle, command: Command): CommandResult {
+/**
+ * Whether a class may be placed in this battle (C5.9, C13): it must be in the wave set's class list, and in a
+ * CAMPAIGN wave set also unlocked. "After wave 5" means available while preparing wave 6: a campaign battle for wave
+ * w is prepared and fought with highestCompletedWave = w - 1 (waves are played in order), so the test is
+ * unlockAfterWave <= w - 1, exactly tools/sim's Game.unlocked. A CHALLENGE wave set fixes its classes and ignores
+ * unlock waves (C13: Bubble Trouble offers Juno from its first wave).
+ */
+export function classAvailability(config: BattleConfig, classId: string, wave: number): "AVAILABLE" | "LOCKED" | "NOT_IN_SET" {
+  const cls = config.classes[classId];
+  if (cls === undefined || !config.waveSet.classes.includes(classId)) return "NOT_IN_SET";
+  if (config.waveSet.mode === "CAMPAIGN" && cls.unlockAfterWave > wave - 1) return "LOCKED";
+  return "AVAILABLE";
+}
+
+/**
+ * Check one command against the battle as it is at this moment, changing nothing. applyCommand runs exactly this
+ * check first, so a preview (the pad panel's prices and greyed-out cards) can never disagree with the rules.
+ */
+export function checkCommand(battle: Readonly<Battle>, command: Command): CommandResult {
   const { config } = battle;
   const pad: PadInfo | undefined = config.pads.find((p) => p.id === command.padId);
   if (pad === undefined) return { ok: false, reason: "UNKNOWN_PAD" };
@@ -178,17 +205,55 @@ function applyCommand(battle: Battle, command: Command): CommandResult {
     case "place": {
       if (!pad.open) return { ok: false, reason: "PAD_CLOSED" };
       if (tower !== undefined) return { ok: false, reason: "PAD_OCCUPIED" };
-      const cls = config.classes[command.classId];
-      if (cls === undefined || !config.waveSet.classes.includes(command.classId)) return { ok: false, reason: "CLASS_UNAVAILABLE" };
+      const availability = classAvailability(config, command.classId, battle.wave);
+      if (availability === "NOT_IN_SET") return { ok: false, reason: "CLASS_UNAVAILABLE" };
+      if (availability === "LOCKED") return { ok: false, reason: "CLASS_LOCKED" };
+      const cls = classOf(config, command.classId);
+      // C5.8: the cap counts what stands on the board now, including anything placed earlier in this same tick.
       if (cls.deployCap !== null && battle.towers.filter((t) => t.classId === cls.id).length >= cls.deployCap) {
         return { ok: false, reason: "DEPLOY_CAP" };
       }
-      const cost = levelOf(cls, 1).cost;
-      if (battle.credits < cost) return { ok: false, reason: "NOT_ENOUGH_CREDITS" };
-      battle.credits -= cost;
+      if (battle.credits < levelOf(cls, 1).cost) return { ok: false, reason: "NOT_ENOUGH_CREDITS" };
+      return { ok: true };
+    }
+    case "upgrade": {
+      if (tower === undefined) return { ok: false, reason: "PAD_EMPTY" };
+      const next = classOf(config, tower.classId).levels[tower.level];
+      if (next === undefined) return { ok: false, reason: "MAX_LEVEL" };
+      if (battle.credits < next.cost) return { ok: false, reason: "NOT_ENOUGH_CREDITS" };
+      return { ok: true };
+    }
+    case "sell":
+      return tower === undefined ? { ok: false, reason: "PAD_EMPTY" } : { ok: true };
+    case "setTargeting": {
+      if (tower === undefined) return { ok: false, reason: "PAD_EMPTY" };
+      const cls = classOf(config, tower.classId);
+      // C5.3: only the class's own modes, each from its level (Orion's STRONG from level 3); Mira and Sol have none.
+      if (!cls.targeting.includes(command.targeting) || tower.level < (cls.targetingFromLevel[command.targeting] ?? 1)) {
+        return { ok: false, reason: "TARGETING_UNAVAILABLE" };
+      }
+      return { ok: true };
+    }
+  }
+}
+
+/**
+ * Check and apply one command against the state at this moment (C2.3 step 1). Credits only ever fall by a price the
+ * check has just seen they cover, so they never go negative (AC-09). Prices and refunds come from the ruleset
+ * through the compiled config; nothing here knows a class's numbers.
+ */
+function applyCommand(battle: Battle, command: Command): CommandResult {
+  const result = checkCommand(battle, command);
+  if (!result.ok) return result;
+  const { config } = battle;
+  const tower = battle.towers.find((t) => t.padId === command.padId);
+  switch (command.kind) {
+    case "place": {
+      const cls = classOf(config, command.classId);
+      battle.credits -= levelOf(cls, 1).cost;
       // C2.4: a newly placed attacker is ready at once.
       insertTower(battle, {
-        padId: pad.id,
+        padId: command.padId,
         classId: cls.id,
         level: 1,
         targeting: cls.defaultTargeting,
@@ -196,35 +261,27 @@ function applyCommand(battle: Battle, command: Command): CommandResult {
         lastShotTick: -1,
         lastShotAt: null,
       });
-      return { ok: true };
+      break;
     }
     case "upgrade": {
-      if (tower === undefined) return { ok: false, reason: "PAD_EMPTY" };
-      const cls = config.classes[tower.classId];
-      if (cls === undefined) throw new Error(`battle: unknown class ${tower.classId}`);
-      const next = cls.levels[tower.level];
-      if (next === undefined) return { ok: false, reason: "MAX_LEVEL" };
-      if (battle.credits < next.cost) return { ok: false, reason: "NOT_ENOUGH_CREDITS" };
-      battle.credits -= next.cost;
+      if (tower === undefined) break; // unreachable: checkCommand refused it
+      battle.credits -= levelOf(classOf(config, tower.classId), tower.level + 1).cost;
       tower.level += 1; // C2.4: upgrading does not reset the attack timer
-      return { ok: true };
+      break;
     }
     case "sell": {
-      if (tower === undefined) return { ok: false, reason: "PAD_EMPTY" };
-      const cls = config.classes[tower.classId];
-      if (cls === undefined) throw new Error(`battle: unknown class ${tower.classId}`);
-      battle.credits += sellRefund(levelOf(cls, tower.level).invested, config.sell);
+      if (tower === undefined) break; // unreachable: checkCommand refused it
+      // C5.7: 70% of everything paid for this astronaut (purchase plus upgrades), rounded down to a multiple of 5.
+      battle.credits += sellRefund(levelOf(classOf(config, tower.classId), tower.level).invested, config.sell);
       battle.towers = battle.towers.filter((t) => t !== tower);
-      return { ok: true };
+      break;
     }
     case "setTargeting": {
-      if (tower === undefined) return { ok: false, reason: "PAD_EMPTY" };
-      const cls = config.classes[tower.classId];
-      if (cls === undefined || !cls.targeting.includes(command.targeting)) return { ok: false, reason: "TARGETING_UNAVAILABLE" };
-      tower.targeting = command.targeting;
-      return { ok: true };
+      if (tower !== undefined) tower.targeting = command.targeting;
+      break;
     }
   }
+  return result;
 }
 
 function record(battle: Battle, command: Command, result: CommandResult): CommandResult {
@@ -253,12 +310,15 @@ export function startWave(battle: Battle): void {
   for (const t of battle.towers) t.readyTick = 0;
 }
 
-/** C5.3 FRONT: furthest along the route; ties -> lower id. FAST: highest current speed; ties -> FRONT. */
-function pickTarget(battle: Battle, tower: Tower, level: LevelStats, pad: PadInfo): AlienState | null {
+/**
+ * C5.3 FRONT: furthest along the route; ties -> lower id. FAST: highest current speed; ties -> FRONT. CROWD and
+ * STRONG choose like FRONT until Phase 25 (M2-02) gives them their own rules.
+ */
+function pickTarget(battle: Battle, tower: Tower, shot: ShotStats, pad: PadInfo): AlienState | null {
   let best: AlienState | null = null;
   for (const a of battle.aliens) {
     if (a.hp <= 0) continue;
-    if (!withinRange(routePoint(battle.config.route, a.progress), pad.cx, pad.cy, level.rangeSq)) continue;
+    if (!withinRange(routePoint(battle.config.route, a.progress), pad.cx, pad.cy, shot.rangeSq)) continue;
     if (best === null) {
       best = a;
       continue;
@@ -293,6 +353,21 @@ function spawn(battle: Battle, type: string): void {
   battle.stats.spawned += 1;
 }
 
+/** Take `damage` off one alien (never below 0 health). Returns true if that defeated it, paying its bounty. */
+function hit(battle: Battle, tower: Tower, alien: AlienState, damage: number, at: Point): boolean {
+  const dealt = Math.min(damage, alien.hp);
+  alien.hp -= dealt;
+  battle.stats.damage += dealt;
+  battle.events.push({ kind: "shot", tick: battle.tick, padId: tower.padId, alienId: alien.id, damage: dealt });
+  if (alien.hp > 0) return false;
+  const bounty = battle.config.aliens[alien.type]?.bounty ?? 0;
+  battle.credits += bounty;
+  battle.stats.defeated += 1;
+  battle.stats.bounty += bounty;
+  battle.events.push({ kind: "defeated", tick: battle.tick, alienId: alien.id, bounty, at });
+  return true;
+}
+
 /** Advance one fixed tick (1/60 s). Does nothing unless the wave is running. */
 export function step(battle: Battle): void {
   if (battle.status !== "IN_WAVE") return;
@@ -314,34 +389,36 @@ export function step(battle: Battle): void {
     battle.spawnIndex += 1;
   }
 
-  // 3. Support timers: none in mechanics 1.
+  // 3. Support timers: none yet (Mira's shield pulses, C5.5, arrive in Phase 25).
 
-  // 4. Attacks in pad order; hits land at once (C2.4).
+  // 4. Attacks in pad order; hits land at once (C2.4). Support classes (no shot) never fire.
   if (battle.aliens.length > 0) {
     let anyDefeated = false;
     for (const tower of battle.towers) {
       if (tower.readyTick > tick) continue;
-      const cls = config.classes[tower.classId];
       const pad = config.pads.find((p) => p.id === tower.padId);
-      if (cls === undefined || pad === undefined) throw new Error(`battle: bad tower ${tower.padId}`);
-      const level = levelOf(cls, tower.level);
-      const target = pickTarget(battle, tower, level, pad);
+      if (pad === undefined) throw new Error(`battle: bad tower ${tower.padId}`);
+      const shot = levelOf(classOf(config, tower.classId), tower.level).shot;
+      if (shot === null) continue;
+      const target = pickTarget(battle, tower, shot, pad);
       if (target === null) continue;
-      const damage = Math.min(level.damage, target.hp);
-      target.hp -= damage;
-      tower.readyTick = tick + level.periodTicks;
+      const at = routePoint(config.route, target.progress);
+      tower.readyTick = tick + shot.periodTicks;
       tower.lastShotTick = tick;
-      tower.lastShotAt = routePoint(config.route, target.progress);
+      tower.lastShotAt = at;
       battle.stats.shots += 1;
-      battle.stats.damage += damage;
-      battle.events.push({ kind: "shot", tick, padId: tower.padId, alienId: target.id, damage });
-      if (target.hp <= 0) {
-        const bounty = config.aliens[target.type]?.bounty ?? 0;
-        battle.credits += bounty;
-        battle.stats.defeated += 1;
-        battle.stats.bounty += bounty;
-        battle.events.push({ kind: "defeated", tick, alienId: target.id, bounty, at: tower.lastShotAt });
-        anyDefeated = true;
+      // A single shot hits its target. A blast (C5.2, Juno) hits every live alien whose point is within the splash
+      // radius of the target's point, the target included, each for the full damage, in id order.
+      if (shot.splashSq === 0) {
+        if (hit(battle, tower, target, shot.damage, at)) anyDefeated = true;
+        continue;
+      }
+      for (const alien of battle.aliens) {
+        if (alien.hp <= 0) continue;
+        const p = alien === target ? at : routePoint(config.route, alien.progress);
+        if (alien === target || withinRange(p, at.x, at.y, shot.splashSq)) {
+          if (hit(battle, tower, alien, shot.damage, p)) anyDefeated = true;
+        }
       }
     }
     if (anyDefeated) battle.aliens = battle.aliens.filter((a) => a.hp > 0);

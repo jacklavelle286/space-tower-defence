@@ -89,7 +89,7 @@ function finishWithFrames(battle: Battle, deltas: readonly number[], speed: Spee
 describe("compiled numbers (C2.1, C2.2)", () => {
   it("turns seconds into ticks and tiles into integer units once, at load", () => {
     const nova = config.classes["nova"];
-    expect(nova?.levels.map((l) => [l.cost, l.invested, l.periodTicks, l.damage, l.rangeSq])).toEqual([
+    expect(nova?.levels.map((l) => [l.cost, l.invested, l.shot?.periodTicks, l.shot?.damage, l.shot?.rangeSq])).toEqual([
       [50, 50, 60, 10, 150_000 ** 2],
       [60, 110, 36, 10, 150_000 ** 2],
       [150, 260, 36, 16, 180_000 ** 2],

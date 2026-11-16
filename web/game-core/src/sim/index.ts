@@ -1,7 +1,9 @@
-// The battle simulation (Phase 14, M1-21; C2). Pure: no Phaser, DOM, timers or randomness from the host.
+// The battle simulation (Phase 14, M1-21; C2; the six-class roster and economy, Phase 24, M2-01). Pure: no Phaser, DOM, timers or randomness from the host.
 export {
   ALIEN_LOOKS,
   battleSnapshot,
+  checkCommand,
+  classAvailability,
   createBattle,
   drainEvents,
   giveCommand,
@@ -30,6 +32,7 @@ export {
   type LevelStats,
   type PadInfo,
   type ScheduledSpawn,
+  type ShotStats,
   type WavePlan,
 } from "./config";
 export { runFrame, type FrameResult } from "./frame";

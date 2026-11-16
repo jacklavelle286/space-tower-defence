@@ -2,11 +2,30 @@
 // (C2.1 "durations in the data are seconds, converted once at load", C2.2 integers).
 //
 // compileBattleConfig is called once per run. It takes already-parsed game data (parseRuleset / parsePlanet in
-// ../data/game-data.ts) and refuses anything mechanics 1 cannot simulate, so a later ruleset with a new attack kind
-// fails loudly here instead of being half-simulated.
-import type { AuthoredWave, PlanetDocument, Ruleset, Targeting, WaveSet } from "../data/game-data";
+// ../data/game-data.ts), whose parser has already refused any mechanics number this game-core does not support.
+//
+// What the simulation does with each attack kind (C5.2):
+//   single  one target, full damage (Nova, Orion)
+//   blast   every alien within the splash radius of the target, full damage each (Juno)
+//   slow    one target, full damage; the slow itself (C5.4) is applied from Phase 25 (M2-02)
+//   shield  never fires; the shield pulses (C5.5) arrive in Phase 25
+//   buff    never fires; the damage bonus (C5.6) arrives in Phase 25
+// So mechanics 2 is complete only after Phase 25, and current.json stays on r1 until then (ADR-0033).
+import type { AttackKind, AuthoredWave, PlanetDocument, Ruleset, Targeting, WaveSet } from "../data/game-data";
 import { STEPS_PER_SECOND } from "../clock";
 import { buildRoute, UNITS_PER_TILE, type Route } from "./route";
+
+/** What one shot of an attacking level does, in simulation units. */
+export interface ShotStats {
+  /** Range squared, in squared units. */
+  readonly rangeSq: number;
+  /** Range in tiles, for drawing the preview circle from the same number (C3.1). */
+  readonly rangeTiles: number;
+  readonly periodTicks: number;
+  readonly damage: number;
+  /** Blast radius squared around the target, in squared units; 0 for a single-target shot. */
+  readonly splashSq: number;
+}
 
 export interface LevelStats {
   readonly level: number;
@@ -14,20 +33,22 @@ export interface LevelStats {
   readonly cost: number;
   /** Everything paid to reach this level (C5.2 "Cumulative cost"), the base of the sell refund (C5.7). */
   readonly invested: number;
-  /** Range squared, in squared units. */
-  readonly rangeSq: number;
-  /** Range in tiles, for drawing the preview circle from the same number (C3.1). */
-  readonly rangeTiles: number;
-  readonly periodTicks: number;
-  readonly damage: number;
+  /** null for a support class (Mira, Sol): it never fires. */
+  readonly shot: ShotStats | null;
 }
 
 export interface ClassStats {
   readonly id: string;
   readonly name: string;
+  readonly attack: AttackKind;
+  /** Placeable while preparing wave unlockAfterWave + 1 and later, in a CAMPAIGN wave set (C5.9). */
+  readonly unlockAfterWave: number;
   readonly deployCap: number | null;
+  /** The modes the player may choose; empty for a class that does not aim. */
   readonly targeting: readonly Targeting[];
   readonly defaultTargeting: Targeting;
+  /** First level at which a mode may be chosen; absent = level 1 (C5.3). */
+  readonly targetingFromLevel: Readonly<Partial<Record<Targeting, number>>>;
   readonly levels: readonly LevelStats[];
 }
 
@@ -118,7 +139,13 @@ function wavePlan(position: number, wave: AuthoredWave): WavePlan {
   return { wave: position, spawns: spawns.map(({ tick, type }) => ({ tick, type })), hpMult: wave.hpMult, speedMult: wave.speedMult };
 }
 
-/** Compile the numbers for one run on `waveSetId`. Throws on data mechanics 1 cannot simulate. */
+/** A distance in tiles as squared units, for comparing against squared distances (C2.2: no square roots). */
+function tilesSq(tiles: number): number {
+  const units = Math.round(tiles * UNITS_PER_TILE);
+  return units * units;
+}
+
+/** Compile the numbers for one run on `waveSetId`. Throws on data the simulation cannot run. */
 export function compileBattleConfig(ruleset: Ruleset, planet: PlanetDocument, waveSetId: string): BattleConfig {
   if (ruleset.simulation.tickRateHz !== STEPS_PER_SECOND) {
     throw new Error(`ruleset ${ruleset.version}: tickRateHz ${ruleset.simulation.tickRateHz}, the clock runs ${STEPS_PER_SECOND}`);
@@ -128,22 +155,32 @@ export function compileBattleConfig(ruleset: Ruleset, planet: PlanetDocument, wa
 
   const classes: Record<string, ClassStats> = {};
   for (const [id, c] of Object.entries(ruleset.classes)) {
-    if (c.attack !== "single") throw new Error(`class ${id}: attack "${String(c.attack)}" is not in mechanics 1`);
     let invested = 0;
-    const levels = c.levels.map((l) => {
+    const levels = c.levels.map((l): LevelStats => {
       invested += l.cost;
-      const range = Math.round(l.range * UNITS_PER_TILE);
-      return {
-        level: l.level,
-        cost: l.cost,
-        invested,
-        rangeSq: range * range,
-        rangeTiles: l.range,
-        periodTicks: secondsToTicks(l.period),
-        damage: l.damage,
-      };
+      let shot: ShotStats | null = null;
+      if ("damage" in l) {
+        shot = {
+          rangeSq: tilesSq(l.range),
+          rangeTiles: l.range,
+          periodTicks: secondsToTicks(l.period),
+          damage: l.damage,
+          splashSq: "splashRadius" in l ? tilesSq(l.splashRadius) : 0,
+        };
+      }
+      return { level: l.level, cost: l.cost, invested, shot };
     });
-    classes[id] = { id, name: c.name, deployCap: c.deployCap, targeting: c.targeting, defaultTargeting: c.defaultTargeting, levels };
+    classes[id] = {
+      id,
+      name: c.name,
+      attack: c.attack,
+      unlockAfterWave: c.unlockAfterWave,
+      deployCap: c.deployCap,
+      targeting: c.targeting,
+      defaultTargeting: c.defaultTargeting,
+      targetingFromLevel: c.targetingFromLevel,
+      levels,
+    };
   }
 
   const aliens: Record<string, AlienStats> = {};

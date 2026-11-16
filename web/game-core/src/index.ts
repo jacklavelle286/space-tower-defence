@@ -18,12 +18,17 @@ export * from "./rules";
 // The mechanics numbers this game-core can run (spine S5.1) live with the data parsers; the old
 // MECHANICS_VERSION = 0 placeholder from Phase 1 is replaced by SUPPORTED_MECHANICS.
 export {
+  ATTACK_KINDS,
   GameDataError,
   learningReward,
   parseCurrent,
   parsePlanet,
   parseRuleset,
+  placementTargetings,
   SUPPORTED_MECHANICS,
+  targetingAllowed,
+  type AstronautClass,
+  type AttackKind,
   type AuthoredWave,
   type CurrentPointers,
   type Pad,

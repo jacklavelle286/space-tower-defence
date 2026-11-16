@@ -12,8 +12,16 @@
 // This module imports nothing, so Node can run web/game-core/scripts/build-bounds.ts directly (type stripping) and
 // it stays as pure as the rest of game-core.
 
-/** The mechanics numbers this game-core can run (spine S5.1). Support is additive forever: never remove one. */
-export const SUPPORTED_MECHANICS: readonly number[] = [1];
+/**
+ * The mechanics numbers this game-core can run (spine S5.1). Support is additive forever: never remove one.
+ *
+ * 1 (Phase 13, ruleset r1): one attack kind, "single"; every targeting mode a class lists is available from level 1.
+ * 2 (Phase 24, ruleset r2): the six-class roster (C5.1). Five attack kinds (single, slow, blast, shield, buff), each
+ *   with its own level fields; `targetingFromLevel` (Orion's STRONG from level 3, C5.3); support classes with no
+ *   targeting modes. The simulation's support effects (slow, shield, buff) are completed in Phase 25 (M2-02), before
+ *   any run can pin a mechanics 2 ruleset (ADR-0033).
+ */
+export const SUPPORTED_MECHANICS: readonly number[] = [1, 2];
 
 /**
  * Version strings are path segments, and `__` joins two of them in a bounds file name (H.8.5). Copy of
@@ -36,27 +44,86 @@ export const CAMPAIGN_METEOR_AFTER: readonly number[] = [9, 19, 29, 39, 49];
 
 const INT_MAX = 2147483647; // contracts/limits.json integerMax
 
+/**
+ * How a class acts (C5.1, C5.2): "single" hits one alien (Nova, Orion); "slow" hits one alien and slows it (Pip);
+ * "blast" hits every alien within a radius of its target (Juno); "shield" adds colony shield points (Mira); "buff"
+ * raises nearby attackers' damage (Sol). Mechanics 1 knows only "single".
+ */
+export const ATTACK_KINDS = ["single", "slow", "blast", "shield", "buff"] as const;
+/** The attack kinds each mechanics number allows. */
+const ATTACKS_BY_MECHANICS: Readonly<Record<number, readonly AttackKind[]>> = { 1: ["single"], 2: ATTACK_KINDS };
+
 export type Targeting = (typeof TARGETING_MODES)[number];
 export type WaveSetMode = (typeof WAVE_SET_MODES)[number];
+export type AttackKind = (typeof ATTACK_KINDS)[number];
 
-export interface ClassLevel {
+/** A level of an attacking class (single, and the base of slow and blast). Range in tiles, period in seconds. */
+export interface AttackerLevel {
   level: number;
+  /** Purchase price at level 1, upgrade price at levels 2 and 3 (C5.2). */
   cost: number;
   range: number;
   period: number;
   damage: number;
 }
 
-export interface AstronautClass {
+/** Pip (C5.2, C5.4): the slow its shot applies; slowRadius 0 slows the target only, above 0 every alien that near it. */
+export interface SlowLevel extends AttackerLevel {
+  slowPct: number;
+  slowDuration: number;
+  slowRadius: number;
+}
+
+/** Juno (C5.2): every alien within splashRadius tiles of the target takes the full damage. */
+export interface BlastLevel extends AttackerLevel {
+  splashRadius: number;
+}
+
+/** Mira (C5.2, C5.5): shield points added every `period` seconds; health repaired when a wave is cleared. */
+export interface ShieldLevel {
+  level: number;
+  cost: number;
+  shieldPoints: number;
+  period: number;
+  repairOnWaveClear: number;
+}
+
+/** Sol (C5.2, C5.6): the damage bonus, in percent, for attackers on pads within `radius` tiles. */
+export interface BuffLevel {
+  level: number;
+  cost: number;
+  buffPct: number;
+  radius: number;
+}
+
+export type ClassLevel = AttackerLevel | SlowLevel | BlastLevel | ShieldLevel | BuffLevel;
+
+interface ClassCommon {
   name: string;
   role: string;
+  /** Available while preparing wave unlockAfterWave + 1 and later (C5.9), in a CAMPAIGN wave set. */
   unlockAfterWave: number;
+  /** Most of this class on the board at once; null = no cap (C5.8). */
   deployCap: number | null;
-  attack: "single";
+  /** The modes the player may choose (C5.3); empty for a class that does not aim (Mira, Sol). */
   targeting: Targeting[];
+  /** The mode a new placement gets. For a class that does not aim it is FRONT, stored only because the snapshot's
+   *  placement needs a mode (contracts common.schema.json). */
   defaultTargeting: Targeting;
-  levels: ClassLevel[];
+  /** The first level at which a mode may be chosen; a mode not listed is available from level 1 (C5.3: Orion's
+   *  STRONG from level 3). Always {} in mechanics 1, which has no such field. */
+  targetingFromLevel: Partial<Record<Targeting, number>>;
 }
+
+/** One astronaut class; `attack` says which shape its levels have. */
+export type AstronautClass = ClassCommon &
+  (
+    | { attack: "single"; levels: AttackerLevel[] }
+    | { attack: "slow"; levels: SlowLevel[] }
+    | { attack: "blast"; levels: BlastLevel[] }
+    | { attack: "shield"; levels: ShieldLevel[] }
+    | { attack: "buff"; levels: BuffLevel[] }
+  );
 
 export interface Alien {
   name: string;
@@ -188,7 +255,9 @@ export interface Bounds {
   colony: { maxHealth: number; shieldCap: number };
   powerInventoryCap: number;
   sell: { refundPct: number; roundDownTo: number };
-  /** targeting: the modes a placement of this class may use (spine S6 rule 4, "targeting valid"). */
+  /** targeting: the modes a placement of this class may store (spine S6 rule 4, "targeting valid"; placementTargetings:
+   *  only FRONT for a class that does not aim). Levels at which a mode opens (targetingFromLevel) are not carried yet:
+   *  the per-op bounds checks that would need them arrive with M2-07. */
   classes: Record<
     string,
     { unlockAfterWave: number; deployCap: number | null; targeting: Targeting[]; levelCosts: number[]; cumulativeCosts: number[] }
@@ -303,38 +372,105 @@ export function parseCurrent(raw: unknown): CurrentPointers {
 
 // ---- ruleset ----------------------------------------------------------------------------------------------------
 
-function parseClass(raw: unknown, path: string): AstronautClass {
-  const o = obj(raw, path, ["name", "role", "unlockAfterWave", "deployCap", "attack", "targeting", "defaultTargeting", "levels"]);
-  const targeting = arr(o["targeting"], `${path}.targeting`, 1, 2).map((t, i) =>
+/** The modes a placement of this class may store: its targeting modes, or for a class that does not aim, only its
+ *  defaultTargeting (spine S6 rule 4 "targeting valid"; the bounds file carries this list). */
+export function placementTargetings(cls: Pick<AstronautClass, "targeting" | "defaultTargeting">): Targeting[] {
+  return cls.targeting.length > 0 ? [...cls.targeting] : [cls.defaultTargeting];
+}
+
+/** Whether a placement of `cls` at `level` may use `mode` (C5.3, including Orion's STRONG from level 3). */
+export function targetingAllowed(
+  cls: Pick<AstronautClass, "targeting" | "defaultTargeting" | "targetingFromLevel">,
+  mode: Targeting,
+  level: number,
+): boolean {
+  return placementTargetings(cls).includes(mode) && level >= (cls.targetingFromLevel[mode] ?? 1);
+}
+
+/** The fields every level has, then the ones its attack kind adds. Ranges and radii in tiles, periods in seconds. */
+function parseLevel(raw: unknown, p: string, attack: AttackKind, index: number): ClassLevel {
+  const fields: Record<AttackKind, readonly string[]> = {
+    single: ["range", "period", "damage"],
+    slow: ["range", "period", "damage", "slowPct", "slowDuration", "slowRadius"],
+    blast: ["range", "period", "damage", "splashRadius"],
+    shield: ["shieldPoints", "period", "repairOnWaveClear"],
+    buff: ["buffPct", "radius"],
+  };
+  const lv = obj(raw, p, ["level", "cost", ...fields[attack]]);
+  if (lv["level"] !== index + 1) fail(`${p}.level`, `must be ${index + 1}`);
+  const base = { level: index + 1, cost: int(lv["cost"], `${p}.cost`, 1, 100000) };
+  switch (attack) {
+    case "shield":
+      return {
+        ...base,
+        shieldPoints: int(lv["shieldPoints"], `${p}.shieldPoints`, 1, 1000),
+        period: num(lv["period"], `${p}.period`, false, 600),
+        repairOnWaveClear: int(lv["repairOnWaveClear"], `${p}.repairOnWaveClear`, 0, 1000),
+      };
+    case "buff":
+      return { ...base, buffPct: int(lv["buffPct"], `${p}.buffPct`, 1, 1000), radius: num(lv["radius"], `${p}.radius`, false, 20) };
+    default: {
+      const attacker: AttackerLevel = {
+        ...base,
+        range: num(lv["range"], `${p}.range`, false, 20),
+        period: num(lv["period"], `${p}.period`, false, 60),
+        damage: int(lv["damage"], `${p}.damage`, 1, 100000),
+      };
+      if (attack === "blast") return { ...attacker, splashRadius: num(lv["splashRadius"], `${p}.splashRadius`, false, 20) };
+      if (attack === "slow") {
+        return {
+          ...attacker,
+          slowPct: int(lv["slowPct"], `${p}.slowPct`, 1, 100),
+          slowDuration: num(lv["slowDuration"], `${p}.slowDuration`, false, 60),
+          slowRadius: num(lv["slowRadius"], `${p}.slowRadius`, true, 20),
+        };
+      }
+      return attacker;
+    }
+  }
+}
+
+function parseClass(raw: unknown, path: string, mechanics: number): AstronautClass {
+  const keys = ["name", "role", "unlockAfterWave", "deployCap", "attack", "targeting", "defaultTargeting", "levels"];
+  // targetingFromLevel arrived with mechanics 2; a mechanics 1 ruleset must not carry it (and r1 does not).
+  const o = obj(raw, path, mechanics >= 2 ? [...keys, "targetingFromLevel"] : keys);
+  const attack = oneOf(o["attack"], `${path}.attack`, ATTACKS_BY_MECHANICS[mechanics] ?? []);
+  const aims = attack !== "shield" && attack !== "buff";
+
+  // Attackers have one or two modes (C5.3: two picture buttons at most); support classes have none.
+  const targeting = arr(o["targeting"], `${path}.targeting`, aims ? 1 : 0, aims ? 2 : 0).map((t, i) =>
     oneOf(t, `${path}.targeting[${i}]`, TARGETING_MODES),
   );
   unique(targeting, `${path}.targeting`);
   const defaultTargeting = oneOf(o["defaultTargeting"], `${path}.defaultTargeting`, TARGETING_MODES);
-  if (!targeting.includes(defaultTargeting)) fail(`${path}.defaultTargeting`, "must be one of the class's targeting modes");
-  // Mechanics 1 knows one attack kind; area attacks and support classes arrive with a later mechanics number.
-  if (o["attack"] !== "single") fail(`${path}.attack`, `mechanics 1 supports only "single", got ${JSON.stringify(o["attack"])}`);
-  const levels = arr(o["levels"], `${path}.levels`, LEVELS_PER_CLASS, LEVELS_PER_CLASS).map((l, i) => {
-    const p = `${path}.levels[${i}]`;
-    const lv = obj(l, p, ["level", "cost", "range", "period", "damage"]);
-    if (lv["level"] !== i + 1) fail(`${p}.level`, `must be ${i + 1}`);
-    return {
-      level: i + 1,
-      cost: int(lv["cost"], `${p}.cost`, 1, 100000),
-      range: num(lv["range"], `${p}.range`, false, 20),
-      period: num(lv["period"], `${p}.period`, false, 60),
-      damage: int(lv["damage"], `${p}.damage`, 1, 100000),
-    };
-  });
+  if (aims && !targeting.includes(defaultTargeting)) fail(`${path}.defaultTargeting`, "must be one of the class's targeting modes");
+  if (!aims && defaultTargeting !== "FRONT") fail(`${path}.defaultTargeting`, 'must be "FRONT" for a class that does not aim');
+
+  const targetingFromLevel: Partial<Record<Targeting, number>> = {};
+  if (mechanics >= 2) {
+    const from = obj(o["targetingFromLevel"], `${path}.targetingFromLevel`, [], targeting);
+    for (const mode of targeting) {
+      if (Object.hasOwn(from, mode)) targetingFromLevel[mode] = int(from[mode], `${path}.targetingFromLevel.${mode}`, 1, LEVELS_PER_CLASS);
+    }
+    // A new placement is level 1 with the default mode, so that mode must be open at level 1.
+    if ((targetingFromLevel[defaultTargeting] ?? 1) !== 1) fail(`${path}.targetingFromLevel`, "the default mode must be available from level 1");
+  }
+
+  const levels = arr(o["levels"], `${path}.levels`, LEVELS_PER_CLASS, LEVELS_PER_CLASS).map((l, i) =>
+    parseLevel(l, `${path}.levels[${i}]`, attack, i),
+  );
   return {
     name: str(o["name"], `${path}.name`),
     role: str(o["role"], `${path}.role`),
     unlockAfterWave: int(o["unlockAfterWave"], `${path}.unlockAfterWave`),
     deployCap: o["deployCap"] === null ? null : int(o["deployCap"], `${path}.deployCap`, 1, 32),
-    attack: "single",
     targeting,
     defaultTargeting,
+    targetingFromLevel,
+    attack,
     levels,
-  };
+    // parseLevel built every level with the fields `attack` names; TypeScript cannot see that pairing, hence the cast.
+  } as AstronautClass;
 }
 
 function parseAlien(raw: unknown, path: string): Alien {
@@ -428,7 +564,7 @@ export function parseRuleset(raw: unknown): Ruleset {
     mechanics,
     simulation: { tickRateHz: 60 },
     colony,
-    classes: idMap(top["classes"], "ruleset.classes", parseClass),
+    classes: idMap(top["classes"], "ruleset.classes", (v, p) => parseClass(v, p, mechanics)),
     aliens: idMap(top["aliens"], "ruleset.aliens", parseAlien),
     economy: {
       startingCredits: int(e["startingCredits"], "ruleset.economy.startingCredits", 0, 100000),
@@ -531,8 +667,11 @@ function parseWaveSet(
     if (!classes.includes(classId)) fail(`${p}.classId`, `class "${classId}" is not available in this wave set`);
     const cls = ruleset.classes[classId];
     const targeting = oneOf(pl["targeting"], `${p}.targeting`, TARGETING_MODES);
-    if (cls !== undefined && !cls.targeting.includes(targeting)) fail(`${p}.targeting`, `${classId} has no ${targeting} mode`);
-    return { padId, classId, level: int(pl["level"], `${p}.level`, 1, LEVELS_PER_CLASS), targeting };
+    const level = int(pl["level"], `${p}.level`, 1, LEVELS_PER_CLASS);
+    if (cls !== undefined && !targetingAllowed(cls, targeting, level)) {
+      fail(`${p}.targeting`, `${classId} at level ${level} has no ${targeting} mode`);
+    }
+    return { padId, classId, level, targeting };
   });
   unique(
     presetPlacements.map((pl) => pl.padId),
@@ -655,7 +794,7 @@ export function buildBounds(ruleset: Ruleset, planet: PlanetDocument): Bounds {
     classes[id] = {
       unlockAfterWave: cls.unlockAfterWave,
       deployCap: cls.deployCap,
-      targeting: [...cls.targeting],
+      targeting: placementTargetings(cls),
       levelCosts,
       cumulativeCosts: levelCosts.map((cost) => (running += cost)),
     };

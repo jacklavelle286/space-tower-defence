@@ -1,5 +1,6 @@
 // Game data (Phase 13, M1-23): the repository's game-data/ builds, the G-15 wave-set action limit refuses an oversized
-// wave set, version strings are path-safe, and the bounds fixture api/tests reads is the generated one.
+// wave set, version strings are path-safe, and the bounds fixture api/tests reads is the generated one. Phase 24
+// (M2-01): ruleset r2 and the mechanics 2 parse rules for the six-class roster.
 import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -18,7 +19,9 @@ import {
   parseCurrent,
   parsePlanet,
   parseRuleset,
+  placementTargetings,
   SUPPORTED_MECHANICS,
+  targetingAllowed,
   TARGETING_MODES,
   VERSION_PATTERN,
   type PlanetDocument,
@@ -30,6 +33,7 @@ type JsonObject = Record<string, unknown>;
 
 const readJson = (path: string): JsonObject => JSON.parse(readFileSync(path, "utf8")) as JsonObject;
 const RULESET_RAW = readJson(join(GAME_DATA_DIR, "ruleset", "r1.json"));
+const RULESET2_RAW = readJson(join(GAME_DATA_DIR, "ruleset", "r2.json"));
 const PLANET_RAW = readJson(join(GAME_DATA_DIR, "campaign", "luna-1-c1.json"));
 const OVERSIZED_RAW = readJson(resolve(import.meta.dirname, "fixtures", "g15-oversized-planet.json"));
 const ruleset: Ruleset = parseRuleset(RULESET_RAW);
@@ -43,6 +47,7 @@ describe("the repository's game-data/", () => {
     const build = buildGameData();
     expect([...build.files.keys()]).toEqual([
       "ruleset/r1.json",
+      "ruleset/r2.json",
       "campaign/luna-1-c1.json",
       "bounds/r1__luna-1-c1.json",
       "current.json",
@@ -177,7 +182,7 @@ describe("parse rules", () => {
   });
 
   it("refuses a mechanics number this game-core does not support", () => {
-    expect(() => parseRuleset({ ...copy(RULESET_RAW), mechanics: 2 })).toThrow(/mechanics: 2 is not supported/);
+    expect(() => parseRuleset({ ...copy(RULESET_RAW), mechanics: 99 })).toThrow(/mechanics: 99 is not supported/);
   });
 
   it("refuses a fractional cost (credits are integers, C2.2)", () => {
@@ -252,6 +257,108 @@ describe("parse rules", () => {
       /waves 1 to 50/,
     );
     expect(() => parsePlanet(withCampaign(fifty, [10, 20, 30, 40, 49]), ruleset)).toThrow(/meteor challenges follow/);
+  });
+});
+
+describe("ruleset r2 and mechanics 2 (Phase 24, M2-01; ADR-0033)", () => {
+  const r2 = parseRuleset(RULESET2_RAW);
+  const classOf = (raw: JsonObject, id: string): JsonObject => (raw["classes"] as Record<string, JsonObject>)[id] as JsonObject;
+
+  it("is a new version beside r1 (r1 is published, so it is never edited), and current.json still names r1", () => {
+    expect([r2.version, r2.mechanics]).toEqual(["r2", 2]);
+    expect(SUPPORTED_MECHANICS).toEqual([1, 2]);
+    expect(buildGameData().current.rulesetVersion).toBe("r1");
+    expect(buildGameData().files.get("ruleset/r2.json")).toBe(readFileSync(join(GAME_DATA_DIR, "ruleset", "r2.json"), "utf8"));
+  });
+
+  it("the planet document parses against r2 as well, so r2 can be played on Moonbeam Colony", () => {
+    expect(parsePlanet(PLANET_RAW, r2).version).toBe("luna-1-c1");
+  });
+
+  it("each attack kind has its own level fields (C5.2)", () => {
+    expect(Object.fromEntries(Object.entries(r2.classes).map(([id, c]) => [id, [c.attack, Object.keys(c.levels[0] ?? {})]]))).toEqual({
+      juno: ["blast", ["level", "cost", "range", "period", "damage", "splashRadius"]],
+      mira: ["shield", ["level", "cost", "shieldPoints", "period", "repairOnWaveClear"]],
+      nova: ["single", ["level", "cost", "range", "period", "damage"]],
+      orion: ["single", ["level", "cost", "range", "period", "damage"]],
+      pip: ["slow", ["level", "cost", "range", "period", "damage", "slowPct", "slowDuration", "slowRadius"]],
+      sol: ["buff", ["level", "cost", "buffPct", "radius"]],
+    });
+  });
+
+  it("mechanics 1 still refuses what only mechanics 2 knows: another attack kind, or targetingFromLevel", () => {
+    const blast = copy(RULESET_RAW);
+    classOf(blast, "nova")["attack"] = "blast";
+    expect(() => parseRuleset(blast)).toThrow(/nova.attack: must be one of single, got "blast"/);
+    const fromLevel = copy(RULESET_RAW);
+    classOf(fromLevel, "nova")["targetingFromLevel"] = { FAST: 1 };
+    expect(() => parseRuleset(fromLevel)).toThrow(/nova: unknown key "targetingFromLevel"/);
+  });
+
+  it("refuses a level without its attack kind's fields, or with another kind's", () => {
+    const noSplash = copy(RULESET2_RAW);
+    delete ((classOf(noSplash, "juno")["levels"] as JsonObject[])[1] as JsonObject)["splashRadius"];
+    expect(() => parseRuleset(noSplash)).toThrow(/juno.levels\[1\]: "splashRadius" is missing/);
+    const shieldDamage = copy(RULESET2_RAW);
+    ((classOf(shieldDamage, "mira")["levels"] as JsonObject[])[0] as JsonObject)["damage"] = 5;
+    expect(() => parseRuleset(shieldDamage)).toThrow(/mira.levels\[0\]: unknown key "damage"/);
+  });
+
+  it("support classes have no targeting modes and store FRONT; attackers need one or two", () => {
+    const aimingMira = copy(RULESET2_RAW);
+    classOf(aimingMira, "mira")["targeting"] = ["FRONT"];
+    expect(() => parseRuleset(aimingMira)).toThrow(/mira.targeting: must have 0 to 0 items/);
+    const solStrong = copy(RULESET2_RAW);
+    classOf(solStrong, "sol")["defaultTargeting"] = "STRONG";
+    expect(() => parseRuleset(solStrong)).toThrow(/sol.defaultTargeting: must be "FRONT" for a class that does not aim/);
+    const blindNova = copy(RULESET2_RAW);
+    classOf(blindNova, "nova")["targeting"] = [];
+    expect(() => parseRuleset(blindNova)).toThrow(/nova.targeting: must have 1 to 2 items/);
+  });
+
+  it("targetingFromLevel names only the class's modes, and the default mode is open at level 1", () => {
+    const stranger = copy(RULESET2_RAW);
+    classOf(stranger, "orion")["targetingFromLevel"] = { CROWD: 2 };
+    expect(() => parseRuleset(stranger)).toThrow(/orion.targetingFromLevel: unknown key "CROWD"/);
+    const lateDefault = copy(RULESET2_RAW);
+    classOf(lateDefault, "juno")["targetingFromLevel"] = { CROWD: 2 };
+    expect(() => parseRuleset(lateDefault)).toThrow(/juno.targetingFromLevel: the default mode must be available from level 1/);
+  });
+
+  it("which modes a placement may store, by level (C5.3: Orion's STRONG from level 3)", () => {
+    const orion = r2.classes["orion"];
+    const mira = r2.classes["mira"];
+    if (orion === undefined || mira === undefined) throw new Error("r2 lacks orion or mira");
+    expect([1, 2, 3].map((level) => targetingAllowed(orion, "STRONG", level))).toEqual([false, false, true]);
+    expect(targetingAllowed(orion, "FRONT", 1)).toBe(true);
+    expect(placementTargetings(mira)).toEqual(["FRONT"]);
+    expect(targetingAllowed(mira, "FAST", 3)).toBe(false);
+  });
+
+  it("refuses a preset placement whose mode is not open at its level", () => {
+    const doc = copy(PLANET_RAW);
+    const set = (doc["waveSets"] as Record<string, JsonObject>)["first-contact"] as JsonObject;
+    set["classes"] = ["nova", "orion", "mira"];
+    set["presetPlacements"] = [{ padId: "p02", classId: "orion", level: 1, targeting: "STRONG" }];
+    expect(() => parsePlanet(doc, r2)).toThrow(/orion at level 1 has no STRONG mode/);
+    set["presetPlacements"] = [
+      { padId: "p02", classId: "orion", level: 3, targeting: "STRONG" },
+      { padId: "p04", classId: "mira", level: 1, targeting: "FRONT" },
+    ];
+    expect(parsePlanet(doc, r2).waveSets["first-contact"]?.presetPlacements).toHaveLength(2);
+  });
+
+  it("bounds for r2 carry every class's unlock wave, cap, placement modes and costs (spine S6 rule 4)", () => {
+    const bounds = buildBounds(r2, parsePlanet(PLANET_RAW, r2));
+    expect(bounds.classes).toEqual({
+      juno: { unlockAfterWave: 10, deployCap: 4, targeting: ["CROWD", "FRONT"], levelCosts: [110, 130, 260], cumulativeCosts: [110, 240, 500] },
+      mira: { unlockAfterWave: 20, deployCap: 2, targeting: ["FRONT"], levelCosts: [160, 180, 280], cumulativeCosts: [160, 340, 620] },
+      nova: { unlockAfterWave: 0, deployCap: null, targeting: ["FRONT", "FAST"], levelCosts: [50, 60, 150], cumulativeCosts: [50, 110, 260] },
+      orion: { unlockAfterWave: 15, deployCap: 3, targeting: ["FRONT", "STRONG"], levelCosts: [170, 100, 330], cumulativeCosts: [170, 270, 600] },
+      pip: { unlockAfterWave: 5, deployCap: 3, targeting: ["FRONT", "FAST"], levelCosts: [60, 80, 170], cumulativeCosts: [60, 140, 310] },
+      sol: { unlockAfterWave: 25, deployCap: 2, targeting: ["FRONT"], levelCosts: [150, 200, 300], cumulativeCosts: [150, 350, 650] },
+    }); // C5.1 unlocks and caps, C5.2 prices and the "Total cost to level 3" column, C5.8 caps
+    expect(bounds.mechanics).toBe(2);
   });
 });
 
