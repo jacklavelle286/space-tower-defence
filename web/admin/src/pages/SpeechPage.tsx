@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { describeError, SPEECH_KINDS, type AdminApi, type SpeechKind, type SpeechSummary } from "../api";
 import { KIND_INFO } from "../speech/ids";
 import { ListeningQueue } from "../speech/ListeningQueue";
@@ -25,6 +25,9 @@ export function SpeechPage({ api, initial }: Props) {
   const [filter, setFilter] = useState<SpeechFilter>(NO_SPEECH_FILTER);
   /** The drafts the open queue walks (a snapshot: approving one refreshes the list, not the queue), or null. */
   const [queue, setQueue] = useState<readonly SpeechSummary[] | null>(null);
+  const noticeRef = useRef<HTMLParagraphElement>(null);
+  /** Bumped by a delete: the editor and its Delete button are gone, so focus moves to the notice that replaced them. */
+  const [focusNotice, setFocusNotice] = useState(0);
   const select = (id: string, note: string | null = null) => {
     setSelected(id);
     setNotice(note);
@@ -44,10 +47,16 @@ export function SpeechPage({ api, initial }: Props) {
 
   useEffect(refresh, [refresh]);
 
+  // Runs after the dialog's cleanup (it closes as DeleteSpeech unmounts), so nothing takes focus back to <body>.
+  useEffect(() => {
+    if (focusNotice > 0) noticeRef.current?.focus();
+  }, [focusNotice]);
+
   // After Delete speech (R32): back to the list with nothing chosen, and the message where the editor was.
   const deleted = (note: string) => {
     setSelected(null);
     setNotice(note);
+    setFocusNotice((n) => n + 1);
     window.history.replaceState(null, "", `#${PAGE}`);
     refresh();
   };
@@ -105,7 +114,10 @@ export function SpeechPage({ api, initial }: Props) {
         <button
           type="button"
           className="primary"
-          onClick={() => setQueue(drafts)}
+          onClick={() => {
+            setNotice(null); // a note about the last create or delete is not a queue result
+            setQueue(drafts);
+          }}
           disabled={!loaded || drafts.length === 0 || queue !== null}
           title="Preview, play and approve each draft shown in the list, one after another"
         >
@@ -125,11 +137,15 @@ export function SpeechPage({ api, initial }: Props) {
         </ul>
       </section>
       <section className="detail">
-        {notice !== null && (
-          <p className="ok" role="status">
-            {notice}
-          </p>
-        )}
+        {/* Always mounted, so a screen reader announces a notice when it appears (a live region inserted together
+            with its text often is not read). */}
+        <div role="status">
+          {notice !== null && queue === null && (
+            <p className="ok" ref={noticeRef} tabIndex={-1}>
+              {notice}
+            </p>
+          )}
+        </div>
         {queue !== null ? (
           <ListeningQueue
             api={api}

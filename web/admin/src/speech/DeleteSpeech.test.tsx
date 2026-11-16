@@ -65,6 +65,25 @@ describe("Delete speech", () => {
     await waitFor(() => expect(screen.queryByRole("button", { name: new RegExp(`^${ID}`) })).toBeNull());
   });
 
+  it("after the delete, focus moves to the message, which sits in a live region that was already there", async () => {
+    await openPage();
+    const live = document.querySelector(".detail > [role=status]");
+    expect(live?.textContent).toBe(""); // mounted, empty, before anything happened
+    fireEvent.click(within(openDialog()).getByRole("button", { name: "Delete speech" }));
+    const notice = await screen.findByText(`Speech ${ID} deleted, with 1 approved version.`);
+    expect(live?.contains(notice)).toBe(true);
+    await waitFor(() => expect(document.activeElement).toBe(notice));
+  });
+
+  it("opening the Listening queue clears the message, so it is not read as a queue result", async () => {
+    await openPage();
+    fireEvent.click(within(openDialog()).getByRole("button", { name: "Delete speech" }));
+    await screen.findByText(`Speech ${ID} deleted, with 1 approved version.`);
+    fireEvent.click(await screen.findByRole("button", { name: /^Listening queue \(/ }));
+    expect(screen.getByRole("region", { name: "Listening queue" })).toBeTruthy();
+    expect(screen.queryByText(`Speech ${ID} deleted, with 1 approved version.`)).toBeNull();
+  });
+
   it("a definition already gone counts as deleted", async () => {
     await openPage();
     fake.deletedSpeech.add(ID); // another tab deleted it after this page loaded

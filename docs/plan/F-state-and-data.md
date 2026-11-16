@@ -1068,7 +1068,7 @@ connection and an empty queue. `WHOLE_PROFILE` may discard pending progress afte
 | Activity header | `ACT` | `<activityId>` | title, subject, topicId, rewardCategory, minAge, maxAge, interactionType, authoringMode, domainSize, state, publishedVersion, fromDraftRevision, updatedAt |
 | Activity draft | `ACT#<activityId>` | `DRAFT` | working copy + `draftRevision` |
 | Activity version | `ACT#<activityId>` | `V#<UTC timestamp>` | immutable definition, resolved speech refs, review record `{checklist, previewSolvedDraftRevision}`, publishedBy, fromDraftRevision, `withdrawn{at, reason}?` |
-| Speech header | `SPEECH` | `<speechId>` | title, kind, state, approvedVersion, fromDraftRevision, updatedAt |
+| Speech header | `SPEECH` | `<speechId>` | title, kind, state, approvedVersion, fromDraftRevision, updatedAt, publishRefs (R27 adds 1 per publish that resolves it; R32 delete conditions on it) |
 | Speech draft / version | `SPEECH#<speechId>` | `DRAFT` / `V#<timestamp>` | `kind` (`WORD` \| `PHONEME` \| `LETTER_NAME` \| `INSTRUCTION` \| `DICTATION`), `provider` (`"polly"`), text/SSML, `voiceId`, `engine`, clipKey; versions add the `sha256` of the MP3 bytes, the render date, the review record and fromDraftRevision |
 | Audit | `AUDIT#<yyyy-mm>` | `<timestamp>#<id>` | publish / retire / withdraw / approve |
 

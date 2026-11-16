@@ -134,8 +134,61 @@ def test_one_transaction_holds_version_draft_header_and_audit(api: Admin, monkey
     assert [next(iter(a)) for a in actions] == ["Delete", "Delete", "Delete", "Put"]
     header = actions[2]["Delete"]
     assert header["Key"] == {"pk": {"S": "SPEECH"}, "sk": {"S": SH}}
-    assert header["ConditionExpression"] == "attribute_exists(#pk) AND #v = :v"
+    assert header["ConditionExpression"] == "attribute_exists(#pk) AND #v = :v AND attribute_not_exists(#refs)"
     assert header["ExpressionAttributeValues"] == {":v": {"S": vid}}
+    assert header["ExpressionAttributeNames"]["#refs"] == "publishRefs"
+
+
+def test_a_publish_counts_on_the_speech_header(api: Admin) -> None:
+    """R27 adds 1 to `publishRefs` on each definition it resolves (the marker R32 conditions its delete on)."""
+    approve_sh(api)
+    revision = create(api, PH_0102)
+    assert publish(api, revision)[0] == 201
+    assert api.table.get_item("SPEECH", SH)["publishRefs"] == 1  # type: ignore[index]
+    revision = save(api, {**PH_0102, "title": "Second"}, revision)
+    assert publish(api, revision)[0] == 201
+    assert api.table.get_item("SPEECH", SH)["publishRefs"] == 2  # type: ignore[index]
+
+
+def test_a_publish_landing_during_the_use_check_refuses_the_delete(api: Admin, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Finding (review of R32): the use check has passed (nothing references phoneme-sh yet), then another tab
+    creates ph-0102 naming it and publishes it before the delete commits. The publish's counter change refuses the
+    header delete, the loop checks again and the delete is refused with the activity; the published version keeps
+    its definition."""
+    approve_sh(api)
+    real = admin.speech_users
+    calls: list[list[str]] = []
+
+    def publish_meanwhile(content: DynamoTable, speech_id: str) -> list[str]:
+        users = real(content, speech_id)
+        calls.append(users)
+        if len(calls) == 1:
+            assert users == []
+            assert publish(api, create(api, PH_0102))[0] == 201
+        return users
+
+    monkeypatch.setattr(admin, "speech_users", publish_meanwhile)
+    status, body = api.call(DELETE, id=SH)
+
+    assert (status, rules(body)) == (400, {("usedBy.ph-0102", "speech_in_use")})
+    assert calls == [[], ["ph-0102"]]
+    assert not gone(api, SH)
+    assert deletes(api) == []
+
+
+def test_a_delete_with_no_publish_meanwhile_checks_once(api: Admin, monkeypatch: pytest.MonkeyPatch) -> None:
+    """The use check (about a hundred reads on the real bank) runs once when no publish moved the counter."""
+    approve_sh(api)
+    real = admin.speech_users
+    calls: list[str] = []
+
+    def counting(content: DynamoTable, speech_id: str) -> list[str]:
+        calls.append(speech_id)
+        return real(content, speech_id)
+
+    monkeypatch.setattr(admin, "speech_users", counting)
+    assert api.call(DELETE, id=SH)[0] == 200
+    assert calls == [SH]
 
 
 def test_a_retry_after_a_partial_delete_finishes_the_job(api: Admin, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -163,3 +216,26 @@ def test_the_speech_id_can_be_used_again_after_a_delete(api: Admin) -> None:
         "POST /api/admin/speech-definitions", {"speechId": "word-cat", "title": "Cat", "kind": "WORD"}
     )
     assert status == 201 and view["versions"] == [] and view["draft"]["draftRevision"] == 0
+
+
+def test_creating_the_id_after_a_partial_delete_removes_the_old_versions(
+    api: Admin, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Finding (review of R32): a delete with more versions than fit in its transaction stops after the header went;
+    creating the same ID again must not show the old definition's approved versions as its own history."""
+    vid = approve_sh(api)
+    monkeypatch.setattr(admin, "DELETE_VERSIONS_IN_TRANSACTION", 0)  # the version goes after the header
+
+    def dies(self: DynamoTable, pk: str, sk: str) -> None:
+        raise RuntimeError("the Lambda stopped here")
+
+    real_delete = DynamoTable.delete_item
+    monkeypatch.setattr(DynamoTable, "delete_item", dies)
+    assert api.call(DELETE, id=SH)[0] == 500
+    assert api.table.query_prefix(f"SPEECH#{SH}", "V#") != []  # left behind, with no header
+    monkeypatch.setattr(DynamoTable, "delete_item", real_delete)
+
+    view = api.speech()  # R18 answers 201 (asserted by the helper)
+    assert view["versions"] == [] and view["header"]["state"] == "DRAFT"
+    assert api.table.get_item(f"SPEECH#{SH}", f"V#{vid}") is None
+    assert len(deletes(api)) == 1  # the first delete's audit item already listed the version

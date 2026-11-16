@@ -87,6 +87,9 @@ SPEECH_PK = "SPEECH"
 ACT_PK = "ACT"
 DRAFT_SK = "DRAFT"
 VERSION_PREFIX = "V#"
+# On a speech header: how many activity publishes (R27) have resolved this definition. It only grows; R32 conditions
+# its header delete on the value it read before its in-use check (publish_actions).
+PUBLISH_REFS = "publishRefs"
 
 KEY_ID = re.compile(LIMITS["ids"]["keyId"].removeprefix("^").removesuffix("$"))
 VARIANT = re.compile(r"prompt|instruction|answer|option-[a-f]|bin-[a-z0-9]{1,8}|intro-[1-3]")  # G R15
@@ -907,6 +910,12 @@ def publish_checks(
     return problems, resolved
 
 
+def leftover_version_sks(table: DynamoTable, pk: str) -> list[str]:
+    """The `V#` sort keys under `pk`, oldest first. Under a speech ID with no header these are versions a R32 delete
+    removed the header of and then stopped before deleting (R18 create and seed_content.py look before creating)."""
+    return sorted(str(v["sk"]) for v in table.query_prefix(pk, VERSION_PREFIX, attributes=("sk",)))
+
+
 def publish_actions(
     table: DynamoTable,
     *,
@@ -924,8 +933,12 @@ def publish_actions(
 
     The transaction: the immutable version (attribute_not_exists), the header moved to PUBLISHED (conditioned on the
     `publishedVersion` that was read, so of two concurrent publishes only one wins), a check that the draft is still
-    at `revision`, a check that each referenced speech definition still has the approved version that was resolved,
-    and the audit item."""
+    at `revision`, an update of each referenced speech definition's header, conditioned on it still having the
+    approved version that was resolved, that adds 1 to its `PUBLISH_REFS` counter, and the audit item.
+
+    The counter is what R32 (speech delete) conditions its header delete on: a publish that commits between R32's
+    in-use check and its delete changes the counter, so the delete is refused and R32 checks again (a ConditionCheck
+    alone writes nothing, so the delete could not see such a publish)."""
     definition = definition_for_publish(draft["definition"])  # registry curriculum when the draft has none
     domain_size = template_report(definition).domain_size if definition.get("authoringMode") == "TEMPLATE" else None
     vid = version_id(moment)
@@ -977,12 +990,13 @@ def publish_actions(
     ]
     for speech_id, speech_version in sorted({(r["speechId"], r["speechVersion"]) for r in resolved.values()}):
         actions.append(
-            table.condition_check_action(
+            table.update_action(
                 SPEECH_PK,
                 speech_id,
+                update="ADD #refs :one",
+                names={"#v": "approvedVersion", "#refs": PUBLISH_REFS},
+                values={":v": speech_version, ":one": 1},
                 condition="#v = :v",
-                names={"#v": "approvedVersion"},
-                values={":v": speech_version},
             )
         )
     actions.append(

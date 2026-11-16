@@ -36,8 +36,9 @@ Activity publication (R27, C4) checks the draft revision, the seven-line checkli
 definition (C22.2 subset, plus the topic registry checks while nothing is published yet) and that every referenced
 speech definition is approved, then writes the immutable version,
 the header, and an audit item in one transaction that also re-checks the draft revision and each speech definition's
-approved version. R21 and R27 are safe to retry: a repeat whose `draftRevision` equals the header's
-`fromDraftRevision` returns the version already written.
+approved version (adding 1 to that header's `publishRefs`, which R32 speech delete conditions on). R21 and R27 are
+safe to retry: a repeat whose `draftRevision` equals the header's `fromDraftRevision` returns the version already
+written.
 
 Immutability by condition (Phase 36): a version is written only with `attribute_not_exists(pk)`, so the database
 refuses a second write to it; the only later change to a version is withdraw adding `withdrawn`, under
@@ -80,6 +81,7 @@ from shared.content import (
     AGE_BANDS,
     DRAFT_SK,
     KEY_ID,
+    PUBLISH_REFS,
     SPEECH_PK,
     SUBJECTS,
     VERSION_ID,
@@ -94,6 +96,7 @@ from shared.content import (
     header_fields,
     initial_definition,
     iso_z,
+    leftover_version_sks,
     locked_problems,
     new_activity_items,
     new_speech_items,
@@ -367,6 +370,10 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
             raise invalid([problem("speechId", refusal)])
 
     def create_speech(request: Request) -> dict[str, Any]:
+        """R18. An ID whose header is gone but whose versions are still there is a R32 delete that stopped part way
+        (its audit item already lists them): those versions are removed first, as a retry of that delete would, so the
+        new definition never shows the old one's history. Nothing else leaves versions without a header: create writes
+        the header with the draft, approve needs the header, and R32 removes the header and draft together."""
         body = json_object(request.event)
         only_fields(body, {"speechId", "title", "kind", "text", "ssml"}, {"speechId", "title", "kind"})
         problems = []
@@ -401,6 +408,12 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
             speech_id=speech_id, title=body["title"], kind=kind, by=request.caller.sub, at=deps.now(), **first
         )
         content = table()
+        if content.get_item(SPEECH_PK, speech_id, attributes=("pk",)) is None:
+            leftovers = leftover_version_sks(content, speech_pk(speech_id))
+            for sk in leftovers:  # only the listed old versions: never the draft, which a racing create may own
+                content.delete_item(speech_pk(speech_id), sk)
+            if leftovers:
+                request.log["finishedDelete"] = len(leftovers)
         failed = transact(content, create_actions(content, header, draft))
         status = 201 if failed is None else 200  # an existing speechId is answered with the item (G R18)
         return json_response(status, speech_view(speech_id))
@@ -966,15 +979,19 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         (`speech_users`), so no activity can lose a sound it names. Clips in S3 are content-addressed and may be
         shared by other definitions: they are never deleted (admin-api has no DeleteObject).
 
-        Race (known, harmless): a draft save that adds a reference after the check is not blocked; that draft then
-        names a definition that does not exist, which validate and publish refuse (`speech_not_approved`). A publish
-        cannot slip through: R27's transaction re-checks each referenced header's `approvedVersion`, which fails once
-        the header is gone."""
+        Races with publish: the header is read before the in-use check, and the header delete is also conditioned on
+        the header's `publishRefs` counter being what was read then. R27 adds 1 to that counter on every definition it
+        resolves, in its own transaction, so a publish that commits during the check (or between the check and the
+        delete) refuses the delete; the loop re-reads the header, sees the counter moved and runs the check again,
+        which now finds the activity. A publish that comes after the delete finds no header and is refused.
+        Known gap (harmless): a draft save that adds a reference and is not published before the delete commits is not
+        blocked; that draft then names a definition that does not exist, which validate and publish refuse
+        (`speech_not_approved`)."""
         speech_id = path_id(request)
         request.log.update(speechId=speech_id, action="delete")
         content = table()
         pk = speech_pk(speech_id)
-        checked = False
+        checked: tuple[Any] | None = None  # (publishRefs,) as it was read before the last in-use check passed
         for _ in range(WRITE_TRIES):
             header = content.get_item(SPEECH_PK, speech_id)
             draft = content.get_item(pk, DRAFT_SK, attributes=("pk",))
@@ -989,12 +1006,13 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
                 content.delete_item(pk, DRAFT_SK)
                 request.log.update(resumed=True)
                 return json_response(200, {"speechId": speech_id, "deletedVersions": listed})
-            if not checked:
+            refs = header.get(PUBLISH_REFS)
+            if checked != (refs,):  # first pass, or an activity publish resolved this definition since the check
                 users = speech_users(content, speech_id)
                 if users:
                     request.log["usedBy"] = len(users)
                     raise invalid([problem(f"usedBy.{activity_id}", "speech_in_use") for activity_id in users])
-                checked = True
+                checked = (refs,)
             in_transaction = len(version_sks) <= DELETE_VERSIONS_IN_TRANSACTION
             moment = deps.now()
             audit_pk, audit_sk = audit_key(moment, f"{speech_id}#delete")
@@ -1002,15 +1020,22 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
                 audit_pk, audit_sk, "delete", request.caller.sub, moment, speechId=speech_id, versionIds=listed
             )
             approved = header.get("approvedVersion")
+            values: dict[str, Any] = {}
+            if approved:
+                values[":v"] = approved
+            if refs is not None:
+                values[":refs"] = refs
             actions = [content.delete_action(pk, sk) for sk in version_sks] if in_transaction else []
             actions.append(content.delete_action(pk, DRAFT_SK))
             actions.append(
                 content.delete_action(
                     SPEECH_PK,
                     speech_id,
-                    condition="attribute_exists(#pk) AND " + ("#v = :v" if approved else "attribute_not_exists(#v)"),
-                    names={"#pk": "pk", "#v": "approvedVersion"},
-                    values={":v": approved} if approved else None,
+                    condition="attribute_exists(#pk) AND "
+                    + ("#v = :v" if approved else "attribute_not_exists(#v)")
+                    + (" AND #refs = :refs" if refs is not None else " AND attribute_not_exists(#refs)"),
+                    names={"#pk": "pk", "#v": "approvedVersion", "#refs": PUBLISH_REFS},
+                    values=values or None,
                 )
             )
             actions.append(content.put_action(audit, condition="attribute_not_exists(#pk)", names={"#pk": "pk"}))

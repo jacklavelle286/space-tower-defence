@@ -139,6 +139,27 @@ def test_the_create_is_conditional_even_if_the_read_raced(content: Any) -> None:
     assert seed_content.apply_seed(table, seeds[0]) == "skipped, exists"
 
 
+def test_versions_left_by_an_unfinished_delete_block_the_create(
+    content: Any, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """Finding (review of R32): a speech delete that stopped part way leaves approved versions with no header. The
+    seed must not create a header over them (they would show as its history), and it deletes nothing."""
+    table = DynamoTable(content, CONTENT)
+    leftover = {"pk": "SPEECH#phoneme-sh", "sk": "V#20261116T100000000Z", "speechId": "phoneme-sh"}
+    table.transact_write([table.put_action(leftover, condition="attribute_not_exists(#pk)", names={"#pk": "pk"})])
+
+    assert run(content) == 0
+    assert "speech phoneme-sh: skipped, not created: 1 approved version(s) left by an unfinished delete" in (
+        capsys.readouterr().out
+    )
+    assert run(content, "--apply") == 0
+    assert "speech phoneme-sh: skipped, not created" in capsys.readouterr().out
+    assert run(content, "--apply", "--publish") == 3
+    assert "speech phoneme-sh: not created" in capsys.readouterr().out
+    assert table.get_item("SPEECH", "phoneme-sh") is None
+    assert table.get_item("SPEECH#phoneme-sh", "V#20261116T100000000Z") is not None
+
+
 def test_a_bad_seed_stops_before_any_call(tmp_path: Path, content: Any, capsys: pytest.CaptureFixture[str]) -> None:
     seed_dir = tmp_path / "seed"
     shutil.copytree(seed_content.SEED_DIR, seed_dir)

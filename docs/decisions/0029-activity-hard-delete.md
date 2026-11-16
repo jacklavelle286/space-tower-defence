@@ -30,7 +30,9 @@ Consequences:
 Speech (added 2026-11-16, owner: "I can't delete sounds"): R32 `DELETE /api/admin/speech-definitions/{id}` removes a speech
 definition's header, draft and approved versions the same way, with one audit item. It is refused (`speech_in_use`, one problem
 per activity) while any activity draft or version, withdrawn and retired included, references it, so no child meets a slot whose
-clip record has gone. S3 clips are never deleted (they are content-addressed and may be shared). Known gap: a draft save racing a
-delete can reference the deleted speech; validate and publish then refuse it.
+clip record has gone. A publish racing the delete cannot slip through: R27 adds 1 to the speech header's `publishRefs`, and the
+header delete is conditioned on the value read before the use check, so the delete is refused and checks again. S3 clips are never
+deleted (they are content-addressed and may be shared). Known gap: a draft save racing a delete, and not published before it, can
+reference the deleted speech; validate and publish then refuse it.
 
 Evidence: owner messages 2026-11-16; api/tests/unit/test_admin_delete.py and the run-in-progress test in test_ops.py.

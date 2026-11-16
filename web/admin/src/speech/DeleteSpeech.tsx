@@ -52,27 +52,26 @@ export function DeleteSpeech({ api, speechId, onDeleted }: Props) {
       <button type="button" className="danger" ref={triggerRef} onClick={() => setOpen(true)} disabled={busy}>
         Delete speech
       </button>
-      {users.length > 0 && (
-        <div className="error" role="status">
-          <p>
-            {speechId} can't be deleted: {users.length === 1 ? "this activity uses it" : `these ${users.length} activities use it`}.
-            Change or delete {users.length === 1 ? "it" : "them"} first. A published activity keeps its sound in every
-            version until the activity itself is deleted.
-          </p>
-          <ul>
-            {users.map((id) => (
-              <li key={id}>
-                <a href={hrefOf({ page: "activity", id })}>{id}</a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-      {message !== null && (
-        <p className="error" role="status">
-          {message}
-        </p>
-      )}
+      {/* Always mounted, so the refusal or error is announced when it appears. */}
+      <div role="status">
+        {users.length > 0 && (
+          <div className="error">
+            <p>
+              {speechId} can't be deleted: {users.length === 1 ? "this activity uses it" : `these ${users.length} activities use it`}.
+              Change or delete {users.length === 1 ? "it" : "them"} first. A published activity keeps its sound in every
+              version until the activity itself is deleted.
+            </p>
+            <ul>
+              {users.map((id) => (
+                <li key={id}>
+                  <a href={hrefOf({ page: "activity", id })}>{id}</a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {message !== null && <p className="error">{message}</p>}
+      </div>
       {open && (
         <ConfirmDialog labelledBy={headingId} onCancel={() => !busy && setOpen(false)}>
           {(cancelRef) => (

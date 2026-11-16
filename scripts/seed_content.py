@@ -24,9 +24,12 @@ A bad activity file is a failure of that activity only (without --publish it sti
 ends with a report (created / published / skipped / failed, with reasons) and exits 3 if anything failed.
 
 Safety:
-  - dry run by default: only reads (GetItem) and reports what it would create; `--apply` writes;
+  - dry run by default: only reads (GetItem, plus a Query of the versions of a speech ID that has no header) and reports
+    what it would create; `--apply` writes;
   - create-only: header and draft are put in one transaction, each with attribute_not_exists(pk), so an existing item is
-    never overwritten; an ID that already exists is reported "skipped, exists";
+    never overwritten; an ID that already exists is reported "skipped, exists"; a speech ID with no header but with
+    approved versions left by an unfinished R32 delete is not created (reported, failed with --publish), and nothing
+    is deleted here;
   - every seed is checked first (the activity definition checks, the SSML allow-list, and G-14 for PHONEME), and any
     problem stops the run before anything is read or written.
 
@@ -70,11 +73,13 @@ from shared.content import (  # noqa: E402
     as_int,
     checklist_problems,
     definition_problems,
+    leftover_version_sks,
     new_activity_items,
     new_speech_items,
     plain,
     publish_actions,
     publish_checks,
+    speech_pk,
     valid_title,
 )
 from shared.data import BatchGetIncomplete, DynamoTable, cancellation_reasons, error_code  # noqa: E402
@@ -184,12 +189,30 @@ def apply_seed(table: DynamoTable, seed: Seed) -> str:
     return "created"
 
 
+def unfinished_delete(table: DynamoTable, seed: Seed) -> str | None:
+    """For a speech seed whose header is missing: why it is not created when an R32 delete stopped part way and left
+    approved versions under the ID (they would show as the new definition's history). None otherwise. Seeding stays
+    create-only: it never deletes them; R18 (creating the ID in the admin app) does, as a retry of the delete would."""
+    if seed.kind != "speech":
+        return None
+    leftovers = leftover_version_sks(table, speech_pk(seed.item_id))
+    if not leftovers:
+        return None
+    return (
+        f"not created: {len(leftovers)} approved version(s) left by an unfinished delete; "
+        "create the ID in the admin app (it removes them) or retry the delete"
+    )
+
+
 def run(table: DynamoTable, seeds: Sequence[Seed], *, apply: bool) -> list[str]:
     lines = []
     for seed in seeds:
         exists = table.get_item(*_header_key(seed), attributes=("pk",)) is not None
+        leftover = None if exists else unfinished_delete(table, seed)
         if exists:
             outcome = "skipped, exists"
+        elif leftover is not None:
+            outcome = f"skipped, {leftover}"
         elif not apply:
             outcome = "would create (dry run)"
         else:
@@ -299,8 +322,11 @@ def run_publish(
     for seed in seeds:
         if seed.kind == "speech":
             exists = table.get_item(*_header_key(seed), attributes=("pk",)) is not None
+            leftover = None if exists else unfinished_delete(table, seed)
             if exists:
                 outcomes.append(Outcome("skipped", "speech", seed.item_id, "exists"))
+            elif leftover is not None:
+                outcomes.append(Outcome("failed", "speech", seed.item_id, leftover))
             elif not apply:
                 outcomes.append(Outcome("created", "speech", seed.item_id, "would create (dry run)"))
             else:
