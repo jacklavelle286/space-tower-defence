@@ -1,0 +1,57 @@
+{
+  "$comment": "Gate I seed activity (Phase 47, age-5 phonics, NORMAL), drafted for the owner's review. A reading item: the only clip reads the instruction (Read it to me) and never says the word. Loaded by scripts/seed_content.py; --publish publishes it once every referenced speech is approved in the admin app.",
+  "schemaVersion": 1,
+  "activityId": "ph-2020",
+  "title": "Read the word: ship",
+  "subject": "phonics",
+  "topicId": "phonics-blend-digraph-words",
+  "minAge": 5,
+  "maxAge": 5,
+  "rewardCategory": "NORMAL",
+  "interactionType": "PICTURE_SELECT",
+  "authoringMode": "FIXED",
+  "audioRequirement": "OPTIONAL",
+  "prompt": {
+    "text": "Read the word, then tap its picture: ship"
+  },
+  "visualAssetReferences": [
+    "pic-shop",
+    "pic-chip",
+    "pic-fish",
+    "pic-ship"
+  ],
+  "activityPayload": {
+    "options": [
+      {
+        "id": "a",
+        "assetId": "pic-shop",
+        "alt": "a building with a striped awning and a door"
+      },
+      {
+        "id": "b",
+        "assetId": "pic-chip",
+        "alt": "three long yellow pieces of fried potato"
+      },
+      {
+        "id": "c",
+        "assetId": "pic-fish",
+        "alt": "an orange swimmer with fins"
+      },
+      {
+        "id": "d",
+        "assetId": "pic-ship",
+        "alt": "a big blue and red thing that sails the sea, with a funnel"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "d"
+    ]
+  },
+  "speechDefinitionReferences": {
+    "instruction": {
+      "speechId": "instruction-read-the-word-then-tap"
+    }
+  }
+}

@@ -1,0 +1,49 @@
+{
+  "$comment": "Gate I, Phase 47 (content phase E, phonics age 7), drafted by Claude for the owner's review and listening. Every option has oo; only look has the short sound of book. The instruction clip reads the shared stem only; the question after it is for the child to read (year 2 reading), and a word clip would give the answer away. Loaded by scripts/seed_content.py; --publish publishes it once every referenced speech is approved in the admin app.",
+  "schemaVersion": 1,
+  "activityId": "ph-2218",
+  "title": "oo words: rhymes with book",
+  "subject": "phonics",
+  "topicId": "phonics-alt-pronunciation",
+  "minAge": 7,
+  "maxAge": 7,
+  "rewardCategory": "NORMAL",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "OPTIONAL",
+  "prompt": {
+    "text": "Read each word, then choose the right one. Which word rhymes with book?"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "optionStyle": "WORD",
+    "options": [
+      {
+        "id": "a",
+        "text": "moon"
+      },
+      {
+        "id": "b",
+        "text": "food"
+      },
+      {
+        "id": "c",
+        "text": "look"
+      },
+      {
+        "id": "d",
+        "text": "spoon"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "c"
+    ]
+  },
+  "speechDefinitionReferences": {
+    "instruction": {
+      "speechId": "instruction-read-each-word-then-choose"
+    }
+  }
+}

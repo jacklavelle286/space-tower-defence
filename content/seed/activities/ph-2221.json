@@ -1,0 +1,49 @@
+{
+  "$comment": "Gate I, Phase 47 (content phase E, phonics age 7), drafted by Claude for the owner's review and listening. Silent w in wr (wrong rhymes with song); the distractors change only the vowel. The instruction clip reads the shared stem only; the question after it is for the child to read (year 2 reading), and a word clip would give the answer away. Loaded by scripts/seed_content.py; --publish publishes it once every referenced speech is approved in the admin app.",
+  "schemaVersion": 1,
+  "activityId": "ph-2221",
+  "title": "wr words: wrong",
+  "subject": "phonics",
+  "topicId": "phonics-gpc-y2-consonant-spellings",
+  "minAge": 7,
+  "maxAge": 7,
+  "rewardCategory": "NORMAL",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "OPTIONAL",
+  "prompt": {
+    "text": "Read each word, then choose the right one. Which word rhymes with song?"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "optionStyle": "WORD",
+    "options": [
+      {
+        "id": "a",
+        "text": "ring"
+      },
+      {
+        "id": "b",
+        "text": "rang"
+      },
+      {
+        "id": "c",
+        "text": "wrong"
+      },
+      {
+        "id": "d",
+        "text": "rung"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "c"
+    ]
+  },
+  "speechDefinitionReferences": {
+    "instruction": {
+      "speechId": "instruction-read-each-word-then-choose"
+    }
+  }
+}

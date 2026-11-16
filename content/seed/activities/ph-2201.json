@@ -1,0 +1,52 @@
+{
+  "$comment": "Gate I, Phase 47 (content phase E, phonics age 7), drafted by Claude for the owner's review and listening. The child hears the whole word (tier A, C19.8 'hear X, choose X') and reads it among real-word near misses; no option sounds like the target. Options as in the C19.8 example. Loaded by scripts/seed_content.py; --publish publishes it once every referenced speech is approved in the admin app.",
+  "schemaVersion": 1,
+  "activityId": "ph-2201",
+  "title": "Tricky word: because",
+  "subject": "phonics",
+  "topicId": "phonics-tricky-read-y2",
+  "minAge": 7,
+  "maxAge": 7,
+  "rewardCategory": "NORMAL",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "REQUIRED",
+  "prompt": {
+    "text": "Listen. Which word is this?"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "optionStyle": "WORD",
+    "options": [
+      {
+        "id": "a",
+        "text": "became"
+      },
+      {
+        "id": "b",
+        "text": "because"
+      },
+      {
+        "id": "c",
+        "text": "before"
+      },
+      {
+        "id": "d",
+        "text": "behind"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "b"
+    ]
+  },
+  "speechDefinitionReferences": {
+    "prompt": {
+      "speechId": "word-because"
+    },
+    "instruction": {
+      "speechId": "instruction-listen-which-word-is-this"
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "$comment": "Gate I, Phase 47 (C26.3 content phase E): phonics, age 6. The child hears the whole word (tier A) and reads it among near-miss spellings. The C19 example: ou against ow, oul and o. Seeded by scripts/seed_content.py; drafted by Claude for the owner's review and listening.",
+  "schemaVersion": 1,
+  "activityId": "ph-2109",
+  "title": "Pick the word you hear: cloud",
+  "subject": "phonics",
+  "topicId": "phonics-gpc-phase5-graphemes",
+  "minAge": 6,
+  "maxAge": 6,
+  "rewardCategory": "NORMAL",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "REQUIRED",
+  "prompt": {
+    "text": "Listen. Which word is this?"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "optionStyle": "WORD",
+    "options": [
+      {
+        "id": "a",
+        "text": "clown"
+      },
+      {
+        "id": "b",
+        "text": "cloud"
+      },
+      {
+        "id": "c",
+        "text": "could"
+      },
+      {
+        "id": "d",
+        "text": "cold"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "b"
+    ]
+  },
+  "speechDefinitionReferences": {
+    "prompt": {
+      "speechId": "word-cloud"
+    },
+    "instruction": {
+      "speechId": "instruction-listen-which-word-is-this"
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "$comment": "Gate I seed activity (Phase 47, age-5 phonics, NORMAL), drafted for the owner's review. A common exception word (LS07 phase 2-3 tricky words): the child hears it (tier A) and reads it among near-miss spellings; no picture, because the word cannot be pictured. Loaded by scripts/seed_content.py; --publish publishes it once every referenced speech is approved in the admin app.",
+  "schemaVersion": 1,
+  "activityId": "ph-2002",
+  "title": "Tricky word: she",
+  "subject": "phonics",
+  "topicId": "phonics-tricky-read-set1",
+  "minAge": 5,
+  "maxAge": 5,
+  "rewardCategory": "NORMAL",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "REQUIRED",
+  "prompt": {
+    "text": "Listen. Which word is this?"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "optionStyle": "WORD",
+    "options": [
+      {
+        "id": "a",
+        "text": "he"
+      },
+      {
+        "id": "b",
+        "text": "she"
+      },
+      {
+        "id": "c",
+        "text": "we"
+      },
+      {
+        "id": "d",
+        "text": "me"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "b"
+    ]
+  },
+  "speechDefinitionReferences": {
+    "prompt": {
+      "speechId": "word-she"
+    },
+    "instruction": {
+      "speechId": "instruction-listen-which-word-is-this"
+    }
+  }
+}

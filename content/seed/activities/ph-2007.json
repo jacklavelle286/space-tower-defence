@@ -1,0 +1,49 @@
+{
+  "$comment": "Gate I seed activity (Phase 47, age-5 phonics, NORMAL), drafted for the owner's review. The child hears the /ee/ sound (the approved phoneme-ee clip, tier B) and picks its spelling, as in C19's example; ea is not offered, so there is one correct answer. Loaded by scripts/seed_content.py; --publish publishes it once every referenced speech is approved in the admin app.",
+  "schemaVersion": 1,
+  "activityId": "ph-2007",
+  "title": "Which letters make /ee/?",
+  "subject": "phonics",
+  "topicId": "phonics-gpc-vowel-digraphs",
+  "minAge": 5,
+  "maxAge": 6,
+  "rewardCategory": "NORMAL",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "REQUIRED",
+  "prompt": {
+    "text": "Listen. Which letters make this sound?"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "optionStyle": "GRAPHEME",
+    "options": [
+      {
+        "id": "a",
+        "text": "ai"
+      },
+      {
+        "id": "b",
+        "text": "oa"
+      },
+      {
+        "id": "c",
+        "text": "ee"
+      },
+      {
+        "id": "d",
+        "text": "oo"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "c"
+    ]
+  },
+  "speechDefinitionReferences": {
+    "prompt": {
+      "speechId": "phoneme-ee"
+    }
+  }
+}

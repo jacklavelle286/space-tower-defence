@@ -1,0 +1,73 @@
+{
+  "$comment": "Gate I, Phase 47 (content phase E, phonics age 7), drafted by Claude for the owner's review and listening. The grapheme ow as /əʊ/ and as /aʊ/. No object is a word that can be said both ways (no bow or row). Loaded by scripts/seed_content.py; --publish publishes it once every referenced speech is approved in the admin app.",
+  "schemaVersion": 1,
+  "activityId": "ph-2215",
+  "title": "Sort ow words by sound",
+  "subject": "phonics",
+  "topicId": "phonics-alt-pronunciation",
+  "minAge": 7,
+  "maxAge": 7,
+  "rewardCategory": "NORMAL",
+  "interactionType": "OBJECT_MOVE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "OPTIONAL",
+  "prompt": {
+    "text": "Read each word, then sort it by its sound."
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "mode": "SORT",
+    "objects": [
+      {
+        "id": "o1",
+        "text": "grow",
+        "alt": "grow"
+      },
+      {
+        "id": "o2",
+        "text": "how",
+        "alt": "how"
+      },
+      {
+        "id": "o3",
+        "text": "show",
+        "alt": "show"
+      },
+      {
+        "id": "o4",
+        "text": "town",
+        "alt": "town"
+      },
+      {
+        "id": "o5",
+        "text": "slow",
+        "alt": "slow"
+      },
+      {
+        "id": "o6",
+        "text": "owl",
+        "alt": "owl"
+      }
+    ],
+    "bins": [
+      {
+        "id": "snow",
+        "label": "ow as in snow"
+      },
+      {
+        "id": "cow",
+        "label": "ow as in cow"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "o1=snow;o2=cow;o3=snow;o4=cow;o5=snow;o6=cow"
+    ]
+  },
+  "speechDefinitionReferences": {
+    "instruction": {
+      "speechId": "instruction-read-each-word-then-sort"
+    }
+  }
+}

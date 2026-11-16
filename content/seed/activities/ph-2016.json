@@ -1,0 +1,57 @@
+{
+  "$comment": "Gate I seed activity (Phase 47, age-5 phonics, NORMAL), drafted for the owner's review. A reading item: the only clip reads the instruction (Read it to me) and never says the word. Loaded by scripts/seed_content.py; --publish publishes it once every referenced speech is approved in the admin app.",
+  "schemaVersion": 1,
+  "activityId": "ph-2016",
+  "title": "Read the word: pen",
+  "subject": "phonics",
+  "topicId": "phonics-blend-cvc",
+  "minAge": 5,
+  "maxAge": 5,
+  "rewardCategory": "NORMAL",
+  "interactionType": "PICTURE_SELECT",
+  "authoringMode": "FIXED",
+  "audioRequirement": "OPTIONAL",
+  "prompt": {
+    "text": "Read the word, then tap its picture: pen"
+  },
+  "visualAssetReferences": [
+    "pic-pan",
+    "pic-pen",
+    "pic-pin",
+    "pic-peg"
+  ],
+  "activityPayload": {
+    "options": [
+      {
+        "id": "a",
+        "assetId": "pic-pan",
+        "alt": "a round metal dish with a long handle"
+      },
+      {
+        "id": "b",
+        "assetId": "pic-pen",
+        "alt": "a blue tool for writing"
+      },
+      {
+        "id": "c",
+        "assetId": "pic-pin",
+        "alt": "a red-topped spike for sticking in"
+      },
+      {
+        "id": "d",
+        "assetId": "pic-peg",
+        "alt": "a wooden clip for hanging washing"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "b"
+    ]
+  },
+  "speechDefinitionReferences": {
+    "instruction": {
+      "speechId": "instruction-read-the-word-then-tap"
+    }
+  }
+}

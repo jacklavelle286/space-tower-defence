@@ -1,0 +1,57 @@
+{
+  "$comment": "Gate I seed activity (Phase 47, age-5 phonics, NORMAL), drafted for the owner's review. The child hears the /sh/ sound (the approved phoneme-sh clip, tier B) and picks the picture that starts with it; sock and sun start with /s/, chip with /ch/. Loaded by scripts/seed_content.py; --publish publishes it once every referenced speech is approved in the admin app.",
+  "schemaVersion": 1,
+  "activityId": "ph-2004",
+  "title": "Which picture starts with /sh/? (shop)",
+  "subject": "phonics",
+  "topicId": "phonics-initial-sounds",
+  "minAge": 5,
+  "maxAge": 5,
+  "rewardCategory": "NORMAL",
+  "interactionType": "PICTURE_SELECT",
+  "authoringMode": "FIXED",
+  "audioRequirement": "REQUIRED",
+  "prompt": {
+    "text": "Listen. Which picture starts with this sound?"
+  },
+  "visualAssetReferences": [
+    "pic-sock",
+    "pic-chip",
+    "pic-sun",
+    "pic-shop"
+  ],
+  "activityPayload": {
+    "options": [
+      {
+        "id": "a",
+        "assetId": "pic-sock",
+        "alt": "a striped thing you wear on your foot"
+      },
+      {
+        "id": "b",
+        "assetId": "pic-chip",
+        "alt": "three long yellow pieces of fried potato"
+      },
+      {
+        "id": "c",
+        "assetId": "pic-sun",
+        "alt": "a bright yellow circle with points"
+      },
+      {
+        "id": "d",
+        "assetId": "pic-shop",
+        "alt": "a building with a striped awning and a door"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "d"
+    ]
+  },
+  "speechDefinitionReferences": {
+    "prompt": {
+      "speechId": "phoneme-sh"
+    }
+  }
+}

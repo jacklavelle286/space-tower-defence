@@ -1,0 +1,49 @@
+{
+  "$comment": "Gate I, Phase 47 (C26.3 content phase E): phonics, age 6. A reading item: the only clip reads the shared instruction stem; the question after it is on screen, and a word clip would give the answer away. The ie of field, chief and shield says /ee/. Seeded by scripts/seed_content.py; drafted by Claude for the owner's review and listening.",
+  "schemaVersion": 1,
+  "activityId": "ph-2120",
+  "title": "Same ie as tie",
+  "subject": "phonics",
+  "topicId": "phonics-alt-pronunciation",
+  "minAge": 6,
+  "maxAge": 7,
+  "rewardCategory": "NORMAL",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "OPTIONAL",
+  "prompt": {
+    "text": "Read the words, then tap the right one. Which word has the same ie sound as tie?"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "optionStyle": "WORD",
+    "options": [
+      {
+        "id": "a",
+        "text": "field"
+      },
+      {
+        "id": "b",
+        "text": "pie"
+      },
+      {
+        "id": "c",
+        "text": "chief"
+      },
+      {
+        "id": "d",
+        "text": "shield"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "b"
+    ]
+  },
+  "speechDefinitionReferences": {
+    "instruction": {
+      "speechId": "instruction-read-the-words-then-tap"
+    }
+  }
+}

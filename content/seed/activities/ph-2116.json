@@ -1,0 +1,58 @@
+{
+  "$comment": "Gate I, Phase 47 (C26.3 content phase E): phonics, age 6. The child hears the whole word (tier A) and picks the letters for the missing sound; hearing the word does not say which letters spell it. The vowel of the u-e split digraph. Seeded by scripts/seed_content.py; drafted by Claude for the owner's review and listening.",
+  "schemaVersion": 1,
+  "activityId": "ph-2116",
+  "title": "Missing letter: cube",
+  "subject": "phonics",
+  "topicId": "phonics-gpc-split-digraphs",
+  "minAge": 6,
+  "maxAge": 6,
+  "rewardCategory": "NORMAL",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "REQUIRED",
+  "prompt": {
+    "text": "Listen. What is missing from this word? c_be"
+  },
+  "visualAssetReferences": [
+    "shape-cube"
+  ],
+  "activityPayload": {
+    "optionStyle": "GRAPHEME",
+    "options": [
+      {
+        "id": "a",
+        "text": "a"
+      },
+      {
+        "id": "b",
+        "text": "o"
+      },
+      {
+        "id": "c",
+        "text": "u"
+      },
+      {
+        "id": "d",
+        "text": "i"
+      }
+    ],
+    "stimulus": {
+      "assetId": "shape-cube",
+      "alt": "a blue solid shape with square faces"
+    }
+  },
+  "answerSpecification": {
+    "accepted": [
+      "c"
+    ]
+  },
+  "speechDefinitionReferences": {
+    "prompt": {
+      "speechId": "word-cube"
+    },
+    "instruction": {
+      "speechId": "instruction-listen-what-is-missing"
+    }
+  }
+}

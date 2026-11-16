@@ -1,0 +1,73 @@
+{
+  "$comment": "Gate I, Phase 47 (content phase E, phonics age 7), drafted by Claude for the owner's review and listening. The grapheme ea as /iː/ and as /e/ (C19.8 example, with ready and seat for the anchors). No object can be said both ways (no read or lead). Loaded by scripts/seed_content.py; --publish publishes it once every referenced speech is approved in the admin app.",
+  "schemaVersion": 1,
+  "activityId": "ph-2216",
+  "title": "Sort ea words by sound",
+  "subject": "phonics",
+  "topicId": "phonics-alt-pronunciation",
+  "minAge": 7,
+  "maxAge": 7,
+  "rewardCategory": "NORMAL",
+  "interactionType": "OBJECT_MOVE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "OPTIONAL",
+  "prompt": {
+    "text": "Read each word, then sort it by its sound."
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "mode": "SORT",
+    "objects": [
+      {
+        "id": "o1",
+        "text": "dream",
+        "alt": "dream"
+      },
+      {
+        "id": "o2",
+        "text": "bread",
+        "alt": "bread"
+      },
+      {
+        "id": "o3",
+        "text": "meat",
+        "alt": "meat"
+      },
+      {
+        "id": "o4",
+        "text": "ready",
+        "alt": "ready"
+      },
+      {
+        "id": "o5",
+        "text": "seat",
+        "alt": "seat"
+      },
+      {
+        "id": "o6",
+        "text": "instead",
+        "alt": "instead"
+      }
+    ],
+    "bins": [
+      {
+        "id": "leaf",
+        "label": "ea as in leaf"
+      },
+      {
+        "id": "head",
+        "label": "ea as in head"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "o1=leaf;o2=head;o3=leaf;o4=head;o5=leaf;o6=head"
+    ]
+  },
+  "speechDefinitionReferences": {
+    "instruction": {
+      "speechId": "instruction-read-each-word-then-sort"
+    }
+  }
+}

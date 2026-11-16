@@ -1,0 +1,57 @@
+{
+  "$comment": "Gate I seed activity (Phase 47, age-5 phonics, NORMAL), drafted for the owner's review. The child hears a whole word (tier A) and picks the picture that starts with the same sound; the heard word's own picture is not an option. A word clip instead of an isolated sound keeps to approved-style tier A clips [ASSUMPTION: the owner accepts sound matching from a word for this topic]. pen starts /p/; bed /b/, dog /d/, hat /h/. Loaded by scripts/seed_content.py; --publish publishes it once every referenced speech is approved in the admin app.",
+  "schemaVersion": 1,
+  "activityId": "ph-2006",
+  "title": "Same first sound as pig",
+  "subject": "phonics",
+  "topicId": "phonics-initial-sounds",
+  "minAge": 5,
+  "maxAge": 5,
+  "rewardCategory": "NORMAL",
+  "interactionType": "PICTURE_SELECT",
+  "authoringMode": "FIXED",
+  "audioRequirement": "REQUIRED",
+  "prompt": {
+    "text": "Listen. Which picture starts with the same sound?"
+  },
+  "visualAssetReferences": [
+    "pic-bed",
+    "pic-dog",
+    "pic-pen",
+    "pic-hat"
+  ],
+  "activityPayload": {
+    "options": [
+      {
+        "id": "a",
+        "assetId": "pic-bed",
+        "alt": "a wooden frame with a pillow and a purple cover"
+      },
+      {
+        "id": "b",
+        "assetId": "pic-dog",
+        "alt": "a brown pet with floppy ears"
+      },
+      {
+        "id": "c",
+        "assetId": "pic-pen",
+        "alt": "a blue tool for writing"
+      },
+      {
+        "id": "d",
+        "assetId": "pic-hat",
+        "alt": "a yellow thing you wear on your head, with a pink ribbon"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "c"
+    ]
+  },
+  "speechDefinitionReferences": {
+    "prompt": {
+      "speechId": "word-pig"
+    }
+  }
+}

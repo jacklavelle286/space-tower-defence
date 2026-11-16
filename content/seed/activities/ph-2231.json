@@ -1,0 +1,49 @@
+{
+  "$comment": "Gate I, Phase 47 (content phase E, phonics age 7), drafted by Claude for the owner's review and listening. Reads four decodable words (adjacent consonants, phase 3 and 5 graphemes); only stoip is not a real word. The instruction clip reads the shared stem only; the question after it is for the child to read (year 2 reading), and a word clip would give the answer away. Loaded by scripts/seed_content.py; --publish publishes it once every referenced speech is approved in the admin app.",
+  "schemaVersion": 1,
+  "activityId": "ph-2231",
+  "title": "Alien names: spot the made-up word",
+  "subject": "phonics",
+  "topicId": "phonics-pseudo-words",
+  "minAge": 7,
+  "maxAge": 7,
+  "rewardCategory": "NORMAL",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "OPTIONAL",
+  "prompt": {
+    "text": "Read each word, then choose the right one. Which one is a made-up alien name?"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "optionStyle": "WORD",
+    "options": [
+      {
+        "id": "a",
+        "text": "train"
+      },
+      {
+        "id": "b",
+        "text": "spoon"
+      },
+      {
+        "id": "c",
+        "text": "stoip"
+      },
+      {
+        "id": "d",
+        "text": "chair"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "c"
+    ]
+  },
+  "speechDefinitionReferences": {
+    "instruction": {
+      "speechId": "instruction-read-each-word-then-choose"
+    }
+  }
+}

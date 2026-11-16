@@ -1,0 +1,52 @@
+{
+  "$comment": "Gate I, Phase 47 (content phase E, phonics age 7), drafted by Claude for the owner's review and listening. The child hears the whole word (tier A, C19.8 'hear X, choose X') and reads it among real-word near misses; no option sounds like the target. The C19.8 example (a before l in walk, against or after w in work). Loaded by scripts/seed_content.py; --publish publishes it once every referenced speech is approved in the admin app.",
+  "schemaVersion": 1,
+  "activityId": "ph-2205",
+  "title": "a after w: walk",
+  "subject": "phonics",
+  "topicId": "phonics-gpc-y2-vowel-patterns",
+  "minAge": 7,
+  "maxAge": 7,
+  "rewardCategory": "NORMAL",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "REQUIRED",
+  "prompt": {
+    "text": "Listen. Which word is this?"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "optionStyle": "WORD",
+    "options": [
+      {
+        "id": "a",
+        "text": "work"
+      },
+      {
+        "id": "b",
+        "text": "wake"
+      },
+      {
+        "id": "c",
+        "text": "walk"
+      },
+      {
+        "id": "d",
+        "text": "woke"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "c"
+    ]
+  },
+  "speechDefinitionReferences": {
+    "prompt": {
+      "speechId": "word-walk"
+    },
+    "instruction": {
+      "speechId": "instruction-listen-which-word-is-this"
+    }
+  }
+}

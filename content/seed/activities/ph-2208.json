@@ -1,0 +1,73 @@
+{
+  "$comment": "Gate I, Phase 47 (content phase E, phonics age 7), drafted by Claude for the owner's review and listening. o as /ʌ/ (other, nothing, brother) against o as in dog (hot, frog, stop). The instruction clip reads the stem; the bins name an anchor word to read. Loaded by scripts/seed_content.py; --publish publishes it once every referenced speech is approved in the admin app.",
+  "schemaVersion": 1,
+  "activityId": "ph-2208",
+  "title": "Sort by the o sound",
+  "subject": "phonics",
+  "topicId": "phonics-gpc-y2-vowel-patterns",
+  "minAge": 7,
+  "maxAge": 7,
+  "rewardCategory": "NORMAL",
+  "interactionType": "OBJECT_MOVE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "OPTIONAL",
+  "prompt": {
+    "text": "Read each word, then sort it by its sound."
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "mode": "SORT",
+    "objects": [
+      {
+        "id": "o1",
+        "text": "other",
+        "alt": "other"
+      },
+      {
+        "id": "o2",
+        "text": "hot",
+        "alt": "hot"
+      },
+      {
+        "id": "o3",
+        "text": "nothing",
+        "alt": "nothing"
+      },
+      {
+        "id": "o4",
+        "text": "frog",
+        "alt": "frog"
+      },
+      {
+        "id": "o5",
+        "text": "brother",
+        "alt": "brother"
+      },
+      {
+        "id": "o6",
+        "text": "stop",
+        "alt": "stop"
+      }
+    ],
+    "bins": [
+      {
+        "id": "dog",
+        "label": "o as in dog"
+      },
+      {
+        "id": "mother",
+        "label": "o as in mother"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "o1=mother;o2=dog;o3=mother;o4=dog;o5=mother;o6=dog"
+    ]
+  },
+  "speechDefinitionReferences": {
+    "instruction": {
+      "speechId": "instruction-read-each-word-then-sort"
+    }
+  }
+}
