@@ -849,6 +849,16 @@ def test_an_error_object_fails_the_job_with_its_code(api: Pictures) -> None:
     assert api.pcall(POLL, job=job_id(2))[1]["error"] == "bedrock_error"
 
 
+def test_a_missing_openai_key_reaches_the_operator_as_not_set_up(api: Pictures) -> None:
+    """picture-gen's not_set_up (the OpenAI key secret has no value, or OpenAI refused the key; 2026-11-16) is passed
+    on with its own words, not folded into bedrock_error."""
+    assert start(api, 1)[0] == 202
+    put_job_object(api, 1, "error.json", {"code": "not_set_up"})
+    body = api.pcall(POLL, job=job_id(1))[1]
+    assert (body["state"], body["error"]) == ("FAILED", "not_set_up")
+    assert body["message"] == "Drawing isn't set up yet: the API key is missing."
+
+
 def test_the_palette_warning_from_picture_gen_reaches_the_operator(api: Pictures) -> None:
     """admin-api has no palette (STYLE.md is bundled into picture-gen only): the worker's palette warning is passed
     on, but only names the sanitiser can give, never free text."""

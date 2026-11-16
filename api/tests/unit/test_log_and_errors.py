@@ -88,6 +88,7 @@ PICTURE_FIELDS = {
     "kind",
     "upstreamStatus",
     "upstreamError",
+    "provider",
 }
 
 

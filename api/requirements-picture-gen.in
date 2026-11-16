@@ -4,6 +4,12 @@
 # The bedrock extra brings boto3 and botocore, so the SDK's AWS signing runs on the botocore it was locked with
 # (the same version as requirements-dev.txt), not whatever the python3.14 runtime ships.
 anthropic[bedrock]==2.8.0
+# The OpenAI provider (owner decision 2026-11-16; ADR-0031 "Provider: OpenAI"). 3.48.0 is the newest release published
+# at least 7 days before 2026-11-16 (2026-11-09T16:13Z; 3.49.0 to 3.51.0 are newer). No extras: the bedrock extra's
+# botocore is not needed (picture-gen reads the key from Secrets Manager with boto3, which is already locked). Its
+# dependencies (anyio, httpx2>=2.12, jiter, pydantic, sniffio, typing-extensions) are anthropic's too, so the lock gains
+# one wheel.
+openai==3.48.0
 # Held back from 2.16.2 (published 2026-11-16, the day this lock was made): a dependency release that new is not
 # used until it has been out for a while (supply chain).
 httpx2==2.16.0

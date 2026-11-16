@@ -62,9 +62,12 @@ ALLOWED_FIELDS: frozenset[str] = frozenset(
         "model",
         "invalidated",
         "queuedSeconds",  # picture-gen: how long a stale job waited before it was refused (timed_out)
-        "upstreamStatus",  # picture-gen: the HTTP status Bedrock answered (an int), on a failed call
-        "upstreamError",  # picture-gen: x-amzn-ErrorType, letters only (e.g. AccessDeniedException); never a message
+        "upstreamStatus",  # picture-gen: the HTTP status the provider answered (an int), on a failed call
+        # picture-gen, on a failed call: Bedrock's x-amzn-ErrorType, letters only (e.g. AccessDeniedException), or
+        # OpenAI's error code, lower case, digits and _ only (e.g. invalid_api_key); never a message
+        "upstreamError",
         "kind",  # picture-gen (Gate P2): the job's picture kind, one of picture.kinds in contracts/limits.json
+        "provider",  # picture-gen: who drew it, openai or bedrock (PICTURE_PROVIDER; owner decision 2026-11-16)
     }
 )
 

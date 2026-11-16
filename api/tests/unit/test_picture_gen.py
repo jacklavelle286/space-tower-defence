@@ -1,4 +1,5 @@
-"""picture-gen (Gate P, Phase 42b) with a fake Bedrock client on moto S3. Bedrock is never called.
+"""picture-gen (Gate P, Phase 42b) with a fake Bedrock client on moto S3. Bedrock is never called. The OpenAI
+provider (owner decision 2026-11-16) has its own tests in test_picture_gen_openai.py; this file keeps the Bedrock path.
 
 The request shape is the design's: the model ID from configuration, three fixed system blocks (kind-neutral rules,
 the style guide with cache breakpoint 1, the picture kind's block with breakpoint 2; Gate P2), max_tokens 16000,
@@ -324,9 +325,9 @@ def test_progress_is_written_at_most_every_ten_seconds_within_a_phase(h: Harness
     writes: list[str] = []
     real = gen.Worker.progress
 
-    def counting(self: Any, s3: Any, config: Any, job_id: str, phase: str, stream: Any) -> None:
+    def counting(self: Any, s3: Any, config: Any, job_id: str, phase: str, tokens: int) -> None:
         writes.append(phase)
-        real(self, s3, config, job_id, phase, stream)
+        real(self, s3, config, job_id, phase, tokens)
 
     monkeypatch.setattr(gen.Worker, "progress", counting)
     delta = SimpleNamespace(type="content_block_delta")
@@ -574,6 +575,7 @@ def test_the_usage_line_has_token_counts_and_no_prompt_text(h: Harness) -> None:
         "level": "INFO",
         "metric": "picture_usage",
         "jobId": JOB,
+        "provider": "bedrock",
         "model": "eu.anthropic.claude-opus-5-5",
         "kind": "activity-object",
         "inputTokens": 120,

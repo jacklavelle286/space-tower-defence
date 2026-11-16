@@ -59,9 +59,20 @@ STATES = ("DRAFT", "APPROVED")
 SOURCES = ("UPLOAD", "GENERATED")
 JOB_STATES = ("QUEUED", "READY", "FAILED")
 # picture-gen's error.json codes (timed_out: a message that waited in the queue past QUEUE_MAX_AGE, never drawn;
-# bad_request: a message picture-gen cannot draw, such as a kind it does not know, never drawn), plus the ones
-# admin-api sets itself (could_not_start, timed_out, expired).
-WORKER_ERRORS = ("declined", "too_long", "unusable", "throttled", "bedrock_error", "timed_out", "bad_request")
+# bad_request: a message picture-gen cannot draw, such as a kind it does not know, never drawn; bedrock_error: any
+# provider error, OpenAI's too, its name kept for compatibility; not_set_up: the OpenAI key secret has no value or
+# OpenAI refused the key, owner decision 2026-11-16), plus the ones admin-api sets itself (could_not_start, timed_out,
+# expired).
+WORKER_ERRORS = (
+    "declined",
+    "too_long",
+    "unusable",
+    "throttled",
+    "bedrock_error",
+    "timed_out",
+    "bad_request",
+    "not_set_up",
+)
 JOB_ERRORS = (*WORKER_ERRORS, "could_not_start", "expired")
 JOB_ERROR_MESSAGES = {
     "declined": "Claude wouldn't draw that. Try different words.",
@@ -72,6 +83,7 @@ JOB_ERROR_MESSAGES = {
     "timed_out": "That didn't finish. Press Try again.",
     "could_not_start": "That didn't finish. Press Try again.",
     "bad_request": "That kind of picture can't be drawn yet. Reload the page and try again.",
+    "not_set_up": "Drawing isn't set up yet: the API key is missing.",
     "expired": "This drawing is too old to use now. Press Try again.",  # R39: a READY job whose result.json expired
 }
 PICTURE_LIMITS: Mapping[str, Any] = LIMITS["picture"]
