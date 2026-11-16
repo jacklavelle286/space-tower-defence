@@ -77,6 +77,9 @@ from shared.activity_types import (
     check_payload,
 )
 from shared.clipkey import KINDS, PROVIDER
+from shared.pictures import PIC_PK, library_asset_ids
+from shared.pictures import PUBLISH_REFS as PICTURE_PUBLISH_REFS
+from shared.png_canon import PICTURE_ID
 from shared.rules.contracts import LIMITS
 from shared.topics import get_topic
 
@@ -484,16 +487,30 @@ def _joined_answers(joined: list[str], primary: Step, second: Step, second_accep
 
 
 def _asset_problems(
-    definition: Mapping[str, Any], steps: list[Step], listed_name: str = "visualAssetReferences"
+    definition: Mapping[str, Any],
+    steps: list[Step],
+    listed_name: str = "visualAssetReferences",
+    library: Mapping[str, Mapping[str, Any]] | None = None,
 ) -> list[Problem]:
     """C22.2 rule 4: every picture is in the asset manifest, flagged text-free, and listed in visualAssetReferences;
     nothing is listed that is not used. `listed_name` is the list's field in the problems (a template instance's
-    list is `template.instances.<n>.visualAssetReferences`)."""
+    list is `template.instances.<n>.visualAssetReferences`).
+
+    Library pictures (Gate P): an ID `lib-` + 32 hex characters is not in the repository manifest; it names a picture
+    header in the content table (shared/pictures.py). With `library` (validate and publish read the headers, see
+    `publish_checks`) each one must exist (`unknown_asset`), be APPROVED (`picture_not_approved`) and be flagged
+    text-free (`not_text_free`). Without it (a seed, a fixture, no table) only the ID's form is checked."""
     manifest = asset_manifest()
     problems: list[Problem] = []
     used: dict[str, str] = {}
     for step in steps:
         for name, asset_id in step.assets:
+            if PICTURE_ID.fullmatch(asset_id):
+                rule = _library_rule(library, asset_id)
+                if rule is not None:
+                    problems.append(problem(name, rule))
+                used.setdefault(asset_id, name)
+                continue
             entry = manifest.get(asset_id)
             if entry is None:
                 problems.append(problem(name, "unknown_asset"))
@@ -514,11 +531,32 @@ def _asset_problems(
     return problems
 
 
-def definition_problems(definition: Any, activity_id: str, header: Mapping[str, Any] | None = None) -> list[Problem]:
+def _library_rule(library: Mapping[str, Mapping[str, Any]] | None, picture_id: str) -> str | None:
+    """The problem rule for one library picture, or None (always None without `library`: form only)."""
+    if library is None:
+        return None
+    header = library.get(picture_id)
+    if header is None:
+        return "unknown_asset"
+    if header.get("state") != "APPROVED":
+        return "picture_not_approved"
+    if header.get("textFree") is not True:
+        return "not_text_free"
+    return None
+
+
+def definition_problems(
+    definition: Any,
+    activity_id: str,
+    header: Mapping[str, Any] | None = None,
+    library: Mapping[str, Mapping[str, Any]] | None = None,
+) -> list[Problem]:
     """Every C22.2 check that needs only the definition itself (speech approval is checked against the table).
 
     `header` is the activity's header item when there is one (validate, publish): the topic registry checks are
-    skipped once it has a published version (`topic_problems`). None (a seed, a fixture) means nothing is published."""
+    skipped once it has a published version (`topic_problems`). None (a seed, a fixture) means nothing is published.
+    `library` is {pictureId: picture header} for the library pictures the definition names, read by `publish_checks`;
+    None checks only their form (`_asset_problems`)."""
     if not isinstance(definition, Mapping):
         return [problem("definition", "type")]
     problems: list[Problem] = []
@@ -588,7 +626,7 @@ def definition_problems(definition: Any, activity_id: str, header: Mapping[str, 
     many = [s for s, n in counts if s is not None and n > 1]
     if any(s.note_when_many for s in many) and "reviewNote" not in definition:
         problems.append(problem("reviewNote", "review_note_required"))  # more than one accepted entry (C20.1)
-    problems.extend(_asset_problems(definition, steps))
+    problems.extend(_asset_problems(definition, steps, library=library))
     problems.extend(_typed_word_age_problems(definition))
     problems.extend(_speech_problems(definition, steps, template=False))
     return problems
@@ -881,9 +919,14 @@ def publish_checks(
 ) -> tuple[list[Problem], dict[str, dict[str, str]]]:
     """C22.2 subset: (problems, resolved speech refs {variant: {speechId, speechVersion, clipKey}}).
 
-    Reads the referenced speech headers and their approved versions from `table` (reads only)."""
+    Reads the referenced speech headers and their approved versions, and the headers of the library pictures the
+    definition names (Gate P), from `table` (reads only)."""
     definition = draft.get("definition")
-    problems = definition_problems(definition, activity_id, header)  # registry checks until the first publish
+    pictures = sorted(library_asset_ids(definition))
+    found_pictures = table.batch_get([(PIC_PK, picture_id) for picture_id in pictures])
+    library = {p: found_pictures[(PIC_PK, p)] for p in pictures if (PIC_PK, p) in found_pictures}
+    # registry checks until the first publish
+    problems = definition_problems(definition, activity_id, header, library=library)
     if not isinstance(definition, Mapping):
         return problems, {}
     problems += locked_problems(header, definition)
@@ -938,7 +981,11 @@ def publish_actions(
 
     The counter is what R32 (speech delete) conditions its header delete on: a publish that commits between R32's
     in-use check and its delete changes the counter, so the delete is refused and R32 checks again (a ConditionCheck
-    alone writes nothing, so the delete could not see such a publish)."""
+    alone writes nothing, so the delete could not see such a publish).
+
+    Library pictures (Gate P) get the same guard: each picture header the definition names gains 1 on its own
+    `publishRefs`, conditioned on it still being APPROVED and text-free, so R37 (picture delete) cannot remove a
+    picture a publish is committing, and a picture deleted or never approved refuses the publish."""
     definition = definition_for_publish(draft["definition"])  # registry curriculum when the draft has none
     domain_size = template_report(definition).domain_size if definition.get("authoringMode") == "TEMPLATE" else None
     vid = version_id(moment)
@@ -997,6 +1044,17 @@ def publish_actions(
                 names={"#v": "approvedVersion", "#refs": PUBLISH_REFS},
                 values={":v": speech_version, ":one": 1},
                 condition="#v = :v",
+            )
+        )
+    for picture_id in sorted(library_asset_ids(draft["definition"])):
+        actions.append(
+            table.update_action(
+                PIC_PK,
+                picture_id,
+                update="ADD #refs :one",
+                names={"#state": "state", "#tf": "textFree", "#refs": PICTURE_PUBLISH_REFS},
+                values={":approved": "APPROVED", ":true": True, ":one": 1},
+                condition="#state = :approved AND #tf = :true",
             )
         )
     actions.append(

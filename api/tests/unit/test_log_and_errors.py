@@ -70,8 +70,27 @@ def test_records_never_reach_the_root_logger(monkeypatch: pytest.MonkeyPatch) ->
     assert json.loads(own_stream.getvalue()) == {"level": "INFO", "code": "X", "droppedFields": 1}
 
 
-def test_allow_list_is_g15_plus_error_type() -> None:
-    assert ALLOWED_FIELDS - {"errorType"} == {
+PICTURE_FIELDS = {
+    "pictureId",
+    "jobId",
+    "capPeriod",
+    "usedToday",
+    "usedMonth",
+    "metric",
+    "inputTokens",
+    "outputTokens",
+    "cacheReadTokens",
+    "cacheWriteTokens",
+    "stopReason",
+    "model",
+    "invalidated",
+    "queuedSeconds",
+}
+
+
+def test_allow_list_is_g15_plus_error_type_and_the_picture_fields() -> None:
+    """Gate P adds identifiers, counts and token numbers only: no field can carry a description or an SVG."""
+    assert ALLOWED_FIELDS - {"errorType"} - PICTURE_FIELDS == {
         "requestId",
         "routeKey",
         "status",

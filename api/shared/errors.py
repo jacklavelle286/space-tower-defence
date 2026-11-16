@@ -31,7 +31,9 @@ STATUS_BY_CODE: Mapping[str, int] = {
     "RUN_TERMINAL": 409,
     "STALE_SESSION": 409,
     "TAKEOVER_CONFIRM_REQUIRED": 409,
+    "PAYLOAD_TOO_LARGE": 413,  # R34: a picture over 512 KiB once decoded (Gate P)
     "CLIENT_UPGRADE_REQUIRED": 426,
+    "PICTURE_CAP_REACHED": 429,  # R38: the daily or monthly drawing cap (Gate P); a Lambda answer, so enveloped
     "INTERNAL": 500,
     "NOT_IMPLEMENTED": 501,
     "SPEECH_SYNTHESIS_FAILED": 502,
@@ -47,6 +49,8 @@ _DEFAULT_MESSAGES: Mapping[str, str] = {
     "INTERNAL": "Internal error",
     "NOT_IMPLEMENTED": "Route not implemented yet",
     "THROTTLED": "Busy, retry",
+    "PAYLOAD_TOO_LARGE": "Picture too large",
+    "PICTURE_CAP_REACHED": "Drawing limit reached",
 }
 
 # Every API response carries these (G §1.1: no-store so the browser keeps no copy of profile or run data).

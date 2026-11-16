@@ -14,6 +14,11 @@ ask of 2026-11-16 ("I can't delete sounds") adds R32, `DELETE /api/admin/speech-
 speech definition, refused while any activity draft or version references it. Item shapes and checks are in
 shared/content.py and shared/activity_types.py.
 
+Gate P (Phases 42a and 42b) adds library pictures: R33-R37 (list, upload, get, approve, delete) and R38-R39 (start a
+drawing with Claude, poll it). Their handlers are in shared/picture_admin.py and their items in shared/pictures.py;
+this function writes S3 only under the pictures bucket's `store/` and `pictures/v1/` prefixes (never the clips),
+sends picture-jobs messages, and invalidates the served path on delete. It never calls Bedrock (picture-gen does).
+
 Speech approval (R21, F §12.6 C7, D §D9.3) never synthesises. It recomputes the clip key from the SAVED draft (its kind
 picks the engine, with the same TTS_* configuration as `tts`) and requires that object in the audio bucket: the object
 exists only if `POST /api/admin/speech/preview` rendered exactly this draft's input, so "a preview of the same draft
@@ -57,6 +62,7 @@ from datetime import UTC, datetime
 from functools import cache
 from typing import Any
 
+import boto3
 from botocore.exceptions import ClientError
 
 from shared.audio import AudioStore, head_clip, s3_client, stored_sha256
@@ -122,6 +128,8 @@ from shared.data import (
 from shared.errors import ApiError, json_response
 from shared.game_data import GameDataReader, GameDataUnavailable, reader_from_env
 from shared.log import ApiLogger
+from shared.picture_admin import PictureServices, make_picture_handlers
+from shared.pictures import PictureConfig
 from shared.router import Request, Router
 from shared.rules.contracts import LIMITS
 from shared.selection.bank import HEADER_PK
@@ -147,6 +155,13 @@ ROUTES: dict[str, str] = {
     "GET /api/admin/bank-status": OPERATOR,
     "DELETE /api/admin/activities/{id}": OPERATOR,
     "DELETE /api/admin/speech-definitions/{id}": OPERATOR,
+    "GET /api/admin/pictures": OPERATOR,
+    "POST /api/admin/pictures": OPERATOR,
+    "GET /api/admin/pictures/{id}": OPERATOR,
+    "POST /api/admin/pictures/{id}/approve": OPERATOR,
+    "DELETE /api/admin/pictures/{id}": OPERATOR,
+    "POST /api/admin/picture-jobs": OPERATOR,
+    "GET /api/admin/picture-jobs/{jobId}": OPERATOR,
 }
 
 DRAFT_MAX_BYTES: int = LIMITS["bodyMaxBytes"]["adminActivityDraft"]  # 64 KB for PUT .../draft (G §12)
@@ -164,6 +179,8 @@ def _utc_now() -> datetime:
 
 _container_s3 = cache(s3_client)
 _container_game_data = cache(reader_from_env)  # one game-data reader, and so one cache, per Lambda container
+_container_sqs = cache(lambda: boto3.client("sqs"))
+_container_cloudfront = cache(lambda: boto3.client("cloudfront"))
 
 
 @dataclass(frozen=True)
@@ -177,6 +194,10 @@ class Deps:
     # The released game data, read as player-api reads it, so bank status (R30) judges the wave sets new games use.
     game_data: Callable[[], GameDataReader] = _container_game_data
     bounds: Callable[[str, str], Any] = load_bounds
+    # Pictures (Gate P): the bucket, distributions, queue and caps from the environment, and the extra clients.
+    pictures: Callable[[], PictureConfig] = PictureConfig.from_env
+    sqs: Callable[[], Any] = _container_sqs
+    cloudfront: Callable[[], Any] = _container_cloudfront
 
 
 # --- Request helpers ------------------------------------------------------------------------------------------------
@@ -1092,6 +1113,12 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         "GET /api/admin/bank-status": get_bank_status,
         "DELETE /api/admin/activities/{id}": delete_activity,
         "DELETE /api/admin/speech-definitions/{id}": delete_speech,
+        **make_picture_handlers(
+            table=table,
+            services=PictureServices(config=deps.pictures, s3=deps.s3, sqs=deps.sqs, cloudfront=deps.cloudfront),
+            now=deps.now,
+            transact=transact,
+        ),
     }
     return Router(routes=ROUTES, handlers=handlers, logger=logger)
 

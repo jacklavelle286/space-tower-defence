@@ -46,6 +46,22 @@ ALLOWED_FIELDS: frozenset[str] = frozenset(
         "speechId",
         "versionId",
         "errorType",
+        # Pictures (Gate P, Phase 42): the picture and job IDs, the cap period a refusal hit and the counts after a
+        # start (R38), and picture-gen's one usage line per job: token counts only, never the prompt or the SVG.
+        "pictureId",
+        "jobId",
+        "capPeriod",
+        "usedToday",
+        "usedMonth",
+        "metric",
+        "inputTokens",
+        "outputTokens",
+        "cacheReadTokens",
+        "cacheWriteTokens",
+        "stopReason",
+        "model",
+        "invalidated",
+        "queuedSeconds",  # picture-gen: how long a stale job waited before it was refused (timed_out)
     }
 )
 

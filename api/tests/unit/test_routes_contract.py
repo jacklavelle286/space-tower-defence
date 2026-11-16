@@ -13,14 +13,15 @@ SCOPE = {"player": "game/play", "operator": "ops/content"}
 MODULE = {"player-api": "player_api", "admin-api": "admin_api", "tts": "tts"}
 
 
-def test_thirty_two_routes_in_catalogue_order() -> None:
-    assert [route["id"] for route in ROUTES] == [f"R{n}" for n in range(1, 33)]
+def test_thirty_nine_routes_in_catalogue_order() -> None:
+    """R1-R30 (G §2), R31-R32 (deletes, 2026-11-16), R33-R39 (library pictures and drawing; Gate P)."""
+    assert [route["id"] for route in ROUTES] == [f"R{n}" for n in range(1, 40)]
     assert all(set(route) == FIELDS for route in ROUTES)
 
 
 def test_route_keys_are_unique_and_keep_the_api_prefix() -> None:
     keys = [f"{route['method']} {route['path']}" for route in ROUTES]
-    assert len(set(keys)) == 32
+    assert len(set(keys)) == 39
     for route in ROUTES:
         assert route["method"] in {"GET", "POST", "PUT", "PATCH", "DELETE"}
         assert route["path"].startswith("/api/")
@@ -41,7 +42,7 @@ def test_functions_per_g2() -> None:
     assert by_function == {
         "player-api": [f"R{n}" for n in range(1, 15)],
         "tts": ["R15", "R16"],
-        "admin-api": [f"R{n}" for n in range(17, 33)],
+        "admin-api": [f"R{n}" for n in range(17, 40)],
     }
 
 
@@ -49,3 +50,18 @@ def test_functions_per_g2() -> None:
 def test_function_allow_list_equals_catalogue(function: str) -> None:
     expected = {f"{r['method']} {r['path']}": r["authoriser"] for r in ROUTES if r["function"] == function}
     assert expected == load_handler(MODULE[function]).ROUTES
+
+
+def test_picture_routes_are_admin_api_operator_routes() -> None:
+    """Gate P: the seven picture routes, behind the operator authoriser with the content scope, on admin-api."""
+    pictures = {r["id"]: f"{r['method']} {r['path']}" for r in ROUTES if r["id"] in {f"R{n}" for n in range(33, 40)}}
+    assert pictures == {
+        "R33": "GET /api/admin/pictures",
+        "R34": "POST /api/admin/pictures",
+        "R35": "GET /api/admin/pictures/{id}",
+        "R36": "POST /api/admin/pictures/{id}/approve",
+        "R37": "DELETE /api/admin/pictures/{id}",
+        "R38": "POST /api/admin/picture-jobs",
+        "R39": "GET /api/admin/picture-jobs/{jobId}",
+    }
+    assert all(r["function"] == "admin-api" and r["authoriser"] == "operator" for r in ROUTES if r["id"] in pictures)
