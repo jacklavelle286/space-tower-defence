@@ -1,7 +1,7 @@
 // Draw with Claude (Phase 42b): the operator chooses what the picture is for (its kind, Gate P2: there is no default,
 // so "Draw it" stays off until one is chosen) and describes it; R38 starts a drawing job (it counts toward the daily
 // and monthly caps), and a card follows it by asking R39 every 3 s (every 5 s after the first minute): "Waiting to
-// start", "Claude is thinking… 0:42", "Drawing… 1:20". When the job is READY the card turns Claude's SVG (sanitised by
+// start", "Thinking… 0:42", "Drawing… 1:20". When the job is READY the card turns Claude's SVG (sanitised by
 // the worker and again by admin-api) into a PNG of the kind's size (256x256; 1920x1056 for a background) through an
 // <img> and a canvas, never by putting the SVG into
 // the page, and shows it. From there: Approve (needs the "no letters, numbers or words" tick; one click sends R34
@@ -14,7 +14,7 @@
 // A card keeps its job's kind: Try again and Try again with a change draw the same kind (admin-api refuses a redraw of
 // another kind), and a card brought back after a reload takes the kind R33 lists for the job.
 //
-// Screen readers: each card's live region announces only changes of step ("Waiting to start", "Claude is thinking…",
+// Screen readers: each card's live region announces only changes of step ("Waiting to start", "Thinking…",
 // "Drawing…", the outcome); the running clock sits outside it, so it is not read out every few seconds. Focus moves
 // to what replaced a control that went away: the saved message, the next card, or the description box.
 import { LIMITS, pictureKindLabel, pictureKindOf, pictureKindSpec, type PictureKindId } from "@scd/shared";
@@ -128,24 +128,24 @@ export function DrawPicture({ api, usage, openJobs, onUsage, onChanged, tools = 
   };
 
   return (
-    <section className="pictures-draw" aria-label="Draw with Claude">
+    <section className="pictures-draw" aria-label="Draw a picture">
       <p className="muted">
-        Describe one thing to draw, for example "a smiling orange fox sitting down". Claude draws it in the game's
+        Describe one thing to draw, for example "a smiling orange fox sitting down". It's drawn in the game's
         style. Every drawing counts, including Try again.
       </p>
       {usage !== null && <p className="usage">{usageText(usage)}</p>}
       {(off || reached !== null) && <p className="notice">{capMessage(reached, usage)}</p>}
       {!off && noRoom !== null && <p className="notice">{weightMessage(noRoom, weight)}</p>}
       <p className="field">
-        <label htmlFor={`${descriptionId}-kind`}>What kind of picture should Claude draw?</label>
+        <label htmlFor={`${descriptionId}-kind`}>What kind of picture?</label>
         <KindSelect id={`${descriptionId}-kind`} value={kind} onChange={setKind} first="Choose a kind of picture…" describedBy={`${descriptionId}-kind-hint`} />
         <small id={`${descriptionId}-kind-hint`} className="muted">
-          Claude draws each kind differently. Only the kinds under “Use in activities” can go in an activity.
+          Each kind is drawn differently. Only the kinds under “Use in activities” can go in an activity.
           {weight > 1 && ` This kind counts as ${weight} drawings in the daily and monthly limits.`}
         </small>
       </p>
       <p className="field">
-        <label htmlFor={descriptionId}>What should Claude draw?</label>
+        <label htmlFor={descriptionId}>Describe the picture</label>
         <textarea
           id={descriptionId}
           ref={descriptionRef}
@@ -380,7 +380,7 @@ function JobCard({ api, spec, tools, delay, onUsage, onChanged, onDiscard, onRet
       case "waiting":
         return "Waiting to start";
       case "drawing":
-        return status.phase === "drawing" ? "Drawing…" : "Claude is thinking…";
+        return status.phase === "drawing" ? "Drawing…" : "Thinking…";
       case "rendering":
         return "Nearly ready…";
       default:
@@ -419,7 +419,7 @@ function JobCard({ api, spec, tools, delay, onUsage, onChanged, onDiscard, onRet
       )}
       {status.step === "ready" && (
         <div className="picture-review">
-          <img className="picture-preview" src={status.url} alt={`Claude's drawing of ${spec.description}`} {...previewSize(spec.kind)} />
+          <img className="picture-preview" src={status.url} alt={`Drawing of ${spec.description}`} {...previewSize(spec.kind)} />
           <div className="picture-review-form">
             {status.warnings.length > 0 && <p className="muted">Notes: {status.warnings.join("; ")}</p>}
             <p className="field">

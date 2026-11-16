@@ -88,11 +88,11 @@ export function capsFromError(error: unknown): PictureCaps | null {
 export function jobFailureMessage(code: string): string {
   switch (code) {
     case "declined":
-      return "Claude wouldn't draw that. Try different words.";
+      return "That couldn't be drawn. Try different words.";
     case "too_long":
       return "The drawing got too complicated. Try a simpler description.";
     case "unusable":
-      return "Claude's drawing couldn't be used safely. Press Try again.";
+      return "That drawing couldn't be used safely. Press Try again.";
     case "expired":
       return "This drawing is too old to use now. Press Try again.";
     case "could_not_start":
@@ -100,7 +100,7 @@ export function jobFailureMessage(code: string): string {
     case "bad_request":
       return "That kind of picture can't be drawn yet. Reload the page and try again.";
     case "not_set_up": // the OpenAI key secret has no value, or OpenAI refused the key (2026-11-16)
-      return "Drawing isn't set up yet: the API key is missing.";
+      return "Drawing isn't set up yet: the API key is missing or was refused.";
     default:
       // timed_out, bedrock_error (any provider error, OpenAI's too: the name is kept), throttled and anything new
       return "That didn't finish. Press Try again.";

@@ -22,7 +22,7 @@ type Props = {
   readonly newJobId?: () => string;
 };
 
-const TAB_LABEL: Record<PictureTab, string> = { upload: "Upload", draw: "Draw with Claude", library: "Library" };
+const TAB_LABEL: Record<PictureTab, string> = { upload: "Upload", draw: "Draw", library: "Library" };
 
 /** R33's open jobs, less any a library picture was already saved from (admin-api leaves those out too; this also
  * covers a list read just before a save). */

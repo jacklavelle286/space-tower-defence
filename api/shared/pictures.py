@@ -75,15 +75,15 @@ WORKER_ERRORS = (
 )
 JOB_ERRORS = (*WORKER_ERRORS, "could_not_start", "expired")
 JOB_ERROR_MESSAGES = {
-    "declined": "Claude wouldn't draw that. Try different words.",
+    "declined": "That couldn't be drawn. Try different words.",
     "too_long": "The drawing got too complicated. Try a simpler description.",
-    "unusable": "Claude's drawing couldn't be used safely. Press Try again.",
+    "unusable": "That drawing couldn't be used safely. Press Try again.",
     "throttled": "That didn't finish. Press Try again.",
     "bedrock_error": "That didn't finish. Press Try again.",
     "timed_out": "That didn't finish. Press Try again.",
     "could_not_start": "That didn't finish. Press Try again.",
     "bad_request": "That kind of picture can't be drawn yet. Reload the page and try again.",
-    "not_set_up": "Drawing isn't set up yet: the API key is missing.",
+    "not_set_up": "Drawing isn't set up yet: the API key is missing or was refused.",
     "expired": "This drawing is too old to use now. Press Try again.",  # R39: a READY job whose result.json expired
 }
 PICTURE_LIMITS: Mapping[str, Any] = LIMITS["picture"]

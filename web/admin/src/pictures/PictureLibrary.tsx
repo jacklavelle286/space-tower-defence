@@ -25,7 +25,7 @@ type Props = {
 };
 
 const STATE_LABEL: Record<PictureState, string> = { APPROVED: "Approved", DRAFT: "Draft" };
-const SOURCE_LABEL: Record<PictureSource, string> = { UPLOAD: "Uploaded", GENERATED: "Drawn by Claude" };
+const SOURCE_LABEL: Record<PictureSource, string> = { UPLOAD: "Uploaded", GENERATED: "Drawn" };
 
 export function PictureLibrary({ api, pictures, onChanged, tools = browserTools }: Props) {
   const [state, setState] = useState<PictureState | "">("");
@@ -72,7 +72,7 @@ export function PictureLibrary({ api, pictures, onChanged, tools = browserTools 
           <select id={`${ids}-source`} value={source} onChange={(e) => setSource(e.target.value as PictureSource | "")}>
             <option value="">Anywhere</option>
             <option value="UPLOAD">Uploaded</option>
-            <option value="GENERATED">Drawn by Claude</option>
+            <option value="GENERATED">Drawn</option>
           </select>
         </span>
         <span className="field">

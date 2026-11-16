@@ -843,7 +843,7 @@ def test_an_error_object_fails_the_job_with_its_code(api: Pictures) -> None:
     put_job_object(api, 1, "error.json", {"code": "declined"})
     body = api.pcall(POLL, job=job_id(1))[1]
     assert (body["state"], body["error"]) == ("FAILED", "declined")
-    assert body["message"] == "Claude wouldn't draw that. Try different words."
+    assert body["message"] == "That couldn't be drawn. Try different words."
     assert start(api, 2)[0] == 202
     put_job_object(api, 2, "error.json", {"code": "<b>made up</b>"})
     assert api.pcall(POLL, job=job_id(2))[1]["error"] == "bedrock_error"
@@ -856,7 +856,7 @@ def test_a_missing_openai_key_reaches_the_operator_as_not_set_up(api: Pictures) 
     put_job_object(api, 1, "error.json", {"code": "not_set_up"})
     body = api.pcall(POLL, job=job_id(1))[1]
     assert (body["state"], body["error"]) == ("FAILED", "not_set_up")
-    assert body["message"] == "Drawing isn't set up yet: the API key is missing."
+    assert body["message"] == "Drawing isn't set up yet: the API key is missing or was refused."
 
 
 def test_the_palette_warning_from_picture_gen_reaches_the_operator(api: Pictures) -> None:

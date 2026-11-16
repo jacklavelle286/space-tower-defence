@@ -70,7 +70,7 @@ export function pictureProblemMessage(problem: PictureProblem, drawing = false):
     case "too_many_pixels":
       return `That picture is more than ${MAX_SIDE} pixels wide or tall. Choose a smaller picture.`;
     case "unreadable":
-      return drawing ? "Claude's drawing couldn't be shown. Press Try again." : "That picture couldn't be read. Try another file.";
+      return drawing ? "The drawing couldn't be shown. Press Try again." : "That picture couldn't be read. Try another file.";
     case "too_detailed":
       return "Picture too detailed: it can't be stored. Try a simpler picture.";
     case "no_canvas":

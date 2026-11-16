@@ -6,7 +6,7 @@ draws it into a canvas through an `<img>` (where scripts cannot run) and uploads
 second wall, not the only one.
 
 The rule is an allow-list. Anything not named here refuses the whole drawing (SvgRefused): the operator sees
-"Claude's drawing couldn't be used safely. Press Try again." Only comments, processing instructions inside the
+"That drawing couldn't be used safely. Press Try again." Only comments, processing instructions inside the
 parsed tree, `title`, `desc`, `metadata`, and the attributes `class`, `data-*` and `aria-*` are dropped silently.
 
 Pre-parse (on the bytes): UTF-8 without a BOM, at most `max_bytes` (MAX_BYTES unless the kind says more); no `<!`

@@ -139,17 +139,17 @@ describe("Upload", () => {
   });
 });
 
-describe("Draw with Claude", () => {
+describe("Draw", () => {
   function describeDrawing(text: string, kind = "activity-object") {
-    fireEvent.change(screen.getByLabelText("What kind of picture should Claude draw?"), { target: { value: kind } });
-    fireEvent.change(screen.getByLabelText("What should Claude draw?"), { target: { value: text } });
+    fireEvent.change(screen.getByLabelText("What kind of picture?"), { target: { value: kind } });
+    fireEvent.change(screen.getByLabelText("Describe the picture"), { target: { value: text } });
     fireEvent.click(screen.getByRole("button", { name: "Draw it" }));
   }
 
   it("counts a background as 3 drawings, and stops one that no longer fits while other kinds still can", async () => {
     fake.usage = { usedToday: 97, dailyCap: 100, usedMonth: 10, monthlyCap: 150 };
     await openPage("draw");
-    fireEvent.change(screen.getByLabelText("What kind of picture should Claude draw?"), { target: { value: "background" } });
+    fireEvent.change(screen.getByLabelText("What kind of picture?"), { target: { value: "background" } });
     expect(screen.getByText(/This kind counts as 3 drawings in the daily and monthly limits\./u)).toBeTruthy();
     describeDrawing("a quiet crater field", "background");
     expect(await screen.findByRole("article", { name: "Drawing: a quiet crater field" })).toBeTruthy();
@@ -157,11 +157,11 @@ describe("Draw with Claude", () => {
     fake.usage = { usedToday: 98, dailyCap: 100, usedMonth: 13, monthlyCap: 150 };
     cleanup();
     await openPage("draw");
-    fireEvent.change(screen.getByLabelText("What kind of picture should Claude draw?"), { target: { value: "background" } });
-    fireEvent.change(screen.getByLabelText("What should Claude draw?"), { target: { value: "a quiet crater field" } });
+    fireEvent.change(screen.getByLabelText("What kind of picture?"), { target: { value: "background" } });
+    fireEvent.change(screen.getByLabelText("Describe the picture"), { target: { value: "a quiet crater field" } });
     expect(screen.getByText(/fewer than 3 are left today/u)).toBeTruthy();
     expect((screen.getByRole("button", { name: "Draw it" }) as HTMLButtonElement).disabled).toBe(true);
-    fireEvent.change(screen.getByLabelText("What kind of picture should Claude draw?"), { target: { value: "planet" } });
+    fireEvent.change(screen.getByLabelText("What kind of picture?"), { target: { value: "planet" } });
     expect(screen.queryByText(/fewer than 3 are left/u)).toBeNull();
     expect((screen.getByRole("button", { name: "Draw it" }) as HTMLButtonElement).disabled).toBe(false);
   });
@@ -174,7 +174,7 @@ describe("Draw with Claude", () => {
     describeDrawing("a smiling orange fox");
     expect(fake.callsNamed("startPictureJob").map((c) => c.args[0])).toEqual([{ jobId: jobId(1), description: "a smiling orange fox", kind: "activity-object" }]);
     const card = await screen.findByRole("article", { name: "Drawing: a smiling orange fox" });
-    expect(await within(card).findByText("Claude is thinking…")).toBeTruthy();
+    expect(await within(card).findByText("Thinking…")).toBeTruthy();
     expect(screen.getAllByText(/96 of 100 left today · 139 of 150 left this month/u).length).toBeGreaterThan(0);
     fake.jobScripts.set(jobId(1), [{ state: "DRAWING", phase: "drawing", elapsedSeconds: 80 }]);
     expect(await within(card).findByText("Drawing…")).toBeTruthy();
@@ -183,7 +183,7 @@ describe("Draw with Claude", () => {
     expect(live.textContent).toBe("Drawing…");
     expect(within(card).getByText("Time so far:", { exact: false }).closest("[role=status]")).toBeNull();
     fake.jobScripts.set(jobId(1), [{ state: "READY", svg: SVG, warnings: [] }]);
-    const picture = await within(card).findByRole("img", { name: "Claude's drawing of a smiling orange fox" });
+    const picture = await within(card).findByRole("img", { name: "Drawing of a smiling orange fox" });
     expect(picture.getAttribute("src")).toMatch(/^blob:fake\//u);
     expect(images.decodedSvgs).toEqual([SVG]);
     // The SVG itself never enters the page: only the PNG made from it, through an <img>.
@@ -227,10 +227,10 @@ describe("Draw with Claude", () => {
   it("has no default kind: Draw it stays off until one is chosen, and the job, its card and its redraws keep it", async () => {
     fake.nextJobScripts.push([{ state: "READY", svg: SVG }], [{ state: "READY", svg: SVG }]);
     await openPage("draw");
-    const select = screen.getByLabelText("What kind of picture should Claude draw?") as HTMLSelectElement;
+    const select = screen.getByLabelText("What kind of picture?") as HTMLSelectElement;
     expect(select.value).toBe("");
     expect([...select.querySelectorAll("optgroup")].map((g) => g.label)).toEqual(["Use in activities", "For later (not used in the game yet)"]);
-    fireEvent.change(screen.getByLabelText("What should Claude draw?"), { target: { value: "a smiling astronaut girl" } });
+    fireEvent.change(screen.getByLabelText("Describe the picture"), { target: { value: "a smiling astronaut girl" } });
     const draw = screen.getByRole("button", { name: "Draw it" }) as HTMLButtonElement;
     expect(draw.disabled).toBe(true);
     fireEvent.change(select, { target: { value: "avatar" } });
@@ -294,7 +294,7 @@ describe("Draw with Claude", () => {
     await openPage("draw");
     describeDrawing("something odd");
     const card = await screen.findByRole("article", { name: "Drawing: something odd" });
-    expect(await within(card).findByText("Claude wouldn't draw that. Try different words.")).toBeTruthy();
+    expect(await within(card).findByText("That couldn't be drawn. Try different words.")).toBeTruthy();
     fireEvent.click(within(card).getByRole("button", { name: "Try again" }));
     expect(fake.callsNamed("startPictureJob").map((c) => c.args[0])).toEqual([
       { jobId: jobId(1), description: "something odd", kind: "activity-object" },
@@ -334,8 +334,8 @@ describe("Draw with Claude", () => {
   it("tidies spaces and new lines in the description and the change note instead of turning the button off", async () => {
     fake.nextJobScripts.push([{ state: "READY", svg: SVG }]);
     await openPage("draw");
-    fireEvent.change(screen.getByLabelText("What kind of picture should Claude draw?"), { target: { value: "activity-object" } });
-    fireEvent.change(screen.getByLabelText("What should Claude draw?"), { target: { value: "  a red\n kite \n" } });
+    fireEvent.change(screen.getByLabelText("What kind of picture?"), { target: { value: "activity-object" } });
+    fireEvent.change(screen.getByLabelText("Describe the picture"), { target: { value: "  a red\n kite \n" } });
     expect(screen.getByText(/Extra spaces and new lines are tidied away/u)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Draw it" }));
     const card = await screen.findByRole("article", { name: "Drawing: a red kite" });
@@ -353,7 +353,7 @@ describe("Draw with Claude", () => {
     await openPage("draw");
     expect(screen.getAllByText(/Drawing is switched off/u).length).toBeGreaterThan(0);
     expect(screen.queryByText(/100 of 100 left today/u)).toBeNull();
-    fireEvent.change(screen.getByLabelText("What should Claude draw?"), { target: { value: "a red kite" } });
+    fireEvent.change(screen.getByLabelText("Describe the picture"), { target: { value: "a red kite" } });
     expect((screen.getByRole("button", { name: "Draw it" }) as HTMLButtonElement).disabled).toBe(true);
   });
 
@@ -370,7 +370,7 @@ describe("Draw with Claude", () => {
     const saved = await within(kite).findByText('"A red kite" is saved as a draft.');
     await waitFor(() => expect(document.activeElement).toBe(saved));
     fireEvent.click(within(kite).getByRole("button", { name: "Close" }));
-    await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText("What should Claude draw?")));
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByLabelText("Describe the picture")));
   });
 
   it("a discarded drawing does not come back when the page is opened again", async () => {
@@ -402,7 +402,7 @@ describe("Draw with Claude", () => {
     fake.usage = { usedToday: 0, dailyCap: 0, usedMonth: 0, monthlyCap: 150 };
     await openPage("draw");
     expect(screen.getAllByText(/Drawing is switched off/u).length).toBeGreaterThan(0);
-    fireEvent.change(screen.getByLabelText("What should Claude draw?"), { target: { value: "a red kite" } });
+    fireEvent.change(screen.getByLabelText("Describe the picture"), { target: { value: "a red kite" } });
     expect((screen.getByRole("button", { name: "Draw it" }) as HTMLButtonElement).disabled).toBe(true);
   });
 
@@ -411,7 +411,7 @@ describe("Draw with Claude", () => {
     fake.jobScripts.set(jobId(9), [{ state: "READY", svg: SVG }]);
     await openPage("draw");
     const card = await screen.findByRole("article", { name: "Drawing: a green frog" });
-    expect(await within(card).findByRole("img", { name: "Claude's drawing of a green frog" })).toBeTruthy();
+    expect(await within(card).findByRole("img", { name: "Drawing of a green frog" })).toBeTruthy();
     expect(fake.callsNamed("startPictureJob")).toEqual([]);
   });
 });
