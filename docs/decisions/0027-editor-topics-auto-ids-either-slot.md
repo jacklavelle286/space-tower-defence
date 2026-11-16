@@ -1,5 +1,5 @@
 # 0027. Editor: topic registry, automatic IDs, either-slot activities, one review tick
-Status: Proposed · Date: 2026-11-16
+Status: Accepted · Date: 2026-11-16
 
 Context: The owner reviewed the Gate G editor on 2026-11-16 **[CONFIRMED by owner, 2026-11-16]**:
 - Typing IDs is slow; picking a topic should fill everything in.

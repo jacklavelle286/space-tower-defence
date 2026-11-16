@@ -1,5 +1,5 @@
 # 0028. In-app listening is the verdict; the starter pack is auto-published
-Status: Proposed · Date: 2026-11-16
+Status: Accepted · Date: 2026-11-16
 
 Context:
 - **Phonemes.** Approving a `PHONEME` speech definition needed a `publishable` verdict for its sound in

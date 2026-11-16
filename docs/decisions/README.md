@@ -42,8 +42,8 @@ The rules are in [J §J.6](../plan/J-execution-backlog.md#j6-decision-log-practi
 | [0023](0023-admin-sign-in-without-amplify.md) | Admin sign-in: hand-written code + PKCE, tokens in sessionStorage, no refresh (the player keeps Amplify, E.7.1) | Accepted |
 | [0025](0025-speech-takes.md) | Speech takes: a draft's `take` (1..50, absent = 1) is the clip key's generation, so the operator can re-roll a generative render | Accepted |
 | [0026](0026-picture-library-generate-and-upload.md) | Picture library: generate with Claude on Bedrock, and upload | Proposed |
-| [0027](0027-editor-topics-auto-ids-either-slot.md) | Editor: topic registry, automatic IDs, activities for either slot (`BOTH`), one review tick | Proposed |
-| [0028](0028-in-app-listening-verdict-and-auto-published-starter-pack.md) | In-app listening is the phoneme verdict (only `word-only` refused); the starter pack is auto-published by the seed | Proposed |
+| [0027](0027-editor-topics-auto-ids-either-slot.md) | Editor: topic registry, automatic IDs, activities for either slot (`BOTH`), one review tick | Accepted |
+| [0028](0028-in-app-listening-verdict-and-auto-published-starter-pack.md) | In-app listening is the phoneme verdict (only `word-only` refused); the starter pack is auto-published by the seed | Accepted |
 
 ## Next in line
 
