@@ -11,9 +11,9 @@ Two rules are enforced here so no handler has to remember them:
 The helper talks to the low-level client and converts plain Python values with boto3's serialiser. Tests pass a moto
 client, or a fake that records calls.
 
-Transactions (Phase 16): `put_action`, `update_action` and `condition_check_action` build checked TransactWriteItems
-actions, `transact_write` sends them, and `cancellation_reasons` reads a TransactionCanceledException back as one
-`Reason` per action, in the order the actions were sent (F §12.3: the reasons are ordered like the request).
+Transactions (Phase 16): `put_action`, `update_action`, `condition_check_action` and `delete_action` build checked
+TransactWriteItems actions, `transact_write` sends them, and `cancellation_reasons` reads a TransactionCanceledException
+back as one `Reason` per action, in the order the actions were sent (F §12.3: the reasons are ordered like the request).
 `batch_get` is the consistent BatchGetItem of G3 / C2: chunks of 100 keys, UnprocessedKeys drained, results matched
 back to the requested keys.
 """
@@ -244,6 +244,29 @@ class DynamoTable:
         if values:
             check["ExpressionAttributeValues"] = _serialise(values)
         return {"ConditionCheck": check}
+
+    def delete_action(
+        self,
+        pk: str,
+        sk: str,
+        *,
+        condition: str | None = None,
+        names: Mapping[str, str] | None = None,
+        values: Mapping[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        """One Delete for `transact_write`. Without a condition it is idempotent: deleting a missing item succeeds."""
+        delete: dict[str, Any] = {"TableName": self.table_name, "Key": _serialise({"pk": pk, "sk": sk})}
+        if condition is not None:
+            check_expressions([condition], names or {}, values)
+            delete["ConditionExpression"] = condition
+            delete["ExpressionAttributeNames"] = dict(names or {})
+            if values:
+                delete["ExpressionAttributeValues"] = _serialise(values)
+        return {"Delete": delete}
+
+    def delete_item(self, pk: str, sk: str) -> None:
+        """An unconditional DeleteItem (idempotent: a missing item is not an error)."""
+        self._client.delete_item(TableName=self.table_name, Key=_serialise({"pk": pk, "sk": sk}))
 
     def transact_write(self, actions: Sequence[Mapping[str, Any]]) -> None:
         """All of `actions` or none. A failure raises ClientError; for TransactionCanceledException,

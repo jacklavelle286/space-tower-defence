@@ -1,4 +1,4 @@
-"""admin-api: content administration, operator only (plan G §12 R17-R30, E.6.3; Phase 20, M1-19).
+"""admin-api: content administration, operator only (plan G §12 R17-R31, E.6.3; Phase 20, M1-19).
 
 Every route needs the operator authoriser at the gateway and, here, `token_use = access` and the exact group `admin`
 (shared/auth.py), checked from the route key before anything is read. A player token never reaches this function: the
@@ -8,7 +8,9 @@ operator authoriser refuses another pool's issuer with 401. Audit fields (`creat
 Phase 20 answered the minimal admin path (D §D8.6): speech definitions R17-R21 and activities R22-R27. Phase 36 (M3-02)
 adds the activity lifecycle: validation of all six interaction types and two-step activities, retire (R28) and
 withdraw (R29). Bank status (R30) still answers 501 NOT_IMPLEMENTED until Phase 42 (M3-07), which owns the counting
-function it shares with selection. Item shapes and checks are in shared/content.py and shared/activity_types.py.
+function it shares with selection. The owner's decision of 2026-11-16 adds delete (R31,
+`DELETE /api/admin/activities/{id}`): the header, the draft and every version go, with an audit item. Item shapes
+and checks are in shared/content.py and shared/activity_types.py.
 
 Speech approval (R21, F §12.6 C7, D §D9.3) never synthesises. It recomputes the clip key from the SAVED draft (its kind
 picks the engine, with the same TTS_* configuration as `tts`) and requires that object in the audio bucket: the object
@@ -96,7 +98,14 @@ from shared.content import (
     valid_title,
     version_id,
 )
-from shared.data import CONTENT_TABLE_ENV, DynamoTable, cancellation_reasons, is_transient, table_from_env
+from shared.data import (
+    CONTENT_TABLE_ENV,
+    MAX_TRANSACTION_ACTIONS,
+    DynamoTable,
+    cancellation_reasons,
+    is_transient,
+    table_from_env,
+)
 from shared.errors import ApiError, json_response
 from shared.log import ApiLogger
 from shared.router import Request, Router
@@ -119,13 +128,16 @@ ROUTES: dict[str, str] = {
     "POST /api/admin/activities/{id}/retire": OPERATOR,
     "POST /api/admin/activities/{id}/withdraw": OPERATOR,
     "GET /api/admin/bank-status": OPERATOR,
+    "DELETE /api/admin/activities/{id}": OPERATOR,
 }
 
 DRAFT_MAX_BYTES: int = LIMITS["bodyMaxBytes"]["adminActivityDraft"]  # 64 KB for PUT .../draft (G §12)
 LIST_LIMIT: dict[str, int] = LIMITS["adminListLimit"]
 REVIEW_NOTE_MAX = 500  # [ASSUMPTION]
 WITHDRAW_REASON_MAX = 200  # G R29 [ASSUMPTION]
-WRITE_TRIES = 3  # retire and withdraw re-read and retry when a concurrent change refused their transaction
+WRITE_TRIES = 3  # retire, withdraw and delete re-read and retry when a concurrent change refused their transaction
+# Delete (R31) removes the versions in its one transaction while they fit beside the draft, header and audit item.
+DELETE_VERSIONS_IN_TRANSACTION = MAX_TRANSACTION_ACTIONS - 3
 
 
 def _utc_now() -> datetime:
@@ -824,6 +836,70 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
                 return json_response(200, {"versionId": wanted, "withdrawn": record})
         raise ApiError("THROTTLED")
 
+    def delete_activity(request: Request) -> dict[str, Any]:
+        """R31 (owner decision 2026-11-16, "just do delete"): remove the activity for good: the header, the draft and
+        every version, plus one audit item (`delete`, the version IDs removed, by the caller's `sub`).
+
+        The header goes first, in one transaction with the draft and the audit item (which lists every version the
+        request read). Up to DELETE_VERSIONS_IN_TRANSACTION versions go in that same transaction; beyond that they are
+        deleted one by one afterwards. So the activity leaves the bank the moment the header goes (new runs never meet
+        a PUBLISHED header whose version is gone), and the audit item records every version ID before any is deleted.
+        A request that stops part way leaves only versions behind; a retry finds no header and finishes the job
+        without a second audit item, answering with the versions it removed. Nothing left at all: 404.
+
+        Races: the header delete is conditioned on the header existing with the `publishedVersion` that was read, so a
+        publish landing between the read and the delete (a version this request did not see) refuses the transaction
+        and the loop re-reads and deletes that version too. A draft save racing the delete either lands first (and
+        is deleted with the draft) or is refused afterwards: its transaction needs the header and the draft revision.
+        Once the header is gone no publish or save can add anything, so the audit item's list is complete.
+
+        Runs that pinned a deleted version keep working: a missing pin reads exactly like a withdrawn version
+        (shared/selection/bank.py `read_versions`), so the slot is voided with its reward when the child reaches it."""
+        activity_id = path_id(request)
+        request.log.update(activityId=activity_id, action="delete")
+        content = table()
+        pk = activity_pk(activity_id)
+        for _ in range(WRITE_TRIES):
+            header = content.get_item(ACT_PK, activity_id)
+            draft = content.get_item(pk, DRAFT_SK, attributes=("pk",))
+            version_sks = sorted(str(v["sk"]) for v in content.query_prefix(pk, VERSION_PREFIX, attributes=("sk",)))
+            listed = sorted(sk.removeprefix(VERSION_PREFIX) for sk in version_sks)
+            if header is None:
+                if draft is None and not version_sks:
+                    raise ApiError("NOT_FOUND")
+                # An earlier delete removed the header (its audit item lists every version) and stopped: finish it.
+                for sk in version_sks:
+                    content.delete_item(pk, sk)
+                content.delete_item(pk, DRAFT_SK)
+                request.log.update(resumed=True)
+                return json_response(200, {"activityId": activity_id, "deletedVersions": listed})
+            in_transaction = len(version_sks) <= DELETE_VERSIONS_IN_TRANSACTION
+            moment = deps.now()
+            audit_pk, audit_sk = audit_key(moment, f"{activity_id}#delete")
+            audit = audit_item(
+                audit_pk, audit_sk, "delete", request.caller.sub, moment, activityId=activity_id, versionIds=listed
+            )
+            published = header.get("publishedVersion")
+            actions = [content.delete_action(pk, sk) for sk in version_sks] if in_transaction else []
+            actions.append(content.delete_action(pk, DRAFT_SK))
+            actions.append(
+                content.delete_action(
+                    ACT_PK,
+                    activity_id,
+                    condition="attribute_exists(#pk) AND "
+                    + ("#pv = :pv" if published else "attribute_not_exists(#pv)"),
+                    names={"#pk": "pk", "#pv": "publishedVersion"},
+                    values={":pv": published} if published else None,
+                )
+            )
+            actions.append(content.put_action(audit, condition="attribute_not_exists(#pk)", names={"#pk": "pk"}))
+            if transact(content, actions) is None:
+                if not in_transaction:
+                    for sk in version_sks:
+                        content.delete_item(pk, sk)
+                return json_response(200, {"activityId": activity_id, "deletedVersions": listed})
+        raise ApiError("THROTTLED")  # the activity kept changing under us; the client retries the same request
+
     handlers = {
         "GET /api/admin/speech-definitions": list_speech,
         "POST /api/admin/speech-definitions": create_speech,
@@ -838,6 +914,7 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         "POST /api/admin/activities/{id}/publish": publish_activity,
         "POST /api/admin/activities/{id}/retire": retire_activity,
         "POST /api/admin/activities/{id}/withdraw": withdraw_activity,
+        "DELETE /api/admin/activities/{id}": delete_activity,
     }
     return Router(routes=ROUTES, handlers=handlers, logger=logger)
 

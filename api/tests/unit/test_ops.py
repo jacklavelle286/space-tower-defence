@@ -19,6 +19,7 @@ from collections.abc import Sequence
 from typing import Any
 
 import pytest
+from conftest import CapturedLogger, event_for, load_handler
 from runs_harness import (
     CONTENT_TABLE,
     DDB_FIXTURES,
@@ -497,6 +498,32 @@ def test_a_missing_version_is_treated_as_withdrawn_and_logged_at_error(api: Runs
     assert status == 200 and results(body) == [("APPLIED", "VOIDED")]
     line = op_lines(api)[-1]
     assert line["level"] == "ERROR" and line["code"] == "VERSION_MISSING" and line["result"] == "APPLIED"
+
+
+def test_deleting_the_pinned_activity_voids_its_slot_and_keeps_the_run(api: RunsApi, player_event: dict) -> None:
+    """R31 (owner decision 2026-11-16): the operator deletes ph-0102 while this run, which pinned it, is in progress.
+    The run view, the pack and the next attempt treat the missing pin like a withdrawn version: nothing fails, the
+    slot is voided with its reward, and the run's progress is kept."""
+    send(api, player_event, TO_ACTIVITY)
+    before = run_item(api)
+    admin = load_handler("admin_api")
+    router = admin.make_router(admin.Deps(content=lambda: api.content), CapturedLogger())
+    event = event_for(player_event, "DELETE /api/admin/activities/{id}", cognito__groups="[admin]")
+    event["pathParameters"] = {"id": "ph-0102"}
+    assert router.handle(event)["statusCode"] == 200
+    assert api.content.get_item("ACT#ph-0102", "V#20261120T120000Z") is None
+
+    status, view = api.call(player_event, "GET /api/runs/{runId}", run_id=RUN_A)
+    assert status == 200 and view["currentSlot"]["withdrawn"] is True
+    status, pack = api.call(player_event, "GET /api/runs/{runId}/pack", run_id=RUN_A)
+    assert status == 200 and pack["slots"][0]["withdrawn"] is True and "answerSpecification" not in pack["slots"][0]
+
+    status, body = send(api, player_event, [attempt(4, 3, "b")])  # even the right answer: there is nothing to judge
+    assert status == 200 and results(body) == [("APPLIED", "VOIDED")]
+    after = run_item(api)
+    assert after["snapshot"]["credits"] == before["snapshot"]["credits"] + 30 and after["phase"] == "BUILD"
+    assert after["highestCompletedWave"] == before["highestCompletedWave"] and after["status"] == "IN_PROGRESS"
+    assert api.item(SLOT)["status"] == "VOIDED" and api.item(SUM) is None
 
 
 # --- Per-op rejections ----------------------------------------------------------------------------------------------

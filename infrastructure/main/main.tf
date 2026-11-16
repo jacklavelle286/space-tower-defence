@@ -254,6 +254,7 @@ data "aws_iam_policy_document" "admin_api" {
       "dynamodb:BatchGetItem",
       "dynamodb:PutItem",
       "dynamodb:UpdateItem",
+      "dynamodb:DeleteItem", # R31 activity delete (ADR-0029)
       "dynamodb:ConditionCheckItem",
     ]
     resources = [local.table_arns.content]

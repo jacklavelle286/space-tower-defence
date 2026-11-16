@@ -118,6 +118,7 @@ Handlers then write **named attributes only**; a request body is never merged in
 | R28 | `POST /api/admin/activities/{id}/retire` | admin-api | operator | operator | stop selecting the activity for new runs |
 | R29 | `POST /api/admin/activities/{id}/withdraw` | admin-api | operator | operator | mark one version invalid |
 | R30 | `GET /api/admin/bank-status` | admin-api | operator | operator | counts vs thresholds per age × subject × category |
+| R31 | `DELETE /api/admin/activities/{id}` | admin-api | operator | operator | delete the activity: header, draft, every version (owner decision 2026-11-16) **[CONFIRMED by owner]** |
 
 All routes **[PROPOSAL]** ([spine S9](00-spine.md#s9-api-surface-proposal-all-routes-under-api-json-authorization-bearer-access-token)); the spec says its own route names are proposals (`prompt.md:888`).
 The machine-readable copy of this table is `contracts/routes.json` (to create). Two checks keep it honest **[PROPOSAL]**
@@ -763,6 +764,7 @@ There is no speech retire or withdraw route in v1: a wrong approved clip is hand
 | R28 `POST /api/admin/activities/{id}/retire` | `{}` | `200` header | 403, 404 | idempotent: already retired → 200 unchanged; pinned runs unaffected |
 | R29 `POST /api/admin/activities/{id}/withdraw` | `{version, reason}` (`reason` ≤ 200 chars **[ASSUMPTION]**) | `200 {versionId, withdrawn{at, reason}}` | 400, 403, 404 (version not found) | idempotent: already withdrawn → 200 with the first record; if it was the published version, also retires (C6); affects `UNRESOLVED` slots via VOID only when a run op next touches them |
 | R30 `GET /api/admin/bank-status` | — | `200 {ageBands[{ageBand, eligible, groups[{subject, rewardCategory, topicId?, count, threshold, ok}]}]}` | 403 | safe read; thresholds are server configuration (spine S5.3) |
+| R31 `DELETE /api/admin/activities/{id}` | — | `200 {activityId, deletedVersions[]}` | 403, 404 (nothing left to delete) | deletes the header, the draft and every version, and writes one `delete` audit item (`versionIds`, by `sub`); one transaction up to 97 versions, else versions first then the rest, so a retry finishes a partial delete; the header delete is conditioned on the `publishedVersion` read, so a racing publish makes it re-read; a run that pinned a deleted version reads it as withdrawn (VOID with reward when reached) |
 
 Publish, retire, withdraw and approve each write an audit item (`AUDIT#<yyyy-mm>`) and an audit log line (§15).
 

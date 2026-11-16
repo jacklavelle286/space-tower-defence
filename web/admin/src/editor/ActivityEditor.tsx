@@ -17,11 +17,17 @@ import { describeProblem, fieldId, focusTarget, LEGACY_NOTICE_ID } from "./probl
 import { StepEditor } from "./StepEditor";
 import { forgetUnsaved, keepUnsaved, unsavedFor } from "./unsaved";
 
-type Props = { readonly api: AdminApi; readonly activityId: string; readonly play?: PlayUrl };
+type Props = {
+  readonly api: AdminApi;
+  readonly activityId: string;
+  readonly play?: PlayUrl;
+  /** Called when the activity has loaded (ActivityPage offers Delete only then). Keep it stable (useCallback). */
+  readonly onLoad?: () => void;
+};
 
 type Validated = { readonly draftRevision: number; readonly valid: boolean; readonly problems: readonly Problem[] };
 
-export function ActivityEditor({ api, activityId, play }: Props) {
+export function ActivityEditor({ api, activityId, play, onLoad }: Props) {
   const [view, setView] = useState<ActivityView | null>(null);
   const [state, setState] = useState<EditorState | null>(null);
   const [restored, setRestored] = useState(false);
@@ -41,14 +47,17 @@ export function ActivityEditor({ api, activityId, play }: Props) {
 
   useEffect(() => {
     api.getActivity(activityId).then(
-      (next) => adopt(next, true),
+      (next) => {
+        adopt(next, true);
+        onLoad?.();
+      },
       (error: unknown) => setMessage({ text: describeError(error), ok: false }),
     );
     api.listSpeech().then(
       (list) => setSpeech(list.items),
       () => setSpeech([]),
     );
-  }, [api, activityId, adopt]);
+  }, [api, activityId, adopt, onLoad]);
 
   const base = view?.draft.definition;
   const edited = useMemo(() => (base === undefined || state === null ? null : toDefinition(base, state)), [base, state]);

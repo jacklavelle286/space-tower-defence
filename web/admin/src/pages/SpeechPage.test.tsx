@@ -83,6 +83,7 @@ class FakeAdmin {
       saveActivity: unused,
       validate: unused,
       publish: unused,
+      deleteActivity: unused,
     };
     return api as unknown as AdminApi;
   }

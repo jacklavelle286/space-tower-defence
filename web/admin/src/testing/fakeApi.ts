@@ -149,6 +149,13 @@ export class FakeAdminApi {
       stored.header = { ...stored.header, state: "PUBLISHED", publishedVersion: versionId, fromDraftRevision: body.draftRevision };
       return { versionId, displayNumber: stored.versions.length };
     },
+    deleteActivity: async (id: string) => {
+      this.record("deleteActivity", id);
+      const stored = this.activities.get(id);
+      if (stored === undefined) throw new ApiError(404, "NOT_FOUND");
+      this.activities.delete(id);
+      return { activityId: id, deletedVersions: stored.versions.map((v) => v.versionId) };
+    },
   };
 
   callsNamed(name: string): Call[] {

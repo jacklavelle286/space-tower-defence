@@ -578,3 +578,35 @@ button.link {
   overflow: hidden;
   background: #141633;
 }
+
+/* Delete activity (owner decision 2026-11-16): set apart below the editor, in the error colour, behind a dialog. */
+.danger-zone {
+  margin-top: 32px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+}
+
+button.danger {
+  background: var(--error);
+  border-color: var(--error);
+  color: #fff;
+}
+
+dialog.confirm {
+  max-width: 34rem;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px 20px;
+  color: var(--ink);
+  background: var(--paper);
+}
+
+dialog.confirm::backdrop {
+  background: rgb(0 0 0 / 40%);
+}
+
+.dialog-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}

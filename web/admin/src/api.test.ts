@@ -45,6 +45,17 @@ describe("API client", () => {
     );
   });
 
+  it("deletes an activity with DELETE and no body (R31)", async () => {
+    const calls: Call[] = [];
+    const api = adminApi(makeRequest("/api", "t", fakeFetch(200, { activityId: "ph-0102", deletedVersions: ["20261115T120000Z"] }, calls)));
+    expect(await api.deleteActivity("ph-0102")).toEqual({ activityId: "ph-0102", deletedVersions: ["20261115T120000Z"] });
+    expect(calls.map((c) => [c.url, c.init.method, c.init.body])).toEqual([["/api/admin/activities/ph-0102", "DELETE", undefined]]);
+    const missing = await adminApi(makeRequest("/api", "t", fakeFetch(404, { error: { code: "NOT_FOUND", message: "x" } })))
+      .deleteActivity("ph-0102")
+      .catch((e: unknown) => e);
+    expect(describeError(missing)).toBe("Not found.");
+  });
+
   it("does not trust a body that is not our envelope", async () => {
     const error = await makeRequest("/api", "t", fakeFetch(502, "<html>"))("GET", "/admin/x").catch((e: unknown) => e);
     expect((error as ApiError).code).toBe("GATEWAY");

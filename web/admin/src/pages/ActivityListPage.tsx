@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { AGES, FACETS, NO_FILTER, agesLabel, facetValues, filterActivities, words, type ListFilter } from "../activityList";
 import { describeError, type ActivitySummary, type AdminApi } from "../api";
+import { clearFlash, peekFlash } from "../flash";
 import { hrefOf } from "../routes";
 
 // A2 (D §D8.2): every activity header in one table, filtered in the browser. Each ID is a link to the activity's page,
@@ -15,6 +16,8 @@ export function ActivityListPage({ api }: Props) {
   const [items, setItems] = useState<ActivitySummary[] | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [filter, setFilter] = useState<ListFilter>(NO_FILTER);
+  const [flash] = useState(peekFlash); // e.g. "Activity ph-0102 deleted." after a delete sent the operator here
+  useEffect(clearFlash, []);
 
   useEffect(() => {
     api.listActivities().then(
@@ -34,6 +37,11 @@ export function ActivityListPage({ api }: Props) {
           New activity
         </a>
       </p>
+      {flash !== null && (
+        <p className="notice" role="status">
+          {flash}
+        </p>
+      )}
       {message !== null && <p className="error">{message}</p>}
 
       <form className="filters" role="search" onSubmit={(e) => e.preventDefault()}>

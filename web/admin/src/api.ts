@@ -1,4 +1,4 @@
-// The admin's API client and the shapes of the routes it uses (plan G §12 R17-R27, R16). Same origin: every call goes
+// The admin's API client and the shapes of the routes it uses (plan G §12 R17-R27, R31, R16). Same origin: every call goes
 // to /api on admin.aliens.jackgl.com, with the operator's access token (G §1.1).
 //
 // Rule from G §1.3: branch on the HTTP status first, and read `error.code` only when the body is our envelope. A
@@ -19,7 +19,7 @@ export class ApiError extends Error {
   }
 }
 
-export type Request = (method: "GET" | "POST" | "PUT", path: string, body?: unknown) => Promise<unknown>;
+export type Request = (method: "GET" | "POST" | "PUT" | "DELETE", path: string, body?: unknown) => Promise<unknown>;
 
 function envelope(body: unknown): { code: string; details: Problem[] } | null {
   if (typeof body !== "object" || body === null || !("error" in body)) return null;
@@ -187,6 +187,8 @@ export type ActivityView = {
 
 export type Validation = { valid: boolean; problems: Problem[]; draftRevision: number };
 export type Publication = { versionId: string; displayNumber: number };
+/** R31's body: what was removed. */
+export type Deletion = { activityId: string; deletedVersions: string[] };
 
 /** A guard against a server that never stops paging: 50 pages of 200 is far beyond the bank's size (plan C19). */
 const MAX_PAGES = 50;
@@ -228,6 +230,8 @@ export function adminApi(request: Request) {
       activityId: string,
       body: { draftRevision: number; review: { checklist: Record<string, boolean>; previewSolvedDraftRevision: number } },
     ) => request("POST", `/admin/activities/${id(activityId)}/publish`, body) as Promise<Publication>,
+    /** R31: removes the activity for good (header, draft, every version). 404 when there is nothing left. */
+    deleteActivity: (activityId: string) => request("DELETE", `/admin/activities/${id(activityId)}`) as Promise<Deletion>,
   };
 }
 

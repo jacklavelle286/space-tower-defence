@@ -71,12 +71,12 @@ def problems(plan: dict) -> list[str]:
 
 def test_matching_plan_passes(tmp_path: Path, capsys) -> None:
     assert run(tmp_path, matching_plan()) == crk.EXIT_OK
-    assert "OK: the plan's 30 routes equal" in capsys.readouterr().out
+    assert "OK: the plan's 31 routes equal" in capsys.readouterr().out
 
 
-def test_catalogue_has_thirty_routes_with_api_prefix() -> None:
+def test_catalogue_has_thirty_one_routes_with_api_prefix() -> None:
     expected = crk.load_catalogue(crk.ROUTES_FILE)
-    assert len(expected) == 30
+    assert len(expected) == 31
     assert all(key.split(" ", 1)[1].startswith("/api/") for key in expected)
 
 

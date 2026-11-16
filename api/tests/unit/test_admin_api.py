@@ -571,7 +571,7 @@ def test_every_admin_route_refuses_a_non_operator_before_any_read(
 def test_every_admin_route_is_behind_the_operator_authoriser() -> None:
     """A player token is refused at the gateway (401): the operator authoriser trusts only the operator pool's issuer
     and its admin client (infrastructure/main/main.tf), and routes.json puts every /api/admin route behind it."""
-    assert len(ADMIN_ROUTES) == 15
+    assert len(ADMIN_ROUTES) == 16
     assert all(
         r["authoriser"] == "operator" and r["scope"] == "ops/content"
         for r in ROUTES

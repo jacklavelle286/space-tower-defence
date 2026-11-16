@@ -44,6 +44,7 @@ The rules are in [J §J.6](../plan/J-execution-backlog.md#j6-decision-log-practi
 | [0026](0026-picture-library-generate-and-upload.md) | Picture library: generate with Claude on Bedrock, and upload | Proposed |
 | [0027](0027-editor-topics-auto-ids-either-slot.md) | Editor: topic registry, automatic IDs, activities for either slot (`BOTH`), one review tick | Accepted |
 | [0028](0028-in-app-listening-verdict-and-auto-published-starter-pack.md) | In-app listening is the phoneme verdict (only `word-only` refused); the starter pack is auto-published by the seed | Accepted |
+| [0029](0029-activity-hard-delete.md) | Activities can be deleted (R31): header, draft and versions; audit item kept; in-progress slots read as withdrawn | Proposed |
 
 ## Next in line
 
