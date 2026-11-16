@@ -121,13 +121,15 @@ jobs:
             || { echo "::error::Run $PLAN_RUN_ID not found in this repository."; exit 1; }
           # Both modes: a release.yml run, dispatched on main, in this repository.
           # Dispatched: that run has finished successfully (its plan job completed).
-          # Called: that run is this one, so it is still in progress at this commit; the caller's plan job succeeded,
-          # or this workflow would not have been called (release.yml: needs plan, result success).
+          # Called: that run is this one, so it has not finished, at this commit; the caller's plan job succeeded,
+          # or this workflow would not have been called (release.yml: needs plan, result success). Right after the
+          # prod-apply approval the API can report it "queued" or "waiting" rather than "in_progress", so any status but
+          # "completed" is accepted.
           jq -e --arg repo "$GITHUB_REPOSITORY" --arg mode "$mode" --arg sha "$GITHUB_SHA" '
               (.path | startswith(".github/workflows/release.yml")) and .head_branch == "main"
               and .event == "workflow_dispatch"
               and .repository.full_name == $repo and .head_repository.full_name == $repo
-              and (if $mode == "called" then .status == "in_progress" and .head_sha == $sha
+              and (if $mode == "called" then .status != "completed" and .head_sha == $sha
                    else .status == "completed" and .conclusion == "success" end)' "$RUNNER_TEMP/run.json" > /dev/null \
             || { echo "::error::Run $PLAN_RUN_ID is not a usable release.yml run dispatched on main (mode $mode; $(jq -r '"\(.path) on \(.head_branch): \(.status)/\(.conclusion)"' "$RUNNER_TEMP/run.json"))."; exit 1; }
           sha=$(jq -r '.head_sha' "$RUNNER_TEMP/run.json")
