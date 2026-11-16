@@ -146,8 +146,8 @@ variable "lambda_artifacts" {
   }))
 
   validation {
-    condition     = toset(keys(var.lambda_artifacts)) == toset(["player-api", "admin-api", "tts", "cognito-presignup"])
-    error_message = "lambda_artifacts must have exactly the keys player-api, admin-api, tts and cognito-presignup."
+    condition     = toset(keys(var.lambda_artifacts)) == toset(["player-api", "admin-api", "tts", "cognito-presignup", "picture-gen"])
+    error_message = "lambda_artifacts must have exactly the keys player-api, admin-api, tts, cognito-presignup and picture-gen."
   }
 
   validation {
@@ -159,6 +159,58 @@ variable "lambda_artifacts" {
     condition     = alltrue([for a in values(var.lambda_artifacts) : can(regex("^[A-Za-z0-9+/]{43}=$", a.sha256_b64))])
     error_message = "Each lambda_artifacts sha256_b64 must be a base64-encoded SHA-256 (44 characters ending in =)."
   }
+}
+
+# Pictures and cost (Phases 42a, 42b). Defaults here, not in the env files: a change is a reviewed commit and a release.
+
+variable "picture_daily_cap" {
+  description = "Picture generations allowed per Europe/London day, counted in DynamoDB by admin-api (R38). 0 switches drawing off. Owner decision 2026-11-16: 100."
+  type        = number
+  default     = 100
+
+  validation {
+    condition     = var.picture_daily_cap >= 0 && floor(var.picture_daily_cap) == var.picture_daily_cap
+    error_message = "picture_daily_cap must be a whole number >= 0."
+  }
+}
+
+variable "picture_monthly_cap" {
+  description = "Picture generations allowed per Europe/London calendar month (R38). 0 switches drawing off. Owner decision 2026-11-16: 150, which keeps the worst case near GBP 47 a month."
+  type        = number
+  default     = 150
+
+  validation {
+    condition     = var.picture_monthly_cap >= 0 && floor(var.picture_monthly_cap) == var.picture_monthly_cap
+    error_message = "picture_monthly_cap must be a whole number >= 0."
+  }
+}
+
+variable "bedrock_model_id" {
+  description = "Bedrock inference profile picture-gen calls (owner decision 2026-11-16: EU routing). IAM is scoped to this profile and the foundation model it routes to."
+  type        = string
+  default     = "eu.anthropic.claude-opus-5-5"
+
+  validation {
+    condition     = can(regex("^(eu|us|apac|global)\\.anthropic\\.[a-z0-9-]+$", var.bedrock_model_id))
+    error_message = "bedrock_model_id must be a cross-Region inference profile ID such as eu.anthropic.claude-opus-5-5."
+  }
+}
+
+variable "bedrock_max_tokens" {
+  description = "max_tokens for each generation (thinking plus output): the per-call cost ceiling."
+  type        = number
+  default     = 16000
+
+  validation {
+    condition     = var.bedrock_max_tokens >= 1024 && var.bedrock_max_tokens <= 64000 && floor(var.bedrock_max_tokens) == var.bedrock_max_tokens
+    error_message = "bedrock_max_tokens must be a whole number from 1024 to 64000."
+  }
+}
+
+variable "monthly_budget_usd" {
+  description = "AWS Budgets monthly cost budget for the account, USD. Owner decision 2026-11-16: GBP 50. [ASSUMPTION: the account bills in USD; GBP 50 is about USD 65.]"
+  type        = number
+  default     = 65
 }
 
 variable "player_route_scope" {

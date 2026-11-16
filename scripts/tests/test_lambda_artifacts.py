@@ -15,7 +15,7 @@ sys.path.insert(0, str(SCRIPTS))
 
 import lambda_artifacts  # noqa: E402
 
-KEYS = ("player-api", "admin-api", "tts", "cognito-presignup")
+KEYS = ("player-api", "admin-api", "tts", "cognito-presignup", "picture-gen")
 
 
 def zip_bytes(key: str) -> bytes:
@@ -145,7 +145,7 @@ def test_verify_build_catches_a_manifest_that_differs_from_the_build_step(manife
 
 def test_verify_build_refuses_an_extra_zip(manifest: Path, zips: Path) -> None:
     (zips / "extra.zip").write_bytes(b"x")
-    with pytest.raises(lambda_artifacts.ArtifactError, match="four zips"):
+    with pytest.raises(lambda_artifacts.ArtifactError, match="5 zips"):
         lambda_artifacts.verify_build(manifest, zips, expected_json())
 
 
@@ -153,4 +153,23 @@ def test_objects_lists_key_and_hash(manifest: Path, capsys: pytest.CaptureFixtur
     assert lambda_artifacts.main(["objects", "--manifest", str(manifest)]) == 0
     lines = capsys.readouterr().out.splitlines()
     assert f"lambda/tts/{hex_of('tts')}.zip {hex_of('tts')}" in lines
-    assert len(lines) == 4
+    assert len(lines) == len(KEYS)
+
+
+def test_lambda_keys_match_the_build_and_terraform() -> None:
+    """One list of functions in four places: here, the zip builder, the Terraform variable check and lambda_names."""
+    import re
+
+    import build_lambdas
+
+    repo = SCRIPTS.parent
+    assert sorted(lambda_artifacts.LAMBDA_KEYS) == sorted(KEYS)
+    assert sorted(build_lambdas.lambda_key(f) for f in build_lambdas.FUNCTIONS) == sorted(KEYS)
+    variables = (repo / "infrastructure" / "main" / "variables.tf").read_text()
+    check = re.search(r"toset\(keys\(var\.lambda_artifacts\)\) == toset\(\[([^\]]*)\]\)", variables)
+    assert check, "the lambda_artifacts key validation is missing from variables.tf"
+    assert sorted(re.findall(r'"([a-z0-9-]+)"', check.group(1))) == sorted(KEYS)
+    locals_tf = (repo / "infrastructure" / "main" / "locals.tf").read_text()
+    names = re.search(r"for key in \[([^\]]*)\] :\s*key => \"\$\{var\.project\}", locals_tf)
+    assert names, "lambda_names is missing from locals.tf"
+    assert sorted(re.findall(r'"([a-z0-9-]+)"', names.group(1))) == sorted(KEYS)

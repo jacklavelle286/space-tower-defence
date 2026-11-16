@@ -97,8 +97,23 @@ def test_recorded_set_passes_on_cloudfront_and_hostname():
     for host in (CF, HOST):
         assert outcomes(report, host) == {
             "root": "pass", "headers": "pass", "entry-cache": "pass", "config": "pass",
-            "deep-link": "pass", "missing-file": "pass", "hashed-asset": "pass",
+            "deep-link": "pass", "missing-file": "pass", "missing-picture": "pass", "hashed-asset": "pass",
         }
+
+
+@pytest.mark.parametrize("status", [403, 404])
+def test_missing_picture_is_403_or_404_from_the_bucket(status):
+    resp = responses()
+    resp[smoke.MISSING_PICTURE] = {"status": status, "headers": {"Content-Type": "application/xml"}, "body": "<Error/>"}
+    assert outcomes(run(resp), CF)["missing-picture"] == "pass"
+
+
+@pytest.mark.parametrize("bad", ["index", "ok"])
+def test_missing_picture_must_not_be_the_app_or_a_file(bad):
+    resp = responses()
+    resp[smoke.MISSING_PICTURE] = (copy.deepcopy(resp["/index.html"]) if bad == "index" else
+                                   {"status": 200, "headers": {"Content-Type": "image/png"}, "body": "png"})
+    assert outcomes(run(resp), CF)["missing-picture"] == "fail"
 
 
 def test_distribution_wide_error_page_is_caught():
@@ -219,9 +234,9 @@ def test_route_sweep_passes_on_all_four_names():
     assert report.hostnames_live
     for host in (CF, HOST, ADMIN_CF, ADMIN_HOST):
         checks = [r.check for r in api_results(report, host)]
-        assert len(checks) == len(ROUTES) + 1 == 33
+        assert len(checks) == len(ROUTES) + 1 == 40  # R1-R39 and the unknown route (Gate P adds R33-R39)
         assert checks[-1] == "api-unknown"
-    assert report.to_json()["api"]["routesChecked"] == 32
+    assert report.to_json()["api"]["routesChecked"] == 39
     assert report.to_json()["api"]["hostsChecked"] == sorted([CF, HOST, ADMIN_CF, ADMIN_HOST])
     # Each route with its own method; path parameters replaced; admin routes on the player site too.
     assert (CF, "POST", "/api/runs/smoke-0000/ops") in fetch.methods

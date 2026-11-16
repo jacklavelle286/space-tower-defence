@@ -15,6 +15,8 @@ override.tf.json
 # Generated per release by the build job
 release.tfvars.json
 # NOTE: .terraform.lock.hcl IS committed (pins provider builds for plan/apply)
+# ...for the two roots, and for the modules that run `terraform test` (monitoring, static_site): their lock holds the
+# root's hashicorp/aws entry exactly (scripts/tests/test_terraform_locks.py) and CI inits them with -lockfile=readonly.
 # NOTE: infrastructure/envs/*.tfvars.json ARE committed (no secrets in them)
 
 # Node / web build output

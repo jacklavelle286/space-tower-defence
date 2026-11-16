@@ -68,3 +68,23 @@ variable "api_origin_request_policy_id" {
   description = "Origin request policy for /api/* (the managed AllViewerExceptHostHeader policy: forwards Authorization)."
   type        = string
 }
+
+variable "extra_s3_origin" {
+  description = "Optional second private bucket served at one path pattern through this site's OAC (the pictures bucket at /pictures/*, Phase 42a). null: none. The bucket's policy, written by the caller, must allow this distribution's ARN."
+  type = object({
+    origin_id    = string
+    domain_name  = string
+    path_pattern = string
+  })
+  default = null
+
+  validation {
+    condition = var.extra_s3_origin == null ? true : (
+      can(regex("^[a-z0-9.-]+\\.s3\\.[a-z0-9-]+\\.amazonaws\\.com$", var.extra_s3_origin.domain_name)) &&
+      can(regex("^/[a-z0-9-]+/\\*$", var.extra_s3_origin.path_pattern)) &&
+      !contains(["/api/*"], var.extra_s3_origin.path_pattern) &&
+      var.extra_s3_origin.origin_id != "api"
+    )
+    error_message = "extra_s3_origin needs a regional S3 host name (<bucket>.s3.<region>.amazonaws.com), a /<segment>/* path pattern other than /api/*, and an origin_id other than api."
+  }
+}

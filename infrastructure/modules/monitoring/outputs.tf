@@ -8,6 +8,11 @@ output "alerts_topic_use1_arn" {
   value       = aws_sns_topic.alerts_use1.arn
 }
 
+output "budget_name" {
+  description = "Monthly cost budget (Phase 42b)."
+  value       = aws_budgets_budget.monthly.name
+}
+
 output "alarm_names" {
   description = "Alarms created here (the Lambda alarms are in each lambda_function call)."
   value = concat(

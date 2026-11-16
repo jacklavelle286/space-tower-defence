@@ -2,6 +2,8 @@
 -r requirements.txt
 boto3==1.44.3
 botocore==1.44.3
+# picture-gen's tests import the SDK (its zip installs api/requirements-picture-gen.txt; the versions must match).
+anthropic==2.8.0
 moto[dynamodb]==5.2.5
 pytest==9.2.0
 ruff==0.17.5

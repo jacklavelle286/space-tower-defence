@@ -15,7 +15,7 @@ locals {
 
   # Function names are <project>-<env>-<region>-<key> (spine S1.1); keys match var.lambda_artifacts.
   lambda_names = {
-    for key in ["player-api", "admin-api", "tts", "cognito-presignup"] :
+    for key in ["player-api", "admin-api", "tts", "cognito-presignup", "picture-gen"] :
     key => "${var.project}-${var.environment}-${var.region}-${key}"
   }
 
@@ -34,6 +34,21 @@ locals {
 
   # Clip objects live flat under one prefix: tts/v1/<clipKey>.mp3 (plan H.4.6). IAM, CORS and the environment use it.
   clip_prefix = "tts/v1/"
+
+  # The pictures bucket (Phases 42a, 42b; pictures.tf). Name and ARN built here, like the audio bucket's, so the IAM and
+  # bucket policies are readable in the plan. Three prefixes, each with one writer (admin-api or picture-gen):
+  #   store/<pictureId>.png        master copy, draft or approved          admin-api writes and reads
+  #   pictures/v1/<pictureId>.png  approved only, served at /pictures/*    admin-api writes, CloudFront reads
+  #   jobs/<jobId>/...             generation exchange, expires in 14 days picture-gen writes, admin-api reads
+  pictures_bucket_name  = "${local.bucket_prefix}-pictures-bucket"
+  pictures_bucket_arn   = "arn:aws:s3:::${local.pictures_bucket_name}"
+  picture_store_prefix  = "store/"
+  picture_served_prefix = "pictures/v1/"
+  picture_job_prefix    = "jobs/"
+
+  # The two execution roles the pictures bucket and job queue policies name (the lambda_function module creates them).
+  admin_api_role_arn   = "arn:aws:iam::${var.aws_account_id}:role/${local.name_prefix}-admin-api-role"
+  picture_gen_role_arn = "arn:aws:iam::${var.aws_account_id}:role/${local.name_prefix}-picture-gen-role"
 
   # Bounds files in the player site bucket that player-api reads (spine S5.1, plan H.4.4).
   game_data_prefix = "game-data/"

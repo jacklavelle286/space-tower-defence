@@ -97,6 +97,7 @@ output "lambda_function_names" {
     "admin-api"         = module.admin_api.function_name
     "tts"               = module.tts.function_name
     "cognito-presignup" = module.cognito_presignup.function_name
+    "picture-gen"       = module.picture_gen.function_name
   }
 }
 

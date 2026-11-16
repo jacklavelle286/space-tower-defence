@@ -6,6 +6,7 @@ dependencies from PyPI) twice and compares the hashes.
 
 from __future__ import annotations
 
+import importlib.util
 import os
 import shutil
 import stat
@@ -80,14 +81,22 @@ def test_real_functions_build_twice_to_the_same_hashes(tmp_path: Path) -> None:
     shutil.copytree(REPO / "contracts", tmp_path / "contracts")  # zip_entries reads the contracts next to api/
     (tmp_path / "content").mkdir()
     shutil.copy2(REPO / "content" / "listening-verdicts.json", tmp_path / "content" / "listening-verdicts.json")
-    for path in [*copy.rglob("*"), *(tmp_path / "contracts").rglob("*"), *(tmp_path / "content").rglob("*")]:
+    for relative in build_lambdas.FUNCTION_FILES["picture_gen"]:  # picture-gen's prompt files (Phase 42b)
+        (tmp_path / relative).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(REPO / relative, tmp_path / relative)
+    for path in [
+        *copy.rglob("*"),
+        *(tmp_path / "contracts").rglob("*"),
+        *(tmp_path / "content").rglob("*"),
+        *(tmp_path / "art").rglob("*"),
+    ]:
         os.utime(path, (1_234_567_890, 1_234_567_890))
 
     first = build_lambdas.build(REPO / "api", tmp_path / "out1", deps=None)
     second = build_lambdas.build(copy, tmp_path / "out2", deps=None)
 
     assert sorted(Path(p).name for p in first) == [
-        "admin-api.zip", "cognito-presignup.zip", "player-api.zip", "tts.zip",
+        "admin-api.zip", "cognito-presignup.zip", "picture-gen.zip", "player-api.zip", "tts.zip",
     ]  # fmt: skip
     assert {Path(p).name: h for p, h in first.items()} == {Path(p).name: h for p, h in second.items()}
     with zipfile.ZipFile(tmp_path / "out1" / "player-api.zip") as archive:
@@ -101,6 +110,11 @@ def test_real_functions_build_twice_to_the_same_hashes(tmp_path: Path) -> None:
     assert not any(n.startswith("content/") for n in names)
     with zipfile.ZipFile(tmp_path / "out1" / "admin-api.zip") as archive:
         assert "content/listening-verdicts.json" in archive.namelist()  # G-14 at approval (Phase 20)
+        assert not any(n.startswith("art/") for n in archive.namelist())
+    with zipfile.ZipFile(tmp_path / "out1" / "picture-gen.zip") as archive:
+        names = archive.namelist()
+    assert sorted(n for n in names if n.startswith("art/")) == sorted(build_lambdas.FUNCTION_FILES["picture_gen"])
+    assert "handler.py" in names and not any(n.startswith("content/") for n in names)
 
 
 def test_function_files_are_required(tmp_path: Path) -> None:
@@ -121,7 +135,8 @@ def test_each_zip_imports_with_the_lambda_layout(tmp_path: Path) -> None:
     they are missing (the `scripts` job, the repo-root .venv) the test is skipped.
     """
     pytest.importorskip("aws_lambda_powertools")
-    built = build_lambdas.build(REPO / "api", tmp_path / "out", deps=None)
+    functions = [f for f in build_lambdas.FUNCTIONS if f != "picture_gen" or importlib.util.find_spec("anthropic")]
+    built = build_lambdas.build(REPO / "api", tmp_path / "out", deps=None, functions=functions)
     for zip_path in built:
         root = tmp_path / "extracted" / Path(zip_path).stem
         with zipfile.ZipFile(zip_path) as archive:
@@ -163,3 +178,135 @@ def test_requirements_must_be_exact_pins(tmp_path: Path) -> None:
 
 def test_runtime_requirements_are_all_exact_pins() -> None:
     assert "aws-lambda-powertools" in build_lambdas.pinned_names(REPO / "api" / "requirements.txt")
+
+
+# ---------------------------------------------------------------------------
+# picture-gen (Phase 42b): its own staging directory and a hash-pinned lock (backlog B-4).
+# ---------------------------------------------------------------------------
+
+HASH = "--hash=sha256:" + "a" * 64
+
+
+def test_adding_picture_gen_leaves_the_other_zips_byte_identical(tmp_path: Path) -> None:
+    others = [f for f in build_lambdas.FUNCTIONS if f != "picture_gen"]
+    assert len(others) == 4
+    alone = build_lambdas.build(REPO / "api", tmp_path / "alone", deps=None, functions=others)
+    together = build_lambdas.build(REPO / "api", tmp_path / "all", deps=None)
+    alone_by_name = {Path(p).name: h for p, h in alone.items()}
+    together_by_name = {Path(p).name: h for p, h in together.items()}
+    assert {n: together_by_name[n] for n in alone_by_name} == alone_by_name
+
+
+def test_each_function_gets_its_own_staging_directory(tmp_path: Path) -> None:
+    shared = tmp_path / "deps"
+    (shared / "powertools_stub").mkdir(parents=True)
+    (shared / "powertools_stub" / "__init__.py").write_text("")
+    locked = tmp_path / "deps-picture-gen"
+    (locked / "anthropic").mkdir(parents=True)
+    (locked / "anthropic" / "__init__.py").write_text("")
+    deps = {f: shared for f in build_lambdas.FUNCTIONS} | {"picture_gen": locked}
+
+    build_lambdas.build(REPO / "api", tmp_path / "out", deps=deps)
+
+    with zipfile.ZipFile(tmp_path / "out" / "picture-gen.zip") as archive:
+        names = archive.namelist()
+    assert "anthropic/__init__.py" in names and "powertools_stub/__init__.py" not in names
+    with zipfile.ZipFile(tmp_path / "out" / "tts.zip") as archive:
+        names = archive.namelist()
+    assert "powertools_stub/__init__.py" in names and "anthropic/__init__.py" not in names
+
+
+def test_lock_lines_need_hashes_and_plain_files_refuse_them(tmp_path: Path) -> None:
+    lock = tmp_path / "lock.txt"
+    lock.write_text(f"# header\nanthropic==2.8.0 \\\n    {HASH}\nidna==3.20 {HASH} --hash=sha256:{'b' * 64}\n")
+    assert build_lambdas.pinned_versions(lock, require_hashes=True) == {"anthropic": "2.8.0", "idna": "3.20"}
+    with pytest.raises(build_lambdas.BuildError, match="not a lock"):
+        build_lambdas.pinned_versions(lock)
+
+    unhashed = tmp_path / "unhashed.txt"
+    unhashed.write_text(f"anthropic==2.8.0 \\\n    {HASH}\nidna==3.20\n")
+    with pytest.raises(build_lambdas.BuildError, match="idna has no --hash"):
+        build_lambdas.pinned_versions(unhashed, require_hashes=True)
+
+    for bad, rule in [
+        (f"idna==3.20 --hash=md5:{'a' * 32}", "unexpected"),
+        (f"idna>=3 {HASH}", "exact pin"),
+        (f"idna==3.20 {HASH}\nIDNA==3.21 {HASH}", "pinned twice"),
+    ]:
+        path = tmp_path / "bad.txt"
+        path.write_text(bad + "\n")
+        with pytest.raises(build_lambdas.BuildError, match=rule):
+            build_lambdas.pinned_versions(path, require_hashes=True)
+
+
+def test_a_lock_must_keep_the_shared_pins(tmp_path: Path) -> None:
+    base = tmp_path / "requirements.txt"
+    base.write_text("pydantic==2.14.3\ntzdata==2025.2\n")
+    lock = tmp_path / "lock.txt"
+    lock.write_text(f"pydantic==2.14.3 {HASH}\ntzdata==2025.2 {HASH}\nanthropic==2.8.0 {HASH}\n")
+    assert build_lambdas.check_lock(lock, base)["anthropic"] == "2.8.0"
+
+    lock.write_text(f"pydantic==2.15.0 {HASH}\nanthropic==2.8.0 {HASH}\n")
+    expected = r"pydantic 2\.14\.3 \(lock: 2\.15\.0\).*tzdata 2025\.2 \(lock: missing\)"
+    with pytest.raises(build_lambdas.BuildError, match=expected):
+        build_lambdas.check_lock(lock, base)
+
+
+def test_the_picture_gen_lock_is_complete_and_consistent() -> None:
+    api = REPO / "api"
+    lock = api / build_lambdas.LOCKED_REQUIREMENTS["picture_gen"]
+    locked = build_lambdas.check_lock(lock, api / build_lambdas.BASE_REQUIREMENTS)
+    inputs = build_lambdas.pinned_versions(api / build_lambdas.LOCK_INPUTS["picture_gen"])
+    assert inputs, "the lock input pins nothing"
+    assert "anthropic" in inputs
+    assert {name: locked.get(name) for name in inputs} == inputs  # every top-level pin is locked at that version
+    # The bedrock extra's AWS libraries are locked too, at the versions the tests run with (requirements-dev.txt).
+    dev = {}
+    for raw in (api / "requirements-dev.txt").read_text().splitlines():
+        line = raw.split("#", 1)[0].strip()
+        if "==" in line:
+            name, version = line.split("==", 1)
+            dev[build_lambdas._normalise(name.split("[", 1)[0])] = version
+    for name in ("boto3", "botocore", "anthropic"):
+        assert locked[name] == dev[name], name
+    assert "GENERATED by `python3 scripts/build_lambdas.py --lock picture_gen`" in lock.read_text()
+
+
+def test_locked_functions_install_with_require_hashes(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    calls: list[list[str]] = []
+
+    def fake_run(command: list[str], check: bool) -> None:
+        calls.append(command)
+        target = Path(command[command.index("--target") + 1])
+        requirements = Path(command[command.index("-r") + 1])
+        hashed = "--require-hashes" in command
+        for name, version in build_lambdas.pinned_versions(requirements, require_hashes=hashed).items():
+            (target / f"{name.replace('-', '_')}-{version}.dist-info").mkdir(parents=True)
+
+    monkeypatch.setattr(build_lambdas.subprocess, "run", fake_run)
+    deps = build_lambdas.install_all(REPO / "api", tmp_path)
+
+    by_file = {Path(c[c.index("-r") + 1]).name: c for c in calls}
+    assert sorted(by_file) == ["requirements-picture-gen.txt", "requirements.txt"]
+    assert "--require-hashes" in by_file["requirements-picture-gen.txt"]
+    assert "--require-hashes" not in by_file["requirements.txt"]
+    for command in calls:
+        assert "--isolated" in command and "--only-binary=:all:" in command and "3.14" in command
+    assert deps["picture_gen"] == tmp_path / "deps-picture-gen"
+    assert {deps[f] for f in build_lambdas.FUNCTIONS if f != "picture_gen"} == {tmp_path / "deps"}
+
+
+def test_lock_rendering_round_trips(tmp_path: Path) -> None:
+    wheels = tmp_path / "wheels"
+    wheels.mkdir()
+    (wheels / "anthropic-2.8.0-py3-none-any.whl").write_bytes(b"one")
+    (wheels / "jiter-0.19.0-cp314-cp314-manylinux2014_aarch64.manylinux_2_17_aarch64.whl").write_bytes(b"two")
+    (wheels / "python_dateutil-2.9.0.post0-py2.py3-none-any.whl").write_bytes(b"three")
+    pins = build_lambdas.wheel_pins(wheels)
+    assert pins["python-dateutil"][0] == "2.9.0.post0" and pins["jiter"][0] == "0.19.0"
+    lock = tmp_path / "lock.txt"
+    lock.write_text(build_lambdas.render_lock("picture_gen", pins))
+    assert build_lambdas.pinned_versions(lock, require_hashes=True) == {n: v for n, (v, _) in pins.items()}
+    (wheels / "anthropic-2.8.0.tar.gz").write_bytes(b"sdist")
+    with pytest.raises(build_lambdas.BuildError, match="not a wheel"):
+        build_lambdas.wheel_pins(wheels)

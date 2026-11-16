@@ -1,0 +1,385 @@
+{
+  "format_version": "1.2",
+  "terraform_version": "1.17.2",
+  "resource_changes": [
+    {
+      "address": "aws_cloudwatch_log_metric_filter.picture_output_tokens",
+      "type": "aws_cloudwatch_log_metric_filter",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "aws_cloudwatch_metric_alarm.picture_jobs_dlq",
+      "type": "aws_cloudwatch_metric_alarm",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "aws_cloudwatch_metric_alarm.picture_output_tokens",
+      "type": "aws_cloudwatch_metric_alarm",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "aws_lambda_event_source_mapping.picture_gen",
+      "type": "aws_lambda_event_source_mapping",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "aws_s3_bucket_policy.pictures",
+      "type": "aws_s3_bucket_policy",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "aws_sqs_queue.picture_jobs",
+      "type": "aws_sqs_queue",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "aws_sqs_queue.picture_jobs_dlq",
+      "type": "aws_sqs_queue",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "aws_sqs_queue_policy.picture_jobs",
+      "type": "aws_sqs_queue_policy",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "aws_sqs_queue_policy.picture_jobs_dlq",
+      "type": "aws_sqs_queue_policy",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "aws_sqs_queue_redrive_allow_policy.picture_jobs_dlq",
+      "type": "aws_sqs_queue_redrive_allow_policy",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "aws_sqs_queue_redrive_policy.picture_jobs",
+      "type": "aws_sqs_queue_redrive_policy",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "data.aws_iam_policy_document.admin_api",
+      "type": "aws_iam_policy_document",
+      "change": {
+        "actions": [
+          "read"
+        ]
+      }
+    },
+    {
+      "address": "data.aws_iam_policy_document.picture_gen",
+      "type": "aws_iam_policy_document",
+      "change": {
+        "actions": [
+          "read"
+        ]
+      }
+    },
+    {
+      "address": "module.admin_api.aws_iam_role_policy.access",
+      "type": "aws_iam_role_policy",
+      "change": {
+        "actions": [
+          "update"
+        ]
+      }
+    },
+    {
+      "address": "module.admin_api.aws_lambda_function.this",
+      "type": "aws_lambda_function",
+      "change": {
+        "actions": [
+          "update"
+        ]
+      }
+    },
+    {
+      "address": "module.admin_site.aws_cloudfront_distribution.this",
+      "type": "aws_cloudfront_distribution",
+      "change": {
+        "actions": [
+          "update"
+        ]
+      }
+    },
+    {
+      "address": "module.api.aws_apigatewayv2_route.this[\"DELETE /api/admin/pictures/{id}\"]",
+      "type": "aws_apigatewayv2_route",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "module.api.aws_apigatewayv2_route.this[\"GET /api/admin/picture-jobs/{jobId}\"]",
+      "type": "aws_apigatewayv2_route",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "module.api.aws_apigatewayv2_route.this[\"GET /api/admin/pictures\"]",
+      "type": "aws_apigatewayv2_route",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "module.api.aws_apigatewayv2_route.this[\"GET /api/admin/pictures/{id}\"]",
+      "type": "aws_apigatewayv2_route",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "module.api.aws_apigatewayv2_route.this[\"POST /api/admin/picture-jobs\"]",
+      "type": "aws_apigatewayv2_route",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "module.api.aws_apigatewayv2_route.this[\"POST /api/admin/pictures\"]",
+      "type": "aws_apigatewayv2_route",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "module.api.aws_apigatewayv2_route.this[\"POST /api/admin/pictures/{id}/approve\"]",
+      "type": "aws_apigatewayv2_route",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "module.api.aws_apigatewayv2_stage.default",
+      "type": "aws_apigatewayv2_stage",
+      "change": {
+        "actions": [
+          "update"
+        ]
+      }
+    },
+    {
+      "address": "module.audio_bucket.aws_s3_bucket_policy.this[0]",
+      "type": "aws_s3_bucket_policy",
+      "change": {
+        "actions": [
+          "no-op"
+        ]
+      },
+      "previous_address": "module.audio_bucket.aws_s3_bucket_policy.this"
+    },
+    {
+      "address": "module.monitoring.aws_budgets_budget.monthly",
+      "type": "aws_budgets_budget",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "module.monitoring.aws_sns_topic_policy.alerts",
+      "type": "aws_sns_topic_policy",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "module.picture_gen.aws_cloudwatch_log_group.this",
+      "type": "aws_cloudwatch_log_group",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "module.picture_gen.aws_cloudwatch_metric_alarm.duration",
+      "type": "aws_cloudwatch_metric_alarm",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "module.picture_gen.aws_cloudwatch_metric_alarm.errors",
+      "type": "aws_cloudwatch_metric_alarm",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "module.picture_gen.aws_cloudwatch_metric_alarm.throttles",
+      "type": "aws_cloudwatch_metric_alarm",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "module.picture_gen.aws_iam_role.this",
+      "type": "aws_iam_role",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "module.picture_gen.aws_iam_role_policy.access",
+      "type": "aws_iam_role_policy",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "module.picture_gen.aws_iam_role_policy.logs",
+      "type": "aws_iam_role_policy",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "module.picture_gen.aws_lambda_function.this",
+      "type": "aws_lambda_function",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "module.pictures_bucket.aws_s3_bucket.this",
+      "type": "aws_s3_bucket",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "module.pictures_bucket.aws_s3_bucket_lifecycle_configuration.this",
+      "type": "aws_s3_bucket_lifecycle_configuration",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "module.pictures_bucket.aws_s3_bucket_ownership_controls.this",
+      "type": "aws_s3_bucket_ownership_controls",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "module.pictures_bucket.aws_s3_bucket_public_access_block.this",
+      "type": "aws_s3_bucket_public_access_block",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "module.pictures_bucket.aws_s3_bucket_server_side_encryption_configuration.this",
+      "type": "aws_s3_bucket_server_side_encryption_configuration",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "module.pictures_bucket.aws_s3_bucket_versioning.this",
+      "type": "aws_s3_bucket_versioning",
+      "change": {
+        "actions": [
+          "create"
+        ]
+      }
+    },
+    {
+      "address": "module.player_site.aws_cloudfront_distribution.this",
+      "type": "aws_cloudfront_distribution",
+      "change": {
+        "actions": [
+          "update"
+        ]
+      }
+    }
+  ]
+}

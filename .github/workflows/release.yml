@@ -8,7 +8,7 @@ name: release
 # Up to and including 3 nothing in production changes: the only writes are create-only uploads to the artefacts bucket
 # (static archives, Lambda zips, the build manifest, the saved plan). Production changes only after the approval.
 #
-# Lambda code (Phase 8, H.9.1): the build job makes four reproducible zips; upload stores each at
+# Lambda code (Phase 8, H.9.1): the build job makes five reproducible zips (picture-gen from Phase 42b); upload stores each at
 # lambda/<key>/<sha256>.zip; the plan job turns the manifest's Lambda section into release.tfvars.json
 # (lambda_artifacts, scripts/lambda_artifacts.py) and plans with it. The manifest is the only source of those keys, and
 # Terraform is the only thing that points a function at new code.
@@ -21,7 +21,8 @@ name: release
 # Rollback (H.12): dispatch with artefacts_from=<release_id>. The build is skipped; upload writes this release's
 # manifest from the archived one (same static archives and Lambda zips, each checked by SHA-256 in S3), the plan uses
 # current main Terraform with that release's Lambda keys, and apply.yml then publishes that archived build with a
-# config.json naming this new release. Only releases from Phase 8 on (manifest schemaVersion 2) can be reused.
+# config.json naming this new release. Only releases from Phase 8 on (manifest schemaVersion 2) can be reused, and from
+# Phase 42b on only releases that have all five Lambda zips (current Terraform needs picture-gen's key).
 #
 # Rules this file keeps (H.7.1): workflow_dispatch only; inputs and other untrusted values reach shell only through
 # env: (W-9); only the jobs that assume the CI role have id-token: write and declare an environment (W-3; the called
@@ -228,6 +229,15 @@ jobs:
           terraform init -input=false -backend=false -lockfile=readonly
           terraform validate
 
+      # Offline, mock providers (Phase 42): the pictures bucket, queue and alerts topic policies, the budget, /pictures/*.
+      - name: G-4 terraform tests (mock providers)
+        run: |
+          terraform -chdir=infrastructure/main test
+          for dir in infrastructure/modules/monitoring infrastructure/modules/static_site; do
+            terraform -chdir="$dir" init -input=false -backend=false -lockfile=readonly  # committed lock: the root's aws
+            terraform -chdir="$dir" test
+          done
+
       - name: Setup Python (version from .python-version)
         uses: actions/setup-python@v7
         with:
@@ -256,7 +266,8 @@ jobs:
           DDB_LOCAL_ENDPOINT: http://localhost:8000
         run: |
           python -m pip install --disable-pip-version-check -r api/requirements-dev.txt
-          ruff check --config api/pyproject.toml api scripts/build_lambdas.py scripts/tests/test_build_lambdas.py
+          ruff check --config api/pyproject.toml api scripts/build_lambdas.py scripts/tests/test_build_lambdas.py \
+            scripts/lambda_artifacts.py scripts/tests/test_lambda_artifacts.py
           python -m pytest api -q -rs
 
       - name: Script tests (plan guard, route keys, asset scan, manifest, Lambda artefacts, publish, smoke, CloudFront Function)
@@ -265,7 +276,7 @@ jobs:
       - name: Simulator self-test
         run: python -B tools/sim/selftest.py
 
-  # 2a. build: the four Lambda zips, both apps (environment-free), G-6 scan, static archives and the build manifest.
+  # 2a. build: the five Lambda zips, both apps (environment-free), G-6 scan, static archives and the build manifest.
   # Deliberately NO id-token and NO environment: npm ci and the build run third-party code, and that code must
   # never be able to request an OIDC token for the CI role. The outputs travel to 2b as a short-lived GitHub
   # artefact (public static content, Lambda zips and a manifest; W-4 bans only the saved plan as a GitHub artefact),
@@ -309,12 +320,13 @@ jobs:
         id: lambdas
         run: |
           # build_lambdas.py downloads the pinned arm64 cp314 wheels from PyPI (--only-binary: no package code runs at
-          # install) and writes player-api, admin-api, tts and cognito-presignup .zip, byte-identical for the same commit.
+          # install; picture-gen's from its hash-pinned lock with --require-hashes, backlog B-4) and writes player-api,
+          # admin-api, tts, cognito-presignup and picture-gen .zip, byte-identical for the same commit.
           python scripts/build_lambdas.py --out "$OUT/lambda"
           # {"<key>": "<sha256 hex>", ...}, fixed here before Node is installed.
           hashes=$(cd "$OUT/lambda" && sha256sum -- *.zip | jq -cRn '[inputs
             | capture("^(?<h>[0-9a-f]{64})  (?<k>[a-z0-9-]+)[.]zip$") | {key: .k, value: .h}] | from_entries')
-          [[ "$(jq 'length' <<< "$hashes")" == 4 ]] || { echo "::error::expected four Lambda zips, got $hashes"; exit 1; }
+          [[ "$(jq 'length' <<< "$hashes")" == 5 ]] || { echo "::error::expected five Lambda zips, got $hashes"; exit 1; }
           echo "sha256=$hashes" >> "$GITHUB_OUTPUT"
           jq -r 'to_entries[] | "\(.key): lambda/\(.key)/\(.value).zip"' <<< "$hashes"
 
@@ -367,7 +379,8 @@ jobs:
             --lambda player-api "$OUT/lambda/player-api.zip" \
             --lambda admin-api "$OUT/lambda/admin-api.zip" \
             --lambda tts "$OUT/lambda/tts.zip" \
-            --lambda cognito-presignup "$OUT/lambda/cognito-presignup.zip"
+            --lambda cognito-presignup "$OUT/lambda/cognito-presignup.zip" \
+            --lambda picture-gen "$OUT/lambda/picture-gen.zip"
 
       - name: Manifest hash
         id: local_manifest
@@ -441,7 +454,7 @@ jobs:
           check "$OUT/player.tar.gz" "$PLAYER_SHA256"
           check "$OUT/admin.tar.gz" "$ADMIN_SHA256"
           check "$OUT/manifest.json" "$BUILD_MANIFEST_SHA256"
-          # The four zips: their bytes, the manifest's lambdas section and the hashes fixed before npm ran all agree.
+          # The five zips: their bytes, the manifest's lambdas section and the hashes fixed before npm ran all agree.
           python scripts/lambda_artifacts.py verify-build --manifest "$OUT/manifest.json" --zips "$OUT/lambda" \
             --expected "$LAMBDA_SHA256"
 
@@ -471,7 +484,7 @@ jobs:
             --release-id "$RELEASE_ID" --git-sha "$SHA" --ref "$INPUT_REF" --run-id "$GITHUB_RUN_ID" \
             --actor "$GITHUB_ACTOR" --started-at "$STARTED_AT" --out "$OUT/manifest.json"
           # Every archive and Lambda zip the release names must still exist, with the bytes it recorded.
-          # (reuse refuses a manifest without the four Lambda zips: releases before Phase 8 cannot be reused.)
+          # (reuse refuses a manifest without the five Lambda zips: releases before Phase 42b cannot be reused.)
           { jq -r '.static | to_entries[] | "\(.value.archiveKey) \(.value.sha256)"' "$OUT/manifest.json"
             python scripts/lambda_artifacts.py objects --manifest "$OUT/manifest.json"; } |
             while read -r key hex; do

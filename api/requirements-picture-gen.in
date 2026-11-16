@@ -1,0 +1,10 @@
+# Top-level pins for the picture-gen Lambda (Phase 42b), on top of api/requirements.txt. Not installed directly: the
+# build installs api/requirements-picture-gen.txt, the hash-pinned lock generated from this file and requirements.txt
+# by `python3 scripts/build_lambdas.py --lock picture_gen` (backlog B-4). Change a pin here, regenerate, commit both.
+# The bedrock extra brings boto3 and botocore, so the SDK's AWS signing runs on the botocore it was locked with
+# (the same version as requirements-dev.txt), not whatever the python3.14 runtime ships.
+anthropic[bedrock]==2.8.0
+# Held back from 2.16.2 (published 2026-11-16, the day this lock was made): a dependency release that new is not
+# used until it has been out for a while (supply chain).
+httpx2==2.16.0
+httpcore2==2.16.0

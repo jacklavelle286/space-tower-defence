@@ -21,6 +21,9 @@ For every site the same checks run against its *.cloudfront.net name and its hos
                                   index.html would fail here (plan E.2.2). 403 is also refused: the bucket policy
                                   grants ListBucket so that S3 answers 404 (infrastructure/modules/static_site).
   hashed-asset  the first /assets/<name>-<hash>.js named in index.html: 200, Cache-Control immutable + 1 year
+  missing-picture GET /pictures/v1/lib-<32 zeros>.png   403 or 404 and not HTML (Phase 42a): the /pictures/* behaviour
+                reaches the pictures bucket, whose policy lets CloudFront read approved pictures only and grants no
+                ListBucket (so 403 is expected), and the SPA fallback never turns a missing picture into index.html.
 
 With --routes (Phase 9, M1-10 part 5), the same-origin API through the /api/* behaviour, never with a token:
 
@@ -56,6 +59,7 @@ from typing import Callable, Protocol
 
 DEEP_LINK = "/smoke/deep/link-check"
 MISSING = "/missing.js"
+MISSING_PICTURE = "/pictures/v1/lib-" + "0" * 32 + ".png"
 UNKNOWN_API = "/api/does-not-exist"
 PATH_PARAM = re.compile(r"\{[^{}/]+\}")
 PATH_PARAM_VALUE = "smoke-0000"  # a dummy that cannot be anyone's run or content ID; no lookup runs anyway (401)
@@ -266,6 +270,12 @@ def check_host(
     if missing is not None:
         add("missing-file", missing.status == 404 and not missing.is_html(),
             f"{missing.status} {missing.header('content-type')}{' (HTML: an error page rewrites missing files)' if missing.is_html() else ''}")
+
+    picture = get(MISSING_PICTURE)
+    if picture is not None:
+        add("missing-picture", picture.status in (403, 404) and not picture.is_html(),
+            f"{picture.status} {picture.header('content-type')}"
+            f"{' (HTML: the SPA fallback or an error page answered)' if picture.is_html() else ''}")
 
     source = (index if index is not None and index.status == 200 else root).body.decode("utf-8", "replace")
     match = HASHED_REF.search(source)

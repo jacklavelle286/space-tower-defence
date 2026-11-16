@@ -43,11 +43,11 @@ def player(tmp_path: Path) -> tuple[Path, Path]:
 
 @pytest.fixture
 def zips(tmp_path: Path) -> list[str]:
-    """The four Lambda zips, as --lambda arguments (contents need not be real zips: only their hashes matter)."""
+    """The five Lambda zips, as --lambda arguments (contents need not be real zips: only their hashes matter)."""
     folder = tmp_path / "lambda"
     folder.mkdir()
     args: list[str] = []
-    for key in ("player-api", "admin-api", "tts", "cognito-presignup"):
+    for key in ("player-api", "admin-api", "tts", "cognito-presignup", "picture-gen"):
         (folder / f"{key}.zip").write_bytes(f"zip of {key}".encode())
         args += ["--lambda", key, str(folder / f"{key}.zip")]
     return args
@@ -108,10 +108,10 @@ def test_build_writes_a_deterministic_manifest(tmp_path: Path, player: tuple[Pat
         "sha256": tts_hex,
         "sha256B64": base64.b64encode(bytes.fromhex(tts_hex)).decode(),
     }
-    assert sorted(manifest["lambdas"]) == ["admin-api", "cognito-presignup", "player-api", "tts"]
+    assert sorted(manifest["lambdas"]) == ["admin-api", "cognito-presignup", "picture-gen", "player-api", "tts"]
 
 
-def test_build_needs_all_four_lambda_zips(tmp_path: Path, player: tuple[Path, Path], zips: list[str]) -> None:
+def test_build_needs_all_five_lambda_zips(tmp_path: Path, player: tuple[Path, Path], zips: list[str]) -> None:
     dist, public = player
     app = ["--app", "player", str(dist), str(public), f"static/{HASH_A}/player.tar.gz", HASH_A]
     assert release_manifest.main(["build", *common_args(tmp_path / "m.json"), *zips[:-3], *app]) == 1

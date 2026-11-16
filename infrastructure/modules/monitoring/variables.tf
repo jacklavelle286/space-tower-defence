@@ -51,3 +51,31 @@ variable "metric_namespace" {
   type        = string
   default     = "SpaceTowerDefence"
 }
+
+variable "monthly_budget_usd" {
+  description = "Monthly cost budget for the whole account, in USD (Phase 42b). [ASSUMPTION: the account bills in USD; the owner's GBP 50 is about USD 65.]"
+  type        = number
+
+  validation {
+    condition     = var.monthly_budget_usd > 0
+    error_message = "monthly_budget_usd must be above 0."
+  }
+}
+
+variable "budget_notifications" {
+  description = "Budget alerts to the alerts topic: ACTUAL or FORECASTED spend above a percentage of the monthly budget."
+  type = list(object({
+    type    = string
+    percent = number
+  }))
+  default = [
+    { type = "ACTUAL", percent = 50 },
+    { type = "ACTUAL", percent = 80 },
+    { type = "FORECASTED", percent = 100 },
+  ]
+
+  validation {
+    condition     = alltrue([for n in var.budget_notifications : contains(["ACTUAL", "FORECASTED"], n.type) && n.percent > 0])
+    error_message = "Each budget notification needs type ACTUAL or FORECASTED and a percent above 0."
+  }
+}

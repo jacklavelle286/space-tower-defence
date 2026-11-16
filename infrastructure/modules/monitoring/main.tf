@@ -26,6 +26,52 @@ resource "aws_sns_topic_subscription" "alerts_email" {
   endpoint  = var.notification_email
 }
 
+data "aws_caller_identity" "current" {}
+
+# The topic's policy, written out so AWS Budgets may publish (Phase 42b). DefaultOwner reproduces the statement SNS puts
+# on a new topic ([VERIFIED] `aws sns get-topic-attributes` on this topic, 2026-11-16): without it, CloudWatch alarms in
+# this account could no longer publish. tests/budget_and_topic_policy.tftest.hcl (in this module) checks both statements.
+locals {
+  alerts_topic_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "DefaultOwner"
+        Effect    = "Allow"
+        Principal = { AWS = "*" }
+        Action = [
+          "SNS:GetTopicAttributes",
+          "SNS:SetTopicAttributes",
+          "SNS:AddPermission",
+          "SNS:RemovePermission",
+          "SNS:DeleteTopic",
+          "SNS:Subscribe",
+          "SNS:ListSubscriptionsByTopic",
+          "SNS:Publish",
+        ]
+        Resource  = aws_sns_topic.alerts.arn
+        Condition = { StringEquals = { "AWS:SourceOwner" = data.aws_caller_identity.current.account_id } }
+      },
+      {
+        Sid       = "AllowBudgets"
+        Effect    = "Allow"
+        Principal = { Service = "budgets.amazonaws.com" }
+        Action    = "SNS:Publish"
+        Resource  = aws_sns_topic.alerts.arn
+        Condition = {
+          StringEquals = { "aws:SourceAccount" = data.aws_caller_identity.current.account_id }
+          ArnLike      = { "aws:SourceArn" = "arn:aws:budgets::${data.aws_caller_identity.current.account_id}:*" }
+        }
+      },
+    ]
+  })
+}
+
+resource "aws_sns_topic_policy" "alerts" {
+  arn    = aws_sns_topic.alerts.arn
+  policy = local.alerts_topic_policy
+}
+
 # us-east-1 mirror for the CloudFront alarms (alarm actions go to a topic in the alarm's own Region).
 resource "aws_sns_topic" "alerts_use1" {
   provider = aws.us_east_1
@@ -39,6 +85,35 @@ resource "aws_sns_topic_subscription" "alerts_use1_email" {
   topic_arn = aws_sns_topic.alerts_use1.arn
   protocol  = "email"
   endpoint  = var.notification_email
+}
+
+# ---------------------------------------------------------------------------
+# Cost (Phase 42b): one monthly budget over the whole account, which serves only this project. No cost filter: Claude
+# on Bedrock may bill under a Marketplace service name [UNVERIFIED], and a filter that missed it would stay silent.
+# Budgets data lags 8-24 h, so this is the backstop; the picture caps in DynamoDB (admin-api) are the real control.
+# ---------------------------------------------------------------------------
+
+resource "aws_budgets_budget" "monthly" {
+  name         = "${var.name_prefix}-monthly"
+  budget_type  = "COST"
+  time_unit    = "MONTHLY"
+  limit_amount = format("%.2f", var.monthly_budget_usd)
+  limit_unit   = "USD"
+
+  dynamic "notification" {
+    for_each = var.budget_notifications
+
+    content {
+      notification_type         = notification.value.type
+      comparison_operator       = "GREATER_THAN"
+      threshold                 = notification.value.percent
+      threshold_type            = "PERCENTAGE"
+      subscriber_sns_topic_arns = [aws_sns_topic.alerts.arn]
+    }
+  }
+
+  # Budgets checks it may publish when the notification is saved.
+  depends_on = [aws_sns_topic_policy.alerts]
 }
 
 # ---------------------------------------------------------------------------

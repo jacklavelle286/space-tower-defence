@@ -1,11 +1,13 @@
-# One Python Lambda function with its log group and its own role (plan H.4.4, E.6.4). Called four times.
+# One Python Lambda function with its log group and its own role (plan H.4.4, E.6.4). Called five times (picture-gen from
+# Phase 42b, ADR-0031).
 # The code is a content-addressed zip in the artefacts bucket: the release build uploads lambda/<key>/<sha256>.zip and
 # Terraform points the function at it (H.9.1), so the plan shows exactly which functions get new bytes.
 # Tags come from the provider's default_tags.
 #
 # Deliberately absent:
-# - reserved_concurrent_executions: the account's concurrency limit is 10 (register U-020); reserving any would fail
-#   or starve the other functions (E.6.4).
+# - reserved_concurrent_executions by default: only a caller that sets reserved_concurrency gets it (picture-gen: 2, a
+#   hard ceiling on parallel paid Bedrock calls). The account's concurrency limit is 1000 (U-020 settled: [VERIFIED]
+#   `aws lambda get-account-settings`, ConcurrentExecutions 1000, 2026-11-16), so reserving 2 starves nothing.
 # - publish / aliases: API Gateway and Cognito invoke $LATEST; rollback is an earlier zip through a release (H.12).
 # - logs:CreateLogGroup: the group is created here, before the function.
 #
@@ -76,6 +78,9 @@ resource "aws_lambda_function" "this" {
   memory_size   = var.memory_size
   timeout       = var.timeout
 
+  # null (every function but picture-gen) leaves the function on the unreserved pool, as before.
+  reserved_concurrent_executions = var.reserved_concurrency
+
   s3_bucket        = var.s3_bucket
   s3_key           = var.s3_key
   source_code_hash = var.source_code_sha256_b64
@@ -124,7 +129,7 @@ resource "aws_cloudwatch_metric_alarm" "errors" {
   ok_actions          = [var.alarm_topic_arn]
 }
 
-# Concurrency refusals: the account limit is 10 and shared by all four functions (U-020).
+# Concurrency refusals: the unreserved pool is shared by the functions; picture-gen is capped by its reservation.
 resource "aws_cloudwatch_metric_alarm" "throttles" {
   alarm_name          = "${var.alarm_name_prefix}-throttles"
   alarm_description   = "${var.function_name}: throttled invocations (Sum >= 1 in 5 min)."

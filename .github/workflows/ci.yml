@@ -60,7 +60,7 @@ jobs:
         run: python3 scripts/scan_dist.py web/player/dist web/admin/dist
 
   repo:
-    name: repo (terraform fmt, simulator self-test)
+    name: repo (terraform fmt and tests, simulator self-test)
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -81,6 +81,19 @@ jobs:
 
       - name: Terraform fmt
         run: terraform fmt -check -recursive infrastructure/
+
+      # Offline: mock providers, no credentials, no backend (Phase 42). The pictures bucket and queue policies, the
+      # alerts topic policy (Budgets added, the default statement kept), the budget, and the /pictures/* behaviour.
+      # Every folder has a committed lock (the modules' hold the root's hashicorp/aws entry), so the provider build
+      # is pinned and hash-checked: a new provider release cannot change the result.
+      - name: Terraform tests (mock providers)
+        run: |
+          for dir in infrastructure/main infrastructure/modules/monitoring infrastructure/modules/static_site; do
+            echo "::group::terraform test $dir"
+            terraform -chdir="$dir" init -backend=false -input=false -lockfile=readonly
+            terraform -chdir="$dir" test
+            echo "::endgroup::"
+          done
 
       - name: Setup Python (version from .python-version)
         uses: actions/setup-python@v7
@@ -146,7 +159,10 @@ jobs:
       # api/pyproject.toml holds the ruff settings; --config applies them to the build-script files and the seed script.
       # The older scripts/ files are not yet ruff-clean, so they are not listed here.
       - name: Ruff
-        run: ruff check --config api/pyproject.toml api scripts/build_lambdas.py scripts/tests/test_build_lambdas.py scripts/seed_content.py scripts/gen_topics.py
+        run: >-
+          ruff check --config api/pyproject.toml api scripts/build_lambdas.py scripts/tests/test_build_lambdas.py
+          scripts/lambda_artifacts.py scripts/tests/test_lambda_artifacts.py scripts/seed_content.py scripts/gen_topics.py
+          scripts/tests/test_terraform_locks.py
 
       - name: Wait for DynamoDB Local
         run: |

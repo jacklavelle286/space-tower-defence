@@ -1,5 +1,6 @@
 # One static single-page app: private S3 bucket behind a CloudFront distribution through Origin Access Control (plan H.4.2),
-# plus the HTTP API as a second origin at /api/* (plan E.2.1).
+# plus the HTTP API as a second origin at /api/* (plan E.2.1), and optionally a second private bucket at one more path
+# (the approved pictures at /pictures/*, Phase 42a), read through the same Origin Access Control.
 # Called twice (player, admin). The CloudFront Function and the response headers policy are shared by both sites, so the
 # root creates them once and passes them in. Tags come from the provider's default_tags.
 #
@@ -156,6 +157,18 @@ resource "aws_cloudfront_distribution" "this" {
     }
   }
 
+  # An extra private bucket (the pictures bucket, Phase 42a), read through this site's OAC. The bucket's own policy (in
+  # the root) lets this distribution read only the served prefix, so a key outside it is 403 here.
+  dynamic "origin" {
+    for_each = var.extra_s3_origin == null ? [] : [var.extra_s3_origin]
+
+    content {
+      origin_id                = origin.value.origin_id
+      domain_name              = origin.value.domain_name
+      origin_access_control_id = aws_cloudfront_origin_access_control.this.id
+    }
+  }
+
   # /api/* (plan H.4.2, E.2.1): all methods, nothing cached, every viewer header (Authorization included) except Host
   # forwarded, so the gateway sees its own host name. NO function association: the SPA fallback must never rewrite an
   # API path, and API errors keep their real status and JSON body. The security headers policy applies here too:
@@ -171,6 +184,24 @@ resource "aws_cloudfront_distribution" "this" {
     cache_policy_id            = var.api_cache_policy_id
     origin_request_policy_id   = var.api_origin_request_policy_id
     response_headers_policy_id = var.response_headers_policy_id
+  }
+
+  # The extra bucket's path (/pictures/*), after /api/*: GET and HEAD, cached by CachingOptimized (the objects carry
+  # Cache-Control: immutable), the same security headers (nosniff matters for images). NO function association: the
+  # SPA fallback must never turn a missing picture into index.html. PNGs are already compressed.
+  dynamic "ordered_cache_behavior" {
+    for_each = var.extra_s3_origin == null ? [] : [var.extra_s3_origin]
+
+    content {
+      path_pattern               = ordered_cache_behavior.value.path_pattern
+      target_origin_id           = ordered_cache_behavior.value.origin_id
+      viewer_protocol_policy     = "redirect-to-https"
+      allowed_methods            = ["GET", "HEAD"]
+      cached_methods             = ["GET", "HEAD"]
+      compress                   = false
+      cache_policy_id            = var.cache_policy_id
+      response_headers_policy_id = var.response_headers_policy_id
+    }
   }
 
   default_cache_behavior {

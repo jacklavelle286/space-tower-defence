@@ -11,7 +11,7 @@
            gameDataCurrent  game-data/current.json                       -> no-cache, after the files it names
          (the release writes the game-data tree into the player's dist/ with web/game-core/scripts/build-bounds.ts;
          H.8.5 b and e). Any other file stops the build: an unclassified file cannot be given a safe cache header.
-         For each of the four Lambda zips it records the content-addressed key lambda/<key>/<sha256>.zip and the
+         For each of the five Lambda zips (four before Phase 42b) it records the content-addressed key lambda/<key>/<sha256>.zip and the
          SHA-256 (hex and base64), from the zip file itself (Phase 8; scripts/lambda_artifacts.py turns that section
          into release.tfvars.json).
 `reuse`  writes the manifest for a rollback (`artefacts_from`, H.12): it copies the static and Lambda entries of an
@@ -148,7 +148,7 @@ def build(args: argparse.Namespace) -> dict[str, Any]:
 
 
 def build_lambdas(given: list[list[str]]) -> dict[str, dict[str, str]]:
-    """Exactly the four functions, each addressed by the SHA-256 of its zip file."""
+    """Exactly the five functions (lambda_artifacts.LAMBDA_KEYS), each addressed by the SHA-256 of its zip file."""
     lambdas: dict[str, dict[str, str]] = {}
     for key, zip_path in given:
         if key in lambdas:
@@ -224,7 +224,7 @@ def main(argv: list[str] | None = None) -> int:
         action="append",
         default=[],
         metavar=("KEY", "ZIP"),
-        help="one Lambda zip (scripts/build_lambdas.py output); all four keys are required",
+        help="one Lambda zip (scripts/build_lambdas.py output); all five keys are required",
     )
     p_reuse = sub.add_parser("reuse", parents=[common], help="manifest for a rollback (artefacts_from)")
     p_reuse.add_argument("--artefacts-from", required=True)

@@ -35,12 +35,34 @@ variable "memory_size" {
 }
 
 variable "timeout" {
-  description = "Timeout in seconds. API functions stay under the 30 s HTTP API integration limit (E.6.2)."
+  description = "Timeout in seconds. API functions stay under the 30 s HTTP API integration limit (E.6.2); only a function no API route invokes raises max_timeout."
   type        = number
 
   validation {
-    condition     = var.timeout >= 1 && var.timeout <= 29
-    error_message = "timeout must be 1 to 29 seconds (below the 30 s HTTP API integration limit)."
+    condition     = var.timeout >= 1 && var.timeout <= var.max_timeout
+    error_message = "timeout must be 1 to max_timeout seconds (29 unless raised: below the 30 s HTTP API integration limit)."
+  }
+}
+
+variable "max_timeout" {
+  description = "Upper bound for timeout. 29 (the default) keeps API functions under the 30 s HTTP API limit; picture-gen, invoked only by its SQS queue, sets 900 (Phase 42b)."
+  type        = number
+  default     = 29
+
+  validation {
+    condition     = var.max_timeout >= 1 && var.max_timeout <= 900
+    error_message = "max_timeout must be 1 to 900 seconds (Lambda's maximum)."
+  }
+}
+
+variable "reserved_concurrency" {
+  description = "Reserved concurrent executions: a hard ceiling for this function. null (the default) means none, on the shared unreserved pool."
+  type        = number
+  default     = null
+
+  validation {
+    condition     = var.reserved_concurrency == null ? true : (var.reserved_concurrency >= 1 && floor(var.reserved_concurrency) == var.reserved_concurrency)
+    error_message = "reserved_concurrency must be null or a whole number >= 1 (0 would stop the function)."
   }
 }
 

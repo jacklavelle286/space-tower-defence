@@ -1,5 +1,6 @@
 # Module wiring (plan H.3.5). Phase 2: the certificate. Phase 3: the two static sites. Phase 8: tables, audio bucket,
 # Cognito pools and the four functions. Phase 9: the HTTP API at /api/* on both sites, and monitoring.
+# Phases 42a/42b: the pictures bucket at /pictures/* on both sites, and the picture-gen function (pictures.tf).
 
 # One certificate in us-east-1 (CloudFront requires it there) for both hostnames.
 # Validation waits for the two CNAMEs the owner creates in the DNS account (docs/runbooks/dns-hand-off.md).
@@ -131,6 +132,8 @@ module "player_site" {
   api_origin_domain            = module.api.endpoint_domain
   api_cache_policy_id          = data.aws_cloudfront_cache_policy.caching_disabled.id
   api_origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer_except_host_header.id
+
+  extra_s3_origin = local.pictures_origin # approved pictures at /pictures/* (Phase 42a, pictures.tf)
 }
 
 module "admin_site" {
@@ -147,6 +150,8 @@ module "admin_site" {
   api_origin_domain            = module.api.endpoint_domain
   api_cache_policy_id          = data.aws_cloudfront_cache_policy.caching_disabled.id
   api_origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer_except_host_header.id
+
+  extra_s3_origin = local.pictures_origin # the editor's picker shows approved pictures (Phase 42a)
 }
 
 # ---------------------------------------------------------------------------
@@ -176,7 +181,8 @@ module "audio_bucket" {
 
 # ---------------------------------------------------------------------------
 # Functions (plan H.4.4, E.6.4). One role each; code from the artefacts bucket by content hash (H.9.1).
-# Every role also writes to its own log group (added by the module). No reserved concurrency (account limit 10, U-020).
+# Every role also writes to its own log group (added by the module). No reserved concurrency for these four (U-020:
+# the account limit is 1000); picture-gen (pictures.tf) reserves 2.
 # Each call passes alarm_topic_arn: the module adds the errors, throttles and duration alarms (H.14, gate G-5).
 # ---------------------------------------------------------------------------
 
@@ -244,7 +250,8 @@ module "player_api" {
   }
 }
 
-# admin-api: content administration and speech approval. Never game, never Polly, never PutObject. Reads the released
+# admin-api: content administration, speech approval and pictures. Never game, never Polly, never Bedrock. Never
+# PutObject on clips; picture prefixes only (store/, pictures/v1/ in the pictures bucket, Phase 42a). Reads the released
 # game data (read-only) for bank status.
 data "aws_iam_policy_document" "admin_api" {
   statement {
@@ -287,17 +294,67 @@ data "aws_iam_policy_document" "admin_api" {
       values   = ["${local.clip_prefix}*"]
     }
   }
+
+  # Pictures (Phase 42a). The master copy of every picture, draft or approved, under store/ (R34 upload, R35 read,
+  # R37 delete). The bucket policy denies these writes to every other principal.
+  statement {
+    sid       = "PicturesStore"
+    actions   = ["s3:GetObject", "s3:PutObject", "s3:DeleteObject"]
+    resources = ["${local.pictures_bucket_arn}/${local.picture_store_prefix}*"]
+  }
+
+  # The served copy of approved pictures: R36 approve copies store/ -> pictures/v1/ (CopyObject is GetObject on the
+  # source plus PutObject here); R37 deletes an unused approved picture.
+  statement {
+    sid       = "PicturesServe"
+    actions   = ["s3:PutObject", "s3:DeleteObject"]
+    resources = ["${local.pictures_bucket_arn}/${local.picture_served_prefix}*"]
+  }
+
+  # R39 reads what picture-gen wrote (claim, progress.json, result.json, error.json); never writes there (Phase 42b).
+  statement {
+    sid       = "PictureJobsRead"
+    actions   = ["s3:GetObject"]
+    resources = ["${local.pictures_bucket_arn}/${local.picture_job_prefix}*"]
+  }
+
+  # So HeadObject or GetObject on a missing picture or job file is 404, not 403.
+  statement {
+    sid       = "PicturesList"
+    actions   = ["s3:ListBucket"]
+    resources = [local.pictures_bucket_arn]
+
+    condition {
+      test     = "StringLike"
+      variable = "s3:prefix"
+      values   = ["${local.picture_store_prefix}*", "${local.picture_served_prefix}*", "${local.picture_job_prefix}*"]
+    }
+  }
+
+  # R38 queues a generation job (Phase 42b). The queue policy denies SendMessage to every other principal.
+  statement {
+    sid       = "PictureJobsSend"
+    actions   = ["sqs:SendMessage"]
+    resources = [aws_sqs_queue.picture_jobs.arn]
+  }
+
+  # R37 removes a deleted approved picture from both sites' edge caches (objects are cached for a year).
+  statement {
+    sid       = "PicturesInvalidate"
+    actions   = ["cloudfront:CreateInvalidation"]
+    resources = [module.player_site.distribution_arn, module.admin_site.distribution_arn]
+  }
 }
 
 module "admin_api" {
   source = "../modules/lambda_function"
 
   function_name = local.lambda_names["admin-api"]
-  description   = "Operator routes: content administration and speech approval"
+  description   = "Operator routes: content administration, speech approval and pictures"
   role_name     = "${local.name_prefix}-admin-api-role"
   policy_json   = data.aws_iam_policy_document.admin_api.json
 
-  memory_size        = 256
+  memory_size        = 512 # the pure-Python PNG canonicaliser (R34) runs faster with more CPU (Phase 42a)
   timeout            = 15
   log_retention_days = var.audit_log_retention_days # audit lines outlive a week (spine S8.3)
 
@@ -318,6 +375,14 @@ module "admin_api" {
     TTS_PHONEME_ENGINE      = var.tts_phoneme_engine
     GAME_DATA_BUCKET        = module.player_site.bucket_name # bank status (R30) reads the released wave sets
     GAME_DATA_PREFIX        = local.game_data_prefix
+
+    # Pictures (Phases 42a, 42b): the bucket, both distributions (R37 invalidation), the job queue (R38) and the caps.
+    PICTURES_BUCKET          = local.pictures_bucket_name
+    PICTURE_DISTRIBUTION_IDS = join(",", [module.player_site.distribution_id, module.admin_site.distribution_id])
+    PICTURE_JOBS_QUEUE_URL   = aws_sqs_queue.picture_jobs.url
+    PICTURE_DAILY_CAP        = tostring(var.picture_daily_cap)
+    PICTURE_MONTHLY_CAP      = tostring(var.picture_monthly_cap)
+    PICTURE_JOB_PREFIX       = local.picture_job_prefix # the same prefix picture-gen writes under (R39 reads it)
   }
 }
 
@@ -567,6 +632,8 @@ module "api" {
     "POST /api/runs"                 = { rate_limit = 1, burst_limit = 5 }
     "POST /api/speech"               = { rate_limit = 20, burst_limit = 40 }
     "POST /api/admin/speech/preview" = { rate_limit = 2, burst_limit = 5 }
+    "POST /api/admin/pictures"       = { rate_limit = 2, burst_limit = 5 } # R34 upload, up to 768 KiB body (42a)
+    "POST /api/admin/picture-jobs"   = { rate_limit = 1, burst_limit = 2 } # R38 starts a paid generation (42b)
   }
 }
 
@@ -594,6 +661,8 @@ module "monitoring" {
 
   # The managed tables, not table_name_overrides: a restored table gets its alarm when it becomes managed (H.13.3).
   table_names = local.managed_table_names
+
+  monthly_budget_usd = var.monthly_budget_usd
 
   distribution_ids = {
     player = module.player_site.distribution_id

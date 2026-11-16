@@ -34,8 +34,10 @@ import sys
 from pathlib import Path
 from typing import Any
 
-# The four functions (plan H.4.4); scripts/build_lambdas.py writes build/<key>.zip for each.
-LAMBDA_KEYS = ("admin-api", "cognito-presignup", "player-api", "tts")
+# The five functions (plan H.4.4; picture-gen from Phase 42b, ADR-0031); scripts/build_lambdas.py writes
+# build/<key>.zip for each. A release from before Phase 42b has four and cannot be reused (artefacts_from) by current
+# Terraform, which needs all five.
+LAMBDA_KEYS = ("admin-api", "cognito-presignup", "picture-gen", "player-api", "tts")
 SHA256_HEX = re.compile(r"^[0-9a-f]{64}$")
 
 
@@ -69,10 +71,11 @@ def entry(key: str, sha256_hex: str) -> dict[str, str]:
 
 
 def check_lambdas(lambdas: Any, where: str = "manifest") -> dict[str, dict[str, str]]:
-    """A complete, self-consistent `lambdas` section: exactly the four keys, each content-addressed."""
+    """A complete, self-consistent `lambdas` section: exactly LAMBDA_KEYS, each content-addressed."""
     if lambdas is None:
         raise ArtifactError(
-            f"the {where} has no Lambda zips (a release from before Phase 8); release or roll back to a release that has them"
+            f"the {where} has no Lambda zips (a release from before Phase 8); "
+            "release or roll back to a release that has them"
         )
     if not isinstance(lambdas, dict):
         raise ArtifactError(f"the {where}'s lambdas section is not an object")
@@ -105,8 +108,7 @@ def manifest_lambdas(manifest_path: Path) -> dict[str, dict[str, str]]:
 def tfvars(lambdas: dict[str, dict[str, str]]) -> dict[str, Any]:
     return {
         "lambda_artifacts": {
-            key: {"s3_key": value["s3Key"], "sha256_b64": value["sha256B64"]}
-            for key, value in sorted(lambdas.items())
+            key: {"s3_key": value["s3Key"], "sha256_b64": value["sha256B64"]} for key, value in sorted(lambdas.items())
         }
     }
 
@@ -128,7 +130,8 @@ def verify_build(manifest_path: Path, zips: Path, expected_json: str) -> dict[st
         raise ArtifactError(f"the build step's hashes name {named!r}, expected {list(LAMBDA_KEYS)}")
     on_disk = sorted(p.name for p in zips.glob("*.zip")) if zips.is_dir() else []
     if on_disk != sorted(f"{key}.zip" for key in LAMBDA_KEYS):
-        raise ArtifactError(f"{zips} holds {on_disk}, expected exactly the four zips")
+        want = sorted(f"{key}.zip" for key in LAMBDA_KEYS)
+        raise ArtifactError(f"{zips} holds {on_disk}, expected exactly the {len(LAMBDA_KEYS)} zips {want}")
     for key, value in lambdas.items():
         actual = file_sha256(zips / f"{key}.zip")
         if not (actual == value["sha256"] == expected[key]):

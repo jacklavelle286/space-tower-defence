@@ -20,6 +20,23 @@ variable "cors_max_age_seconds" {
   default     = 3600
 }
 
+variable "manage_policy" {
+  description = "true: the module attaches a TLS-only bucket policy. false: the caller writes the whole policy (the pictures bucket, whose policy names CloudFront distributions and roles) and must include DenyInsecureTransport."
+  type        = bool
+  default     = true
+}
+
+variable "expire_prefixes" {
+  description = "Key prefix (ending in /) -> days after which current objects under it expire. Empty for buckets whose objects are kept."
+  type        = map(number)
+  default     = {}
+
+  validation {
+    condition     = alltrue([for p, d in var.expire_prefixes : can(regex("^[a-z0-9-]+/$", p)) && d >= 1 && floor(d) == d])
+    error_message = "expire_prefixes keys must be one lowercase path segment ending in / and values whole days >= 1."
+  }
+}
+
 variable "noncurrent_version_expiration_days" {
   description = "Days a noncurrent object version is kept before it expires."
   type        = number

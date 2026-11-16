@@ -1,11 +1,13 @@
-# A private S3 bucket that nothing serves publicly (plan H.4.1, H.4.6). Called once, for the audio clips; the artefacts
-# bucket is in the bootstrap root (H.5 B-6). Readers use presigned URLs (audio) or IAM roles; there is no CloudFront.
+# A private S3 bucket that nothing serves publicly (plan H.4.1, H.4.6). Called twice: the audio clips, and the pictures
+# (Phase 42a). The artefacts bucket is in the bootstrap root (H.5 B-6). Readers use presigned URLs (audio), IAM roles,
+# or, for the pictures bucket, CloudFront through a policy the root writes (manage_policy = false).
 # Tags come from the provider's default_tags.
 #
 # Deliberately absent:
-# - force_destroy: approved clips are referenced by content versions and must outlive any release (H.11.1).
-# - Any expiry on current objects: clip keys are content-addressed and never overwritten (H.4.6). Only noncurrent
-#   versions and abandoned multipart uploads expire.
+# - force_destroy: approved clips and pictures are referenced by content versions and must outlive any release (H.11.1).
+# - Any expiry on current objects, except the prefixes a caller lists in expire_prefixes (picture job exchange files):
+#   clip and picture keys are content-addressed and never overwritten (H.4.6). Otherwise only noncurrent versions and
+#   abandoned multipart uploads expire.
 
 resource "aws_s3_bucket" "this" {
   bucket = var.bucket_name
@@ -54,6 +56,8 @@ resource "aws_s3_bucket_versioning" "this" {
 }
 
 data "aws_iam_policy_document" "tls_only" {
+  count = var.manage_policy ? 1 : 0
+
   statement {
     sid     = "DenyInsecureTransport"
     effect  = "Deny"
@@ -77,11 +81,19 @@ data "aws_iam_policy_document" "tls_only" {
 }
 
 resource "aws_s3_bucket_policy" "this" {
+  count = var.manage_policy ? 1 : 0
+
   bucket = aws_s3_bucket.this.id
-  policy = data.aws_iam_policy_document.tls_only.json
+  policy = data.aws_iam_policy_document.tls_only[0].json
 
   # Apply the policy after public access is blocked, so there is never a window with neither.
   depends_on = [aws_s3_bucket_public_access_block.this]
+}
+
+# The policy gained a count in Phase 42a; the audio bucket's existing policy keeps its state, no destroy and create.
+moved {
+  from = aws_s3_bucket_policy.this
+  to   = aws_s3_bucket_policy.this[0]
 }
 
 # Script on the two sites reads the bytes (fetch), so the browser needs CORS even though <audio src> would not
@@ -123,6 +135,24 @@ resource "aws_s3_bucket_lifecycle_configuration" "this" {
 
     noncurrent_version_expiration {
       noncurrent_days = var.noncurrent_version_expiration_days
+    }
+  }
+
+  # Short-lived exchange files under a prefix (the picture jobs/ prefix, 14 days). None for the audio bucket.
+  dynamic "rule" {
+    for_each = var.expire_prefixes
+
+    content {
+      id     = "expire-${trimsuffix(rule.key, "/")}"
+      status = "Enabled"
+
+      filter {
+        prefix = rule.key
+      }
+
+      expiration {
+        days = rule.value
+      }
     }
   }
 

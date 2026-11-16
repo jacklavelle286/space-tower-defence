@@ -200,3 +200,25 @@ def test_missing_plan_exits_2(tmp_path: Path, capsys: pytest.CaptureFixture[str]
     rc, _, err = run(tmp_path / "nope.json", write_config(tmp_path, enforce=False), capsys)
     assert rc == 2
     assert "cannot read the plan" in err
+
+
+# --- Gate P (Phases 42a, 42b) -----------------------------------------------------------------------------------------
+
+GATE_P = PLANS / "plan_gate_p_pictures.json"  # actions only, from a read-only plan of the gate P change, 2026-11-16
+
+
+def test_gate_p_plan_is_clean_under_enforcement(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
+    rc, out, _ = run(GATE_P, write_config(tmp_path, enforce=True), capsys)
+    assert rc == plan_guard.EXIT_OK
+    assert "No protected resource is deleted or replaced." in out
+
+
+def test_gate_p_plan_only_creates_and_updates_in_place() -> None:
+    changes = {rc["address"]: rc["change"]["actions"] for rc in json.loads(GATE_P.read_text())["resource_changes"]}
+    assert all(actions in (["create"], ["update"], ["no-op"], ["read"]) for actions in changes.values()), changes
+    # Both distributions gain the /pictures/* origin and behaviour in place; the bucket is new.
+    assert changes["module.player_site.aws_cloudfront_distribution.this"] == ["update"]
+    assert changes["module.admin_site.aws_cloudfront_distribution.this"] == ["update"]
+    assert changes["module.pictures_bucket.aws_s3_bucket.this"] == ["create"]
+    # The audio bucket's policy only moved (it gained a count): no destroy and create.
+    assert changes["module.audio_bucket.aws_s3_bucket_policy.this[0]"] == ["no-op"]
