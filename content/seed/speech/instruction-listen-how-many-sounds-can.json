@@ -1,0 +1,7 @@
+{
+  "$comment": "Seed speech definition (Gate I, Phase 48, spelling age 5). A shared instruction stem (C21 variant 'instruction', the player's 'Read it to me'; owner decision D-1): the on-screen instruction without the word the child must hear. ID by the admin convention instruction-<first words> (the first five). Loaded as a DRAFT by scripts/seed_content.py, then previewed, played to the end and approved in the admin app.",
+  "speechId": "instruction-listen-how-many-sounds-can",
+  "title": "Listen. How many sounds can you hear?",
+  "kind": "INSTRUCTION",
+  "text": "Listen. How many sounds can you hear?"
+}

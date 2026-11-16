@@ -1,0 +1,7 @@
+{
+  "$comment": "Seed speech definition (Gate I, Phase 47, phonics age 6). Tier A whole word (D9.2), in the form admin 'New speech' and R18's starting body use for word-<word> (the word and a full stop). Loaded as a DRAFT by scripts/seed_content.py, then previewed, played to the end and approved in the admin app.",
+  "speechId": "word-toy",
+  "title": "Word toy",
+  "kind": "WORD",
+  "text": "toy."
+}

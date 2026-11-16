@@ -1,0 +1,7 @@
+{
+  "$comment": "Seed speech definition (Gate I, Phase 47, phonics age 7). A made-up 'alien name' for phonics-pseudo-words (C19.8 example, year 1 check format): explicit X-SAMPA so the voice says /dʒaʊnd/ (rhymes with 'round') and never spells it or guesses a real word, the same form as word-zub. Loaded as a DRAFT by scripts/seed_content.py, then previewed, played to the end and approved in the admin app.",
+  "speechId": "word-jound",
+  "title": "Word jound (made-up alien name)",
+  "kind": "WORD",
+  "ssml": "<phoneme alphabet=\"x-sampa\" ph=\"dZaUnd\">jound</phoneme>."
+}

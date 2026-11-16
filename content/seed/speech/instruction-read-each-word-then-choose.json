@@ -1,0 +1,7 @@
+{
+  "$comment": "Seed speech definition (Gate I, Phase 47, phonics age 7). A shared instruction stem (C21 variant 'instruction', the player's 'Read it to me'; owner decision D-1): the on-screen instruction without the words the child must read. ID by the admin convention instruction-<first words>. 'Read' is a heteronym, so the SSML says it as 'reed' with <sub>, as instruction-read-the-word-then-tap does. Loaded as a DRAFT by scripts/seed_content.py, then previewed, played to the end and approved in the admin app.",
+  "speechId": "instruction-read-each-word-then-choose",
+  "title": "Read each word, then choose the right one.",
+  "kind": "INSTRUCTION",
+  "ssml": "<sub alias=\"reed\">Read</sub> each word, then choose the right one."
+}
