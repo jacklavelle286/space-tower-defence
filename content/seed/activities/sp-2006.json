@@ -1,0 +1,51 @@
+{
+  "$comment": "Gate I, Phase 48 (content phase F, spelling age 5; D-7 tiles and pictures, no typed words). Seeded by scripts/seed_content.py; drafted by Claude for the owner's review.",
+  "schemaVersion": 1,
+  "activityId": "sp-2006",
+  "title": "Missing letter for the picture (net)",
+  "subject": "spelling",
+  "topicId": "spelling-cvc-missing-letter",
+  "minAge": 5,
+  "maxAge": 5,
+  "rewardCategory": "NORMAL",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "n _ t. Which letter makes the word for the picture?"
+  },
+  "visualAssetReferences": [
+    "pic-net"
+  ],
+  "activityPayload": {
+    "optionStyle": "GRAPHEME",
+    "options": [
+      {
+        "id": "a",
+        "text": "a"
+      },
+      {
+        "id": "b",
+        "text": "i"
+      },
+      {
+        "id": "c",
+        "text": "u"
+      },
+      {
+        "id": "d",
+        "text": "e"
+      }
+    ],
+    "stimulus": {
+      "assetId": "pic-net",
+      "alt": "a mesh bag on a long handle for catching things"
+    }
+  },
+  "answerSpecification": {
+    "accepted": [
+      "d"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

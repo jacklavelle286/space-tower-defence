@@ -1,0 +1,45 @@
+{
+  "$comment": "Gate I, Phase 48 (C26.3 content phase): age-7 spelling row. Seeded by scripts/seed_content.py; drafted by Claude for the owner's review.",
+  "schemaVersion": 1,
+  "activityId": "sp-2213",
+  "title": "Plural of puppy (y to ies)",
+  "subject": "spelling",
+  "topicId": "spelling-y2-y-endings",
+  "minAge": 7,
+  "maxAge": 7,
+  "rewardCategory": "NORMAL",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "One puppy, two ... Which spelling is right?"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "optionStyle": "WORD",
+    "options": [
+      {
+        "id": "a",
+        "text": "puppys"
+      },
+      {
+        "id": "b",
+        "text": "puppies"
+      },
+      {
+        "id": "c",
+        "text": "puppyes"
+      },
+      {
+        "id": "d",
+        "text": "pupies"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "b"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

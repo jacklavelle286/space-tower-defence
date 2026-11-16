@@ -1,0 +1,45 @@
+{
+  "$comment": "Gate I, Phase 48 (C26.3 content phase): age-7 spelling row. Seeded by scripts/seed_content.py; drafted by Claude for the owner's review.",
+  "schemaVersion": 1,
+  "activityId": "sp-2204",
+  "title": "Spell camel (el)",
+  "subject": "spelling",
+  "topicId": "spelling-y2-le-el-al-il",
+  "minAge": 7,
+  "maxAge": 7,
+  "rewardCategory": "NORMAL",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "An animal with a hump is a ... Which spelling is right?"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "optionStyle": "WORD",
+    "options": [
+      {
+        "id": "a",
+        "text": "camle"
+      },
+      {
+        "id": "b",
+        "text": "camel"
+      },
+      {
+        "id": "c",
+        "text": "camal"
+      },
+      {
+        "id": "d",
+        "text": "camil"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "b"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

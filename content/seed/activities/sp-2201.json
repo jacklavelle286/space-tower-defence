@@ -1,0 +1,45 @@
+{
+  "$comment": "Gate I, Phase 48 (C26.3 content phase): age-7 spelling row. Seeded by scripts/seed_content.py; drafted by Claude for the owner's review.",
+  "schemaVersion": 1,
+  "activityId": "sp-2201",
+  "title": "Spell bridge (dge)",
+  "subject": "spelling",
+  "topicId": "spelling-y2-dge-ge-j",
+  "minAge": 7,
+  "maxAge": 7,
+  "rewardCategory": "NORMAL",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "You cross a river on a ... Which spelling is right?"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "optionStyle": "WORD",
+    "options": [
+      {
+        "id": "a",
+        "text": "brige"
+      },
+      {
+        "id": "b",
+        "text": "bridge"
+      },
+      {
+        "id": "c",
+        "text": "bridj"
+      },
+      {
+        "id": "d",
+        "text": "brigde"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "b"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

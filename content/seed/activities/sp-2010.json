@@ -1,0 +1,46 @@
+{
+  "$comment": "Gate I, Phase 48 (content phase F, spelling age 5; D-7 tiles and pictures, no typed words). Audio is REQUIRED for this topic, so it has clips (D-1); --publish publishes it once every referenced speech is approved in the admin app (until then it fails only with speech_not_approved). Seeded by scripts/seed_content.py; drafted by Claude for the owner's review.",
+  "schemaVersion": 1,
+  "activityId": "sp-2010",
+  "title": "Count the sounds in fish",
+  "subject": "spelling",
+  "topicId": "spelling-sounds-count",
+  "minAge": 5,
+  "maxAge": 5,
+  "rewardCategory": "NORMAL",
+  "interactionType": "NUMBER_SELECT",
+  "authoringMode": "FIXED",
+  "audioRequirement": "REQUIRED",
+  "prompt": {
+    "text": "Listen. How many sounds can you hear?"
+  },
+  "visualAssetReferences": [
+    "pic-fish"
+  ],
+  "activityPayload": {
+    "numberSet": {
+      "kind": "RANGE",
+      "min": 1,
+      "max": 5,
+      "step": 1
+    },
+    "display": "TRACK",
+    "stimulus": {
+      "assetId": "pic-fish",
+      "alt": "an orange swimmer with fins"
+    }
+  },
+  "answerSpecification": {
+    "accepted": [
+      "3"
+    ]
+  },
+  "speechDefinitionReferences": {
+    "prompt": {
+      "speechId": "word-fish"
+    },
+    "instruction": {
+      "speechId": "instruction-listen-how-many-sounds-can"
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "$comment": "Gate I, Phase 48 (C26.3 content phase): age-7 spelling row. Seeded by scripts/seed_content.py; drafted by Claude for the owner's review.",
+  "schemaVersion": 1,
+  "activityId": "sp-2208",
+  "title": "Spell treasure (s as zh)",
+  "subject": "spelling",
+  "topicId": "spelling-y2-vowel-oddities",
+  "minAge": 7,
+  "maxAge": 7,
+  "rewardCategory": "NORMAL",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Pirates dig for buried ... Which spelling is right?"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "optionStyle": "WORD",
+    "options": [
+      {
+        "id": "a",
+        "text": "treazure"
+      },
+      {
+        "id": "b",
+        "text": "treshure"
+      },
+      {
+        "id": "c",
+        "text": "trezher"
+      },
+      {
+        "id": "d",
+        "text": "treasure"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "d"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

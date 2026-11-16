@@ -1,0 +1,31 @@
+{
+  "$comment": "Gate I, Phase 48 (C26.3 content phase): age-7 spelling row. Seeded by scripts/seed_content.py; drafted by Claude for the owner's review.",
+  "schemaVersion": 1,
+  "activityId": "sp-2203",
+  "title": "Finish huge (ge)",
+  "subject": "spelling",
+  "topicId": "spelling-y2-dge-ge-j",
+  "minAge": 7,
+  "maxAge": 7,
+  "rewardCategory": "NORMAL",
+  "interactionType": "TYPED",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Finish the word with dge or ge. Type the whole word."
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "mode": "WORD",
+    "maxLength": 8,
+    "cue": {
+      "text": "hu... (it means very big)"
+    }
+  },
+  "answerSpecification": {
+    "accepted": [
+      "huge"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

@@ -1,0 +1,56 @@
+{
+  "$comment": "Gate I, Phase 48 (content phase F, spelling age 5; D-7 tiles and pictures, no typed words). Seeded by scripts/seed_content.py; drafted by Claude for the owner's review.",
+  "schemaVersion": 1,
+  "activityId": "sp-2013",
+  "title": "Build the word for the picture (chip, ch tile)",
+  "subject": "spelling",
+  "topicId": "spelling-digraph-build",
+  "minAge": 5,
+  "maxAge": 5,
+  "rewardCategory": "NORMAL",
+  "interactionType": "ARRANGE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Make the word for the picture."
+  },
+  "visualAssetReferences": [
+    "pic-chip"
+  ],
+  "activityPayload": {
+    "mode": "LETTERS",
+    "tiles": [
+      {
+        "id": "t1",
+        "value": "i"
+      },
+      {
+        "id": "t2",
+        "value": "sh"
+      },
+      {
+        "id": "t3",
+        "value": "p"
+      },
+      {
+        "id": "t4",
+        "value": "ch"
+      },
+      {
+        "id": "t5",
+        "value": "o"
+      }
+    ],
+    "slots": 3,
+    "cue": {
+      "assetId": "pic-chip",
+      "alt": "three long yellow pieces of fried potato"
+    }
+  },
+  "answerSpecification": {
+    "accepted": [
+      "chip"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

@@ -1,0 +1,51 @@
+{
+  "$comment": "Gate I, Phase 48 (C26.3 content phase F): spelling, age 6. Seeded by scripts/seed_content.py; drafted by Claude for the owner's review.",
+  "schemaVersion": 1,
+  "activityId": "sp-2119",
+  "title": "Plural of fox (es)",
+  "subject": "spelling",
+  "topicId": "spelling-y1-plurals-s-es",
+  "minAge": 6,
+  "maxAge": 6,
+  "rewardCategory": "NORMAL",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "One fox, two ... Which spelling is right?"
+  },
+  "visualAssetReferences": [
+    "pic-foxes"
+  ],
+  "activityPayload": {
+    "optionStyle": "WORD",
+    "options": [
+      {
+        "id": "a",
+        "text": "foxs"
+      },
+      {
+        "id": "b",
+        "text": "foxes"
+      },
+      {
+        "id": "c",
+        "text": "foxis"
+      },
+      {
+        "id": "d",
+        "text": "foxez"
+      }
+    ],
+    "stimulus": {
+      "assetId": "pic-foxes",
+      "alt": "two orange animals with bushy tails"
+    }
+  },
+  "answerSpecification": {
+    "accepted": [
+      "b"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

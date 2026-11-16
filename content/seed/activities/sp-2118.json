@@ -1,0 +1,51 @@
+{
+  "$comment": "Gate I, Phase 48 (C26.3 content phase F): spelling, age 6. Seeded by scripts/seed_content.py; drafted by Claude for the owner's review.",
+  "schemaVersion": 1,
+  "activityId": "sp-2118",
+  "title": "Order k, l, m, n",
+  "subject": "spelling",
+  "topicId": "spelling-y1-days-and-alphabet",
+  "minAge": 6,
+  "maxAge": 6,
+  "rewardCategory": "NORMAL",
+  "interactionType": "ARRANGE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Put the letters in alphabet order."
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "mode": "SEQUENCE",
+    "tiles": [
+      {
+        "id": "t1",
+        "value": "m",
+        "text": "m"
+      },
+      {
+        "id": "t2",
+        "value": "k",
+        "text": "k"
+      },
+      {
+        "id": "t3",
+        "value": "n",
+        "text": "n"
+      },
+      {
+        "id": "t4",
+        "value": "l",
+        "text": "l"
+      }
+    ],
+    "slots": 4,
+    "orderLabel": "alphabet order"
+  },
+  "answerSpecification": {
+    "accepted": [
+      "k,l,m,n"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

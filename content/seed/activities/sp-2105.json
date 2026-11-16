@@ -1,0 +1,45 @@
+{
+  "$comment": "Gate I, Phase 48 (C26.3 content phase F): spelling, age 6. Seeded by scripts/seed_content.py; drafted by Claude for the owner's review.",
+  "schemaVersion": 1,
+  "activityId": "sp-2105",
+  "title": "Spell drink (nk)",
+  "subject": "spelling",
+  "topicId": "spelling-y1-nk-tch-ve",
+  "minAge": 6,
+  "maxAge": 6,
+  "rewardCategory": "NORMAL",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "You ... water when you are thirsty. Which spelling is right?"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "optionStyle": "WORD",
+    "options": [
+      {
+        "id": "a",
+        "text": "drinck"
+      },
+      {
+        "id": "b",
+        "text": "dringk"
+      },
+      {
+        "id": "c",
+        "text": "drink"
+      },
+      {
+        "id": "d",
+        "text": "drinc"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "c"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

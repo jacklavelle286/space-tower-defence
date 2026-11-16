@@ -1,0 +1,51 @@
+{
+  "$comment": "Gate I, Phase 48 (C26.3 content phase F): spelling, age 6. Seeded by scripts/seed_content.py; drafted by Claude for the owner's review.",
+  "schemaVersion": 1,
+  "activityId": "sp-2115",
+  "title": "Order Tuesday to Friday",
+  "subject": "spelling",
+  "topicId": "spelling-y1-days-and-alphabet",
+  "minAge": 6,
+  "maxAge": 6,
+  "rewardCategory": "NORMAL",
+  "interactionType": "ARRANGE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Put the days in order."
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "mode": "SEQUENCE",
+    "tiles": [
+      {
+        "id": "t1",
+        "value": "thursday",
+        "text": "Thursday"
+      },
+      {
+        "id": "t2",
+        "value": "tuesday",
+        "text": "Tuesday"
+      },
+      {
+        "id": "t3",
+        "value": "friday",
+        "text": "Friday"
+      },
+      {
+        "id": "t4",
+        "value": "wednesday",
+        "text": "Wednesday"
+      }
+    ],
+    "slots": 4,
+    "orderLabel": "week order"
+  },
+  "answerSpecification": {
+    "accepted": [
+      "tuesday,wednesday,thursday,friday"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

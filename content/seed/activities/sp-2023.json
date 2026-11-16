@@ -1,0 +1,52 @@
+{
+  "$comment": "Gate I, Phase 48 (content phase F, spelling age 5; D-7 tiles and pictures, no typed words). Audio is REQUIRED for this topic, so it has clips (D-1); --publish publishes it once every referenced speech is approved in the admin app (until then it fails only with speech_not_approved). Seeded by scripts/seed_content.py; drafted by Claude for the owner's review.",
+  "schemaVersion": 1,
+  "activityId": "sp-2023",
+  "title": "Hear and pick the tricky word: go",
+  "subject": "spelling",
+  "topicId": "spelling-tricky-set1",
+  "minAge": 5,
+  "maxAge": 5,
+  "rewardCategory": "NORMAL",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "REQUIRED",
+  "prompt": {
+    "text": "Listen. Which word is this?"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "optionStyle": "WORD",
+    "options": [
+      {
+        "id": "a",
+        "text": "goe"
+      },
+      {
+        "id": "b",
+        "text": "gow"
+      },
+      {
+        "id": "c",
+        "text": "go"
+      },
+      {
+        "id": "d",
+        "text": "goh"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "c"
+    ]
+  },
+  "speechDefinitionReferences": {
+    "prompt": {
+      "speechId": "word-go"
+    },
+    "instruction": {
+      "speechId": "instruction-listen-which-word-is-this"
+    }
+  }
+}
