@@ -11,6 +11,22 @@ For each slot, in play order (by interval, the normal slot before the meteor), t
 (subject x NORMAL/METEOR) by round-robin over the group's topics. Topic order and the units inside each topic are
 shuffled with the seed (C24.4, C24.5). A unit is used at most once per run.
 
+An activity whose rewardCategory is BOTH (2026-11-16) is a member of both groups of its subject, NORMAL and METEOR.
+The groups share one used set: a group passes over a unit another group has already taken, so a BOTH unit still fills
+at most one slot per run. A group's size (for its threshold) counts its BOTH units. The reward always comes from the
+slot, never from the activity.
+
+Taking the next unit slot by slot is greedy, and with BOTH units greed can strand a slot: a normal slot takes the
+only BOTH unit while a NORMAL-only unit was free, and a later meteor slot then has nothing. So when a slot finds no
+free unit, `choose_units` looks for a swap before giving up (an augmenting path, as in Kuhn's matching algorithm):
+an earlier slot gives its unit to this slot and takes a free unit, or another earlier slot's unit, in its place. Slots
+are tried in play order, and a replacement unit comes from the earlier slot's own groups in their shuffled order, so
+the result stays a pure function of the inputs. The repair runs only when the greedy pass is stuck, so every plan the
+greedy pass could already make is unchanged, and a bank with no BOTH unit never has a swap to make (each of its units
+fits one slot kind, so any unit an earlier slot could hand over sits in a group that is already empty). With the
+repair a run is refused only when no assignment of units to slots exists. The shuffle labels are the same as before;
+ALGORITHM_VERSION stays 1 [ASSUMPTION].
+
 Milestone 1 configuration (labelled as such, not the product rule; B N-7, C24.7, J): `M1_CONFIG` sets every group's
 eligibility threshold to 1 and turns on the subject fallback: a slot whose rotation subject has nothing left takes
 the next subject that has, in the order maths, phonics, spelling (the C24.6 endless rule). Without the fallback the
@@ -29,7 +45,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from shared.rules.next_phase import slot_id_for
-from shared.selection.bank import SUBJECTS, Unit
+from shared.selection.bank import SLOT_KINDS, SUBJECTS, Unit, fills
 from shared.selection.draws import shuffle
 
 ALGORITHM_VERSION = 1
@@ -47,7 +63,7 @@ class SelectionConfig:
 
 
 M1_CONFIG = SelectionConfig(
-    thresholds={(subject, category): 1 for subject in SUBJECTS for category in ("NORMAL", "METEOR")},
+    thresholds={(subject, kind): 1 for subject in SUBJECTS for kind in SLOT_KINDS},
     subject_fallback=True,
 )
 
@@ -104,7 +120,10 @@ def slot_specs(final_wave: int, meteor_after: Sequence[int], normal_rewards: Seq
 
 
 class _Group:
-    """One subject x category queue: topics shuffled, units shuffled inside each topic, round-robin over topics."""
+    """One subject x slot-kind queue: topics shuffled, units shuffled inside each topic, round-robin over topics.
+
+    A BOTH unit sits in two groups. `take` passes over (and drops) any unit in `used`, the run's shared set of
+    activity IDs already chosen, so the unit fills at most one slot. With no BOTH unit nothing is ever skipped."""
 
     def __init__(self, units: Sequence[Unit], seed: str, subject: str, category: str) -> None:
         by_topic: dict[str, list[Unit]] = {}
@@ -114,15 +133,18 @@ class _Group:
         self.size = len(units)
         self.queues = [shuffle(by_topic[topic], seed, f"units:{topic}") for topic in topics]
         self.next_topic = 0
-        self.used = 0
 
-    def take(self) -> Unit | None:
+    def take(self, used: set[str]) -> Unit | None:
         for step in range(len(self.queues)):
             index = (self.next_topic + step) % len(self.queues)
-            if self.queues[index]:
+            queue = self.queues[index]
+            while queue and queue[0].activity_id in used:
+                queue.pop(0)  # taken by the other group of this subject (a BOTH unit)
+            if queue:
                 self.next_topic = index + 1
-                self.used += 1
-                return self.queues[index].pop(0)
+                unit = queue.pop(0)
+                used.add(unit.activity_id)
+                return unit
         return None
 
 
@@ -197,27 +219,54 @@ def _clips(version: Mapping[str, Any]) -> dict[str, dict[str, str]]:
 def choose_units(specs: Sequence[SlotSpec], units: Sequence[Unit], seed: str, config: SelectionConfig) -> list[Unit]:
     """One unit per spec, or BankNotReady. Pure."""
     groups = {
-        (subject, category): _Group(
-            [u for u in units if u.subject == subject and u.category == category], seed, subject, category
+        (subject, kind): _Group(
+            [u for u in units if u.subject == subject and fills(u.category, kind)], seed, subject, kind
         )
         for subject in SUBJECTS
-        for category in ("NORMAL", "METEOR")
+        for kind in SLOT_KINDS
     }
+    used: set[str] = set()  # activity IDs chosen so far, shared by every group (a BOTH unit is in two)
     chosen: list[Unit] = []
-    for spec in specs:
+
+    def subjects_for(spec: SlotSpec) -> list[str]:
         order = [spec.subject]
         if config.subject_fallback:
             order += [subject for subject in SUBJECTS if subject != spec.subject]
-        unit = None
-        for subject in order:
-            unit = groups[(subject, spec.kind)].take()
+        return order
+
+    def take_free(spec: SlotSpec) -> Unit | None:
+        for subject in subjects_for(spec):
+            unit = groups[(subject, spec.kind)].take(used)
             if unit is not None:
-                break
+                return unit
+        return None
+
+    def fits(unit: Unit, spec: SlotSpec) -> bool:
+        return fills(unit.category, spec.kind) and unit.subject in subjects_for(spec)
+
+    def swap_for(spec: SlotSpec, visited: set[int]) -> Unit | None:
+        """A unit for `spec` taken from an earlier slot, which is refilled with a free unit or, recursively, with
+        another earlier slot's unit. `chosen` is updated in place; None when no such chain of swaps exists."""
+        for index, held in enumerate(chosen):
+            if index in visited or not fits(held, spec):
+                continue
+            visited.add(index)
+            other = specs[index]
+            replacement = take_free(other) or swap_for(other, visited)
+            if replacement is not None:
+                chosen[index] = replacement
+                return held
+        return None
+
+    for spec in specs:
+        unit = take_free(spec) or swap_for(spec, set())
         if unit is None:
             raise BankNotReady(f"no unit left for {spec.slot_id}")
         chosen.append(unit)
+    # A group supplies a slot when the slot's unit came from it: the unit's subject and the slot's kind.
+    supplied = {(unit.subject, spec.kind) for spec, unit in zip(specs, chosen, strict=True)}
     for key, group in groups.items():
-        if group.used and group.size < config.thresholds.get(key, 1):
+        if key in supplied and group.size < config.thresholds.get(key, 1):
             raise BankNotReady(f"group {key} holds {group.size} units, below its threshold")
     return chosen
 

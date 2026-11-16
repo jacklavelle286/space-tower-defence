@@ -16,9 +16,10 @@ from botocore.exceptions import ClientError
 from test_activity_types import EXAMPLES
 from test_admin_api import ALL_TICKED, PH_0102, SUB, Admin, approve_sh, rules
 
-from shared.content import CREATE_FIELDS, IDENTITY_FIELDS, definition_hash
+from shared.content import CREATE_FIELDS, IDENTITY_FIELDS, definition_hash, topic_problems
 from shared.data import DynamoTable
 from shared.selection.bank import read_units
+from shared.topics import get_topic
 
 ACT = "ph-0102"
 DRAFT = "PUT /api/admin/activities/{id}/draft"
@@ -345,3 +346,107 @@ def test_validate_names_the_field_and_rule_for_a_new_type(api: Admin) -> None:
     assert body["problems"] == [{"field": "answerSpecification.accepted.0", "rule": "shuffle_spells_answer"}]
     status, body = publish(api, revision, activity_id="sp-9003")
     assert (status, rules(body)) == (400, {("answerSpecification.accepted.0", "shuffle_spells_answer")})
+
+
+# --- Topic registry, optional curriculum, rewardCategory BOTH (Gate G follow-up, 2026-11-16) -------------------------
+
+NO_CURRICULUM = {k: v for k, v in PH_0102.items() if k not in ("curriculumReference", "curriculumNote", "source")}
+
+
+def test_a_definition_without_curriculum_publishes_with_the_registry_list(api: Admin) -> None:
+    approve_sh(api)
+    revision = create(api, NO_CURRICULUM)
+    status, body = api.call(VALIDATE, {"draftRevision": revision}, id=ACT)
+    assert (status, body["valid"]) == (200, True), body
+    status, body = publish(api, revision)
+    assert status == 201, body
+    version = api.table.get_item(f"ACT#{ACT}", f"V#{body['versionId']}")
+    assert version is not None
+    assert version["curriculumReference"] == list(get_topic("phonics-gpc-consonant-digraphs").curriculum)
+    assert "source" not in version
+    # The hash covers the published body, the server-written curriculum included.
+    meta = ("pk", "sk", "review", "publishedBy", "publishedAt", "fromDraftRevision", "definitionHash")
+    assert definition_hash({k: v for k, v in version.items() if k not in meta}) == version["definitionHash"]
+    _, view = api.call("GET /api/admin/activities/{id}", id=ACT)
+    assert "curriculumReference" not in view["draft"]["definition"]  # the draft itself is not changed
+
+
+def test_an_operator_written_curriculum_list_is_kept(api: Admin) -> None:
+    version = api.table.get_item(f"ACT#{ACT}", f"V#{published_sh(api)}")
+    assert version is not None and version["curriculumReference"] == PH_0102["curriculumReference"]
+
+
+@pytest.mark.parametrize(
+    ("changes", "expected"),
+    [
+        ({"topicId": "phonics-not-in-the-registry"}, {("topicId", "unknown_topic")}),
+        ({"topicId": "phonics-gpc-split-digraphs"}, {("minAge", "topic_ages")}),  # a topic taught at 6 only
+        ({"minAge": 6, "maxAge": 7}, {("minAge", "topic_ages")}),  # consonant digraphs are taught at 5 and 6
+        ({"minAge": 6, "maxAge": 6}, set()),
+    ],
+)
+def test_validate_and_publish_check_the_topic_registry(
+    api: Admin, changes: dict[str, Any], expected: set[tuple[str, str]]
+) -> None:
+    approve_sh(api)
+    revision = create(api, {**PH_0102, **changes})  # a draft saves whatever its topic
+    status, body = api.call(VALIDATE, {"draftRevision": revision}, id=ACT)
+    assert status == 200 and {(p["field"], p["rule"]) for p in body["problems"]} == expected
+    status, body = publish(api, revision)
+    assert status == (201 if not expected else 400)
+    if expected:
+        assert rules(body) == expected
+
+
+def test_a_registered_topic_of_another_subject_is_unknown(api: Admin) -> None:
+    # topic_subject (the prefix rule) already names a cross-subject ID; a registry entry is matched on subject too.
+    assert topic_problems({**PH_0102, "subject": "spelling", "topicId": "phonics-pseudo-words"}, None) == [
+        {"field": "topicId", "rule": "unknown_topic"}
+    ]
+    assert topic_problems({**PH_0102, "topicId": "phonics-pseudo-words", "minAge": 6, "maxAge": 7}, None) == []
+
+
+def test_topic_checks_are_skipped_once_a_version_is_published(api: Admin) -> None:
+    """An activity published under a hand-typed topic before the registry existed stays editable and publishable."""
+    published_sh(api)
+    handtyped = "phonics-sh-sound"
+    api.table.update_item("ACT", ACT, update="SET #t = :t", names={"#t": "topicId"}, values={":t": handtyped})
+    revision = save(api, {**PH_0102, "topicId": handtyped, "title": "Edited later"}, 1)
+    status, body = api.call(VALIDATE, {"draftRevision": revision}, id=ACT)
+    assert (status, body["valid"], body["problems"]) == (200, True, [])
+    status, body = publish(api, revision)
+    assert status == 201, body
+    without = save(api, {**NO_CURRICULUM, "topicId": handtyped}, revision)
+    status, body = publish(api, without)
+    assert status == 201, body
+    version = api.table.get_item(f"ACT#{ACT}", f"V#{body['versionId']}")
+    assert version is not None and "curriculumReference" not in version  # no registry entry, nothing to copy
+
+
+def test_topic_ages_still_apply_after_publish_for_a_registered_topic(api: Admin) -> None:
+    """minAge and maxAge stay editable after publish, so a locked topic that is in the registry keeps its age check:
+    otherwise a republish could widen the header's ages and selection would serve the activity outside the topic."""
+    published_sh(api)  # phonics-gpc-consonant-digraphs, taught at 5 and 6
+    revision = save(api, {**PH_0102, "minAge": 6, "maxAge": 7}, 1)
+    status, body = api.call(VALIDATE, {"draftRevision": revision}, id=ACT)
+    assert status == 200 and {(p["field"], p["rule"]) for p in body["problems"]} == {("minAge", "topic_ages")}
+    status, body = publish(api, revision)
+    assert (status, rules(body)) == (400, {("minAge", "topic_ages")})
+    header = api.table.get_item("ACT", ACT)
+    assert header is not None and (header["minAge"], header["maxAge"]) == (PH_0102["minAge"], PH_0102["maxAge"])
+    published = {**PH_0102, "subject": "phonics"}
+    assert topic_problems({**published, "minAge": 6, "maxAge": 7}, {"publishedVersion": "v"}) == [
+        {"field": "minAge", "rule": "topic_ages"}
+    ]
+    assert topic_problems({**published, "topicId": "phonics-sh-sound"}, {"publishedVersion": "v"}) == []
+
+
+def test_a_both_activity_publishes_and_is_selectable(api: Admin) -> None:
+    approve_sh(api)
+    revision = create(api, {**PH_0102, "rewardCategory": "BOTH"})
+    status, body = publish(api, revision)
+    assert status == 201, body
+    [unit] = read_units(api.table, 5)
+    assert (unit.activity_id, unit.category) == (ACT, "BOTH")
+    status, body = api.call(DRAFT, {"draftRevision": revision, "definition": PH_0102}, id=ACT)
+    assert (status, rules(body)) == (400, {("definition.rewardCategory", "locked_after_publish")})

@@ -120,7 +120,7 @@ def speech_seed(path: Path, at: datetime) -> Seed:
 def activity_seed(path: Path, at: datetime) -> Seed:
     doc = _read(path)
     doc.pop("$comment", None)
-    problems = definition_problems(doc, path.stem)
+    problems = definition_problems(doc, path.stem)  # with the topic registry checks: a seed is never published
     if problems:
         shown = ", ".join(f"{p['field']} {p['rule']}" for p in problems)
         raise SeedError(f"{path.name}: {shown}")

@@ -4,13 +4,16 @@ What `player-api` reads, and so what the admin path (Phase 20, M1-19) must write
 C22.1 and spine S8.3:
 
     header   pk "ACT", sk <activityId>
-             subject, topicId, rewardCategory (NORMAL | METEOR), minAge, maxAge, interactionType,
+             subject, topicId, rewardCategory (NORMAL | METEOR | BOTH), minAge, maxAge, interactionType,
              authoringMode (FIXED | TEMPLATE), state (DRAFT | PUBLISHED | RETIRED), publishedVersion
     version  pk "ACT#<activityId>", sk "V#<version>"  (immutable)
              the definition fields of C22.1 at the top level: interactionType, prompt, visualAssetReferences,
              activityPayload, answerSpecification, additionalSteps, introductionContent, and
              speechDefinitionReferences as resolved at publish: {variant: {speechId, speechVersion, clipKey}};
              withdrawn {at, reason} once withdrawn
+
+`rewardCategory` says which slot kinds the activity may fill: NORMAL slots, METEOR slots, or BOTH (either kind;
+added 2026-11-16). It never sets the reward: that belongs to the slot (shared/selection/plan.py).
 
 Selection reads the header partition once (consistent Query, filtered in code) and then only the versions it chose
 (one consistent BatchGetItem). Packs and run views read pinned versions the same way.
@@ -27,7 +30,13 @@ from shared.data import DynamoTable
 
 HEADER_PK = "ACT"
 SUBJECTS = ("maths", "phonics", "spelling")  # also the rotation order (C24.2) and the fallback order (C24.6)
-CATEGORIES = ("NORMAL", "METEOR")
+SLOT_KINDS = ("NORMAL", "METEOR")
+CATEGORIES = (*SLOT_KINDS, "BOTH")  # a header's rewardCategory
+
+
+def fills(category: str, slot_kind: str) -> bool:
+    """True when a unit of `category` may fill a slot of `slot_kind`: its own kind, or any kind for BOTH."""
+    return category == slot_kind or category == "BOTH"
 
 
 def version_key(activity_id: str, version: str) -> tuple[str, str]:
@@ -42,7 +51,7 @@ class Unit:
     version: str
     subject: str
     topic_id: str
-    category: str
+    category: str  # NORMAL | METEOR | BOTH
     interaction_type: str
 
 

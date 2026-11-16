@@ -146,7 +146,7 @@ jobs:
       # api/pyproject.toml holds the ruff settings; --config applies them to the build-script files and the seed script.
       # The older scripts/ files are not yet ruff-clean, so they are not listed here.
       - name: Ruff
-        run: ruff check --config api/pyproject.toml api scripts/build_lambdas.py scripts/tests/test_build_lambdas.py scripts/seed_content.py
+        run: ruff check --config api/pyproject.toml api scripts/build_lambdas.py scripts/tests/test_build_lambdas.py scripts/seed_content.py scripts/gen_topics.py
 
       - name: Wait for DynamoDB Local
         run: |

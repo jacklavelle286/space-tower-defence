@@ -29,6 +29,18 @@ its size, its ID and the locked identity fields are checked); validate and publi
 Lifecycle items written by admin-api (Phase 36): retire sets the header `state` RETIRED; withdraw adds
 `withdrawn {at, reason}` to one version (the only attribute ever added to a version, under `attribute_not_exists`)
 and, when it is the published version, also retires the activity (F §12.6 C5, C6).
+
+Topics and curriculum (Gate G follow-up, 2026-11-16): the topic registry (contracts/topics.json, plan C19,
+shared/topics.py) carries the curriculum references, so `curriculumReference` is optional in a definition. At validate
+and publish the topic must be registered under the activity's subject (`unknown_topic`) and the activity's ages must
+be ages the topic is taught at (`topic_ages`); both are skipped once the activity has a published version, because the
+topic is then locked and activities published under a hand-typed topic must stay editable. At publish, a definition
+with no `curriculumReference` gets the registry's list on the version (`definition_for_publish`), so the published
+record still carries it. Those entries are C19's references as written (free text), not CURRICULUM_CODE codes; only
+an operator-written list is held to the code pattern.
+
+`rewardCategory` BOTH (same date): the activity may fill a normal slot or a meteor slot (selection puts it in both
+groups of its subject, and still uses it at most once per run). The reward stays a property of the slot.
 """
 
 from __future__ import annotations
@@ -53,6 +65,7 @@ from shared.activity_types import (
 )
 from shared.clipkey import KINDS, PROVIDER
 from shared.rules.contracts import LIMITS
+from shared.topics import get_topic
 
 SPEECH_PK = "SPEECH"
 ACT_PK = "ACT"
@@ -65,7 +78,7 @@ VERSION_ID = re.compile(r"[0-9]{8}T[0-9]{6}Z")
 TITLE_MAX = 80
 AGE_BANDS: tuple[int, ...] = tuple(LIMITS["ageBands"])
 SUBJECTS = ("maths", "phonics", "spelling")
-REWARD_CATEGORIES = ("NORMAL", "METEOR")
+REWARD_CATEGORIES = ("NORMAL", "METEOR", "BOTH")  # BOTH: either slot kind (shared/selection)
 AUTHORING_MODES = ("FIXED", "TEMPLATE")
 AUDIO_REQUIREMENTS = ("NONE", "OPTIONAL", "REQUIRED")
 SOURCES = ("HANDWRITTEN", "TEMPLATE", "IMPORT", "AI_ASSISTED")
@@ -291,7 +304,8 @@ def _identity_problems(doc: Mapping[str, Any], prefix: str) -> list[Problem]:
     if not (isinstance(topic, str) and KEY_ID.fullmatch(topic)):
         problems.append(problem(f"{prefix}topicId", "pattern"))
     elif subject in SUBJECTS and not topic.startswith(f"{subject}-"):
-        # No topic registry yet (C22.2 rule 2); topic IDs start with their subject (C16.2) [ASSUMPTION].
+        # Topic IDs start with their subject (C16.2); also checked on create (R23). The registry checks (C22.2 rule 2)
+        # run at validate and publish only (topic_problems).
         problems.append(problem(f"{prefix}topicId", "topic_subject"))
     if doc.get("rewardCategory") not in REWARD_CATEGORIES:
         problems.append(problem(f"{prefix}rewardCategory", "enum"))
@@ -345,7 +359,6 @@ REQUIRED_DEFINITION_FIELDS = (
     "schemaVersion",
     *CREATE_FIELDS,
     "audioRequirement",
-    "curriculumReference",
     "prompt",
     "activityPayload",
     "answerSpecification",
@@ -459,8 +472,11 @@ def _asset_problems(definition: Mapping[str, Any], steps: list[Step]) -> list[Pr
     return problems
 
 
-def definition_problems(definition: Any, activity_id: str) -> list[Problem]:
-    """Every C22.2 check that needs only the definition itself (speech approval is checked against the table)."""
+def definition_problems(definition: Any, activity_id: str, header: Mapping[str, Any] | None = None) -> list[Problem]:
+    """Every C22.2 check that needs only the definition itself (speech approval is checked against the table).
+
+    `header` is the activity's header item when there is one (validate, publish): the topic registry checks are
+    skipped once it has a published version (`topic_problems`). None (a seed, a fixture) means nothing is published."""
     if not isinstance(definition, Mapping):
         return [problem("definition", "type")]
     problems: list[Problem] = []
@@ -479,15 +495,18 @@ def definition_problems(definition: Any, activity_id: str) -> list[Problem]:
 
     if as_int(definition["schemaVersion"]) != 1:
         problems.append(problem("schemaVersion", "const"))
-    problems.extend(_identity_problems(definition, ""))
+    identity = _identity_problems(definition, "")
+    problems.extend(identity)
+    if not any(p["field"] in ("subject", "topicId", "minAge", "maxAge") for p in identity):
+        problems.extend(topic_problems(definition, header))  # only once the fields it reads are well formed
     if definition["activityId"] != activity_id:
         problems.append(problem("activityId", "matches_path"))
     if definition["authoringMode"] == "TEMPLATE":
         problems.append(problem("authoringMode", "not_supported_yet"))  # generators arrive in Phase 41
     if definition["audioRequirement"] not in AUDIO_REQUIREMENTS:
         problems.append(problem("audioRequirement", "enum"))
-    refs = definition["curriculumReference"]
-    if not (isinstance(refs, list) and 1 <= len(refs) <= 4 and all(_curriculum(r) for r in refs)):
+    refs = definition.get("curriculumReference")  # optional: the topic registry carries the references (C19)
+    if refs is not None and not (isinstance(refs, list) and 1 <= len(refs) <= 4 and all(_curriculum(r) for r in refs)):
         problems.append(problem("curriculumReference", "pattern"))
     if "curriculumNote" in definition and not _text(definition["curriculumNote"], 1, 200):
         problems.append(problem("curriculumNote", "length"))
@@ -589,6 +608,40 @@ def _part_prompt(payload: Any, two_step: bool) -> tuple[Any, list[Problem]]:
     return rest, []
 
 
+def topic_problems(definition: Any, header: Mapping[str, Any] | None) -> list[Problem]:
+    """Validate and publish (not draft save): the topic is in the registry under the activity's subject
+    (`unknown_topic`), and every age minAge..maxAge is an age the topic is taught at (`topic_ages`).
+
+    Once `header` has a published version the topic is locked, so an activity published under a hand-typed topic
+    before the registry existed must stay editable: `unknown_topic` is skipped then, and so is `topic_ages` for a topic
+    the registry does not know. A locked topic that *is* in the registry keeps the `topic_ages` check, because minAge
+    and maxAge stay editable after publish and selection serves the activity by the header's ages.
+    Malformed identity fields are left to `definition_problems`."""
+    if not isinstance(definition, Mapping):
+        return []
+    published = header is not None and bool(header.get("publishedVersion"))
+    topic = get_topic(definition.get("topicId"))
+    if topic is None or topic.subject != definition.get("subject"):
+        return [] if published else [problem("topicId", "unknown_topic")]
+    low, high = as_int(definition.get("minAge")), as_int(definition.get("maxAge"))
+    if low is None or high is None or low > high:
+        return []  # reported as range / age_span by the identity checks
+    if not topic.allows_ages(low, high):
+        return [problem("minAge", "topic_ages")]
+    return []
+
+
+def definition_for_publish(definition: Mapping[str, Any]) -> dict[str, Any]:
+    """The definition as it is published: when it has no `curriculumReference`, the topic registry's list is
+    written in, so the version records the curriculum it was published against. An operator-written list is kept as
+    it is. A topic that is not in the registry (an activity published before it existed) adds nothing."""
+    out = dict(definition)
+    topic = get_topic(definition.get("topicId"))
+    if "curriculumReference" not in out and topic is not None and topic.curriculum:
+        out["curriculumReference"] = list(topic.curriculum)
+    return out
+
+
 def _curriculum(value: Any) -> bool:
     return isinstance(value, str) and bool(CURRICULUM_CODE.fullmatch(value))
 
@@ -642,7 +695,12 @@ def published_version(
     from_draft_revision: int,
 ) -> dict[str, Any]:
     """The immutable version item: the definition's fields at the top level (what packs, selection and ops read),
-    speech refs resolved, and the review record (never sent to a player: runs.py copies an allow-list)."""
+    speech refs resolved, and the review record (never sent to a player: runs.py copies an allow-list).
+
+    `definition` is what `definition_for_publish` returns. `definitionHash` covers the whole published body: every
+    definition field (the registry curriculum included when the server wrote it), the resolved speech refs and the
+    version ID; not the review record, `publishedBy`, `publishedAt`, `fromDraftRevision` or the keys. So the hash
+    proves the published record never changed, whichever fields the server filled in."""
     body = {name: plain(value) for name, value in definition.items() if name != "speechDefinitionReferences"}
     body["speechDefinitionReferences"] = {variant: dict(ref) for variant, ref in sorted(resolved.items())}
     body["version"] = version

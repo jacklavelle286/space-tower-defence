@@ -52,7 +52,7 @@ EXAMPLES: dict[str, dict[str, Any]] = {
     "multiple-choice": activity(
         "ma-9001",
         "maths",
-        "maths-number-bonds-10",
+        "maths-bonds-to10",
         "MULTIPLE_CHOICE",
         activityPayload={
             "optionStyle": "NUMERAL",
@@ -63,7 +63,7 @@ EXAMPLES: dict[str, dict[str, Any]] = {
     "picture-select": activity(
         "sp-9001",
         "spelling",
-        "spelling-cvc-words",
+        "spelling-alphabet-upper-lower",
         "PICTURE_SELECT",
         prompt={"text": "Which picture is a cat?"},
         visualAssetReferences=["pic-cat", "pic-dog", "pic-sun", "pic-hat"],
@@ -73,7 +73,7 @@ EXAMPLES: dict[str, dict[str, Any]] = {
     "number-select": activity(
         "ma-9002",
         "maths",
-        "maths-count-objects-to10",
+        "maths-bonds-to10",
         "NUMBER_SELECT",
         prompt={"text": "How many spots?"},
         visualAssetReferences=["dice-5"],
@@ -87,7 +87,7 @@ EXAMPLES: dict[str, dict[str, Any]] = {
     "object-move-distribute": activity(
         "ma-9003",
         "maths",
-        "maths-sharing",
+        "maths-bonds-to10",
         "OBJECT_MOVE",
         prompt={"text": "Share the stars fairly."},
         visualAssetReferences=["obj-star"],
@@ -104,7 +104,7 @@ EXAMPLES: dict[str, dict[str, Any]] = {
     "object-move-sort": activity(
         "sp-9002",
         "spelling",
-        "spelling-vowel-digraphs",
+        "spelling-double-letters",
         "OBJECT_MOVE",
         prompt={"text": "Sort the words by their spelling."},
         activityPayload={
@@ -122,7 +122,7 @@ EXAMPLES: dict[str, dict[str, Any]] = {
     "arrange-letters": activity(
         "sp-9003",
         "spelling",
-        "spelling-cvc-words",
+        "spelling-double-letters",
         "ARRANGE",
         prompt={"text": "Spell the word."},
         visualAssetReferences=["pic-cat"],
@@ -142,7 +142,7 @@ EXAMPLES: dict[str, dict[str, Any]] = {
     "arrange-sequence": activity(
         "ma-9004",
         "maths",
-        "maths-compare-numbers-100",
+        "maths-pattern-repeating",
         "ARRANGE",
         prompt={"text": "Put the numbers in order."},
         activityPayload={
@@ -156,7 +156,7 @@ EXAMPLES: dict[str, dict[str, Any]] = {
     "typed-numeric": activity(
         "ma-9005",
         "maths",
-        "maths-add-within-20",
+        "maths-bonds-to10",
         "TYPED",
         prompt={"text": "What is 5 add 3?"},
         activityPayload={"mode": "NUMERIC", "maxLength": 2},
@@ -165,7 +165,7 @@ EXAMPLES: dict[str, dict[str, Any]] = {
     "typed-word": activity(
         "sp-9004",
         "spelling",
-        "spelling-suffix-ing",
+        "spelling-y1-exception-words",
         "TYPED",
         minAge=6,  # D-7: no typed words at age 5
         maxAge=7,
@@ -176,7 +176,7 @@ EXAMPLES: dict[str, dict[str, Any]] = {
     "two-step": activity(
         "ma-9006",
         "maths",
-        "maths-place-value",
+        "maths-bonds-to10",
         "MULTIPLE_CHOICE",
         rewardCategory="METEOR",
         prompt={"text": "How many tens in 34?"},
@@ -427,7 +427,7 @@ def test_the_asset_manifest_matches_the_catalogue() -> None:
 def test_typed_words_are_refused_at_age_5() -> None:
     """D-7: no typed word answers at age 5 (letter tiles instead); typed numbers are fine."""
     doc = copy.deepcopy(EXAMPLES["typed-word"])
-    doc["minAge"], doc["maxAge"] = 5, 6
+    doc["minAge"], doc["maxAge"], doc["topicId"] = 5, 6, "spelling-double-letters"  # a topic taught at 5 and 6
     assert check(doc) == {("activityPayload.mode", "typed_word_age5")}
     two = copy.deepcopy(EXAMPLES["two-step"])
     two["additionalSteps"][0] = {

@@ -5,6 +5,7 @@ Each zip holds, at its root:
   handler.py (and anything else in api/functions/<function>/)   the entry point, `handler.handler`
   shared/                                                       api/shared, the helpers every function imports
   contracts/limits.json, contracts/schemas/*.schema.json        the shared contracts shared/rules reads (Phase 12);
+  contracts/topics.json                                         the topic registry shared/topics reads (plan C19);
                                                                 fixtures and routes.json stay out
   content/listening-verdicts.json (admin-api only)              the G-14 verdicts shared/verdicts.py reads when a
                                                                 PHONEME speech definition is approved (Phase 20)
@@ -64,7 +65,8 @@ PIP_TARGET = [
 ]  # fmt: skip
 _SKIPPED_DIRS = frozenset({"__pycache__"})
 _SKIPPED_SUFFIXES = frozenset({".pyc", ".pyo"})
-CONTRACT_FILES = ("limits.json", "schemas/*.schema.json")  # globs under contracts/, the files the code reads
+# Globs under contracts/, the files the code reads: limits, schemas (shared/rules), topic registry (shared/topics).
+CONTRACT_FILES = ("limits.json", "topics.json", "schemas/*.schema.json")
 # Repository files one function reads at run time, at the same relative path in its zip (Phase 20).
 FUNCTION_FILES: Mapping[str, tuple[str, ...]] = {"admin_api": ("content/listening-verdicts.json",)}
 _PIN = re.compile(r"^([A-Za-z0-9][A-Za-z0-9._-]*)(\[[^\]]*\])?==\S+")

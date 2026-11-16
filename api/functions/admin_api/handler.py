@@ -24,7 +24,8 @@ text with the next take ("Try another take", a new draft revision) and previews 
 saved take.
 
 Activity publication (R27, C4) checks the draft revision, the seven-line checklist, the preview-solve revision, the
-definition (C22.2 subset) and that every referenced speech definition is approved, then writes the immutable version,
+definition (C22.2 subset, plus the topic registry checks while nothing is published yet) and that every referenced
+speech definition is approved, then writes the immutable version,
 the header, and an audit item in one transaction that also re-checks the draft revision and each speech definition's
 approved version. R21 and R27 are safe to retry: a repeat whose `draftRevision` equals the header's
 `fromDraftRevision` returns the version already written.
@@ -78,6 +79,7 @@ from shared.content import (
     audit_key,
     check_create_fields,
     checklist_problems,
+    definition_for_publish,
     definition_problems,
     display_numbers,
     header_fields,
@@ -664,7 +666,7 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
     ) -> tuple[list[dict[str, str]], dict[str, dict[str, str]]]:
         """C22.2 subset: (problems, resolved speech refs {variant: {speechId, speechVersion, clipKey}})."""
         definition = draft.get("definition")
-        problems = definition_problems(definition, activity_id)
+        problems = definition_problems(definition, activity_id, header)  # registry checks until the first publish
         if not isinstance(definition, Mapping):
             return problems, {}
         problems += locked_problems(header, definition)
@@ -725,7 +727,7 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         if problems:
             raise invalid(problems)
 
-        definition: Mapping[str, Any] = draft["definition"]
+        definition = definition_for_publish(draft["definition"])  # registry curriculum when the draft has none
         moment = deps.now()
         vid = version_id(moment)
         request.log["versionId"] = vid

@@ -1,5 +1,5 @@
 {
-  "$comment": "Phase 39 (M3-04): one activity draft per editor kind, exactly as the admin editor builds it (web/admin/src/editor/model.ts toDefinition). Read by web/admin/src/editor/contract.test.ts (the editor rebuilds each one from its form and the panel shows it) and api/tests/unit/test_activity_fixtures.py (admin-api's validation finds no problem in any of them). Written from C20.1, C20.3, C22.1 and the C22 worked examples; the IDs ma-91xx, ph-91xx and sp-91xx are test IDs only.",
+  "$comment": "Phase 39 (M3-04): one activity draft per editor kind, exactly as the admin editor builds it (web/admin/src/editor/model.ts toDefinition). Read by web/admin/src/editor/contract.test.ts (the editor rebuilds each one from its form and the panel shows it) and api/tests/unit/test_activity_fixtures.py (admin-api's validation finds no problem in any of them). Written from C20.1, C20.3, C22.1 and the C22 worked examples; the IDs ma-91xx, ph-91xx and sp-91xx are test IDs only. Since 2026-11-16 the editor writes no curriculumReference, curriculumNote or source: the topic registry (contracts/topics.json) carries the curriculum, and publish copies it onto the version.",
   "drafts": [
     {
       "kind": "MULTIPLE_CHOICE",
@@ -16,9 +16,7 @@
         "authoringMode": "FIXED",
         "minAge": 5,
         "maxAge": 6,
-        "source": "HANDWRITTEN",
         "audioRequirement": "REQUIRED",
-        "curriculumReference": ["EYFS26.ELG.WordReading-1"],
         "prompt": { "text": "Listen. Which letters make this sound?" },
         "activityPayload": {
           "optionStyle": "GRAPHEME",
@@ -48,9 +46,7 @@
         "authoringMode": "FIXED",
         "minAge": 7,
         "maxAge": 7,
-        "source": "HANDWRITTEN",
         "audioRequirement": "NONE",
-        "curriculumReference": ["NC14.En.Y2.Sp-6"],
         "prompt": { "text": "Which picture is a knight?" },
         "activityPayload": {
           "layout": "GRID",
@@ -81,9 +77,7 @@
         "authoringMode": "FIXED",
         "minAge": 5,
         "maxAge": 5,
-        "source": "HANDWRITTEN",
         "audioRequirement": "NONE",
-        "curriculumReference": ["EYFS26.ELG.Number-1"],
         "prompt": { "text": "How many dots?" },
         "activityPayload": {
           "numberSet": { "kind": "RANGE", "min": 0, "max": 10, "step": 1 },
@@ -110,9 +104,7 @@
         "authoringMode": "FIXED",
         "minAge": 5,
         "maxAge": 5,
-        "source": "HANDWRITTEN",
         "audioRequirement": "NONE",
-        "curriculumReference": ["EYFS26.ELG.Number-1"],
         "prompt": { "text": "Share the stars fairly." },
         "activityPayload": {
           "mode": "DISTRIBUTE",
@@ -145,9 +137,7 @@
         "authoringMode": "FIXED",
         "minAge": 6,
         "maxAge": 7,
-        "source": "HANDWRITTEN",
         "audioRequirement": "OPTIONAL",
-        "curriculumReference": ["NC14.En.Y1.WR-3"],
         "prompt": { "text": "Sort the words by their sound." },
         "activityPayload": {
           "mode": "SORT",
@@ -181,9 +171,7 @@
         "authoringMode": "FIXED",
         "minAge": 5,
         "maxAge": 5,
-        "source": "HANDWRITTEN",
         "audioRequirement": "NONE",
-        "curriculumReference": ["NC14.En.Y1.Sp-1"],
         "prompt": { "text": "Make the word for the picture." },
         "activityPayload": {
           "mode": "LETTERS",
@@ -217,9 +205,7 @@
         "authoringMode": "FIXED",
         "minAge": 7,
         "maxAge": 7,
-        "source": "HANDWRITTEN",
         "audioRequirement": "NONE",
-        "curriculumReference": ["NC14.Ma.Y2.NPV-3"],
         "prompt": { "text": "Put the numbers in order." },
         "activityPayload": {
           "mode": "SEQUENCE",
@@ -251,9 +237,7 @@
         "authoringMode": "FIXED",
         "minAge": 5,
         "maxAge": 5,
-        "source": "HANDWRITTEN",
         "audioRequirement": "NONE",
-        "curriculumReference": ["EYFS26.ELG.Number-2"],
         "prompt": { "text": "What is one more than 6?" },
         "activityPayload": { "mode": "NUMERIC", "maxLength": 2 },
         "answerSpecification": { "accepted": ["7"] },
@@ -275,9 +259,7 @@
         "authoringMode": "FIXED",
         "minAge": 7,
         "maxAge": 7,
-        "source": "HANDWRITTEN",
         "audioRequirement": "NONE",
-        "curriculumReference": ["NC14.En.Y2.Sp-4"],
         "prompt": { "text": "Write the new word." },
         "activityPayload": { "mode": "WORD", "maxLength": 8, "cue": { "text": "hop + ing" } },
         "answerSpecification": { "accepted": ["hopping"] },
@@ -299,9 +281,7 @@
         "authoringMode": "FIXED",
         "minAge": 7,
         "maxAge": 7,
-        "source": "HANDWRITTEN",
         "audioRequirement": "NONE",
-        "curriculumReference": ["NC14.Ma.Y2.MD-1", "NC14.Ma.Y2.MD-2"],
         "prompt": { "text": "Two parts. Do both, then press Check." },
         "activityPayload": {
           "optionStyle": "NUMERAL",

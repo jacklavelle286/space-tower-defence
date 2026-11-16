@@ -4,16 +4,18 @@ no tables, no clock. Properties from C24.9 where Milestone 1 already has the par
 from __future__ import annotations
 
 import hashlib
+import itertools
 from collections import Counter
 
 import pytest
 
-from shared.selection.bank import Unit, units_for_band
+from shared.selection.bank import CATEGORIES, Unit, fills, units_for_band
 from shared.selection.draws import draw, shuffle
 from shared.selection.plan import (
     M1_CONFIG,
     BankNotReady,
     SelectionConfig,
+    SlotSpec,
     choose_units,
     pack_id,
     plan_slots,
@@ -151,6 +153,130 @@ def test_a_group_below_its_threshold_is_bank_not_ready() -> None:
     assert choose_units(specs, [unit("ma-0001", "maths", "t"), unit("ma-0002", "maths", "t")], "s", config)
 
 
+# --- rewardCategory BOTH (2026-11-16): a member of both groups of its subject, still used once per run ------------
+
+
+def spec(kind: str, subject: str = "maths", interval: int = 1) -> SlotSpec:
+    prefix = "N" if kind == "NORMAL" else "M"
+    reward = {"credits": 30} if kind == "NORMAL" else {"credits": 0, "powerId": "frost-pulse"}
+    return SlotSpec(f"{prefix}-{interval:03d}", kind, interval, subject, reward)
+
+
+SEEDS = [f"seed-{n}" for n in range(40)]
+
+
+@pytest.mark.parametrize("kind", ["NORMAL", "METEOR"])
+def test_a_both_unit_fills_either_slot_kind(kind: str) -> None:
+    only = [unit("ma-0001", "maths", "maths-bonds-to10", "BOTH")]
+    for seed in SEEDS:
+        assert choose_units([spec(kind)], only, seed, STRICT) == only
+
+
+def test_a_both_unit_fills_at_most_one_slot_per_run() -> None:
+    both = unit("ma-0001", "maths", "maths-bonds-to10", "BOTH")
+    specs = [spec("NORMAL"), spec("METEOR")]
+    with pytest.raises(BankNotReady):
+        choose_units(specs, [both], "s", STRICT)  # the meteor group passes over the unit the normal slot took
+    meteor = unit("ma-0002", "maths", "maths-bonds-to10", "METEOR")
+    for seed in SEEDS:  # N-001 can only take the BOTH unit; M-001 then skips it and takes the METEOR unit
+        assert choose_units(specs, [both, meteor], seed, STRICT) == [both, meteor]
+
+
+def test_a_campaign_with_both_units_never_repeats_and_fills_each_slot_kind() -> None:
+    specs = slot_specs(50, [9, 19, 29, 39, 49], CAMPAIGN_REWARDS)
+    units = bank(per_subject=20) + [
+        unit(f"{subject[:2]}-b{n:03d}", subject, f"{subject}-t{n}", "BOTH")
+        for subject in ("maths", "phonics", "spelling")
+        for n in range(3)
+    ]
+    for seed in SEEDS:
+        chosen = choose_units(specs, units, seed, STRICT)
+        assert len({u.activity_id for u in chosen}) == len(chosen) == 54
+        for slot, picked in zip(specs, chosen, strict=True):
+            assert picked.subject == slot.subject and fills(picked.category, slot.kind)
+    both_used = {u.category for seed in SEEDS for u in choose_units(specs, units, seed, STRICT)}
+    assert "BOTH" in both_used
+
+
+@pytest.mark.parametrize("config", [STRICT, M1_CONFIG], ids=["strict", "m1"])
+def test_a_normal_slot_never_strands_a_meteor_slot_that_only_a_both_unit_can_fill(config: SelectionConfig) -> None:
+    """Greedy alone took the BOTH unit for N-001 on about half the seeds and then refused the run; the swap gives
+    N-001 the NORMAL-only unit instead, on every seed."""
+    both = unit("ma-0001", "maths", "maths-t1", "BOTH")
+    normal = unit("ma-0002", "maths", "maths-t2", "NORMAL")
+    specs = [spec("NORMAL"), spec("METEOR")]
+    for seed in [f"seed{n}" for n in range(200)]:
+        assert choose_units(specs, [both, normal], seed, config) == [normal, both]
+
+
+def test_the_swap_crosses_subjects_under_the_fallback() -> None:
+    both = unit("ma-0001", "maths", "maths-t1", "BOTH")
+    phonics = unit("ph-0001", "phonics", "phonics-t1", "NORMAL")
+    specs = [spec("NORMAL"), spec("METEOR")]
+    for seed in SEEDS:
+        assert choose_units(specs, [both, phonics], seed, M1_CONFIG) == [phonics, both]
+    with pytest.raises(BankNotReady):
+        choose_units(specs, [both, phonics], "s", STRICT)  # without the fallback N-001 cannot take phonics
+
+
+def _fillable(specs: list[SlotSpec], units: list[Unit], config: SelectionConfig) -> bool:
+    """Brute force: does any one-to-one assignment of units to slots exist?"""
+
+    def fits(u: Unit, slot: SlotSpec) -> bool:
+        return fills(u.category, slot.kind) and (config.subject_fallback or u.subject == slot.subject)
+
+    return any(
+        all(fits(u, slot) for u, slot in zip(pick, specs, strict=True))
+        for pick in itertools.permutations(units, len(specs))
+    )
+
+
+@pytest.mark.parametrize("config", [STRICT, M1_CONFIG], ids=["strict", "m1"])
+def test_a_run_is_refused_only_when_no_assignment_exists(config: SelectionConfig) -> None:
+    """Against brute force, over small random banks mixing NORMAL, METEOR and BOTH units in two subjects."""
+    kinds = [("NORMAL", 1, "maths"), ("NORMAL", 2, "phonics"), ("METEOR", 2, "maths"), ("NORMAL", 3, "maths")]
+    for case in range(300):
+        pick = iter(draw("brute-force", f"case-{case}", i) for i in itertools.count())  # deterministic test data
+        units = [
+            unit(
+                f"u-{n:04d}",
+                ("maths", "phonics")[next(pick) % 2],
+                f"t{next(pick) % 2}",
+                CATEGORIES[next(pick) % len(CATEGORIES)],
+            )
+            for n in range(1 + next(pick) % 5)
+        ]
+        specs = [spec(kind, subject, interval) for kind, interval, subject in kinds[: 1 + next(pick) % 4]]
+        specs.sort(key=lambda slot: (slot.interval, slot.kind != "NORMAL"))
+        expected = _fillable(specs, units, config)
+        seed = f"case-{case}"
+        try:
+            chosen = choose_units(specs, units, seed, config)
+        except BankNotReady:
+            assert not expected, (units, specs, seed)
+            continue
+        assert expected
+        assert len({u.activity_id for u in chosen}) == len(chosen) == len(specs)
+        for slot, picked in zip(specs, chosen, strict=True):
+            assert fills(picked.category, slot.kind)
+            assert config.subject_fallback or picked.subject == slot.subject
+
+
+@pytest.mark.parametrize("kind", ["NORMAL", "METEOR"])
+def test_group_thresholds_count_both_units(kind: str) -> None:
+    config = SelectionConfig(thresholds={("maths", kind): 2}, subject_fallback=False)
+    own = unit("ma-0001", "maths", "t", kind)
+    with pytest.raises(BankNotReady):
+        choose_units([spec(kind)], [own], "s", config)
+    assert choose_units([spec(kind)], [own, unit("ma-0002", "maths", "t", "BOTH")], "s", config)
+
+
+def test_fills() -> None:
+    assert [fills(c, k) for c in ("NORMAL", "METEOR", "BOTH") for k in ("NORMAL", "METEOR")] == [
+        True, False, False, True, True, True,
+    ]  # fmt: skip
+
+
 # --- The bank filter --------------------------------------------------------------------------------------------------
 
 
@@ -173,6 +299,8 @@ def header(**changes: object) -> dict:
         ({"state": "DRAFT", "publishedVersion": None}, 5, False),
         ({"authoringMode": "TEMPLATE"}, 5, False),  # until the generator framework exists (Phase 41)
         ({"subject": "science"}, 5, False),
+        ({"rewardCategory": "BOTH"}, 5, True),
+        ({"rewardCategory": "SOMETIMES"}, 5, False),
     ],
 )
 def test_units_for_band(changes: dict, band: int, selected: bool) -> None:
@@ -225,7 +353,6 @@ def test_picture_cards_are_shuffled_numbers_are_not(interaction_type: str, order
         assert sorted(plans[0].presentation["optionOrder"]) == list("abcd")
     else:
         assert plans[0].presentation == {}
-
 
 
 def _arrange(mode: str, values: list[str], accepted: list[str], slots: int) -> dict:

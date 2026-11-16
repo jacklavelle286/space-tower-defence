@@ -95,7 +95,9 @@ def test_real_functions_build_twice_to_the_same_hashes(tmp_path: Path) -> None:
     assert "handler.py" in names and "shared/__init__.py" in names and "shared/router.py" in names
     assert not any("__pycache__" in name or name.endswith(".pyc") for name in names)
     schemas = sorted(f"contracts/schemas/{p.name}" for p in (REPO / "contracts" / "schemas").glob("*.schema.json"))
-    assert sorted(n for n in names if n.startswith("contracts/")) == ["contracts/limits.json", *schemas]
+    assert sorted(n for n in names if n.startswith("contracts/")) == [
+        "contracts/limits.json", *schemas, "contracts/topics.json",
+    ]  # fmt: skip
     assert not any(n.startswith("content/") for n in names)
     with zipfile.ZipFile(tmp_path / "out1" / "admin-api.zip") as archive:
         assert "content/listening-verdicts.json" in archive.namelist()  # G-14 at approval (Phase 20)
@@ -129,7 +131,8 @@ def test_each_zip_imports_with_the_lambda_layout(tmp_path: Path) -> None:
             f"import sys; sys.path.insert(0, {str(root)!r}); import handler; assert callable(handler.handler); "
             f"import shared.rules.contracts as c; assert c.CONTRACTS_DIR == __import__('pathlib').Path({str(root)!r})"
             " / 'contracts', c.CONTRACTS_DIR; assert c.LIMITS['attemptsPerSlot'] == 3; "
-            "from shared.rules import reduce; import shared.verdicts as v; "
+            "from shared.rules import reduce; import shared.verdicts as v; import shared.topics as t; "
+            "assert t.TOPICS_FILE == c.CONTRACTS_DIR / 'topics.json' and t.TOPICS; "
             f"assert v.verdicts_path() in (None, __import__('pathlib').Path({str(root)!r}) / 'content' / "
             "'listening-verdicts.json'), v.verdicts_path()"
         )
