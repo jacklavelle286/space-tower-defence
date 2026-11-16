@@ -45,7 +45,7 @@ describe("Play, clip not stored yet", () => {
     expect(t.kinds()).toEqual(["prime", "request"]); // nothing plays before the clip is here
     await t.speech.release();
     await settle(5);
-    expect(t.kinds()).toEqual(["prime", "request", "download", "start"]);
+    await vi.waitFor(() => expect(t.kinds()).toEqual(["prime", "request", "download", "start"]));
     expect(t.player.state(REF)).toBe("playing");
     expect(t.audio.playing).toEqual([1, 2, 3, 4, 5]);
     expect(await t.store.get(SH.clipKey)).not.toBeNull();
@@ -62,7 +62,7 @@ describe("Play, clip not stored yet", () => {
     expect(t.speech.requests).toHaveLength(1);
     await t.speech.release();
     await settle(5);
-    expect(t.player.state(REF)).toBe("playing");
+    await vi.waitFor(() => expect(t.player.state(REF)).toBe("playing"));
   });
 
   it("a sha256 mismatch is logged, never stored and never played; the button offers Try again", async () => {
@@ -70,14 +70,14 @@ describe("Play, clip not stored yet", () => {
     t.speech.corruptNextDownload = true;
     t.player.press(REF);
     await settle(5);
-    expect(t.player.state(REF)).toBe("failed");
+    await vi.waitFor(() => expect(t.player.state(REF)).toBe("failed"));
     expect(t.kinds()).not.toContain("start");
     expect(await t.store.get(SH.clipKey)).toBeNull();
     expect(t.logs.map((l) => l.event)).toEqual(["sha256-mismatch"]);
     // Try again: a fresh request and download, which this time verifies.
     t.player.press(REF);
     await settle(5);
-    expect(t.player.state(REF)).toBe("playing");
+    await vi.waitFor(() => expect(t.player.state(REF)).toBe("playing"));
     expect(t.speech.requests).toHaveLength(2);
   });
 
@@ -86,7 +86,7 @@ describe("Play, clip not stored yet", () => {
     t.speech.failNextRequest = { kind: "error", status: 503, code: "SPEECH_UNAVAILABLE", body: null };
     t.player.press(REF);
     await settle(5);
-    expect(t.player.state(REF)).toBe("failed");
+    await vi.waitFor(() => expect(t.player.state(REF)).toBe("failed"));
     expect(t.logs[0]).toMatchObject({ event: "speech-failed", detail: "HTTP 503 SPEECH_UNAVAILABLE" });
   });
 
@@ -117,7 +117,7 @@ describe("Play, clip already stored", () => {
     t.speech.hold(); // a throttled network: the response does not come
     t.player.press(REF);
     await settle(5);
-    expect(t.kinds()).toEqual(["prime", "start", "request"]); // sound, then the request, in that order
+    await vi.waitFor(() => expect(t.kinds()).toEqual(["prime", "start", "request"])); // sound, then the request, in that order
     expect(t.player.state(REF)).toBe("playing");
     expect(t.speech.pending).toHaveLength(1); // still waiting, and the child is already listening
     await t.speech.release();
@@ -128,14 +128,14 @@ describe("Play, clip already stored", () => {
   it("exit criterion: a second Play starts before its POST /api/speech answer, and the request is still sent", async () => {
     const t = setUp();
     t.player.press(REF); // first Play: downloads and stores
-    await settle(5);
+    await vi.waitFor(() => expect(t.player.state(REF)).toBe("playing")); // download + sha256 + store can exceed 5 ms on CI
     t.audio.finish();
     expect(t.player.state(REF)).toBe("played");
     t.speech.hold();
     const before = t.events.length;
     t.player.press(REF); // second Play, network throttled
     await settle(5);
-    expect(t.events.slice(before).map((e) => e.kind)).toEqual(["prime", "start", "request"]);
+    await vi.waitFor(() => expect(t.events.slice(before).map((e) => e.kind)).toEqual(["prime", "start", "request"]));
     expect(t.player.state(REF)).toBe("playing");
     expect(t.speech.pending).toHaveLength(1);
     expect(t.speech.requests).toHaveLength(2);
@@ -162,7 +162,7 @@ describe("Play, clip already stored", () => {
     t.speech.failNextRequest = { kind: "network", reason: "timeout" };
     t.player.press(REF);
     await settle(5);
-    expect(t.player.state(REF)).toBe("playing");
+    await vi.waitFor(() => expect(t.player.state(REF)).toBe("playing"));
     expect(t.kinds()).not.toContain("stop");
     expect(t.logs.map((l) => l.event)).toEqual(["speech-failed"]);
   });
@@ -183,7 +183,7 @@ describe("Play, clip already stored", () => {
     t.audio.finish();
     t.player.press(REF); // next Play: the server's clip, at once
     await settle(5);
-    expect(t.audio.playing).toEqual([9, 8, 7]);
+    await vi.waitFor(() => expect(t.audio.playing).toEqual([9, 8, 7]));
   });
 
   it("offline: plays the stored bytes and sends nothing", async () => {
@@ -206,7 +206,7 @@ describe("Play, clip already stored", () => {
     expect(t.player.state(REF)).toBe("idle");
     t.player.press(REF);
     await settle(5);
-    expect(t.player.state(REF)).toBe("playing");
+    await vi.waitFor(() => expect(t.player.state(REF)).toBe("playing"));
   });
 });
 
@@ -224,7 +224,7 @@ describe("storage and logging", () => {
     const t = setUp({ store: refusing });
     t.player.press(REF);
     await settle(5);
-    expect(t.player.state(REF)).toBe("playing");
+    await vi.waitFor(() => expect(t.player.state(REF)).toBe("playing"));
     expect(t.logs).toEqual([{ event: "store-failed", slotId: "N-001", variant: "prompt", clipKey: SH.clipKey, detail: "QuotaExceededError" }]);
   });
 
