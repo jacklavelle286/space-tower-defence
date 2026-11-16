@@ -1,5 +1,5 @@
 # 0029. Activities and speech can be deleted
-Status: Proposed · Date: 2026-11-16
+Status: Accepted · Date: 2026-11-16
 
 Context: The owner asked how to delete activities. Admin had no way to remove one: retire (R28) and withdraw (R29) existed in the
 API but had no buttons, and a never-published draft could not be removed at all. Offered retire, withdraw and discard, the owner

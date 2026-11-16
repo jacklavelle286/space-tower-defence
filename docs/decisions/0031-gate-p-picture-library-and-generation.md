@@ -1,5 +1,5 @@
 # 0031. Gate P: picture library, browser conversion, and a fifth Lambda for model drawings
-Status: Proposed · Date: 2026-11-16
+Status: Accepted · Date: 2026-11-16
 
 Context: [ADR-0026](0026-picture-library-generate-and-upload.md) chose upload plus generation with Claude on Bedrock. Building it
 raised several problems:

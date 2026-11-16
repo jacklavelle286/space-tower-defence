@@ -44,9 +44,9 @@ The rules are in [J §J.6](../plan/J-execution-backlog.md#j6-decision-log-practi
 | [0026](0026-picture-library-generate-and-upload.md) | Picture library: generate with Claude on Bedrock, and upload | Proposed |
 | [0027](0027-editor-topics-auto-ids-either-slot.md) | Editor: topic registry, automatic IDs, activities for either slot (`BOTH`), one review tick | Accepted |
 | [0028](0028-in-app-listening-verdict-and-auto-published-starter-pack.md) | In-app listening is the phoneme verdict (only `word-only` refused); the starter pack is auto-published by the seed | Accepted |
-| [0029](0029-activity-hard-delete.md) | Activities (R31) and unused speech (R32) can be deleted: header, draft and versions; audit item kept; in-progress slots read as withdrawn | Proposed |
+| [0029](0029-activity-hard-delete.md) | Activities (R31) and unused speech (R32) can be deleted: header, draft and versions; audit item kept; in-progress slots read as withdrawn | Accepted |
 | [0030](0030-gate-h1-speech-templates-selection.md) | Gate H1: approve bound to the played clip, 17 template generators (5,000-instance check), starter rules until an age is eligible | Accepted |
-| [0031](0031-gate-p-picture-library-and-generation.md) | Gate P: pictures bucket at /pictures/*, browser conversion with strict server PNG check, fifth Lambda picture-gen via SQS (OpenAI gpt-6.1-sol, EU residency, key in Secrets Manager since 2026-11-16; Bedrock Opus 5.5 a variable away), caps 100/day 150/month, budget USD 65 | Proposed |
+| [0031](0031-gate-p-picture-library-and-generation.md) | Gate P: pictures bucket at /pictures/*, browser conversion with strict server PNG check, fifth Lambda picture-gen via SQS (OpenAI gpt-6.1-sol, EU residency, key in Secrets Manager since 2026-11-16; Bedrock Opus 5.5 a variable away), caps 100/day 150/month, budget USD 65 | Accepted |
 | [0032](0032-admin-level-designer-gate-m.md) | Admin level and planet designer (all three tiers) as new Gate M after J, before L; export first, runtime publish in LD6; two blocking bot checks; tester preview | Proposed |
 
 ## Next in line
