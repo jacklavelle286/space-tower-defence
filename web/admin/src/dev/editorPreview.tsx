@@ -25,9 +25,9 @@ function Preview() {
   const [created, setCreated] = useState<string | null>(null);
   const draft = DRAFTS.find((d) => d.kind === kind);
   return (
-    <>
+    <div className="shell">
       <header className="top">
-        <strong>Editor preview</strong>
+        <strong className="logo">Editor preview</strong>
         <nav aria-label="Preview kinds">
         <ul>
           {[...DRAFTS.map((d) => d.kind), "new"].map((k) => (
@@ -40,12 +40,12 @@ function Preview() {
         </ul>
         </nav>
       </header>
-      <main className="page">
+      <main className="page content">
         {kind === "new" && created === null && <NewActivityPage api={fake.api} navigate={(hash) => setCreated(hash.replace("#activities/", ""))} />}
         {kind === "new" && created !== null && <ActivityEditor key={created} api={fake.api} activityId={created} play={async () => undefined} />}
         {draft !== undefined && <ActivityEditor key={kind} api={fake.api} activityId={draft.definition.activityId} play={async () => undefined} />}
       </main>
-    </>
+    </div>
   );
 }
 

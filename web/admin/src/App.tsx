@@ -148,10 +148,15 @@ export function App() {
   }
 
   const section = sectionOf(route);
+  // Layout (owner's choice, 2026-11-16, "Mission control"): the header is the night-blue sidebar (a top bar on narrow
+  // screens); the offline banner and the page sit beside it.
   return (
-    <>
+    <div className="shell">
       <header className="top">
-        <strong>Space Colony Defence admin</strong>
+        <strong className="logo">
+          Colony Admin
+          <small>Space Colony Defence</small>
+        </strong>
         <nav aria-label="Admin pages">
           <ul>
             {SECTIONS.map((item) => (
@@ -170,15 +175,17 @@ export function App() {
           </button>
         </span>
       </header>
-      {banner}
-      <main className="page">
-        {route.page === "activities" && <ActivityListPage api={api} />}
-        {route.page === "activity" && <ActivityPage key={route.id} api={api} activityId={route.id} />}
-        {route.page === "new" && <NewActivityPage api={api} />}
-        {route.page === "speech" && <SpeechPage key={route.id ?? ""} api={api} initial={route.id} />}
-        {route.page === "pictures" && <PicturesPage api={api} tab={route.tab} />}
-        {route.page === "bank" && <BankStatusPage api={api} />}
-      </main>
-    </>
+      <div className="content">
+        {banner}
+        <main className="page">
+          {route.page === "activities" && <ActivityListPage api={api} />}
+          {route.page === "activity" && <ActivityPage key={route.id} api={api} activityId={route.id} />}
+          {route.page === "new" && <NewActivityPage api={api} />}
+          {route.page === "speech" && <SpeechPage key={route.id ?? ""} api={api} initial={route.id} />}
+          {route.page === "pictures" && <PicturesPage api={api} tab={route.tab} />}
+          {route.page === "bank" && <BankStatusPage api={api} />}
+        </main>
+      </div>
+    </div>
   );
 }

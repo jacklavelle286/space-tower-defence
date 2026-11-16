@@ -108,10 +108,10 @@ export function PictureLibrary({ api, pictures, onChanged, tools = browserTools 
               aria-pressed={open === p.id} aria-label={`${p.name} (${STATE_LABEL[p.state]})`} onClick={() => setOpen(open === p.id ? null : p.id)}>
               {p.url !== undefined ? <img src={p.url} alt="" width={96} height={96} loading="lazy" /> : <span className="thumb empty library-draft">Draft</span>}
               <span>{p.name}</span>
-              <small className="muted">
+              <small className={`state state-${p.state.toLowerCase()}`}>
                 {STATE_LABEL[p.state]} · {SOURCE_LABEL[p.source]}
               </small>
-              <small className="muted">{pictureKindLabel(pictureKindOf(p.kind))}</small>
+              <small className="kind-tag">{pictureKindLabel(pictureKindOf(p.kind))}</small>
             </button>
           </li>
         ))}
