@@ -5,6 +5,7 @@
 import { act, cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App } from "./App";
+import { BANK } from "./testing/bank";
 import { CONFIG, operatorToken, playerToken } from "./testing/tokens";
 
 const TOKEN_KEY = "scd-admin-token";
@@ -69,6 +70,7 @@ beforeEach(() => {
       if (input.startsWith("/api/admin/activities?")) return Promise.resolve(json({ items: [SUMMARY], nextCursor: null }));
       if (input === "/api/admin/activities/ph-0102") return Promise.resolve(json(VIEW));
       if (input.startsWith("/api/admin/speech-definitions?")) return Promise.resolve(json({ items: [], nextCursor: null }));
+      if (input === "/api/admin/bank-status") return Promise.resolve(json(BANK));
       return Promise.resolve(json({ error: { code: "NOT_FOUND" } }, 404));
     }),
   );
@@ -144,9 +146,9 @@ describe("shell", () => {
 
     await goTo("#bank");
     expect(screen.getByRole("heading", { name: "Bank status" })).toBeTruthy();
-    expect(screen.getByText(/Nothing on this page is real data yet/u)).toBeTruthy();
     expect(within(nav).getByRole("link", { name: "Bank status" }).getAttribute("aria-current")).toBe("page");
-    expect(calls.some((c) => c.includes("bank-status"))).toBe(false); // R30 is 501 until Phase 42
+    expect(await screen.findByRole("article", { name: /Age 5/u })).toBeTruthy();
+    expect(calls).toContain("/api/admin/bank-status"); // R30 (Phase 42)
 
     await goTo("#speech");
     await waitFor(() => expect(calls).toContain("/api/admin/speech-definitions?limit=200"));

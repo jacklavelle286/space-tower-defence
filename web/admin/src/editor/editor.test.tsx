@@ -507,3 +507,23 @@ describe("New activity", () => {
     expect(fake.callsNamed("saveActivity")).toHaveLength(0);
   });
 });
+
+// --- Templates (Phase 41) ---------------------------------------------------------------------------------------------
+
+describe("a template activity", () => {
+  it("is shown read only and its check lists the server's count and sample questions", async () => {
+    const template = { generatorKind: "BOND_TO", generatorVersion: 1, domain: { totals: [20] }, presentation: {} };
+    fake.seed({ activityId: "ma-0301", title: "Bonds to 20", subject: "maths", topicId: "maths-bonds-to20", minAge: 6, maxAge: 7, interactionType: "NUMBER_SELECT", authoringMode: "TEMPLATE", rewardCategory: "NORMAL", template });
+    const sample = [{ index: 0, interactionType: "NUMBER_SELECT", prompt: { text: "1 + ? = 20" }, activityPayload: {}, answerSpecification: { accepted: ["19"] } }];
+    const validate = vi.spyOn(fake.api, "validate").mockResolvedValue({ valid: true, problems: [], draftRevision: 1, domainSize: 38, sample });
+    render(<ActivityEditor api={fake.api} activityId="ma-0301" />);
+    await settle();
+    expect(screen.getByText(/This activity is a template/u).textContent).toContain("BOND_TO");
+    expect(screen.queryByRole("button", { name: "Save draft" })).toBeNull();
+    click("Check the template");
+    await settle();
+    expect(validate).toHaveBeenCalledWith("ma-0301", 1);
+    expect(screen.getByText("38 questions checked, no problems.")).toBeTruthy();
+    expect(screen.getByText("1 + ? = 20")).toBeTruthy();
+  });
+});

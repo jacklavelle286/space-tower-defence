@@ -610,3 +610,42 @@ dialog.confirm::backdrop {
   gap: 8px;
   justify-content: flex-end;
 }
+
+/* Phase 42: bank status (D §D8.5). One card per age; the badge says what a new game does. */
+.bank {
+  max-width: 900px;
+}
+
+.bank-age {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 4px 16px 12px;
+  margin: 0 0 16px;
+}
+
+.bank-ready {
+  border-color: var(--ok);
+  color: var(--ok);
+}
+
+.bank-blocked {
+  border-color: var(--error);
+  color: var(--error);
+}
+
+.bank-facts {
+  margin: 8px 0;
+}
+
+/* Read by screen readers only (live status lines). */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

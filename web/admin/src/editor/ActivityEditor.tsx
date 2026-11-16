@@ -15,6 +15,7 @@ import { AUDIO_OPTIONS, blankStep, fromDefinition, KINDS, legacyFields, REWARD_O
 import { PreviewSolve, type PlayUrl } from "./PreviewSolve";
 import { describeProblem, fieldId, focusTarget, LEGACY_NOTICE_ID } from "./problems";
 import { StepEditor } from "./StepEditor";
+import { TemplateView } from "./TemplateView";
 import { forgetUnsaved, keepUnsaved, unsavedFor } from "./unsaved";
 
 type Props = {
@@ -84,6 +85,9 @@ export function ActivityEditor({ api, activityId, play, onLoad }: Props) {
 
   if (view === null || state === null || edited === null) return <p>{message?.text ?? "Loading…"}</p>;
   const { header, draft } = view;
+  if (draft.definition.authoringMode === "TEMPLATE") {
+    return <TemplateView api={api} activityId={activityId} definition={draft.definition} draftRevision={draft.draftRevision} />;
+  }
   const revision = draft.draftRevision;
   const locked = header.publishedVersion !== null;
   const gate = canPublish({ dirty, draftRevision: revision, validated, solvedRevision, ticks });

@@ -22,26 +22,48 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { ClipAvailability } from "../audio/useClip";
 import type { PlayState } from "../audio/clipPlayer";
 import { LIMITS } from "../limits";
-import { answerSpecOf, answerWords, emptyAnswer, isChoiceStep, panelSteps, restoreAnswer, type PanelActivity, type PanelCue, type PanelStep } from "./activity";
+import {
+  answerSpecOf,
+  answerWords,
+  emptyAnswer,
+  isChoiceStep,
+  panelSteps,
+  restoreAnswer,
+  type PanelActivity,
+  type PanelCue,
+  type PanelStep,
+} from "./activity";
 import { ArrangeArea } from "./ArrangeArea";
-import { canonicalise, canonicaliseSteps, splitSteps, type RawAnswer } from "./canonical";
+import {
+  canonicalise,
+  canonicaliseSteps,
+  splitSteps,
+  type RawAnswer,
+} from "./canonical";
 import { ChoiceStep } from "./ChoiceArea";
 import { PANEL_COPY as COPY } from "./copy";
 import { DistributeArea, SortArea } from "./ObjectMoveArea";
 import { TypedArea } from "./TypedArea";
 import "./panel.css";
 
-export type { PanelActivity, PanelOption, PanelPicture, PanelStimulus } from "./activity";
+export type {
+  PanelActivity,
+  PanelOption,
+  PanelPicture,
+  PanelStimulus,
+} from "./activity";
 
 export interface PanelAttempt {
   readonly answer: string;
   readonly correct: boolean;
 }
 
-export type PanelStatus = "UNRESOLVED" | "SUCCEEDED" | "FAILED" | "VOIDED" | "DECLINED";
+export type PanelStatus =
+  "UNRESOLVED" | "SUCCEEDED" | "FAILED" | "VOIDED" | "DECLINED";
 
 /** `recorded`: the try is durable and the props will show it. `not-saved`: nothing was counted; Check may be pressed again. */
-export type CheckResult = { readonly kind: "recorded" } | { readonly kind: "not-saved" };
+export type CheckResult =
+  { readonly kind: "recorded" } | { readonly kind: "not-saved" };
 
 /** One Play button (from useClip). */
 export interface PanelAudio {
@@ -65,7 +87,8 @@ export interface LearningPanelProps {
   onSaveAndExit?: () => void;
 }
 
-type Note = "none" | "incomplete" | "playFirst" | "notSaved" | "afterCheck" | "triedThat";
+type Note =
+  "none" | "incomplete" | "playFirst" | "notSaved" | "afterCheck" | "triedThat";
 
 /** What one step's answer area shows after the last try: nothing yet, a locked right part, or "try this part again". */
 type StepMark = "none" | "right" | "again";
@@ -79,9 +102,13 @@ function partsOf(answer: string, steps: readonly PanelStep[]): string[] | null {
  * Where each step starts when the panel opens (also after a refresh): a locked right part shows its recorded answer;
  * an arrangement, sort, share or typed answer shows the last try (it "stays", D6.3); a choice starts empty.
  */
-function startingAnswers(steps: readonly PanelStep[], attempts: readonly PanelAttempt[]): RawAnswer[] {
+function startingAnswers(
+  steps: readonly PanelStep[],
+  attempts: readonly PanelAttempt[],
+): RawAnswer[] {
   const last = attempts.at(-1);
-  const parts = last === undefined || last.correct ? null : partsOf(last.answer, steps);
+  const parts =
+    last === undefined || last.correct ? null : partsOf(last.answer, steps);
   return steps.map((step, i) => {
     const part = parts?.[i];
     if (part === undefined) return emptyAnswer(step);
@@ -105,15 +132,29 @@ function incompleteLine(step: PanelStep | undefined): string {
   }
 }
 
-export function LearningPanel({ activity, attempts, status, audio = null, readToMe = null, onCheck, onContinue, onSaveAndExit }: LearningPanelProps) {
+export function LearningPanel({
+  activity,
+  attempts,
+  status,
+  audio = null,
+  readToMe = null,
+  onCheck,
+  onContinue,
+  onSaveAndExit,
+}: LearningPanelProps) {
   const maxTries = LIMITS.attemptsPerSlot;
   const heading = useRef<HTMLHeadingElement>(null);
   const continueButton = useRef<HTMLButtonElement>(null);
   const steps = useMemo(() => panelSteps(activity), [activity]);
   const specs = useMemo(() => steps.map(answerSpecOf), [steps]);
-  const [answers, setAnswers] = useState<RawAnswer[]>(() => startingAnswers(steps, attempts));
+  const [answers, setAnswers] = useState<RawAnswer[]>(() =>
+    startingAnswers(steps, attempts),
+  );
   const [checking, setChecking] = useState(false);
-  const [frozen, setFrozen] = useState<{ attempts: readonly PanelAttempt[]; status: PanelStatus } | null>(null);
+  const [frozen, setFrozen] = useState<{
+    attempts: readonly PanelAttempt[];
+    status: PanelStatus;
+  } | null>(null);
   const [note, setNote] = useState<Note>("none");
   // "Has Play ever been pressed on this activity?" A recorded try means it was, before a refresh too.
   const [played, setPlayed] = useState(attempts.length > 0);
@@ -122,15 +163,30 @@ export function LearningPanel({ activity, attempts, status, audio = null, readTo
   const shownStatus = frozen?.status ?? status;
   const resolved = shownStatus !== "UNRESOLVED";
   const triesLeft = Math.max(0, maxTries - shownAttempts.length);
-  const soundGate = activity.audioRequired && audio !== null && audio.availability !== "ready";
+  const soundGate =
+    activity.audioRequired && audio !== null && audio.availability !== "ready";
   const twoStep = steps.length > 1;
 
   // Per step: the parts tried and wrong (greyed on choice steps, listed as "Tried: …" on arrange and typed steps), and
   // the mark from the last wrong try (two-step only).
-  const wrongTries = shownAttempts.filter((a) => !a.correct).map((a) => partsOf(a.answer, steps));
-  const tried = steps.map((step, i) => new Set(wrongTries.flatMap((parts) => (parts?.[i] !== undefined && !step.accepted.includes(parts[i]) ? [parts[i]] : []))));
+  const wrongTries = shownAttempts
+    .filter((a) => !a.correct)
+    .map((a) => partsOf(a.answer, steps));
+  const tried = steps.map(
+    (step, i) =>
+      new Set(
+        wrongTries.flatMap((parts) =>
+          parts?.[i] !== undefined && !step.accepted.includes(parts[i])
+            ? [parts[i]]
+            : [],
+        ),
+      ),
+  );
   const lastAttempt = shownAttempts.at(-1);
-  const lastParts = lastAttempt !== undefined && !lastAttempt.correct ? partsOf(lastAttempt.answer, steps) : null;
+  const lastParts =
+    lastAttempt !== undefined && !lastAttempt.correct
+      ? partsOf(lastAttempt.answer, steps)
+      : null;
   const marks: StepMark[] = steps.map((step, i) => {
     const part = lastParts?.[i];
     if (!twoStep || resolved || part === undefined) return "none";
@@ -138,7 +194,10 @@ export function LearningPanel({ activity, attempts, status, audio = null, readTo
   });
   const current = canonicaliseSteps(specs, answers);
   const firstIncomplete = steps.find((step, i) => {
-    const result = canonicalise(specs[i] ?? answerSpecOf(step), answers[i] ?? null);
+    const result = canonicalise(
+      specs[i] ?? answerSpecOf(step),
+      answers[i] ?? null,
+    );
     return !result.ok && result.reason === "INCOMPLETE";
   });
 
@@ -151,12 +210,17 @@ export function LearningPanel({ activity, attempts, status, audio = null, readTo
   function change(index: number, value: RawAnswer) {
     if (checking || resolved || marks[index] === "right") return;
     setAnswers((list) => list.map((v, i) => (i === index ? value : v)));
-    if (note === "incomplete" || note === "notSaved" || note === "triedThat") setNote("none");
+    if (note === "incomplete" || note === "notSaved" || note === "triedThat")
+      setNote("none");
   }
 
   function pressPlay(control: PanelAudio) {
-    setPlayed(true);
-    if (note === "playFirst") setNote("none");
+    // Only the prompt clip meets "press Play before Check" (D9.3): "Read it to me" says the instruction, not the
+    // word or sound the activity is about, so it must not unlock Check on a REQUIRED item.
+    if (control === audio) {
+      setPlayed(true);
+      if (note === "playFirst") setNote("none");
+    }
     control.press(); // synchronously inside the click handler (the audio module primes the element first)
   }
 
@@ -188,10 +252,16 @@ export function LearningPanel({ activity, attempts, status, audio = null, readTo
     if (result.kind === "recorded") {
       // A wrong choice is cleared so a new one can be made; everything else stays as it was (D6.3).
       const parts = partsOf(current.answer, steps);
-      setAnswers((list) => list.map((v, i) => {
-        const step = steps[i];
-        return step !== undefined && isChoiceStep(step) && !step.accepted.includes(parts?.[i] ?? "") ? emptyAnswer(step) : v;
-      }));
+      setAnswers((list) =>
+        list.map((v, i) => {
+          const step = steps[i];
+          return step !== undefined &&
+            isChoiceStep(step) &&
+            !step.accepted.includes(parts?.[i] ?? "")
+            ? emptyAnswer(step)
+            : v;
+        }),
+      );
     }
     setNote(result.kind === "recorded" ? "afterCheck" : "notSaved");
   }
@@ -204,7 +274,12 @@ export function LearningPanel({ activity, attempts, status, audio = null, readTo
   else if (note === "triedThat") line = COPY.triedThat;
   else if (shownStatus === "SUCCEEDED") line = COPY.correct;
   else if (shownStatus === "FAILED") line = COPY.failed;
-  else if (note === "afterCheck" && lastAttempt !== undefined && !lastAttempt.correct) line = COPY.notQuite;
+  else if (
+    note === "afterCheck" &&
+    lastAttempt !== undefined &&
+    !lastAttempt.correct
+  )
+    line = COPY.notQuite;
 
   const answerText = answerWords(activity);
   // D6.4 reward line: the power when the slot charges one, else the credits; no line at all for a reward of nothing
@@ -218,15 +293,26 @@ export function LearningPanel({ activity, attempts, status, audio = null, readTo
           ? COPY.rewardCredits(activity.reward.credits)
           : null;
   const headingId = `lp-heading-${activity.slotId}`;
-  const wide = steps.some((s) => (s.interactionType === "NUMBER_SELECT" && s.display === "GRID") || s.interactionType === "OBJECT_MOVE") || twoStep;
+  const wide =
+    steps.some(
+      (s) =>
+        (s.interactionType === "NUMBER_SELECT" && s.display === "GRID") ||
+        s.interactionType === "OBJECT_MOVE",
+    ) || twoStep;
 
   // D6.4 (D-4): after the last wrong try, an arrangement, sort, share or typed answer is shown completed, read-only, in
   // the answer area itself (not only as words a 5-year-old may not read yet). Choice steps mark the right card instead.
-  const shownAnswer = shownStatus === "FAILED" && activity.accepted[0] !== undefined ? partsOf(activity.accepted[0], steps) : null;
+  const shownAnswer =
+    shownStatus === "FAILED" && activity.accepted[0] !== undefined
+      ? partsOf(activity.accepted[0], steps)
+      : null;
 
   function area(step: PanelStep, index: number, labelledBy: string) {
     const part = isChoiceStep(step) ? undefined : shownAnswer?.[index];
-    const value = (part !== undefined ? restoreAnswer(step, part) : null) ?? answers[index] ?? null;
+    const value =
+      (part !== undefined ? restoreAnswer(step, part) : null) ??
+      answers[index] ??
+      null;
     const locked = checking || resolved || marks[index] === "right";
     const onChange = (v: RawAnswer) => change(index, v);
     switch (step.interactionType) {
@@ -246,42 +332,105 @@ export function LearningPanel({ activity, attempts, status, audio = null, readTo
         );
       case "OBJECT_MOVE":
         return step.mode === "DISTRIBUTE" ? (
-          <DistributeArea step={step} labelledBy={labelledBy} value={value} disabled={locked} onChange={onChange} />
+          <DistributeArea
+            step={step}
+            labelledBy={labelledBy}
+            value={value}
+            disabled={locked}
+            onChange={onChange}
+          />
         ) : (
-          <SortArea step={step} labelledBy={labelledBy} value={value} disabled={locked} onChange={onChange} />
+          <SortArea
+            step={step}
+            labelledBy={labelledBy}
+            value={value}
+            disabled={locked}
+            onChange={onChange}
+          />
         );
       case "ARRANGE":
-        return <ArrangeArea step={step} labelledBy={labelledBy} value={value} disabled={locked} onChange={onChange} />;
+        return (
+          <ArrangeArea
+            step={step}
+            labelledBy={labelledBy}
+            value={value}
+            disabled={locked}
+            onChange={onChange}
+          />
+        );
       case "TYPED":
-        return <TypedArea step={step} labelledBy={labelledBy} value={value} disabled={locked} onChange={onChange} onSubmit={() => void check()} />;
+        return (
+          <TypedArea
+            step={step}
+            labelledBy={labelledBy}
+            value={value}
+            disabled={locked}
+            onChange={onChange}
+            onSubmit={() => void check()}
+          />
+        );
     }
   }
 
   function stepBody(step: PanelStep, index: number, labelledBy: string) {
-    const cue = step.interactionType === "ARRANGE" || step.interactionType === "TYPED" ? step.cue : undefined;
+    const cue =
+      step.interactionType === "ARRANGE" || step.interactionType === "TYPED"
+        ? step.cue
+        : undefined;
     const triedHere = [...(tried[index] ?? [])];
-    const listTried = !resolved && triedHere.length > 0 && (step.interactionType === "ARRANGE" || step.interactionType === "TYPED");
+    const listTried =
+      !resolved &&
+      triedHere.length > 0 &&
+      (step.interactionType === "ARRANGE" || step.interactionType === "TYPED");
     return (
       <>
-        {step.stimulus !== undefined ? <img className="lp-stimulus" src={step.stimulus.imageUrl} alt={step.stimulus.alt} /> : null}
+        {step.stimulus !== undefined ? (
+          <img
+            className="lp-stimulus"
+            src={step.stimulus.imageUrl}
+            alt={step.stimulus.alt}
+          />
+        ) : null}
         {cue !== undefined ? <Cue cue={cue} /> : null}
         {area(step, index, labelledBy)}
-        {listTried ? <p className="lp-tried-list lp-reading">{COPY.triedList(triedHere)}</p> : null}
+        {listTried ? (
+          <p className="lp-tried-list lp-reading">
+            {COPY.triedList(triedHere)}
+          </p>
+        ) : null}
       </>
     );
   }
 
   return (
     <div className="lp-backdrop">
-      <section className={wide ? "lp lp-wide" : "lp"} role="dialog" aria-modal="true" aria-labelledby={headingId}>
-        <h2 className="lp-heading lp-reading" id={headingId} tabIndex={-1} ref={heading}>
+      <section
+        className={wide ? "lp lp-wide" : "lp"}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={headingId}
+      >
+        <h2
+          className="lp-heading lp-reading"
+          id={headingId}
+          tabIndex={-1}
+          ref={heading}
+        >
           {activity.prompt}
         </h2>
 
         {audio !== null || readToMe !== null ? (
           <div className="lp-sound">
-            {audio !== null ? <PlayButton control={audio} onPress={() => pressPlay(audio)} /> : null}
-            {readToMe !== null ? <PlayButton control={readToMe} label={COPY.readToMe} onPress={() => pressPlay(readToMe)} /> : null}
+            {audio !== null ? (
+              <PlayButton control={audio} onPress={() => pressPlay(audio)} />
+            ) : null}
+            {readToMe !== null ? (
+              <PlayButton
+                control={readToMe}
+                label={COPY.readToMe}
+                onPress={() => pressPlay(readToMe)}
+              />
+            ) : null}
           </div>
         ) : null}
 
@@ -290,7 +439,11 @@ export function LearningPanel({ activity, attempts, status, audio = null, readTo
             {audio?.availability === "failed" ? (
               <>
                 <p>{COPY.soundFailed}</p>
-                <button type="button" className="lp-btn" onClick={() => audio.retry()}>
+                <button
+                  type="button"
+                  className="lp-btn"
+                  onClick={() => audio.retry()}
+                >
                   {COPY.tryAgain}
                 </button>
               </>
@@ -303,12 +456,20 @@ export function LearningPanel({ activity, attempts, status, audio = null, readTo
             const partId = `${headingId}-part-${index + 1}`;
             const mark = marks[index] ?? "none";
             return (
-              <section key={index} className={mark === "right" ? "lp-step is-right" : "lp-step"} aria-labelledby={partId}>
+              <section
+                key={index}
+                className={mark === "right" ? "lp-step is-right" : "lp-step"}
+                aria-labelledby={partId}
+              >
                 <h3 className="lp-part lp-reading" id={partId}>
                   {step.prompt ?? COPY.partLabel(index + 1)}
                 </h3>
                 {mark !== "none" ? (
-                  <p className={mark === "right" ? "lp-mark is-right" : "lp-mark"}>
+                  <p
+                    className={
+                      mark === "right" ? "lp-mark is-right" : "lp-mark"
+                    }
+                  >
                     {mark === "right" ? (
                       <>
                         <span aria-hidden="true">✓ </span>
@@ -337,22 +498,32 @@ export function LearningPanel({ activity, attempts, status, audio = null, readTo
           </p>
           <div className="lp-message" role="status" aria-live="polite">
             {line !== null ? <p>{line}</p> : null}
-            {rewardLine !== null ? <p className="lp-reward">{rewardLine}</p> : null}
+            {rewardLine !== null ? (
+              <p className="lp-reward">{rewardLine}</p>
+            ) : null}
             {shownStatus === "FAILED" && answerText !== "" ? (
               <p>
-                {COPY.answerWas} <span className="lp-reading lp-answer">{answerText}</span>.
+                {COPY.answerWas}{" "}
+                <span className="lp-reading lp-answer">{answerText}</span>.
               </p>
             ) : null}
           </div>
           {resolved && !checking ? (
-            <button type="button" className="lp-btn lp-go" ref={continueButton} onClick={onContinue}>
+            <button
+              type="button"
+              className="lp-btn lp-go"
+              ref={continueButton}
+              onClick={onContinue}
+            >
               {COPY.continue} <span aria-hidden="true">➜</span>
             </button>
           ) : (
             <button
               type="button"
               className="lp-btn lp-go"
-              aria-disabled={!current.ok || checking || soundGate ? true : undefined}
+              aria-disabled={
+                !current.ok || checking || soundGate ? true : undefined
+              }
               onClick={() => void check()}
             >
               {checking ? COPY.checking : COPY.check}
@@ -362,7 +533,12 @@ export function LearningPanel({ activity, attempts, status, audio = null, readTo
         </div>
 
         {onSaveAndExit ? (
-          <button type="button" className="lp-btn lp-small" onClick={onSaveAndExit} disabled={checking}>
+          <button
+            type="button"
+            className="lp-btn lp-small"
+            onClick={onSaveAndExit}
+            disabled={checking}
+          >
             {COPY.saveAndExit}
           </button>
         ) : null}
@@ -375,17 +551,35 @@ export function LearningPanel({ activity, attempts, status, audio = null, readTo
 function Cue({ cue }: { cue: PanelCue }) {
   return (
     <div className="lp-cue">
-      {cue.imageUrl !== undefined ? <img className="lp-stimulus" src={cue.imageUrl} alt={cue.alt ?? ""} /> : null}
-      {cue.text !== undefined ? <p className="lp-reading lp-cue-text">{cue.text}</p> : null}
+      {cue.imageUrl !== undefined ? (
+        <img className="lp-stimulus" src={cue.imageUrl} alt={cue.alt ?? ""} />
+      ) : null}
+      {cue.text !== undefined ? (
+        <p className="lp-reading lp-cue-text">{cue.text}</p>
+      ) : null}
     </div>
   );
 }
 
 // D6.1: every main action pairs its word with a symbol, for children who do not read yet (Check ✓, Continue ➜, and
 // the Play button's icons below). The symbols are hidden from screen readers, so the buttons' names stay the words.
-const PLAY_ICONS: Record<PlayState, string> = { idle: "▶", loading: "…", playing: "■", played: "↻", failed: "▶" };
+const PLAY_ICONS: Record<PlayState, string> = {
+  idle: "▶",
+  loading: "…",
+  playing: "■",
+  played: "↻",
+  failed: "▶",
+};
 
-function PlayButton({ control, label, onPress }: { control: PanelAudio; label?: string; onPress: () => void }) {
+function PlayButton({
+  control,
+  label,
+  onPress,
+}: {
+  control: PanelAudio;
+  label?: string;
+  onPress: () => void;
+}) {
   const text =
     control.state === "loading"
       ? COPY.loading
@@ -398,10 +592,17 @@ function PlayButton({ control, label, onPress }: { control: PanelAudio; label?: 
             : (label ?? COPY.play);
   return (
     <span className="lp-play-wrap">
-      <button type="button" className="lp-btn lp-play" aria-busy={control.state === "loading" ? true : undefined} onClick={onPress}>
+      <button
+        type="button"
+        className="lp-btn lp-play"
+        aria-busy={control.state === "loading" ? true : undefined}
+        onClick={onPress}
+      >
         <span aria-hidden="true">{PLAY_ICONS[control.state]}</span> {text}
       </button>
-      {control.state === "failed" ? <span className="lp-play-failed">{COPY.soundFailed}</span> : null}
+      {control.state === "failed" ? (
+        <span className="lp-play-failed">{COPY.soundFailed}</span>
+      ) : null}
     </span>
   );
 }

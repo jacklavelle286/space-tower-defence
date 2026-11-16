@@ -44,10 +44,13 @@ export type ApproveState = {
   readonly draftRevision: number;
   readonly draftClipKey: string | null;
   readonly preview: { readonly draftRevision: number; readonly clipKey: string } | null;
+  /** The previewed clip has played to its end at least once (Phase 40 exit criterion: "preview played"). */
+  readonly played: boolean;
   readonly ticks: Readonly<Record<string, boolean>>;
 };
 
-/** Approve only what was previewed and heard: the saved draft, this revision, this clip key (D §D9.3). */
+/** Approve only what was previewed and heard: the saved draft, this revision, this clip key, played (D §D9.3).
+ * The request then names that clip key, and admin-api refuses it unless it is the saved draft's (R21). */
 export function canApprove(state: ApproveState): Gate {
   if (state.dirty) return { ok: false, reason: "Save the draft first." };
   if (state.draftClipKey === null) return { ok: false, reason: "The draft has no text yet." };
@@ -57,6 +60,7 @@ export function canApprove(state: ApproveState): Gate {
   if (state.preview.clipKey !== state.draftClipKey) {
     return { ok: false, reason: "The preview made a different clip from the one approval checks. Ask the owner to check the speech settings." };
   }
+  if (!state.played) return { ok: false, reason: "Play the clip to the end first." };
   if (!allTicked(LISTENING_CHECKLIST, state.ticks)) return { ok: false, reason: "Tick the box to say the clip passes every listening check." };
   return { ok: true };
 }

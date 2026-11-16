@@ -1,11 +1,24 @@
 // @vitest-environment jsdom
 // The learning panel's states (D6): greyed tries, feedback only once a try is saved, resume from the saved slot,
 // and the things that never use up a try.
-import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { PANEL_COPY as COPY } from "./copy";
-import { LearningPanel, type CheckResult, type PanelActivity, type PanelAttempt, type PanelAudio, type PanelStatus } from "./LearningPanel";
+import {
+  LearningPanel,
+  type CheckResult,
+  type PanelActivity,
+  type PanelAttempt,
+  type PanelAudio,
+  type PanelStatus,
+} from "./LearningPanel";
 
 const ACTIVITY: PanelActivity = {
   interactionType: "MULTIPLE_CHOICE",
@@ -24,7 +37,13 @@ const ACTIVITY: PanelActivity = {
 };
 
 function audio(overrides: Partial<PanelAudio> = {}): PanelAudio {
-  return { state: "idle", availability: "ready", press: vi.fn(), retry: vi.fn(), ...overrides };
+  return {
+    state: "idle",
+    availability: "ready",
+    press: vi.fn(),
+    retry: vi.fn(),
+    ...overrides,
+  };
 }
 
 /** Holds the "saved slot" the way the run screen does: onCheck records the attempt, then resolves when told to. */
@@ -42,7 +61,11 @@ function Harness({
   activity?: PanelActivity;
 }) {
   const [attempts, setAttempts] = useState<PanelAttempt[]>(initial);
-  const status: PanelStatus = attempts.some((a) => a.correct) ? "SUCCEEDED" : attempts.length >= 3 ? "FAILED" : "UNRESOLVED";
+  const status: PanelStatus = attempts.some((a) => a.correct)
+    ? "SUCCEEDED"
+    : attempts.length >= 3
+      ? "FAILED"
+      : "UNRESOLVED";
   return (
     <LearningPanel
       activity={activity}
@@ -52,7 +75,11 @@ function Harness({
       onCheck={async (answer) => {
         onCheckSpy?.(answer);
         const result = gate ? await gate.wait() : { kind: "recorded" as const };
-        if (result.kind === "recorded") setAttempts((a) => [...a, { answer, correct: ACTIVITY.accepted.includes(answer) }]);
+        if (result.kind === "recorded")
+          setAttempts((a) => [
+            ...a,
+            { answer, correct: ACTIVITY.accepted.includes(answer) },
+          ]);
         return result;
       }}
       onContinue={() => undefined}
@@ -60,8 +87,10 @@ function Harness({
   );
 }
 
-const option = (text: string) => screen.getByRole("radio", { name: new RegExp(`: ${text}(, tried)?$`) });
-const check = () => fireEvent.click(screen.getByRole("button", { name: COPY.check }));
+const option = (text: string) =>
+  screen.getByRole("radio", { name: new RegExp(`: ${text}(, tried)?$`) });
+const check = () =>
+  fireEvent.click(screen.getByRole("button", { name: COPY.check }));
 
 afterEach(cleanup);
 
@@ -69,9 +98,16 @@ describe("LearningPanel", () => {
   it("shows the options in the slot's order, numbered, in the reading font, with the heading focused", () => {
     render(<Harness />);
     const radios = screen.getAllByRole("radio");
-    expect(radios.map((r) => r.textContent)).toEqual(["1ch", "2s", "3th", "4sh"]);
+    expect(radios.map((r) => r.textContent)).toEqual([
+      "1ch",
+      "2s",
+      "3th",
+      "4sh",
+    ]);
     expect(radios[0]?.querySelector(".lp-reading")).not.toBeNull();
-    expect(document.activeElement).toBe(screen.getByRole("heading", { name: ACTIVITY.prompt }));
+    expect(document.activeElement).toBe(
+      screen.getByRole("heading", { name: ACTIVITY.prompt }),
+    );
     expect(screen.getByText(COPY.triesLeft(3))).toBeTruthy();
   });
 
@@ -86,6 +122,37 @@ describe("LearningPanel", () => {
     expect(spy).not.toHaveBeenCalled();
   });
 
+  it("'Read it to me' does not count as Play on a REQUIRED item: only the prompt clip unlocks Check", () => {
+    const spy = vi.fn();
+    const prompt = audio();
+    const instruction = audio();
+    render(
+      <LearningPanel
+        activity={ACTIVITY}
+        attempts={[]}
+        status="UNRESOLVED"
+        audio={prompt}
+        readToMe={instruction}
+        onCheck={async (answer) => {
+          spy(answer);
+          return { kind: "recorded" };
+        }}
+        onContinue={() => undefined}
+      />,
+    );
+    fireEvent.click(option("sh"));
+    fireEvent.click(screen.getByRole("button", { name: COPY.readToMe }));
+    expect(instruction.press).toHaveBeenCalledTimes(1);
+    check();
+    expect(screen.getByText(COPY.playFirst)).toBeTruthy();
+    expect(spy).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: /^Play/ }));
+    expect(prompt.press).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText(COPY.playFirst)).toBeNull();
+    check();
+    expect(spy).toHaveBeenCalledWith("b");
+  });
+
   it("Check with nothing chosen says so and sends nothing", () => {
     const spy = vi.fn();
     render(<Harness onCheckSpy={spy} initial={[]} />);
@@ -97,7 +164,9 @@ describe("LearningPanel", () => {
 
   it("feedback waits for the save: 'Checking…' first, then the tried option is greyed and 'Not quite'", async () => {
     let release: (r: CheckResult) => void = () => undefined;
-    const gate = { wait: () => new Promise<CheckResult>((resolve) => (release = resolve)) };
+    const gate = {
+      wait: () => new Promise<CheckResult>((resolve) => (release = resolve)),
+    };
     render(<Harness gate={gate} />);
     fireEvent.click(screen.getByRole("button", { name: /Play/ }));
     fireEvent.click(option("s"));
@@ -114,12 +183,16 @@ describe("LearningPanel", () => {
   it("a double-click on Check is one try", async () => {
     const spy = vi.fn();
     let release: (r: CheckResult) => void = () => undefined;
-    const gate = { wait: () => new Promise<CheckResult>((resolve) => (release = resolve)) };
+    const gate = {
+      wait: () => new Promise<CheckResult>((resolve) => (release = resolve)),
+    };
     render(<Harness gate={gate} onCheckSpy={spy} />);
     fireEvent.click(screen.getByRole("button", { name: /Play/ }));
     fireEvent.click(option("s"));
     check();
-    fireEvent.click(screen.getAllByRole("button", { name: COPY.checking })[0] as HTMLElement);
+    fireEvent.click(
+      screen.getAllByRole("button", { name: COPY.checking })[0] as HTMLElement,
+    );
     await act(async () => release({ kind: "recorded" }));
     expect(spy).toHaveBeenCalledTimes(1);
   });
@@ -147,9 +220,13 @@ describe("LearningPanel", () => {
     fireEvent.click(option("th"));
     await act(async () => check());
     expect(screen.getByText(COPY.failed)).toBeTruthy();
-    expect(document.querySelector(".lp-answer")?.closest("p")?.textContent).toBe(`${COPY.answerWas} sh.`);
+    expect(
+      document.querySelector(".lp-answer")?.closest("p")?.textContent,
+    ).toBe(`${COPY.answerWas} sh.`);
     expect(option("sh").className).toContain("is-answer");
-    expect(document.activeElement).toBe(screen.getByRole("button", { name: COPY.continue }));
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: COPY.continue }),
+    );
   });
 
   it("a right answer: 'You got it!' and the reward line, once", async () => {
@@ -172,7 +249,14 @@ describe("LearningPanel", () => {
     expect(document.querySelector(".lp-reward")).toBeNull();
     cleanup();
 
-    render(<Harness activity={{ ...ACTIVITY, reward: { credits: 0, powerName: "Frost Pulse" } }} />);
+    render(
+      <Harness
+        activity={{
+          ...ACTIVITY,
+          reward: { credits: 0, powerName: "Frost Pulse" },
+        }}
+      />,
+    );
     fireEvent.click(screen.getByRole("button", { name: /Play/ }));
     fireEvent.click(option("sh"));
     await act(async () => check());
@@ -183,16 +267,22 @@ describe("LearningPanel", () => {
   it("Check and Continue pair the word with a symbol (D6.1), hidden from screen readers", async () => {
     render(<Harness />);
     const checkButton = screen.getByRole("button", { name: COPY.check });
-    expect(checkButton.querySelector("[aria-hidden='true']")?.textContent?.trim()).toBe("✓");
+    expect(
+      checkButton.querySelector("[aria-hidden='true']")?.textContent?.trim(),
+    ).toBe("✓");
     fireEvent.click(screen.getByRole("button", { name: /Play/ }));
     fireEvent.click(option("sh"));
     await act(async () => check());
     const continueButton = screen.getByRole("button", { name: COPY.continue });
-    expect(continueButton.querySelector("[aria-hidden='true']")?.textContent).toBe("➜");
+    expect(
+      continueButton.querySelector("[aria-hidden='true']")?.textContent,
+    ).toBe("➜");
   });
 
   it("not saved: says so, uses no try, and Check can be pressed again", async () => {
-    const gate = { wait: async (): Promise<CheckResult> => ({ kind: "not-saved" }) };
+    const gate = {
+      wait: async (): Promise<CheckResult> => ({ kind: "not-saved" }),
+    };
     render(<Harness gate={gate} />);
     fireEvent.click(screen.getByRole("button", { name: /Play/ }));
     fireEvent.click(option("s"));
@@ -208,18 +298,29 @@ describe("LearningPanel", () => {
     expect(screen.getAllByText(COPY.loading).length).toBeGreaterThan(0);
     const failed = audio({ availability: "failed" });
     rerender(<Harness playAudio={failed} />);
-    fireEvent.click(screen.getAllByRole("button", { name: COPY.tryAgain })[0] as HTMLElement);
+    fireEvent.click(
+      screen.getAllByRole("button", { name: COPY.tryAgain })[0] as HTMLElement,
+    );
     expect(failed.retry).toHaveBeenCalledTimes(1);
     expect(screen.getByText(COPY.triesLeft(3))).toBeTruthy();
   });
 
   it("the Play button follows the clip: Loading, Stop, Play again, and the failure line", () => {
-    const states: PanelAudio["state"][] = ["loading", "playing", "played", "failed"];
+    const states: PanelAudio["state"][] = [
+      "loading",
+      "playing",
+      "played",
+      "failed",
+    ];
     const labels = [COPY.loading, COPY.stop, COPY.playAgain, COPY.tryAgain];
     states.forEach((state, i) => {
       const { unmount } = render(<Harness playAudio={audio({ state })} />);
-      expect(screen.getAllByRole("button", { name: new RegExp(labels[i] ?? "") }).length).toBeGreaterThan(0);
-      if (state === "failed") expect(screen.getByText(COPY.soundFailed)).toBeTruthy();
+      expect(
+        screen.getAllByRole("button", { name: new RegExp(labels[i] ?? "") })
+          .length,
+      ).toBeGreaterThan(0);
+      if (state === "failed")
+        expect(screen.getByText(COPY.soundFailed)).toBeTruthy();
       unmount();
     });
   });

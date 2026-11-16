@@ -84,6 +84,14 @@ const RULES: Record<string, string> = {
   checklist_incomplete: "is not complete: tick every line",
   preview_solve_stale: "was solved on an older version of the draft: solve it again",
   max_bytes: "is too large (8 KB at most)",
+  not_for_template: "is made by the generator on a template, so it cannot be written here",
+  not_for_fixed: "is only for template activities",
+  unknown_generator: "is not a generator the server has",
+  unknown_version: "is not a version of this generator the server has",
+  generator_output: "cannot be made by this generator",
+  domain_too_large: "makes more than 5,000 questions: narrow the ranges",
+  domain_empty: "makes no questions: widen the ranges",
+  shape_three: "does not fit three one-digit numbers",
 };
 
 /** Registry rules (plan C19): described as the topic's problem. */
@@ -115,6 +123,7 @@ const FIELDS: Record<string, string> = {
   activityId: "Activity ID",
   "review.checklist": "The review checklist",
   "review.previewSolvedDraftRevision": "Preview and solve",
+  template: "Template",
 };
 
 const PARTS: Record<string, string> = {

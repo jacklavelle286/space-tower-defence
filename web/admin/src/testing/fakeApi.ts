@@ -2,8 +2,9 @@
 // draftRevision -> 409 DRAFT_CONFLICT; publish needs every checklist line and the preview-solve of this revision).
 // Validation answers with `problems`, which a test sets: the real checks are admin-api's, and the shared fixtures
 // (contracts/fixtures/activities/) prove the editor's drafts pass them. Every call is recorded. Example IDs only.
-import { ApiError, type ActivitySummary, type ActivityView, type AdminApi, type Definition, type NewActivity, type Problem, type SpeechSummary, type SpeechView } from "../api";
+import { ApiError, type ActivitySummary, type ActivityView, type AdminApi, type BankStatus, type Definition, type NewActivity, type Problem, type SpeechSummary, type SpeechView } from "../api";
 import { PUBLISH_CHECKLIST } from "../review";
+import { BANK } from "./bank";
 
 export type Call = { readonly name: string; readonly args: readonly unknown[] };
 
@@ -27,6 +28,8 @@ const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 export class FakeAdminApi {
   readonly calls: Call[] = [];
   readonly activities = new Map<string, Stored>();
+  /** What R30 answers (a test may replace it). */
+  bank: BankStatus = clone(BANK);
   /** What the next validate returns as problems (empty: valid). */
   problems: Problem[] = [];
   private clock = 0;
@@ -155,6 +158,10 @@ export class FakeAdminApi {
       if (stored === undefined) throw new ApiError(404, "NOT_FOUND");
       this.activities.delete(id);
       return { activityId: id, deletedVersions: stored.versions.map((v) => v.versionId) };
+    },
+    bankStatus: async () => {
+      this.record("bankStatus");
+      return clone(this.bank);
     },
   };
 

@@ -19,10 +19,15 @@ export class ApiError extends Error {
   }
 }
 
-export type Request = (method: "GET" | "POST" | "PUT" | "DELETE", path: string, body?: unknown) => Promise<unknown>;
+export type Request = (
+  method: "GET" | "POST" | "PUT" | "DELETE",
+  path: string,
+  body?: unknown,
+) => Promise<unknown>;
 
 function envelope(body: unknown): { code: string; details: Problem[] } | null {
-  if (typeof body !== "object" || body === null || !("error" in body)) return null;
+  if (typeof body !== "object" || body === null || !("error" in body))
+    return null;
   const error = (body as { error: unknown }).error;
   if (typeof error !== "object" || error === null) return null;
   const code = (error as { code?: unknown }).code;
@@ -30,15 +35,27 @@ function envelope(body: unknown): { code: string; details: Problem[] } | null {
   if (typeof code !== "string") return null;
   const problems = Array.isArray(details)
     ? details.filter(
-        (d): d is Problem => typeof d === "object" && d !== null && typeof d.field === "string" && typeof d.rule === "string",
+        (d): d is Problem =>
+          typeof d === "object" &&
+          d !== null &&
+          typeof d.field === "string" &&
+          typeof d.rule === "string",
       )
     : [];
   return { code, details: problems };
 }
 
-export function makeRequest(apiBase: string, accessToken: string, fetchFn: typeof fetch = fetch): Request {
+export function makeRequest(
+  apiBase: string,
+  accessToken: string,
+  fetchFn: typeof fetch = fetch,
+): Request {
   return async (method, path, body) => {
-    const init: RequestInit = { method, headers: { Authorization: `Bearer ${accessToken}` }, cache: "no-store" };
+    const init: RequestInit = {
+      method,
+      headers: { Authorization: `Bearer ${accessToken}` },
+      cache: "no-store",
+    };
     if (body !== undefined) {
       init.headers = { ...init.headers, "Content-Type": "application/json" };
       init.body = JSON.stringify(body);
@@ -53,7 +70,9 @@ export function makeRequest(apiBase: string, accessToken: string, fetchFn: typeo
     if (response.ok) return parsed;
     if (response.status === 401) throw new ApiError(401, "AUTH_REQUIRED"); // gateway: no envelope (G §1.3)
     const error = envelope(parsed);
-    throw error === null ? new ApiError(response.status, "GATEWAY") : new ApiError(response.status, error.code, error.details);
+    throw error === null
+      ? new ApiError(response.status, "GATEWAY")
+      : new ApiError(response.status, error.code, error.details);
   };
 }
 
@@ -84,8 +103,15 @@ export function describeError(error: unknown): string {
 
 // --- Speech (R16-R21) -----------------------------------------------------------------------------------------------
 
-export type SpeechKind = "WORD" | "PHONEME" | "LETTER_NAME" | "INSTRUCTION" | "DICTATION";
-export const SPEECH_KINDS: readonly SpeechKind[] = ["PHONEME", "LETTER_NAME", "WORD", "INSTRUCTION", "DICTATION"];
+export type SpeechKind =
+  "WORD" | "PHONEME" | "LETTER_NAME" | "INSTRUCTION" | "DICTATION";
+export const SPEECH_KINDS: readonly SpeechKind[] = [
+  "PHONEME",
+  "LETTER_NAME",
+  "WORD",
+  "INSTRUCTION",
+  "DICTATION",
+];
 
 export type SpeechSummary = {
   speechId: string;
@@ -121,9 +147,30 @@ export type SpeechVersion = {
   take: number;
 };
 
-export type SpeechView = { header: SpeechSummary; draft: SpeechDraft; versions: SpeechVersion[] };
-export type Preview = { clipKey: string; url: string; expiresInSeconds: number };
-export type Approval = { versionId: string; clipKey: string; sha256: string; take: number };
+export type SpeechView = {
+  header: SpeechSummary;
+  draft: SpeechDraft;
+  versions: SpeechVersion[];
+};
+export type Preview = {
+  clipKey: string;
+  url: string;
+  expiresInSeconds: number;
+};
+export type Approval = {
+  versionId: string;
+  clipKey: string;
+  sha256: string;
+  renderedAt: string | null;
+  take: number;
+};
+/** R18's body. `text` is the first draft body (a sentence); without it admin-api starts from the bake-off's form. */
+export type NewSpeech = {
+  speechId: string;
+  title: string;
+  kind: SpeechKind;
+  text?: string;
+};
 
 // --- Activities (R22-R27) -------------------------------------------------------------------------------------------
 
@@ -142,7 +189,11 @@ export type Definition = {
   rewardCategory: string;
   audioRequirement?: string;
   prompt?: { text: string };
-  activityPayload?: { optionStyle?: string; options?: Option[]; [other: string]: unknown };
+  activityPayload?: {
+    optionStyle?: string;
+    options?: Option[];
+    [other: string]: unknown;
+  };
   answerSpecification?: { accepted?: string[] };
   speechDefinitionReferences?: Record<string, { speechId: string }>;
   [other: string]: unknown;
@@ -182,56 +233,222 @@ export type ActivitySummary = {
 export type ActivityView = {
   header: ActivitySummary & { fromDraftRevision: number | null };
   draft: { definition: Definition; draftRevision: number; updatedAt: string };
-  versions: { versionId: string; displayNumber: number; publishedAt: string; publishedBy: string }[];
+  versions: {
+    versionId: string;
+    displayNumber: number;
+    publishedAt: string;
+    publishedBy: string;
+  }[];
 };
 
-export type Validation = { valid: boolean; problems: Problem[]; draftRevision: number };
+/** One generated question of a template, as R26 returns it for review (C25.3 rule 3). */
+export type TemplateSample = {
+  index: number;
+  interactionType: string;
+  prompt: { text: string };
+  activityPayload: unknown;
+  answerSpecification: { accepted: string[] };
+};
+/** R26: `domainSize` is 1 for a FIXED activity and the number of generated questions for a template, which also
+ * returns `sample` (the smallest, three middle and the largest question). */
+export type Validation = {
+  valid: boolean;
+  problems: Problem[];
+  draftRevision: number;
+  domainSize?: number;
+  sample?: TemplateSample[];
+};
 export type Publication = { versionId: string; displayNumber: number };
 /** R31's body: what was removed. */
 export type Deletion = { activityId: string; deletedVersions: string[] };
+
+/** R30 bank status (Phase 42; shared/selection/eligibility.py). `rewardCategory` is the slot kind: a BOTH activity is
+ * counted in both. `mode`: READY (the plan's rules), STARTER (not eligible yet; games use the starter rules), BLOCKED
+ * (new games for that age are refused). */
+export type BankGroup = {
+  subject: string;
+  rewardCategory: "NORMAL" | "METEOR";
+  count: number;
+  threshold: number;
+  hardMinimum: number;
+  ok: boolean;
+  topics: { topicId: string; count: number }[];
+};
+export type BankNeed =
+  | {
+      what: "UNITS";
+      subject: string;
+      rewardCategory: "NORMAL" | "METEOR";
+      have: number;
+      need: number;
+      more: number;
+    }
+  | {
+      what: "TOPICS";
+      subject: string;
+      have: number;
+      need: number;
+      more: number;
+    }
+  | {
+      what: "TEMPLATE_INSTANCES";
+      subject: string;
+      rewardCategory: "NORMAL" | "METEOR";
+      have: number;
+      need: number;
+      more: number;
+    }
+  | { what: "CAMPAIGN" };
+export type BankBand = {
+  ageBand: number;
+  eligible: boolean;
+  mode: "READY" | "STARTER" | "BLOCKED";
+  activities: number;
+  campaignFillable: boolean;
+  starterCampaignFillable: boolean;
+  /** Each released wave set, and whether the selector fills all its slots under the rules in force for this age. */
+  waveSets: { waveSetId: string; fillable: boolean }[];
+  groups: BankGroup[];
+  subjects: {
+    subject: string;
+    topics: number;
+    topicsWithEnough: number;
+    topicsNeeded: number;
+    ok: boolean;
+  }[];
+  templates: {
+    subject: string;
+    rewardCategory: "NORMAL" | "METEOR";
+    instances: number;
+    needed: number;
+    ok: boolean;
+  }[];
+  needs: BankNeed[];
+};
+export type BankStatus = {
+  /** The released wave sets the modes were judged on; null when admin-api could not read the released game data. */
+  releasedWaveSets: string[] | null;
+  rules: {
+    starterUntilEligible: boolean;
+    subjectFallback: boolean;
+    topicsPerSubject: number;
+    unitsPerTopic: number;
+    campaignSlots: { NORMAL: number; METEOR: number };
+  };
+  ageBands: BankBand[];
+};
 
 /** A guard against a server that never stops paging: 50 pages of 200 is far beyond the bank's size (plan C19). */
 const MAX_PAGES = 50;
 
 export function adminApi(request: Request) {
   const id = (value: string) => encodeURIComponent(value);
+  /** Every page of an admin list (R17, R22): pages of 200, followed by nextCursor. */
+  const allPages = async <T>(path: string): Promise<{ items: T[] }> => {
+    const items: T[] = [];
+    let cursor: string | null = null;
+    for (let pages = 0; pages < MAX_PAGES; pages += 1) {
+      const query: string =
+        cursor === null ? "" : `&cursor=${encodeURIComponent(cursor)}`;
+      const page = (await request("GET", `${path}?limit=200${query}`)) as {
+        items: T[];
+        nextCursor?: string | null;
+      };
+      items.push(...page.items);
+      cursor = page.nextCursor ?? null;
+      if (cursor === null) return { items };
+    }
+    throw new ApiError(0, "TOO_MANY_PAGES");
+  };
   return {
-    listSpeech: () => request("GET", "/admin/speech-definitions?limit=200") as Promise<{ items: SpeechSummary[] }>,
-    createSpeech: (body: { speechId: string; title: string; kind: SpeechKind }) =>
+    /** R17, every page (pages of 200, nextCursor): the list's filters and the new-speech ID need every ID. */
+    listSpeech: () => allPages<SpeechSummary>("/admin/speech-definitions"),
+    /** R18: 201 for a new definition; 200 with the existing one when the ID is already taken (create is idempotent). */
+    createSpeech: (body: NewSpeech) =>
       request("POST", "/admin/speech-definitions", body) as Promise<SpeechView>,
-    getSpeech: (speechId: string) => request("GET", `/admin/speech-definitions/${id(speechId)}`) as Promise<SpeechView>,
-    saveSpeech: (speechId: string, body: { draftRevision: number; text?: string; ssml?: string; take?: number }) =>
-      request("PUT", `/admin/speech-definitions/${id(speechId)}`, body) as Promise<SpeechView>,
-    preview: (body: { kind: SpeechKind; speechId: string; text?: string; ssml?: string; take?: number }) =>
-      request("POST", "/admin/speech/preview", body) as Promise<Preview>,
-    approve: (speechId: string, body: { draftRevision: number; reviewNote?: string }) =>
-      request("POST", `/admin/speech-definitions/${id(speechId)}/approve`, body) as Promise<Approval>,
+    getSpeech: (speechId: string) =>
+      request(
+        "GET",
+        `/admin/speech-definitions/${id(speechId)}`,
+      ) as Promise<SpeechView>,
+    saveSpeech: (
+      speechId: string,
+      body: {
+        draftRevision: number;
+        text?: string;
+        ssml?: string;
+        take?: number;
+      },
+    ) =>
+      request(
+        "PUT",
+        `/admin/speech-definitions/${id(speechId)}`,
+        body,
+      ) as Promise<SpeechView>,
+    preview: (body: {
+      kind: SpeechKind;
+      speechId: string;
+      text?: string;
+      ssml?: string;
+      take?: number;
+    }) => request("POST", "/admin/speech/preview", body) as Promise<Preview>,
+    /** R21: `clipKey` is the clip the operator previewed and played; admin-api refuses it unless it is the saved draft's. */
+    approve: (
+      speechId: string,
+      body: { draftRevision: number; clipKey: string; reviewNote?: string },
+    ) =>
+      request(
+        "POST",
+        `/admin/speech-definitions/${id(speechId)}/approve`,
+        body,
+      ) as Promise<Approval>,
     /** R22, every page: the list is cut into pages of 200 (nextCursor), and the new-activity ID needs every ID. */
-    listActivities: async (): Promise<{ items: ActivitySummary[] }> => {
-      const items: ActivitySummary[] = [];
-      let cursor: string | null = null;
-      for (let pages = 0; pages < MAX_PAGES; pages += 1) {
-        const query: string = cursor === null ? "" : `&cursor=${encodeURIComponent(cursor)}`;
-        const page = (await request("GET", `/admin/activities?limit=200${query}`)) as { items: ActivitySummary[]; nextCursor?: string | null };
-        items.push(...page.items);
-        cursor = page.nextCursor ?? null;
-        if (cursor === null) return { items };
-      }
-      throw new ApiError(0, "TOO_MANY_PAGES");
-    },
+    listActivities: () => allPages<ActivitySummary>("/admin/activities"),
     /** R23: 201 for a new activity; 200 with the existing one when the ID is already taken (create is idempotent). */
-    createActivity: (body: NewActivity) => request("POST", "/admin/activities", body) as Promise<ActivityView>,
-    getActivity: (activityId: string) => request("GET", `/admin/activities/${id(activityId)}`) as Promise<ActivityView>,
-    saveActivity: (activityId: string, body: { draftRevision: number; definition: Definition }) =>
-      request("PUT", `/admin/activities/${id(activityId)}/draft`, body) as Promise<ActivityView>,
+    createActivity: (body: NewActivity) =>
+      request("POST", "/admin/activities", body) as Promise<ActivityView>,
+    getActivity: (activityId: string) =>
+      request(
+        "GET",
+        `/admin/activities/${id(activityId)}`,
+      ) as Promise<ActivityView>,
+    saveActivity: (
+      activityId: string,
+      body: { draftRevision: number; definition: Definition },
+    ) =>
+      request(
+        "PUT",
+        `/admin/activities/${id(activityId)}/draft`,
+        body,
+      ) as Promise<ActivityView>,
     validate: (activityId: string, draftRevision: number) =>
-      request("POST", `/admin/activities/${id(activityId)}/validate`, { draftRevision }) as Promise<Validation>,
+      request("POST", `/admin/activities/${id(activityId)}/validate`, {
+        draftRevision,
+      }) as Promise<Validation>,
     publish: (
       activityId: string,
-      body: { draftRevision: number; review: { checklist: Record<string, boolean>; previewSolvedDraftRevision: number } },
-    ) => request("POST", `/admin/activities/${id(activityId)}/publish`, body) as Promise<Publication>,
+      body: {
+        draftRevision: number;
+        review: {
+          checklist: Record<string, boolean>;
+          previewSolvedDraftRevision: number;
+        };
+      },
+    ) =>
+      request(
+        "POST",
+        `/admin/activities/${id(activityId)}/publish`,
+        body,
+      ) as Promise<Publication>,
+    /** R30: counts against the thresholds for every age, from the same counting function selection uses. */
+    bankStatus: () =>
+      request("GET", "/admin/bank-status") as Promise<BankStatus>,
     /** R31: removes the activity for good (header, draft, every version). 404 when there is nothing left. */
-    deleteActivity: (activityId: string) => request("DELETE", `/admin/activities/${id(activityId)}`) as Promise<Deletion>,
+    deleteActivity: (activityId: string) =>
+      request(
+        "DELETE",
+        `/admin/activities/${id(activityId)}`,
+      ) as Promise<Deletion>,
   };
 }
 

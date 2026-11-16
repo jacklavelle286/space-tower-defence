@@ -175,7 +175,7 @@ export function App() {
         {route.page === "activity" && <ActivityPage key={route.id} api={api} activityId={route.id} />}
         {route.page === "new" && <NewActivityPage api={api} />}
         {route.page === "speech" && <SpeechPage key={route.id ?? ""} api={api} initial={route.id} />}
-        {route.page === "bank" && <BankStatusPage />}
+        {route.page === "bank" && <BankStatusPage api={api} />}
       </main>
     </>
   );

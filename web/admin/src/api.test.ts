@@ -14,13 +14,13 @@ describe("API client", () => {
   it("sends the access token to the same-origin /api", async () => {
     const calls: Call[] = [];
     const api = adminApi(makeRequest("/api", "token-1", fakeFetch(200, { versionId: "v" }, calls)));
-    await api.approve("phoneme-sh", { draftRevision: 3 });
+    await api.approve("phoneme-sh", { draftRevision: 3, clipKey: "c".repeat(64) });
     const call = calls[0];
     if (call === undefined) throw new Error("no request was sent");
     expect(call.url).toBe("/api/admin/speech-definitions/phoneme-sh/approve");
     expect(call.init.method).toBe("POST");
     expect((call.init.headers as Record<string, string>)["Authorization"]).toBe("Bearer token-1");
-    expect(call.init.body).toBe(JSON.stringify({ draftRevision: 3 }));
+    expect(call.init.body).toBe(JSON.stringify({ draftRevision: 3, clipKey: "c".repeat(64) }));
   });
 
   it("reads our envelope's code and problems", async () => {

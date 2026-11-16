@@ -15,7 +15,7 @@ const listened = Object.fromEntries(LISTENING_CHECKLIST.map((item) => [item.key,
 const reviewed = Object.fromEntries(PUBLISH_CHECKLIST.map((item) => [item.key, true]));
 
 describe("Approve", () => {
-  const base = { dirty: false, draftRevision: 2, draftClipKey: "k2", preview: { draftRevision: 2, clipKey: "k2" }, ticks: listened };
+  const base = { dirty: false, draftRevision: 2, draftClipKey: "k2", preview: { draftRevision: 2, clipKey: "k2" }, played: true, ticks: listened };
 
   it("is allowed only for the saved, previewed revision with every check ticked", () => {
     expect(canApprove(base)).toEqual({ ok: true });
@@ -25,6 +25,7 @@ describe("Approve", () => {
     expect(canApprove({ ...base, preview: { draftRevision: 2, clipKey: "other" } }).ok).toBe(false);
     expect(canApprove({ ...base, ticks: { ...listened, purity: false } }).ok).toBe(false);
     expect(canApprove({ ...base, draftClipKey: null }).ok).toBe(false);
+    expect(canApprove({ ...base, played: false })).toEqual({ ok: false, reason: "Play the clip to the end first." });
   });
 });
 
@@ -57,7 +58,7 @@ describe("One tick", () => {
   it("sets or clears every key of a checklist at once", () => {
     expect(tickAll(PUBLISH_CHECKLIST, true)).toEqual(reviewed);
     expect(Object.values(tickAll(PUBLISH_CHECKLIST, false))).toEqual(PUBLISH_CHECKLIST.map(() => false));
-    expect(canApprove({ dirty: false, draftRevision: 1, draftClipKey: "k", preview: { draftRevision: 1, clipKey: "k" }, ticks: tickAll(LISTENING_CHECKLIST, true) })).toEqual({ ok: true });
+    expect(canApprove({ dirty: false, draftRevision: 1, draftClipKey: "k", preview: { draftRevision: 1, clipKey: "k" }, played: true, ticks: tickAll(LISTENING_CHECKLIST, true) })).toEqual({ ok: true });
   });
 });
 
