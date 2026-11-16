@@ -185,6 +185,39 @@ variable "picture_monthly_cap" {
   }
 }
 
+variable "picture_provider" {
+  description = "Who draws for picture-gen: openai (OpenAI Responses API, Europe data residency, key in Secrets Manager) or bedrock (Claude on Bedrock). Owner decision 2026-11-16: openai, because the account cannot use any Anthropic model on Bedrock. Switching back is this variable and a release; the Bedrock IAM stays in place."
+  type        = string
+  default     = "openai"
+
+  validation {
+    condition     = contains(["openai", "bedrock"], var.picture_provider)
+    error_message = "picture_provider must be openai or bedrock."
+  }
+}
+
+variable "openai_model_id" {
+  description = "OpenAI model picture-gen calls when picture_provider is openai. Owner decision 2026-11-16: gpt-6.1-sol."
+  type        = string
+  default     = "gpt-6.1-sol"
+
+  validation {
+    condition     = can(regex("^[a-z0-9][a-z0-9.-]{0,63}$", var.openai_model_id))
+    error_message = "openai_model_id must be an OpenAI model ID such as gpt-6.1-sol."
+  }
+}
+
+variable "openai_base_url" {
+  description = "OpenAI API base URL. Owner decision 2026-11-16: Europe data residency (eu.api.openai.com: storage and processing in the region), which needs a key from a Europe-residency project."
+  type        = string
+  default     = "https://eu.api.openai.com/v1"
+
+  validation {
+    condition     = can(regex("^https://[a-z0-9.-]+(/[A-Za-z0-9._/-]*)?$", var.openai_base_url))
+    error_message = "openai_base_url must be an https:// URL such as https://eu.api.openai.com/v1."
+  }
+}
+
 variable "bedrock_model_id" {
   description = "Bedrock inference profile picture-gen calls (owner decision 2026-11-16: EU routing). IAM is scoped to this profile and the foundation model it routes to."
   type        = string

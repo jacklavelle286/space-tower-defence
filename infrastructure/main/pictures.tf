@@ -2,13 +2,16 @@
 #
 # 42a: one private bucket. admin-api writes the master copy of each picture under store/ and, on approval, a served
 #      copy under pictures/v1/, which both sites serve at /pictures/* through their existing Origin Access Control.
-# 42b: picture-gen, the fifth function. admin-api queues a job on SQS (R38); picture-gen calls Claude on Bedrock (EU
-#      inference profile) and writes the result under jobs/; admin-api reads it when the page polls (R39). No function
-#      invokes another (ADR-0003), and picture-gen never touches DynamoDB.
+# 42b: picture-gen, the fifth function. admin-api queues a job on SQS (R38); picture-gen calls the model and writes
+#      the result under jobs/; admin-api reads it when the page polls (R39). No function invokes another (ADR-0003),
+#      and picture-gen never touches DynamoDB. The model is OpenAI's (var.picture_provider = "openai", owner decision
+#      2026-11-16: the account cannot use any Anthropic model on Bedrock), with the key in Secrets Manager; Claude on
+#      Bedrock (EU inference profile) is the other setting, and its IAM stays so switching back is a variable.
 #
 # Cost controls, in order of strength: the daily and monthly caps that admin-api counts in DynamoDB (variables.tf), the
-# function's reserved concurrency (2) and the event source mapping's maximum concurrency (2), max_tokens per call, the
-# hourly output-token alarm below, and the account budget (modules/monitoring).
+# function's reserved concurrency (2) and the event source mapping's maximum concurrency (2), the output-token limit
+# per call, the hourly output-token alarm below, and the budgets: AWS Budgets (modules/monitoring) for AWS spend, and
+# the owner's budget in the OpenAI project for OpenAI spend, which AWS Budgets cannot see (ADR-0031).
 
 # ---------------------------------------------------------------------------
 # Bucket (42a). The root writes the policy: it names both distributions and both writer roles.
@@ -209,6 +212,17 @@ locals {
   bedrock_model_name  = join(".", slice(split(".", var.bedrock_model_id), 1, length(split(".", var.bedrock_model_id))))
 }
 
+# The OpenAI API key (owner decision 2026-11-16). Terraform creates the secret only, never a version: the key never
+# enters the state or the plan. The owner stores it once with put-secret-value (docs/runbooks/openai-key.md; a local
+# write listed in docs/build-phases.md). Encrypted with the AWS managed key aws/secretsmanager (no kms_key_id): only
+# picture-gen's role is granted GetSecretValue, and the managed key's policy allows decryption through Secrets
+# Manager for principals of this account that may read the secret, so no key policy to maintain. Default 30-day
+# recovery window on delete.
+resource "aws_secretsmanager_secret" "openai_api_key" {
+  name        = "${local.name_prefix}-openai-api-key"
+  description = "OpenAI API key for picture-gen (Europe data residency project). Value set by the owner, never by Terraform."
+}
+
 data "aws_iam_policy_document" "picture_gen" {
   statement {
     sid = "PictureJobsQueue"
@@ -242,7 +256,15 @@ data "aws_iam_policy_document" "picture_gen" {
     }
   }
 
-  # The inference profile itself (streaming, as the handler calls it).
+  # The OpenAI key: this one secret only (read once per container). Kept whichever provider is chosen, like the
+  # Bedrock statements below, so switching is a variable and nothing else.
+  statement {
+    sid       = "OpenAIKeySecret"
+    actions   = ["secretsmanager:GetSecretValue"]
+    resources = [aws_secretsmanager_secret.openai_api_key.arn]
+  }
+
+  # Bedrock (picture_provider = "bedrock"). The inference profile itself (streaming, as the handler calls it).
   statement {
     sid       = "BedrockProfile"
     actions   = ["bedrock:InvokeModel", "bedrock:InvokeModelWithResponseStream"]
@@ -269,7 +291,7 @@ module "picture_gen" {
   source = "../modules/lambda_function"
 
   function_name = local.lambda_names["picture-gen"]
-  description   = "Draws a picture with Claude on Bedrock for a queued job; writes the result to S3"
+  description   = "Draws a picture with the configured model (OpenAI or Bedrock) for a queued job; writes the result to S3"
   role_name     = "${local.name_prefix}-picture-gen-role"
   policy_json   = data.aws_iam_policy_document.picture_gen.json
 
@@ -296,6 +318,10 @@ module "picture_gen" {
     POWERTOOLS_SERVICE_NAME = "picture-gen"
     PICTURES_BUCKET         = local.pictures_bucket_name
     PICTURE_JOB_PREFIX      = local.picture_job_prefix
+    PICTURE_PROVIDER        = var.picture_provider
+    OPENAI_MODEL_ID         = var.openai_model_id
+    OPENAI_BASE_URL         = var.openai_base_url
+    OPENAI_SECRET_ARN       = aws_secretsmanager_secret.openai_api_key.arn # the ARN only; the key is read at run time
     BEDROCK_MODEL_ID        = var.bedrock_model_id
     BEDROCK_MAX_TOKENS      = tostring(var.bedrock_max_tokens)
   }
@@ -315,7 +341,8 @@ resource "aws_lambda_event_source_mapping" "picture_gen" {
 # Hourly output-token alarm (42b). picture-gen logs one {"metric": "picture_usage", "outputTokens": N, ...} line per
 # job with its token counts (api/shared/log.py allow-list; never the prompt or the SVG). 150,000 output tokens in an
 # hour is roughly nine 256-kind jobs at max_tokens (16,000) or four backgrounds at theirs (32,000; Gate P2), above
-# normal use. A breach means something is looping or the caps are wrong, or an unusually busy hour of backgrounds:
+# normal use. With OpenAI the per-call limits are 24,000 and 48,000 (reasoning headroom), so it is about six 256-kind
+# jobs or three backgrounds at their limits; OpenAI's outputTokens includes reasoning, as Claude's includes thinking. A breach means something is looping or the caps are wrong, or an unusually busy hour of backgrounds:
 # check the picture_usage lines' `kind` before treating it as a fault. [PROPOSAL] threshold unchanged; owner to
 # confirm at the gate.
 # ---------------------------------------------------------------------------

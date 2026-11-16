@@ -1,8 +1,9 @@
 # Pictures wiring (Phases 42a, 42b): the pictures bucket policy, the job queue and its policy, picture-gen's function
 # settings and the admin-api additions. Offline: mock providers and a plan, nothing reaches AWS or the state bucket.
 # Run from infrastructure/main: terraform init -backend=false && terraform test (CI repo job).
-# The IAM policy documents are data sources, which a mock provider cannot evaluate; their statements are reviewed in a
-# read-only plan (gate summary).
+# The IAM policy documents are data sources, which a mock provider cannot evaluate: their rendered JSON is reviewed in
+# a read-only plan (gate summary), and their statement blocks (the inputs) are checked here where it matters (the
+# OpenAI key secret, 2026-11-16). The secret and the provider switch: run "openai_provider_and_key_secret" and after.
 
 mock_provider "aws" {
   mock_data "aws_iam_policy_document" {
@@ -82,6 +83,17 @@ override_resource {
     arn  = "arn:aws:sqs:eu-west-2:123456789012:space-tower-defence-prod-picture-jobs-dlq"
     id   = "https://sqs.eu-west-2.amazonaws.com/123456789012/space-tower-defence-prod-picture-jobs-dlq"
     name = "space-tower-defence-prod-picture-jobs-dlq"
+  }
+}
+
+# The secret's ARN is known at plan time here (AWS adds a random suffix), so the policy statement and the environment
+# can be checked against it.
+override_resource {
+  target          = aws_secretsmanager_secret.openai_api_key
+  override_during = plan
+  values = {
+    arn = "arn:aws:secretsmanager:eu-west-2:123456789012:secret:space-tower-defence-prod-openai-api-key-AbCdEf"
+    id  = "arn:aws:secretsmanager:eu-west-2:123456789012:secret:space-tower-defence-prod-openai-api-key-AbCdEf"
   }
 }
 
@@ -202,6 +214,92 @@ run "function_settings_and_caps" {
     condition     = var.bedrock_model_id == "eu.anthropic.claude-opus-5-5" && var.bedrock_max_tokens == 16000
     error_message = "the EU inference profile for Claude Opus 5.5, max_tokens 16000"
   }
+}
+
+# Owner decision 2026-11-16: OpenAI draws, with the key in Secrets Manager; Bedrock stays a variable away.
+run "openai_provider_and_key_secret" {
+  command = plan
+
+  assert {
+    condition = (
+      var.picture_provider == "openai" &&
+      var.openai_model_id == "gpt-6.1-sol" &&
+      var.openai_base_url == "https://eu.api.openai.com/v1"
+    )
+    error_message = "owner decisions 2026-11-16: OpenAI, gpt-6.1-sol, Europe data residency"
+  }
+
+  assert {
+    condition = (
+      aws_secretsmanager_secret.openai_api_key.name == "space-tower-defence-prod-openai-api-key" &&
+      aws_secretsmanager_secret.openai_api_key.kms_key_id == null
+    )
+    error_message = "one secret, <name_prefix>-openai-api-key, encrypted with the AWS managed key aws/secretsmanager"
+  }
+
+  # GetSecretValue on exactly that secret, in picture-gen's policy only, and nothing else on Secrets Manager.
+  assert {
+    condition = (
+      length([
+        for s in data.aws_iam_policy_document.picture_gen.statement : s
+        if length([for a in s.actions : a if startswith(a, "secretsmanager:")]) > 0
+      ]) == 1 &&
+      [for s in data.aws_iam_policy_document.picture_gen.statement : s if s.sid == "OpenAIKeySecret"][0].actions == toset(["secretsmanager:GetSecretValue"]) &&
+      [for s in data.aws_iam_policy_document.picture_gen.statement : s if s.sid == "OpenAIKeySecret"][0].resources == toset([
+        "arn:aws:secretsmanager:eu-west-2:123456789012:secret:space-tower-defence-prod-openai-api-key-AbCdEf",
+      ])
+    )
+    error_message = "picture-gen may GetSecretValue on the OpenAI key secret and nothing else in Secrets Manager"
+  }
+
+  assert {
+    condition = alltrue([
+      for s in data.aws_iam_policy_document.admin_api.statement :
+      length([for a in s.actions : a if startswith(a, "secretsmanager:")]) == 0
+    ])
+    error_message = "admin-api gets no Secrets Manager access"
+  }
+
+  # The Bedrock statements stay, so switching back is the variable and a release.
+  assert {
+    condition = toset([for s in data.aws_iam_policy_document.picture_gen.statement : s.sid]) == toset([
+      "PictureJobsQueue", "PictureJobsReadWrite", "PictureJobsList", "OpenAIKeySecret", "BedrockProfile", "BedrockModelViaProfile",
+    ])
+    error_message = "picture-gen's statements: queue, jobs/ read and write, jobs/ list, the key secret, and Bedrock"
+  }
+}
+
+run "bedrock_is_a_variable_away" {
+  command = plan
+
+  variables {
+    picture_provider = "bedrock"
+  }
+
+  assert {
+    condition     = var.picture_provider == "bedrock"
+    error_message = "bedrock is an accepted provider"
+  }
+}
+
+run "an_unknown_provider_is_refused" {
+  command = plan
+
+  variables {
+    picture_provider = "gemini"
+  }
+
+  expect_failures = [var.picture_provider]
+}
+
+run "an_http_base_url_is_refused" {
+  command = plan
+
+  variables {
+    openai_base_url = "http://eu.api.openai.com/v1"
+  }
+
+  expect_failures = [var.openai_base_url]
 }
 
 run "a_function_behind_the_api_still_cannot_exceed_29_seconds" {
