@@ -1,4 +1,4 @@
-# 0031. Gate P: picture library, browser conversion, and a fifth Lambda for Claude drawings
+# 0031. Gate P: picture library, browser conversion, and a fifth Lambda for model drawings
 Status: Proposed · Date: 2026-11-16
 
 Context: [ADR-0026](0026-picture-library-generate-and-upload.md) chose upload plus generation with Claude on Bedrock. Building it
@@ -79,6 +79,52 @@ Decision:
     monthly caps (`capWeight` in limits.json; a refund gives 3 back), so the monthly cap still bounds the month's cost
     at about 150 × $0.40. The admin page says a background counts as 3. The hourly output-token alarm stays at 150,000
     (about 4 backgrounds at max_tokens); **owner to confirm** the threshold at the gate.
+- **Provider: OpenAI (owner, 2026-11-16) [CONFIRMED by owner, 2026-11-16].** The account cannot use any Anthropic
+  model on Bedrock ("not available for this account", verified 2026-11-16), so picture-gen draws with OpenAI on the
+  owner's own API key. The provider is switchable: `picture_provider` (`openai`, the default, or `bedrock`) sets
+  `PICTURE_PROVIDER`; the Bedrock path, its tests and its IAM stay, so going back is that variable and a release.
+  - Model `gpt-6.1-sol` through the Responses API (`client.responses.stream`), official `openai` SDK 3.48.0. Europe
+    data residency: base URL `https://eu.api.openai.com/v1` and a key from a Europe-residency project (the owner
+    creates it; the region cannot be changed later). `store=false`; effort `medium` (the model's default, stated so a
+    default change cannot move cost or time); `prompt_cache_key` `picture-gen:<kind>:v1`.
+  - Same prompt for both providers: `instructions` is the three system texts (RULES, STYLE.md, the kind block) joined
+    in order; the user message is unchanged. Same claim, kinds, sanitiser, deadline (780 s), progress writes and codes.
+    `max_output_tokens` (it includes reasoning) is the kind's max_tokens plus half: 24,000 for a 256 kind, 48,000 for
+    a background. SDK limits as Bedrock's: 256 kinds 2 × 280 s read timeout (1 retry, before a stream starts only),
+    background one attempt of 720 s; connect 10 s.
+  - Outcomes: refusal part or incomplete `content_filter` → `declined`; incomplete `max_output_tokens` → `too_long`;
+    `response.failed`, an `error` event or another status → `bedrock_error`, which now means "provider error" (name
+    kept for compatibility); 429 → `throttled`; SDK timeout or the deadline → `timed_out`; new `not_set_up` when the
+    secret has no value or OpenAI answers 401 or 403 (admin page: "Drawing isn't set up yet: the API key is missing.").
+    Usage: `inputTokens` is OpenAI's input_tokens (it includes cached and written tokens, unlike Anthropic's),
+    `cacheReadTokens` cached_tokens, `cacheWriteTokens` cache_write_tokens, `outputTokens` includes reasoning. The usage
+    line gains `provider`. A broken OpenAI stream logs zero tokens (OpenAI reports usage only at the end).
+  - The key lives in Secrets Manager, `space-tower-defence-prod-openai-api-key`, created by Terraform without a value
+    (the key never enters state or a plan), encrypted with the AWS managed key `aws/secretsmanager`. Of the application
+    roles, only picture-gen's is granted `GetSecretValue`, on that ARN; account admin principals (the owner's admin
+    profiles and the GitHub OIDC CI role, which has AdministratorAccess) can read it too, as there is no resource policy.
+    **[PROPOSAL]** a later hardening: an `aws_secretsmanager_secret_policy` denying `GetSecretValue` to every principal
+    except the picture-gen role (owner decides; not built). The owner stores and rotates it (docs/runbooks/openai-key.md); picture-gen
+    reads it once per container and drops it after a 401/403, so a new key needs no release. Never logged.
+  - Cost (per 1M tokens, Standard: input $2, cached input $0.10, cache write (30 min) $2.50, output $10; EU residency
+    +10% **[inference: the docs list no release dates, but the knowledge cutoffs put the model after 2026-03-05]**).
+    Worst case per call (whole prompt written to the cache, a redraw's previous SVG at its byte cap, every output token
+    used), with the uplift: a 256 kind about $0.34 (24,000 output $0.24 + about 10,600 written $0.03 + about 21,800
+    previous-drawing tokens $0.04); a background about $0.77 (48,000 output $0.48 + about 36,000 written $0.09 + about
+    65,500 previous-drawing tokens $0.13). Month under the caps (150 places, background weight 3): 150 × $0.34 ≈ $51,
+    or 50 backgrounds × $0.77 ≈ $39, so about **$51 a month at worst** (Claude's was about $60). A typical cached 256
+    drawing is about $0.05 **[UNVERIFIED]** until the first usage lines.
+  - Budget: AWS Budgets does not see OpenAI spend. **Owner action:** set a monthly budget (and a hard limit if the
+    console offers one) in the OpenAI project; the caps above are the primary control.
+  - Data (OpenAI docs, 2026-11-16): API data is not used for training unless opted in; with `store=false` no
+    application state is kept (the default is 30 days); abuse-monitoring logs are kept up to 30 days (zero data
+    retention needs OpenAI's approval and is not requested); the prompt cache keeps encrypted state up to 24 h, not
+    shared across organisations or residency regions; Europe residency stores and processes `/v1/responses` in the
+    region, but not "system data". Only the owner's description, change note and earlier drawing are sent; no child
+    data. OpenAI's under-18 guidance applies because the pictures are shown to children: the sanitiser and the owner's
+    approval are the content controls. **[UNVERIFIED]** that this admin-only flow meets that guidance; the owner settles.
+  - **[UNVERIFIED]** gpt-6.1-sol's output speed: 48,000 tokens must fit 780 s for a background at its limit. The first
+    backgrounds' `durationMs` settle it; if they time out, lower the effort or the headroom.
 - **Limits.**
   - Caps: 100 drawings a day and 150 a month **[PROPOSAL: the monthly cap keeps the worst case near £47]**. A job that fails to
     start is refunded.
@@ -92,6 +138,8 @@ Decision:
   `/pictures/v1/`.
 - **Supply chain.** picture-gen installs from a hash-pinned lock, `api/requirements-picture-gen.txt` (backlog B-4 for this
   function). boto3 and botocore are bundled, and httpx2 and httpcore2 are held at 2.16.0, not the release published that day.
+  `openai==3.48.0` (published 2026-11-09, the newest at least 7 days old) adds one pure-Python wheel; its other
+  dependencies were already locked for anthropic (jiter 0.19.0 and pydantic-core 2.50.4 as cp314 manylinux aarch64).
 
 Alternatives:
 - A presigned PUT to `uploads/` (needs CORS, a CSP change and bearer URLs).
@@ -105,7 +153,10 @@ Consequences:
 - **Rollback and drift.** Rollbacks with `artefacts_from` can only target releases that carry five zips, and `plan.yml` drift
   checks fail until the first Gate P release exists.
 - **Bedrock checks.** The Bedrock agreement status read `NOT_AVAILABLE` while authorisation read `AUTHORIZED` **[UNVERIFIED]**. The
-  first drawing settles it, and any IAM gap shows up in CloudTrail.
+  first drawing settles it, and any IAM gap shows up in CloudTrail. (Settled 2026-11-16: not available to the account;
+  hence the OpenAI provider above.)
+- **OpenAI release.** Adds the secret (1 add) and changes picture-gen's function (environment, description) and its
+  role policy in place. Drawing answers `not_set_up` until the owner stores the key.
 - **Browser.** Browser conversion assumes a Chromium-based admin browser.
 - **What the cleaner can't catch.** The sanitiser cannot catch letters drawn as shapes or unsuitable imagery. The owner's approval is
   that control.

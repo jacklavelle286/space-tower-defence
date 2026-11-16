@@ -342,7 +342,13 @@ account's concurrency limit is 1000 **[VERIFIED]** (`aws lambda get-account-sett
 512 MB (1769 MB and a 20 s timeout since Gate P2, for 1920 × 1056 background PNG checks; ADR-0031) and gains narrow S3 writes on the pictures bucket (`store/*`, `pictures/v1/*` only), `s3:GetObject` on `jobs/*`,
 `sqs:SendMessage` on the job queue and `cloudfront:CreateInvalidation` on the two distributions; it gets no Bedrock
 access. picture-gen gets the queue, `s3:GetObject`/`PutObject` on `jobs/*` and Bedrock `InvokeModel`/
-`InvokeModelWithResponseStream` on the EU inference profile plus the foundation model through that profile only. The
+`InvokeModelWithResponseStream` on the EU inference profile plus the foundation model through that profile only.
+Since 2026-11-16 it draws with OpenAI by default (`picture_provider` = `openai`; ADR-0031 "Provider: OpenAI", owner
+decision): it also gets `secretsmanager:GetSecretValue` on exactly one secret, `…-openai-api-key` (created by Terraform
+with no value, AWS managed key `aws/secretsmanager`; the owner stores the key, [docs/runbooks/openai-key.md](../runbooks/openai-key.md)),
+and environment `PICTURE_PROVIDER`, `OPENAI_MODEL_ID` (`gpt-6.1-sol`), `OPENAI_BASE_URL` (`https://eu.api.openai.com/v1`)
+and `OPENAI_SECRET_ARN`. The Bedrock statements stay, so switching back is the variable. AWS Budgets does not see OpenAI
+spend: the owner sets a budget in the OpenAI project. The
 wiring is [infrastructure/main/pictures.tf](../../infrastructure/main/pictures.tf); the design is ADR-0031 and the
 amended ADR-0026. The pictures bucket policy makes each prefix single-writer whatever IAM a principal holds:
 `store/*` and `pictures/v1/*` deny `s3:Put*`, `s3:Delete*`, `s3:Replicate*` and `s3:RestoreObject` to every principal
@@ -685,7 +691,7 @@ Lambda versions and aliases) would each add a second owner or a second rollback 
 | Pinned `api/requirements.txt`; test tools only in `requirements-dev.txt` | Reproducible zips; small artefacts | **[PROPOSAL]** |
 | Static builds contain no environment values and no `VITE_*` API variable; the client reads `apiBase` from `config.json` (H.8.5(f)) only | One build for any environment, one source of truth for the API base ([spine S11.1](00-spine.md#s111-workflows)) | **[PROPOSAL]** |
 | The `release.tfvars.json` var file is generated, never committed | It is release data, not configuration | **[PROPOSAL]** |
-| `picture-gen` (Gate P) installs from its own hash-pinned lock, `api/requirements-picture-gen.txt`, with `pip --require-hashes` into its own staging directory; the lock is generated from `api/requirements.txt` plus `api/requirements-picture-gen.in` by `python3 scripts/build_lambdas.py --lock picture_gen` and must keep every shared pin at the same version. The other four zips are byte-identical to before | Backlog B-4 for the function with the largest dependency tree (Anthropic SDK with the Bedrock extra, boto3 and botocore included) | **[CONFIRMED by owner]** B-4 in this gate (2026-11-16); mechanism **[PROPOSAL]** |
+| `picture-gen` (Gate P) installs from its own hash-pinned lock, `api/requirements-picture-gen.txt`, with `pip --require-hashes` into its own staging directory; the lock is generated from `api/requirements.txt` plus `api/requirements-picture-gen.in` by `python3 scripts/build_lambdas.py --lock picture_gen` and must keep every shared pin at the same version. The other four zips are byte-identical to before | Backlog B-4 for the function with the largest dependency tree (Anthropic SDK with the Bedrock extra, boto3 and botocore included; since 2026-11-16 also the `openai` SDK, 3.48.0, one pure-Python wheel) | **[CONFIRMED by owner]** B-4 in this gate (2026-11-16); mechanism **[PROPOSAL]** |
 
 ---
 

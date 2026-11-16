@@ -71,4 +71,4 @@ The art is hand-drawn SVG made in this repository, rendered to PNG by [tools/art
 
 | Folder | For |
 |---|---|
-| `runbooks/` | Restore, rollback and operator procedures (the DNS hand-off runbook exists: [runbooks/dns-hand-off.md](runbooks/dns-hand-off.md)) |
+| `runbooks/` | Restore, rollback and operator procedures (existing: [runbooks/dns-hand-off.md](runbooks/dns-hand-off.md), [runbooks/operator-accounts.md](runbooks/operator-accounts.md), [runbooks/openai-key.md](runbooks/openai-key.md)) |
