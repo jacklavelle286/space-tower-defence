@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { describeError, SPEECH_KINDS, type AdminApi, type SpeechKind, type SpeechSummary } from "../api";
 import { KIND_INFO } from "../speech/ids";
+import { ListeningQueue } from "../speech/ListeningQueue";
 import { filterSpeech, NO_SPEECH_FILTER, type SpeechFilter } from "../speech/list";
 import { NewSpeech } from "../speech/NewSpeech";
 import { SpeechEditor } from "../speech/SpeechEditor";
 
 // A9 (D §D9.3; Phase 40, M3-05): the speech list (search, kind, state) and "New speech" on the left; the chosen
-// definition's editor, preview, listening checks and Approve on the right (speech/SpeechEditor.tsx).
+// definition's editor, preview, listening checks and Approve on the right (speech/SpeechEditor.tsx). "Listening queue"
+// (2026-11-16) walks the drafts shown in the list, one clip at a time, in the right-hand panel (speech/ListeningQueue.tsx).
 
 const PAGE = "speech";
 
@@ -19,6 +21,8 @@ export function SpeechPage({ api, initial }: Props) {
   const [notice, setNotice] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [filter, setFilter] = useState<SpeechFilter>(NO_SPEECH_FILTER);
+  /** The drafts the open queue walks (a snapshot: approving one refreshes the list, not the queue), or null. */
+  const [queue, setQueue] = useState<readonly SpeechSummary[] | null>(null);
   const select = (id: string, note: string | null = null) => {
     setSelected(id);
     setNotice(note);
@@ -41,6 +45,7 @@ export function SpeechPage({ api, initial }: Props) {
   const shown = useMemo(() => filterSpeech(items, filter), [items, filter]);
   // null until the list has loaded once: New speech cannot see a taken ID without it.
   const taken = useMemo(() => (loaded ? new Map(items.map((item) => [item.speechId, item.title])) : null), [items, loaded]);
+  const drafts = useMemo(() => shown.filter((item) => item.state === "DRAFT"), [shown]);
   const set = (patch: Partial<SpeechFilter>) => setFilter({ ...filter, ...patch });
 
   return (
@@ -87,6 +92,15 @@ export function SpeechPage({ api, initial }: Props) {
         <p className="muted" aria-live="polite">
           Showing {shown.length} of {items.length}.
         </p>
+        <button
+          type="button"
+          className="primary"
+          onClick={() => setQueue(drafts)}
+          disabled={!loaded || drafts.length === 0 || queue !== null}
+          title="Preview, play and approve each draft shown in the list, one after another"
+        >
+          Listening queue ({drafts.length} {drafts.length === 1 ? "draft" : "drafts"})
+        </button>
         <ul>
           {shown.map((item) => (
             <li key={item.speechId}>
@@ -101,7 +115,17 @@ export function SpeechPage({ api, initial }: Props) {
         </ul>
       </section>
       <section className="detail">
-        {selected === null ? (
+        {queue !== null ? (
+          <ListeningQueue
+            api={api}
+            items={queue}
+            onChange={refresh}
+            onClose={() => {
+              setQueue(null);
+              refresh();
+            }}
+          />
+        ) : selected === null ? (
           <p>Choose a speech definition, or make a new one.</p>
         ) : (
           <>
