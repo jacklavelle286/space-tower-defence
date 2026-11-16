@@ -39,6 +39,8 @@ Usable now (P2 ships these):
 | Activity scene | Learning activities | Fills the square, background allowed (like pic-night-sky, pic-rain) |
 | Avatar | Nobody until the avatar library (F) | Prompt ships in P2 so you can build up avatars now |
 
+**Background shipped in P2** [CONFIRMED by owner, 2026-11-16]: library only (consumer later), 1920x1056, ADR-0031.
+
 After makers (listed greyed out, or hidden, until Gate M): Alien, Astronaut (tower), Map decoration, Route tile, Planet, Badge,
 Boss (concept still only), UI icon.
 

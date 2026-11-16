@@ -337,9 +337,9 @@ function and every tagged resource, and the plan would stop showing what really 
 the fifth function is `picture-gen` (`…-picture-gen`, role `space-tower-defence-prod-picture-gen-role`), invoked only by
 the SQS queue `space-tower-defence-prod-picture-jobs` (batch 1, maximum concurrency 2), never by an API route. The
 module gains `max_timeout` (default 29, so every API function keeps the 29 s ceiling) and `reserved_concurrency` (default
-null); picture-gen sets 512 MB, timeout 600 s, `max_timeout` 900 and reserved concurrency 2. U-020 is settled: the
+null); picture-gen sets 512 MB, timeout 600 s (840 s since Gate P2: a background drawing takes 7-12 minutes; ADR-0031), `max_timeout` 900 and reserved concurrency 2. U-020 is settled: the
 account's concurrency limit is 1000 **[VERIFIED]** (`aws lambda get-account-settings`, 2026-11-16). `admin-api` moves to
-512 MB and gains narrow S3 writes on the pictures bucket (`store/*`, `pictures/v1/*` only), `s3:GetObject` on `jobs/*`,
+512 MB (1769 MB and a 20 s timeout since Gate P2, for 1920 × 1056 background PNG checks; ADR-0031) and gains narrow S3 writes on the pictures bucket (`store/*`, `pictures/v1/*` only), `s3:GetObject` on `jobs/*`,
 `sqs:SendMessage` on the job queue and `cloudfront:CreateInvalidation` on the two distributions; it gets no Bedrock
 access. picture-gen gets the queue, `s3:GetObject`/`PutObject` on `jobs/*` and Bedrock `InvokeModel`/
 `InvokeModelWithResponseStream` on the EU inference profile plus the foundation model through that profile only. The
@@ -349,7 +349,9 @@ amended ADR-0026. The pictures bucket policy makes each prefix single-writer wha
 but admin-api, and `jobs/*` the same to every principal but picture-gen. The bucket is versioned, so the version-level
 actions matter: removing a delete marker (`s3:DeleteObjectVersion`) would otherwise bring a deleted picture back.
 picture-gen refuses a job older than 13 minutes from its start without calling Bedrock (`error.json` `timed_out`), so
-a message that waits in the queue (retention 1 hour) is never drawn after admin-api has given up on it. **[PROPOSAL]**
+a message that waits in the queue (retention 1 hour) is never drawn after admin-api has given up on it. Since Gate P2
+the age is 15 minutes and admin-api's unclaimed deadline 17 (a job queued behind a whole 840 s run is still drawn),
+and picture-gen stops its own call 780 s into a run, 60 s before its timeout (ADR-0031). **[PROPOSAL]**
 
 ### H.4.5 `cognito_pool` (called twice)
 
@@ -910,7 +912,7 @@ Notes:
 - Log metric filters need the JSON logs from H.4.4 and the allow-listed fields from [G §15](G-api-contracts.md#15-logging-allow-list). **[PROPOSAL]**
 - No dashboard is required. One `space-tower-defence-prod-overview` dashboard (API, Lambda, DynamoDB) is a cheap later
   addition. **[ASSUMPTION]**
-- **Amended for Gate P (Phase 42b).** picture-gen has the module's three alarms (duration at 0.8 × 600 s). Added:
+- **Amended for Gate P (Phase 42b).** picture-gen has the module's three alarms (duration at 0.8 × 600 s; since Gate P2 0.9 × 840 s = 756 s). Added:
   `picture-jobs-dlq` (`AWS/SQS ApproximateNumberOfMessagesVisible` on the DLQ, Maximum ≥ 1 in 5 min) and
   `picture-gen-tokens-hourly` (metric filter `{ $.metric = "picture_usage" }` on the picture-gen log group, value
   `$.outputTokens`, `SpaceTowerDefence/Pictures OutputTokens`, Sum ≥ 150,000 in 3600 s). The account gets an AWS Budgets

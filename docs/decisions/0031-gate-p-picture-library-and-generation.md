@@ -42,12 +42,48 @@ Decision:
   - picture-gen's system prompt is three fixed blocks: kind-neutral rules, STYLE.md (cache breakpoint 1), then the kind block,
     `kinds/<kind>.md` plus 1–3 house SVGs (breakpoint 2). Each kind block carries the safety line; avatar and astronaut carry
     the cast rule.
-  - Not offered until Gate M: the battle backdrop (84 KB SVG, over the 65,536-byte sanitiser cap and the output budget), route
-    tiles (192 px and must tile edge to edge), and bosses (768 px).
+  - Not offered until Gate M: route tiles (192 px and must tile edge to edge) and bosses (768 px). The battle backdrop
+    was on this list; it is now the background kind below.
+- **Background kind (Gate P2, [CONFIRMED by owner, 2026-11-16]).** Library only: consumer `later`, so publish refuses it
+  and the activity picker hides it; the game's battle backdrop stays wired in code until Gate M.
+  - Each `picture.kinds` entry now carries its sizes: `width`, `height`, `svgMaxBytes`, `maxBytes`, `bodyMaxBytes`, and
+    optionally `maxTokens` and `capWeight`. The eight 256 kinds keep 256×256, 65,536, 524,288 and 786,432 and BEDROCK_MAX_TOKENS, so
+    their bytes and IDs are unchanged (a test pins a picture's sha256). `picture.side` and `picture.maxBytes` are
+    gone; `bodyMaxBytes.adminPicture` is the largest kind's body (5,600,000), the route's first guard.
+  - Background: 1920×1056, the game's logical canvas. SVG cap 196,608 (luna-backdrop.svg is 84,328; about 2.3× room).
+    Stored PNG at most 4 MiB, so R35's base64 draft (5.59 MB) fits Lambda's 6 MB response; R34 body at most 5,600,000.
+    A rewritten PNG over 4 MiB is refused `too_detailed` (about 3 in 43 busy photos in the measurement). max_tokens
+    32,000, never above the 64,000 Terraform ceiling.
+  - The sanitiser takes the kind's canvas. 256 kinds still force `0 0 256 256`. A background's viewBox must be
+    `0 0 1920 1056` or `0 0 3840 2112`, else `unusable`. png_canon checks the kind's width and height, and its unfilter
+    is now about 1.5 to 2.3 times faster with byte-identical output.
+  - Prompt: `kinds/background.md` (full-bleed, opaque, ground composition, calm centre, no route, no characters,
+    at most about 40,000 characters so the drawing and its thinking fit 32,000 tokens) plus luna-backdrop.svg as the
+    one example. The kind block says it replaces the rules' 256 root; the shared rules (block 1) are byte-for-byte as
+    committed, so the eight 256 kinds' prompts and caches are unchanged. The kind block is about 21,700 tokens.
+    **[PROPOSAL]** keep the full example: a cache write costs about $0.14 and a read about $0.01, at $5/MTok
+    input-equivalent.
+  - Time: one SDK attempt with a 720 s read timeout (other kinds keep 2 × 280 s). The read timeout limits only each
+    gap in the stream, so picture-gen stops the call itself 780 s after the run starts (60 s before the timeout): a
+    check on every stream event, and a SIGALRM timer that breaks a blocked read. Past it the job ends `timed_out` with
+    its usage logged. picture-gen's timeout rises from 600 s to 840 s, under the 900 s visibility timeout. Its
+    duration alarm moves to 0.9 (756 s). DRAW_TIMEOUT (15 min from the claim) stays 60 s past the function timeout.
+    QUEUE_MAX_AGE rises from 13 to 15 minutes and JOB_TIMEOUT from 15 to 17, so a job queued behind a whole run is
+    still drawn. **[UNVERIFIED]** that Lambda runs the handler on the main thread (the timer needs it; without it
+    only the per-event check applies): the first background's log settles it.
+  - admin-api memory rises from 512 MB to 1769 MB (one vCPU) and its timeout from 15 s to 20 s. A worst 1920 photo
+    takes about 1.4 s to check on a laptop, an estimated 2–3 s on Lambda at 1769 MB, and 9–13 s at 512 MB.
+    **[UNVERIFIED]** until the first background upload's REPORT line.
+  - Cost: a background's worst case is about $0.97 (32,000 output tokens, about $0.80, plus a cold 27,000-token
+    prompt cache write) against about $0.40 for the other kinds. **[PROPOSAL]** it takes 3 places in the daily and
+    monthly caps (`capWeight` in limits.json; a refund gives 3 back), so the monthly cap still bounds the month's cost
+    at about 150 × $0.40. The admin page says a background counts as 3. The hourly output-token alarm stays at 150,000
+    (about 4 backgrounds at max_tokens); **owner to confirm** the threshold at the gate.
 - **Limits.**
   - Caps: 100 drawings a day and 150 a month **[PROPOSAL: the monthly cap keeps the worst case near £47]**. A job that fails to
     start is refunded.
   - Jobs time out 15 minutes after they start, or after a worker claims them. A queued job older than 13 minutes is never drawn.
+    (Gate P2: 17 minutes unclaimed, 15 after a claim; a queued job older than 15 minutes is never drawn.)
   - An hourly token alarm is in place, plus AWS Budgets at USD 65 a month **[ASSUMPTION: the account bills in USD; £50 is about USD
     65]**, alerting at 50% and 80% actual and 100% forecast.
 - **Lifecycle.** A picture goes draft → approved. Delete is refused while any activity uses the picture. Deleting removes the S3
