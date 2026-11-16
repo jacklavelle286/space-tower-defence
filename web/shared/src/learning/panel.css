@@ -2,7 +2,18 @@
    early readers), self-hosted from @fontsource like Unkempt, so no third-party request and `font-src 'self'` holds.
    Titles and buttons keep the app's own font. Colours from art/STYLE.md; targets at least 64 x 64 px with 12 px
    between (D1 rule 8); state never by colour alone (D1 rule 7): selected = thick outline + tick, tried = dimmed +
-   the word "tried". */
+   the word "tried".
+
+   Responsive (owner report 2026-11-16: long words overflowed their tiles in the admin preview). The panel is a size
+   container ("lp"), so tiles follow the panel's width, not the window's: the same rules hold in the player's dialog
+   and in the narrower admin "Preview and solve" box. Text on choice tiles scales to the tile (each tile is its own
+   container; ChoiceArea sets --lp-em to the widest word in the group, measured in Andika, so the whole row shares one
+   size); ChoiceArea also works out the columns for each panel width band (--lp-cols-xl/-l/-m/-s), so a row holds only
+   as many tiles as fit that word at the 24 px floor: 4 becomes 2 x 2 or 1 a row, 6 becomes 3 x 2 or 2 x 3. A word
+   breaks only as a last resort, if even one tile a row is too narrow (overflow-wrap: anywhere; no automatic hyphens,
+   since a hyphen inside a word a child is reading would mislead). Targets keep the 64 px rule
+   except the hundred square on a phone-width panel, which keeps 44 px cells and scrolls inside itself. Nothing makes
+   the page scroll sideways down to 320 px. Checked in Chrome at 320, 375, 768 and 1100 px wide. */
 @import "./reading.css";
 
 .lp-backdrop {
@@ -17,6 +28,7 @@
 }
 
 .lp {
+  container: lp / inline-size;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -34,7 +46,8 @@
 
 .lp-heading {
   margin: 0;
-  font-size: 32px;
+  font-size: clamp(24px, 4cqi + 12px, 32px);
+  overflow-wrap: anywhere;
   font-weight: 700;
   line-height: 1.25;
 }
@@ -100,11 +113,14 @@
 
 .lp-options {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  --lp-cols: var(--lp-cols-xl, 4);
+  grid-template-columns: repeat(var(--lp-cols), minmax(0, 1fr));
   gap: 12px;
 }
 
+/* Each tile is a size container, so its text scales to the tile itself (cqi = 1% of the tile's content width). */
 .lp-option {
+  container-type: inline-size;
   position: relative;
   display: flex;
   flex-direction: column;
@@ -120,9 +136,16 @@
   cursor: pointer;
 }
 
+/* 44 px when it fits; smaller for wide words, so the widest word in the row fits its tile (--lp-em is its width in
+   em; ChoiceArea measures it letter by letter, since "mummy" is half as wide again per letter as "careless"); never
+   below 24 px. */
 .lp-option-text {
-  font-size: 44px;
+  max-width: 100%;
+  font-size: clamp(24px, calc(100cqi / var(--lp-em, 1.2)), 44px);
   line-height: 1.1;
+  text-align: center;
+  overflow-wrap: anywhere;
+  hyphens: manual;
 }
 
 .lp-badge {
@@ -132,8 +155,10 @@
   font-size: 16px;
 }
 
+/* The thick outline is the 4 px border plus a 4 px inset ring, not a wider border: a wider border would narrow the
+   tile's content box and make the scaled text jump in size when chosen. */
 .lp-option.is-selected {
-  border-width: 8px;
+  box-shadow: inset 0 0 0 4px #2a1e3d;
   background: #ffe9a8;
 }
 
@@ -156,7 +181,7 @@
 }
 
 .lp-option.is-answer {
-  border-width: 8px;
+  box-shadow: inset 0 0 0 4px #2a1e3d;
   border-color: #2a1e3d;
   background: #c9f7d0;
   opacity: 1;
@@ -207,15 +232,37 @@
 .lp-answer {
   font-size: 30px;
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
+/* A phone-width window: less space around the panel, so the tiles get it. Top and bottom padding stay 20 px (the
+   wide panel's sticky footer is offset by it). */
 @media (max-width: 480px) {
-  .lp {
-    padding: 16px;
+  .lp-backdrop {
+    padding: 8px;
   }
 
-  .lp-option-text {
-    font-size: 36px;
+  .lp {
+    padding: 20px 14px;
+  }
+}
+
+/* Narrower panels take the columns ChoiceArea worked out for that band (the bands match its BAND_WIDTHS). */
+@container lp (max-width: 520px) {
+  .lp-options {
+    --lp-cols: var(--lp-cols-l, 2);
+  }
+}
+
+@container lp (max-width: 400px) {
+  .lp-options {
+    --lp-cols: var(--lp-cols-m, 2);
+  }
+}
+
+@container lp (max-width: 300px) {
+  .lp-options {
+    --lp-cols: var(--lp-cols-s, 1);
   }
 }
 
@@ -238,30 +285,33 @@
 
 .lp-stimulus {
   align-self: center;
-  width: 160px;
-  height: 160px;
+  width: clamp(96px, 30cqi, 160px);
+  height: auto;
+  aspect-ratio: 1;
   object-fit: contain;
-}
-
-.lp-pictures {
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 }
 
 .lp-picture {
   gap: 4px;
-  min-height: 170px;
+  min-height: 120px;
+  padding-top: 20px; /* clear of the number badge */
 }
 
+/* 128 px when the tile has room, smaller (still square) when it has not. */
 .lp-picture-img {
-  width: 128px;
-  height: 128px;
+  width: min(128px, 100%);
+  height: auto;
+  aspect-ratio: 1;
   object-fit: contain;
   pointer-events: none;
 }
 
 .lp-caption {
-  font-size: 26px;
+  max-width: 100%;
+  font-size: clamp(18px, calc(100cqi / var(--lp-em, 1.2)), 26px);
   line-height: 1.1;
+  text-align: center;
+  overflow-wrap: anywhere;
 }
 
 .lp-numbers {
@@ -270,10 +320,16 @@
   justify-content: center;
 }
 
+/* The hundred square keeps 10 columns (the arrow keys move by 10). On a narrow panel the cells shrink to 44 px and,
+   below that, the square scrolls inside itself rather than making the page scroll; padding keeps focus rings in view. */
 .lp-grid {
   display: grid;
   grid-template-columns: repeat(10, 64px);
-  justify-content: center;
+  justify-content: safe center;
+  overflow-x: auto;
+  margin: -8px;
+  padding: 8px;
+  scroll-padding-inline: 12px; /* the 5 px focus ring at 3 px offset stays in view when a key moves the focus */
 }
 
 .lp-option.lp-number {
@@ -286,7 +342,7 @@
 }
 
 .lp-number-text {
-  font-size: 28px;
+  font-size: clamp(16px, calc(100cqi / (var(--lp-chars, 2) * 0.62)), 28px);
   font-weight: 700;
   line-height: 1;
 }
@@ -304,18 +360,24 @@
 }
 
 .lp-option.lp-number.is-selected {
-  border-width: 7px;
+  box-shadow: inset 0 0 0 3px #2a1e3d;
 }
 
-@media (max-width: 860px) {
+@container lp (max-width: 760px) {
   .lp-grid {
-    grid-template-columns: repeat(10, minmax(0, 64px));
+    grid-template-columns: repeat(10, minmax(44px, 64px));
     gap: 6px;
   }
 
   .lp-grid .lp-option.lp-number {
     width: auto;
-    min-width: 0;
+    min-width: 44px;
+  }
+}
+
+@container lp (max-width: 560px) {
+  .lp-grid {
+    gap: 4px;
   }
 }
 
@@ -380,13 +442,16 @@
 
 .lp-cue-text {
   margin: 0;
-  font-size: 40px;
+  max-width: 100%;
+  font-size: clamp(28px, 8cqi, 40px);
+  overflow-wrap: anywhere;
   font-weight: 700;
 }
 
 .lp-tried-list,
 .lp-order-label {
   margin: 0;
+  overflow-wrap: anywhere;
   text-align: center;
   font-size: 24px;
 }
@@ -443,7 +508,7 @@
 .lp-zones,
 .lp-bins {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(200px, 100%), 1fr));
   gap: 12px;
 }
 
@@ -484,8 +549,10 @@
 
 .lp-zone-label,
 .lp-bin-label {
-  font-size: 30px;
+  min-width: 0;
+  font-size: clamp(22px, 6cqi, 30px);
   font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .lp-zone,
@@ -517,6 +584,7 @@
   align-items: center;
   justify-content: center;
   min-width: 64px;
+  max-width: 100%;
   min-height: 64px;
   padding: 4px 14px;
   border: 4px solid #2a1e3d;
@@ -535,7 +603,9 @@
 }
 
 .lp-sort-text {
-  font-size: 32px;
+  min-width: 0;
+  font-size: clamp(24px, 7cqi, 32px);
+  overflow-wrap: anywhere;
   line-height: 1.1;
 }
 
@@ -572,6 +642,7 @@
   align-items: center;
   justify-content: center;
   min-width: 72px;
+  max-width: 100%;
   min-height: 80px;
   padding: 4px 10px;
   border: 4px solid #2a1e3d;
@@ -608,8 +679,10 @@
 }
 
 .lp-tile-text {
-  font-size: 44px;
+  min-width: 0;
+  font-size: clamp(30px, 9cqi, 44px);
   line-height: 1;
+  overflow-wrap: anywhere;
 }
 
 .lp-tile-img {
@@ -628,15 +701,15 @@
 }
 
 .lp-typed-input {
-  box-sizing: content-box;
-  min-height: 72px;
+  box-sizing: border-box;
+  min-height: 80px;
   max-width: 100%;
   padding: 4px 16px;
   border: 4px solid #2a1e3d;
   border-radius: 16px;
   background: #ffffff;
   color: #2a1e3d;
-  font-size: 44px;
+  font-size: clamp(32px, 9cqi, 44px);
   text-align: center;
 }
 
@@ -672,8 +745,14 @@
   font-family: inherit;
 }
 
-@media (max-width: 480px) {
+@container lp (max-width: 460px) {
   .lp-typed-numeric .lp-keypad {
     grid-template-columns: repeat(4, 64px);
+  }
+}
+
+@container lp (max-width: 300px) {
+  .lp-typed-numeric .lp-keypad {
+    grid-template-columns: repeat(3, 64px);
   }
 }

@@ -4,10 +4,11 @@
 import { act, cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import type { NumberSelectActivity, PictureSelectActivity } from "./activity";
+import type { MultipleChoiceActivity, NumberSelectActivity, PictureSelectActivity } from "./activity";
 import { PANEL_COPY as COPY } from "./copy";
 import { press, tab } from "./keyboardTesting";
 import { LearningPanel, type CheckResult, type PanelActivity, type PanelAttempt, type PanelAudio, type PanelStatus } from "./LearningPanel";
+import { wordEm, widestWordEm } from "./wordWidth";
 
 afterEach(cleanup);
 
@@ -279,5 +280,95 @@ describe("NUMBER_SELECT", () => {
     expect(screen.getByText(COPY.chooseFirst)).toBeTruthy();
     expect(spy).not.toHaveBeenCalled();
     expect(screen.getByText(COPY.triesLeft(3))).toBeTruthy();
+  });
+});
+
+// Owner report 2026-11-16: long words overflowed their tiles. The CSS scales text to the tile from --lp-em (the
+// widest word in the group, from measured Andika widths) and takes the columns ChoiceArea worked out for each panel
+// width band (--lp-cols-xl/-l/-m/-s: above 520 px, above 400, above 300, below). jsdom has no layout, so these check
+// the values the CSS reads; the layout itself was checked in Chrome at 320-1440 px.
+describe("tiles fit their text", () => {
+  const words = (texts: string[]): MultipleChoiceActivity => ({
+    interactionType: "MULTIPLE_CHOICE",
+    slotId: "N-005",
+    prompt: "Which word means full of care?",
+    options: texts.map((text, i) => ({ id: "abcdef"[i] ?? "x", text })),
+    accepted: ["a"],
+    audioRequired: false,
+    reward: { credits: 30 },
+  });
+  const group = () => screen.getByRole("radiogroup");
+  const cols = () => ["xl", "l", "m", "s"].map((band) => group().style.getPropertyValue(`--lp-cols-${band}`)).join(",");
+  const em = () => group().style.getPropertyValue("--lp-em");
+
+  it("gives short graphemes a row of 4 at full size, 2 a row only in the narrowest panel", () => {
+    render(<Harness activity={words(["s", "sh", "ch", "th"])} />);
+    expect(group().className.split(" ")).toEqual(["lp-options", "lp-cols-4"]);
+    expect(em()).toBe("1.13");
+    expect(cols()).toBe("4,4,4,2");
+  });
+
+  it("sizes a row by its widest word, and keeps 4 a row only while that word fits at 24 px", () => {
+    render(<Harness activity={words(["careful", "careless", "caring", "cared"])} />);
+    expect(group()).toHaveProperty("className", "lp-options lp-cols-4");
+    expect(em()).toBe("3.98"); // "careless", 3.78 em, plus 5%
+    expect(cols()).toBe("4,2,2,1"); // 2 x 2, never 3 + 1
+  });
+
+  it("measures letters, not counts them: a row of wide words drops to 2 x 2 where narrow ones keep 4", () => {
+    render(<Harness activity={words(["swimming", "mummy", "window", "woman"])} />);
+    expect(em()).toBe("4.79"); // "swimming", 0.57 em a letter
+    expect(cols()).toBe("2,2,2,1");
+  });
+
+  it("sizes a phrase by its widest word, and gives a very long word a row of its own on a phone", () => {
+    render(<Harness activity={words(["unhappiness", "happy", "like tree", "kind"])} />);
+    expect(em()).toBe("6.06");
+    expect(cols()).toBe("2,2,1,1");
+  });
+
+  it("lays 5 or 6 options out in 3 columns, 2 on a phone-width panel, 1 in the narrowest", () => {
+    render(<Harness activity={words(["knight", "night", "kite", "knot", "nest", "knee"])} />);
+    expect(group()).toHaveProperty("className", "lp-options lp-cols-3");
+    expect(cols()).toBe("3,3,2,1");
+  });
+
+  it("sizes picture captions the same way, and leaves the number board to its own layout", () => {
+    render(<Harness activity={PICTURES} />);
+    expect(group()).toHaveProperty("className", "lp-options lp-pictures lp-cols-4");
+    expect(cols()).toBe("4,2,2,1");
+    cleanup();
+    render(<Harness activity={GRID} />);
+    expect(group()).toHaveProperty("className", "lp-options lp-numbers lp-grid");
+    expect(group().style.getPropertyValue("--lp-chars")).toBe("3");
+    expect(group().style.getPropertyValue("--lp-cols-xl")).toBe("");
+  });
+
+  it("brings the focused number into view when the arrows move it", () => {
+    const scrolled = vi.fn();
+    const original = HTMLElement.prototype.scrollIntoView;
+    HTMLElement.prototype.scrollIntoView = scrolled;
+    try {
+      render(<Harness activity={GRID} />);
+      const first = screen.getAllByRole("radio")[0] as HTMLElement;
+      first.focus();
+      fireEvent.keyDown(first, { key: "ArrowRight" });
+      expect(scrolled).toHaveBeenLastCalledWith({ block: "nearest", inline: "nearest" });
+    } finally {
+      HTMLElement.prototype.scrollIntoView = original;
+    }
+  });
+});
+
+describe("word widths in Andika", () => {
+  it("adds the measured widths of the letters", () => {
+    expect(wordEm("careless")).toBeCloseTo(3.783, 3);
+    expect(wordEm("mummy") / 5).toBeGreaterThan(0.7);
+    expect(widestWordEm("like tree")).toBeCloseTo(wordEm("tree"), 3);
+    expect(widestWordEm("")).toBe(0);
+  });
+
+  it("counts a letter it does not know as wide as W", () => {
+    expect(wordEm("é")).toBe(wordEm("W"));
   });
 });
