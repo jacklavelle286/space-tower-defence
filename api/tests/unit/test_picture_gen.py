@@ -11,6 +11,7 @@ from __future__ import annotations
 import json
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
@@ -21,6 +22,7 @@ from conftest import CapturedLogger, load_handler
 from shared.svg_sanitise import sanitise
 
 gen = load_handler("picture_gen")
+REPO_ROOT = Path(__file__).resolve().parents[3]
 
 BUCKET = "test-pictures-bucket"
 JOB = "00000000-0000-4000-8000-000000000001"
@@ -177,6 +179,24 @@ def test_the_system_prompt_is_stable_bytes() -> None:
     gen.examples_text.cache_clear()
     assert json.dumps(gen.system_blocks(), sort_keys=False) == first
     assert len(first) > 4 * 512  # comfortably over the 512-token cache minimum
+
+
+def test_the_prompt_roots_survive_the_lambda_layout() -> None:
+    """In Lambda the handler is /var/task/handler.py: /var/task has two parents, so `parents[2]` raised IndexError on
+    every job (production, 2026-11-16). The roots must be computed without raising, at any depth."""
+    assert gen.prompt_roots(Path("/var/task")) == (Path("/var/task"),)
+    assert gen.prompt_roots(Path("/")) == (Path("/"),)
+    deep = Path("/repo/api/functions/picture_gen")
+    assert gen.prompt_roots(deep) == (deep, Path("/repo"))
+
+
+def test_the_prompt_files_load_from_a_zip_root(tmp_path: Path) -> None:
+    """The packaged layout: art/ beside handler.py. Every prompt file resolves inside the zip root."""
+    for relative in (gen.STYLE_FILE, *gen.EXAMPLE_FILES):
+        target = tmp_path / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes((REPO_ROOT / relative).read_bytes())
+        assert gen._prompt_file(relative, here=tmp_path) == target
 
 
 def test_a_good_drawing_is_sanitised_and_stored_with_its_usage(h: Harness) -> None:

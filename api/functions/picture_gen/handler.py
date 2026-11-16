@@ -147,8 +147,15 @@ def bedrock_client(config: WorkerConfig) -> Any:
 # --- The fixed system prompt ----------------------------------------------------------------------------------------
 
 
-def _prompt_file(relative: Path) -> Path:
-    for root in (_HERE, _HERE.parents[2]):  # zip root, then the repository root (api/functions/picture_gen/..)
+def prompt_roots(here: Path) -> tuple[Path, ...]:
+    """Where the prompt files may be: the zip root, then the repository root (api/functions/picture_gen/../../..).
+    In Lambda `here` is /var/task, which has only two parents, so the repository root is taken with a slice, never
+    an index (an index raised IndexError on every job in production, 2026-11-16)."""
+    return (here, *here.parents[2:3])
+
+
+def _prompt_file(relative: Path, here: Path = _HERE) -> Path:
+    for root in prompt_roots(here):
         candidate = root / relative
         if candidate.is_file():
             return candidate
