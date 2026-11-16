@@ -49,4 +49,20 @@ describe("API client", () => {
     const error = await makeRequest("/api", "t", fakeFetch(502, "<html>"))("GET", "/admin/x").catch((e: unknown) => e);
     expect((error as ApiError).code).toBe("GATEWAY");
   });
+
+  it("reads every page of the activity list, following nextCursor", async () => {
+    const urls: string[] = [];
+    const row = (activityId: string) => ({ activityId });
+    const pages: Record<string, unknown> = {
+      "/api/admin/activities?limit=200": { items: [row("ma-0001"), row("ma-0002")], nextCursor: "ma-0002" },
+      "/api/admin/activities?limit=200&cursor=ma-0002": { items: [row("ph-0001")], nextCursor: null },
+    };
+    const fetchFn = (async (url: string) => {
+      urls.push(url);
+      return new Response(JSON.stringify(pages[url]), { status: 200 });
+    }) as unknown as typeof fetch;
+    const list = await adminApi(makeRequest("/api", "t", fetchFn)).listActivities();
+    expect(list.items.map((i) => i.activityId)).toEqual(["ma-0001", "ma-0002", "ph-0001"]);
+    expect(urls).toEqual(Object.keys(pages));
+  });
 });

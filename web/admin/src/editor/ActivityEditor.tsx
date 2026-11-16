@@ -6,24 +6,14 @@
 import "@scd/shared/learning/reading.css";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ApiError, describeError, type ActivityView, type AdminApi, type Problem, type SpeechSummary } from "../api";
+import { topicById } from "@scd/shared";
+import { CheckAll } from "../CheckAll";
 import { canPublish, PUBLISH_CHECKLIST } from "../review";
 import { SelectField, TextField } from "./fields";
-import {
-  AUDIO_OPTIONS,
-  blankStep,
-  fromDefinition,
-  KINDS,
-  REWARD_OPTIONS,
-  sameDefinition,
-  SOURCE_OPTIONS,
-  speechVariants,
-  SUBJECTS,
-  toDefinition,
-  type EditorState,
-  type StepKind,
-} from "./model";
+import { agesText, subjectName, topicGroups, topicLabel, topicSuits } from "./identity";
+import { AUDIO_OPTIONS, blankStep, fromDefinition, KINDS, legacyFields, REWARD_OPTIONS, rewardHint, sameDefinition, speechVariants, toDefinition, type EditorState, type StepKind } from "./model";
 import { PreviewSolve, type PlayUrl } from "./PreviewSolve";
-import { describeProblem, fieldId, focusTarget } from "./problems";
+import { describeProblem, fieldId, focusTarget, LEGACY_NOTICE_ID } from "./problems";
 import { StepEditor } from "./StepEditor";
 import { forgetUnsaved, keepUnsaved, unsavedFor } from "./unsaved";
 
@@ -66,6 +56,9 @@ export function ActivityEditor({ api, activityId, play }: Props) {
     () => base !== undefined && edited !== null && !sameDefinition(edited, toDefinition(base, fromDefinition(base))),
     [base, edited],
   );
+  // Fields from the old editor (curriculum codes, note, source) that the stored draft still holds. They are not
+  // shown, and only a save removes them, so Save stays available while any remain even with no other change.
+  const legacy = useMemo(() => (base === undefined ? [] : legacyFields(base)), [base]);
 
   // Unsaved edits outlive navigation within the tab, and closing the tab asks first.
   useEffect(() => {
@@ -159,14 +152,19 @@ export function ActivityEditor({ api, activityId, play }: Props) {
         <legend>About this activity</legend>
         <div className="grid">
           <TextField path="title" label="Title (for the admin list)" value={state.title} maxLength={80} wide onChange={(title) => set({ title })} />
-          <SelectField path="subject" label="Subject" value={state.subject} options={SUBJECTS} disabled={locked} onChange={(subject) => set({ subject })} />
-          <TextField path="topicId" label="Topic" value={state.topicId} maxLength={40} disabled={locked} hint="Starts with the subject, for example maths-share-equal-groups." onChange={(topicId) => set({ topicId })} />
-          <SelectField path="rewardCategory" label="Reward" value={state.rewardCategory} options={REWARD_OPTIONS} disabled={locked} hint="Meteor activities come after a meteor wave and charge a power instead of paying credits." onChange={(rewardCategory) => set({ rewardCategory })} />
+          <TextField path="subject" label="Subject" value={subjectName(state.subject)} readOnly hint="Set by the activity ID and topic." onChange={() => undefined} />
+          <TopicSelect state={state} locked={locked} onChange={(topicId) => set({ topicId })} />
+          <SelectField
+            path="rewardCategory"
+            label="Reward"
+            value={state.rewardCategory}
+            options={REWARD_OPTIONS}
+            disabled={locked}
+            hint={rewardHint(state.rewardCategory)}
+            onChange={(rewardCategory) => set({ rewardCategory })}
+          />
           <SelectField path="minAge" label="Youngest age" value={String(state.minAge)} options={["5", "6", "7"]} onChange={(v) => set({ minAge: Number.parseInt(v, 10) })} />
           <SelectField path="maxAge" label="Oldest age" value={String(state.maxAge)} options={["5", "6", "7"]} onChange={(v) => set({ maxAge: Number.parseInt(v, 10) })} />
-          <TextField path="curriculumReference" label="Curriculum codes (1 to 4)" value={state.curriculum} wide hint="Separated by commas, for example NC14.Ma.Y2.MD-1." onChange={(curriculum) => set({ curriculum })} />
-          <TextField path="curriculumNote" label="Curriculum note (optional)" value={state.curriculumNote} maxLength={200} wide onChange={(curriculumNote) => set({ curriculumNote })} />
-          <SelectField path="source" label="Source" value={state.source} options={[{ value: "", label: "Not recorded" }, ...SOURCE_OPTIONS]} hint="Where the activity came from, for the review record." onChange={(source) => set({ source })} />
           <SelectField path="audioRequirement" label="Audio" value={state.audioRequirement} options={AUDIO_OPTIONS} hint={'With "Child must press Play first", Check waits until the child has heard the sound.'} onChange={(audioRequirement) => set({ audioRequirement })} />
         </div>
       </fieldset>
@@ -229,10 +227,11 @@ export function ActivityEditor({ api, activityId, play }: Props) {
       </fieldset>
 
       <div className="actions">
-        <button type="button" className="primary" onClick={() => void save()} disabled={busy || !dirty}>
+        <button type="button" className="primary" onClick={() => void save()} disabled={busy || (!dirty && legacy.length === 0)}>
           Save draft
         </button>
         {dirty && <span className="muted"> Unsaved changes.</span>}
+
         {message !== null && (
           <span className={message.ok ? "ok" : "error"} role="status">
             {" "}
@@ -240,6 +239,11 @@ export function ActivityEditor({ api, activityId, play }: Props) {
           </span>
         )}
       </div>
+      {legacy.length > 0 && (
+        <p className="notice" id={LEGACY_NOTICE_ID} tabIndex={-1}>
+          This draft still has fields the editor no longer uses ({legacy.map(legacyName).join(", ")}). Publishing takes the curriculum from the topic list. Save the draft to remove them.
+        </p>
+      )}
       {message?.problems !== undefined && message.problems.length > 0 && <ProblemList problems={message.problems} />}
       <details>
         <summary>Draft as JSON (read only)</summary>
@@ -285,11 +289,7 @@ export function ActivityEditor({ api, activityId, play }: Props) {
           Validated: {validated?.valid === true && validated.draftRevision === revision ? `yes, revision ${revision}` : "not yet"} · Preview solved:{" "}
           {solvedRevision === revision ? `yes, revision ${revision}` : "not yet"}
         </p>
-        {PUBLISH_CHECKLIST.map((item) => (
-          <label key={item.key} className="check">
-            <input type="checkbox" checked={ticks[item.key] === true} onChange={(e) => setTicks({ ...ticks, [item.key]: e.target.checked })} /> {item.label}
-          </label>
-        ))}
+        <CheckAll items={PUBLISH_CHECKLIST} ticks={ticks} onChange={setTicks} label="I have checked this activity" />
         <span>
           <button type="button" className="primary" onClick={() => void publish()} disabled={busy || !gate.ok}>
             Publish
@@ -323,6 +323,45 @@ export function ActivityEditor({ api, activityId, play }: Props) {
       )}
     </div>
   );
+}
+
+/**
+ * The topic, from the registry (plan C19), within the activity's subject (its ID's prefix follows the subject). A
+ * stored topic that is not in the registry (typed by hand before the registry existed) stays, marked as such.
+ */
+function TopicSelect({ state, locked, onChange }: { state: EditorState; locked: boolean; onChange: (topicId: string) => void }) {
+  const kind = state.step.kind;
+  const known = topicById(state.topicId);
+  const groups = topicGroups(kind, "", state.topicId, [state.subject]);
+  const id = fieldId("topicId");
+  const hint =
+    known === undefined
+      ? "This topic is not in the topic list. Choose one from the list."
+      : `${known.description.replace(/\.$/u, "")}. For age ${agesText(known.ages)}.`;
+  return (
+    <span className="field">
+      <label htmlFor={id}>Topic</label>
+      <select id={id} value={state.topicId} disabled={locked} aria-describedby={`${id}-hint`} onChange={(e) => onChange(e.target.value)}>
+        {known === undefined && <option value={state.topicId}>{state.topicId === "" ? "Choose a topic…" : `${state.topicId} (not in the topic list)`}</option>}
+        {groups.flatMap((group) =>
+          group.topics.map((t) => (
+            <option key={t.topicId} value={t.topicId}>
+              {topicLabel(t)}
+              {topicSuits(t, kind) ? "" : " · usually another type"}
+            </option>
+          )),
+        )}
+      </select>
+      <small className="muted" id={`${id}-hint`}>
+        {hint}
+      </small>
+    </span>
+  );
+}
+
+/** The legacy fields' names, as the operator saw them in the old editor. */
+function legacyName(field: string): string {
+  return field === "curriculumReference" ? "curriculum codes" : field === "curriculumNote" ? "curriculum note" : "source";
 }
 
 /** Problems in words; each moves the cursor to its field. */

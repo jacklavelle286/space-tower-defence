@@ -7,7 +7,7 @@ import type { SpeechDraft } from "./api";
 
 export type ChecklistItem = { readonly key: string; readonly label: string };
 
-/** D §D9.4, one line per group, all ticked before Approve. */
+/** D §D9.4, one line per group, all confirmed (by one tick, CheckAll.tsx) before Approve. */
 export const LISTENING_CHECKLIST: readonly ChecklistItem[] = [
   { key: "identity", label: "Identity: the intended sound or word, not its confusable pair; no letter name for a sound" },
   { key: "purity", label: "Purity: no added vowel (at most a small one for b, d, g, j); held long enough" },
@@ -17,7 +17,7 @@ export const LISTENING_CHECKLIST: readonly ChecklistItem[] = [
   { key: "records", label: "Records: only curriculum content in the text; defaults used or the change noted" },
 ];
 
-/** C22.3 / D §D8.4: the seven publish lines. Keys match admin-api's CHECKLIST (api/shared/content.py). */
+/** C22.3 / D §D8.4: the seven publish lines, confirmed by one tick. Keys match admin-api's CHECKLIST (api/shared/content.py). */
 export const PUBLISH_CHECKLIST: readonly ChecklistItem[] = [
   { key: "workedAnswer", label: "I worked the answer out myself and it matches the answer key" },
   { key: "oneRightAnswer", label: "Exactly one right answer: nothing else on screen could be accepted" },
@@ -27,6 +27,11 @@ export const PUBLISH_CHECKLIST: readonly ChecklistItem[] = [
   { key: "noTraps", label: "No homophone, heteronym or accent trap" },
   { key: "nothingPersonal", label: "Nothing personal, branded or frightening" },
 ];
+
+/** Every key of `items` set to `checked`: what the one "I have checked" box sends (the server still wants each key). */
+export function tickAll(items: readonly ChecklistItem[], checked: boolean): Record<string, boolean> {
+  return Object.fromEntries(items.map((item) => [item.key, checked]));
+}
 
 export function allTicked(items: readonly ChecklistItem[], ticks: Readonly<Record<string, boolean>>): boolean {
   return items.every((item) => ticks[item.key] === true);
@@ -52,7 +57,7 @@ export function canApprove(state: ApproveState): Gate {
   if (state.preview.clipKey !== state.draftClipKey) {
     return { ok: false, reason: "The preview made a different clip from the one approval checks. Ask the owner to check the speech settings." };
   }
-  if (!allTicked(LISTENING_CHECKLIST, state.ticks)) return { ok: false, reason: "Tick every listening check." };
+  if (!allTicked(LISTENING_CHECKLIST, state.ticks)) return { ok: false, reason: "Tick the box to say the clip passes every listening check." };
   return { ok: true };
 }
 
@@ -83,6 +88,6 @@ export function canPublish(state: PublishState): Gate {
     return { ok: false, reason: "Validate this revision without problems first." };
   }
   if (state.solvedRevision !== state.draftRevision) return { ok: false, reason: "Solve the preview of this revision first." };
-  if (!allTicked(PUBLISH_CHECKLIST, state.ticks)) return { ok: false, reason: "Tick every review line." };
+  if (!allTicked(PUBLISH_CHECKLIST, state.ticks)) return { ok: false, reason: "Tick “I have checked this activity”." };
   return { ok: true };
 }

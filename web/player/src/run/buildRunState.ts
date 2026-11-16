@@ -61,6 +61,18 @@ export function buildRunState(detail: RunDetail, pack: Pack, ruleset: Ruleset): 
 }
 
 /**
+ * A power's name for the child, from its ID: "frost-pulse" -> "Frost Pulse" (plan C10 names the powers Frost Pulse,
+ * Comet Burst and Colony Shield; the server's IDs are those names in lower case with hyphens).
+ */
+export function powerName(powerId: string): string {
+  return powerId
+    .split("-")
+    .filter((word) => word !== "")
+    .map((word) => `${word.charAt(0).toUpperCase()}${word.slice(1)}`)
+    .join(" ");
+}
+
+/**
  * What the learning panel shows for one pack entry, or null when it cannot be shown: withdrawn (the definition is
  * omitted), or a type or payload this client cannot show (toPanelActivity in web/shared decides, by interactionType:
  * all six types, and two-step activities).
@@ -79,7 +91,8 @@ export function panelActivity(slot: PackSlot): PanelActivity | null {
       // The pack carries no audioRequirement (G R10 allow-list). A slot with a prompt clip is treated as needing its
       // sound: true for every Milestone 1 activity (phonics, B3.2). [ASSUMPTION] until the pack carries the flag.
       audioRequired: slot.clips["prompt"] !== undefined,
-      reward: { credits: slot.reward.credits },
+      // A meteor slot pays a power charge and no credits: the panel says "Frost Pulse is ready!", never "+0 space credits".
+      reward: slot.reward.powerId !== undefined ? { credits: slot.reward.credits, powerName: powerName(slot.reward.powerId) } : { credits: slot.reward.credits },
     },
     activityAssetUrl,
   );

@@ -8,6 +8,7 @@ import {
   type SpeechSummary,
   type SpeechView,
 } from "../api";
+import { CheckAll } from "../CheckAll";
 import { canApprove, LISTENING_CHECKLIST, nextTake, previewBody } from "../review";
 
 // A9 (D §D9.3): pick a definition, edit its draft, Preview (the only Polly path), Play, tick the listening checks,
@@ -279,16 +280,7 @@ function SpeechEditor({ api, speechId, onChange }: { readonly api: AdminApi; rea
 
       <fieldset disabled={preview === null}>
         <legend>Listening checks (D9.4)</legend>
-        {LISTENING_CHECKLIST.map((item) => (
-          <label key={item.key} className="check">
-            <input
-              type="checkbox"
-              checked={ticks[item.key] === true}
-              onChange={(e) => setTicks({ ...ticks, [item.key]: e.target.checked })}
-            />{" "}
-            {item.label}
-          </label>
-        ))}
+        <CheckAll items={LISTENING_CHECKLIST} ticks={ticks} onChange={setTicks} label="I have listened and the clip passes every check above" />
         <label>
           Review note (optional) <input value={note} onChange={(e) => setNote(e.target.value)} maxLength={500} />
         </label>

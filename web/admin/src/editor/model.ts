@@ -106,9 +106,6 @@ export type EditorState = {
   minAge: number;
   maxAge: number;
   audioRequirement: string;
-  curriculum: string;
-  curriculumNote: string;
-  source: string;
   reviewNote: string;
   prompt: string;
   /** The first part's own question, two-step activities only. */
@@ -119,25 +116,32 @@ export type EditorState = {
 };
 
 export const SUBJECTS = ["maths", "phonics", "spelling"] as const;
-export const REWARD_CATEGORIES = ["NORMAL", "METEOR"] as const;
+/** Which between-wave slot may use the activity (C22.1). BOTH: either a normal or a meteor slot; the slot, never the
+ * activity, decides the reward (space credits after a normal wave, a power charge after a meteor wave). */
+export const REWARD_CATEGORIES = ["BOTH", "NORMAL", "METEOR"] as const;
 export const AUDIO_REQUIREMENTS = ["NONE", "OPTIONAL", "REQUIRED"] as const;
-export const SOURCES = ["HANDWRITTEN", "TEMPLATE", "IMPORT", "AI_ASSISTED"] as const;
 
 /** Plain labels for the codes above, so an operator does not need the plan to choose (the stored value is the code). */
 export const REWARD_OPTIONS = [
-  { value: "NORMAL", label: "Normal (space credits)" },
-  { value: "METEOR", label: "Meteor (charges a power)" },
+  { value: "BOTH", label: "Normal or meteor (either slot)" },
+  { value: "NORMAL", label: "Normal only (space credits)" },
+  { value: "METEOR", label: "Meteor only (charges a power)" },
 ] as const;
+/** The hint under the Reward field: what the chosen value lets the game do (the slot always decides the reward). */
+export function rewardHint(category: string): string {
+  switch (category) {
+    case "NORMAL":
+      return "Normal only: the game uses it only after a normal wave, which pays space credits.";
+    case "METEOR":
+      return "Meteor only: the game uses it only after a meteor wave, which charges a power.";
+    default:
+      return "Either slot: the game may use it after a normal wave (pays space credits) or a meteor wave (charges a power). The slot decides the reward.";
+  }
+}
 export const AUDIO_OPTIONS = [
   { value: "NONE", label: "No sound" },
   { value: "OPTIONAL", label: "Sound optional" },
   { value: "REQUIRED", label: "Child must press Play first" },
-] as const;
-export const SOURCE_OPTIONS = [
-  { value: "HANDWRITTEN", label: "Written by hand" },
-  { value: "TEMPLATE", label: "From a template" },
-  { value: "IMPORT", label: "Imported" },
-  { value: "AI_ASSISTED", label: "Written with AI help" },
 ] as const;
 export const OPTION_STYLES = ["TEXT", "GRAPHEME", "WORD", "NUMERAL"] as const;
 export const AGES: readonly number[] = LIMITS.ageBands;
@@ -344,9 +348,6 @@ export function fromDefinition(definition: Definition, newKind?: StepKind): Edit
     minAge: num(definition.minAge, 5),
     maxAge: num(definition.maxAge, 5),
     audioRequirement: str(definition.audioRequirement) || "NONE",
-    curriculum: strings(definition.curriculumReference).join(", "),
-    curriculumNote: str(definition.curriculumNote),
-    source: str(definition.source),
     reviewNote: str(definition.reviewNote),
     prompt: str(definition.prompt?.text),
     partPrompt: isObject(payload) ? str(payload.partPrompt) : "",
@@ -539,7 +540,18 @@ function stepAssets(step: StepDraft): string[] {
   return out;
 }
 
-/** The fields this editor writes. Anything else in a stored draft is kept untouched. */
+/**
+ * The fields this editor writes. Anything else in a stored draft is kept untouched, except the three the editor no
+ * longer shows: curriculumReference (publish copies the topic's curriculum list from the registry, plan C19),
+ * curriculumNote and source. The server still accepts them, so older drafts stay valid, but a save removes them.
+ */
+export const LEGACY_FIELDS = ["curriculumReference", "curriculumNote", "source"] as const;
+
+/** The legacy fields (above) a stored draft still has. A save removes them, so the editor offers Save while any remain. */
+export function legacyFields(definition: Definition): string[] {
+  return LEGACY_FIELDS.filter((name) => Object.hasOwn(definition, name));
+}
+
 const MANAGED = [
   "title",
   "subject",
@@ -549,9 +561,7 @@ const MANAGED = [
   "minAge",
   "maxAge",
   "audioRequirement",
-  "curriculumReference",
-  "curriculumNote",
-  "source",
+  ...LEGACY_FIELDS,
   "reviewNote",
   "prompt",
   "activityPayload",
@@ -589,10 +599,6 @@ export function toDefinition(base: Definition, state: EditorState): Definition {
   const assets = unique([...stepAssets(state.step), ...(state.second === null ? [] : stepAssets(state.second.step))]);
   const speech: Record<string, { speechId: string }> = {};
   for (const ref of state.speech) if (ref.variant !== "" && ref.speechId !== "") speech[ref.variant] = { speechId: ref.speechId };
-  const curriculum = state.curriculum
-    .split(/[\s,]+/u)
-    .map((c) => c.trim())
-    .filter((c) => c !== "");
   let definition: Json = {
     ...kept,
     schemaVersion: base.schemaVersion ?? 1,
@@ -606,15 +612,12 @@ export function toDefinition(base: Definition, state: EditorState): Definition {
     minAge: state.minAge,
     maxAge: state.maxAge,
     audioRequirement: state.audioRequirement,
-    curriculumReference: curriculum,
     prompt: { text: state.prompt.trim() },
     activityPayload: payload,
     ...additional,
     answerSpecification: { accepted },
     speechDefinitionReferences: speech,
   };
-  definition = withText(definition, "source", state.source);
-  definition = withText(definition, "curriculumNote", state.curriculumNote);
   definition = withText(definition, "reviewNote", state.reviewNote);
   if (assets.length > 0) definition.visualAssetReferences = assets;
   return definition as Definition;

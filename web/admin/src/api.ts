@@ -188,6 +188,9 @@ export type ActivityView = {
 export type Validation = { valid: boolean; problems: Problem[]; draftRevision: number };
 export type Publication = { versionId: string; displayNumber: number };
 
+/** A guard against a server that never stops paging: 50 pages of 200 is far beyond the bank's size (plan C19). */
+const MAX_PAGES = 50;
+
 export function adminApi(request: Request) {
   const id = (value: string) => encodeURIComponent(value);
   return {
@@ -201,7 +204,19 @@ export function adminApi(request: Request) {
       request("POST", "/admin/speech/preview", body) as Promise<Preview>,
     approve: (speechId: string, body: { draftRevision: number; reviewNote?: string }) =>
       request("POST", `/admin/speech-definitions/${id(speechId)}/approve`, body) as Promise<Approval>,
-    listActivities: () => request("GET", "/admin/activities?limit=200") as Promise<{ items: ActivitySummary[] }>,
+    /** R22, every page: the list is cut into pages of 200 (nextCursor), and the new-activity ID needs every ID. */
+    listActivities: async (): Promise<{ items: ActivitySummary[] }> => {
+      const items: ActivitySummary[] = [];
+      let cursor: string | null = null;
+      for (let pages = 0; pages < MAX_PAGES; pages += 1) {
+        const query: string = cursor === null ? "" : `&cursor=${encodeURIComponent(cursor)}`;
+        const page = (await request("GET", `/admin/activities?limit=200${query}`)) as { items: ActivitySummary[]; nextCursor?: string | null };
+        items.push(...page.items);
+        cursor = page.nextCursor ?? null;
+        if (cursor === null) return { items };
+      }
+      throw new ApiError(0, "TOO_MANY_PAGES");
+    },
     /** R23: 201 for a new activity; 200 with the existing one when the ID is already taken (create is idempotent). */
     createActivity: (body: NewActivity) => request("POST", "/admin/activities", body) as Promise<ActivityView>,
     getActivity: (activityId: string) => request("GET", `/admin/activities/${id(activityId)}`) as Promise<ActivityView>,

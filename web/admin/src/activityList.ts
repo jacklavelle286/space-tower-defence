@@ -66,7 +66,10 @@ export function agesLabel(item: Pick<ActivitySummary, "minAge" | "maxAge">): str
   return item.minAge === item.maxAge ? `${item.minAge}` : `${item.minAge}–${item.maxAge}`;
 }
 
-/** MULTIPLE_CHOICE -> "multiple choice", FIXED -> "fixed": the list reads as words, the filters keep the codes. */
+/** Codes whose plain words are not just the code lower-cased. */
+const PHRASES: Record<string, string> = { BOTH: "normal or meteor" };
+
+/** MULTIPLE_CHOICE -> "multiple choice", FIXED -> "fixed", BOTH -> "normal or meteor": the list reads as words, the filters keep the codes. */
 export function words(code: string): string {
-  return code.toLowerCase().replace(/_/gu, " ");
+  return PHRASES[code] ?? code.toLowerCase().replace(/_/gu, " ");
 }

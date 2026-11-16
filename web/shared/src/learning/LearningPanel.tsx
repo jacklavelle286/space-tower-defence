@@ -207,12 +207,16 @@ export function LearningPanel({ activity, attempts, status, audio = null, readTo
   else if (note === "afterCheck" && lastAttempt !== undefined && !lastAttempt.correct) line = COPY.notQuite;
 
   const answerText = answerWords(activity);
+  // D6.4 reward line: the power when the slot charges one, else the credits; no line at all for a reward of nothing
+  // (never "+0 space credits", which reads as a mistake to a child and to the operator previewing a draft).
   const rewardLine =
-    shownStatus === "SUCCEEDED"
-      ? activity.reward.powerName !== undefined
+    shownStatus !== "SUCCEEDED"
+      ? null
+      : activity.reward.powerName !== undefined
         ? COPY.rewardPower(activity.reward.powerName)
-        : COPY.rewardCredits(activity.reward.credits)
-      : null;
+        : activity.reward.credits > 0
+          ? COPY.rewardCredits(activity.reward.credits)
+          : null;
   const headingId = `lp-heading-${activity.slotId}`;
   const wide = steps.some((s) => (s.interactionType === "NUMBER_SELECT" && s.display === "GRID") || s.interactionType === "OBJECT_MOVE") || twoStep;
 

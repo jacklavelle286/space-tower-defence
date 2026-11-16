@@ -1,6 +1,6 @@
 // Validation problems in words, and the field each one points at.
 import { describe, expect, it } from "vitest";
-import { describeProblem, fieldId, fieldLabel, focusTarget } from "./problems";
+import { describeProblem, fieldId, fieldLabel, focusTarget, LEGACY_NOTICE_ID } from "./problems";
 
 describe("problems", () => {
   it("names the field the way the editor labels it", () => {
@@ -18,6 +18,22 @@ describe("problems", () => {
     expect(describeProblem({ field: "topicId", rule: "topic_subject" })).toBe("Topic must start with the subject, for example maths-.");
     expect(describeProblem({ field: "activityPayload.tiles", rule: "count" })).toBe("Tiles has the wrong number of entries.");
     expect(describeProblem({ field: "title", rule: "some_new_rule" })).toBe('Title breaks the rule "some_new_rule".');
+  });
+
+  it("describes the topic registry rules as the topic's problem, whichever field is named", () => {
+    expect(describeProblem({ field: "topicId", rule: "unknown_topic" })).toBe("Topic is not in the topic list for this subject: choose one from the list.");
+    const ages = "Topic is not for these ages: set the youngest and oldest ages to ages the topic is for (shown under Topic).";
+    expect(describeProblem({ field: "minAge", rule: "topic_ages" })).toBe(ages);
+    expect(describeProblem({ field: "topicId", rule: "topic_ages" })).toBe(ages);
+  });
+
+  it("sends a problem on a field the editor no longer shows to the notice beside Save", () => {
+    expect(describeProblem({ field: "curriculumReference.0", rule: "pattern" })).toBe(
+      "The old curriculum code list has characters that are not allowed. The editor no longer uses this field: save the draft to remove it.",
+    );
+    expect(describeProblem({ field: "source", rule: "enum" })).toBe("The old source field is not one of the allowed values. The editor no longer uses this field: save the draft to remove it.");
+    expect(focusTarget("curriculumReference.0", (id) => id === LEGACY_NOTICE_ID)).toBe(LEGACY_NOTICE_ID);
+    expect(focusTarget("curriculumNote", () => false)).toBeNull();
   });
 
   it("focuses the field, or the nearest enclosing one on the page", () => {

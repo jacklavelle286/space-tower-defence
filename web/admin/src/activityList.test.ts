@@ -66,5 +66,6 @@ describe("activity list filters", () => {
     expect(agesLabel({ minAge: 5, maxAge: 6 })).toBe("5–6");
     expect(agesLabel({ minAge: 7, maxAge: 7 })).toBe("7");
     expect(words("MULTIPLE_CHOICE")).toBe("multiple choice");
+    expect(words("BOTH")).toBe("normal or meteor");
   });
 });

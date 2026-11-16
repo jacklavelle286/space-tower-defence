@@ -2,7 +2,6 @@
 // validation problem can move the cursor to it, and each has a visible label, so tests and screen readers find it
 // by name.
 import type { ReactNode } from "react";
-import { PICTURE_IDS, pictureLabel, pictureUrl } from "./assets";
 import { fieldId } from "./problems";
 
 type TextProps = {
@@ -14,9 +13,11 @@ type TextProps = {
   readonly wide?: boolean;
   readonly hint?: string;
   readonly disabled?: boolean;
+  /** Shown, focusable, not typed in (a value the page works out, such as the next activity ID). */
+  readonly readOnly?: boolean;
 };
 
-export function TextField({ path, label, value, onChange, maxLength, wide = false, hint, disabled = false }: TextProps) {
+export function TextField({ path, label, value, onChange, maxLength, wide = false, hint, disabled = false, readOnly = false }: TextProps) {
   return (
     <span className="field">
       <label htmlFor={fieldId(path)}>{label}</label>
@@ -26,6 +27,7 @@ export function TextField({ path, label, value, onChange, maxLength, wide = fals
         value={value}
         maxLength={maxLength}
         disabled={disabled}
+        readOnly={readOnly}
         aria-describedby={hint === undefined ? undefined : `${fieldId(path)}-hint`}
         onChange={(e) => onChange(e.target.value)}
       />
@@ -103,36 +105,7 @@ export function SelectField({ path, label, value, onChange, options, disabled = 
   );
 }
 
-type PictureProps = {
-  readonly path: string;
-  readonly label: string;
-  readonly value: string;
-  readonly onChange: (assetId: string) => void;
-  /** Offer "no picture" as a choice. */
-  readonly optional?: boolean;
-};
-
-/** A picture from the library: a list of picture names and a thumbnail of the one chosen. */
-export function PicturePicker({ path, label, value, onChange, optional = false }: PictureProps) {
-  const url = value === "" ? null : pictureUrl(value);
-  return (
-    <span className="picture-picker">
-      <span className="field">
-        <label htmlFor={fieldId(path)}>{label}</label>
-        <select id={fieldId(path)} value={value} onChange={(e) => onChange(e.target.value)}>
-          <option value="">{optional ? "No picture" : "Choose a picture…"}</option>
-          {value !== "" && url === null && <option value={value}>{value} (not in the library)</option>}
-          {PICTURE_IDS.map((id) => (
-            <option key={id} value={id}>
-              {pictureLabel(id)}
-            </option>
-          ))}
-        </select>
-      </span>
-      {url !== null && <img className="thumb" src={url} alt="" width={56} height={56} />}
-    </span>
-  );
-}
+export { PicturePicker } from "./PicturePicker";
 
 /** A row of fields that belong together (one option, one zone, one tile). */
 export function Row({ children, label }: { readonly children: ReactNode; readonly label: string }) {

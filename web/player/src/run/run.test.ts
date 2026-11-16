@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 import { PROTOCOL_VERSION } from "../sync/protocol";
 import { SyncQueue, type NewOp } from "../sync/queue";
 import { AckTracker } from "./ackTracker";
-import { buildRunState, panelActivity } from "./buildRunState";
+import { buildRunState, panelActivity, powerName } from "./buildRunState";
 import { deviceLabel, PlayLease } from "./lease";
 import { loadRun } from "./loadRun";
 import { createRun } from "./newGame";
@@ -39,6 +39,14 @@ describe("buildRunState and panelActivity", () => {
     expect(activity?.audioRequired).toBe(true);
     expect(panelActivity({ ...pack.slots[0]!, withdrawn: true })).toBeNull();
     expect(panelActivity({ ...pack.slots[0]!, interactionType: "ARRANGE" })).toBeNull();
+  });
+
+  it("a meteor slot's reward is its power, by name, so the panel never says +0 space credits", async () => {
+    const { server } = await serverAtActivity();
+    const slot = parsePack((await server.getPack(RUN_ID)).body).slots[0]!;
+    expect(panelActivity({ ...slot, kind: "METEOR", reward: { credits: 0, powerId: "frost-pulse" } })?.reward).toEqual({ credits: 0, powerName: "Frost Pulse" });
+    expect(panelActivity({ ...slot, reward: { credits: 30 } })?.reward).toEqual({ credits: 30 });
+    expect(powerName("colony-shield")).toBe("Colony Shield");
   });
 
   it("dispatches by interactionType: picture select gets its pictures' URLs, number select its numbers (Phase 37)", async () => {

@@ -105,6 +105,9 @@ export function PreviewSolve({ api, definition, draftRevision, onSolved, solved,
           Start the preview again
         </button>
       </p>
+      <p className="muted">
+        The preview shows no reward. In a game, the slot decides it: space credits after a normal wave, a power charge after a meteor wave.
+      </p>
       <div className="preview-stage">
         <LearningPanel
           key={`${draftRevision}-${round}`}

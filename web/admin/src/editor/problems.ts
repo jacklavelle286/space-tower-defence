@@ -9,9 +9,15 @@ export function fieldId(path: string): string {
   return `f-${path.replaceAll(".", "-")}`;
 }
 
+/** Fields the editor no longer shows (curriculum codes, curriculum note, source): an older draft may still hold them,
+ * and only a save removes them. Their problems point at the notice beside Save, which says so. */
+const LEGACY = new Set(["curriculumReference", "curriculumNote", "source"]);
+export const LEGACY_NOTICE_ID = "legacy-fields";
+
 /** The input to focus for a problem: the field's own input, or the nearest enclosing one that exists. */
 export function focusTarget(path: string, exists: (id: string) => boolean): string | null {
   const parts = path.split(".");
+  if (LEGACY.has(parts[0] ?? "")) return exists(LEGACY_NOTICE_ID) ? LEGACY_NOTICE_ID : null;
   for (let n = parts.length; n > 0; n -= 1) {
     const id = fieldId(parts.slice(0, n).join("."));
     if (exists(id)) return id;
@@ -35,6 +41,8 @@ const RULES: Record<string, string> = {
   matches_path: "does not match this activity",
   age_span: "is more than one year above the youngest age",
   topic_subject: "must start with the subject, for example maths-",
+  unknown_topic: "is not in the topic list for this subject: choose one from the list",
+  topic_ages: "is not for these ages: set the youngest and oldest ages to ages the topic is for (shown under Topic)",
   locked_after_publish: "cannot change after the first publish",
   not_supported_yet: "is not supported yet",
   unique_a_to_f: "must be a to f, each once",
@@ -78,6 +86,9 @@ const RULES: Record<string, string> = {
   max_bytes: "is too large (8 KB at most)",
 };
 
+/** Registry rules (plan C19): described as the topic's problem. */
+const TOPIC_RULES = new Set(["unknown_topic", "topic_ages"]);
+
 const FIELDS: Record<string, string> = {
   title: "Title",
   subject: "Subject",
@@ -88,9 +99,9 @@ const FIELDS: Record<string, string> = {
   minAge: "Youngest age",
   maxAge: "Oldest age",
   audioRequirement: "Audio",
-  curriculumReference: "Curriculum codes",
-  curriculumNote: "Curriculum note",
-  source: "Source",
+  curriculumReference: "The old curriculum code list",
+  curriculumNote: "The old curriculum note",
+  source: "The old source field",
   reviewNote: "Review note",
   prompt: "Question",
   "prompt.text": "Question",
@@ -191,5 +202,9 @@ export function fieldLabel(path: string): string {
 /** One problem as a sentence: "Option c text is empty or too long." */
 export function describeProblem(problem: Problem): string {
   const rule = RULES[problem.rule] ?? `breaks the rule "${problem.rule}"`;
-  return `${fieldLabel(problem.field)} ${rule}.`;
+  // The topic rules are about the topic, whichever field admin-api names (topic_ages may name minAge or topicId).
+  const root = problem.field.split(".")[0] ?? "";
+  if (LEGACY.has(root)) return `${FIELDS[root] ?? root} ${rule}. The editor no longer uses this field: save the draft to remove it.`;
+  const label = TOPIC_RULES.has(problem.rule) ? "Topic" : fieldLabel(problem.field);
+  return `${label} ${rule}.`;
 }

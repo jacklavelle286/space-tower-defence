@@ -8,6 +8,7 @@ import {
   nextTake,
   previewBody,
   PUBLISH_CHECKLIST,
+  tickAll,
 } from "./review";
 
 const listened = Object.fromEntries(LISTENING_CHECKLIST.map((item) => [item.key, true]));
@@ -49,6 +50,14 @@ describe("Publish", () => {
       "noTraps",
       "nothingPersonal",
     ]);
+  });
+});
+
+describe("One tick", () => {
+  it("sets or clears every key of a checklist at once", () => {
+    expect(tickAll(PUBLISH_CHECKLIST, true)).toEqual(reviewed);
+    expect(Object.values(tickAll(PUBLISH_CHECKLIST, false))).toEqual(PUBLISH_CHECKLIST.map(() => false));
+    expect(canApprove({ dirty: false, draftRevision: 1, draftClipKey: "k", preview: { draftRevision: 1, clipKey: "k" }, ticks: tickAll(LISTENING_CHECKLIST, true) })).toEqual({ ok: true });
   });
 });
 

@@ -415,9 +415,132 @@ input.short {
 }
 
 .picture-picker {
+  position: relative;
   display: inline-flex;
   gap: 8px;
   align-items: flex-end;
+}
+
+/* The picture field: a button showing the chosen picture; it opens a panel of thumbnails to choose from by eye. */
+button.picture-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  max-width: 260px;
+  padding: 3px 10px 3px 3px;
+  background: var(--paper);
+  text-align: left;
+}
+
+.thumb.empty {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border: 1px dashed var(--line);
+  border-radius: 4px;
+  background: var(--panel);
+}
+
+.picture-dialog {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 20;
+  display: grid;
+  gap: 8px;
+  width: min(520px, calc(100vw - 32px));
+  margin-top: 4px;
+  padding: 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  box-shadow: 0 6px 24px rgb(29 36 51 / 20%);
+}
+
+.picture-dialog input[type="search"] {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.picture-scroll {
+  max-height: min(420px, 60vh);
+  overflow-y: auto;
+}
+
+.picture-scroll h4 {
+  margin: 8px 0 4px;
+  font-size: 0.9em;
+  color: var(--muted);
+}
+
+.picture-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
+  gap: 6px;
+}
+
+button.picture-choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  background: var(--paper);
+  font-size: 0.8em;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+button.picture-choice img {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+}
+
+button.picture-choice:hover,
+button.picture-choice:focus-visible {
+  border-color: var(--accent);
+  background: #eef3ff;
+}
+
+/* On a narrow screen the panel sits across the bottom of the window, so it never runs off the side. */
+@media (max-width: 600px) {
+  .picture-dialog {
+    position: fixed;
+    top: auto;
+    right: 16px;
+    bottom: 16px;
+    left: 16px;
+    width: auto;
+  }
+}
+
+button.picture-none {
+  flex-direction: row;
+  margin-bottom: 4px;
+}
+
+/* One tick for a checklist: the checks are read as a list, then confirmed once. */
+.checklist {
+  margin: 4px 0;
+  padding-left: 1.4em;
+}
+
+.checklist li {
+  margin: 2px 0;
+}
+
+label.check-all {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  font-weight: 700;
+}
+
+label.check-all input {
+  width: 20px;
+  height: 20px;
 }
 
 img.thumb {

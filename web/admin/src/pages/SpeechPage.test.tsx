@@ -95,8 +95,11 @@ async function open(fake: FakeAdmin) {
   await screen.findByText(/draft revision/);
 }
 
+/** One tick confirms every listening check (the checks are listed above it as text). */
 function tickAll() {
-  for (const item of LISTENING_CHECKLIST) fireEvent.click(screen.getByLabelText(item.label, { exact: false }));
+  for (const item of LISTENING_CHECKLIST) expect(screen.getByText(item.label)).toBeTruthy();
+  expect(screen.getAllByRole("checkbox")).toHaveLength(1);
+  fireEvent.click(screen.getByRole("checkbox", { name: "I have listened and the clip passes every check above" }));
 }
 
 describe("Try another take", () => {

@@ -3,6 +3,8 @@
 //   contracts/schemas/*.schema.json + contracts/limits.json
 //     -> web/game-core/src/rules/contracts.generated.ts  (types, the schemas as data for the validator, LIMITS)
 //     -> web/shared/src/limits.ts                        (LIMITS for the apps)
+//   contracts/topics.json (itself generated from plan C19 by scripts/gen_topics.py)
+//     -> web/shared/src/topics.ts                        (TOPICS and topicById for the apps)
 //
 // Run from web/:   node game-core/scripts/gen-contracts.ts          (write)
 //                  node game-core/scripts/gen-contracts.ts --check  (exit 1 if a generated file is out of date)
@@ -24,6 +26,8 @@ const SCHEMA_DIR = join(REPO, "contracts", "schemas");
 const LIMITS_FILE = join(REPO, "contracts", "limits.json");
 const GAME_CORE_OUT = join(REPO, "web", "game-core", "src", "rules", "contracts.generated.ts");
 const SHARED_OUT = join(REPO, "web", "shared", "src", "limits.ts");
+const TOPICS_FILE = join(REPO, "contracts", "topics.json");
+const TOPICS_OUT = join(REPO, "web", "shared", "src", "topics.ts");
 
 /** Keywords the validator implements. Annotations are allowed and ignored. */
 export const SUPPORTED_KEYWORDS: readonly string[] = [
@@ -234,6 +238,44 @@ function limitsLiteral(): string {
   return `export const LIMITS = ${JSON.stringify(rest, null, 2)} as const;\n\nexport type Limits = typeof LIMITS;\n`;
 }
 
+const TOPIC_KEYS = ["topicId", "subject", "title", "description", "ages", "curriculum", "types", "audio"] as const;
+
+function topicsModule(): string {
+  const doc = readJson(TOPICS_FILE);
+  if (!isObject(doc) || typeof doc["version"] !== "number" || !Array.isArray(doc["topics"])) {
+    throw new Error("contracts/topics.json must be an object with a version and a topics array");
+  }
+  for (const topic of doc["topics"]) {
+    if (!isObject(topic) || Object.keys(topic).join() !== TOPIC_KEYS.join()) {
+      throw new Error(`contracts/topics.json: every topic must have exactly the keys ${TOPIC_KEYS.join(", ")}`);
+    }
+  }
+  return (
+    `${HEADER("contracts/topics.json")}` +
+    "// The topic registry (plan C19), for the player and admin apps. contracts/topics.json is itself generated from\n" +
+    "// plan C19 by scripts/gen_topics.py. Topic IDs are append-only: never renamed, never reused.\n\n" +
+    "/** One registry entry. `curriculum` holds the C19 references as written; `types` are C20 abbreviations. */\n" +
+    "export interface Topic {\n" +
+    "  readonly topicId: string;\n" +
+    '  readonly subject: "maths" | "phonics" | "spelling";\n' +
+    "  readonly title: string;\n" +
+    "  readonly description: string;\n" +
+    "  readonly ages: readonly number[];\n" +
+    "  readonly curriculum: readonly string[];\n" +
+    "  readonly types: readonly string[];\n" +
+    "  readonly audio: string;\n" +
+    "}\n\n" +
+    `export const TOPICS_VERSION = ${JSON.stringify(doc["version"])};\n\n` +
+    "/** Every topic, in registry order (subject, first age, C19 order). */\n" +
+    `export const TOPICS: readonly Topic[] = ${JSON.stringify(doc["topics"], null, 2)};\n\n` +
+    "const BY_ID: ReadonlyMap<string, Topic> = new Map(TOPICS.map((topic) => [topic.topicId, topic]));\n\n" +
+    "/** The registry entry for a topic ID, or undefined when it is not registered. */\n" +
+    "export function topicById(topicId: string): Topic | undefined {\n" +
+    "  return BY_ID.get(topicId);\n" +
+    "}\n"
+  );
+}
+
 /** Every generated file and its content. Pure apart from reading the contracts. */
 export function generate(): Map<string, string> {
   const schemas = loadSchemas();
@@ -249,6 +291,7 @@ export function generate(): Map<string, string> {
   return new Map([
     [GAME_CORE_OUT, gameCore],
     [SHARED_OUT, shared],
+    [TOPICS_OUT, topicsModule()],
   ]);
 }
 

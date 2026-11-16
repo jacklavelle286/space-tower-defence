@@ -33,17 +33,19 @@ function Harness({
   playAudio = audio(),
   gate,
   onCheckSpy,
+  activity = ACTIVITY,
 }: {
   initial?: PanelAttempt[];
   playAudio?: PanelAudio | null;
   gate?: { wait: () => Promise<CheckResult> };
   onCheckSpy?: (answer: string) => void;
+  activity?: PanelActivity;
 }) {
   const [attempts, setAttempts] = useState<PanelAttempt[]>(initial);
   const status: PanelStatus = attempts.some((a) => a.correct) ? "SUCCEEDED" : attempts.length >= 3 ? "FAILED" : "UNRESOLVED";
   return (
     <LearningPanel
-      activity={ACTIVITY}
+      activity={activity}
       attempts={attempts}
       status={status}
       audio={playAudio}
@@ -158,6 +160,24 @@ describe("LearningPanel", () => {
     expect(screen.getByText(COPY.correct)).toBeTruthy();
     expect(screen.getByText(COPY.rewardCredits(30))).toBeTruthy();
     expect(screen.queryByRole("button", { name: COPY.check })).toBeNull();
+  });
+
+  it("a reward of nothing shows no reward line (never '+0 space credits'); a power with no credits shows the power", async () => {
+    render(<Harness activity={{ ...ACTIVITY, reward: { credits: 0 } }} />);
+    fireEvent.click(screen.getByRole("button", { name: /Play/ }));
+    fireEvent.click(option("sh"));
+    await act(async () => check());
+    expect(screen.getByText(COPY.correct)).toBeTruthy();
+    expect(screen.queryByText(/space credits/)).toBeNull();
+    expect(document.querySelector(".lp-reward")).toBeNull();
+    cleanup();
+
+    render(<Harness activity={{ ...ACTIVITY, reward: { credits: 0, powerName: "Frost Pulse" } }} />);
+    fireEvent.click(screen.getByRole("button", { name: /Play/ }));
+    fireEvent.click(option("sh"));
+    await act(async () => check());
+    expect(screen.getByText(COPY.rewardPower("Frost Pulse"))).toBeTruthy();
+    expect(screen.queryByText(/space credits/)).toBeNull();
   });
 
   it("Check and Continue pair the word with a symbol (D6.1), hidden from screen readers", async () => {

@@ -6,8 +6,9 @@
 import { PANEL_COPY } from "@scd/shared/learning";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import type { Definition } from "../api";
+import type { AdminApi, Definition } from "../api";
 import { PUBLISH_CHECKLIST } from "../review";
+import { pictureLabel } from "./assets";
 import { draftOf, DRAFTS } from "../testing/drafts";
 import { FakeAdminApi } from "../testing/fakeApi";
 import { ActivityEditor } from "./ActivityEditor";
@@ -35,6 +36,25 @@ const click = (name: string | RegExp) => fireEvent.click(screen.getByRole("butto
 const tick = (name: string | RegExp) => fireEvent.click(screen.getByRole("checkbox", { name }));
 const choose = (name: string | RegExp) => fireEvent.click(screen.getByRole("radio", { name }));
 
+/** Opens a picture field's panel and clicks the picture's thumbnail, as an operator would. */
+function pick(label: string, assetId: string) {
+  click(label);
+  const dialog = screen.getByRole("dialog", { name: `Choose: ${label}` });
+  fireEvent.click(within(dialog).getByRole("button", { name: pictureLabel(assetId) }));
+}
+
+/** The draft without the fields the editor no longer writes (publish takes the curriculum from the topic). */
+function withoutRetired(definition: Definition): Definition {
+  const { curriculumReference: _c, curriculumNote: _n, source: _s, ...rest } = definition;
+  return rest as Definition;
+}
+
+/** The activity ID one below `id` ("ph-9101" -> "ph-9100"), so the next free number is `id`. */
+function previous(id: string): string {
+  const [prefix, digits] = [id.slice(0, 3), id.slice(3)];
+  return `${prefix}${String(Number.parseInt(digits, 10) - 1).padStart(4, "0")}`;
+}
+
 async function settle() {
   await act(async () => {
     await new Promise((r) => setTimeout(r, 0));
@@ -42,14 +62,16 @@ async function settle() {
 }
 
 async function createFor(definition: Definition) {
+  // An earlier activity in the subject, so the next free ID is the shared draft's own.
+  fake.seed({ ...definition, activityId: previous(definition.activityId), title: "An earlier activity" }, 1);
   const navigate = vi.fn();
   render(<NewActivityPage api={fake.api} navigate={navigate} />);
-  type("Subject", definition.subject);
-  type("Activity ID", definition.activityId);
-  type("Title (for the admin list)", definition.title);
-  type("Topic", definition.topicId);
+  await settle();
   const kind = kindOf(definition.interactionType, definition.activityPayload) ?? "MULTIPLE_CHOICE";
   type("Interaction type", kind);
+  type("Topic", definition.topicId);
+  expect(field("Activity ID").value).toBe(definition.activityId); // the next free number, not typed
+  type("Title (for the admin list)", definition.title);
   type("Reward", definition.rewardCategory);
   type("Youngest age", String(definition.minAge));
   type("Oldest age", String(definition.maxAge));
@@ -66,7 +88,6 @@ async function openEditor(activityId: string) {
 
 /** The fields every activity has, from the shared draft. */
 function fillCommon(definition: Definition) {
-  type("Curriculum codes (1 to 4)", (definition.curriculumReference as string[]).join(", "));
   type("Audio", definition.audioRequirement ?? "NONE");
   type("Question", definition.prompt?.text ?? "");
   Object.entries(definition.speechDefinitionReferences ?? {}).forEach(([variant, ref], i) => {
@@ -91,7 +112,7 @@ const FILL: Record<string, () => void> = {
       ["pic-knot", "a knot"],
     ];
     cards.forEach(([assetId, alt], i) => {
-      type(`Option ${"abcd"[i]} picture`, assetId ?? "");
+      pick(`Option ${"abcd"[i]} picture`, assetId ?? "");
       type(`Option ${"abcd"[i]} alt text`, alt ?? "");
     });
     choose("Option b is right");
@@ -99,7 +120,7 @@ const FILL: Record<string, () => void> = {
   NUMBER_SELECT: () => {
     type("Right number", "5");
     tick("Show a picture with the question");
-    type("Question picture", "dice-5");
+    pick("Question picture", "dice-5");
     type("Question picture alt text", "a dice with five dots");
   },
   DISTRIBUTE: () => {
@@ -121,7 +142,7 @@ const FILL: Record<string, () => void> = {
     click("Add a tile");
     ["t", "a", "c", "o", "n"].forEach((value, i) => type(`Tile ${i + 1} value`, value));
     tick(/^Show a cue/);
-    type("Cue picture", "pic-cat");
+    pick("Cue picture", "pic-cat");
     type("Cue picture alt text", "a cat");
     type("Right word 1", "cat");
   },
@@ -208,7 +229,7 @@ describe("create -> validate -> preview-solve -> publish, for each type", () => 
 
       // What the editor saved is exactly the shared draft admin-api accepts.
       const saved = fake.callsNamed("saveActivity").at(-1)?.args[1] as { definition: Definition };
-      expect(saved.definition).toEqual(definition);
+      expect(saved.definition).toEqual(withoutRetired(definition));
 
       // Publish waits for validate and preview-solve on this revision, then the checklist.
       const publish = screen.getByRole("button", { name: "Publish" }) as HTMLButtonElement;
@@ -221,8 +242,9 @@ describe("create -> validate -> preview-solve -> publish, for each type", () => 
       SOLVE[draft.kind]?.();
       await checkInPanel();
       expect(stage().getByText(PANEL_COPY.correct)).toBeTruthy();
-      expect(screen.getByText("Tick every review line.")).toBeTruthy();
-      for (const item of PUBLISH_CHECKLIST) tick(item.label);
+      expect(screen.getByText("Tick “I have checked this activity”.")).toBeTruthy();
+      for (const item of PUBLISH_CHECKLIST) expect(screen.getByText(item.label)).toBeTruthy(); // listed as text
+      tick("I have checked this activity"); // one tick, not seven
       expect(publish.disabled).toBe(false);
       await act(async () => click("Publish"));
       await screen.findByText(/^Published as v1/u);
@@ -250,7 +272,7 @@ describe("the editor", () => {
     expect(screen.getByText("Solve the preview of this revision first.")).toBeTruthy();
     fireEvent.change(stage().getByRole("textbox"), { target: { value: "7" } });
     await checkInPanel();
-    expect(screen.getByText("Tick every review line.")).toBeTruthy();
+    expect(screen.getByText("Tick “I have checked this activity”.")).toBeTruthy();
 
     type("Question", "What is one more than 5?");
     type("Right number", "6");
@@ -297,8 +319,8 @@ describe("the editor", () => {
   it("locks the identity fields after the first publish", async () => {
     fake.seed(draftOf("WORD").definition, 3, "20261115T100000Z");
     await openEditor("sp-9109");
-    expect((field("Subject") as HTMLSelectElement).disabled).toBe(true);
-    expect((field("Topic") as HTMLInputElement).disabled).toBe(true);
+    expect((field("Subject") as HTMLInputElement).readOnly).toBe(true);
+    expect((field("Topic") as HTMLSelectElement).disabled).toBe(true);
     expect((field("Reward") as HTMLSelectElement).disabled).toBe(true);
     expect(within(field("Interaction type")).getAllByRole("option").map((o) => o.getAttribute("value"))).toEqual(["NUMERIC", "WORD"]);
   });
@@ -340,15 +362,147 @@ describe("the editor", () => {
     await screen.findByText(/Someone saved this draft after you opened it/u);
   });
 
-  it("New activity does not overwrite an existing ID", async () => {
-    fake.seed(draftOf("NUMERIC").definition, 1);
+  it("offers registry topics of the activity's subject, and keeps a hand-typed topic, marked", async () => {
+    fake.seed({ ...draftOf("NUMERIC").definition, topicId: "maths-typed-by-hand" }, 1);
+    await openEditor("ma-9108");
+    const topics = within(field("Topic")).getAllByRole("option");
+    expect(topics[0]?.textContent).toBe("maths-typed-by-hand (not in the topic list)");
+    expect(topics.slice(1).every((o) => o.getAttribute("value")?.startsWith("maths-"))).toBe(true);
+    expect(screen.queryByLabelText(/Curriculum/u)).toBeNull();
+    expect(screen.queryByLabelText("Source")).toBeNull();
+    type("Topic", "maths-number-one-more-less-to10");
+    await act(async () => click("Save draft"));
+    await screen.findByText(/^Saved as revision 2/u);
+    const saved = fake.callsNamed("saveActivity").at(-1)?.args[1] as { definition: Definition };
+    expect(saved.definition.topicId).toBe("maths-number-one-more-less-to10");
+  });
+
+  it("chooses a picture from the thumbnails, searches, and Escape closes and returns the cursor", async () => {
+    fake.seed(draftOf("PICTURE_SELECT").definition, 1);
+    await openEditor("sp-9102");
+    const button = screen.getByRole("button", { name: "Option a picture" });
+    expect(button.textContent).toContain("night sky");
+    fireEvent.click(button);
+    const dialog = screen.getByRole("dialog", { name: "Choose: Option a picture" });
+    expect(document.activeElement).toBe(within(dialog).getByRole("searchbox", { name: "Search pictures" }));
+    expect(within(dialog).getByRole("button", { name: pictureLabel("pic-night-sky") }).getAttribute("aria-pressed")).toBe("true");
+    fireEvent.change(within(dialog).getByRole("searchbox"), { target: { value: "kite" } });
+    expect(within(dialog).getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual([pictureLabel("pic-kite")]);
+    fireEvent.keyDown(dialog, { key: "Escape" });
+    expect(screen.queryByRole("dialog", { name: /^Choose:/u })).toBeNull();
+    expect(document.activeElement).toBe(button);
+    expect(button.textContent).toContain("night sky"); // nothing chosen
+
+    pick("Option a picture", "pic-kite");
+    expect(screen.queryByRole("dialog", { name: /^Choose:/u })).toBeNull();
+    expect(document.activeElement).toBe(button);
+    expect(button.textContent).toContain("kite");
+  });
+
+  it("an older draft with curriculum codes can be saved to remove them, and their problem points at that notice", async () => {
+    fake.seed({ ...draftOf("NUMERIC").definition, curriculumReference: ["free text"], source: "HANDWRITTEN" }, 1);
+    fake.problems = [{ field: "curriculumReference.0", rule: "pattern" }];
+    await openEditor("ma-9108");
+    const notice = screen.getByText(/still has fields the editor no longer uses \(curriculum codes, source\)/u);
+    expect((screen.getByRole("button", { name: "Save draft" }) as HTMLButtonElement).disabled).toBe(false);
+    expect(screen.queryByText("Unsaved changes.")).toBeNull();
+    await act(async () => click("Validate"));
+    click("The old curriculum code list has characters that are not allowed. The editor no longer uses this field: save the draft to remove it.");
+    expect(document.activeElement).toBe(notice);
+    await act(async () => click("Save draft"));
+    await screen.findByText(/^Saved as revision 2/u);
+    const saved = fake.callsNamed("saveActivity").at(-1)?.args[1] as { definition: Definition };
+    expect(saved.definition).not.toHaveProperty("curriculumReference");
+    expect(saved.definition).not.toHaveProperty("source");
+    expect(screen.queryByText(/still has fields the editor no longer uses/u)).toBeNull();
+    expect((screen.getByRole("button", { name: "Save draft" }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it("the reward hint follows the chosen value", async () => {
+    fake.seed({ ...draftOf("NUMERIC").definition, rewardCategory: "METEOR" }, 1);
+    await openEditor("ma-9108");
+    const hint = () => field("Reward").closest(".field")?.textContent ?? "";
+    expect(hint()).toContain("Meteor only: the game uses it only after a meteor wave");
+    expect(hint()).not.toContain("normal wave");
+    type("Reward", "NORMAL");
+    expect(hint()).toContain("Normal only: the game uses it only after a normal wave");
+    type("Reward", "BOTH");
+    expect(hint()).toContain("Either slot");
+  });
+
+  it("a validation problem on a picture moves the cursor to its picture button", async () => {
+    fake.seed(draftOf("PICTURE_SELECT").definition, 1);
+    fake.problems = [{ field: "activityPayload.options.1.assetId", rule: "unknown_asset" }];
+    await openEditor("sp-9102");
+    await act(async () => click("Validate"));
+    click("Option b picture is not in the picture library.");
+    expect(document.activeElement).toBe(screen.getByRole("button", { name: "Option b picture" }));
+  });
+});
+
+describe("New activity", () => {
+  it("fills everything in from the topic: subject, next ID, ages, title, and either slot as the reward", async () => {
+    fake.seed({ ...draftOf("NUMERIC").definition, activityId: "ma-0041" }, 1);
+    fake.seed({ ...draftOf("WORD").definition, activityId: "sp-0003" }, 1);
     const navigate = vi.fn();
     render(<NewActivityPage api={fake.api} navigate={navigate} />);
-    type("Activity ID", "ma-9108");
-    type("Title (for the admin list)", "Something else");
-    type("Topic", "maths-number-one-more-less-to10");
+    await settle();
+    expect((screen.getByRole("button", { name: "Create draft" }) as HTMLButtonElement).disabled).toBe(true);
+    type("Interaction type", "SORT");
+    type("Find a topic", "alt pronunciation");
+    expect(within(field("Topic")).getAllByRole("option").map((o) => o.getAttribute("value"))).toEqual(["", "phonics-alt-pronunciation"]);
+    type("Topic", "phonics-alt-pronunciation");
+    expect(field("Subject").value).toBe("Phonics");
+    expect(field("Activity ID").value).toBe("ph-0001");
+    expect((field("Activity ID") as HTMLInputElement).readOnly).toBe(true);
+    expect(field("Title (for the admin list)").value).toBe("Alt pronunciation");
+    expect([field("Youngest age").value, field("Oldest age").value]).toEqual(["6", "7"]);
+    expect(within(field("Youngest age")).getAllByRole("option").map((o) => o.textContent)).toEqual(["6", "7"]);
+    expect(field("Reward").value).toBe("BOTH");
     await act(async () => click("Create draft"));
-    await screen.findByText(/ma-9108 already exists/u);
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith("#activities/ph-0001"));
+    const body = fake.callsNamed("createActivity")[0]?.args[0];
+    expect(body).toEqual({
+      activityId: "ph-0001",
+      title: "Alt pronunciation",
+      subject: "phonics",
+      topicId: "phonics-alt-pronunciation",
+      rewardCategory: "BOTH",
+      interactionType: "OBJECT_MOVE",
+      authoringMode: "FIXED",
+      minAge: 6,
+      maxAge: 7,
+    });
+    const saved = fake.callsNamed("saveActivity")[0]?.args[1] as { definition: Definition };
+    expect(saved.definition.rewardCategory).toBe("BOTH");
+    expect(saved.definition).not.toHaveProperty("source");
+    expect(saved.definition).not.toHaveProperty("curriculumReference");
+  });
+
+  it("when the proposed ID was taken meanwhile, tries the next number instead of overwriting", async () => {
+    fake.seed({ ...draftOf("NUMERIC").definition, activityId: "ma-0001" }, 1);
+    fake.seed({ ...draftOf("NUMERIC").definition, activityId: "ma-0002" }, 1);
+    const stale: AdminApi = { ...fake.api, listActivities: async () => ({ items: [] }) }; // read before those two were made
+    const navigate = vi.fn();
+    render(<NewActivityPage api={stale} navigate={navigate} />);
+    await settle();
+    type("Topic", "maths-count-objects-to10");
+    expect(field("Activity ID").value).toBe("ma-0001");
+    await act(async () => click("Create draft"));
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith("#activities/ma-0003"));
+    expect(fake.callsNamed("createActivity").map((c) => (c.args[0] as { activityId: string }).activityId)).toEqual(["ma-0001", "ma-0002", "ma-0003"]);
+    expect(fake.callsNamed("saveActivity").map((c) => c.args[0])).toEqual(["ma-0003"]);
+  });
+
+  it("stops after five taken IDs and says so", async () => {
+    for (let n = 1; n <= 5; n += 1) fake.seed({ ...draftOf("NUMERIC").definition, activityId: `ma-000${n}` }, 1);
+    const stale: AdminApi = { ...fake.api, listActivities: async () => ({ items: [] }) };
+    const navigate = vi.fn();
+    render(<NewActivityPage api={stale} navigate={navigate} />);
+    await settle();
+    type("Topic", "maths-count-objects-to10");
+    await act(async () => click("Create draft"));
+    await screen.findByText(/ma-0001, ma-0002, ma-0003, ma-0004, ma-0005 were already taken/u);
     expect(navigate).not.toHaveBeenCalled();
     expect(fake.callsNamed("saveActivity")).toHaveLength(0);
   });

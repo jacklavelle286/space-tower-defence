@@ -1,7 +1,7 @@
 // The editor model's own rules: IDs it gives, answers it builds, pictures it lists, fields it keeps.
 import { describe, expect, it } from "vitest";
 import { draftOf } from "../testing/drafts";
-import { acceptedOf, blankStep, fromDefinition, KINDS, kindOf, nextId, numberValues, speechVariants, toDefinition, type StepDraft } from "./model";
+import { acceptedOf, blankStep, fromDefinition, KINDS, kindOf, legacyFields, nextId, numberValues, REWARD_CATEGORIES, REWARD_OPTIONS, rewardHint, speechVariants, toDefinition, type StepDraft } from "./model";
 
 describe("IDs", () => {
   it("gives the next free option letter and part ID", () => {
@@ -66,12 +66,39 @@ describe("the definition", () => {
     expect(toDefinition(base, fromDefinition(base)).introductionContent).toEqual({ cards: [] });
   });
 
-  it("drops empty optional fields instead of sending empty strings", () => {
+  it("drops an empty review note instead of sending an empty string", () => {
     const base = draftOf("NUMERIC").definition;
-    const definition = toDefinition(base, { ...fromDefinition(base), source: "", curriculumNote: "  ", reviewNote: "" });
-    expect(definition).not.toHaveProperty("source");
+    expect(toDefinition(base, { ...fromDefinition(base), reviewNote: "  " })).not.toHaveProperty("reviewNote");
+  });
+
+  it("reads a draft that has curriculum codes, a note and a source, and saves it without them (the topic carries the curriculum)", () => {
+    const base = { ...draftOf("NUMERIC").definition, curriculumReference: ["NC14.Ma.Y1.NPV-2"], curriculumNote: "a note", source: "HANDWRITTEN" };
+    const definition = toDefinition(base, fromDefinition(base));
+    expect(definition).not.toHaveProperty("curriculumReference");
     expect(definition).not.toHaveProperty("curriculumNote");
-    expect(definition).not.toHaveProperty("reviewNote");
+    expect(definition).not.toHaveProperty("source");
+    expect(definition.prompt).toEqual(base.prompt);
+    expect(legacyFields(base)).toEqual(["curriculumReference", "curriculumNote", "source"]);
+    expect(legacyFields(definition)).toEqual([]);
+  });
+
+  it("words the reward hint for the chosen value", () => {
+    expect(rewardHint("BOTH")).toMatch(/^Either slot/u);
+    expect(rewardHint("NORMAL")).toMatch(/only after a normal wave/u);
+    expect(rewardHint("NORMAL")).not.toMatch(/meteor/u);
+    expect(rewardHint("METEOR")).toMatch(/only after a meteor wave/u);
+    expect(rewardHint("METEOR")).not.toMatch(/normal/u);
+  });
+
+  it("keeps every reward category, including either slot (BOTH), through a load and a save", () => {
+    expect(REWARD_CATEGORIES).toEqual(["BOTH", "NORMAL", "METEOR"]);
+    expect(REWARD_OPTIONS.map((o) => o.value)).toEqual([...REWARD_CATEGORIES]);
+    for (const rewardCategory of REWARD_CATEGORIES) {
+      const base = { ...draftOf("WORD").definition, rewardCategory };
+      const state = fromDefinition(base);
+      expect(state.rewardCategory).toBe(rewardCategory);
+      expect(toDefinition(base, state).rewardCategory).toBe(rewardCategory);
+    }
   });
 
   it("gives a draft with no payload yet the blank step of its type (the first mode, when no mode is stored)", () => {
