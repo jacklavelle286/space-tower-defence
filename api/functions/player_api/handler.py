@@ -72,7 +72,8 @@ from shared.runs import (
     sorted_slots,
 )
 from shared.selection.bank import read_units, read_versions, version_key
-from shared.selection.plan import M1_CONFIG, BankNotReady, SelectionConfig, choose_units, plan_slots, slot_specs
+from shared.selection.eligibility import select_units
+from shared.selection.plan import LIVE_CONFIG, BankNotReady, SelectionConfig, plan_slots, slot_specs
 from shared.session import (
     RESET_HOLDER_PREFIX,
     SESSION_SK,
@@ -159,7 +160,7 @@ class Deps:
     seed: Callable[[], str] = _new_seed
     sleep: Callable[[float], None] = time.sleep
     random: Callable[[], float] = _jitter
-    selection: SelectionConfig = field(default=M1_CONFIG)
+    selection: SelectionConfig = field(default=LIVE_CONFIG)  # thresholds and rules (shared/selection/plan.py)
 
 
 def _pk(request: Request) -> str:
@@ -496,10 +497,12 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         )
         content = deps.content()
         try:
-            chosen = choose_units(specs, read_units(content, band), seed, deps.selection)
+            chosen = select_units(specs, read_units(content, band), seed, deps.selection)
             versions = read_versions(content, {(unit.activity_id, unit.version) for unit in chosen})
             plans = plan_slots(specs, chosen, versions, seed)
-        except BankNotReady:
+        except BankNotReady as refusal:
+            # Why, for the operator (never the child): SLOT_UNFILLED, NOT_ELIGIBLE, ... (shared/selection/plan.py)
+            logger.line("WARNING", routeKey="POST /api/runs", code="BANK_NOT_READY", result=refusal.cause)
             raise ApiError(
                 "CONTENT_UNAVAILABLE", "Activities for this age are not ready", details={"reason": "BANK_NOT_READY"}
             ) from None

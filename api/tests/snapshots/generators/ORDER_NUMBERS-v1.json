@@ -1,0 +1,1249 @@
+{
+ "kind": "ORDER_NUMBERS",
+ "version": 1,
+ "cases": [
+  {
+   "name": "three-to10",
+   "interactionType": "ARRANGE",
+   "template": {
+    "generatorKind": "ORDER_NUMBERS",
+    "generatorVersion": 1,
+    "domain": {
+     "values": {
+      "min": 0,
+      "max": 10
+     },
+     "count": 3,
+     "directions": [
+      "ASCENDING",
+      "DESCENDING"
+     ]
+    }
+   },
+   "domainSize": 330,
+   "sha256": "bf3e0b600dbaa05a31102e078cafd83f8b9322befc75ed7fb914b4c00fd41c08",
+   "instances": {
+    "0": {
+     "generatorKind": "ORDER_NUMBERS",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       0,
+       1,
+       2
+      ],
+      "direction": "ASCENDING"
+     },
+     "prompt": {
+      "text": "Put the numbers in order, smallest first."
+     },
+     "activityPayload": {
+      "mode": "SEQUENCE",
+      "tiles": [
+       {
+        "id": "t1",
+        "value": "1",
+        "text": "1"
+       },
+       {
+        "id": "t2",
+        "value": "2",
+        "text": "2"
+       },
+       {
+        "id": "t3",
+        "value": "0",
+        "text": "0"
+       }
+      ],
+      "slots": 3,
+      "orderLabel": "smallest first"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "0,1,2"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "47": {
+     "generatorKind": "ORDER_NUMBERS",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       0,
+       3,
+       10
+      ],
+      "direction": "DESCENDING"
+     },
+     "prompt": {
+      "text": "Put the numbers in order, largest first."
+     },
+     "activityPayload": {
+      "mode": "SEQUENCE",
+      "tiles": [
+       {
+        "id": "t1",
+        "value": "3",
+        "text": "3"
+       },
+       {
+        "id": "t2",
+        "value": "10",
+        "text": "10"
+       },
+       {
+        "id": "t3",
+        "value": "0",
+        "text": "0"
+       }
+      ],
+      "slots": 3,
+      "orderLabel": "largest first"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "10,3,0"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "94": {
+     "generatorKind": "ORDER_NUMBERS",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       1,
+       2,
+       5
+      ],
+      "direction": "ASCENDING"
+     },
+     "prompt": {
+      "text": "Put the numbers in order, smallest first."
+     },
+     "activityPayload": {
+      "mode": "SEQUENCE",
+      "tiles": [
+       {
+        "id": "t1",
+        "value": "2",
+        "text": "2"
+       },
+       {
+        "id": "t2",
+        "value": "5",
+        "text": "5"
+       },
+       {
+        "id": "t3",
+        "value": "1",
+        "text": "1"
+       }
+      ],
+      "slots": 3,
+      "orderLabel": "smallest first"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "1,2,5"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "141": {
+     "generatorKind": "ORDER_NUMBERS",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       1,
+       5,
+       10
+      ],
+      "direction": "DESCENDING"
+     },
+     "prompt": {
+      "text": "Put the numbers in order, largest first."
+     },
+     "activityPayload": {
+      "mode": "SEQUENCE",
+      "tiles": [
+       {
+        "id": "t1",
+        "value": "5",
+        "text": "5"
+       },
+       {
+        "id": "t2",
+        "value": "10",
+        "text": "10"
+       },
+       {
+        "id": "t3",
+        "value": "1",
+        "text": "1"
+       }
+      ],
+      "slots": 3,
+      "orderLabel": "largest first"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "10,5,1"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "188": {
+     "generatorKind": "ORDER_NUMBERS",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       2,
+       5,
+       6
+      ],
+      "direction": "ASCENDING"
+     },
+     "prompt": {
+      "text": "Put the numbers in order, smallest first."
+     },
+     "activityPayload": {
+      "mode": "SEQUENCE",
+      "tiles": [
+       {
+        "id": "t1",
+        "value": "5",
+        "text": "5"
+       },
+       {
+        "id": "t2",
+        "value": "6",
+        "text": "6"
+       },
+       {
+        "id": "t3",
+        "value": "2",
+        "text": "2"
+       }
+      ],
+      "slots": 3,
+      "orderLabel": "smallest first"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "2,5,6"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "235": {
+     "generatorKind": "ORDER_NUMBERS",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       3,
+       5,
+       8
+      ],
+      "direction": "DESCENDING"
+     },
+     "prompt": {
+      "text": "Put the numbers in order, largest first."
+     },
+     "activityPayload": {
+      "mode": "SEQUENCE",
+      "tiles": [
+       {
+        "id": "t1",
+        "value": "5",
+        "text": "5"
+       },
+       {
+        "id": "t2",
+        "value": "8",
+        "text": "8"
+       },
+       {
+        "id": "t3",
+        "value": "3",
+        "text": "3"
+       }
+      ],
+      "slots": 3,
+      "orderLabel": "largest first"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "8,5,3"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "282": {
+     "generatorKind": "ORDER_NUMBERS",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       4,
+       7,
+       10
+      ],
+      "direction": "ASCENDING"
+     },
+     "prompt": {
+      "text": "Put the numbers in order, smallest first."
+     },
+     "activityPayload": {
+      "mode": "SEQUENCE",
+      "tiles": [
+       {
+        "id": "t1",
+        "value": "7",
+        "text": "7"
+       },
+       {
+        "id": "t2",
+        "value": "10",
+        "text": "10"
+       },
+       {
+        "id": "t3",
+        "value": "4",
+        "text": "4"
+       }
+      ],
+      "slots": 3,
+      "orderLabel": "smallest first"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "4,7,10"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "329": {
+     "generatorKind": "ORDER_NUMBERS",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       8,
+       9,
+       10
+      ],
+      "direction": "DESCENDING"
+     },
+     "prompt": {
+      "text": "Put the numbers in order, largest first."
+     },
+     "activityPayload": {
+      "mode": "SEQUENCE",
+      "tiles": [
+       {
+        "id": "t1",
+        "value": "9",
+        "text": "9"
+       },
+       {
+        "id": "t2",
+        "value": "10",
+        "text": "10"
+       },
+       {
+        "id": "t3",
+        "value": "8",
+        "text": "8"
+       }
+      ],
+      "slots": 3,
+      "orderLabel": "largest first"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "10,9,8"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  },
+  {
+   "name": "four-30s",
+   "interactionType": "ARRANGE",
+   "template": {
+    "generatorKind": "ORDER_NUMBERS",
+    "generatorVersion": 1,
+    "domain": {
+     "values": {
+      "min": 30,
+      "max": 42
+     },
+     "count": 4,
+     "directions": [
+      "ASCENDING"
+     ]
+    }
+   },
+   "domainSize": 715,
+   "sha256": "578314d6bd46fa8f33ce3ff6e6e46f6ea85e2dc540022bcfa489c2dfa6520fe0",
+   "instances": {
+    "0": {
+     "generatorKind": "ORDER_NUMBERS",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       30,
+       31,
+       32,
+       33
+      ],
+      "direction": "ASCENDING"
+     },
+     "prompt": {
+      "text": "Put the numbers in order, smallest first."
+     },
+     "activityPayload": {
+      "mode": "SEQUENCE",
+      "tiles": [
+       {
+        "id": "t1",
+        "value": "31",
+        "text": "31"
+       },
+       {
+        "id": "t2",
+        "value": "32",
+        "text": "32"
+       },
+       {
+        "id": "t3",
+        "value": "33",
+        "text": "33"
+       },
+       {
+        "id": "t4",
+        "value": "30",
+        "text": "30"
+       }
+      ],
+      "slots": 4,
+      "orderLabel": "smallest first"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "30,31,32,33"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "102": {
+     "generatorKind": "ORDER_NUMBERS",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       30,
+       33,
+       34,
+       37
+      ],
+      "direction": "ASCENDING"
+     },
+     "prompt": {
+      "text": "Put the numbers in order, smallest first."
+     },
+     "activityPayload": {
+      "mode": "SEQUENCE",
+      "tiles": [
+       {
+        "id": "t1",
+        "value": "33",
+        "text": "33"
+       },
+       {
+        "id": "t2",
+        "value": "34",
+        "text": "34"
+       },
+       {
+        "id": "t3",
+        "value": "37",
+        "text": "37"
+       },
+       {
+        "id": "t4",
+        "value": "30",
+        "text": "30"
+       }
+      ],
+      "slots": 4,
+      "orderLabel": "smallest first"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "30,33,34,37"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "204": {
+     "generatorKind": "ORDER_NUMBERS",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       30,
+       37,
+       39,
+       40
+      ],
+      "direction": "ASCENDING"
+     },
+     "prompt": {
+      "text": "Put the numbers in order, smallest first."
+     },
+     "activityPayload": {
+      "mode": "SEQUENCE",
+      "tiles": [
+       {
+        "id": "t1",
+        "value": "37",
+        "text": "37"
+       },
+       {
+        "id": "t2",
+        "value": "39",
+        "text": "39"
+       },
+       {
+        "id": "t3",
+        "value": "40",
+        "text": "40"
+       },
+       {
+        "id": "t4",
+        "value": "30",
+        "text": "30"
+       }
+      ],
+      "slots": 4,
+      "orderLabel": "smallest first"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "30,37,39,40"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "306": {
+     "generatorKind": "ORDER_NUMBERS",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       31,
+       34,
+       35,
+       41
+      ],
+      "direction": "ASCENDING"
+     },
+     "prompt": {
+      "text": "Put the numbers in order, smallest first."
+     },
+     "activityPayload": {
+      "mode": "SEQUENCE",
+      "tiles": [
+       {
+        "id": "t1",
+        "value": "34",
+        "text": "34"
+       },
+       {
+        "id": "t2",
+        "value": "35",
+        "text": "35"
+       },
+       {
+        "id": "t3",
+        "value": "41",
+        "text": "41"
+       },
+       {
+        "id": "t4",
+        "value": "31",
+        "text": "31"
+       }
+      ],
+      "slots": 4,
+      "orderLabel": "smallest first"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "31,34,35,41"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "408": {
+     "generatorKind": "ORDER_NUMBERS",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       32,
+       33,
+       37,
+       40
+      ],
+      "direction": "ASCENDING"
+     },
+     "prompt": {
+      "text": "Put the numbers in order, smallest first."
+     },
+     "activityPayload": {
+      "mode": "SEQUENCE",
+      "tiles": [
+       {
+        "id": "t1",
+        "value": "33",
+        "text": "33"
+       },
+       {
+        "id": "t2",
+        "value": "37",
+        "text": "37"
+       },
+       {
+        "id": "t3",
+        "value": "40",
+        "text": "40"
+       },
+       {
+        "id": "t4",
+        "value": "32",
+        "text": "32"
+       }
+      ],
+      "slots": 4,
+      "orderLabel": "smallest first"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "32,33,37,40"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "510": {
+     "generatorKind": "ORDER_NUMBERS",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       33,
+       34,
+       35,
+       41
+      ],
+      "direction": "ASCENDING"
+     },
+     "prompt": {
+      "text": "Put the numbers in order, smallest first."
+     },
+     "activityPayload": {
+      "mode": "SEQUENCE",
+      "tiles": [
+       {
+        "id": "t1",
+        "value": "34",
+        "text": "34"
+       },
+       {
+        "id": "t2",
+        "value": "35",
+        "text": "35"
+       },
+       {
+        "id": "t3",
+        "value": "41",
+        "text": "41"
+       },
+       {
+        "id": "t4",
+        "value": "33",
+        "text": "33"
+       }
+      ],
+      "slots": 4,
+      "orderLabel": "smallest first"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "33,34,35,41"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "612": {
+     "generatorKind": "ORDER_NUMBERS",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       34,
+       36,
+       37,
+       40
+      ],
+      "direction": "ASCENDING"
+     },
+     "prompt": {
+      "text": "Put the numbers in order, smallest first."
+     },
+     "activityPayload": {
+      "mode": "SEQUENCE",
+      "tiles": [
+       {
+        "id": "t1",
+        "value": "36",
+        "text": "36"
+       },
+       {
+        "id": "t2",
+        "value": "37",
+        "text": "37"
+       },
+       {
+        "id": "t3",
+        "value": "40",
+        "text": "40"
+       },
+       {
+        "id": "t4",
+        "value": "34",
+        "text": "34"
+       }
+      ],
+      "slots": 4,
+      "orderLabel": "smallest first"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "34,36,37,40"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "714": {
+     "generatorKind": "ORDER_NUMBERS",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       39,
+       40,
+       41,
+       42
+      ],
+      "direction": "ASCENDING"
+     },
+     "prompt": {
+      "text": "Put the numbers in order, smallest first."
+     },
+     "activityPayload": {
+      "mode": "SEQUENCE",
+      "tiles": [
+       {
+        "id": "t1",
+        "value": "40",
+        "text": "40"
+       },
+       {
+        "id": "t2",
+        "value": "41",
+        "text": "41"
+       },
+       {
+        "id": "t3",
+        "value": "42",
+        "text": "42"
+       },
+       {
+        "id": "t4",
+        "value": "39",
+        "text": "39"
+       }
+      ],
+      "slots": 4,
+      "orderLabel": "smallest first"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "39,40,41,42"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  },
+  {
+   "name": "five-teens",
+   "interactionType": "ARRANGE",
+   "template": {
+    "generatorKind": "ORDER_NUMBERS",
+    "generatorVersion": 1,
+    "domain": {
+     "values": {
+      "min": 10,
+      "max": 20
+     },
+     "count": 5,
+     "directions": [
+      "DESCENDING"
+     ]
+    }
+   },
+   "domainSize": 462,
+   "sha256": "a85c578b783443cfa63b1dd61bb8682ea6297ac2174e40ef7cb4fb2efd0e8ba7",
+   "instances": {
+    "0": {
+     "generatorKind": "ORDER_NUMBERS",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       10,
+       11,
+       12,
+       13,
+       14
+      ],
+      "direction": "DESCENDING"
+     },
+     "prompt": {
+      "text": "Put the numbers in order, largest first."
+     },
+     "activityPayload": {
+      "mode": "SEQUENCE",
+      "tiles": [
+       {
+        "id": "t1",
+        "value": "11",
+        "text": "11"
+       },
+       {
+        "id": "t2",
+        "value": "12",
+        "text": "12"
+       },
+       {
+        "id": "t3",
+        "value": "13",
+        "text": "13"
+       },
+       {
+        "id": "t4",
+        "value": "14",
+        "text": "14"
+       },
+       {
+        "id": "t5",
+        "value": "10",
+        "text": "10"
+       }
+      ],
+      "slots": 5,
+      "orderLabel": "largest first"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "14,13,12,11,10"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "65": {
+     "generatorKind": "ORDER_NUMBERS",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       10,
+       11,
+       15,
+       16,
+       18
+      ],
+      "direction": "DESCENDING"
+     },
+     "prompt": {
+      "text": "Put the numbers in order, largest first."
+     },
+     "activityPayload": {
+      "mode": "SEQUENCE",
+      "tiles": [
+       {
+        "id": "t1",
+        "value": "11",
+        "text": "11"
+       },
+       {
+        "id": "t2",
+        "value": "15",
+        "text": "15"
+       },
+       {
+        "id": "t3",
+        "value": "16",
+        "text": "16"
+       },
+       {
+        "id": "t4",
+        "value": "18",
+        "text": "18"
+       },
+       {
+        "id": "t5",
+        "value": "10",
+        "text": "10"
+       }
+      ],
+      "slots": 5,
+      "orderLabel": "largest first"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "18,16,15,11,10"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "131": {
+     "generatorKind": "ORDER_NUMBERS",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       10,
+       12,
+       16,
+       17,
+       19
+      ],
+      "direction": "DESCENDING"
+     },
+     "prompt": {
+      "text": "Put the numbers in order, largest first."
+     },
+     "activityPayload": {
+      "mode": "SEQUENCE",
+      "tiles": [
+       {
+        "id": "t1",
+        "value": "12",
+        "text": "12"
+       },
+       {
+        "id": "t2",
+        "value": "16",
+        "text": "16"
+       },
+       {
+        "id": "t3",
+        "value": "17",
+        "text": "17"
+       },
+       {
+        "id": "t4",
+        "value": "19",
+        "text": "19"
+       },
+       {
+        "id": "t5",
+        "value": "10",
+        "text": "10"
+       }
+      ],
+      "slots": 5,
+      "orderLabel": "largest first"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "19,17,16,12,10"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "197": {
+     "generatorKind": "ORDER_NUMBERS",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       10,
+       15,
+       16,
+       17,
+       20
+      ],
+      "direction": "DESCENDING"
+     },
+     "prompt": {
+      "text": "Put the numbers in order, largest first."
+     },
+     "activityPayload": {
+      "mode": "SEQUENCE",
+      "tiles": [
+       {
+        "id": "t1",
+        "value": "15",
+        "text": "15"
+       },
+       {
+        "id": "t2",
+        "value": "16",
+        "text": "16"
+       },
+       {
+        "id": "t3",
+        "value": "17",
+        "text": "17"
+       },
+       {
+        "id": "t4",
+        "value": "20",
+        "text": "20"
+       },
+       {
+        "id": "t5",
+        "value": "10",
+        "text": "10"
+       }
+      ],
+      "slots": 5,
+      "orderLabel": "largest first"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "20,17,16,15,10"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "263": {
+     "generatorKind": "ORDER_NUMBERS",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       11,
+       12,
+       17,
+       18,
+       20
+      ],
+      "direction": "DESCENDING"
+     },
+     "prompt": {
+      "text": "Put the numbers in order, largest first."
+     },
+     "activityPayload": {
+      "mode": "SEQUENCE",
+      "tiles": [
+       {
+        "id": "t1",
+        "value": "12",
+        "text": "12"
+       },
+       {
+        "id": "t2",
+        "value": "17",
+        "text": "17"
+       },
+       {
+        "id": "t3",
+        "value": "18",
+        "text": "18"
+       },
+       {
+        "id": "t4",
+        "value": "20",
+        "text": "20"
+       },
+       {
+        "id": "t5",
+        "value": "11",
+        "text": "11"
+       }
+      ],
+      "slots": 5,
+      "orderLabel": "largest first"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "20,18,17,12,11"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "329": {
+     "generatorKind": "ORDER_NUMBERS",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       11,
+       15,
+       17,
+       19,
+       20
+      ],
+      "direction": "DESCENDING"
+     },
+     "prompt": {
+      "text": "Put the numbers in order, largest first."
+     },
+     "activityPayload": {
+      "mode": "SEQUENCE",
+      "tiles": [
+       {
+        "id": "t1",
+        "value": "15",
+        "text": "15"
+       },
+       {
+        "id": "t2",
+        "value": "17",
+        "text": "17"
+       },
+       {
+        "id": "t3",
+        "value": "19",
+        "text": "19"
+       },
+       {
+        "id": "t4",
+        "value": "20",
+        "text": "20"
+       },
+       {
+        "id": "t5",
+        "value": "11",
+        "text": "11"
+       }
+      ],
+      "slots": 5,
+      "orderLabel": "largest first"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "20,19,17,15,11"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "395": {
+     "generatorKind": "ORDER_NUMBERS",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       12,
+       15,
+       16,
+       18,
+       20
+      ],
+      "direction": "DESCENDING"
+     },
+     "prompt": {
+      "text": "Put the numbers in order, largest first."
+     },
+     "activityPayload": {
+      "mode": "SEQUENCE",
+      "tiles": [
+       {
+        "id": "t1",
+        "value": "15",
+        "text": "15"
+       },
+       {
+        "id": "t2",
+        "value": "16",
+        "text": "16"
+       },
+       {
+        "id": "t3",
+        "value": "18",
+        "text": "18"
+       },
+       {
+        "id": "t4",
+        "value": "20",
+        "text": "20"
+       },
+       {
+        "id": "t5",
+        "value": "12",
+        "text": "12"
+       }
+      ],
+      "slots": 5,
+      "orderLabel": "largest first"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "20,18,16,15,12"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "461": {
+     "generatorKind": "ORDER_NUMBERS",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       16,
+       17,
+       18,
+       19,
+       20
+      ],
+      "direction": "DESCENDING"
+     },
+     "prompt": {
+      "text": "Put the numbers in order, largest first."
+     },
+     "activityPayload": {
+      "mode": "SEQUENCE",
+      "tiles": [
+       {
+        "id": "t1",
+        "value": "17",
+        "text": "17"
+       },
+       {
+        "id": "t2",
+        "value": "18",
+        "text": "18"
+       },
+       {
+        "id": "t3",
+        "value": "19",
+        "text": "19"
+       },
+       {
+        "id": "t4",
+        "value": "20",
+        "text": "20"
+       },
+       {
+        "id": "t5",
+        "value": "16",
+        "text": "16"
+       }
+      ],
+      "slots": 5,
+      "orderLabel": "largest first"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "20,19,18,17,16"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  }
+ ]
+}

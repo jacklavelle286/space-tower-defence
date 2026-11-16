@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -47,10 +48,11 @@ def content(ddb: Any) -> Any:
 
 @pytest.fixture(autouse=True)
 def minimal_seed(tmp_path_factory: pytest.TempPathFactory, monkeypatch: pytest.MonkeyPatch) -> Path:
-    """The seed-run tests use a fixed seed folder (the speech seeds and ph-0102 only), so the starter pack growing in
-    content/seed/activities never changes what they expect. The pack itself is checked file by file at the end."""
+    """The seed-run tests use a fixed seed folder (phoneme-sh and ph-0102 only), so the starter pack growing in
+    content/seed never changes what they expect. The pack itself is checked file by file at the end."""
     seed_dir = tmp_path_factory.mktemp("minimal") / "seed"
-    shutil.copytree(REPO / "content" / "seed" / "speech", seed_dir / "speech")
+    (seed_dir / "speech").mkdir(parents=True)
+    shutil.copy(REPO / "content" / "seed" / "speech" / "phoneme-sh.json", seed_dir / "speech")
     (seed_dir / "activities").mkdir()
     shutil.copy(REPO / "content" / "seed" / "activities" / "ph-0102.json", seed_dir / "activities")
     monkeypatch.setattr(seed_content, "SEED_DIR", seed_dir)
@@ -347,15 +349,128 @@ def test_every_seed_activity_passes_the_definition_checks(path: Path) -> None:
     assert definition_problems(doc, path.stem) == []
 
 
+def test_no_picture_alt_text_names_the_answer() -> None:
+    """A picture's alt text is read by screen readers and shown when the picture fails to load, so it must never
+    contain an accepted option's word (D9.4: no clue gives the answer away). Single letters are skipped: they sit
+    inside ordinary words."""
+    leaks = []
+    for path in sorted((REPO / "content" / "seed" / "activities").glob("*.json")):
+        doc = json.loads(path.read_text(encoding="utf-8"))
+        payload = doc.get("activityPayload") or {}
+        alt = str((payload.get("stimulus") or {}).get("alt", "")).lower()
+        words = set(re.findall(r"[a-z']+", alt))
+        texts = {o["id"]: str(o.get("text", "")).lower() for o in payload.get("options", []) if isinstance(o, dict)}
+        for accepted in (doc.get("answerSpecification") or {}).get("accepted", []):
+            answer = texts.get(accepted, "")
+            if len(answer) > 1 and answer in words:
+                leaks.append((path.stem, answer))
+    assert leaks == []
+
+
+PACK = REPO / "content" / "seed"
+
+
+def pack_speech_refs() -> dict[str, set[str]]:
+    """activityId -> the speechIds its seed file references."""
+    out: dict[str, set[str]] = {}
+    for path in sorted((PACK / "activities").glob("*.json")):
+        refs = json.loads(path.read_text(encoding="utf-8")).get("speechDefinitionReferences", {})
+        out[path.stem] = {ref["speechId"] for ref in refs.values()}
+    return out
+
+
+def pack_speech_ids() -> set[str]:
+    return {p.stem for p in (PACK / "speech").glob("*.json")}
+
+
+def test_every_referenced_speech_is_seeded_and_every_seeded_speech_is_used() -> None:
+    """The owner approves clips in the admin app, so each one an activity names must arrive as a seeded draft; and a
+    seeded clip no activity uses would be an approval for nothing."""
+    referenced = set().union(*pack_speech_refs().values())
+    assert referenced == pack_speech_ids()
+
+
+def test_a_seed_speech_heard_in_the_bake_off_keeps_that_body() -> None:
+    """A seed speech whose ID has a bake-off clip in content/listening-verdicts.json (phoneme-sh, phoneme-ee) uses
+    exactly that clip's body, so the server's wrapper gives the clip key the owner already heard (ADR-0014)."""
+    from shared import verdicts
+
+    checked = 0
+    for path in sorted((PACK / "speech").glob("*.json")):
+        doc = json.loads(path.read_text(encoding="utf-8"))
+        sound = verdicts._sounds().get(doc["speechId"].removeprefix("phoneme-")) if doc["kind"] == "PHONEME" else None
+        entry = verdicts._items().get(doc["speechId"]) or sound
+        body = verdicts._clip_body(entry)
+        if body is None:
+            continue
+        checked += 1
+        assert doc.get("ssml", doc.get("text")) == body, doc["speechId"]
+    assert checked >= 2
+
+
 def test_the_whole_pack_would_seed_and_publish(content: Any, capsys: pytest.CaptureFixture[str]) -> None:
     """The real content/seed folder, on moto: a plain dry run loads every seed (any bad file would stop it with exit
-    1), and a publish dry run with phoneme-sh approved reports nothing failed."""
-    pack = REPO / "content" / "seed"
-    activities = sorted(p.stem for p in (pack / "activities").glob("*.json"))
-    assert run(content, "--dry-run", seed_dir=pack) == 0
-    approve_speech(content)
+    1), and a publish dry run with every seeded speech approved reports nothing failed."""
+    activities = sorted(pack_speech_refs())
+    assert run(content, "--dry-run", seed_dir=PACK) == 0
+    for speech_id in sorted(pack_speech_ids()):
+        approve_speech(content, speech_id)
     capsys.readouterr()
-    assert run(content, "--dry-run", "--publish", seed_dir=pack) == 0
+    assert run(content, "--dry-run", "--publish", seed_dir=PACK) == 0
     out = capsys.readouterr().out
     assert "failed: 0" in out and f"published: {len(activities)}" in out
     assert all(f"activity {a}: would create (dry run); would publish (dry run)" in out for a in activities)
+
+
+def test_the_pack_waits_only_for_speech_approval(content: Any, capsys: pytest.CaptureFixture[str]) -> None:
+    """With only phoneme-sh approved (production before the owner approves the new clips), every activity that names
+    another clip fails with speech_not_approved and nothing else, one problem per unapproved reference, and every
+    other activity would still publish."""
+    refs = pack_speech_refs()
+    waiting = sorted(a for a, ids in refs.items() if ids - {"phoneme-sh"})
+    assert len(waiting) == 21  # the phonics items that were held in content/seed-held (ADR-0028)
+    approve_speech(content)
+    capsys.readouterr()
+    assert run(content, "--dry-run", "--publish", seed_dir=PACK) == 3
+    out = capsys.readouterr().out
+    assert f"failed: {len(waiting)}" in out and f"published: {len(refs) - len(waiting)}" in out
+    seeds = {
+        p.stem: json.loads(p.read_text(encoding="utf-8"))["speechDefinitionReferences"]
+        for p in (PACK / "activities").glob("*.json")
+    }
+    for activity_id in waiting:
+        unapproved = sorted(v for v, ref in seeds[activity_id].items() if ref["speechId"] != "phoneme-sh")
+        shown = ", ".join(f"speechDefinitionReferences.{v} speech_not_approved" for v in unapproved)
+        assert f"activity {activity_id}: would create (dry run); {shown} (dry run)" in out
+
+
+def test_approving_the_speech_publishes_the_waiting_activities(
+    content: Any, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """The owner's flow: seed (the waiting activities fail), approve their clips in the app, run the seed again: the
+    identical drafts are published and nothing else changes."""
+    approve_speech(content)
+    assert run(content, "--apply", "--publish", seed_dir=PACK) == 3
+    for speech_id in sorted(pack_speech_ids() - {"phoneme-sh"}):
+        table = DynamoTable(content, CONTENT)
+        table.update_item(
+            "SPEECH",
+            speech_id,
+            update="SET #s = :s, #v = :v",
+            names={"#s": "state", "#v": "approvedVersion"},
+            values={":s": "APPROVED", ":v": SPEECH_VERSION},
+        )
+        version = {"pk": f"SPEECH#{speech_id}", "sk": f"V#{SPEECH_VERSION}", "clipKey": f"clips/{speech_id}.mp3"}
+        table.transact_write([table.put_action(version, condition="attribute_not_exists(#pk)", names={"#pk": "pk"})])
+    capsys.readouterr()
+    assert run(content, "--apply", "--publish", seed_dir=PACK) == 0
+    out = capsys.readouterr().out
+    assert "failed: 0" in out and "published: 21" in out
+    table = DynamoTable(content, CONTENT)
+    header = table.get_item("ACT", "ph-1019")
+    assert header is not None and header["state"] == "PUBLISHED"
+    version = table.get_item("ACT#ph-1019", f"V#{header['publishedVersion']}")
+    assert version is not None
+    assert version["speechDefinitionReferences"] == {
+        "prompt": {"speechId": "word-zub", "speechVersion": SPEECH_VERSION, "clipKey": "clips/word-zub.mp3"}
+    }

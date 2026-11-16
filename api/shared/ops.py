@@ -43,7 +43,7 @@ from shared.errors import ApiError
 from shared.rules import reduce, validate
 from shared.rules.contracts import LIMITS
 from shared.rules.next_phase import slot_id_for
-from shared.runs import PROTOCOL_VERSION, TERMINAL, plain, run_sk, slot_sk
+from shared.runs import PROTOCOL_VERSION, TERMINAL, plain, resolved_of, run_sk, slot_sk
 from shared.selection.bank import version_key
 from shared.session import SESSION_SK, generation_of, iso_z
 
@@ -157,12 +157,14 @@ def _slot_ids(run: Mapping[str, Any], op: Mapping[str, Any]) -> tuple[str | None
 # --- Building the reducer's state ----------------------------------------------------------------------------------
 
 
-def _accepted(version: Mapping[str, Any] | None) -> list[str] | None:
+def _accepted(version: Mapping[str, Any] | None, slot: Mapping[str, Any]) -> list[str] | None:
     """The pinned version's accepted canonical answers, or None when the version is withdrawn, missing or has no
-    usable list (all three are treated alike: the slot is voided, F §4.4)."""
+    usable list (all three are treated alike: the slot is voided, F §4.4). A template slot's answers are its
+    materialised instance's (`resolved`, C25.1), which only counts while the pinned version stands."""
     if version is None or version.get("withdrawn"):
         return None
-    spec = version.get("answerSpecification")
+    resolved = resolved_of(slot)
+    spec = (resolved if resolved is not None else version).get("answerSpecification")
     accepted = spec.get("accepted") if isinstance(spec, Mapping) else None
     if not isinstance(accepted, list) or not accepted or not all(isinstance(a, str) for a in accepted):
         return None
@@ -500,7 +502,7 @@ class OpsBatch:
             version = self._content().get_item(
                 *version_key(str(addressed_slot.get("activityId")), str(addressed_slot.get("activityVersion")))
             )
-            accepted[str(reads.addressed)] = _accepted(version)
+            accepted[str(reads.addressed)] = _accepted(version, addressed_slot)
             version_missing = version is None
         power_cap = int(bounds["powerInventoryCap"]) if bounds is not None else 0
         state = run_state(run, list(reads.slots.values()), power_cap, accepted)

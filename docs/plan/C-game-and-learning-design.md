@@ -1903,6 +1903,16 @@ phonics items in common with the previous run; at the target (16 from 48) about 
 Milestone 1 sets the thresholds to 1 and declares one activity interval — labelled as milestone configuration, not the product rule
 ([B](B-scope-and-decisions.md), [J](J-execution-backlog.md)).
 
+**As built in Phase 42 (M3-07) [PROPOSAL]:** the table above, the topic condition and the template-instance totals are
+`PLAN_CONFIG` in `api/shared/selection/plan.py`; a band that meets every condition, and that the selector can fill a whole
+campaign for without the subject fallback, is eligible and plays by C24.4 exactly. The Milestone 1 rules (thresholds 1, subject
+fallback on) are kept as `STARTER_CONFIG`, and the live configuration (`LIVE_CONFIG`) applies them to a band that is **not yet
+eligible** instead of refusing it (`starter_until_eligible`), because the starter bank of 2026-11-16 is far below the thresholds at
+every age and the plan's rule alone would make every new game `BANK_NOT_READY`. Each band moves to the plan's rules by itself once
+bank status shows it eligible; turning `starter_until_eligible` off restores C24.8 exactly. A run is still never partial: with
+nothing left to fill a slot it is `BANK_NOT_READY`. Bank status (R30) and selection count with the same function
+(`api/shared/selection/bank.py` `group_units`).
+
 ### C24.8 Content unavailable (prompt.md:219)
 
 | Situation | Reason code | Child sees |
@@ -1974,6 +1984,19 @@ other operand), de-duplicated, kept in range and never equal to the answer; an i
 domain. A first release needs only eight kinds (`COUNT_OBJECTS`, `ORDER_NUMBERS`, `ONE_MORE_LESS`, `BOND_TO`, `ADD_WITHIN`, `SUB_WITHIN`,
 `SKIP_COUNT`, `TIMES_TABLE`), which cover most maths topics at all three ages.
 
+**Version 1 as built (Phase 41, 2026-11-16).** `api/shared/generators/` implements 17 kinds at `generatorVersion` 1: all of the table
+except `PATTERN_NEXT`, `EQUAL_GROUPS` and `COMPARE_FILL`, and `COUNT_OBJECTS` with the dice arrangement only (counts 1–6). Those three
+kinds and the scatter, row and ten-frame arrangements need a question picture made of several pictures (a row of shapes, groups,
+an array, N objects), which the learning panel cannot show yet; `COMPARE_FILL` also needs `<` and `>` in text, which the plain-text
+rule refuses as markup. They are refused with rule `not_supported_yet` until a later version adds them **[ASSUMPTION]**. Each kind's
+domain fields are listed in `numbers.py` and `objects.py`; a numeric kind can be shown as `NUMBER_SELECT` (the template's
+`presentation` gives the number set and display), `TYPED` numeric (`presentation.maxLength`, default 3) or `MULTIPLE_CHOICE`. A
+domain above 5,000 instances is refused (`domain_too_large`), not sampled; the cap counts instances, not raw combinations, so
+a within-100 domain whose build drops pairs over the total still fits. Enumeration stops at 50,000 raw combinations (a work
+bound for publish), and a domain above that is also `domain_too_large` **[ASSUMPTION, Phase 41 review]**. A template may reference only an `instruction`
+clip **[ASSUMPTION]**, so `audioRequirement` on a template is `NONE` or `OPTIONAL`; `REQUIRED` is refused with rule
+`not_for_template` (no clip could meet it) **[ASSUMPTION, Phase 41 review]**.
+
 ### C25.3 What makes this safe
 
 1. **Bounded domain**: every parameter has explicit bounds; the whole domain is capped at 5,000 instances ([spine S5.2](00-spine.md#s52-activities-templates-speech)); `domainSize` is
@@ -2007,11 +2030,13 @@ A template, age 7 (`N-001` in C16.2) — `maths-bonds-to20`, shared 6–7:
   "minAge": 6, "maxAge": 7, "rewardCategory": "NORMAL", "interactionType": "NUMBER_SELECT", "audioRequirement": "NONE",
   "curriculumReference": ["NC14.Ma.Y1.AS-2", "NC14.Ma.Y2.AS-2"],
   "template": { "generatorKind": "BOND_TO", "generatorVersion": 1,
-    "domain": { "total": [20], "part": { "min": 1, "max": 19 }, "forms": ["a + ? = T", "? + a = T"] },
+    "domain": { "totals": [20], "part": { "min": 1, "max": 19 }, "forms": ["a + ? = T", "? + a = T"] },
     "presentation": { "numberSet": { "kind": "RANGE", "min": 0, "max": 20, "step": 1 }, "display": "TRACK" } } }
 ```
 
-Domain 19 parts × 2 forms = 38 instances (counts as 2 units). Pinned instance `{part: 14, form: "a + ? = T"}` → "14 + ? = 20",
+Domain 19 parts × 2 forms = 38 instances (counts as 2 units). **[PROPOSAL, Phase 41]** The BOND_TO version 1 domain field is
+`totals` (a list, so one template can cover several totals), not `total`; this record was amended to match, and
+`api/tests/unit/test_generators.py` checks this exact record. Pinned instance `{part: 14, form: "a + ? = T"}` → "14 + ? = 20",
 `answerSpecification {accepted: ["6"]}`.
 
 A fixed phonics item, age 5 (`N-002`; Example B) — shared 5–6:

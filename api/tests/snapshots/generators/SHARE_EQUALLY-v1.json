@@ -1,0 +1,339 @@
+{
+ "kind": "SHARE_EQUALLY",
+ "version": 1,
+ "cases": [
+  {
+   "name": "all",
+   "interactionType": "OBJECT_MOVE",
+   "template": {
+    "generatorKind": "SHARE_EQUALLY",
+    "generatorVersion": 1,
+    "domain": {
+     "totals": [
+      4,
+      6,
+      8,
+      10,
+      12
+     ],
+     "groups": [
+      2,
+      3
+     ],
+     "objects": [
+      "obj-star",
+      "obj-alien-egg"
+     ]
+    }
+   },
+   "domainSize": 14,
+   "sha256": "0d5140d530b32b7427b2c15e429b1f50b3700637ebce5cffa2eb1f79001d4b1b",
+   "instances": {
+    "0": {
+     "generatorKind": "SHARE_EQUALLY",
+     "generatorVersion": 1,
+     "params": {
+      "total": 4,
+      "groups": 2,
+      "object": "obj-star"
+     },
+     "prompt": {
+      "text": "Share the stars fairly."
+     },
+     "activityPayload": {
+      "mode": "DISTRIBUTE",
+      "objectAssetId": "obj-star",
+      "objectAlt": "a star",
+      "sourceCount": 4,
+      "zones": [
+       {
+        "id": "z1",
+        "label": "Nova"
+       },
+       {
+        "id": "z2",
+        "label": "Pip"
+       }
+      ],
+      "requireAllPlaced": true
+     },
+     "answerSpecification": {
+      "accepted": [
+       "z1=2;z2=2"
+      ]
+     },
+     "visualAssetReferences": [
+      "obj-star"
+     ]
+    },
+    "1": {
+     "generatorKind": "SHARE_EQUALLY",
+     "generatorVersion": 1,
+     "params": {
+      "total": 4,
+      "groups": 2,
+      "object": "obj-alien-egg"
+     },
+     "prompt": {
+      "text": "Share the alien eggs fairly."
+     },
+     "activityPayload": {
+      "mode": "DISTRIBUTE",
+      "objectAssetId": "obj-alien-egg",
+      "objectAlt": "an alien egg",
+      "sourceCount": 4,
+      "zones": [
+       {
+        "id": "z1",
+        "label": "Nova"
+       },
+       {
+        "id": "z2",
+        "label": "Pip"
+       }
+      ],
+      "requireAllPlaced": true
+     },
+     "answerSpecification": {
+      "accepted": [
+       "z1=2;z2=2"
+      ]
+     },
+     "visualAssetReferences": [
+      "obj-alien-egg"
+     ]
+    },
+    "3": {
+     "generatorKind": "SHARE_EQUALLY",
+     "generatorVersion": 1,
+     "params": {
+      "total": 6,
+      "groups": 2,
+      "object": "obj-alien-egg"
+     },
+     "prompt": {
+      "text": "Share the alien eggs fairly."
+     },
+     "activityPayload": {
+      "mode": "DISTRIBUTE",
+      "objectAssetId": "obj-alien-egg",
+      "objectAlt": "an alien egg",
+      "sourceCount": 6,
+      "zones": [
+       {
+        "id": "z1",
+        "label": "Nova"
+       },
+       {
+        "id": "z2",
+        "label": "Pip"
+       }
+      ],
+      "requireAllPlaced": true
+     },
+     "answerSpecification": {
+      "accepted": [
+       "z1=3;z2=3"
+      ]
+     },
+     "visualAssetReferences": [
+      "obj-alien-egg"
+     ]
+    },
+    "5": {
+     "generatorKind": "SHARE_EQUALLY",
+     "generatorVersion": 1,
+     "params": {
+      "total": 6,
+      "groups": 3,
+      "object": "obj-alien-egg"
+     },
+     "prompt": {
+      "text": "Share the alien eggs fairly."
+     },
+     "activityPayload": {
+      "mode": "DISTRIBUTE",
+      "objectAssetId": "obj-alien-egg",
+      "objectAlt": "an alien egg",
+      "sourceCount": 6,
+      "zones": [
+       {
+        "id": "z1",
+        "label": "Nova"
+       },
+       {
+        "id": "z2",
+        "label": "Pip"
+       },
+       {
+        "id": "z3",
+        "label": "Juno"
+       }
+      ],
+      "requireAllPlaced": true
+     },
+     "answerSpecification": {
+      "accepted": [
+       "z1=2;z2=2;z3=2"
+      ]
+     },
+     "visualAssetReferences": [
+      "obj-alien-egg"
+     ]
+    },
+    "7": {
+     "generatorKind": "SHARE_EQUALLY",
+     "generatorVersion": 1,
+     "params": {
+      "total": 8,
+      "groups": 2,
+      "object": "obj-alien-egg"
+     },
+     "prompt": {
+      "text": "Share the alien eggs fairly."
+     },
+     "activityPayload": {
+      "mode": "DISTRIBUTE",
+      "objectAssetId": "obj-alien-egg",
+      "objectAlt": "an alien egg",
+      "sourceCount": 8,
+      "zones": [
+       {
+        "id": "z1",
+        "label": "Nova"
+       },
+       {
+        "id": "z2",
+        "label": "Pip"
+       }
+      ],
+      "requireAllPlaced": true
+     },
+     "answerSpecification": {
+      "accepted": [
+       "z1=4;z2=4"
+      ]
+     },
+     "visualAssetReferences": [
+      "obj-alien-egg"
+     ]
+    },
+    "9": {
+     "generatorKind": "SHARE_EQUALLY",
+     "generatorVersion": 1,
+     "params": {
+      "total": 10,
+      "groups": 2,
+      "object": "obj-alien-egg"
+     },
+     "prompt": {
+      "text": "Share the alien eggs fairly."
+     },
+     "activityPayload": {
+      "mode": "DISTRIBUTE",
+      "objectAssetId": "obj-alien-egg",
+      "objectAlt": "an alien egg",
+      "sourceCount": 10,
+      "zones": [
+       {
+        "id": "z1",
+        "label": "Nova"
+       },
+       {
+        "id": "z2",
+        "label": "Pip"
+       }
+      ],
+      "requireAllPlaced": true
+     },
+     "answerSpecification": {
+      "accepted": [
+       "z1=5;z2=5"
+      ]
+     },
+     "visualAssetReferences": [
+      "obj-alien-egg"
+     ]
+    },
+    "11": {
+     "generatorKind": "SHARE_EQUALLY",
+     "generatorVersion": 1,
+     "params": {
+      "total": 12,
+      "groups": 2,
+      "object": "obj-alien-egg"
+     },
+     "prompt": {
+      "text": "Share the alien eggs fairly."
+     },
+     "activityPayload": {
+      "mode": "DISTRIBUTE",
+      "objectAssetId": "obj-alien-egg",
+      "objectAlt": "an alien egg",
+      "sourceCount": 12,
+      "zones": [
+       {
+        "id": "z1",
+        "label": "Nova"
+       },
+       {
+        "id": "z2",
+        "label": "Pip"
+       }
+      ],
+      "requireAllPlaced": true
+     },
+     "answerSpecification": {
+      "accepted": [
+       "z1=6;z2=6"
+      ]
+     },
+     "visualAssetReferences": [
+      "obj-alien-egg"
+     ]
+    },
+    "13": {
+     "generatorKind": "SHARE_EQUALLY",
+     "generatorVersion": 1,
+     "params": {
+      "total": 12,
+      "groups": 3,
+      "object": "obj-alien-egg"
+     },
+     "prompt": {
+      "text": "Share the alien eggs fairly."
+     },
+     "activityPayload": {
+      "mode": "DISTRIBUTE",
+      "objectAssetId": "obj-alien-egg",
+      "objectAlt": "an alien egg",
+      "sourceCount": 12,
+      "zones": [
+       {
+        "id": "z1",
+        "label": "Nova"
+       },
+       {
+        "id": "z2",
+        "label": "Pip"
+       },
+       {
+        "id": "z3",
+        "label": "Juno"
+       }
+      ],
+      "requireAllPlaced": true
+     },
+     "answerSpecification": {
+      "accepted": [
+       "z1=4;z2=4;z3=4"
+      ]
+     },
+     "visualAssetReferences": [
+      "obj-alien-egg"
+     ]
+    }
+   }
+  }
+ ]
+}

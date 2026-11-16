@@ -1,0 +1,785 @@
+{
+ "kind": "SEQUENCE_GAP",
+ "version": 1,
+ "cases": [
+  {
+   "name": "to100-typed",
+   "interactionType": "TYPED",
+   "template": {
+    "generatorKind": "SEQUENCE_GAP",
+    "generatorVersion": 1,
+    "domain": {
+     "start": {
+      "min": 0,
+      "max": 97
+     },
+     "directions": [
+      "FORWARDS",
+      "BACKWARDS"
+     ]
+    }
+   },
+   "domainSize": 579,
+   "sha256": "94ad455f9d4aba13bd5205f29d7531118d58f4818e239b6f18bb8b6a89cb37b9",
+   "instances": {
+    "0": {
+     "generatorKind": "SEQUENCE_GAP",
+     "generatorVersion": 1,
+     "params": {
+      "start": 0,
+      "direction": "FORWARDS",
+      "hide": 1
+     },
+     "prompt": {
+      "text": "What is missing? 0, ?, 2, 3"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "1"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "82": {
+     "generatorKind": "SEQUENCE_GAP",
+     "generatorVersion": 1,
+     "params": {
+      "start": 15,
+      "direction": "FORWARDS",
+      "hide": 2
+     },
+     "prompt": {
+      "text": "What is missing? 15, 16, ?, 18"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "17"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "165": {
+     "generatorKind": "SEQUENCE_GAP",
+     "generatorVersion": 1,
+     "params": {
+      "start": 29,
+      "direction": "FORWARDS",
+      "hide": 1
+     },
+     "prompt": {
+      "text": "What is missing? 29, ?, 31, 32"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "30"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "247": {
+     "generatorKind": "SEQUENCE_GAP",
+     "generatorVersion": 1,
+     "params": {
+      "start": 42,
+      "direction": "BACKWARDS",
+      "hide": 2
+     },
+     "prompt": {
+      "text": "What is missing? 42, 41, ?, 39"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "40"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "330": {
+     "generatorKind": "SEQUENCE_GAP",
+     "generatorVersion": 1,
+     "params": {
+      "start": 56,
+      "direction": "BACKWARDS",
+      "hide": 1
+     },
+     "prompt": {
+      "text": "What is missing? 56, ?, 54, 53"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "55"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "412": {
+     "generatorKind": "SEQUENCE_GAP",
+     "generatorVersion": 1,
+     "params": {
+      "start": 70,
+      "direction": "FORWARDS",
+      "hide": 2
+     },
+     "prompt": {
+      "text": "What is missing? 70, 71, ?, 73"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "72"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "495": {
+     "generatorKind": "SEQUENCE_GAP",
+     "generatorVersion": 1,
+     "params": {
+      "start": 84,
+      "direction": "FORWARDS",
+      "hide": 1
+     },
+     "prompt": {
+      "text": "What is missing? 84, ?, 86, 87"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "85"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "578": {
+     "generatorKind": "SEQUENCE_GAP",
+     "generatorVersion": 1,
+     "params": {
+      "start": 97,
+      "direction": "BACKWARDS",
+      "hide": 3
+     },
+     "prompt": {
+      "text": "What comes next? 97, 96, 95, ?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "94"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  },
+  {
+   "name": "to100-grid",
+   "interactionType": "NUMBER_SELECT",
+   "template": {
+    "generatorKind": "SEQUENCE_GAP",
+    "generatorVersion": 1,
+    "domain": {
+     "start": {
+      "min": 20,
+      "max": 60
+     },
+     "directions": [
+      "FORWARDS"
+     ],
+     "terms": 5
+    },
+    "presentation": {
+     "numberSet": {
+      "kind": "RANGE",
+      "min": 0,
+      "max": 100,
+      "step": 1
+     },
+     "display": "GRID"
+    }
+   },
+   "domainSize": 164,
+   "sha256": "c69cc3919e92121155c97ec9df4f9d9fcb737315e26c4cb159cfc1dd65f9109c",
+   "instances": {
+    "0": {
+     "generatorKind": "SEQUENCE_GAP",
+     "generatorVersion": 1,
+     "params": {
+      "start": 20,
+      "direction": "FORWARDS",
+      "hide": 1
+     },
+     "prompt": {
+      "text": "What is missing? 20, ?, 22, 23, 24"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 100,
+       "step": 1
+      },
+      "display": "GRID"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "21"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "23": {
+     "generatorKind": "SEQUENCE_GAP",
+     "generatorVersion": 1,
+     "params": {
+      "start": 25,
+      "direction": "FORWARDS",
+      "hide": 4
+     },
+     "prompt": {
+      "text": "What comes next? 25, 26, 27, 28, ?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 100,
+       "step": 1
+      },
+      "display": "GRID"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "29"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "46": {
+     "generatorKind": "SEQUENCE_GAP",
+     "generatorVersion": 1,
+     "params": {
+      "start": 31,
+      "direction": "FORWARDS",
+      "hide": 3
+     },
+     "prompt": {
+      "text": "What is missing? 31, 32, 33, ?, 35"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 100,
+       "step": 1
+      },
+      "display": "GRID"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "34"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "69": {
+     "generatorKind": "SEQUENCE_GAP",
+     "generatorVersion": 1,
+     "params": {
+      "start": 37,
+      "direction": "FORWARDS",
+      "hide": 2
+     },
+     "prompt": {
+      "text": "What is missing? 37, 38, ?, 40, 41"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 100,
+       "step": 1
+      },
+      "display": "GRID"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "39"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "93": {
+     "generatorKind": "SEQUENCE_GAP",
+     "generatorVersion": 1,
+     "params": {
+      "start": 43,
+      "direction": "FORWARDS",
+      "hide": 2
+     },
+     "prompt": {
+      "text": "What is missing? 43, 44, ?, 46, 47"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 100,
+       "step": 1
+      },
+      "display": "GRID"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "45"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "116": {
+     "generatorKind": "SEQUENCE_GAP",
+     "generatorVersion": 1,
+     "params": {
+      "start": 49,
+      "direction": "FORWARDS",
+      "hide": 1
+     },
+     "prompt": {
+      "text": "What is missing? 49, ?, 51, 52, 53"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 100,
+       "step": 1
+      },
+      "display": "GRID"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "50"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "139": {
+     "generatorKind": "SEQUENCE_GAP",
+     "generatorVersion": 1,
+     "params": {
+      "start": 54,
+      "direction": "FORWARDS",
+      "hide": 4
+     },
+     "prompt": {
+      "text": "What comes next? 54, 55, 56, 57, ?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 100,
+       "step": 1
+      },
+      "display": "GRID"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "58"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "163": {
+     "generatorKind": "SEQUENCE_GAP",
+     "generatorVersion": 1,
+     "params": {
+      "start": 60,
+      "direction": "FORWARDS",
+      "hide": 4
+     },
+     "prompt": {
+      "text": "What comes next? 60, 61, 62, 63, ?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 100,
+       "step": 1
+      },
+      "display": "GRID"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "64"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  },
+  {
+   "name": "to50-choice",
+   "interactionType": "MULTIPLE_CHOICE",
+   "template": {
+    "generatorKind": "SEQUENCE_GAP",
+    "generatorVersion": 1,
+    "domain": {
+     "start": {
+      "min": 0,
+      "max": 46
+     },
+     "directions": [
+      "FORWARDS",
+      "BACKWARDS"
+     ]
+    }
+   },
+   "domainSize": 273,
+   "sha256": "35a67c8f625acca3fcf76fa08682ab9e023cff67cf755e13cc2c2161f517b4a1",
+   "instances": {
+    "0": {
+     "generatorKind": "SEQUENCE_GAP",
+     "generatorVersion": 1,
+     "params": {
+      "start": 0,
+      "direction": "FORWARDS",
+      "hide": 1
+     },
+     "prompt": {
+      "text": "What is missing? 0, ?, 2, 3"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "0"
+       },
+       {
+        "id": "b",
+        "text": "1"
+       },
+       {
+        "id": "c",
+        "text": "3"
+       },
+       {
+        "id": "d",
+        "text": "11"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "38": {
+     "generatorKind": "SEQUENCE_GAP",
+     "generatorVersion": 1,
+     "params": {
+      "start": 7,
+      "direction": "BACKWARDS",
+      "hide": 3
+     },
+     "prompt": {
+      "text": "What comes next? 7, 6, 5, ?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "2"
+       },
+       {
+        "id": "b",
+        "text": "3"
+       },
+       {
+        "id": "c",
+        "text": "4"
+       },
+       {
+        "id": "d",
+        "text": "6"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "c"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "77": {
+     "generatorKind": "SEQUENCE_GAP",
+     "generatorVersion": 1,
+     "params": {
+      "start": 14,
+      "direction": "FORWARDS",
+      "hide": 3
+     },
+     "prompt": {
+      "text": "What comes next? 14, 15, 16, ?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "15"
+       },
+       {
+        "id": "b",
+        "text": "16"
+       },
+       {
+        "id": "c",
+        "text": "17"
+       },
+       {
+        "id": "d",
+        "text": "19"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "c"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "116": {
+     "generatorKind": "SEQUENCE_GAP",
+     "generatorVersion": 1,
+     "params": {
+      "start": 20,
+      "direction": "BACKWARDS",
+      "hide": 3
+     },
+     "prompt": {
+      "text": "What comes next? 20, 19, 18, ?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "7"
+       },
+       {
+        "id": "b",
+        "text": "17"
+       },
+       {
+        "id": "c",
+        "text": "27"
+       },
+       {
+        "id": "d",
+        "text": "71"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "155": {
+     "generatorKind": "SEQUENCE_GAP",
+     "generatorVersion": 1,
+     "params": {
+      "start": 27,
+      "direction": "FORWARDS",
+      "hide": 3
+     },
+     "prompt": {
+      "text": "What comes next? 27, 28, 29, ?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "28"
+       },
+       {
+        "id": "b",
+        "text": "30"
+       },
+       {
+        "id": "c",
+        "text": "32"
+       },
+       {
+        "id": "d",
+        "text": "40"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "194": {
+     "generatorKind": "SEQUENCE_GAP",
+     "generatorVersion": 1,
+     "params": {
+      "start": 33,
+      "direction": "BACKWARDS",
+      "hide": 3
+     },
+     "prompt": {
+      "text": "What comes next? 33, 32, 31, ?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "20"
+       },
+       {
+        "id": "b",
+        "text": "28"
+       },
+       {
+        "id": "c",
+        "text": "30"
+       },
+       {
+        "id": "d",
+        "text": "40"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "c"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "233": {
+     "generatorKind": "SEQUENCE_GAP",
+     "generatorVersion": 1,
+     "params": {
+      "start": 40,
+      "direction": "FORWARDS",
+      "hide": 3
+     },
+     "prompt": {
+      "text": "What comes next? 40, 41, 42, ?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "42"
+       },
+       {
+        "id": "b",
+        "text": "43"
+       },
+       {
+        "id": "c",
+        "text": "44"
+       },
+       {
+        "id": "d",
+        "text": "45"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "272": {
+     "generatorKind": "SEQUENCE_GAP",
+     "generatorVersion": 1,
+     "params": {
+      "start": 46,
+      "direction": "BACKWARDS",
+      "hide": 3
+     },
+     "prompt": {
+      "text": "What comes next? 46, 45, 44, ?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "33"
+       },
+       {
+        "id": "b",
+        "text": "34"
+       },
+       {
+        "id": "c",
+        "text": "43"
+       },
+       {
+        "id": "d",
+        "text": "44"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "c"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  }
+ ]
+}

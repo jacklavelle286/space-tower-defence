@@ -1,0 +1,962 @@
+{
+ "kind": "ADD_WITHIN",
+ "version": 1,
+ "cases": [
+  {
+   "name": "within10-track",
+   "interactionType": "NUMBER_SELECT",
+   "template": {
+    "generatorKind": "ADD_WITHIN",
+    "generatorVersion": 1,
+    "domain": {
+     "a": {
+      "min": 0,
+      "max": 10
+     },
+     "b": {
+      "min": 0,
+      "max": 10
+     },
+     "max": 10
+    },
+    "presentation": {
+     "numberSet": {
+      "kind": "RANGE",
+      "min": 0,
+      "max": 10,
+      "step": 1
+     },
+     "display": "TRACK"
+    }
+   },
+   "domainSize": 66,
+   "sha256": "c16a088d68a344d6317dc0fe9425a8a71ebc4c7f72fb51f579b1b55782a4b585",
+   "instances": {
+    "0": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 0,
+      "b": 0
+     },
+     "prompt": {
+      "text": "0 + 0 = ?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "0"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "9": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 0,
+      "b": 9
+     },
+     "prompt": {
+      "text": "0 + 9 = ?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "9"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "18": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 1,
+      "b": 7
+     },
+     "prompt": {
+      "text": "1 + 7 = ?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "8"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "27": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 2,
+      "b": 6
+     },
+     "prompt": {
+      "text": "2 + 6 = ?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "8"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "37": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 3,
+      "b": 7
+     },
+     "prompt": {
+      "text": "3 + 7 = ?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "10"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "46": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 5,
+      "b": 1
+     },
+     "prompt": {
+      "text": "5 + 1 = ?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "6"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "55": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 6,
+      "b": 4
+     },
+     "prompt": {
+      "text": "6 + 4 = ?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "10"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "65": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 10,
+      "b": 0
+     },
+     "prompt": {
+      "text": "10 + 0 = ?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "10"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  },
+  {
+   "name": "within20-cross-typed",
+   "interactionType": "TYPED",
+   "template": {
+    "generatorKind": "ADD_WITHIN",
+    "generatorVersion": 1,
+    "domain": {
+     "a": {
+      "min": 2,
+      "max": 9
+     },
+     "b": {
+      "min": 2,
+      "max": 9
+     },
+     "max": 20,
+     "crossTen": "ONLY"
+    }
+   },
+   "domainSize": 43,
+   "sha256": "2c8ee19466559617659e357a23a5ef3afffaddd09107978cc2e00f5fe278647c",
+   "instances": {
+    "0": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 2,
+      "b": 8
+     },
+     "prompt": {
+      "text": "2 + 8 = ?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "10"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "6": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 4,
+      "b": 7
+     },
+     "prompt": {
+      "text": "4 + 7 = ?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "11"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "12": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 5,
+      "b": 8
+     },
+     "prompt": {
+      "text": "5 + 8 = ?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "13"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "18": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 6,
+      "b": 8
+     },
+     "prompt": {
+      "text": "6 + 8 = ?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "14"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "24": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 7,
+      "b": 7
+     },
+     "prompt": {
+      "text": "7 + 7 = ?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "14"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "30": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 8,
+      "b": 5
+     },
+     "prompt": {
+      "text": "8 + 5 = ?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "13"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "36": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 9,
+      "b": 3
+     },
+     "prompt": {
+      "text": "9 + 3 = ?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "12"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "42": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 9,
+      "b": 9
+     },
+     "prompt": {
+      "text": "9 + 9 = ?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "18"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  },
+  {
+   "name": "plus-tens-choice",
+   "interactionType": "MULTIPLE_CHOICE",
+   "template": {
+    "generatorKind": "ADD_WITHIN",
+    "generatorVersion": 1,
+    "domain": {
+     "a": {
+      "min": 10,
+      "max": 79
+     },
+     "b": {
+      "min": 10,
+      "max": 30
+     },
+     "max": 100,
+     "shape": "TENS"
+    }
+   },
+   "domainSize": 201,
+   "sha256": "47576028a3f423663cf3306173aa251871c20208a7614a1706f8e3df22895486",
+   "instances": {
+    "0": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 10,
+      "b": 10
+     },
+     "prompt": {
+      "text": "10 + 10 = ?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "18"
+       },
+       {
+        "id": "b",
+        "text": "20"
+       },
+       {
+        "id": "c",
+        "text": "22"
+       },
+       {
+        "id": "d",
+        "text": "30"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "28": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 19,
+      "b": 20
+     },
+     "prompt": {
+      "text": "19 + 20 = ?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "19"
+       },
+       {
+        "id": "b",
+        "text": "29"
+       },
+       {
+        "id": "c",
+        "text": "39"
+       },
+       {
+        "id": "d",
+        "text": "93"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "c"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "57": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 29,
+      "b": 10
+     },
+     "prompt": {
+      "text": "29 + 10 = ?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "10"
+       },
+       {
+        "id": "b",
+        "text": "29"
+       },
+       {
+        "id": "c",
+        "text": "39"
+       },
+       {
+        "id": "d",
+        "text": "93"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "c"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "85": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 38,
+      "b": 20
+     },
+     "prompt": {
+      "text": "38 + 20 = ?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "48"
+       },
+       {
+        "id": "b",
+        "text": "58"
+       },
+       {
+        "id": "c",
+        "text": "68"
+       },
+       {
+        "id": "d",
+        "text": "85"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "114": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 48,
+      "b": 10
+     },
+     "prompt": {
+      "text": "48 + 10 = ?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "56"
+       },
+       {
+        "id": "b",
+        "text": "58"
+       },
+       {
+        "id": "c",
+        "text": "60"
+       },
+       {
+        "id": "d",
+        "text": "68"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "142": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 57,
+      "b": 20
+     },
+     "prompt": {
+      "text": "57 + 20 = ?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "20"
+       },
+       {
+        "id": "b",
+        "text": "57"
+       },
+       {
+        "id": "c",
+        "text": "67"
+       },
+       {
+        "id": "d",
+        "text": "77"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "d"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "171": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 67,
+      "b": 10
+     },
+     "prompt": {
+      "text": "67 + 10 = ?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "10"
+       },
+       {
+        "id": "b",
+        "text": "67"
+       },
+       {
+        "id": "c",
+        "text": "77"
+       },
+       {
+        "id": "d",
+        "text": "78"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "c"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "200": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 79,
+      "b": 20
+     },
+     "prompt": {
+      "text": "79 + 20 = ?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "20"
+       },
+       {
+        "id": "b",
+        "text": "98"
+       },
+       {
+        "id": "c",
+        "text": "99"
+       },
+       {
+        "id": "d",
+        "text": "100"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "c"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  },
+  {
+   "name": "three-one-digit-typed",
+   "interactionType": "TYPED",
+   "template": {
+    "generatorKind": "ADD_WITHIN",
+    "generatorVersion": 1,
+    "domain": {
+     "a": {
+      "min": 1,
+      "max": 9
+     },
+     "max": 20,
+     "shape": "THREE"
+    }
+   },
+   "domainSize": 645,
+   "sha256": "3949f5e5da8dc3bf4d2051b8c59ec6b68caff25c22dca0bcb335c1e8bc981834",
+   "instances": {
+    "0": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 1,
+      "b": 1,
+      "c": 1
+     },
+     "prompt": {
+      "text": "1 + 1 + 1 = ?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "3"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "92": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 2,
+      "b": 2,
+      "c": 3
+     },
+     "prompt": {
+      "text": "2 + 2 + 3 = ?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "7"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "184": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 3,
+      "b": 3,
+      "c": 5
+     },
+     "prompt": {
+      "text": "3 + 3 + 5 = ?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "11"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "276": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 4,
+      "b": 4,
+      "c": 8
+     },
+     "prompt": {
+      "text": "4 + 4 + 8 = ?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "16"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "368": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 5,
+      "b": 6,
+      "c": 4
+     },
+     "prompt": {
+      "text": "5 + 6 + 4 = ?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "15"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "460": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 6,
+      "b": 8,
+      "c": 6
+     },
+     "prompt": {
+      "text": "6 + 8 + 6 = ?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "20"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "552": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 8,
+      "b": 3,
+      "c": 3
+     },
+     "prompt": {
+      "text": "8 + 3 + 3 = ?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "14"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "644": {
+     "generatorKind": "ADD_WITHIN",
+     "generatorVersion": 1,
+     "params": {
+      "a": 9,
+      "b": 9,
+      "c": 2
+     },
+     "prompt": {
+      "text": "9 + 9 + 2 = ?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "20"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  }
+ ]
+}

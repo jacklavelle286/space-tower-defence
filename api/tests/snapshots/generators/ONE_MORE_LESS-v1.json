@@ -1,0 +1,763 @@
+{
+ "kind": "ONE_MORE_LESS",
+ "version": 1,
+ "cases": [
+  {
+   "name": "to10-track",
+   "interactionType": "NUMBER_SELECT",
+   "template": {
+    "generatorKind": "ONE_MORE_LESS",
+    "generatorVersion": 1,
+    "domain": {
+     "range": {
+      "min": 0,
+      "max": 10
+     },
+     "changes": [
+      1,
+      -1
+     ]
+    },
+    "presentation": {
+     "numberSet": {
+      "kind": "RANGE",
+      "min": 0,
+      "max": 10,
+      "step": 1
+     },
+     "display": "TRACK"
+    }
+   },
+   "domainSize": 20,
+   "sha256": "b16f52fc9aaddb7268e318141418e94b0761886771a8b312215ccfd11fe61f3d",
+   "instances": {
+    "0": {
+     "generatorKind": "ONE_MORE_LESS",
+     "generatorVersion": 1,
+     "params": {
+      "n": 0,
+      "change": 1
+     },
+     "prompt": {
+      "text": "What is one more than 0?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "1"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "2": {
+     "generatorKind": "ONE_MORE_LESS",
+     "generatorVersion": 1,
+     "params": {
+      "n": 1,
+      "change": -1
+     },
+     "prompt": {
+      "text": "What is one less than 1?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "0"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "5": {
+     "generatorKind": "ONE_MORE_LESS",
+     "generatorVersion": 1,
+     "params": {
+      "n": 3,
+      "change": 1
+     },
+     "prompt": {
+      "text": "What is one more than 3?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "4"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "8": {
+     "generatorKind": "ONE_MORE_LESS",
+     "generatorVersion": 1,
+     "params": {
+      "n": 4,
+      "change": -1
+     },
+     "prompt": {
+      "text": "What is one less than 4?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "3"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "10": {
+     "generatorKind": "ONE_MORE_LESS",
+     "generatorVersion": 1,
+     "params": {
+      "n": 5,
+      "change": -1
+     },
+     "prompt": {
+      "text": "What is one less than 5?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "4"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "13": {
+     "generatorKind": "ONE_MORE_LESS",
+     "generatorVersion": 1,
+     "params": {
+      "n": 7,
+      "change": 1
+     },
+     "prompt": {
+      "text": "What is one more than 7?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "8"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "16": {
+     "generatorKind": "ONE_MORE_LESS",
+     "generatorVersion": 1,
+     "params": {
+      "n": 8,
+      "change": -1
+     },
+     "prompt": {
+      "text": "What is one less than 8?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "7"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "19": {
+     "generatorKind": "ONE_MORE_LESS",
+     "generatorVersion": 1,
+     "params": {
+      "n": 10,
+      "change": -1
+     },
+     "prompt": {
+      "text": "What is one less than 10?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "9"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  },
+  {
+   "name": "to100-typed",
+   "interactionType": "TYPED",
+   "template": {
+    "generatorKind": "ONE_MORE_LESS",
+    "generatorVersion": 1,
+    "domain": {
+     "range": {
+      "min": 0,
+      "max": 100
+     },
+     "changes": [
+      1,
+      -1,
+      10,
+      -10
+     ]
+    }
+   },
+   "domainSize": 382,
+   "sha256": "dc9f427653e63403d623b248fae89d4b5f7e512566dd0fb921fc945408eec456",
+   "instances": {
+    "0": {
+     "generatorKind": "ONE_MORE_LESS",
+     "generatorVersion": 1,
+     "params": {
+      "n": 0,
+      "change": 1
+     },
+     "prompt": {
+      "text": "What is one more than 0?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "1"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "54": {
+     "generatorKind": "ONE_MORE_LESS",
+     "generatorVersion": 1,
+     "params": {
+      "n": 16,
+      "change": -1
+     },
+     "prompt": {
+      "text": "What is one less than 16?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "15"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "108": {
+     "generatorKind": "ONE_MORE_LESS",
+     "generatorVersion": 1,
+     "params": {
+      "n": 29,
+      "change": -10
+     },
+     "prompt": {
+      "text": "What is ten less than 29?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "19"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "163": {
+     "generatorKind": "ONE_MORE_LESS",
+     "generatorVersion": 1,
+     "params": {
+      "n": 43,
+      "change": 10
+     },
+     "prompt": {
+      "text": "What is ten more than 43?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "53"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "217": {
+     "generatorKind": "ONE_MORE_LESS",
+     "generatorVersion": 1,
+     "params": {
+      "n": 57,
+      "change": 1
+     },
+     "prompt": {
+      "text": "What is one more than 57?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "58"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "272": {
+     "generatorKind": "ONE_MORE_LESS",
+     "generatorVersion": 1,
+     "params": {
+      "n": 70,
+      "change": -10
+     },
+     "prompt": {
+      "text": "What is ten less than 70?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "60"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "326": {
+     "generatorKind": "ONE_MORE_LESS",
+     "generatorVersion": 1,
+     "params": {
+      "n": 84,
+      "change": -1
+     },
+     "prompt": {
+      "text": "What is one less than 84?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "83"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "381": {
+     "generatorKind": "ONE_MORE_LESS",
+     "generatorVersion": 1,
+     "params": {
+      "n": 100,
+      "change": -10
+     },
+     "prompt": {
+      "text": "What is ten less than 100?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "90"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  },
+  {
+   "name": "to20-choice",
+   "interactionType": "MULTIPLE_CHOICE",
+   "template": {
+    "generatorKind": "ONE_MORE_LESS",
+    "generatorVersion": 1,
+    "domain": {
+     "range": {
+      "min": 0,
+      "max": 20
+     },
+     "changes": [
+      1,
+      -1
+     ]
+    }
+   },
+   "domainSize": 40,
+   "sha256": "306e1de45bf8a6a4614e4ba35f30ab1d73d83e0a41c69a0591d518a30e52c918",
+   "instances": {
+    "0": {
+     "generatorKind": "ONE_MORE_LESS",
+     "generatorVersion": 1,
+     "params": {
+      "n": 0,
+      "change": 1
+     },
+     "prompt": {
+      "text": "What is one more than 0?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "0"
+       },
+       {
+        "id": "b",
+        "text": "1"
+       },
+       {
+        "id": "c",
+        "text": "3"
+       },
+       {
+        "id": "d",
+        "text": "11"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "5": {
+     "generatorKind": "ONE_MORE_LESS",
+     "generatorVersion": 1,
+     "params": {
+      "n": 3,
+      "change": 1
+     },
+     "prompt": {
+      "text": "What is one more than 3?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "2"
+       },
+       {
+        "id": "b",
+        "text": "4"
+       },
+       {
+        "id": "c",
+        "text": "5"
+       },
+       {
+        "id": "d",
+        "text": "14"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "11": {
+     "generatorKind": "ONE_MORE_LESS",
+     "generatorVersion": 1,
+     "params": {
+      "n": 6,
+      "change": 1
+     },
+     "prompt": {
+      "text": "What is one more than 6?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "6"
+       },
+       {
+        "id": "b",
+        "text": "7"
+       },
+       {
+        "id": "c",
+        "text": "8"
+       },
+       {
+        "id": "d",
+        "text": "9"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "16": {
+     "generatorKind": "ONE_MORE_LESS",
+     "generatorVersion": 1,
+     "params": {
+      "n": 8,
+      "change": -1
+     },
+     "prompt": {
+      "text": "What is one less than 8?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "6"
+       },
+       {
+        "id": "b",
+        "text": "7"
+       },
+       {
+        "id": "c",
+        "text": "8"
+       },
+       {
+        "id": "d",
+        "text": "9"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "22": {
+     "generatorKind": "ONE_MORE_LESS",
+     "generatorVersion": 1,
+     "params": {
+      "n": 11,
+      "change": -1
+     },
+     "prompt": {
+      "text": "What is one less than 11?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "0"
+       },
+       {
+        "id": "b",
+        "text": "8"
+       },
+       {
+        "id": "c",
+        "text": "10"
+       },
+       {
+        "id": "d",
+        "text": "20"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "c"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "27": {
+     "generatorKind": "ONE_MORE_LESS",
+     "generatorVersion": 1,
+     "params": {
+      "n": 14,
+      "change": 1
+     },
+     "prompt": {
+      "text": "What is one more than 14?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "5"
+       },
+       {
+        "id": "b",
+        "text": "14"
+       },
+       {
+        "id": "c",
+        "text": "15"
+       },
+       {
+        "id": "d",
+        "text": "16"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "c"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "33": {
+     "generatorKind": "ONE_MORE_LESS",
+     "generatorVersion": 1,
+     "params": {
+      "n": 17,
+      "change": 1
+     },
+     "prompt": {
+      "text": "What is one more than 17?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "8"
+       },
+       {
+        "id": "b",
+        "text": "17"
+       },
+       {
+        "id": "c",
+        "text": "18"
+       },
+       {
+        "id": "d",
+        "text": "19"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "c"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "39": {
+     "generatorKind": "ONE_MORE_LESS",
+     "generatorVersion": 1,
+     "params": {
+      "n": 20,
+      "change": -1
+     },
+     "prompt": {
+      "text": "What is one less than 20?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "9"
+       },
+       {
+        "id": "b",
+        "text": "18"
+       },
+       {
+        "id": "c",
+        "text": "19"
+       },
+       {
+        "id": "d",
+        "text": "20"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "c"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  }
+ ]
+}

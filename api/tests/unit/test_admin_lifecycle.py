@@ -450,3 +450,37 @@ def test_a_both_activity_publishes_and_is_selectable(api: Admin) -> None:
     assert (unit.activity_id, unit.category) == (ACT, "BOTH")
     status, body = api.call(DRAFT, {"draftRevision": revision, "definition": PH_0102}, id=ACT)
     assert (status, rules(body)) == (400, {("definition.rewardCategory", "locked_after_publish")})
+
+
+# --- Templates (Phase 41, C25) ----------------------------------------------------------------------------------------
+
+
+def test_a_template_validates_with_its_sample_and_publishes_with_its_domain_size(api: Admin) -> None:
+    from test_generators import MA_0301
+
+    revision = create(api, MA_0301)
+    status, body = api.call(VALIDATE, {"draftRevision": revision}, id="ma-0301")
+    assert (status, body["valid"], body["problems"], body["domainSize"]) == (200, True, [], 38)
+    assert [s["index"] for s in body["sample"]] == [0, 9, 18, 27, 37]
+    assert body["sample"][-1]["prompt"] == {"text": "? + 19 = 20"}
+    status, body = publish(api, revision, activity_id="ma-0301")
+    assert status == 201, body
+    header = api.table.get_item("ACT", "ma-0301")
+    assert header is not None and (header["authoringMode"], header["domainSize"]) == ("TEMPLATE", 38)
+    version = api.table.get_item("ACT#ma-0301", f"V#{body['versionId']}")
+    assert version is not None and version["template"] == MA_0301["template"] and "prompt" not in version
+    assert [u.key for u in read_units(api.table, 7)] == ["ma-0301#0", "ma-0301#1"]
+
+
+def test_publish_refuses_a_template_with_an_invalid_instance(api: Admin) -> None:
+    from test_generators import MA_0301
+
+    track_10 = {"numberSet": {"kind": "RANGE", "min": 0, "max": 10, "step": 1}, "display": "TRACK"}
+    broken = {**MA_0301, "template": {**MA_0301["template"], "presentation": track_10}}
+    revision = create(api, broken)
+    status, body = api.call(VALIDATE, {"draftRevision": revision}, id="ma-0301")
+    assert (status, body["valid"]) == (200, False)
+    assert {p["rule"] for p in body["problems"]} == {"not_in_set"}
+    status, body = publish(api, revision, activity_id="ma-0301")
+    assert status == 400 and ("template.instances.0.answerSpecification.accepted.0", "not_in_set") in rules(body)
+    assert api.table.query_prefix("ACT#ma-0301", "V#") == []

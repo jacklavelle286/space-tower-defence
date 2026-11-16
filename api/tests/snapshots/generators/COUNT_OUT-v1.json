@@ -1,0 +1,622 @@
+{
+ "kind": "COUNT_OUT",
+ "version": 1,
+ "cases": [
+  {
+   "name": "to10-stars-rockets",
+   "interactionType": "OBJECT_MOVE",
+   "template": {
+    "generatorKind": "COUNT_OUT",
+    "generatorVersion": 1,
+    "domain": {
+     "target": {
+      "min": 2,
+      "max": 10
+     },
+     "extras": [
+      2,
+      3
+     ],
+     "objects": [
+      "obj-star",
+      "obj-rocket"
+     ]
+    }
+   },
+   "domainSize": 34,
+   "sha256": "6f280c702d7ac1d519d4decaffcb32e3e716e3c2ebdf96ed91633dabd75aef74",
+   "instances": {
+    "0": {
+     "generatorKind": "COUNT_OUT",
+     "generatorVersion": 1,
+     "params": {
+      "target": 2,
+      "extra": 2,
+      "object": "obj-star"
+     },
+     "prompt": {
+      "text": "Put 2 stars on the tray."
+     },
+     "activityPayload": {
+      "mode": "DISTRIBUTE",
+      "objectAssetId": "obj-star",
+      "objectAlt": "a star",
+      "sourceCount": 4,
+      "zones": [
+       {
+        "id": "z1",
+        "label": "Tray",
+        "assetId": "tray"
+       }
+      ],
+      "requireAllPlaced": false
+     },
+     "answerSpecification": {
+      "accepted": [
+       "z1=2"
+      ]
+     },
+     "visualAssetReferences": [
+      "obj-star",
+      "tray"
+     ]
+    },
+    "4": {
+     "generatorKind": "COUNT_OUT",
+     "generatorVersion": 1,
+     "params": {
+      "target": 3,
+      "extra": 2,
+      "object": "obj-star"
+     },
+     "prompt": {
+      "text": "Put 3 stars on the tray."
+     },
+     "activityPayload": {
+      "mode": "DISTRIBUTE",
+      "objectAssetId": "obj-star",
+      "objectAlt": "a star",
+      "sourceCount": 5,
+      "zones": [
+       {
+        "id": "z1",
+        "label": "Tray",
+        "assetId": "tray"
+       }
+      ],
+      "requireAllPlaced": false
+     },
+     "answerSpecification": {
+      "accepted": [
+       "z1=3"
+      ]
+     },
+     "visualAssetReferences": [
+      "obj-star",
+      "tray"
+     ]
+    },
+    "9": {
+     "generatorKind": "COUNT_OUT",
+     "generatorVersion": 1,
+     "params": {
+      "target": 4,
+      "extra": 2,
+      "object": "obj-rocket"
+     },
+     "prompt": {
+      "text": "Put 4 rockets on the tray."
+     },
+     "activityPayload": {
+      "mode": "DISTRIBUTE",
+      "objectAssetId": "obj-rocket",
+      "objectAlt": "a rocket",
+      "sourceCount": 6,
+      "zones": [
+       {
+        "id": "z1",
+        "label": "Tray",
+        "assetId": "tray"
+       }
+      ],
+      "requireAllPlaced": false
+     },
+     "answerSpecification": {
+      "accepted": [
+       "z1=4"
+      ]
+     },
+     "visualAssetReferences": [
+      "obj-rocket",
+      "tray"
+     ]
+    },
+    "14": {
+     "generatorKind": "COUNT_OUT",
+     "generatorVersion": 1,
+     "params": {
+      "target": 5,
+      "extra": 3,
+      "object": "obj-star"
+     },
+     "prompt": {
+      "text": "Put 5 stars on the tray."
+     },
+     "activityPayload": {
+      "mode": "DISTRIBUTE",
+      "objectAssetId": "obj-star",
+      "objectAlt": "a star",
+      "sourceCount": 8,
+      "zones": [
+       {
+        "id": "z1",
+        "label": "Tray",
+        "assetId": "tray"
+       }
+      ],
+      "requireAllPlaced": false
+     },
+     "answerSpecification": {
+      "accepted": [
+       "z1=5"
+      ]
+     },
+     "visualAssetReferences": [
+      "obj-star",
+      "tray"
+     ]
+    },
+    "18": {
+     "generatorKind": "COUNT_OUT",
+     "generatorVersion": 1,
+     "params": {
+      "target": 6,
+      "extra": 3,
+      "object": "obj-star"
+     },
+     "prompt": {
+      "text": "Put 6 stars on the tray."
+     },
+     "activityPayload": {
+      "mode": "DISTRIBUTE",
+      "objectAssetId": "obj-star",
+      "objectAlt": "a star",
+      "sourceCount": 9,
+      "zones": [
+       {
+        "id": "z1",
+        "label": "Tray",
+        "assetId": "tray"
+       }
+      ],
+      "requireAllPlaced": false
+     },
+     "answerSpecification": {
+      "accepted": [
+       "z1=6"
+      ]
+     },
+     "visualAssetReferences": [
+      "obj-star",
+      "tray"
+     ]
+    },
+    "23": {
+     "generatorKind": "COUNT_OUT",
+     "generatorVersion": 1,
+     "params": {
+      "target": 7,
+      "extra": 3,
+      "object": "obj-rocket"
+     },
+     "prompt": {
+      "text": "Put 7 rockets on the tray."
+     },
+     "activityPayload": {
+      "mode": "DISTRIBUTE",
+      "objectAssetId": "obj-rocket",
+      "objectAlt": "a rocket",
+      "sourceCount": 10,
+      "zones": [
+       {
+        "id": "z1",
+        "label": "Tray",
+        "assetId": "tray"
+       }
+      ],
+      "requireAllPlaced": false
+     },
+     "answerSpecification": {
+      "accepted": [
+       "z1=7"
+      ]
+     },
+     "visualAssetReferences": [
+      "obj-rocket",
+      "tray"
+     ]
+    },
+    "28": {
+     "generatorKind": "COUNT_OUT",
+     "generatorVersion": 1,
+     "params": {
+      "target": 9,
+      "extra": 2,
+      "object": "obj-star"
+     },
+     "prompt": {
+      "text": "Put 9 stars on the tray."
+     },
+     "activityPayload": {
+      "mode": "DISTRIBUTE",
+      "objectAssetId": "obj-star",
+      "objectAlt": "a star",
+      "sourceCount": 11,
+      "zones": [
+       {
+        "id": "z1",
+        "label": "Tray",
+        "assetId": "tray"
+       }
+      ],
+      "requireAllPlaced": false
+     },
+     "answerSpecification": {
+      "accepted": [
+       "z1=9"
+      ]
+     },
+     "visualAssetReferences": [
+      "obj-star",
+      "tray"
+     ]
+    },
+    "33": {
+     "generatorKind": "COUNT_OUT",
+     "generatorVersion": 1,
+     "params": {
+      "target": 10,
+      "extra": 2,
+      "object": "obj-rocket"
+     },
+     "prompt": {
+      "text": "Put 10 rockets on the tray."
+     },
+     "activityPayload": {
+      "mode": "DISTRIBUTE",
+      "objectAssetId": "obj-rocket",
+      "objectAlt": "a rocket",
+      "sourceCount": 12,
+      "zones": [
+       {
+        "id": "z1",
+        "label": "Tray",
+        "assetId": "tray"
+       }
+      ],
+      "requireAllPlaced": false
+     },
+     "answerSpecification": {
+      "accepted": [
+       "z1=10"
+      ]
+     },
+     "visualAssetReferences": [
+      "obj-rocket",
+      "tray"
+     ]
+    }
+   }
+  },
+  {
+   "name": "every-object",
+   "interactionType": "OBJECT_MOVE",
+   "template": {
+    "generatorKind": "COUNT_OUT",
+    "generatorVersion": 1,
+    "domain": {
+     "target": {
+      "min": 3,
+      "max": 5
+     },
+     "extras": [
+      2
+     ],
+     "objects": [
+      "obj-star",
+      "obj-rocket",
+      "obj-alien",
+      "obj-comet",
+      "obj-planet",
+      "obj-moon-rock",
+      "obj-alien-egg"
+     ]
+    }
+   },
+   "domainSize": 21,
+   "sha256": "ad0f52ac9b4cf372d2241f50ac861ff912a0f77319a72725a94bbb63088255f8",
+   "instances": {
+    "0": {
+     "generatorKind": "COUNT_OUT",
+     "generatorVersion": 1,
+     "params": {
+      "target": 3,
+      "extra": 2,
+      "object": "obj-star"
+     },
+     "prompt": {
+      "text": "Put 3 stars on the tray."
+     },
+     "activityPayload": {
+      "mode": "DISTRIBUTE",
+      "objectAssetId": "obj-star",
+      "objectAlt": "a star",
+      "sourceCount": 5,
+      "zones": [
+       {
+        "id": "z1",
+        "label": "Tray",
+        "assetId": "tray"
+       }
+      ],
+      "requireAllPlaced": false
+     },
+     "answerSpecification": {
+      "accepted": [
+       "z1=3"
+      ]
+     },
+     "visualAssetReferences": [
+      "obj-star",
+      "tray"
+     ]
+    },
+    "2": {
+     "generatorKind": "COUNT_OUT",
+     "generatorVersion": 1,
+     "params": {
+      "target": 3,
+      "extra": 2,
+      "object": "obj-alien"
+     },
+     "prompt": {
+      "text": "Put 3 aliens on the tray."
+     },
+     "activityPayload": {
+      "mode": "DISTRIBUTE",
+      "objectAssetId": "obj-alien",
+      "objectAlt": "an alien",
+      "sourceCount": 5,
+      "zones": [
+       {
+        "id": "z1",
+        "label": "Tray",
+        "assetId": "tray"
+       }
+      ],
+      "requireAllPlaced": false
+     },
+     "answerSpecification": {
+      "accepted": [
+       "z1=3"
+      ]
+     },
+     "visualAssetReferences": [
+      "obj-alien",
+      "tray"
+     ]
+    },
+    "5": {
+     "generatorKind": "COUNT_OUT",
+     "generatorVersion": 1,
+     "params": {
+      "target": 3,
+      "extra": 2,
+      "object": "obj-moon-rock"
+     },
+     "prompt": {
+      "text": "Put 3 moon rocks on the tray."
+     },
+     "activityPayload": {
+      "mode": "DISTRIBUTE",
+      "objectAssetId": "obj-moon-rock",
+      "objectAlt": "a moon rock",
+      "sourceCount": 5,
+      "zones": [
+       {
+        "id": "z1",
+        "label": "Tray",
+        "assetId": "tray"
+       }
+      ],
+      "requireAllPlaced": false
+     },
+     "answerSpecification": {
+      "accepted": [
+       "z1=3"
+      ]
+     },
+     "visualAssetReferences": [
+      "obj-moon-rock",
+      "tray"
+     ]
+    },
+    "8": {
+     "generatorKind": "COUNT_OUT",
+     "generatorVersion": 1,
+     "params": {
+      "target": 4,
+      "extra": 2,
+      "object": "obj-rocket"
+     },
+     "prompt": {
+      "text": "Put 4 rockets on the tray."
+     },
+     "activityPayload": {
+      "mode": "DISTRIBUTE",
+      "objectAssetId": "obj-rocket",
+      "objectAlt": "a rocket",
+      "sourceCount": 6,
+      "zones": [
+       {
+        "id": "z1",
+        "label": "Tray",
+        "assetId": "tray"
+       }
+      ],
+      "requireAllPlaced": false
+     },
+     "answerSpecification": {
+      "accepted": [
+       "z1=4"
+      ]
+     },
+     "visualAssetReferences": [
+      "obj-rocket",
+      "tray"
+     ]
+    },
+    "11": {
+     "generatorKind": "COUNT_OUT",
+     "generatorVersion": 1,
+     "params": {
+      "target": 4,
+      "extra": 2,
+      "object": "obj-planet"
+     },
+     "prompt": {
+      "text": "Put 4 planets on the tray."
+     },
+     "activityPayload": {
+      "mode": "DISTRIBUTE",
+      "objectAssetId": "obj-planet",
+      "objectAlt": "a planet",
+      "sourceCount": 6,
+      "zones": [
+       {
+        "id": "z1",
+        "label": "Tray",
+        "assetId": "tray"
+       }
+      ],
+      "requireAllPlaced": false
+     },
+     "answerSpecification": {
+      "accepted": [
+       "z1=4"
+      ]
+     },
+     "visualAssetReferences": [
+      "obj-planet",
+      "tray"
+     ]
+    },
+    "14": {
+     "generatorKind": "COUNT_OUT",
+     "generatorVersion": 1,
+     "params": {
+      "target": 5,
+      "extra": 2,
+      "object": "obj-star"
+     },
+     "prompt": {
+      "text": "Put 5 stars on the tray."
+     },
+     "activityPayload": {
+      "mode": "DISTRIBUTE",
+      "objectAssetId": "obj-star",
+      "objectAlt": "a star",
+      "sourceCount": 7,
+      "zones": [
+       {
+        "id": "z1",
+        "label": "Tray",
+        "assetId": "tray"
+       }
+      ],
+      "requireAllPlaced": false
+     },
+     "answerSpecification": {
+      "accepted": [
+       "z1=5"
+      ]
+     },
+     "visualAssetReferences": [
+      "obj-star",
+      "tray"
+     ]
+    },
+    "17": {
+     "generatorKind": "COUNT_OUT",
+     "generatorVersion": 1,
+     "params": {
+      "target": 5,
+      "extra": 2,
+      "object": "obj-comet"
+     },
+     "prompt": {
+      "text": "Put 5 comets on the tray."
+     },
+     "activityPayload": {
+      "mode": "DISTRIBUTE",
+      "objectAssetId": "obj-comet",
+      "objectAlt": "a comet",
+      "sourceCount": 7,
+      "zones": [
+       {
+        "id": "z1",
+        "label": "Tray",
+        "assetId": "tray"
+       }
+      ],
+      "requireAllPlaced": false
+     },
+     "answerSpecification": {
+      "accepted": [
+       "z1=5"
+      ]
+     },
+     "visualAssetReferences": [
+      "obj-comet",
+      "tray"
+     ]
+    },
+    "20": {
+     "generatorKind": "COUNT_OUT",
+     "generatorVersion": 1,
+     "params": {
+      "target": 5,
+      "extra": 2,
+      "object": "obj-alien-egg"
+     },
+     "prompt": {
+      "text": "Put 5 alien eggs on the tray."
+     },
+     "activityPayload": {
+      "mode": "DISTRIBUTE",
+      "objectAssetId": "obj-alien-egg",
+      "objectAlt": "an alien egg",
+      "sourceCount": 7,
+      "zones": [
+       {
+        "id": "z1",
+        "label": "Tray",
+        "assetId": "tray"
+       }
+      ],
+      "requireAllPlaced": false
+     },
+     "answerSpecification": {
+      "accepted": [
+       "z1=5"
+      ]
+     },
+     "visualAssetReferences": [
+      "obj-alien-egg",
+      "tray"
+     ]
+    }
+   }
+  }
+ ]
+}

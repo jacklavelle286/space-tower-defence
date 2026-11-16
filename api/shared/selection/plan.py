@@ -1,4 +1,4 @@
-"""Choosing a run's activities at creation (C24, spine S5.3; M1-16 with the Milestone 1 configuration).
+"""Choosing a run's activities at creation (C24, spine S5.3; M1-16, thresholds and eligibility M3-07).
 
 `plan_slots` is pure: the seed, the age band's units, the chosen versions and the wave set in, the slot plan out.
 The same inputs always give the same plan (C24.9 property 1), so a test can pin a seed and check the exact result.
@@ -27,45 +27,108 @@ fits one slot kind, so any unit an earlier slot could hand over sits in a group 
 repair a run is refused only when no assignment of units to slots exists. The shuffle labels are the same as before;
 ALGORITHM_VERSION stays 1 [ASSUMPTION].
 
-Milestone 1 configuration (labelled as such, not the product rule; B N-7, C24.7, J): `M1_CONFIG` sets every group's
-eligibility threshold to 1 and turns on the subject fallback: a slot whose rotation subject has nothing left takes
-the next subject that has, in the order maths, phonics, spelling (the C24.6 endless rule). Without the fallback the
-single Milestone 1 activity (`ph-0102`, phonics) could never fill `N-001`, which the rotation makes a maths slot.
-M3-07 (Phase 42) sets the real thresholds and turns the fallback off for authored slots.
+Configuration (Phase 42, M3-07; C24.7). `SelectionConfig` holds the thresholds and rules; this module has three:
+- `PLAN_CONFIG`: the plan's version-one thresholds (C24.7, [PROPOSAL]), the subject fallback off for authored slots
+  (C24.4 rule 5: a dry queue stops the run), and the band-level conditions (five topics per subject with two units
+  each; maths template instances, 500 NORMAL and 50 METEOR). A band that meets all of them is "eligible".
+- `STARTER_CONFIG`: every threshold 1 and the subject fallback on (the old Milestone 1 configuration, B N-7): a slot
+  whose rotation subject has nothing left takes the next subject that has, in the order maths, phonics, spelling.
+- `LIVE_CONFIG`, what player-api runs: `PLAN_CONFIG` with `starter_until_eligible` on [PROPOSAL, 2026-11-16]. A band
+  that is not yet eligible plays under `STARTER_CONFIG` instead of being refused, so the live game keeps working with
+  the starter bank; each band moves to the plan's rules by itself once bank status shows it eligible. Turning
+  `starter_until_eligible` off gives the plan's rule exactly (a band below a threshold is BANK_NOT_READY).
+The policy (which configuration a run gets) is `shared.selection.eligibility.select_units`; `choose_units` here only
+applies the configuration it is given.
 
 If a slot cannot be filled, or a group that supplies slots holds fewer units than its threshold, the run is not
 created: `BankNotReady` (409 CONTENT_UNAVAILABLE {reason: BANK_NOT_READY}). Never a partial run.
+
+Templates (Phase 41, C24.4 rules 1, 4 and 6; C25.1): a published template gives one or two units
+(`bank.template_units`). Inside its topic the first units are shuffled as before and each template's second unit goes
+to the back of the topic's queue, in the same order. A bank with no template plans exactly as before. When the slot is
+planned, `plan_slots` materialises the instance: it draws an index into the template's domain with
+draw(seed, "params:<slotId>", attempt), builds that instance with the pinned generator version, and re-draws (next
+attempt) when the instance is removed from the domain or the run already has it (`activityId` + parameters, rule 4);
+after PARAM_DRAWS tries it walks the domain from the first draw. The instance is stored on the slot as `resolved`, so
+reloads, judging and the pack replay it and never run the generator again.
 """
 
 from __future__ import annotations
 
 import hashlib
-from collections.abc import Mapping, Sequence
-from dataclasses import dataclass, field
+from collections.abc import Iterable, Mapping, Sequence
+from dataclasses import dataclass, field, replace
 from typing import Any
 
+from shared import generators
 from shared.rules.next_phase import slot_id_for
-from shared.selection.bank import SLOT_KINDS, SUBJECTS, Unit, fills
-from shared.selection.draws import shuffle
+from shared.selection.bank import SLOT_KINDS, SUBJECTS, Unit, fills, group_units
+from shared.selection.draws import draw, shuffle
 
 ALGORITHM_VERSION = 1
+PARAM_DRAWS = 16  # seeded tries for a template instance before walking the domain [ASSUMPTION]
 POWER_ROTATION = ("frost-pulse", "comet-burst", "colony-shield")  # C10 award mapping, by meteor number
 
 
 class BankNotReady(Exception):
-    """The age band's bank cannot fill this wave set under the configured thresholds."""
+    """The age band's bank cannot fill this wave set under the configured thresholds.
+
+    `cause` says why, for tests and the log line (never shown to the child; the API answers
+    409 CONTENT_UNAVAILABLE {reason: BANK_NOT_READY}): SLOT_UNFILLED, BELOW_THRESHOLD, NOT_ELIGIBLE,
+    TEMPLATE_UNAVAILABLE or VERSION_MISSING."""
+
+    def __init__(self, message: str, cause: str = "SLOT_UNFILLED") -> None:
+        super().__init__(message)
+        self.cause = cause
 
 
 @dataclass(frozen=True)
 class SelectionConfig:
-    thresholds: Mapping[tuple[str, str], int]
-    subject_fallback: bool
+    """Thresholds and rules for one selection (C24.7). Server configuration, never from a request."""
+
+    thresholds: Mapping[tuple[str, str], int]  # (subject, slot kind) -> units the group must hold
+    subject_fallback: bool  # a slot may take the next subject when its rotation subject is used up
+    topics_per_subject: int = 0  # band condition: at least this many topics per subject ...
+    units_per_topic: int = 2  # ... holding at least this many units each
+    template_instances: Mapping[tuple[str, str], int] = field(default_factory=dict)  # summed template domainSize
+    starter_until_eligible: bool = False  # a band that is not eligible plays under STARTER_CONFIG (not refused)
 
 
-M1_CONFIG = SelectionConfig(
+# C24.7 hard minimums: what one campaign uses (49 normal + 5 meteor slots, rotation 17/16/16 and 2/2/1). A threshold
+# must never be set below these (tests/unit/test_selection_eligibility.py checks PLAN_CONFIG).
+HARD_MINIMUMS: Mapping[tuple[str, str], int] = {
+    ("maths", "NORMAL"): 17,
+    ("phonics", "NORMAL"): 16,
+    ("spelling", "NORMAL"): 16,
+    ("maths", "METEOR"): 2,
+    ("phonics", "METEOR"): 2,
+    ("spelling", "METEOR"): 1,
+}
+
+# C24.7 "Eligibility threshold, version one": twice what one campaign uses [PROPOSAL].
+PLAN_CONFIG = SelectionConfig(
+    thresholds={
+        ("maths", "NORMAL"): 34,
+        ("phonics", "NORMAL"): 32,
+        ("spelling", "NORMAL"): 32,
+        ("maths", "METEOR"): 4,
+        ("phonics", "METEOR"): 4,
+        ("spelling", "METEOR"): 2,
+    },
+    subject_fallback=False,
+    topics_per_subject=5,
+    units_per_topic=2,
+    template_instances={("maths", "NORMAL"): 500, ("maths", "METEOR"): 50},
+)
+
+# The Milestone 1 rules (B N-7), kept for a band that is not eligible yet: thresholds 1, subject fallback on.
+STARTER_CONFIG = SelectionConfig(
     thresholds={(subject, kind): 1 for subject in SUBJECTS for kind in SLOT_KINDS},
     subject_fallback=True,
 )
+
+# What player-api runs [PROPOSAL, 2026-11-16]: the plan's rules for an eligible band, the starter rules otherwise.
+LIVE_CONFIG = replace(PLAN_CONFIG, starter_until_eligible=True)
 
 
 @dataclass(frozen=True)
@@ -87,6 +150,7 @@ class SlotPlan:
     presentation: dict[str, Any] = field(default_factory=dict)
     intro: str | None = None
     clips: dict[str, dict[str, str]] = field(default_factory=dict)
+    resolved: dict[str, Any] | None = None  # a materialised template instance (C25.1); None for a FIXED activity
 
 
 def slot_specs(final_wave: int, meteor_after: Sequence[int], normal_rewards: Sequence[int]) -> list[SlotSpec]:
@@ -123,7 +187,8 @@ class _Group:
     """One subject x slot-kind queue: topics shuffled, units shuffled inside each topic, round-robin over topics.
 
     A BOTH unit sits in two groups. `take` passes over (and drops) any unit in `used`, the run's shared set of
-    activity IDs already chosen, so the unit fills at most one slot. With no BOTH unit nothing is ever skipped."""
+    unit keys already chosen, so the unit fills at most one slot. With no BOTH unit nothing is ever skipped.
+    A template's second unit goes to the back of its topic's queue (C24.4 rule 2)."""
 
     def __init__(self, units: Sequence[Unit], seed: str, subject: str, category: str) -> None:
         by_topic: dict[str, list[Unit]] = {}
@@ -131,19 +196,26 @@ class _Group:
             by_topic.setdefault(unit.topic_id, []).append(unit)
         topics = shuffle(sorted(by_topic), seed, f"topics:{category}:{subject}")
         self.size = len(units)
-        self.queues = [shuffle(by_topic[topic], seed, f"units:{topic}") for topic in topics]
+        self.queues = [self._queue(by_topic[topic], seed, topic) for topic in topics]
         self.next_topic = 0
+
+    @staticmethod
+    def _queue(units: list[Unit], seed: str, topic: str) -> list[Unit]:
+        first = shuffle([u for u in units if u.instance == 0], seed, f"units:{topic}")
+        order = {u.activity_id: i for i, u in enumerate(first)}
+        later = sorted((u for u in units if u.instance > 0), key=lambda u: (u.instance, order.get(u.activity_id, 0)))
+        return first + later
 
     def take(self, used: set[str]) -> Unit | None:
         for step in range(len(self.queues)):
             index = (self.next_topic + step) % len(self.queues)
             queue = self.queues[index]
-            while queue and queue[0].activity_id in used:
+            while queue and queue[0].key in used:
                 queue.pop(0)  # taken by the other group of this subject (a BOTH unit)
             if queue:
                 self.next_topic = index + 1
                 unit = queue.pop(0)
-                used.add(unit.activity_id)
+                used.add(unit.key)
                 return unit
         return None
 
@@ -218,14 +290,8 @@ def _clips(version: Mapping[str, Any]) -> dict[str, dict[str, str]]:
 
 def choose_units(specs: Sequence[SlotSpec], units: Sequence[Unit], seed: str, config: SelectionConfig) -> list[Unit]:
     """One unit per spec, or BankNotReady. Pure."""
-    groups = {
-        (subject, kind): _Group(
-            [u for u in units if u.subject == subject and fills(u.category, kind)], seed, subject, kind
-        )
-        for subject in SUBJECTS
-        for kind in SLOT_KINDS
-    }
-    used: set[str] = set()  # activity IDs chosen so far, shared by every group (a BOTH unit is in two)
+    groups = {key: _Group(members, seed, *key) for key, members in group_units(units).items()}
+    used: set[str] = set()  # unit keys chosen so far, shared by every group (a BOTH unit is in two)
     chosen: list[Unit] = []
 
     def subjects_for(spec: SlotSpec) -> list[str]:
@@ -267,8 +333,57 @@ def choose_units(specs: Sequence[SlotSpec], units: Sequence[Unit], seed: str, co
     supplied = {(unit.subject, spec.kind) for spec, unit in zip(specs, chosen, strict=True)}
     for key, group in groups.items():
         if key in supplied and group.size < config.thresholds.get(key, 1):
-            raise BankNotReady(f"group {key} holds {group.size} units, below its threshold")
+            raise BankNotReady(f"group {key} holds {group.size} units, below its threshold", "BELOW_THRESHOLD")
     return chosen
+
+
+class _Templates:
+    """The run's template domains, prepared once per pinned version, and the instances it already holds."""
+
+    def __init__(self, taken: Iterable[str]) -> None:
+        self.domains: dict[tuple[str, str], tuple[generators.Prepared, list[dict[str, Any]]]] = {}
+        self.taken = set(taken)
+
+    def domain(self, unit: Unit, version: Mapping[str, Any]) -> tuple[generators.Prepared, list[dict[str, Any]]]:
+        pin = (unit.activity_id, unit.version)
+        if pin not in self.domains:
+            prepared, _ = generators.prepare(version.get("template"), version.get("interactionType"))
+            raw = generators.domain_params(prepared) if prepared is not None else None
+            if prepared is None or not raw:
+                raise BankNotReady(f"template {unit.activity_id} cannot be generated", "TEMPLATE_UNAVAILABLE")
+            self.domains[pin] = (prepared, raw)
+        return self.domains[pin]
+
+    def materialise(self, unit: Unit, version: Mapping[str, Any], slot_id: str, seed: str) -> dict[str, Any]:
+        """The slot's instance (C24.4 rule 6): seeded draws into the domain, then a walk from the first draw."""
+        prepared, raw = self.domain(unit, version)
+        label = f"params:{slot_id}"
+        first = draw(seed, label, 0) % len(raw)
+        indexes = [draw(seed, label, attempt) % len(raw) for attempt in range(PARAM_DRAWS)]
+        indexes += [(first + step) % len(raw) for step in range(len(raw))]
+        for index in indexes:
+            instance = generators.instance_at(prepared, raw, index)
+            if instance is None:
+                continue
+            key = instance_key(unit.activity_id, instance.params)
+            if key not in self.taken:
+                self.taken.add(key)
+                return instance.resolved(prepared.kind, prepared.version)
+        raise BankNotReady(f"template {unit.activity_id} has no instance left for {slot_id}", "TEMPLATE_UNAVAILABLE")
+
+
+def instance_key(activity_id: str, params: Mapping[str, Any]) -> str:
+    """A template instance's identity within a run (C24.4 rule 4): the activity and its parameters."""
+    return f"{activity_id}|{generators.canonical_params(params)}"
+
+
+def _shown(version: Mapping[str, Any], resolved: Mapping[str, Any] | None) -> Mapping[str, Any]:
+    """What the slot shows: the version itself, or for a template the version with the instance's prompt, payload,
+    answers and pictures in place (what the pack sends, shared/runs.py)."""
+    if resolved is None:
+        return version
+    fields = ("prompt", "activityPayload", "answerSpecification", "visualAssetReferences")
+    return {**version, **{name: resolved[name] for name in fields}}
 
 
 def plan_slots(
@@ -276,16 +391,21 @@ def plan_slots(
     chosen: Sequence[Unit],
     versions: Mapping[tuple[str, str], Mapping[str, Any]],
     seed: str,
+    taken_instances: Iterable[str] = (),
 ) -> list[SlotPlan]:
-    """The full plan once the chosen versions are read: presentation, demonstration flags (C22.6: the first slot of
-    each concept whose activity carries a demonstration gets AUTO, later ones ON_REQUEST, none without one) and
-    clips. A chosen version that does not exist raises BankNotReady (the header named a version that is missing)."""
+    """The full plan once the chosen versions are read: template instances, presentation, demonstration flags
+    (C22.6: the first slot of each concept whose activity carries a demonstration gets AUTO, later ones ON_REQUEST,
+    none without one) and clips. A chosen version that does not exist raises BankNotReady (the header named a version
+    that is missing). `taken_instances` are template instances the run already holds (`instance_key`; endless
+    blocks, Phase 54)."""
     plans: list[SlotPlan] = []
     introduced: set[str] = set()
+    templates = _Templates(taken_instances)
     for spec, unit in zip(specs, chosen, strict=True):
         version = versions.get((unit.activity_id, unit.version))
         if version is None or version.get("withdrawn"):
-            raise BankNotReady(f"published version of {unit.activity_id} is missing or withdrawn")
+            raise BankNotReady(f"published version of {unit.activity_id} is missing or withdrawn", "VERSION_MISSING")
+        resolved = templates.materialise(unit, version, spec.slot_id, seed) if unit.template else None
         intro: str | None = None
         demo = version.get("introductionContent")
         if isinstance(demo, Mapping):
@@ -299,9 +419,10 @@ def plan_slots(
                 interval=spec.interval,
                 unit=unit,
                 reward=dict(spec.reward),
-                presentation=_presentation(spec.slot_id, version, seed),
+                presentation=_presentation(spec.slot_id, _shown(version, resolved), seed),
                 intro=intro,
                 clips=_clips(version),
+                resolved=resolved,
             )
         )
     return plans

@@ -133,7 +133,7 @@ def new_slot_item(*, pk: str, run_id: str, plan: SlotPlan) -> dict[str, Any]:
         "activityId": plan.unit.activity_id,
         "activityVersion": plan.unit.version,
         "interactionType": plan.unit.interaction_type,
-        "resolved": None,  # FIXED activities only until templates exist (Phase 41)
+        "resolved": plan.resolved,  # the materialised template instance, or None for a FIXED activity (C25.1)
         "presentation": dict(plan.presentation),
         "intro": plan.intro,
         "clips": {variant: dict(ref) for variant, ref in plan.clips.items()},
@@ -263,12 +263,29 @@ _VERSION_FIELDS = (
     "introductionContent",
 )
 # Copied from the slot (pinned at creation).
-_SLOT_FIELDS = ("slotId", "kind", "subject", "topicId", "activityId", "activityVersion", "resolved", "presentation")
+_SLOT_FIELDS = ("slotId", "kind", "subject", "topicId", "activityId", "activityVersion", "presentation")
+# A template slot's instance (`resolved`, C25.1): these fields stand where a FIXED version's would, so the player
+# shows and judges it exactly like a FIXED activity. Its generator kind, version and parameters stay on the slot
+# (G R10: no generator parameters in a pack).
+RESOLVED_FIELDS = ("prompt", "activityPayload", "answerSpecification", "visualAssetReferences")
+
+
+def resolved_of(slot: Mapping[str, Any]) -> Mapping[str, Any] | None:
+    """The slot's materialised template instance, or None (a FIXED activity, or a malformed snapshot)."""
+    resolved = slot.get("resolved")
+    if isinstance(resolved, Mapping) and all(
+        isinstance(resolved.get(name), Mapping | list) for name in RESOLVED_FIELDS
+    ):
+        return resolved
+    return None
 
 
 def pack_slot(slot: Mapping[str, Any], version: Mapping[str, Any] | None) -> dict[str, Any]:
-    """One pack entry. A withdrawn or missing pinned version gives `withdrawn: true` and no definition."""
+    """One pack entry. A withdrawn or missing pinned version gives `withdrawn: true` and no definition. For a template
+    slot the instance's prompt, payload, answers and pictures fill the definition fields, and `resolved` carries the
+    same four fields (and nothing else); it is null for a FIXED slot and whenever the definition is omitted."""
     entry: dict[str, Any] = {name: plain(slot.get(name)) for name in _SLOT_FIELDS}
+    entry["resolved"] = None
     entry["intro"] = slot.get("intro")
     clips = slot.get("clips") if isinstance(slot.get("clips"), Mapping) else {}
     entry["clips"] = {
@@ -281,6 +298,10 @@ def pack_slot(slot: Mapping[str, Any], version: Mapping[str, Any] | None) -> dic
         for name in _VERSION_FIELDS:
             if version.get(name) is not None:
                 entry[name] = plain(version[name])
+        resolved = resolved_of(slot)
+        if resolved is not None:
+            entry["resolved"] = {name: plain(resolved[name]) for name in RESOLVED_FIELDS}
+            entry.update(entry["resolved"])
     return entry
 
 

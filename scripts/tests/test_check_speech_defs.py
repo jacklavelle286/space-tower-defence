@@ -93,3 +93,32 @@ def test_a_bad_verdict_value_fails(tmp_path: Path) -> None:
 
 def test_a_missing_verdicts_file_is_bad_input(tmp_path: Path) -> None:
     assert check_speech_defs.check(tmp_path)[0] == 2
+
+
+def test_drafts_saved_from_the_admin_api_are_checked_too(tmp_path: Path) -> None:
+    """Phase 40: G-14 over drafts. An R17 list body and an R19 body are both found by the object search."""
+    root = repo(tmp_path)
+    listing = tmp_path / "speech-list.json"
+    listing.write_text(json.dumps({"items": [{"speechId": "phoneme-th", "kind": "PHONEME", "state": "DRAFT"}]}))
+    one = tmp_path / "phoneme-s.json"
+    one.write_text(json.dumps({"header": {"speechId": "phoneme-s", "kind": "PHONEME"}, "draft": {"kind": "PHONEME"}}))
+    code, messages = check_speech_defs.check(root, [listing, one])
+    assert code == 1
+    assert len(messages) == 1 and "phoneme-th has verdict word-only" in messages[0]
+    assert check_speech_defs.check(root, [one]) == (0, [])
+    code, messages = check_speech_defs.check(root, [tmp_path / "missing.json"])
+    assert code == 1 and "missing or not valid JSON" in messages[0]
+
+
+def test_the_drafts_option_on_the_command_line(tmp_path: Path) -> None:
+    root = repo(tmp_path)
+    export = tmp_path / "export.json"
+    export.write_text(json.dumps({"items": [{"speechId": "word-thin", "kind": "WORD"}]}))
+    result = subprocess.run(  # noqa: S603 - our own script
+        [sys.executable, str(SCRIPTS / "check_speech_defs.py"), "--root", str(root), "--drafts", str(export)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    assert "1 drafts file(s)" in result.stdout

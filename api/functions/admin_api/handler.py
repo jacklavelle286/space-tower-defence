@@ -7,19 +7,23 @@ operator authoriser refuses another pool's issuer with 401. Audit fields (`creat
 
 Phase 20 answered the minimal admin path (D §D8.6): speech definitions R17-R21 and activities R22-R27. Phase 36 (M3-02)
 adds the activity lifecycle: validation of all six interaction types and two-step activities, retire (R28) and
-withdraw (R29). Bank status (R30) still answers 501 NOT_IMPLEMENTED until Phase 42 (M3-07), which owns the counting
-function it shares with selection. The owner's decision of 2026-11-16 adds delete (R31,
+withdraw (R29). Phase 42 (M3-07) adds bank status (R30), counted by the same function selection uses
+(shared/selection/eligibility.py). The owner's decision of 2026-11-16 adds delete (R31,
 `DELETE /api/admin/activities/{id}`): the header, the draft and every version go, with an audit item. Item shapes
 and checks are in shared/content.py and shared/activity_types.py.
 
 Speech approval (R21, F §12.6 C7, D §D9.3) never synthesises. It recomputes the clip key from the SAVED draft (its kind
 picks the engine, with the same TTS_* configuration as `tts`) and requires that object in the audio bucket: the object
 exists only if `POST /api/admin/speech/preview` rendered exactly this draft's input, so "a preview of the same draft
-revision exists" is a fact the server can check, not a claim from the browser. That listen-and-approve is the
-listening verdict (ADR-0028); a PHONEME definition is refused only when its sound is `word-only` in
-content/listening-verdicts.json (G-14, shared/verdicts.py). The version records `clipKey`, the
-`sha256` of the MP3 bytes, the render date (the object's LastModified), `engine`, `voiceId`, `take` and the review
-record.
+revision exists" is a fact the server can check, not a claim from the browser. The request also carries the `clipKey`
+the operator previewed and played (Phase 40, M3-05), and the server refuses it (`clip_mismatch`) unless it is the key
+it recomputed, so the approval is bound to the bytes heard. That listen-and-approve is the listening verdict
+(ADR-0028); a PHONEME definition is refused only when its sound is `word-only` in content/listening-verdicts.json
+(G-14, shared/verdicts.py), and that rule (with the `phoneme-<sound>` naming it relies on) runs on create (R18) and
+save (R20) as well as at approval, so a word-only draft fails as soon as it is made. Create may carry the first body;
+without one, R18 starts the draft from the bake-off's form for that ID (shared/verdicts.py `starting_body`).
+The version records `clipKey`, the `sha256` of the MP3 bytes, the render date (the object's LastModified),
+`engine`, `voiceId`, `take` and the review record.
 
 Takes ([PROPOSAL], 2026-11-15; ADR-0025): the draft holds a `take` (absent = 1) that is part of the clip key
 (shared/clipkey.py). Generative renders are not repeatable, so when a preview sounds wrong the operator saves the same
@@ -55,7 +59,9 @@ from botocore.exceptions import ClientError
 from shared.audio import AudioStore, head_clip, s3_client, stored_sha256
 from shared.auth import OPERATOR
 from shared.body import json_object, query_param
+from shared.bounds import BoundsUnavailable, load_bounds
 from shared.clipkey import (
+    CLIP_KEY,
     GENERATION,
     KINDS,
     PROVIDER,
@@ -96,6 +102,7 @@ from shared.content import (
     speech_body,
     speech_pk,
     valid_title,
+    validation_extras,
     version_id,
 )
 from shared.data import (
@@ -107,10 +114,14 @@ from shared.data import (
     table_from_env,
 )
 from shared.errors import ApiError, json_response
+from shared.game_data import GameDataReader, GameDataUnavailable, reader_from_env
 from shared.log import ApiLogger
 from shared.router import Request, Router
 from shared.rules.contracts import LIMITS
-from shared.verdicts import phoneme_refusal
+from shared.selection.bank import HEADER_PK
+from shared.selection.eligibility import ReleasedWaveSets, bank_status
+from shared.selection.plan import LIVE_CONFIG, SelectionConfig, slot_specs
+from shared.verdicts import PHONEME_PREFIX, phoneme_refusal, starting_body
 
 # This function's allow-list. tests/unit/test_routes_contract.py checks it equals contracts/routes.json.
 ROUTES: dict[str, str] = {
@@ -145,6 +156,7 @@ def _utc_now() -> datetime:
 
 
 _container_s3 = cache(s3_client)
+_container_game_data = cache(reader_from_env)  # one game-data reader, and so one cache, per Lambda container
 
 
 @dataclass(frozen=True)
@@ -154,6 +166,10 @@ class Deps:
     store: Callable[[], AudioStore] = AudioStore.from_env
     config: Callable[[], SpeechConfig] = SpeechConfig.from_env
     now: Callable[[], datetime] = _utc_now
+    selection: SelectionConfig = LIVE_CONFIG  # the thresholds player-api selects with (shared/selection/plan.py)
+    # The released game data, read as player-api reads it, so bank status (R30) judges the wave sets new games use.
+    game_data: Callable[[], GameDataReader] = _container_game_data
+    bounds: Callable[[str, str], Any] = load_bounds
 
 
 # --- Request helpers ------------------------------------------------------------------------------------------------
@@ -335,9 +351,20 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         ]
         return json_response(200, page(items, "speechId", request))
 
+    def speech_rules(speech_id: str, kind: str) -> None:
+        """G-14 on a draft (R18, R20) as well as at approval (R21): a PHONEME definition names its sound by
+        `phoneme-<sound>`, so the word-only check cannot be dodged by its name, and a word-only sound is refused."""
+        if kind != "PHONEME":
+            return
+        if not speech_id.startswith(PHONEME_PREFIX):
+            raise invalid([problem("speechId", "phoneme_prefix")])
+        refusal = phoneme_refusal(speech_id)
+        if refusal is not None:
+            raise invalid([problem("speechId", refusal)])
+
     def create_speech(request: Request) -> dict[str, Any]:
         body = json_object(request.event)
-        only_fields(body, {"speechId", "title", "kind"}, {"speechId", "title", "kind"})
+        only_fields(body, {"speechId", "title", "kind", "text", "ssml"}, {"speechId", "title", "kind"})
         problems = []
         if not (isinstance(body["speechId"], str) and KEY_ID.fullmatch(body["speechId"])):
             problems.append(problem("speechId", "pattern"))
@@ -345,12 +372,29 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
             problems.append(problem("title", "pattern"))
         if body["kind"] not in KINDS:
             problems.append(problem("kind", "enum"))
+        if "text" in body and "ssml" in body:
+            problems.append(problem("body", "oneOf"))
         if problems:
             raise invalid(problems)
-        speech_id = body["speechId"]
+        speech_id, kind = body["speechId"], body["kind"]
         request.log["speechId"] = speech_id
+        speech_rules(speech_id, kind)
+        config = deps.config()
+        # The first draft: the body sent, else what the bake-off already heard for this ID (shared/verdicts.py).
+        given = next(((f, body[f]) for f in ("text", "ssml") if f in body), None)
+        candidate = given if given is not None else starting_body(speech_id, kind)
+        first: dict[str, str] = {}
+        if candidate is not None:
+            field, value = candidate
+            try:  # the same checks as a save (R20)
+                clip_input(kind, config, **{field: value})
+                first[field] = canonical_text(value)
+            except ClipInputError as error:
+                if given is not None:
+                    raise invalid([problem(error.field, error.rule)]) from None
+                # a suggestion that does not check (e.g. after a configuration change) is simply not offered
         header, draft = new_speech_items(
-            speech_id=speech_id, title=body["title"], kind=body["kind"], by=request.caller.sub, at=deps.now()
+            speech_id=speech_id, title=body["title"], kind=kind, by=request.caller.sub, at=deps.now(), **first
         )
         content = table()
         failed = transact(content, create_actions(content, header, draft))
@@ -375,6 +419,7 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         if "take" in body and (rule := take_problem(body["take"])) is not None:
             raise invalid([problem("take", rule)])
         _, draft = speech_items(speech_id)
+        speech_rules(speech_id, str(draft.get("kind")))
         field, other = ("text", "ssml") if "text" in body else ("ssml", "text")
         take = body["take"] if "take" in body else draft_take(draft)  # absent: the draft keeps its take
         try:  # the same checks as a preview (G R20): length, characters, tags for the kind's engine
@@ -426,8 +471,11 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         speech_id = path_id(request)
         request.log.update(speechId=speech_id, action="approve")
         body = json_object(request.event)
-        only_fields(body, {"draftRevision", "reviewNote"}, {"draftRevision"})
+        only_fields(body, {"draftRevision", "clipKey", "reviewNote"}, {"draftRevision", "clipKey"})
         revision = draft_revision_of(body)
+        previewed = body["clipKey"]  # the clip the operator played (Phase 40: approval is bound to those bytes)
+        if not (isinstance(previewed, str) and CLIP_KEY.fullmatch(previewed)):
+            raise invalid([problem("clipKey", "pattern")])
         note = body.get("reviewNote")
         if note is not None and not (isinstance(note, str) and len(note) <= REVIEW_NOTE_MAX):
             raise invalid([problem("reviewNote", "maxLength")])
@@ -436,6 +484,8 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         if as_int(header.get("fromDraftRevision")) == revision and header.get("approvedVersion"):
             existing = content.get_item(speech_pk(speech_id), f"{VERSION_PREFIX}{header['approvedVersion']}")
             if existing is not None:  # a retry of an approval that already happened (G R21)
+                if existing.get("clipKey") != previewed:
+                    raise invalid([problem("clipKey", "clip_mismatch")])
                 request.log["versionId"] = str(header["approvedVersion"])
                 return json_response(200, approve_result(existing))
         if as_int(draft.get("draftRevision")) != revision:
@@ -451,11 +501,11 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
             doc = clip_input(kind, config, text=text, ssml=ssml, take=take)
         except ClipInputError as error:
             raise invalid([problem(error.field, error.rule)]) from None
-        if kind == "PHONEME":  # the operator's approve is the verdict; only a word-only sound is refused (ADR-0028)
-            refusal = phoneme_refusal(speech_id)
-            if refusal is not None:
-                raise invalid([problem("speechId", refusal)])
+        # The operator's approve is the verdict; only a word-only sound is refused (ADR-0028).
+        speech_rules(speech_id, kind)
         key = clip_key(doc)
+        if key != previewed:  # the clip played is not the clip of the saved draft (another revision, take or config)
+            raise invalid([problem("clipKey", "clip_mismatch")])
         store = deps.store()
         head = head_clip(deps.s3(), store, object_key(key, store.clip_prefix))
         sha256 = stored_sha256(head) if head is not None else None
@@ -682,9 +732,8 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         if as_int(draft.get("draftRevision")) != revision:
             raise ApiError("DRAFT_CONFLICT")
         problems, _ = publish_checks(table(), header, draft, activity_id)
-        return json_response(
-            200, {"valid": not problems, "problems": problems, "draftRevision": revision, "domainSize": 1}
-        )
+        extras = validation_extras(draft.get("definition"))  # domainSize, and a template's sample (G R26)
+        return json_response(200, {"valid": not problems, "problems": problems, "draftRevision": revision, **extras})
 
     def publish_activity(request: Request) -> dict[str, Any]:
         activity_id = path_id(request)
@@ -900,6 +949,35 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
                 return json_response(200, {"activityId": activity_id, "deletedVersions": listed})
         raise ApiError("THROTTLED")  # the activity kept changing under us; the client retries the same request
 
+    # --- R30 bank status (C24.7, D §D8.5; Phase 42) -------------------------------------------------------------------
+
+    def released_wave_sets() -> ReleasedWaveSets | None:
+        """Each released wave set's slots, built from its bounds file exactly as POST /api/runs builds them; None
+        when the released game data cannot be read (R30 then says so and judges the band without it)."""
+        try:
+            reader = deps.game_data()
+            ruleset = reader.current()["rulesetVersion"]
+            released: list[tuple[str, list[Any]]] = []
+            for planet in reader.released_planets():
+                bounds = deps.bounds(ruleset, planet.campaign_version)
+                for wave_set in planet.wave_sets:
+                    ws = bounds["waveSets"].get(wave_set.wave_set_id)
+                    if ws is None:
+                        continue  # not playable: POST /api/runs refuses it before selection
+                    rewards = list(ws["normalRewardByInterval"])
+                    specs = slot_specs(int(ws["finalWave"]), list(ws["meteorAfter"]), rewards)
+                    released.append((wave_set.wave_set_id, specs))
+        except (GameDataUnavailable, BoundsUnavailable):
+            return None
+        return released
+
+    def get_bank_status(request: Request) -> dict[str, Any]:
+        """Counts against the thresholds per age band, subject and slot kind, from one consistent read of the header
+        partition: the same read and the same counting function (shared/selection) that run creation uses. The mode
+        runs the released wave sets through the selector under the rules in force."""
+        headers = table().query_prefix(HEADER_PK, "")
+        return json_response(200, bank_status(headers, deps.selection, released_wave_sets()))
+
     handlers = {
         "GET /api/admin/speech-definitions": list_speech,
         "POST /api/admin/speech-definitions": create_speech,
@@ -914,6 +992,7 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         "POST /api/admin/activities/{id}/publish": publish_activity,
         "POST /api/admin/activities/{id}/retire": retire_activity,
         "POST /api/admin/activities/{id}/withdraw": withdraw_activity,
+        "GET /api/admin/bank-status": get_bank_status,
         "DELETE /api/admin/activities/{id}": delete_activity,
     }
     return Router(routes=ROUTES, handlers=handlers, logger=logger)

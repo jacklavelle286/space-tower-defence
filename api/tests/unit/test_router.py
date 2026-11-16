@@ -84,7 +84,8 @@ def test_real_handler_unknown_route_creates_no_client(
     assert created == []
 
 
-@pytest.mark.parametrize("function", ["player_api", "admin_api"])  # tts has every route since Phase 19
+# tts has every route since Phase 19, admin-api since Phase 42 (R30 bank status)
+@pytest.mark.parametrize("function", ["player_api"])
 def test_every_catalogued_route_without_a_handler_answers_501_envelope(player_event: dict, function: str) -> None:
     module = load_handler(function)
     stubs = {key: authoriser for key, authoriser in module.ROUTES.items() if key not in module.ROUTER.handlers}

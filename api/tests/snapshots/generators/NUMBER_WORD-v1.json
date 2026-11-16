@@ -1,0 +1,759 @@
+{
+ "kind": "NUMBER_WORD",
+ "version": 1,
+ "cases": [
+  {
+   "name": "to20-both-choice",
+   "interactionType": "MULTIPLE_CHOICE",
+   "template": {
+    "generatorKind": "NUMBER_WORD",
+    "generatorVersion": 1,
+    "domain": {
+     "n": {
+      "min": 1,
+      "max": 20
+     },
+     "directions": [
+      "WORD_TO_NUMERAL",
+      "NUMERAL_TO_WORD"
+     ]
+    }
+   },
+   "domainSize": 40,
+   "sha256": "f13ea67e18eb3434656cb63ae615eee35e4f7150809559844712a8d815954956",
+   "instances": {
+    "0": {
+     "generatorKind": "NUMBER_WORD",
+     "generatorVersion": 1,
+     "params": {
+      "n": 1,
+      "direction": "WORD_TO_NUMERAL"
+     },
+     "prompt": {
+      "text": "Which number is one?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "0"
+       },
+       {
+        "id": "b",
+        "text": "1"
+       },
+       {
+        "id": "c",
+        "text": "3"
+       },
+       {
+        "id": "d",
+        "text": "11"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "5": {
+     "generatorKind": "NUMBER_WORD",
+     "generatorVersion": 1,
+     "params": {
+      "n": 3,
+      "direction": "NUMERAL_TO_WORD"
+     },
+     "prompt": {
+      "text": "Which word means 3?"
+     },
+     "activityPayload": {
+      "optionStyle": "WORD",
+      "options": [
+       {
+        "id": "a",
+        "text": "two"
+       },
+       {
+        "id": "b",
+        "text": "three"
+       },
+       {
+        "id": "c",
+        "text": "four"
+       },
+       {
+        "id": "d",
+        "text": "twenty-three"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "11": {
+     "generatorKind": "NUMBER_WORD",
+     "generatorVersion": 1,
+     "params": {
+      "n": 6,
+      "direction": "NUMERAL_TO_WORD"
+     },
+     "prompt": {
+      "text": "Which word means 6?"
+     },
+     "activityPayload": {
+      "optionStyle": "WORD",
+      "options": [
+       {
+        "id": "a",
+        "text": "five"
+       },
+       {
+        "id": "b",
+        "text": "six"
+       },
+       {
+        "id": "c",
+        "text": "seven"
+       },
+       {
+        "id": "d",
+        "text": "twenty-six"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "16": {
+     "generatorKind": "NUMBER_WORD",
+     "generatorVersion": 1,
+     "params": {
+      "n": 9,
+      "direction": "WORD_TO_NUMERAL"
+     },
+     "prompt": {
+      "text": "Which number is nine?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "9"
+       },
+       {
+        "id": "b",
+        "text": "10"
+       },
+       {
+        "id": "c",
+        "text": "19"
+       },
+       {
+        "id": "d",
+        "text": "29"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "a"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "22": {
+     "generatorKind": "NUMBER_WORD",
+     "generatorVersion": 1,
+     "params": {
+      "n": 12,
+      "direction": "WORD_TO_NUMERAL"
+     },
+     "prompt": {
+      "text": "Which number is twelve?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "10"
+       },
+       {
+        "id": "b",
+        "text": "11"
+       },
+       {
+        "id": "c",
+        "text": "12"
+       },
+       {
+        "id": "d",
+        "text": "14"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "c"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "27": {
+     "generatorKind": "NUMBER_WORD",
+     "generatorVersion": 1,
+     "params": {
+      "n": 14,
+      "direction": "NUMERAL_TO_WORD"
+     },
+     "prompt": {
+      "text": "Which word means 14?"
+     },
+     "activityPayload": {
+      "optionStyle": "WORD",
+      "options": [
+       {
+        "id": "a",
+        "text": "thirteen"
+       },
+       {
+        "id": "b",
+        "text": "fourteen"
+       },
+       {
+        "id": "c",
+        "text": "fifteen"
+       },
+       {
+        "id": "d",
+        "text": "thirty-four"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "33": {
+     "generatorKind": "NUMBER_WORD",
+     "generatorVersion": 1,
+     "params": {
+      "n": 17,
+      "direction": "NUMERAL_TO_WORD"
+     },
+     "prompt": {
+      "text": "Which word means 17?"
+     },
+     "activityPayload": {
+      "optionStyle": "WORD",
+      "options": [
+       {
+        "id": "a",
+        "text": "fifteen"
+       },
+       {
+        "id": "b",
+        "text": "sixteen"
+       },
+       {
+        "id": "c",
+        "text": "seventeen"
+       },
+       {
+        "id": "d",
+        "text": "nineteen"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "c"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "39": {
+     "generatorKind": "NUMBER_WORD",
+     "generatorVersion": 1,
+     "params": {
+      "n": 20,
+      "direction": "NUMERAL_TO_WORD"
+     },
+     "prompt": {
+      "text": "Which word means 20?"
+     },
+     "activityPayload": {
+      "optionStyle": "WORD",
+      "options": [
+       {
+        "id": "a",
+        "text": "ten"
+       },
+       {
+        "id": "b",
+        "text": "twenty"
+       },
+       {
+        "id": "c",
+        "text": "thirty"
+       },
+       {
+        "id": "d",
+        "text": "forty"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  },
+  {
+   "name": "to100-typed",
+   "interactionType": "TYPED",
+   "template": {
+    "generatorKind": "NUMBER_WORD",
+    "generatorVersion": 1,
+    "domain": {
+     "n": {
+      "min": 20,
+      "max": 100
+     },
+     "directions": [
+      "WORD_TO_NUMERAL"
+     ]
+    }
+   },
+   "domainSize": 81,
+   "sha256": "8e5aa182098e8cd4567cefcab0d5df02bc28d841b5057fa0bb75542001753cc9",
+   "instances": {
+    "0": {
+     "generatorKind": "NUMBER_WORD",
+     "generatorVersion": 1,
+     "params": {
+      "n": 20,
+      "direction": "WORD_TO_NUMERAL"
+     },
+     "prompt": {
+      "text": "Which number is twenty?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "20"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "11": {
+     "generatorKind": "NUMBER_WORD",
+     "generatorVersion": 1,
+     "params": {
+      "n": 31,
+      "direction": "WORD_TO_NUMERAL"
+     },
+     "prompt": {
+      "text": "Which number is thirty-one?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "31"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "22": {
+     "generatorKind": "NUMBER_WORD",
+     "generatorVersion": 1,
+     "params": {
+      "n": 42,
+      "direction": "WORD_TO_NUMERAL"
+     },
+     "prompt": {
+      "text": "Which number is forty-two?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "42"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "34": {
+     "generatorKind": "NUMBER_WORD",
+     "generatorVersion": 1,
+     "params": {
+      "n": 54,
+      "direction": "WORD_TO_NUMERAL"
+     },
+     "prompt": {
+      "text": "Which number is fifty-four?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "54"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "45": {
+     "generatorKind": "NUMBER_WORD",
+     "generatorVersion": 1,
+     "params": {
+      "n": 65,
+      "direction": "WORD_TO_NUMERAL"
+     },
+     "prompt": {
+      "text": "Which number is sixty-five?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "65"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "57": {
+     "generatorKind": "NUMBER_WORD",
+     "generatorVersion": 1,
+     "params": {
+      "n": 77,
+      "direction": "WORD_TO_NUMERAL"
+     },
+     "prompt": {
+      "text": "Which number is seventy-seven?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "77"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "68": {
+     "generatorKind": "NUMBER_WORD",
+     "generatorVersion": 1,
+     "params": {
+      "n": 88,
+      "direction": "WORD_TO_NUMERAL"
+     },
+     "prompt": {
+      "text": "Which number is eighty-eight?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "88"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "80": {
+     "generatorKind": "NUMBER_WORD",
+     "generatorVersion": 1,
+     "params": {
+      "n": 100,
+      "direction": "WORD_TO_NUMERAL"
+     },
+     "prompt": {
+      "text": "Which number is one hundred?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "100"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  },
+  {
+   "name": "to20-track",
+   "interactionType": "NUMBER_SELECT",
+   "template": {
+    "generatorKind": "NUMBER_WORD",
+    "generatorVersion": 1,
+    "domain": {
+     "n": {
+      "min": 1,
+      "max": 20
+     },
+     "directions": [
+      "WORD_TO_NUMERAL"
+     ]
+    },
+    "presentation": {
+     "numberSet": {
+      "kind": "RANGE",
+      "min": 0,
+      "max": 20,
+      "step": 1
+     },
+     "display": "TRACK"
+    }
+   },
+   "domainSize": 20,
+   "sha256": "09632c55381b257313437a758bfbbd142dfdf1c9187523454fff6cf392ca8660",
+   "instances": {
+    "0": {
+     "generatorKind": "NUMBER_WORD",
+     "generatorVersion": 1,
+     "params": {
+      "n": 1,
+      "direction": "WORD_TO_NUMERAL"
+     },
+     "prompt": {
+      "text": "Which number is one?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "1"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "2": {
+     "generatorKind": "NUMBER_WORD",
+     "generatorVersion": 1,
+     "params": {
+      "n": 3,
+      "direction": "WORD_TO_NUMERAL"
+     },
+     "prompt": {
+      "text": "Which number is three?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "3"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "5": {
+     "generatorKind": "NUMBER_WORD",
+     "generatorVersion": 1,
+     "params": {
+      "n": 6,
+      "direction": "WORD_TO_NUMERAL"
+     },
+     "prompt": {
+      "text": "Which number is six?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "6"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "8": {
+     "generatorKind": "NUMBER_WORD",
+     "generatorVersion": 1,
+     "params": {
+      "n": 9,
+      "direction": "WORD_TO_NUMERAL"
+     },
+     "prompt": {
+      "text": "Which number is nine?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "9"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "10": {
+     "generatorKind": "NUMBER_WORD",
+     "generatorVersion": 1,
+     "params": {
+      "n": 11,
+      "direction": "WORD_TO_NUMERAL"
+     },
+     "prompt": {
+      "text": "Which number is eleven?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "11"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "13": {
+     "generatorKind": "NUMBER_WORD",
+     "generatorVersion": 1,
+     "params": {
+      "n": 14,
+      "direction": "WORD_TO_NUMERAL"
+     },
+     "prompt": {
+      "text": "Which number is fourteen?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "14"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "16": {
+     "generatorKind": "NUMBER_WORD",
+     "generatorVersion": 1,
+     "params": {
+      "n": 17,
+      "direction": "WORD_TO_NUMERAL"
+     },
+     "prompt": {
+      "text": "Which number is seventeen?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "17"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "19": {
+     "generatorKind": "NUMBER_WORD",
+     "generatorVersion": 1,
+     "params": {
+      "n": 20,
+      "direction": "WORD_TO_NUMERAL"
+     },
+     "prompt": {
+      "text": "Which number is twenty?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "20"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  }
+ ]
+}

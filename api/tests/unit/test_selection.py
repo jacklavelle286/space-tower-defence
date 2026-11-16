@@ -1,4 +1,4 @@
-"""Selection at run creation (C24; spine S5.3; M1-16 with the Milestone 1 configuration, B N-7). Pure functions:
+"""Selection at run creation (C24; spine S5.3; M1-16, and the Milestone 1 rules kept as STARTER_CONFIG). Pure functions:
 no tables, no clock. Properties from C24.9 where Milestone 1 already has the parts."""
 
 from __future__ import annotations
@@ -12,7 +12,7 @@ import pytest
 from shared.selection.bank import CATEGORIES, Unit, fills, units_for_band
 from shared.selection.draws import draw, shuffle
 from shared.selection.plan import (
-    M1_CONFIG,
+    STARTER_CONFIG,
     BankNotReady,
     SelectionConfig,
     SlotSpec,
@@ -24,7 +24,7 @@ from shared.selection.plan import (
 )
 
 CAMPAIGN_REWARDS = [30] * 9 + [40] * 10 + [50] * 10 + [60] * 10 + [75] * 10  # C9.2, intervals 1-49
-STRICT = SelectionConfig(thresholds=M1_CONFIG.thresholds, subject_fallback=False)
+STRICT = SelectionConfig(thresholds=STARTER_CONFIG.thresholds, subject_fallback=False)
 
 
 def unit(activity_id: str, subject: str, topic: str, category: str = "NORMAL") -> Unit:
@@ -111,7 +111,7 @@ def test_the_m1_wave_set_has_one_slot() -> None:
 def test_the_m1_phonics_activity_fills_the_maths_slot_through_the_m1_fallback() -> None:
     specs = slot_specs(2, [], [30])
     only = [unit("ph-0102", "phonics", "phonics-gpc-consonant-digraphs")]
-    assert choose_units(specs, only, "s", M1_CONFIG) == only
+    assert choose_units(specs, only, "s", STARTER_CONFIG) == only
     with pytest.raises(BankNotReady):
         choose_units(specs, only, "s", STRICT)  # the product rule (fallback off) cannot fill N-001
 
@@ -198,7 +198,7 @@ def test_a_campaign_with_both_units_never_repeats_and_fills_each_slot_kind() -> 
     assert "BOTH" in both_used
 
 
-@pytest.mark.parametrize("config", [STRICT, M1_CONFIG], ids=["strict", "m1"])
+@pytest.mark.parametrize("config", [STRICT, STARTER_CONFIG], ids=["strict", "m1"])
 def test_a_normal_slot_never_strands_a_meteor_slot_that_only_a_both_unit_can_fill(config: SelectionConfig) -> None:
     """Greedy alone took the BOTH unit for N-001 on about half the seeds and then refused the run; the swap gives
     N-001 the NORMAL-only unit instead, on every seed."""
@@ -214,7 +214,7 @@ def test_the_swap_crosses_subjects_under_the_fallback() -> None:
     phonics = unit("ph-0001", "phonics", "phonics-t1", "NORMAL")
     specs = [spec("NORMAL"), spec("METEOR")]
     for seed in SEEDS:
-        assert choose_units(specs, [both, phonics], seed, M1_CONFIG) == [phonics, both]
+        assert choose_units(specs, [both, phonics], seed, STARTER_CONFIG) == [phonics, both]
     with pytest.raises(BankNotReady):
         choose_units(specs, [both, phonics], "s", STRICT)  # without the fallback N-001 cannot take phonics
 
@@ -231,7 +231,7 @@ def _fillable(specs: list[SlotSpec], units: list[Unit], config: SelectionConfig)
     )
 
 
-@pytest.mark.parametrize("config", [STRICT, M1_CONFIG], ids=["strict", "m1"])
+@pytest.mark.parametrize("config", [STRICT, STARTER_CONFIG], ids=["strict", "m1"])
 def test_a_run_is_refused_only_when_no_assignment_exists(config: SelectionConfig) -> None:
     """Against brute force, over small random banks mixing NORMAL, METEOR and BOTH units in two subjects."""
     kinds = [("NORMAL", 1, "maths"), ("NORMAL", 2, "phonics"), ("METEOR", 2, "maths"), ("NORMAL", 3, "maths")]
@@ -297,7 +297,10 @@ def header(**changes: object) -> dict:
         ({}, 7, False),
         ({"state": "RETIRED"}, 5, False),
         ({"state": "DRAFT", "publishedVersion": None}, 5, False),
-        ({"authoringMode": "TEMPLATE"}, 5, False),  # until the generator framework exists (Phase 41)
+        ({"authoringMode": "TEMPLATE"}, 5, False),  # no domainSize: never published by the Phase 41 code
+        ({"authoringMode": "TEMPLATE", "domainSize": 38}, 5, True),
+        ({"authoringMode": "TEMPLATE", "domainSize": 0}, 5, False),
+        ({"authoringMode": "SOMETHING", "domainSize": 1}, 5, False),
         ({"subject": "science"}, 5, False),
         ({"rewardCategory": "BOTH"}, 5, True),
         ({"rewardCategory": "SOMETIMES"}, 5, False),

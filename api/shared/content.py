@@ -23,8 +23,18 @@ shown on read (R19) and recorded on the approved version. The version ID is the 
 
 Activity definitions (C22.1): FIXED activities of all six interaction types, with pictures from the asset manifest and
 at most one additional step (Phase 36; the per-type payload and answer checks are in shared/activity_types.py).
-Templates and demonstrations are refused with rule `not_supported_yet` until their phases. A draft saves freely (only
-its size, its ID and the locked identity fields are checked); validate and publish run every check.
+Demonstrations are refused with rule `not_supported_yet` until their phase. A draft saves freely (only its size, its
+ID and the locked identity fields are checked); validate and publish run every check.
+
+TEMPLATE activities (Phase 41, C25): `template {generatorKind, generatorVersion, domain, presentation?}` in place of
+prompt, activityPayload, answerSpecification, additionalSteps and visualAssetReferences (each refused on a template,
+rule `not_for_template`; `template` on a FIXED activity is rule `not_for_fixed`). Validate and publish run
+`template_report`: the generator's domain checks, then EVERY instance of the domain (at most 5,000 instances, and at
+most generators.ENUMERATION_MAX raw combinations enumerated; more is rule `domain_too_large`) through the same
+prompt, payload, answer and picture checks as a FIXED activity, reported as `template.instances.<n>.<field>` (C25.3
+rule 2). The header's `domainSize` is the number of instances, written at
+publish. A template may reference only an `instruction` clip: a clip cannot say a generated question. For the same
+reason `audioRequirement: REQUIRED` is refused on a template (rule `not_for_template`; NONE or OPTIONAL).
 
 Lifecycle items written by admin-api (Phase 36): retire sets the header `state` RETIRED; withdraw adds
 `withdrawn {at, reason}` to one version (the only attribute ever added to a version, under `attribute_not_exists`)
@@ -49,10 +59,13 @@ import hashlib
 import json
 import re
 from collections.abc import Iterable, Mapping
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from decimal import Decimal
+from functools import lru_cache
 from typing import TYPE_CHECKING, Any
 
+from shared import generators
 from shared.activity_types import (
     INTERACTION_TYPES,
     STEP_JOINER,
@@ -184,7 +197,10 @@ def new_speech_items(
     text: str | None = None,
     ssml: str | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
-    """A new speech definition: header + draft (draftRevision 0). Text or SSML only from a seed; R18 makes it empty."""
+    """A new speech definition: header + draft (draftRevision 0).
+
+    Text or SSML comes from a seed, or from R18: the body sent, or `shared.verdicts.starting_body` for the speechId.
+    """
     if not KEY_ID.fullmatch(speech_id) or kind not in KINDS or not valid_title(title):
         raise ValueError("speech definition identity is invalid")
     if text is not None and ssml is not None:
@@ -239,10 +255,12 @@ CREATE_FIELDS = (
 )
 
 
-def header_fields(definition: Mapping[str, Any]) -> dict[str, Any]:
-    """The header attributes a definition sets (spine S8.3: what selection and bank status read)."""
+def header_fields(definition: Mapping[str, Any], domain_size: int | None = None) -> dict[str, Any]:
+    """The header attributes a definition sets (spine S8.3: what selection and bank status read). `domainSize` is 1
+    for a FIXED activity; for a template it is the number of instances (`template_report`), given at publish only, so
+    a draft save never enumerates a domain."""
     fields = {name: definition.get(name) for name in ("title", *IDENTITY_FIELDS, "minAge", "maxAge")}
-    fields["domainSize"] = 1  # FIXED activities; templates count their domain (C25, later phases)
+    fields["domainSize"] = domain_size if definition.get("authoringMode") == "TEMPLATE" else 1
     return {name: plain(value) for name, value in fields.items() if value is not None}
 
 
@@ -354,10 +372,11 @@ DEFINITION_FIELDS = frozenset(
         "speechDefinitionReferences",
         "source",
         "reviewNote",
+        "template",
     }
 )
-# Demonstrations (C22.6) and templates (C25, Phase 41) have no player or generator yet.
-NOT_YET = frozenset({"introductionContent", "template"})
+# Demonstrations (C22.6) have no player yet.
+NOT_YET = frozenset({"introductionContent"})
 REQUIRED_DEFINITION_FIELDS = (
     "schemaVersion",
     *CREATE_FIELDS,
@@ -367,6 +386,20 @@ REQUIRED_DEFINITION_FIELDS = (
     "answerSpecification",
     "speechDefinitionReferences",
 )
+# A template's generator makes these per instance (C22.1: "absent on template activities").
+FIXED_ONLY_FIELDS = frozenset(
+    {"prompt", "activityPayload", "answerSpecification", "additionalSteps", "visualAssetReferences"}
+)
+TEMPLATE_REQUIRED_FIELDS = (
+    "schemaVersion",
+    *CREATE_FIELDS,
+    "audioRequirement",
+    "speechDefinitionReferences",
+    "template",
+)
+TEMPLATE_VARIANTS = ("instruction",)  # [ASSUMPTION] a clip is fixed audio; a template's question is generated
+TEMPLATE_PROBLEMS_MAX = 10  # problems reported from the instance check; every instance is still checked
+TEMPLATE_SAMPLE_POINTS = (0, 1, 2, 3, 4)  # quarters: smallest, three middle, largest (C25.3 rule 3)
 STEP_FIELDS = frozenset({"interactionType", "prompt", "activityPayload", "answerSpecification"})
 MAX_ADDITIONAL_STEPS = 1  # C20.3: one primary step and at most one more in version one
 REVIEW_NOTE_MAX = 200  # [ASSUMPTION], as a withdrawal reason
@@ -447,9 +480,12 @@ def _joined_answers(joined: list[str], primary: Step, second: Step, second_accep
     return problems
 
 
-def _asset_problems(definition: Mapping[str, Any], steps: list[Step]) -> list[Problem]:
+def _asset_problems(
+    definition: Mapping[str, Any], steps: list[Step], listed_name: str = "visualAssetReferences"
+) -> list[Problem]:
     """C22.2 rule 4: every picture is in the asset manifest, flagged text-free, and listed in visualAssetReferences;
-    nothing is listed that is not used."""
+    nothing is listed that is not used. `listed_name` is the list's field in the problems (a template instance's
+    list is `template.instances.<n>.visualAssetReferences`)."""
     manifest = asset_manifest()
     problems: list[Problem] = []
     used: dict[str, str] = {}
@@ -463,15 +499,15 @@ def _asset_problems(definition: Mapping[str, Any], steps: list[Step]) -> list[Pr
             used.setdefault(asset_id, name)
     listed = definition.get("visualAssetReferences", [])
     if not (isinstance(listed, list) and all(isinstance(a, str) for a in listed)):
-        return [*problems, problem("visualAssetReferences", "type")]
+        return [*problems, problem(listed_name, "type")]
     if len(set(listed)) != len(listed):
-        problems.append(problem("visualAssetReferences", "duplicate"))
+        problems.append(problem(listed_name, "duplicate"))
     for asset_id, name in used.items():
         if asset_id not in listed:
             problems.append(problem(name, "asset_not_listed"))
     for index, asset_id in enumerate(listed):
         if asset_id not in used:
-            problems.append(problem(f"visualAssetReferences.{index}", "asset_unused"))
+            problems.append(problem(f"{listed_name}.{index}", "asset_unused"))
     return problems
 
 
@@ -483,12 +519,17 @@ def definition_problems(definition: Any, activity_id: str, header: Mapping[str, 
     if not isinstance(definition, Mapping):
         return [problem("definition", "type")]
     problems: list[Problem] = []
+    template_mode = definition.get("authoringMode") == "TEMPLATE"
     for name in definition:
         if name in NOT_YET:
             problems.append(problem(name, "not_supported_yet"))
         elif name not in DEFINITION_FIELDS:
             problems.append(problem(name, "additionalProperties"))
-    for name in REQUIRED_DEFINITION_FIELDS:
+        elif template_mode and name in FIXED_ONLY_FIELDS:
+            problems.append(problem(name, "not_for_template"))
+        elif not template_mode and name == "template":
+            problems.append(problem(name, "not_for_fixed"))
+    for name in TEMPLATE_REQUIRED_FIELDS if template_mode else REQUIRED_DEFINITION_FIELDS:
         if name not in definition:
             problems.append(problem(name, "required"))
     if len(canonical_json(definition)) > DEFINITION_MAX_BYTES:
@@ -504,8 +545,6 @@ def definition_problems(definition: Any, activity_id: str, header: Mapping[str, 
         problems.extend(topic_problems(definition, header))  # only once the fields it reads are well formed
     if definition["activityId"] != activity_id:
         problems.append(problem("activityId", "matches_path"))
-    if definition["authoringMode"] == "TEMPLATE":
-        problems.append(problem("authoringMode", "not_supported_yet"))  # generators arrive in Phase 41
     if definition["audioRequirement"] not in AUDIO_REQUIREMENTS:
         problems.append(problem("audioRequirement", "enum"))
     refs = definition.get("curriculumReference")  # optional: the topic registry carries the references (C19)
@@ -517,6 +556,10 @@ def definition_problems(definition: Any, activity_id: str, header: Mapping[str, 
         problems.append(problem("source", "enum"))
     if "reviewNote" in definition and not _text(definition["reviewNote"], 1, REVIEW_NOTE_MAX):
         problems.append(problem("reviewNote", "length"))
+    if template_mode:
+        problems.extend(template_report(definition).problems)
+        problems.extend(_speech_problems(definition, [], template=True))
+        return problems
     problems.extend(_prompt_problems(definition["prompt"], "prompt"))
 
     # The primary step, and the additional one (C20.3).
@@ -544,7 +587,14 @@ def definition_problems(definition: Any, activity_id: str, header: Mapping[str, 
         problems.append(problem("reviewNote", "review_note_required"))  # more than one accepted entry (C20.1)
     problems.extend(_asset_problems(definition, steps))
     problems.extend(_typed_word_age_problems(definition))
+    problems.extend(_speech_problems(definition, steps, template=False))
+    return problems
 
+
+def _speech_problems(definition: Mapping[str, Any], steps: list[Step], *, template: bool) -> list[Problem]:
+    """The speech references (C21, C22.2 rules 5 and 6): variants that exist on this activity, well-formed refs, a
+    cue where one is needed, a clip when audio is REQUIRED and on every phonics activity."""
+    problems: list[Problem] = []
     speech = definition["speechDefinitionReferences"]
     if not isinstance(speech, Mapping):
         problems.append(problem("speechDefinitionReferences", "type"))
@@ -555,6 +605,8 @@ def definition_problems(definition: Any, activity_id: str, header: Mapping[str, 
         field = f"speechDefinitionReferences.{variant}"
         if not (isinstance(variant, str) and VARIANT.fullmatch(variant)):
             problems.append(problem(field, "variant"))
+        elif template and variant not in TEMPLATE_VARIANTS:
+            problems.append(problem(field, "not_for_template"))
         elif variant.startswith("option-") and variant.removeprefix("option-") not in option_ids:
             problems.append(problem(field, "not_an_option"))
         elif variant.startswith("bin-") and variant.removeprefix("bin-") not in bin_ids:
@@ -570,11 +622,95 @@ def definition_problems(definition: Any, activity_id: str, header: Mapping[str, 
             prefix = "activityPayload" if index == 0 else "additionalSteps.0.activityPayload"
             problems.append(problem(f"{prefix}.cue", "cue_required"))  # a picture, rule text or a prompt clip
     clip_variants = [v for v in speech if isinstance(v, str) and (v == "prompt" or v.startswith(("option-", "bin-")))]
-    if definition["audioRequirement"] == "REQUIRED" and not clip_variants:
+    if template and definition["audioRequirement"] == "REQUIRED":
+        # A REQUIRED activity needs a clip that says the question, and a fixed clip cannot say a generated one, so a
+        # template can never meet the rule: refuse it plainly instead of pointing at a prompt clip it may not have.
+        problems.append(problem("audioRequirement", "not_for_template"))
+    elif definition["audioRequirement"] == "REQUIRED" and not clip_variants:
         problems.append(problem("speechDefinitionReferences", "audio_required"))  # C22.2 rule 5
     if definition["subject"] == "phonics" and not speech:
         problems.append(problem("speechDefinitionReferences", "phonics_needs_clip"))  # C22.2 rule 6, D9.5 Q6
     return problems
+
+
+# --- Templates (C25, Phase 41) --------------------------------------------------------------------------------------
+
+
+@dataclass(frozen=True)
+class TemplateReport:
+    """The exhaustive check of a template (C25.3): its problems, the number of instances, and a sample to review."""
+
+    problems: list[Problem]
+    domain_size: int
+    sample: list[dict[str, Any]]
+
+
+def template_report(definition: Mapping[str, Any]) -> TemplateReport:
+    """Every instance of the template's domain, checked as a FIXED activity's step would be (C22.2 rule 9).
+
+    Only the interaction type and `template` decide the result, so it is cached on those: validate, publish and the
+    header's domainSize in one request enumerate the domain once."""
+    key = canonical_json({"interactionType": definition.get("interactionType"), "template": definition.get("template")})
+    return _template_report(key.decode("utf-8"))
+
+
+@lru_cache(maxsize=32)
+def _template_report(key: str) -> TemplateReport:
+    doc = json.loads(key)
+    interaction_type = doc["interactionType"]
+    prepared, problems = generators.prepare(doc["template"], interaction_type)
+    if prepared is None:
+        return TemplateReport(problems, 0, [])
+    raw = generators.domain_params(prepared)
+    if raw is None:
+        return TemplateReport([problem("template.domain", "domain_too_large")], 0, [])
+    found: list[generators.Instance] = []
+    for params in raw:
+        instance = prepared.build(params)
+        if instance is None:
+            continue
+        if len(found) == generators.DOMAIN_MAX:  # one instance over the cap (C25.3 rule 1): refused, never sampled
+            return TemplateReport([problem("template.domain", "domain_too_large")], 0, [])
+        if len(problems) < TEMPLATE_PROBLEMS_MAX:
+            prefix = f"template.instances.{len(found)}"
+            problems += instance_problems(interaction_type, instance, prefix)[: TEMPLATE_PROBLEMS_MAX - len(problems)]
+        found.append(instance)
+    if not found:
+        problems.append(problem("template.domain", "domain_empty"))
+    count = len(found)
+    picks = sorted({(count - 1) * point // 4 for point in TEMPLATE_SAMPLE_POINTS}) if count else []
+    sample = [
+        {"index": i, "interactionType": interaction_type, **found[i].resolved(prepared.kind, prepared.version)}
+        for i in picks
+    ]
+    return TemplateReport(problems, count, sample)
+
+
+def instance_problems(interaction_type: str, instance: generators.Instance, prefix: str) -> list[Problem]:
+    """One generated instance through the FIXED checks: prompt, payload, canonical answers inside the payload,
+    pictures in the manifest and text-free (C25.3 rule 2)."""
+    problems = _prompt_problems({"text": instance.prompt}, f"{prefix}.prompt")
+    step = check_payload(interaction_type, instance.payload, f"{prefix}.activityPayload")
+    problems += step.problems
+    spec = f"{prefix}.answerSpecification"
+    spec_problems, accepted = accepted_list({"accepted": list(instance.accepted)}, spec, step)
+    problems += spec_problems
+    if accepted is not None:
+        problems += check_answers(step, accepted, f"{spec}.accepted")
+    listed = {"visualAssetReferences": list(instance.assets)}
+    problems += _asset_problems(listed, [step], f"{prefix}.visualAssetReferences")
+    return problems
+
+
+def validation_extras(definition: Any) -> dict[str, Any]:
+    """What R26 adds to `{valid, problems}`: `domainSize` (1 for a FIXED activity), and for a template the
+    rendered `sample` for human review (the smallest, three middle and the largest instance; C25.3 rule 3, D §D8.4)."""
+    if not (isinstance(definition, Mapping) and definition.get("authoringMode") == "TEMPLATE"):
+        return {"domainSize": 1}
+    if not isinstance(definition.get("template"), Mapping):
+        return {"domainSize": 0, "sample": []}
+    report = template_report(definition)
+    return {"domainSize": report.domain_size, "sample": report.sample}
 
 
 def _typed_word_age_problems(definition: Mapping[str, Any]) -> list[Problem]:
@@ -791,6 +927,7 @@ def publish_actions(
     at `revision`, a check that each referenced speech definition still has the approved version that was resolved,
     and the audit item."""
     definition = definition_for_publish(draft["definition"])  # registry curriculum when the draft has none
+    domain_size = template_report(definition).domain_size if definition.get("authoringMode") == "TEMPLATE" else None
     vid = version_id(moment)
     version = published_version(
         definition=definition,
@@ -803,7 +940,7 @@ def publish_actions(
         seed_note=seed_note,
     )
     header_set = {
-        **header_fields(definition),
+        **header_fields(definition, domain_size),
         "state": "PUBLISHED",
         "publishedVersion": vid,
         "fromDraftRevision": revision,

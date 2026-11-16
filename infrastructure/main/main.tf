@@ -244,7 +244,8 @@ module "player_api" {
   }
 }
 
-# admin-api: content administration and speech approval. Never game, never Polly, never PutObject.
+# admin-api: content administration and speech approval. Never game, never Polly, never PutObject. Reads the released
+# game data (read-only) for bank status.
 data "aws_iam_policy_document" "admin_api" {
   statement {
     sid = "ContentReadWrite"
@@ -264,6 +265,14 @@ data "aws_iam_policy_document" "admin_api" {
     sid       = "ClipRead"
     actions   = ["s3:GetObject"]
     resources = ["${local.audio_bucket_arn}/${local.clip_prefix}*"]
+  }
+
+  # Bank status (R30) reads the released game data (current.json, the planet document, the bounds file) to judge
+  # whether new games can start on the released wave sets: the same read-only files player-api reads.
+  statement {
+    sid       = "GameDataRead"
+    actions   = ["s3:GetObject"]
+    resources = ["${module.player_site.bucket_arn}/${local.game_data_prefix}*"]
   }
 
   # So HeadObject on a missing clip is 404, not 403 (E.6.4 notes).
@@ -307,6 +316,8 @@ module "admin_api" {
     TTS_VOICE_ID            = var.tts_voice_id # recomputes the clip key at approval (E.4.1a)
     TTS_ENGINE              = var.tts_engine
     TTS_PHONEME_ENGINE      = var.tts_phoneme_engine
+    GAME_DATA_BUCKET        = module.player_site.bucket_name # bank status (R30) reads the released wave sets
+    GAME_DATA_PREFIX        = local.game_data_prefix
   }
 }
 
@@ -328,6 +339,14 @@ data "aws_iam_policy_document" "tts" {
     sid       = "ClipReadWrite" # no DeleteObject: clips are never removed
     actions   = ["s3:GetObject", "s3:PutObject"]
     resources = ["${local.audio_bucket_arn}/${local.clip_prefix}*"]
+  }
+
+  # Bank status (R30) reads the released game data (current.json, the planet document, the bounds file) to judge
+  # whether new games can start on the released wave sets: the same read-only files player-api reads.
+  statement {
+    sid       = "GameDataRead"
+    actions   = ["s3:GetObject"]
+    resources = ["${module.player_site.bucket_arn}/${local.game_data_prefix}*"]
   }
 
   # So HeadObject on a missing clip is 404, not 403 (E.6.4 notes).

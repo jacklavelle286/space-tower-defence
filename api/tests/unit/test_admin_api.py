@@ -16,12 +16,14 @@ from typing import Any
 import boto3
 import pytest
 from conftest import REPO, CapturedLogger, RecordingClient, event_for, load_handler
+from runs_harness import load_bounds_fixture
 from test_tts import BUCKET, PREFIX, FakePolly
 
 from shared import verdicts
 from shared.clipkey import SpeechConfig
 from shared.content import CHECKLIST, CREATE_FIELDS
 from shared.data import DynamoTable
+from shared.game_data import GameDataReader, GameDataUnavailable
 from shared.selection.bank import read_units, read_versions
 from shared.selection.plan import _clips
 from shared.verdicts import phoneme_refusal
@@ -71,6 +73,14 @@ class Admin:
         self.base = base
         self.logger = CapturedLogger()
         store = tts.AudioStore(bucket=BUCKET, clip_prefix=PREFIX)
+        # The released game data for bank status (R30): none until a test calls release_game_data().
+        self.reader: GameDataReader | None = None
+
+        def game_data() -> GameDataReader:
+            if self.reader is None:
+                raise GameDataUnavailable("no released game data in this test")
+            return self.reader
+
         self.router = admin.make_router(
             admin.Deps(
                 content=lambda: self.table,
@@ -78,6 +88,8 @@ class Admin:
                 store=lambda: store,
                 config=lambda: CONFIG,
                 now=Clock(),
+                game_data=game_data,
+                bounds=load_bounds_fixture,
             ),
             self.logger,
         )
@@ -85,6 +97,12 @@ class Admin:
             tts.Deps(s3=tts.s3_client, polly=lambda: self.polly, store=lambda: store, config=lambda: CONFIG),
             CapturedLogger(),
         )
+
+    def release_game_data(self) -> None:
+        """The repository's released game data (game-data/current.json: luna-1-c1, wave set first-contact)."""
+        for path in ("current.json", "campaign/luna-1-c1.json"):
+            self.s3.put_object(Bucket=BUCKET, Key=f"game-data/{path}", Body=(REPO / "game-data" / path).read_bytes())
+        self.reader = GameDataReader(bucket=BUCKET, s3=self.s3)
 
     def call(self, route: str, body: Any = None, *, id: str | None = None, query: dict | None = None) -> tuple:
         event = event_for(self.base, route, cognito__groups="[admin]")
@@ -117,6 +135,10 @@ class Admin:
         return view
 
     def approve(self, speech_id: str, revision: int, **extra: Any) -> tuple:
+        """R21 with the clip key the admin page would send: the saved draft's (what Preview played), unless given."""
+        if "clipKey" not in extra:
+            _, view = self.call("GET /api/admin/speech-definitions/{id}", id=speech_id)
+            extra["clipKey"] = view["draft"]["clipKey"]
         return self.call(
             "POST /api/admin/speech-definitions/{id}/approve", {"draftRevision": revision, **extra}, id=speech_id
         )
@@ -255,12 +277,40 @@ def test_approve_is_safe_to_retry_and_refuses_a_stale_revision(api: Admin) -> No
 
 
 def test_g14_refuses_only_a_word_only_phoneme(api: Admin, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(verdicts, "_sounds", lambda: {"ng": {"verdict": "word-only"}})
     api.speech("phoneme-ng", "PHONEME", text="ng")
     api.preview("PHONEME", text="ng")
+    monkeypatch.setattr(verdicts, "_sounds", lambda: {"ng": {"verdict": "word-only"}})  # judged word-only since
     status, body = api.approve("phoneme-ng", 1)
     assert (status, rules(body)) == (400, {("speechId", "phoneme_word_only")})
     assert api.table.query_prefix("SPEECH#phoneme-ng", "V#") == []
+
+
+def test_a_phoneme_draft_for_a_word_only_sound_fails_on_create_and_save(
+    api: Admin, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """Phase 40 exit criterion: G-14 runs over drafts, not only seed files and approvals."""
+    api.speech("phoneme-ng", "PHONEME", text="ng")
+    monkeypatch.setattr(verdicts, "_sounds", lambda: {"ng": {"verdict": "word-only"}, "zh": {"verdict": "word-only"}})
+    status, body = api.call(
+        "POST /api/admin/speech-definitions", {"speechId": "phoneme-zh", "title": "Sound zh", "kind": "PHONEME"}
+    )
+    assert (status, rules(body)) == (400, {("speechId", "phoneme_word_only")})
+    assert api.table.get_item("SPEECH", "phoneme-zh") is None
+    status, body = api.call(
+        "PUT /api/admin/speech-definitions/{id}", {"draftRevision": 1, "text": "ng."}, id="phoneme-ng"
+    )
+    assert (status, rules(body)) == (400, {("speechId", "phoneme_word_only")})
+    status, body = api.call(  # a WORD may hold a word-only sound: it is taught inside words
+        "POST /api/admin/speech-definitions", {"speechId": "word-sing", "title": "Word sing", "kind": "WORD"}
+    )
+    assert status == 201, body
+
+
+def test_a_phoneme_definition_must_be_named_after_its_sound(api: Admin) -> None:
+    status, body = api.call(
+        "POST /api/admin/speech-definitions", {"speechId": "sound-sh", "title": "Sound sh", "kind": "PHONEME"}
+    )
+    assert (status, rules(body)) == (400, {("speechId", "phoneme_prefix")})
 
 
 def test_the_operators_approve_is_the_verdict_for_a_pending_sound(api: Admin) -> None:
@@ -389,7 +439,6 @@ def test_unknown_ids_are_not_found(api: Admin) -> None:
     assert api.call("GET /api/admin/speech-definitions/{id}", id="nothing-here")[0] == 404
     assert api.call("GET /api/admin/activities/{id}", id="SPEECH#x")[0] == 404
     assert api.call("POST /api/admin/activities/{id}/retire", {}, id="ph-0102")[0] == 404
-    assert api.call("GET /api/admin/bank-status")[0] == 501  # Phase 42 (M3-07)
 
 
 # --- Activities: draft, validate, publish --------------------------------------------------------------------------
@@ -582,3 +631,112 @@ def test_every_admin_route_is_behind_the_operator_authoriser() -> None:
     block = block[: block.index("}")]
     assert "module.operator_pool.issuer" in block and "module.operator_pool.client_id" in block
     assert "player_pool" not in block
+
+
+# --- Phase 40 (M3-05): approval bound to the previewed clip; new speech in one step ---------------------------------
+
+
+def test_approve_carries_the_previewed_clip_key_and_the_server_compares_it(api: Admin) -> None:
+    api.speech("word-ship", "WORD", text="ship.")
+    take_1 = api.preview("WORD", text="ship.")
+    status, body = api.call("POST /api/admin/speech-definitions/{id}/approve", {"draftRevision": 1}, id="word-ship")
+    assert (status, rules(body)) == (400, {("clipKey", "required")})
+    status, body = api.approve("word-ship", 1, clipKey="not-a-key")
+    assert (status, rules(body)) == (400, {("clipKey", "pattern")})
+    status, body = api.approve("word-ship", 1, clipKey="0" * 64)  # a clip that exists nowhere
+    assert (status, rules(body)) == (400, {("clipKey", "clip_mismatch")})
+    other = api.preview("WORD", text="shop.")  # a real clip, but of other text
+    status, body = api.approve("word-ship", 1, clipKey=other["clipKey"])
+    assert (status, rules(body)) == (400, {("clipKey", "clip_mismatch")})
+    assert api.table.query_prefix("SPEECH#word-ship", "V#") == []
+
+    status, body = api.approve("word-ship", 1, clipKey=take_1["clipKey"])
+    assert status == 200 and body["clipKey"] == take_1["clipKey"]
+    assert body["renderedAt"] is not None  # the render date is recorded
+    assert api.approve("word-ship", 1, clipKey=take_1["clipKey"]) == (200, body)  # a retry
+    status, again = api.approve("word-ship", 1, clipKey=other["clipKey"])  # a retry naming another clip
+    assert (status, rules(again)) == (400, {("clipKey", "clip_mismatch")})
+
+
+def test_a_variable_change_gives_a_new_clip_key_and_needs_a_new_preview(api: Admin) -> None:
+    first = api.speech("word-ship", "WORD", text="ship.")["draft"]["clipKey"]
+    api.preview("WORD", text="ship.")
+    status, view = api.call(
+        "PUT /api/admin/speech-definitions/{id}", {"draftRevision": 1, "text": "ship!"}, id="word-ship"
+    )
+    assert status == 200 and view["draft"]["clipKey"] != first
+    status, body = api.approve("word-ship", 2, clipKey=first)  # the old preview's key no longer matches
+    assert (status, rules(body)) == (400, {("clipKey", "clip_mismatch")})
+
+
+def create(api: Admin, speech_id: str, kind: str, **body: Any) -> tuple:
+    return api.call(
+        "POST /api/admin/speech-definitions",
+        {"speechId": speech_id, "title": f"{kind} {speech_id}", "kind": kind, **body},
+    )
+
+
+@pytest.mark.parametrize(
+    ("speech_id", "kind", "field", "value"),
+    [
+        ("phoneme-sh", "PHONEME", "ssml", SH_BODY),  # the sound's chosen clip form
+        ("phoneme-ng", "PHONEME", "ssml", '<phoneme alphabet="x-sampa" ph="N">ng</phoneme>.'),  # no clip: PH form
+        ("word-ship", "WORD", "text", "ship."),
+        ("word-ice-cream", "WORD", "text", "ice cream."),
+        ("word-chom", "WORD", "ssml", '<phoneme alphabet="x-sampa" ph="tSQm">chom</phoneme>.'),  # the bake-off item
+        ("letter-a", "LETTER_NAME", "ssml", '<phoneme alphabet="x-sampa" ph="eI">A</phoneme>.'),
+        ("letter-b", "LETTER_NAME", "text", "B."),
+        ("instruction-listen", "INSTRUCTION", "text", "Listen to the sound. Which letters make this sound?"),
+    ],
+)
+def test_create_starts_the_draft_from_what_was_heard(
+    api: Admin, speech_id: str, kind: str, field: str, value: str
+) -> None:
+    status, view = create(api, speech_id, kind)
+    assert status == 201, view
+    draft = view["draft"]
+    assert (draft.get(field), draft["draftRevision"], draft["clipKey"] is not None) == (value, 0, True)
+
+
+def test_create_with_a_body_and_without_anything_to_suggest(api: Admin) -> None:
+    status, view = create(api, "dictation-the-cat-sat", "DICTATION", text="The cat   sat.")
+    assert status == 201 and view["draft"]["text"] == "The cat sat."
+    status, view = create(api, "instruction-tap-the-star", "INSTRUCTION")
+    assert status == 201 and "text" not in view["draft"] and view["draft"]["clipKey"] is None
+    status, body = create(api, "word-bad", "WORD", ssml='<prosody pitch="high">bad</prosody>')
+    assert (status, rules(body)) == (400, {("ssml", "attribute")})
+    status, body = create(api, "word-both", "WORD", text="a", ssml="a")
+    assert (status, rules(body)) == (400, {("body", "oneOf")})
+
+
+def test_a_new_definition_can_be_previewed_and_approved_at_revision_0(api: Admin) -> None:
+    status, view = create(api, "word-ship", "WORD")
+    assert status == 201
+    clip = api.preview("WORD", speechId="word-ship", text=view["draft"]["text"])
+    assert clip["clipKey"] == view["draft"]["clipKey"]
+    status, body = api.approve("word-ship", 0, clipKey=clip["clipKey"])
+    assert status == 200, body
+
+
+def test_starting_body_rules() -> None:
+    sounds = {"zz": {"xsampa": 'z"'}, "x": {"xsampa": "ks"}, "y": "not an object"}
+    items = {
+        "word-the": {"kind": "WORD", "clip": {"ssml": '<speak><break time="150ms"/>the.<break time="250ms"/></speak>'}}
+    }
+    suggest = verdicts.starting_body
+    assert suggest("word-the", "WORD", sounds, items) == ("text", "the.")
+    assert suggest("word-the", "DICTATION", sounds, items) is None  # an item of another kind is not used
+    assert suggest("phoneme-x", "PHONEME", sounds, items) == (
+        "ssml",
+        '<phoneme alphabet="x-sampa" ph="ks">x</phoneme>.',
+    )
+    for speech_id, kind in [
+        ("phoneme-zz", "PHONEME"),  # an X-SAMPA value that could break the attribute is not used
+        ("phoneme-y", "PHONEME"),
+        ("phoneme-qq", "PHONEME"),  # not in the file: the operator types the SSML
+        ("letter-ab", "LETTER_NAME"),
+        ("letter-1", "LETTER_NAME"),
+        ("sound-sh", "PHONEME"),
+        ("instruction-tap", "INSTRUCTION"),
+    ]:
+        assert suggest(speech_id, kind, sounds, items) is None, speech_id

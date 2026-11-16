@@ -390,11 +390,17 @@ def test_a_prompt_clip_is_a_cue() -> None:
     assert check(doc) == set()
 
 
-def test_templates_and_demonstrations_are_still_refused() -> None:
+def test_demonstrations_are_still_refused_and_a_template_needs_its_own_fields() -> None:
     doc = {**copy.deepcopy(EXAMPLES["multiple-choice"]), "introductionContent": {"cards": []}}
     assert check(doc) == {("introductionContent", "not_supported_yet")}
+    # A FIXED definition marked TEMPLATE (Phase 41): the fixed fields are refused and `template` is required.
     doc = {**copy.deepcopy(EXAMPLES["multiple-choice"]), "authoringMode": "TEMPLATE"}
-    assert ("authoringMode", "not_supported_yet") in check(doc)
+    assert check(doc) == {
+        ("prompt", "not_for_template"),
+        ("activityPayload", "not_for_template"),
+        ("answerSpecification", "not_for_template"),
+        ("template", "required"),
+    }
 
 
 def test_buildable_uses_tile_values_not_identities() -> None:

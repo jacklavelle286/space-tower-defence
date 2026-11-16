@@ -1,0 +1,799 @@
+{
+ "kind": "BOND_TO",
+ "version": 1,
+ "cases": [
+  {
+   "name": "c25-ma-0301",
+   "interactionType": "NUMBER_SELECT",
+   "template": {
+    "generatorKind": "BOND_TO",
+    "generatorVersion": 1,
+    "domain": {
+     "totals": [
+      20
+     ],
+     "part": {
+      "min": 1,
+      "max": 19
+     },
+     "forms": [
+      "a + ? = T",
+      "? + a = T"
+     ]
+    },
+    "presentation": {
+     "numberSet": {
+      "kind": "RANGE",
+      "min": 0,
+      "max": 20,
+      "step": 1
+     },
+     "display": "TRACK"
+    }
+   },
+   "domainSize": 38,
+   "sha256": "d79100774351349d8b7677083b34553aae685614fe088a197903fc8388e4c8df",
+   "instances": {
+    "0": {
+     "generatorKind": "BOND_TO",
+     "generatorVersion": 1,
+     "params": {
+      "total": 20,
+      "part": 1,
+      "form": "a + ? = T"
+     },
+     "prompt": {
+      "text": "1 + ? = 20"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "19"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "5": {
+     "generatorKind": "BOND_TO",
+     "generatorVersion": 1,
+     "params": {
+      "total": 20,
+      "part": 3,
+      "form": "? + a = T"
+     },
+     "prompt": {
+      "text": "? + 3 = 20"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "17"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "10": {
+     "generatorKind": "BOND_TO",
+     "generatorVersion": 1,
+     "params": {
+      "total": 20,
+      "part": 6,
+      "form": "a + ? = T"
+     },
+     "prompt": {
+      "text": "6 + ? = 20"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "14"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "15": {
+     "generatorKind": "BOND_TO",
+     "generatorVersion": 1,
+     "params": {
+      "total": 20,
+      "part": 8,
+      "form": "? + a = T"
+     },
+     "prompt": {
+      "text": "? + 8 = 20"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "12"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "21": {
+     "generatorKind": "BOND_TO",
+     "generatorVersion": 1,
+     "params": {
+      "total": 20,
+      "part": 11,
+      "form": "? + a = T"
+     },
+     "prompt": {
+      "text": "? + 11 = 20"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "9"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "26": {
+     "generatorKind": "BOND_TO",
+     "generatorVersion": 1,
+     "params": {
+      "total": 20,
+      "part": 14,
+      "form": "a + ? = T"
+     },
+     "prompt": {
+      "text": "14 + ? = 20"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "6"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "31": {
+     "generatorKind": "BOND_TO",
+     "generatorVersion": 1,
+     "params": {
+      "total": 20,
+      "part": 16,
+      "form": "? + a = T"
+     },
+     "prompt": {
+      "text": "? + 16 = 20"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "4"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "37": {
+     "generatorKind": "BOND_TO",
+     "generatorVersion": 1,
+     "params": {
+      "total": 20,
+      "part": 19,
+      "form": "? + a = T"
+     },
+     "prompt": {
+      "text": "? + 19 = 20"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "1"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  },
+  {
+   "name": "to5-10-typed",
+   "interactionType": "TYPED",
+   "template": {
+    "generatorKind": "BOND_TO",
+    "generatorVersion": 1,
+    "domain": {
+     "totals": [
+      5,
+      10
+     ],
+     "part": {
+      "min": 0,
+      "max": 10
+     },
+     "forms": [
+      "a + ? = T",
+      "? + a = T",
+      "T - a = ?",
+      "T - ? = a"
+     ]
+    }
+   },
+   "domainSize": 68,
+   "sha256": "1b6a2fa609e0d4c597484929457dbd4239542bf32ee04b470a784840804aa6b5",
+   "instances": {
+    "0": {
+     "generatorKind": "BOND_TO",
+     "generatorVersion": 1,
+     "params": {
+      "total": 5,
+      "part": 0,
+      "form": "a + ? = T"
+     },
+     "prompt": {
+      "text": "0 + ? = 5"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "5"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "9": {
+     "generatorKind": "BOND_TO",
+     "generatorVersion": 1,
+     "params": {
+      "total": 5,
+      "part": 2,
+      "form": "? + a = T"
+     },
+     "prompt": {
+      "text": "? + 2 = 5"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "3"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "19": {
+     "generatorKind": "BOND_TO",
+     "generatorVersion": 1,
+     "params": {
+      "total": 5,
+      "part": 4,
+      "form": "T - ? = a"
+     },
+     "prompt": {
+      "text": "5 − ? = 4"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "1"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "28": {
+     "generatorKind": "BOND_TO",
+     "generatorVersion": 1,
+     "params": {
+      "total": 10,
+      "part": 1,
+      "form": "a + ? = T"
+     },
+     "prompt": {
+      "text": "1 + ? = 10"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "9"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "38": {
+     "generatorKind": "BOND_TO",
+     "generatorVersion": 1,
+     "params": {
+      "total": 10,
+      "part": 3,
+      "form": "T - a = ?"
+     },
+     "prompt": {
+      "text": "10 − 3 = ?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "7"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "47": {
+     "generatorKind": "BOND_TO",
+     "generatorVersion": 1,
+     "params": {
+      "total": 10,
+      "part": 5,
+      "form": "T - ? = a"
+     },
+     "prompt": {
+      "text": "10 − ? = 5"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "5"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "57": {
+     "generatorKind": "BOND_TO",
+     "generatorVersion": 1,
+     "params": {
+      "total": 10,
+      "part": 8,
+      "form": "? + a = T"
+     },
+     "prompt": {
+      "text": "? + 8 = 10"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "2"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "67": {
+     "generatorKind": "BOND_TO",
+     "generatorVersion": 1,
+     "params": {
+      "total": 10,
+      "part": 10,
+      "form": "T - ? = a"
+     },
+     "prompt": {
+      "text": "10 − ? = 10"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "0"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  },
+  {
+   "name": "tens-to100-choice",
+   "interactionType": "MULTIPLE_CHOICE",
+   "template": {
+    "generatorKind": "BOND_TO",
+    "generatorVersion": 1,
+    "domain": {
+     "totals": [
+      100
+     ],
+     "part": {
+      "min": 10,
+      "max": 90
+     },
+     "forms": [
+      "a + ? = T",
+      "? + a = T",
+      "T - a = ?",
+      "T - ? = a"
+     ]
+    }
+   },
+   "domainSize": 36,
+   "sha256": "4ed499504f50c601556520edaeb660e3cb36a06d3d3f04cc9dc8f86db7b348ae",
+   "instances": {
+    "0": {
+     "generatorKind": "BOND_TO",
+     "generatorVersion": 1,
+     "params": {
+      "total": 100,
+      "part": 10,
+      "form": "a + ? = T"
+     },
+     "prompt": {
+      "text": "10 + ? = 100"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "10"
+       },
+       {
+        "id": "b",
+        "text": "80"
+       },
+       {
+        "id": "c",
+        "text": "90"
+       },
+       {
+        "id": "d",
+        "text": "91"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "c"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "5": {
+     "generatorKind": "BOND_TO",
+     "generatorVersion": 1,
+     "params": {
+      "total": 100,
+      "part": 20,
+      "form": "? + a = T"
+     },
+     "prompt": {
+      "text": "? + 20 = 100"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "20"
+       },
+       {
+        "id": "b",
+        "text": "80"
+       },
+       {
+        "id": "c",
+        "text": "81"
+       },
+       {
+        "id": "d",
+        "text": "100"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "10": {
+     "generatorKind": "BOND_TO",
+     "generatorVersion": 1,
+     "params": {
+      "total": 100,
+      "part": 30,
+      "form": "T - a = ?"
+     },
+     "prompt": {
+      "text": "100 − 30 = ?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "68"
+       },
+       {
+        "id": "b",
+        "text": "70"
+       },
+       {
+        "id": "c",
+        "text": "72"
+       },
+       {
+        "id": "d",
+        "text": "80"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "15": {
+     "generatorKind": "BOND_TO",
+     "generatorVersion": 1,
+     "params": {
+      "total": 100,
+      "part": 40,
+      "form": "T - ? = a"
+     },
+     "prompt": {
+      "text": "100 − ? = 40"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "58"
+       },
+       {
+        "id": "b",
+        "text": "60"
+       },
+       {
+        "id": "c",
+        "text": "62"
+       },
+       {
+        "id": "d",
+        "text": "70"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "20": {
+     "generatorKind": "BOND_TO",
+     "generatorVersion": 1,
+     "params": {
+      "total": 100,
+      "part": 60,
+      "form": "a + ? = T"
+     },
+     "prompt": {
+      "text": "60 + ? = 100"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "30"
+       },
+       {
+        "id": "b",
+        "text": "40"
+       },
+       {
+        "id": "c",
+        "text": "50"
+       },
+       {
+        "id": "d",
+        "text": "60"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "25": {
+     "generatorKind": "BOND_TO",
+     "generatorVersion": 1,
+     "params": {
+      "total": 100,
+      "part": 70,
+      "form": "? + a = T"
+     },
+     "prompt": {
+      "text": "? + 70 = 100"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "28"
+       },
+       {
+        "id": "b",
+        "text": "29"
+       },
+       {
+        "id": "c",
+        "text": "30"
+       },
+       {
+        "id": "d",
+        "text": "32"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "c"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "30": {
+     "generatorKind": "BOND_TO",
+     "generatorVersion": 1,
+     "params": {
+      "total": 100,
+      "part": 80,
+      "form": "T - a = ?"
+     },
+     "prompt": {
+      "text": "100 − 80 = ?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "18"
+       },
+       {
+        "id": "b",
+        "text": "20"
+       },
+       {
+        "id": "c",
+        "text": "22"
+       },
+       {
+        "id": "d",
+        "text": "30"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "35": {
+     "generatorKind": "BOND_TO",
+     "generatorVersion": 1,
+     "params": {
+      "total": 100,
+      "part": 90,
+      "form": "T - ? = a"
+     },
+     "prompt": {
+      "text": "100 − ? = 90"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "8"
+       },
+       {
+        "id": "b",
+        "text": "10"
+       },
+       {
+        "id": "c",
+        "text": "12"
+       },
+       {
+        "id": "d",
+        "text": "20"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  }
+ ]
+}

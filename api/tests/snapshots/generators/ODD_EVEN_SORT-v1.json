@@ -1,0 +1,1130 @@
+{
+ "kind": "ODD_EVEN_SORT",
+ "version": 1,
+ "cases": [
+  {
+   "name": "1-to-12",
+   "interactionType": "OBJECT_MOVE",
+   "template": {
+    "generatorKind": "ODD_EVEN_SORT",
+    "generatorVersion": 1,
+    "domain": {
+     "values": {
+      "min": 1,
+      "max": 12
+     }
+    }
+   },
+   "domainSize": 850,
+   "sha256": "d2826d8d31b603f3484f708285099a9b776a8b07e3d408c60e678eac2af4b02d",
+   "instances": {
+    "0": {
+     "generatorKind": "ODD_EVEN_SORT",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       1,
+       2,
+       3,
+       4,
+       5,
+       6
+      ]
+     },
+     "prompt": {
+      "text": "Sort the numbers into odd and even."
+     },
+     "activityPayload": {
+      "mode": "SORT",
+      "objects": [
+       {
+        "id": "o1",
+        "text": "1",
+        "alt": "1"
+       },
+       {
+        "id": "o2",
+        "text": "2",
+        "alt": "2"
+       },
+       {
+        "id": "o3",
+        "text": "3",
+        "alt": "3"
+       },
+       {
+        "id": "o4",
+        "text": "4",
+        "alt": "4"
+       },
+       {
+        "id": "o5",
+        "text": "5",
+        "alt": "5"
+       },
+       {
+        "id": "o6",
+        "text": "6",
+        "alt": "6"
+       }
+      ],
+      "bins": [
+       {
+        "id": "even",
+        "label": "Even"
+       },
+       {
+        "id": "odd",
+        "label": "Odd"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "o1=odd;o2=even;o3=odd;o4=even;o5=odd;o6=even"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "121": {
+     "generatorKind": "ODD_EVEN_SORT",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       1,
+       2,
+       4,
+       7,
+       10,
+       12
+      ]
+     },
+     "prompt": {
+      "text": "Sort the numbers into odd and even."
+     },
+     "activityPayload": {
+      "mode": "SORT",
+      "objects": [
+       {
+        "id": "o1",
+        "text": "4",
+        "alt": "4"
+       },
+       {
+        "id": "o2",
+        "text": "7",
+        "alt": "7"
+       },
+       {
+        "id": "o3",
+        "text": "10",
+        "alt": "10"
+       },
+       {
+        "id": "o4",
+        "text": "12",
+        "alt": "12"
+       },
+       {
+        "id": "o5",
+        "text": "1",
+        "alt": "1"
+       },
+       {
+        "id": "o6",
+        "text": "2",
+        "alt": "2"
+       }
+      ],
+      "bins": [
+       {
+        "id": "even",
+        "label": "Even"
+       },
+       {
+        "id": "odd",
+        "label": "Odd"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "o1=even;o2=odd;o3=even;o4=even;o5=odd;o6=even"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "242": {
+     "generatorKind": "ODD_EVEN_SORT",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       1,
+       3,
+       4,
+       8,
+       9,
+       10
+      ]
+     },
+     "prompt": {
+      "text": "Sort the numbers into odd and even."
+     },
+     "activityPayload": {
+      "mode": "SORT",
+      "objects": [
+       {
+        "id": "o1",
+        "text": "1",
+        "alt": "1"
+       },
+       {
+        "id": "o2",
+        "text": "3",
+        "alt": "3"
+       },
+       {
+        "id": "o3",
+        "text": "4",
+        "alt": "4"
+       },
+       {
+        "id": "o4",
+        "text": "8",
+        "alt": "8"
+       },
+       {
+        "id": "o5",
+        "text": "9",
+        "alt": "9"
+       },
+       {
+        "id": "o6",
+        "text": "10",
+        "alt": "10"
+       }
+      ],
+      "bins": [
+       {
+        "id": "even",
+        "label": "Even"
+       },
+       {
+        "id": "odd",
+        "label": "Odd"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "o1=odd;o2=odd;o3=even;o4=even;o5=odd;o6=even"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "363": {
+     "generatorKind": "ODD_EVEN_SORT",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       1,
+       4,
+       7,
+       8,
+       11,
+       12
+      ]
+     },
+     "prompt": {
+      "text": "Sort the numbers into odd and even."
+     },
+     "activityPayload": {
+      "mode": "SORT",
+      "objects": [
+       {
+        "id": "o1",
+        "text": "7",
+        "alt": "7"
+       },
+       {
+        "id": "o2",
+        "text": "8",
+        "alt": "8"
+       },
+       {
+        "id": "o3",
+        "text": "11",
+        "alt": "11"
+       },
+       {
+        "id": "o4",
+        "text": "12",
+        "alt": "12"
+       },
+       {
+        "id": "o5",
+        "text": "1",
+        "alt": "1"
+       },
+       {
+        "id": "o6",
+        "text": "4",
+        "alt": "4"
+       }
+      ],
+      "bins": [
+       {
+        "id": "even",
+        "label": "Even"
+       },
+       {
+        "id": "odd",
+        "label": "Odd"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "o1=odd;o2=even;o3=odd;o4=even;o5=odd;o6=even"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "485": {
+     "generatorKind": "ODD_EVEN_SORT",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       2,
+       3,
+       5,
+       6,
+       8,
+       12
+      ]
+     },
+     "prompt": {
+      "text": "Sort the numbers into odd and even."
+     },
+     "activityPayload": {
+      "mode": "SORT",
+      "objects": [
+       {
+        "id": "o1",
+        "text": "12",
+        "alt": "12"
+       },
+       {
+        "id": "o2",
+        "text": "2",
+        "alt": "2"
+       },
+       {
+        "id": "o3",
+        "text": "3",
+        "alt": "3"
+       },
+       {
+        "id": "o4",
+        "text": "5",
+        "alt": "5"
+       },
+       {
+        "id": "o5",
+        "text": "6",
+        "alt": "6"
+       },
+       {
+        "id": "o6",
+        "text": "8",
+        "alt": "8"
+       }
+      ],
+      "bins": [
+       {
+        "id": "even",
+        "label": "Even"
+       },
+       {
+        "id": "odd",
+        "label": "Odd"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "o1=even;o2=even;o3=odd;o4=odd;o5=even;o6=even"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "606": {
+     "generatorKind": "ODD_EVEN_SORT",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       2,
+       5,
+       6,
+       7,
+       10,
+       12
+      ]
+     },
+     "prompt": {
+      "text": "Sort the numbers into odd and even."
+     },
+     "activityPayload": {
+      "mode": "SORT",
+      "objects": [
+       {
+        "id": "o1",
+        "text": "2",
+        "alt": "2"
+       },
+       {
+        "id": "o2",
+        "text": "5",
+        "alt": "5"
+       },
+       {
+        "id": "o3",
+        "text": "6",
+        "alt": "6"
+       },
+       {
+        "id": "o4",
+        "text": "7",
+        "alt": "7"
+       },
+       {
+        "id": "o5",
+        "text": "10",
+        "alt": "10"
+       },
+       {
+        "id": "o6",
+        "text": "12",
+        "alt": "12"
+       }
+      ],
+      "bins": [
+       {
+        "id": "even",
+        "label": "Even"
+       },
+       {
+        "id": "odd",
+        "label": "Odd"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "o1=even;o2=odd;o3=even;o4=odd;o5=even;o6=even"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "727": {
+     "generatorKind": "ODD_EVEN_SORT",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       3,
+       5,
+       6,
+       8,
+       9,
+       10
+      ]
+     },
+     "prompt": {
+      "text": "Sort the numbers into odd and even."
+     },
+     "activityPayload": {
+      "mode": "SORT",
+      "objects": [
+       {
+        "id": "o1",
+        "text": "8",
+        "alt": "8"
+       },
+       {
+        "id": "o2",
+        "text": "9",
+        "alt": "9"
+       },
+       {
+        "id": "o3",
+        "text": "10",
+        "alt": "10"
+       },
+       {
+        "id": "o4",
+        "text": "3",
+        "alt": "3"
+       },
+       {
+        "id": "o5",
+        "text": "5",
+        "alt": "5"
+       },
+       {
+        "id": "o6",
+        "text": "6",
+        "alt": "6"
+       }
+      ],
+      "bins": [
+       {
+        "id": "even",
+        "label": "Even"
+       },
+       {
+        "id": "odd",
+        "label": "Odd"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "o1=even;o2=odd;o3=even;o4=odd;o5=odd;o6=even"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "849": {
+     "generatorKind": "ODD_EVEN_SORT",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       7,
+       8,
+       9,
+       10,
+       11,
+       12
+      ]
+     },
+     "prompt": {
+      "text": "Sort the numbers into odd and even."
+     },
+     "activityPayload": {
+      "mode": "SORT",
+      "objects": [
+       {
+        "id": "o1",
+        "text": "9",
+        "alt": "9"
+       },
+       {
+        "id": "o2",
+        "text": "10",
+        "alt": "10"
+       },
+       {
+        "id": "o3",
+        "text": "11",
+        "alt": "11"
+       },
+       {
+        "id": "o4",
+        "text": "12",
+        "alt": "12"
+       },
+       {
+        "id": "o5",
+        "text": "7",
+        "alt": "7"
+       },
+       {
+        "id": "o6",
+        "text": "8",
+        "alt": "8"
+       }
+      ],
+      "bins": [
+       {
+        "id": "even",
+        "label": "Even"
+       },
+       {
+        "id": "odd",
+        "label": "Odd"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "o1=odd;o2=even;o3=odd;o4=even;o5=odd;o6=even"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  },
+  {
+   "name": "41-to-50",
+   "interactionType": "OBJECT_MOVE",
+   "template": {
+    "generatorKind": "ODD_EVEN_SORT",
+    "generatorVersion": 1,
+    "domain": {
+     "values": {
+      "min": 41,
+      "max": 50
+     }
+    }
+   },
+   "domainSize": 200,
+   "sha256": "d7520626175099293007f861698e714cc6f96eed1d9ac4e330abf8268852f397",
+   "instances": {
+    "0": {
+     "generatorKind": "ODD_EVEN_SORT",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       41,
+       42,
+       43,
+       44,
+       45,
+       46
+      ]
+     },
+     "prompt": {
+      "text": "Sort the numbers into odd and even."
+     },
+     "activityPayload": {
+      "mode": "SORT",
+      "objects": [
+       {
+        "id": "o1",
+        "text": "43",
+        "alt": "43"
+       },
+       {
+        "id": "o2",
+        "text": "44",
+        "alt": "44"
+       },
+       {
+        "id": "o3",
+        "text": "45",
+        "alt": "45"
+       },
+       {
+        "id": "o4",
+        "text": "46",
+        "alt": "46"
+       },
+       {
+        "id": "o5",
+        "text": "41",
+        "alt": "41"
+       },
+       {
+        "id": "o6",
+        "text": "42",
+        "alt": "42"
+       }
+      ],
+      "bins": [
+       {
+        "id": "even",
+        "label": "Even"
+       },
+       {
+        "id": "odd",
+        "label": "Odd"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "o1=odd;o2=even;o3=odd;o4=even;o5=odd;o6=even"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "28": {
+     "generatorKind": "ODD_EVEN_SORT",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       41,
+       42,
+       43,
+       46,
+       48,
+       50
+      ]
+     },
+     "prompt": {
+      "text": "Sort the numbers into odd and even."
+     },
+     "activityPayload": {
+      "mode": "SORT",
+      "objects": [
+       {
+        "id": "o1",
+        "text": "42",
+        "alt": "42"
+       },
+       {
+        "id": "o2",
+        "text": "43",
+        "alt": "43"
+       },
+       {
+        "id": "o3",
+        "text": "46",
+        "alt": "46"
+       },
+       {
+        "id": "o4",
+        "text": "48",
+        "alt": "48"
+       },
+       {
+        "id": "o5",
+        "text": "50",
+        "alt": "50"
+       },
+       {
+        "id": "o6",
+        "text": "41",
+        "alt": "41"
+       }
+      ],
+      "bins": [
+       {
+        "id": "even",
+        "label": "Even"
+       },
+       {
+        "id": "odd",
+        "label": "Odd"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "o1=even;o2=odd;o3=even;o4=even;o5=even;o6=odd"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "56": {
+     "generatorKind": "ODD_EVEN_SORT",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       41,
+       42,
+       45,
+       46,
+       48,
+       49
+      ]
+     },
+     "prompt": {
+      "text": "Sort the numbers into odd and even."
+     },
+     "activityPayload": {
+      "mode": "SORT",
+      "objects": [
+       {
+        "id": "o1",
+        "text": "46",
+        "alt": "46"
+       },
+       {
+        "id": "o2",
+        "text": "48",
+        "alt": "48"
+       },
+       {
+        "id": "o3",
+        "text": "49",
+        "alt": "49"
+       },
+       {
+        "id": "o4",
+        "text": "41",
+        "alt": "41"
+       },
+       {
+        "id": "o5",
+        "text": "42",
+        "alt": "42"
+       },
+       {
+        "id": "o6",
+        "text": "45",
+        "alt": "45"
+       }
+      ],
+      "bins": [
+       {
+        "id": "even",
+        "label": "Even"
+       },
+       {
+        "id": "odd",
+        "label": "Odd"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "o1=even;o2=even;o3=odd;o4=odd;o5=even;o6=odd"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "85": {
+     "generatorKind": "ODD_EVEN_SORT",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       41,
+       43,
+       44,
+       47,
+       49,
+       50
+      ]
+     },
+     "prompt": {
+      "text": "Sort the numbers into odd and even."
+     },
+     "activityPayload": {
+      "mode": "SORT",
+      "objects": [
+       {
+        "id": "o1",
+        "text": "49",
+        "alt": "49"
+       },
+       {
+        "id": "o2",
+        "text": "50",
+        "alt": "50"
+       },
+       {
+        "id": "o3",
+        "text": "41",
+        "alt": "41"
+       },
+       {
+        "id": "o4",
+        "text": "43",
+        "alt": "43"
+       },
+       {
+        "id": "o5",
+        "text": "44",
+        "alt": "44"
+       },
+       {
+        "id": "o6",
+        "text": "47",
+        "alt": "47"
+       }
+      ],
+      "bins": [
+       {
+        "id": "even",
+        "label": "Even"
+       },
+       {
+        "id": "odd",
+        "label": "Odd"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "o1=odd;o2=even;o3=odd;o4=odd;o5=even;o6=odd"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "113": {
+     "generatorKind": "ODD_EVEN_SORT",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       41,
+       44,
+       47,
+       48,
+       49,
+       50
+      ]
+     },
+     "prompt": {
+      "text": "Sort the numbers into odd and even."
+     },
+     "activityPayload": {
+      "mode": "SORT",
+      "objects": [
+       {
+        "id": "o1",
+        "text": "50",
+        "alt": "50"
+       },
+       {
+        "id": "o2",
+        "text": "41",
+        "alt": "41"
+       },
+       {
+        "id": "o3",
+        "text": "44",
+        "alt": "44"
+       },
+       {
+        "id": "o4",
+        "text": "47",
+        "alt": "47"
+       },
+       {
+        "id": "o5",
+        "text": "48",
+        "alt": "48"
+       },
+       {
+        "id": "o6",
+        "text": "49",
+        "alt": "49"
+       }
+      ],
+      "bins": [
+       {
+        "id": "even",
+        "label": "Even"
+       },
+       {
+        "id": "odd",
+        "label": "Odd"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "o1=even;o2=odd;o3=even;o4=odd;o5=even;o6=odd"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "142": {
+     "generatorKind": "ODD_EVEN_SORT",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       42,
+       43,
+       45,
+       46,
+       48,
+       49
+      ]
+     },
+     "prompt": {
+      "text": "Sort the numbers into odd and even."
+     },
+     "activityPayload": {
+      "mode": "SORT",
+      "objects": [
+       {
+        "id": "o1",
+        "text": "49",
+        "alt": "49"
+       },
+       {
+        "id": "o2",
+        "text": "42",
+        "alt": "42"
+       },
+       {
+        "id": "o3",
+        "text": "43",
+        "alt": "43"
+       },
+       {
+        "id": "o4",
+        "text": "45",
+        "alt": "45"
+       },
+       {
+        "id": "o5",
+        "text": "46",
+        "alt": "46"
+       },
+       {
+        "id": "o6",
+        "text": "48",
+        "alt": "48"
+       }
+      ],
+      "bins": [
+       {
+        "id": "even",
+        "label": "Even"
+       },
+       {
+        "id": "odd",
+        "label": "Odd"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "o1=odd;o2=even;o3=odd;o4=odd;o5=even;o6=even"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "170": {
+     "generatorKind": "ODD_EVEN_SORT",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       42,
+       45,
+       47,
+       48,
+       49,
+       50
+      ]
+     },
+     "prompt": {
+      "text": "Sort the numbers into odd and even."
+     },
+     "activityPayload": {
+      "mode": "SORT",
+      "objects": [
+       {
+        "id": "o1",
+        "text": "49",
+        "alt": "49"
+       },
+       {
+        "id": "o2",
+        "text": "50",
+        "alt": "50"
+       },
+       {
+        "id": "o3",
+        "text": "42",
+        "alt": "42"
+       },
+       {
+        "id": "o4",
+        "text": "45",
+        "alt": "45"
+       },
+       {
+        "id": "o5",
+        "text": "47",
+        "alt": "47"
+       },
+       {
+        "id": "o6",
+        "text": "48",
+        "alt": "48"
+       }
+      ],
+      "bins": [
+       {
+        "id": "even",
+        "label": "Even"
+       },
+       {
+        "id": "odd",
+        "label": "Odd"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "o1=odd;o2=even;o3=even;o4=odd;o5=odd;o6=even"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "199": {
+     "generatorKind": "ODD_EVEN_SORT",
+     "generatorVersion": 1,
+     "params": {
+      "values": [
+       45,
+       46,
+       47,
+       48,
+       49,
+       50
+      ]
+     },
+     "prompt": {
+      "text": "Sort the numbers into odd and even."
+     },
+     "activityPayload": {
+      "mode": "SORT",
+      "objects": [
+       {
+        "id": "o1",
+        "text": "50",
+        "alt": "50"
+       },
+       {
+        "id": "o2",
+        "text": "45",
+        "alt": "45"
+       },
+       {
+        "id": "o3",
+        "text": "46",
+        "alt": "46"
+       },
+       {
+        "id": "o4",
+        "text": "47",
+        "alt": "47"
+       },
+       {
+        "id": "o5",
+        "text": "48",
+        "alt": "48"
+       },
+       {
+        "id": "o6",
+        "text": "49",
+        "alt": "49"
+       }
+      ],
+      "bins": [
+       {
+        "id": "even",
+        "label": "Even"
+       },
+       {
+        "id": "odd",
+        "label": "Odd"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "o1=even;o2=odd;o3=even;o4=odd;o5=even;o6=odd"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  }
+ ]
+}

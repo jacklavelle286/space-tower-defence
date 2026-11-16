@@ -1,0 +1,797 @@
+{
+ "kind": "TIMES_TABLE",
+ "version": 1,
+ "cases": [
+  {
+   "name": "2-5-10-choice",
+   "interactionType": "MULTIPLE_CHOICE",
+   "template": {
+    "generatorKind": "TIMES_TABLE",
+    "generatorVersion": 1,
+    "domain": {
+     "tables": [
+      2,
+      5,
+      10
+     ],
+     "multiplier": {
+      "min": 1,
+      "max": 12
+     },
+     "forms": [
+      "m x t = ?",
+      "t x m = ?",
+      "p / t = ?",
+      "? x t = p"
+     ]
+    }
+   },
+   "domainSize": 144,
+   "sha256": "9a8316c97dc22d88274487ad081eb7cb72b870bb12a625cbe321c77574107f46",
+   "instances": {
+    "0": {
+     "generatorKind": "TIMES_TABLE",
+     "generatorVersion": 1,
+     "params": {
+      "table": 2,
+      "multiplier": 1,
+      "form": "m x t = ?"
+     },
+     "prompt": {
+      "text": "1 × 2 = ?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "0"
+       },
+       {
+        "id": "b",
+        "text": "2"
+       },
+       {
+        "id": "c",
+        "text": "3"
+       },
+       {
+        "id": "d",
+        "text": "12"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "20": {
+     "generatorKind": "TIMES_TABLE",
+     "generatorVersion": 1,
+     "params": {
+      "table": 2,
+      "multiplier": 6,
+      "form": "m x t = ?"
+     },
+     "prompt": {
+      "text": "6 × 2 = ?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "2"
+       },
+       {
+        "id": "b",
+        "text": "12"
+       },
+       {
+        "id": "c",
+        "text": "21"
+       },
+       {
+        "id": "d",
+        "text": "22"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "40": {
+     "generatorKind": "TIMES_TABLE",
+     "generatorVersion": 1,
+     "params": {
+      "table": 2,
+      "multiplier": 11,
+      "form": "m x t = ?"
+     },
+     "prompt": {
+      "text": "11 × 2 = ?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "21"
+       },
+       {
+        "id": "b",
+        "text": "22"
+       },
+       {
+        "id": "c",
+        "text": "23"
+       },
+       {
+        "id": "d",
+        "text": "24"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "61": {
+     "generatorKind": "TIMES_TABLE",
+     "generatorVersion": 1,
+     "params": {
+      "table": 5,
+      "multiplier": 4,
+      "form": "t x m = ?"
+     },
+     "prompt": {
+      "text": "5 × 4 = ?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "18"
+       },
+       {
+        "id": "b",
+        "text": "19"
+       },
+       {
+        "id": "c",
+        "text": "20"
+       },
+       {
+        "id": "d",
+        "text": "22"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "c"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "81": {
+     "generatorKind": "TIMES_TABLE",
+     "generatorVersion": 1,
+     "params": {
+      "table": 5,
+      "multiplier": 9,
+      "form": "t x m = ?"
+     },
+     "prompt": {
+      "text": "5 × 9 = ?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "40"
+       },
+       {
+        "id": "b",
+        "text": "44"
+       },
+       {
+        "id": "c",
+        "text": "45"
+       },
+       {
+        "id": "d",
+        "text": "46"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "c"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "102": {
+     "generatorKind": "TIMES_TABLE",
+     "generatorVersion": 1,
+     "params": {
+      "table": 10,
+      "multiplier": 2,
+      "form": "p / t = ?"
+     },
+     "prompt": {
+      "text": "20 ÷ 10 = ?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "0"
+       },
+       {
+        "id": "b",
+        "text": "2"
+       },
+       {
+        "id": "c",
+        "text": "10"
+       },
+       {
+        "id": "d",
+        "text": "12"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "122": {
+     "generatorKind": "TIMES_TABLE",
+     "generatorVersion": 1,
+     "params": {
+      "table": 10,
+      "multiplier": 7,
+      "form": "p / t = ?"
+     },
+     "prompt": {
+      "text": "70 ÷ 10 = ?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "5"
+       },
+       {
+        "id": "b",
+        "text": "7"
+       },
+       {
+        "id": "c",
+        "text": "9"
+       },
+       {
+        "id": "d",
+        "text": "10"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "143": {
+     "generatorKind": "TIMES_TABLE",
+     "generatorVersion": 1,
+     "params": {
+      "table": 10,
+      "multiplier": 12,
+      "form": "? x t = p"
+     },
+     "prompt": {
+      "text": "? × 10 = 120"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "2"
+       },
+       {
+        "id": "b",
+        "text": "10"
+       },
+       {
+        "id": "c",
+        "text": "11"
+       },
+       {
+        "id": "d",
+        "text": "12"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "d"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  },
+  {
+   "name": "tens-typed",
+   "interactionType": "TYPED",
+   "template": {
+    "generatorKind": "TIMES_TABLE",
+    "generatorVersion": 1,
+    "domain": {
+     "tables": [
+      10
+     ],
+     "multiplier": {
+      "min": 1,
+      "max": 10
+     },
+     "forms": [
+      "m x t = ?",
+      "p / t = ?"
+     ]
+    }
+   },
+   "domainSize": 20,
+   "sha256": "f62a60b7c326cb42123174f038c5d3c7d2bf67f699eb706c504b8ccb588335fa",
+   "instances": {
+    "0": {
+     "generatorKind": "TIMES_TABLE",
+     "generatorVersion": 1,
+     "params": {
+      "table": 10,
+      "multiplier": 1,
+      "form": "m x t = ?"
+     },
+     "prompt": {
+      "text": "1 × 10 = ?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "10"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "2": {
+     "generatorKind": "TIMES_TABLE",
+     "generatorVersion": 1,
+     "params": {
+      "table": 10,
+      "multiplier": 2,
+      "form": "m x t = ?"
+     },
+     "prompt": {
+      "text": "2 × 10 = ?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "20"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "5": {
+     "generatorKind": "TIMES_TABLE",
+     "generatorVersion": 1,
+     "params": {
+      "table": 10,
+      "multiplier": 3,
+      "form": "p / t = ?"
+     },
+     "prompt": {
+      "text": "30 ÷ 10 = ?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "3"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "8": {
+     "generatorKind": "TIMES_TABLE",
+     "generatorVersion": 1,
+     "params": {
+      "table": 10,
+      "multiplier": 5,
+      "form": "m x t = ?"
+     },
+     "prompt": {
+      "text": "5 × 10 = ?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "50"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "10": {
+     "generatorKind": "TIMES_TABLE",
+     "generatorVersion": 1,
+     "params": {
+      "table": 10,
+      "multiplier": 6,
+      "form": "m x t = ?"
+     },
+     "prompt": {
+      "text": "6 × 10 = ?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "60"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "13": {
+     "generatorKind": "TIMES_TABLE",
+     "generatorVersion": 1,
+     "params": {
+      "table": 10,
+      "multiplier": 7,
+      "form": "p / t = ?"
+     },
+     "prompt": {
+      "text": "70 ÷ 10 = ?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "7"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "16": {
+     "generatorKind": "TIMES_TABLE",
+     "generatorVersion": 1,
+     "params": {
+      "table": 10,
+      "multiplier": 9,
+      "form": "m x t = ?"
+     },
+     "prompt": {
+      "text": "9 × 10 = ?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "90"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "19": {
+     "generatorKind": "TIMES_TABLE",
+     "generatorVersion": 1,
+     "params": {
+      "table": 10,
+      "multiplier": 10,
+      "form": "p / t = ?"
+     },
+     "prompt": {
+      "text": "100 ÷ 10 = ?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "10"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  },
+  {
+   "name": "twos-track",
+   "interactionType": "NUMBER_SELECT",
+   "template": {
+    "generatorKind": "TIMES_TABLE",
+    "generatorVersion": 1,
+    "domain": {
+     "tables": [
+      2
+     ],
+     "multiplier": {
+      "min": 1,
+      "max": 10
+     },
+     "forms": [
+      "t x m = ?"
+     ]
+    },
+    "presentation": {
+     "numberSet": {
+      "kind": "RANGE",
+      "min": 0,
+      "max": 20,
+      "step": 1
+     },
+     "display": "TRACK"
+    }
+   },
+   "domainSize": 10,
+   "sha256": "ab80855065ef13c5d71c900efe2a5d7da33101458aad7c811ab1b388bc4db0ac",
+   "instances": {
+    "0": {
+     "generatorKind": "TIMES_TABLE",
+     "generatorVersion": 1,
+     "params": {
+      "table": 2,
+      "multiplier": 1,
+      "form": "t x m = ?"
+     },
+     "prompt": {
+      "text": "2 × 1 = ?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "2"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "1": {
+     "generatorKind": "TIMES_TABLE",
+     "generatorVersion": 1,
+     "params": {
+      "table": 2,
+      "multiplier": 2,
+      "form": "t x m = ?"
+     },
+     "prompt": {
+      "text": "2 × 2 = ?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "4"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "2": {
+     "generatorKind": "TIMES_TABLE",
+     "generatorVersion": 1,
+     "params": {
+      "table": 2,
+      "multiplier": 3,
+      "form": "t x m = ?"
+     },
+     "prompt": {
+      "text": "2 × 3 = ?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "6"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "3": {
+     "generatorKind": "TIMES_TABLE",
+     "generatorVersion": 1,
+     "params": {
+      "table": 2,
+      "multiplier": 4,
+      "form": "t x m = ?"
+     },
+     "prompt": {
+      "text": "2 × 4 = ?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "8"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "5": {
+     "generatorKind": "TIMES_TABLE",
+     "generatorVersion": 1,
+     "params": {
+      "table": 2,
+      "multiplier": 6,
+      "form": "t x m = ?"
+     },
+     "prompt": {
+      "text": "2 × 6 = ?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "12"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "6": {
+     "generatorKind": "TIMES_TABLE",
+     "generatorVersion": 1,
+     "params": {
+      "table": 2,
+      "multiplier": 7,
+      "form": "t x m = ?"
+     },
+     "prompt": {
+      "text": "2 × 7 = ?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "14"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "7": {
+     "generatorKind": "TIMES_TABLE",
+     "generatorVersion": 1,
+     "params": {
+      "table": 2,
+      "multiplier": 8,
+      "form": "t x m = ?"
+     },
+     "prompt": {
+      "text": "2 × 8 = ?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "16"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "9": {
+     "generatorKind": "TIMES_TABLE",
+     "generatorVersion": 1,
+     "params": {
+      "table": 2,
+      "multiplier": 10,
+      "form": "t x m = ?"
+     },
+     "prompt": {
+      "text": "2 × 10 = ?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "20"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  }
+ ]
+}

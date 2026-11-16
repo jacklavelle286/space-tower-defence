@@ -1,0 +1,707 @@
+{
+ "kind": "DOUBLE_HALVE",
+ "version": 1,
+ "cases": [
+  {
+   "name": "to10-track",
+   "interactionType": "NUMBER_SELECT",
+   "template": {
+    "generatorKind": "DOUBLE_HALVE",
+    "generatorVersion": 1,
+    "domain": {
+     "n": {
+      "min": 0,
+      "max": 5
+     },
+     "ops": [
+      "DOUBLE"
+     ]
+    },
+    "presentation": {
+     "numberSet": {
+      "kind": "RANGE",
+      "min": 0,
+      "max": 10,
+      "step": 1
+     },
+     "display": "TRACK"
+    }
+   },
+   "domainSize": 6,
+   "sha256": "e49227ebfec8fa3f35d5b485eb3920518a71092dbd594ac4ef443d909175d568",
+   "instances": {
+    "0": {
+     "generatorKind": "DOUBLE_HALVE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 0,
+      "op": "DOUBLE"
+     },
+     "prompt": {
+      "text": "What is double 0?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "0"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "1": {
+     "generatorKind": "DOUBLE_HALVE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 1,
+      "op": "DOUBLE"
+     },
+     "prompt": {
+      "text": "What is double 1?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "2"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "2": {
+     "generatorKind": "DOUBLE_HALVE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 2,
+      "op": "DOUBLE"
+     },
+     "prompt": {
+      "text": "What is double 2?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "4"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "3": {
+     "generatorKind": "DOUBLE_HALVE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 3,
+      "op": "DOUBLE"
+     },
+     "prompt": {
+      "text": "What is double 3?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "6"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "4": {
+     "generatorKind": "DOUBLE_HALVE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 4,
+      "op": "DOUBLE"
+     },
+     "prompt": {
+      "text": "What is double 4?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "8"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "5": {
+     "generatorKind": "DOUBLE_HALVE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 5,
+      "op": "DOUBLE"
+     },
+     "prompt": {
+      "text": "What is double 5?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "10"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  },
+  {
+   "name": "to20-typed",
+   "interactionType": "TYPED",
+   "template": {
+    "generatorKind": "DOUBLE_HALVE",
+    "generatorVersion": 1,
+    "domain": {
+     "n": {
+      "min": 1,
+      "max": 20
+     },
+     "ops": [
+      "DOUBLE",
+      "HALVE"
+     ]
+    }
+   },
+   "domainSize": 30,
+   "sha256": "d047a8b87128022d7fc0447e113d326bebb6c61ba0d9e8ecc92c34bdd73358fb",
+   "instances": {
+    "0": {
+     "generatorKind": "DOUBLE_HALVE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 1,
+      "op": "DOUBLE"
+     },
+     "prompt": {
+      "text": "What is double 1?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "2"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "4": {
+     "generatorKind": "DOUBLE_HALVE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 4,
+      "op": "DOUBLE"
+     },
+     "prompt": {
+      "text": "What is double 4?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "8"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "8": {
+     "generatorKind": "DOUBLE_HALVE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 6,
+      "op": "HALVE"
+     },
+     "prompt": {
+      "text": "What is half of 6?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "3"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "12": {
+     "generatorKind": "DOUBLE_HALVE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 9,
+      "op": "DOUBLE"
+     },
+     "prompt": {
+      "text": "What is double 9?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "18"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "16": {
+     "generatorKind": "DOUBLE_HALVE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 12,
+      "op": "DOUBLE"
+     },
+     "prompt": {
+      "text": "What is double 12?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "24"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "20": {
+     "generatorKind": "DOUBLE_HALVE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 14,
+      "op": "HALVE"
+     },
+     "prompt": {
+      "text": "What is half of 14?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "7"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "24": {
+     "generatorKind": "DOUBLE_HALVE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 17,
+      "op": "DOUBLE"
+     },
+     "prompt": {
+      "text": "What is double 17?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "34"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "29": {
+     "generatorKind": "DOUBLE_HALVE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 20,
+      "op": "HALVE"
+     },
+     "prompt": {
+      "text": "What is half of 20?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "10"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  },
+  {
+   "name": "to20-choice",
+   "interactionType": "MULTIPLE_CHOICE",
+   "template": {
+    "generatorKind": "DOUBLE_HALVE",
+    "generatorVersion": 1,
+    "domain": {
+     "n": {
+      "min": 2,
+      "max": 20
+     },
+     "ops": [
+      "HALVE"
+     ]
+    }
+   },
+   "domainSize": 10,
+   "sha256": "426aa099ad02aceb41f31224243c0a829ea1b4518e91107f9fa4b6f6fbe0c553",
+   "instances": {
+    "0": {
+     "generatorKind": "DOUBLE_HALVE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 2,
+      "op": "HALVE"
+     },
+     "prompt": {
+      "text": "What is half of 2?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "0"
+       },
+       {
+        "id": "b",
+        "text": "1"
+       },
+       {
+        "id": "c",
+        "text": "2"
+       },
+       {
+        "id": "d",
+        "text": "11"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "1": {
+     "generatorKind": "DOUBLE_HALVE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 4,
+      "op": "HALVE"
+     },
+     "prompt": {
+      "text": "What is half of 4?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "0"
+       },
+       {
+        "id": "b",
+        "text": "2"
+       },
+       {
+        "id": "c",
+        "text": "4"
+       },
+       {
+        "id": "d",
+        "text": "12"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "2": {
+     "generatorKind": "DOUBLE_HALVE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 6,
+      "op": "HALVE"
+     },
+     "prompt": {
+      "text": "What is half of 6?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "1"
+       },
+       {
+        "id": "b",
+        "text": "3"
+       },
+       {
+        "id": "c",
+        "text": "6"
+       },
+       {
+        "id": "d",
+        "text": "13"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "3": {
+     "generatorKind": "DOUBLE_HALVE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 8,
+      "op": "HALVE"
+     },
+     "prompt": {
+      "text": "What is half of 8?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "2"
+       },
+       {
+        "id": "b",
+        "text": "3"
+       },
+       {
+        "id": "c",
+        "text": "4"
+       },
+       {
+        "id": "d",
+        "text": "6"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "c"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "5": {
+     "generatorKind": "DOUBLE_HALVE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 12,
+      "op": "HALVE"
+     },
+     "prompt": {
+      "text": "What is half of 12?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "4"
+       },
+       {
+        "id": "b",
+        "text": "5"
+       },
+       {
+        "id": "c",
+        "text": "6"
+       },
+       {
+        "id": "d",
+        "text": "8"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "c"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "6": {
+     "generatorKind": "DOUBLE_HALVE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 14,
+      "op": "HALVE"
+     },
+     "prompt": {
+      "text": "What is half of 14?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "6"
+       },
+       {
+        "id": "b",
+        "text": "7"
+       },
+       {
+        "id": "c",
+        "text": "8"
+       },
+       {
+        "id": "d",
+        "text": "14"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "7": {
+     "generatorKind": "DOUBLE_HALVE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 16,
+      "op": "HALVE"
+     },
+     "prompt": {
+      "text": "What is half of 16?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "7"
+       },
+       {
+        "id": "b",
+        "text": "8"
+       },
+       {
+        "id": "c",
+        "text": "9"
+       },
+       {
+        "id": "d",
+        "text": "16"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "9": {
+     "generatorKind": "DOUBLE_HALVE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 20,
+      "op": "HALVE"
+     },
+     "prompt": {
+      "text": "What is half of 20?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "0"
+       },
+       {
+        "id": "b",
+        "text": "9"
+       },
+       {
+        "id": "c",
+        "text": "10"
+       },
+       {
+        "id": "d",
+        "text": "11"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "c"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  }
+ ]
+}

@@ -1,0 +1,761 @@
+{
+ "kind": "PLACE_VALUE",
+ "version": 1,
+ "cases": [
+  {
+   "name": "all-choice",
+   "interactionType": "MULTIPLE_CHOICE",
+   "template": {
+    "generatorKind": "PLACE_VALUE",
+    "generatorVersion": 1,
+    "domain": {
+     "n": {
+      "min": 10,
+      "max": 99
+     },
+     "asks": [
+      "TENS",
+      "ONES",
+      "NUMBER"
+     ]
+    }
+   },
+   "domainSize": 262,
+   "sha256": "1236e8efe32ea71a06125646631a73ef55162042be6afbafb942812fe4858d6b",
+   "instances": {
+    "0": {
+     "generatorKind": "PLACE_VALUE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 10,
+      "ask": "TENS"
+     },
+     "prompt": {
+      "text": "How many tens are in 10?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "0"
+       },
+       {
+        "id": "b",
+        "text": "1"
+       },
+       {
+        "id": "c",
+        "text": "2"
+       },
+       {
+        "id": "d",
+        "text": "3"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "37": {
+     "generatorKind": "PLACE_VALUE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 23,
+      "ask": "TENS"
+     },
+     "prompt": {
+      "text": "How many tens are in 23?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "0"
+       },
+       {
+        "id": "b",
+        "text": "2"
+       },
+       {
+        "id": "c",
+        "text": "3"
+       },
+       {
+        "id": "d",
+        "text": "4"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "74": {
+     "generatorKind": "PLACE_VALUE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 35,
+      "ask": "ONES"
+     },
+     "prompt": {
+      "text": "How many ones are in 35?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "3"
+       },
+       {
+        "id": "b",
+        "text": "5"
+       },
+       {
+        "id": "c",
+        "text": "6"
+       },
+       {
+        "id": "d",
+        "text": "7"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "111": {
+     "generatorKind": "PLACE_VALUE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 47,
+      "ask": "NUMBER"
+     },
+     "prompt": {
+      "text": "Which number has 4 tens and 7 ones?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "45"
+       },
+       {
+        "id": "b",
+        "text": "46"
+       },
+       {
+        "id": "c",
+        "text": "47"
+       },
+       {
+        "id": "d",
+        "text": "49"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "c"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "149": {
+     "generatorKind": "PLACE_VALUE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 60,
+      "ask": "ONES"
+     },
+     "prompt": {
+      "text": "How many ones are in 60?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "0"
+       },
+       {
+        "id": "b",
+        "text": "1"
+       },
+       {
+        "id": "c",
+        "text": "2"
+       },
+       {
+        "id": "d",
+        "text": "6"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "a"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "186": {
+     "generatorKind": "PLACE_VALUE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 72,
+      "ask": "NUMBER"
+     },
+     "prompt": {
+      "text": "Which number has 7 tens and 2 ones?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "70"
+       },
+       {
+        "id": "b",
+        "text": "71"
+       },
+       {
+        "id": "c",
+        "text": "72"
+       },
+       {
+        "id": "d",
+        "text": "74"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "c"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "223": {
+     "generatorKind": "PLACE_VALUE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 85,
+      "ask": "ONES"
+     },
+     "prompt": {
+      "text": "How many ones are in 85?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "4"
+       },
+       {
+        "id": "b",
+        "text": "5"
+       },
+       {
+        "id": "c",
+        "text": "6"
+       },
+       {
+        "id": "d",
+        "text": "8"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "261": {
+     "generatorKind": "PLACE_VALUE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 99,
+      "ask": "NUMBER"
+     },
+     "prompt": {
+      "text": "Which number has 9 tens and 9 ones?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "89"
+       },
+       {
+        "id": "b",
+        "text": "97"
+       },
+       {
+        "id": "c",
+        "text": "98"
+       },
+       {
+        "id": "d",
+        "text": "99"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "d"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  },
+  {
+   "name": "number-typed",
+   "interactionType": "TYPED",
+   "template": {
+    "generatorKind": "PLACE_VALUE",
+    "generatorVersion": 1,
+    "domain": {
+     "n": {
+      "min": 10,
+      "max": 99
+     },
+     "asks": [
+      "NUMBER"
+     ]
+    }
+   },
+   "domainSize": 90,
+   "sha256": "7185022621b9afa99f0783804fc1e1a0cd613ccb7b6c4aafd00d3e37fbb7189d",
+   "instances": {
+    "0": {
+     "generatorKind": "PLACE_VALUE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 10,
+      "ask": "NUMBER"
+     },
+     "prompt": {
+      "text": "Which number has 1 ten and 0 ones?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "10"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "12": {
+     "generatorKind": "PLACE_VALUE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 22,
+      "ask": "NUMBER"
+     },
+     "prompt": {
+      "text": "Which number has 2 tens and 2 ones?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "22"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "25": {
+     "generatorKind": "PLACE_VALUE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 35,
+      "ask": "NUMBER"
+     },
+     "prompt": {
+      "text": "Which number has 3 tens and 5 ones?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "35"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "38": {
+     "generatorKind": "PLACE_VALUE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 48,
+      "ask": "NUMBER"
+     },
+     "prompt": {
+      "text": "Which number has 4 tens and 8 ones?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "48"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "50": {
+     "generatorKind": "PLACE_VALUE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 60,
+      "ask": "NUMBER"
+     },
+     "prompt": {
+      "text": "Which number has 6 tens and 0 ones?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "60"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "63": {
+     "generatorKind": "PLACE_VALUE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 73,
+      "ask": "NUMBER"
+     },
+     "prompt": {
+      "text": "Which number has 7 tens and 3 ones?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "73"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "76": {
+     "generatorKind": "PLACE_VALUE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 86,
+      "ask": "NUMBER"
+     },
+     "prompt": {
+      "text": "Which number has 8 tens and 6 ones?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "86"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "89": {
+     "generatorKind": "PLACE_VALUE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 99,
+      "ask": "NUMBER"
+     },
+     "prompt": {
+      "text": "Which number has 9 tens and 9 ones?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "99"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  },
+  {
+   "name": "tens-track",
+   "interactionType": "NUMBER_SELECT",
+   "template": {
+    "generatorKind": "PLACE_VALUE",
+    "generatorVersion": 1,
+    "domain": {
+     "n": {
+      "min": 10,
+      "max": 99
+     },
+     "asks": [
+      "TENS",
+      "ONES"
+     ]
+    },
+    "presentation": {
+     "numberSet": {
+      "kind": "RANGE",
+      "min": 0,
+      "max": 10,
+      "step": 1
+     },
+     "display": "TRACK"
+    }
+   },
+   "domainSize": 180,
+   "sha256": "7b20e1c9e507d00d26eaa0a3a7f54471c6e14be5cfbf23b372344f3a907c132c",
+   "instances": {
+    "0": {
+     "generatorKind": "PLACE_VALUE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 10,
+      "ask": "TENS"
+     },
+     "prompt": {
+      "text": "How many tens are in 10?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "1"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "25": {
+     "generatorKind": "PLACE_VALUE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 22,
+      "ask": "ONES"
+     },
+     "prompt": {
+      "text": "How many ones are in 22?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "2"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "51": {
+     "generatorKind": "PLACE_VALUE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 35,
+      "ask": "ONES"
+     },
+     "prompt": {
+      "text": "How many ones are in 35?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "5"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "76": {
+     "generatorKind": "PLACE_VALUE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 48,
+      "ask": "TENS"
+     },
+     "prompt": {
+      "text": "How many tens are in 48?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "4"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "102": {
+     "generatorKind": "PLACE_VALUE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 61,
+      "ask": "TENS"
+     },
+     "prompt": {
+      "text": "How many tens are in 61?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "6"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "127": {
+     "generatorKind": "PLACE_VALUE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 73,
+      "ask": "ONES"
+     },
+     "prompt": {
+      "text": "How many ones are in 73?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "3"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "153": {
+     "generatorKind": "PLACE_VALUE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 86,
+      "ask": "ONES"
+     },
+     "prompt": {
+      "text": "How many ones are in 86?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "6"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "179": {
+     "generatorKind": "PLACE_VALUE",
+     "generatorVersion": 1,
+     "params": {
+      "n": 99,
+      "ask": "ONES"
+     },
+     "prompt": {
+      "text": "How many ones are in 99?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "9"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  }
+ ]
+}

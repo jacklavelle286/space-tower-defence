@@ -1,0 +1,796 @@
+{
+ "kind": "MISSING_NUMBER",
+ "version": 1,
+ "cases": [
+  {
+   "name": "within20-typed",
+   "interactionType": "TYPED",
+   "template": {
+    "generatorKind": "MISSING_NUMBER",
+    "generatorVersion": 1,
+    "domain": {
+     "max": 20,
+     "parts": {
+      "min": 1,
+      "max": 19
+     },
+     "forms": [
+      "a + ? = c",
+      "? + b = c",
+      "c = a + ?",
+      "a - ? = c",
+      "? - b = c",
+      "c = ? - b"
+     ]
+    }
+   },
+   "domainSize": 1140,
+   "sha256": "f0bccffbafb738b64a12179d0d6218115051c065f0e2269499c9e8a03fda1263",
+   "instances": {
+    "0": {
+     "generatorKind": "MISSING_NUMBER",
+     "generatorVersion": 1,
+     "params": {
+      "x": 1,
+      "y": 1,
+      "form": "a + ? = c"
+     },
+     "prompt": {
+      "text": "1 + ? = 2"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "1"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "162": {
+     "generatorKind": "MISSING_NUMBER",
+     "generatorVersion": 1,
+     "params": {
+      "x": 2,
+      "y": 9,
+      "form": "a + ? = c"
+     },
+     "prompt": {
+      "text": "2 + ? = 11"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "9"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "325": {
+     "generatorKind": "MISSING_NUMBER",
+     "generatorVersion": 1,
+     "params": {
+      "x": 4,
+      "y": 1,
+      "form": "? + b = c"
+     },
+     "prompt": {
+      "text": "? + 1 = 5"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "4"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "488": {
+     "generatorKind": "MISSING_NUMBER",
+     "generatorVersion": 1,
+     "params": {
+      "x": 5,
+      "y": 12,
+      "form": "c = a + ?"
+     },
+     "prompt": {
+      "text": "17 = 5 + ?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "12"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "650": {
+     "generatorKind": "MISSING_NUMBER",
+     "generatorVersion": 1,
+     "params": {
+      "x": 7,
+      "y": 10,
+      "form": "c = a + ?"
+     },
+     "prompt": {
+      "text": "17 = 7 + ?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "10"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "813": {
+     "generatorKind": "MISSING_NUMBER",
+     "generatorVersion": 1,
+     "params": {
+      "x": 10,
+      "y": 1,
+      "form": "a - ? = c"
+     },
+     "prompt": {
+      "text": "11 − ? = 10"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "1"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "976": {
+     "generatorKind": "MISSING_NUMBER",
+     "generatorVersion": 1,
+     "params": {
+      "x": 13,
+      "y": 1,
+      "form": "? - b = c"
+     },
+     "prompt": {
+      "text": "? − 1 = 13"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "14"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "1139": {
+     "generatorKind": "MISSING_NUMBER",
+     "generatorVersion": 1,
+     "params": {
+      "x": 19,
+      "y": 1,
+      "form": "c = ? - b"
+     },
+     "prompt": {
+      "text": "19 = ? − 1"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 3
+     },
+     "answerSpecification": {
+      "accepted": [
+       "20"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  },
+  {
+   "name": "within20-track",
+   "interactionType": "NUMBER_SELECT",
+   "template": {
+    "generatorKind": "MISSING_NUMBER",
+    "generatorVersion": 1,
+    "domain": {
+     "max": 20,
+     "parts": {
+      "min": 0,
+      "max": 20
+     },
+     "forms": [
+      "a + ? = c",
+      "? - b = c"
+     ]
+    },
+    "presentation": {
+     "numberSet": {
+      "kind": "RANGE",
+      "min": 0,
+      "max": 20,
+      "step": 1
+     },
+     "display": "TRACK"
+    }
+   },
+   "domainSize": 462,
+   "sha256": "14223fccb02caf696a4a9f522dab7d509d00d27ba2bfb56bd2e8dae3059fbd68",
+   "instances": {
+    "0": {
+     "generatorKind": "MISSING_NUMBER",
+     "generatorVersion": 1,
+     "params": {
+      "x": 0,
+      "y": 0,
+      "form": "a + ? = c"
+     },
+     "prompt": {
+      "text": "0 + ? = 0"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "0"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "65": {
+     "generatorKind": "MISSING_NUMBER",
+     "generatorVersion": 1,
+     "params": {
+      "x": 1,
+      "y": 11,
+      "form": "? - b = c"
+     },
+     "prompt": {
+      "text": "? − 11 = 1"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "12"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "131": {
+     "generatorKind": "MISSING_NUMBER",
+     "generatorVersion": 1,
+     "params": {
+      "x": 3,
+      "y": 5,
+      "form": "? - b = c"
+     },
+     "prompt": {
+      "text": "? − 5 = 3"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "8"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "197": {
+     "generatorKind": "MISSING_NUMBER",
+     "generatorVersion": 1,
+     "params": {
+      "x": 5,
+      "y": 3,
+      "form": "? - b = c"
+     },
+     "prompt": {
+      "text": "? − 3 = 5"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "8"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "263": {
+     "generatorKind": "MISSING_NUMBER",
+     "generatorVersion": 1,
+     "params": {
+      "x": 7,
+      "y": 5,
+      "form": "? - b = c"
+     },
+     "prompt": {
+      "text": "? − 5 = 7"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "12"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "329": {
+     "generatorKind": "MISSING_NUMBER",
+     "generatorVersion": 1,
+     "params": {
+      "x": 9,
+      "y": 11,
+      "form": "? - b = c"
+     },
+     "prompt": {
+      "text": "? − 11 = 9"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "20"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "395": {
+     "generatorKind": "MISSING_NUMBER",
+     "generatorVersion": 1,
+     "params": {
+      "x": 13,
+      "y": 2,
+      "form": "? - b = c"
+     },
+     "prompt": {
+      "text": "? − 2 = 13"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "15"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "461": {
+     "generatorKind": "MISSING_NUMBER",
+     "generatorVersion": 1,
+     "params": {
+      "x": 20,
+      "y": 0,
+      "form": "? - b = c"
+     },
+     "prompt": {
+      "text": "? − 0 = 20"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 20,
+       "step": 1
+      },
+      "display": "TRACK"
+     },
+     "answerSpecification": {
+      "accepted": [
+       "20"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  },
+  {
+   "name": "within10-choice",
+   "interactionType": "MULTIPLE_CHOICE",
+   "template": {
+    "generatorKind": "MISSING_NUMBER",
+    "generatorVersion": 1,
+    "domain": {
+     "max": 10,
+     "parts": {
+      "min": 1,
+      "max": 9
+     },
+     "forms": [
+      "a + ? = c",
+      "? + b = c",
+      "c = a + ?",
+      "a - ? = c",
+      "? - b = c",
+      "c = ? - b"
+     ]
+    }
+   },
+   "domainSize": 270,
+   "sha256": "4ec45beb5e7c44c58745769ba7a5c3db0b6bbcd4eae50b83c735faaecb6d9103",
+   "instances": {
+    "0": {
+     "generatorKind": "MISSING_NUMBER",
+     "generatorVersion": 1,
+     "params": {
+      "x": 1,
+      "y": 1,
+      "form": "a + ? = c"
+     },
+     "prompt": {
+      "text": "1 + ? = 2"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "0"
+       },
+       {
+        "id": "b",
+        "text": "1"
+       },
+       {
+        "id": "c",
+        "text": "2"
+       },
+       {
+        "id": "d",
+        "text": "3"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "38": {
+     "generatorKind": "MISSING_NUMBER",
+     "generatorVersion": 1,
+     "params": {
+      "x": 1,
+      "y": 7,
+      "form": "c = a + ?"
+     },
+     "prompt": {
+      "text": "8 = 1 + ?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "6"
+       },
+       {
+        "id": "b",
+        "text": "7"
+       },
+       {
+        "id": "c",
+        "text": "8"
+       },
+       {
+        "id": "d",
+        "text": "9"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "76": {
+     "generatorKind": "MISSING_NUMBER",
+     "generatorVersion": 1,
+     "params": {
+      "x": 2,
+      "y": 4,
+      "form": "? - b = c"
+     },
+     "prompt": {
+      "text": "? − 4 = 2"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "4"
+       },
+       {
+        "id": "b",
+        "text": "5"
+       },
+       {
+        "id": "c",
+        "text": "6"
+       },
+       {
+        "id": "d",
+        "text": "8"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "c"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "115": {
+     "generatorKind": "MISSING_NUMBER",
+     "generatorVersion": 1,
+     "params": {
+      "x": 3,
+      "y": 3,
+      "form": "? + b = c"
+     },
+     "prompt": {
+      "text": "? + 3 = 6"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "1"
+       },
+       {
+        "id": "b",
+        "text": "2"
+       },
+       {
+        "id": "c",
+        "text": "3"
+       },
+       {
+        "id": "d",
+        "text": "5"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "c"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "153": {
+     "generatorKind": "MISSING_NUMBER",
+     "generatorVersion": 1,
+     "params": {
+      "x": 4,
+      "y": 2,
+      "form": "a - ? = c"
+     },
+     "prompt": {
+      "text": "6 − ? = 4"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "1"
+       },
+       {
+        "id": "b",
+        "text": "2"
+       },
+       {
+        "id": "c",
+        "text": "3"
+       },
+       {
+        "id": "d",
+        "text": "6"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "192": {
+     "generatorKind": "MISSING_NUMBER",
+     "generatorVersion": 1,
+     "params": {
+      "x": 5,
+      "y": 3,
+      "form": "a + ? = c"
+     },
+     "prompt": {
+      "text": "5 + ? = 8"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "1"
+       },
+       {
+        "id": "b",
+        "text": "3"
+       },
+       {
+        "id": "c",
+        "text": "4"
+       },
+       {
+        "id": "d",
+        "text": "8"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "230": {
+     "generatorKind": "MISSING_NUMBER",
+     "generatorVersion": 1,
+     "params": {
+      "x": 6,
+      "y": 4,
+      "form": "c = a + ?"
+     },
+     "prompt": {
+      "text": "10 = 6 + ?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "2"
+       },
+       {
+        "id": "b",
+        "text": "4"
+       },
+       {
+        "id": "c",
+        "text": "5"
+       },
+       {
+        "id": "d",
+        "text": "10"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": []
+    },
+    "269": {
+     "generatorKind": "MISSING_NUMBER",
+     "generatorVersion": 1,
+     "params": {
+      "x": 9,
+      "y": 1,
+      "form": "c = ? - b"
+     },
+     "prompt": {
+      "text": "9 = ? − 1"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "0"
+       },
+       {
+        "id": "b",
+        "text": "8"
+       },
+       {
+        "id": "c",
+        "text": "9"
+       },
+       {
+        "id": "d",
+        "text": "10"
+       }
+      ]
+     },
+     "answerSpecification": {
+      "accepted": [
+       "d"
+      ]
+     },
+     "visualAssetReferences": []
+    }
+   }
+  }
+ ]
+}

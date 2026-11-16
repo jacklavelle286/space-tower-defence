@@ -1,0 +1,601 @@
+{
+ "kind": "COUNT_OBJECTS",
+ "version": 1,
+ "cases": [
+  {
+   "name": "dice-track",
+   "interactionType": "NUMBER_SELECT",
+   "template": {
+    "generatorKind": "COUNT_OBJECTS",
+    "generatorVersion": 1,
+    "domain": {
+     "count": {
+      "min": 1,
+      "max": 6
+     },
+     "arrangements": [
+      "DICE"
+     ]
+    },
+    "presentation": {
+     "numberSet": {
+      "kind": "RANGE",
+      "min": 0,
+      "max": 10,
+      "step": 1
+     },
+     "display": "TRACK"
+    }
+   },
+   "domainSize": 6,
+   "sha256": "d8e40ae04e11b3ca262a05d2c6d68c3d2736a26a4d11b027edb7f99ca416eb32",
+   "instances": {
+    "0": {
+     "generatorKind": "COUNT_OBJECTS",
+     "generatorVersion": 1,
+     "params": {
+      "count": 1,
+      "arrangement": "DICE"
+     },
+     "prompt": {
+      "text": "How many dots?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK",
+      "stimulus": {
+       "assetId": "dice-1",
+       "alt": "dots on a dice"
+      }
+     },
+     "answerSpecification": {
+      "accepted": [
+       "1"
+      ]
+     },
+     "visualAssetReferences": [
+      "dice-1"
+     ]
+    },
+    "1": {
+     "generatorKind": "COUNT_OBJECTS",
+     "generatorVersion": 1,
+     "params": {
+      "count": 2,
+      "arrangement": "DICE"
+     },
+     "prompt": {
+      "text": "How many dots?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK",
+      "stimulus": {
+       "assetId": "dice-2",
+       "alt": "dots on a dice"
+      }
+     },
+     "answerSpecification": {
+      "accepted": [
+       "2"
+      ]
+     },
+     "visualAssetReferences": [
+      "dice-2"
+     ]
+    },
+    "2": {
+     "generatorKind": "COUNT_OBJECTS",
+     "generatorVersion": 1,
+     "params": {
+      "count": 3,
+      "arrangement": "DICE"
+     },
+     "prompt": {
+      "text": "How many dots?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK",
+      "stimulus": {
+       "assetId": "dice-3",
+       "alt": "dots on a dice"
+      }
+     },
+     "answerSpecification": {
+      "accepted": [
+       "3"
+      ]
+     },
+     "visualAssetReferences": [
+      "dice-3"
+     ]
+    },
+    "3": {
+     "generatorKind": "COUNT_OBJECTS",
+     "generatorVersion": 1,
+     "params": {
+      "count": 4,
+      "arrangement": "DICE"
+     },
+     "prompt": {
+      "text": "How many dots?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK",
+      "stimulus": {
+       "assetId": "dice-4",
+       "alt": "dots on a dice"
+      }
+     },
+     "answerSpecification": {
+      "accepted": [
+       "4"
+      ]
+     },
+     "visualAssetReferences": [
+      "dice-4"
+     ]
+    },
+    "4": {
+     "generatorKind": "COUNT_OBJECTS",
+     "generatorVersion": 1,
+     "params": {
+      "count": 5,
+      "arrangement": "DICE"
+     },
+     "prompt": {
+      "text": "How many dots?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK",
+      "stimulus": {
+       "assetId": "dice-5",
+       "alt": "dots on a dice"
+      }
+     },
+     "answerSpecification": {
+      "accepted": [
+       "5"
+      ]
+     },
+     "visualAssetReferences": [
+      "dice-5"
+     ]
+    },
+    "5": {
+     "generatorKind": "COUNT_OBJECTS",
+     "generatorVersion": 1,
+     "params": {
+      "count": 6,
+      "arrangement": "DICE"
+     },
+     "prompt": {
+      "text": "How many dots?"
+     },
+     "activityPayload": {
+      "numberSet": {
+       "kind": "RANGE",
+       "min": 0,
+       "max": 10,
+       "step": 1
+      },
+      "display": "TRACK",
+      "stimulus": {
+       "assetId": "dice-6",
+       "alt": "dots on a dice"
+      }
+     },
+     "answerSpecification": {
+      "accepted": [
+       "6"
+      ]
+     },
+     "visualAssetReferences": [
+      "dice-6"
+     ]
+    }
+   }
+  },
+  {
+   "name": "dice-choice",
+   "interactionType": "MULTIPLE_CHOICE",
+   "template": {
+    "generatorKind": "COUNT_OBJECTS",
+    "generatorVersion": 1,
+    "domain": {
+     "count": {
+      "min": 1,
+      "max": 6
+     },
+     "arrangements": [
+      "DICE"
+     ]
+    }
+   },
+   "domainSize": 5,
+   "sha256": "33c211aa418de1084a964c4b344c7af7318ba9e9d67dbc5c123267f071573ccf",
+   "instances": {
+    "0": {
+     "generatorKind": "COUNT_OBJECTS",
+     "generatorVersion": 1,
+     "params": {
+      "count": 2,
+      "arrangement": "DICE"
+     },
+     "prompt": {
+      "text": "How many dots?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "1"
+       },
+       {
+        "id": "b",
+        "text": "2"
+       },
+       {
+        "id": "c",
+        "text": "3"
+       },
+       {
+        "id": "d",
+        "text": "4"
+       }
+      ],
+      "stimulus": {
+       "assetId": "dice-2",
+       "alt": "dots on a dice"
+      }
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": [
+      "dice-2"
+     ]
+    },
+    "1": {
+     "generatorKind": "COUNT_OBJECTS",
+     "generatorVersion": 1,
+     "params": {
+      "count": 3,
+      "arrangement": "DICE"
+     },
+     "prompt": {
+      "text": "How many dots?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "1"
+       },
+       {
+        "id": "b",
+        "text": "3"
+       },
+       {
+        "id": "c",
+        "text": "4"
+       },
+       {
+        "id": "d",
+        "text": "5"
+       }
+      ],
+      "stimulus": {
+       "assetId": "dice-3",
+       "alt": "dots on a dice"
+      }
+     },
+     "answerSpecification": {
+      "accepted": [
+       "b"
+      ]
+     },
+     "visualAssetReferences": [
+      "dice-3"
+     ]
+    },
+    "2": {
+     "generatorKind": "COUNT_OBJECTS",
+     "generatorVersion": 1,
+     "params": {
+      "count": 4,
+      "arrangement": "DICE"
+     },
+     "prompt": {
+      "text": "How many dots?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "2"
+       },
+       {
+        "id": "b",
+        "text": "3"
+       },
+       {
+        "id": "c",
+        "text": "4"
+       },
+       {
+        "id": "d",
+        "text": "5"
+       }
+      ],
+      "stimulus": {
+       "assetId": "dice-4",
+       "alt": "dots on a dice"
+      }
+     },
+     "answerSpecification": {
+      "accepted": [
+       "c"
+      ]
+     },
+     "visualAssetReferences": [
+      "dice-4"
+     ]
+    },
+    "3": {
+     "generatorKind": "COUNT_OBJECTS",
+     "generatorVersion": 1,
+     "params": {
+      "count": 5,
+      "arrangement": "DICE"
+     },
+     "prompt": {
+      "text": "How many dots?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "3"
+       },
+       {
+        "id": "b",
+        "text": "4"
+       },
+       {
+        "id": "c",
+        "text": "5"
+       },
+       {
+        "id": "d",
+        "text": "6"
+       }
+      ],
+      "stimulus": {
+       "assetId": "dice-5",
+       "alt": "dots on a dice"
+      }
+     },
+     "answerSpecification": {
+      "accepted": [
+       "c"
+      ]
+     },
+     "visualAssetReferences": [
+      "dice-5"
+     ]
+    },
+    "4": {
+     "generatorKind": "COUNT_OBJECTS",
+     "generatorVersion": 1,
+     "params": {
+      "count": 6,
+      "arrangement": "DICE"
+     },
+     "prompt": {
+      "text": "How many dots?"
+     },
+     "activityPayload": {
+      "optionStyle": "NUMERAL",
+      "options": [
+       {
+        "id": "a",
+        "text": "4"
+       },
+       {
+        "id": "b",
+        "text": "5"
+       },
+       {
+        "id": "c",
+        "text": "6"
+       },
+       {
+        "id": "d",
+        "text": "8"
+       }
+      ],
+      "stimulus": {
+       "assetId": "dice-6",
+       "alt": "dots on a dice"
+      }
+     },
+     "answerSpecification": {
+      "accepted": [
+       "c"
+      ]
+     },
+     "visualAssetReferences": [
+      "dice-6"
+     ]
+    }
+   }
+  },
+  {
+   "name": "dice-typed",
+   "interactionType": "TYPED",
+   "template": {
+    "generatorKind": "COUNT_OBJECTS",
+    "generatorVersion": 1,
+    "domain": {
+     "count": {
+      "min": 2,
+      "max": 5
+     },
+     "arrangements": [
+      "DICE"
+     ]
+    },
+    "presentation": {
+     "maxLength": 1
+    }
+   },
+   "domainSize": 4,
+   "sha256": "075d9d327798bca043e2d41c46e1295ba4e2241a6010be8abe3e29db20989327",
+   "instances": {
+    "0": {
+     "generatorKind": "COUNT_OBJECTS",
+     "generatorVersion": 1,
+     "params": {
+      "count": 2,
+      "arrangement": "DICE"
+     },
+     "prompt": {
+      "text": "How many dots?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 1,
+      "stimulus": {
+       "assetId": "dice-2",
+       "alt": "dots on a dice"
+      }
+     },
+     "answerSpecification": {
+      "accepted": [
+       "2"
+      ]
+     },
+     "visualAssetReferences": [
+      "dice-2"
+     ]
+    },
+    "1": {
+     "generatorKind": "COUNT_OBJECTS",
+     "generatorVersion": 1,
+     "params": {
+      "count": 3,
+      "arrangement": "DICE"
+     },
+     "prompt": {
+      "text": "How many dots?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 1,
+      "stimulus": {
+       "assetId": "dice-3",
+       "alt": "dots on a dice"
+      }
+     },
+     "answerSpecification": {
+      "accepted": [
+       "3"
+      ]
+     },
+     "visualAssetReferences": [
+      "dice-3"
+     ]
+    },
+    "2": {
+     "generatorKind": "COUNT_OBJECTS",
+     "generatorVersion": 1,
+     "params": {
+      "count": 4,
+      "arrangement": "DICE"
+     },
+     "prompt": {
+      "text": "How many dots?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 1,
+      "stimulus": {
+       "assetId": "dice-4",
+       "alt": "dots on a dice"
+      }
+     },
+     "answerSpecification": {
+      "accepted": [
+       "4"
+      ]
+     },
+     "visualAssetReferences": [
+      "dice-4"
+     ]
+    },
+    "3": {
+     "generatorKind": "COUNT_OBJECTS",
+     "generatorVersion": 1,
+     "params": {
+      "count": 5,
+      "arrangement": "DICE"
+     },
+     "prompt": {
+      "text": "How many dots?"
+     },
+     "activityPayload": {
+      "mode": "NUMERIC",
+      "maxLength": 1,
+      "stimulus": {
+       "assetId": "dice-5",
+       "alt": "dots on a dice"
+      }
+     },
+     "answerSpecification": {
+      "accepted": [
+       "5"
+      ]
+     },
+     "visualAssetReferences": [
+      "dice-5"
+     ]
+    }
+   }
+  }
+ ]
+}
