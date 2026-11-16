@@ -26,6 +26,7 @@ Rules for an AI assistant are in [CLAUDE.md](../CLAUDE.md). The original specifi
 | [H-infrastructure-and-delivery.md](plan/H-infrastructure-and-delivery.md) | Terraform and GitHub Actions: bootstrap changes, modules, release, backups, alarms |
 | [I-validation.md](plan/I-validation.md) | Tests, acceptance criteria, playtests and evidence |
 | [J-execution-backlog.md](plan/J-execution-backlog.md) | Ordered task backlog and the ADR practice |
+| [scope-asset-kinds-and-makers.md](plan/scope-asset-kinds-and-makers.md) | Proposal (2026-11-16): picture kinds for Draw with Claude (Gate P2) and admin makers (new Gate M); 16 owner decisions |
 
 ### Plan sources
 
