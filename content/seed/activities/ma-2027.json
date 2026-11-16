@@ -1,0 +1,28 @@
+{
+  "$comment": "Gate I, Phase 46 (C26.3 content phase D): maths template row. Seeded by scripts/seed_content.py; drafted by Claude from the generator kinds' domains, for the owner's review.",
+  "schemaVersion": 1,
+  "activityId": "ma-2027",
+  "title": "Number words to 100",
+  "subject": "maths",
+  "topicId": "maths-number-words-to100",
+  "minAge": 7,
+  "maxAge": 7,
+  "rewardCategory": "NORMAL",
+  "interactionType": "TYPED",
+  "authoringMode": "TEMPLATE",
+  "audioRequirement": "NONE",
+  "template": {
+    "generatorKind": "NUMBER_WORD",
+    "generatorVersion": 1,
+    "domain": {
+      "n": {
+        "min": 20,
+        "max": 100
+      },
+      "directions": [
+        "WORD_TO_NUMERAL"
+      ]
+    }
+  },
+  "speechDefinitionReferences": {}
+}

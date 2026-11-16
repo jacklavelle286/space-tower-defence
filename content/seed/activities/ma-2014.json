@@ -1,0 +1,29 @@
+{
+  "$comment": "Gate I, Phase 46 (C26.3 content phase D): maths template row. Seeded by scripts/seed_content.py; drafted by Claude from the generator kinds' domains, for the owner's review.",
+  "schemaVersion": 1,
+  "activityId": "ma-2014",
+  "title": "Fill the gap to 100",
+  "subject": "maths",
+  "topicId": "maths-count-to100",
+  "minAge": 6,
+  "maxAge": 6,
+  "rewardCategory": "NORMAL",
+  "interactionType": "TYPED",
+  "authoringMode": "TEMPLATE",
+  "audioRequirement": "NONE",
+  "template": {
+    "generatorKind": "SEQUENCE_GAP",
+    "generatorVersion": 1,
+    "domain": {
+      "start": {
+        "min": 0,
+        "max": 97
+      },
+      "directions": [
+        "FORWARDS",
+        "BACKWARDS"
+      ]
+    }
+  },
+  "speechDefinitionReferences": {}
+}

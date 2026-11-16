@@ -1,0 +1,41 @@
+{
+  "$comment": "Gate I, Phase 46 (C26.3 content phase D): maths template row. Seeded by scripts/seed_content.py; drafted by Claude from the generator kinds' domains, for the owner's review.",
+  "schemaVersion": 1,
+  "activityId": "ma-2019",
+  "title": "Number bonds to 20",
+  "subject": "maths",
+  "topicId": "maths-bonds-to20",
+  "minAge": 6,
+  "maxAge": 7,
+  "rewardCategory": "NORMAL",
+  "interactionType": "NUMBER_SELECT",
+  "authoringMode": "TEMPLATE",
+  "audioRequirement": "NONE",
+  "template": {
+    "generatorKind": "BOND_TO",
+    "generatorVersion": 1,
+    "domain": {
+      "totals": [
+        20
+      ],
+      "part": {
+        "min": 1,
+        "max": 19
+      },
+      "forms": [
+        "a + ? = T",
+        "? + a = T"
+      ]
+    },
+    "presentation": {
+      "numberSet": {
+        "kind": "RANGE",
+        "min": 0,
+        "max": 20,
+        "step": 1
+      },
+      "display": "TRACK"
+    }
+  },
+  "speechDefinitionReferences": {}
+}

@@ -1,0 +1,39 @@
+{
+  "$comment": "Gate I, Phase 46 (C26.3 content phase D): maths template row. Seeded by scripts/seed_content.py; drafted by Claude from the generator kinds' domains, for the owner's review.",
+  "schemaVersion": 1,
+  "activityId": "ma-2015",
+  "title": "Count in 2s, 5s and 10s",
+  "subject": "maths",
+  "topicId": "maths-count-steps-2-5-10",
+  "minAge": 6,
+  "maxAge": 6,
+  "rewardCategory": "NORMAL",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "TEMPLATE",
+  "audioRequirement": "NONE",
+  "template": {
+    "generatorKind": "SKIP_COUNT",
+    "generatorVersion": 1,
+    "domain": {
+      "steps": [
+        2,
+        5,
+        10
+      ],
+      "start": {
+        "min": 0,
+        "max": 20
+      },
+      "directions": [
+        "FORWARDS",
+        "BACKWARDS"
+      ],
+      "asks": [
+        "NEXT",
+        "GAP"
+      ],
+      "max": 100
+    }
+  },
+  "speechDefinitionReferences": {}
+}

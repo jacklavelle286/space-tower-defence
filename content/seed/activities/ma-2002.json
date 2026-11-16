@@ -1,0 +1,29 @@
+{
+  "$comment": "Gate I, Phase 46 (C26.3 content phase D): maths template row. Seeded by scripts/seed_content.py; drafted by Claude from the generator kinds' domains, for the owner's review.",
+  "schemaVersion": 1,
+  "activityId": "ma-2002",
+  "title": "One more or less, type it",
+  "subject": "maths",
+  "topicId": "maths-number-one-more-less-to10",
+  "minAge": 5,
+  "maxAge": 5,
+  "rewardCategory": "NORMAL",
+  "interactionType": "TYPED",
+  "authoringMode": "TEMPLATE",
+  "audioRequirement": "NONE",
+  "template": {
+    "generatorKind": "ONE_MORE_LESS",
+    "generatorVersion": 1,
+    "domain": {
+      "range": {
+        "min": 0,
+        "max": 10
+      },
+      "changes": [
+        1,
+        -1
+      ]
+    }
+  },
+  "speechDefinitionReferences": {}
+}

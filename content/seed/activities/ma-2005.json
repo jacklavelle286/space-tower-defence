@@ -1,0 +1,39 @@
+{
+  "$comment": "Gate I, Phase 46 (C26.3 content phase D): maths template row. Seeded by scripts/seed_content.py; drafted by Claude from the generator kinds' domains, for the owner's review.",
+  "schemaVersion": 1,
+  "activityId": "ma-2005",
+  "title": "Add within 10",
+  "subject": "maths",
+  "topicId": "maths-add-within10",
+  "minAge": 5,
+  "maxAge": 5,
+  "rewardCategory": "BOTH",
+  "interactionType": "NUMBER_SELECT",
+  "authoringMode": "TEMPLATE",
+  "audioRequirement": "NONE",
+  "template": {
+    "generatorKind": "ADD_WITHIN",
+    "generatorVersion": 1,
+    "domain": {
+      "a": {
+        "min": 0,
+        "max": 10
+      },
+      "b": {
+        "min": 0,
+        "max": 10
+      },
+      "max": 10
+    },
+    "presentation": {
+      "numberSet": {
+        "kind": "RANGE",
+        "min": 0,
+        "max": 10,
+        "step": 1
+      },
+      "display": "TRACK"
+    }
+  },
+  "speechDefinitionReferences": {}
+}

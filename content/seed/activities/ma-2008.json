@@ -1,0 +1,29 @@
+{
+  "$comment": "Gate I, Phase 46 (C26.3 content phase D): maths template row. Seeded by scripts/seed_content.py; drafted by Claude from the generator kinds' domains, for the owner's review.",
+  "schemaVersion": 1,
+  "activityId": "ma-2008",
+  "title": "Take away within 10, type it",
+  "subject": "maths",
+  "topicId": "maths-subtract-within10",
+  "minAge": 5,
+  "maxAge": 5,
+  "rewardCategory": "NORMAL",
+  "interactionType": "TYPED",
+  "authoringMode": "TEMPLATE",
+  "audioRequirement": "NONE",
+  "template": {
+    "generatorKind": "SUB_WITHIN",
+    "generatorVersion": 1,
+    "domain": {
+      "a": {
+        "min": 0,
+        "max": 10
+      },
+      "b": {
+        "min": 0,
+        "max": 10
+      }
+    }
+  },
+  "speechDefinitionReferences": {}
+}

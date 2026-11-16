@@ -1,0 +1,30 @@
+{
+  "$comment": "Gate I, Phase 46 (C26.3 content phase D): maths template row. Seeded by scripts/seed_content.py; drafted by Claude from the generator kinds' domains, for the owner's review.",
+  "schemaVersion": 1,
+  "activityId": "ma-2031",
+  "title": "Missing numbers to 100",
+  "subject": "maths",
+  "topicId": "maths-missing-number-inverse-to100",
+  "minAge": 7,
+  "maxAge": 7,
+  "rewardCategory": "NORMAL",
+  "interactionType": "TYPED",
+  "authoringMode": "TEMPLATE",
+  "audioRequirement": "NONE",
+  "template": {
+    "generatorKind": "MISSING_NUMBER",
+    "generatorVersion": 1,
+    "domain": {
+      "max": 100,
+      "parts": {
+        "min": 10,
+        "max": 60
+      },
+      "forms": [
+        "a + ? = c",
+        "a - ? = c"
+      ]
+    }
+  },
+  "speechDefinitionReferences": {}
+}
