@@ -34,7 +34,9 @@ export {
   PICTURE_KINDS,
   pictureKindLabel,
   pictureKindOf,
+  pictureKindSpec,
   type PictureKind,
   type PictureKindConsumer,
   type PictureKindId,
+  type PictureKindSpec,
 } from "./pictures";

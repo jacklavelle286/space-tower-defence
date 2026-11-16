@@ -19,8 +19,9 @@ export function libraryPictureUrl(assetId: string): string | null {
 }
 
 // Picture kinds (Gate P2, ADR-0031 as amended): what a library picture is for. The list, its order and its labels come
-// from contracts/limits.json (`picture.kinds`), which admin-api and picture-gen read too. Every kind is 256 x 256 for
-// now. `consumer` says who can use the picture: "activity" kinds can go in a learning activity (publish refuses any
+// from contracts/limits.json (`picture.kinds`), which admin-api and picture-gen read too. Each kind also gives its
+// stored size (256 x 256; 1920 x 1056 for a background, the game's logical canvas) and its byte limits, so the admin
+// draws and checks a picture at the size admin-api will insist on. `consumer` says who can use the picture: "activity" kinds can go in a learning activity (publish refuses any
 // other kind); "later" kinds are built up now for the avatar library and the makers (Gate F, Gate M).
 
 export type PictureKind = (typeof LIMITS.picture.kinds)[number];
@@ -54,4 +55,26 @@ export function pictureKindLabel(kind: PictureKindId): string {
 
 export function isActivityPictureKind(kind: PictureKindId): boolean {
   return PICTURE_KINDS.find((k) => k.id === kind)?.consumer === "activity";
+}
+
+/** A kind's stored size and byte limits, from its contracts/limits.json entry (admin-api checks the same numbers). */
+export type PictureKindSpec = {
+  /** The stored PNG's size in pixels. */
+  readonly width: number;
+  readonly height: number;
+  /** The largest SVG a drawing of this kind can be. */
+  readonly svgMaxBytes: number;
+  /** The largest PNG admin-api accepts and stores for this kind. */
+  readonly maxBytes: number;
+  /** The largest R34 request body (the PNG in base64 and the other fields). */
+  readonly bodyMaxBytes: number;
+  /** How many places one drawing of this kind takes in the daily and monthly caps (R38): 1, or 3 for a background. */
+  readonly capWeight: number;
+};
+
+export function pictureKindSpec(kind: PictureKindId): PictureKindSpec {
+  const entry = PICTURE_KINDS.find((k) => k.id === kind) ?? PICTURE_KINDS.find((k) => k.id === DEFAULT_PICTURE_KIND);
+  if (entry === undefined) throw new Error("contracts/limits.json has no default picture kind");
+  const capWeight = "capWeight" in entry ? entry.capWeight : 1;
+  return { width: entry.width, height: entry.height, svgMaxBytes: entry.svgMaxBytes, maxBytes: entry.maxBytes, bodyMaxBytes: entry.bodyMaxBytes, capWeight };
 }

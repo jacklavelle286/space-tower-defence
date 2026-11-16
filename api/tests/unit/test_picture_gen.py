@@ -10,9 +10,12 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
+import signal
 import sys
-from dataclasses import dataclass, field
-from datetime import UTC, datetime
+import time
+from dataclasses import dataclass, field, replace
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
@@ -21,7 +24,7 @@ import boto3
 import pytest
 from conftest import CapturedLogger, load_handler
 
-from shared.pictures import KIND_IDS
+from shared.pictures import DRAW_TIMEOUT, JOB_TIMEOUT, KIND_IDS, QUEUE_MAX_AGE, WORKER_TIMEOUT
 from shared.rules.contracts import LIMITS
 from shared.svg_sanitise import sanitise
 
@@ -119,16 +122,21 @@ class Harness:
         self.bedrock = FakeBedrock()
         self.logger = CapturedLogger()
         self.ticks = 0.0
+        self.client_kinds: list[str] = []
         self.worker = gen.Worker(
             gen.Deps(
                 config=lambda: CONFIG,
                 s3=lambda: self.s3,
-                bedrock=lambda config: self.bedrock,
+                bedrock=self.client,
                 clock=self.clock,
                 now=lambda: datetime(2026, 11, 20, 10, 0, tzinfo=UTC),
             ),
             self.logger,
         )
+
+    def client(self, config: gen.WorkerConfig, kind: str) -> FakeBedrock:
+        self.client_kinds.append(kind)
+        return self.bedrock
 
     def clock(self) -> float:
         self.ticks += 1.0
@@ -214,7 +222,10 @@ def test_the_kinds_are_the_contract_kinds() -> None:
 @pytest.mark.parametrize("kind", KIND_IDS)
 def test_each_kind_block_has_its_rules_safety_line_and_small_examples(kind: str) -> None:
     rules = (gen._HERE / gen.kind_file(kind)).read_text(encoding="utf-8")
-    assert "256 x 256" in rules
+    if kind == "background":
+        assert 'viewBox="0 0 3840 2112" width="1920" height="1056">' in rules  # its canvas, as the root to write
+    else:
+        assert "256 x 256" in rules
     for word in ("Canvas:", "Anchor:", "Background:", "Outline:"):
         assert word in rules, (kind, word)
     safety = (
@@ -223,7 +234,8 @@ def test_each_kind_block_has_its_rules_safety_line_and_small_examples(kind: str)
     )
     assert safety in rules
     examples = sum(len((REPO_ROOT / relative).read_bytes()) for relative in gen.KIND_EXAMPLES[kind])
-    assert examples < 12_000, (kind, examples)
+    # Background's one example is the whole house backdrop (84,328 bytes, about 21k tokens at 4 characters a token).
+    assert examples < (100_000 if kind == "background" else 12_000), (kind, examples)
 
 
 def test_the_human_cast_rule_is_in_the_avatar_and_astronaut_blocks() -> None:
@@ -445,7 +457,7 @@ def test_a_progress_write_that_hits_a_network_fault_does_not_fail_the_drawing(h:
 @pytest.mark.parametrize(
     ("started", "attributes"),
     [
-        pytest.param("2026-11-20T09:46:59Z", None, id="startedAt-13m01s"),
+        pytest.param("2026-11-20T09:44:59Z", None, id="startedAt-15m01s"),
         pytest.param(
             None,
             {"SentTimestamp": str(int(datetime(2026, 11, 20, 9, 40, tzinfo=UTC).timestamp() * 1000))},
@@ -457,7 +469,7 @@ def test_a_progress_write_that_hits_a_network_fault_does_not_fail_the_drawing(h:
 def test_a_job_that_waited_too_long_is_answered_timed_out_without_a_call(
     h: Harness, started: str | None, attributes: dict[str, str] | None
 ) -> None:
-    """admin-api gives up on an unclaimed job at 15 minutes; picture-gen refuses one older than 13, so a job the page
+    """admin-api gives up on an unclaimed job at 17 minutes; picture-gen refuses one older than 15, so a job the page
     has given up on is never drawn and paid for."""
     body = {"startedAt": started} if started is not None else {}
     h.run(attributes, **body)
@@ -465,7 +477,15 @@ def test_a_job_that_waited_too_long_is_answered_timed_out_without_a_call(
     assert h.read("error.json") == {"code": "timed_out"}
     assert h.read("claim") == b""  # claimed, so a second delivery is a DUPLICATE
     line = h.logger.lines()[-1]
-    assert (line["result"], line["code"]) == ("ERROR", "timed_out") and line["queuedSeconds"] > 13 * 60
+    assert (line["result"], line["code"]) == ("ERROR", "timed_out") and line["queuedSeconds"] > 15 * 60
+
+
+def test_a_job_that_waited_behind_a_whole_background_run_is_still_drawn(h: Harness) -> None:
+    """Gate P2: two drawings run at once and a run can last 840 s, so a third job can wait 14 minutes before a worker
+    is free. QUEUE_MAX_AGE (15 minutes) lets it be drawn; at 13 minutes it was refused after the cap was counted."""
+    h.run(startedAt="2026-11-20T09:46:00Z")  # 14 minutes before the harness's now
+    assert len(h.bedrock.calls) == 1
+    assert h.read("result.json") is not None
 
 
 def test_a_fresh_job_with_its_start_time_is_drawn(h: Harness) -> None:
@@ -593,3 +613,168 @@ def test_the_config_reads_the_environment(monkeypatch: Any) -> None:
     monkeypatch.delenv("PICTURE_JOB_PREFIX", raising=False)
     expected = gen.WorkerConfig("b", "jobs/", "eu.anthropic.claude-opus-5-5", 16000, "eu-west-2")
     assert gen.WorkerConfig.from_env() == expected
+
+
+# --- Gate P2: the background kind (1920 x 1056) --------------------------------------------------------------------
+
+BACKDROP = (REPO_ROOT / "art" / "svg" / "map" / "luna-backdrop.svg").read_text(encoding="utf-8")
+
+
+def test_a_background_is_drawn_with_its_own_tokens_client_limits_and_canvas(h: Harness) -> None:
+    h.bedrock.final = message(BACKDROP)
+    h.run(kind="background")
+    [call] = h.bedrock.calls
+    assert call["max_tokens"] == 32000  # contracts/limits.json maxTokens, not BEDROCK_MAX_TOKENS (16000)
+    assert call["system"] == gen.system_blocks("background")
+    assert '<example file="luna-backdrop.svg">' in call["system"][2]["text"]
+    assert h.client_kinds == ["background"]  # the client is built with the kind's timeout and retries
+    result = h.read("result.json")
+    assert result["svg"].startswith(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3840 2112" width="1920" height="1056">'
+    )
+    assert len(BACKDROP.encode()) > 65_536  # over a 256 kind's cap, under the background's
+    assert h.logger.lines()[-1]["kind"] == "background"
+
+
+def test_a_square_drawing_for_a_background_is_unusable(h: Harness) -> None:
+    h.bedrock.final = message(DRAWING)  # viewBox 0 0 256 256: the wrong aspect for 1920 x 1056
+    h.run(kind="background")
+    assert h.read("error.json") == {"code": "unusable"}
+
+
+def test_the_backdrop_is_too_big_for_a_256_kind(h: Harness) -> None:
+    h.bedrock.final = message(BACKDROP)
+    h.run(kind="decoration")
+    assert h.read("error.json") == {"code": "unusable"}
+
+
+def test_a_background_redraw_reads_and_resanitises_the_big_previous_drawing(h: Harness) -> None:
+    previous = sanitise(BACKDROP, canvas=(1920, 1056), max_bytes=196_608).svg
+    body = json.dumps({"svg": previous, "warnings": [], "usage": {}})
+    assert len(body) > 65_536
+    h.s3.put_object(Bucket=BUCKET, Key=f"jobs/{PREVIOUS}/result.json", Body=body)
+    h.bedrock.final = message(BACKDROP)
+    h.run(kind="background", previousJobId=PREVIOUS, change="more craters")
+    assert "<previous-drawing>\n" + previous + "\n</previous-drawing>" in h.bedrock.calls[0]["messages"][0]["content"]
+
+
+@pytest.mark.parametrize("kind", [k for k in KIND_IDS if k != "background"])
+def test_every_256_kind_keeps_todays_request_and_client(kind: str) -> None:
+    assert gen.max_tokens_for(CONFIG, kind) == 16000
+    assert gen.sdk_limits(kind) == (280.0, 1)
+
+
+def test_max_tokens_never_passes_the_terraform_ceiling() -> None:
+    variables = (REPO_ROOT / "infrastructure" / "main" / "variables.tf").read_text(encoding="utf-8")
+    block = variables[variables.index('variable "bedrock_max_tokens"') :]
+    ceiling = int(re.search(r"var\.bedrock_max_tokens <= (\d+)", block).group(1))  # type: ignore[union-attr]
+    assert gen.MAX_TOKENS_CEILING == ceiling == 64_000
+    big = gen.WorkerConfig(BUCKET, "jobs/", "m", 70_000, "eu-west-2")
+    assert gen.max_tokens_for(big, "avatar") == 64_000
+    assert all(k.get("maxTokens", 0) <= ceiling for k in LIMITS["picture"]["kinds"])
+
+
+def test_the_real_sdk_client_for_a_background_is_one_long_attempt(monkeypatch: Any) -> None:
+    pytest.importorskip("anthropic")
+    monkeypatch.setenv("AWS_ACCESS_KEY_ID", "testing")
+    monkeypatch.setenv("AWS_SECRET_ACCESS_KEY", "testing")
+    client = gen.bedrock_client(CONFIG, "background")
+    assert client.max_retries == 0
+    assert client.timeout.read == 720.0 and client.timeout.connect == 10.0
+
+
+def test_the_function_timeout_covers_the_longest_kind_and_the_deadlines_cover_the_function() -> None:
+    """The job's own deadline (CALL_SECONDS, which bounds the whole call: the SDK's read timeout bounds only each gap)
+    leaves a minute before the Lambda timeout, and a small kind's two whole SDK attempts fit inside it; the timeout is
+    under the queue's visibility timeout and Lambda's 900 s; admin-api's claim deadline (DRAW_TIMEOUT) is past it, so a
+    running background is never failed; QUEUE_MAX_AGE is past one whole run, so a job queued behind two running
+    drawings is still drawn, and below JOB_TIMEOUT, so a job admin-api gave up on is never drawn."""
+    tf = (REPO_ROOT / "infrastructure" / "main" / "pictures.tf").read_text(encoding="utf-8")
+    module = tf[tf.index('module "picture_gen"') :]
+    timeout = int(re.search(r"\n\s*timeout\s*=\s*(\d+)", module).group(1))  # type: ignore[union-attr]
+    visibility = int(re.search(r"visibility_timeout_seconds\s*=\s*(\d+)", tf).group(1))  # type: ignore[union-attr]
+    assert timedelta(seconds=timeout) == WORKER_TIMEOUT
+    assert timeout == gen.CALL_SECONDS + gen.DEADLINE_MARGIN_SECONDS
+    assert gen.DEADLINE_MARGIN_SECONDS >= 60  # a minute for error.json or result.json and the usage line
+    assert gen.CALL_SECONDS >= 12 * 60  # a 12-minute background finishes
+    for kind in KIND_IDS:
+        read, retries = gen.sdk_limits(kind)
+        if retries:  # several attempts must all fit before the deadline, or the last is cut short
+            assert (retries + 1) * (read + gen.SDK_CONNECT_SECONDS) <= gen.CALL_SECONDS, kind
+    assert timeout < visibility <= 900
+    assert DRAW_TIMEOUT > WORKER_TIMEOUT
+    assert WORKER_TIMEOUT + timedelta(seconds=60) <= QUEUE_MAX_AGE
+    assert QUEUE_MAX_AGE < JOB_TIMEOUT
+
+
+def test_a_stream_past_the_jobs_deadline_is_closed_and_timed_out_with_its_usage(h: Harness) -> None:
+    """The read timeout never stops a stream that keeps sending: the per-event check does. The tokens reported so far
+    are logged (they are billed), and error.json says timed_out, so the page does not wait for DRAW_TIMEOUT."""
+    readings = iter([0.0, 1.0, 2.0])  # the job's start, the draw's start, the alarm's arming; then 800 s later
+
+    def clock() -> float:
+        return next(readings, 800.0)
+
+    h.worker.deps = replace(h.worker.deps, clock=clock)
+    h.run(kind="background")
+    assert len(h.bedrock.calls) == 1
+    assert h.read("result.json") is None
+    assert h.read("error.json") == {"code": "timed_out"}
+    line = h.logger.lines()[-1]
+    assert (line["result"], line["code"], line["outputTokens"], line["errorType"]) == (
+        "ERROR",
+        "timed_out",
+        300,
+        "DeadlinePassed",
+    )
+
+
+def test_a_read_that_blocks_past_the_deadline_is_broken_by_the_alarm(h: Harness) -> None:
+    """An `omitted` thinking block can stream nothing for minutes, so no event comes to check the clock: the SIGALRM
+    timer breaks the blocked read at the deadline."""
+    readings = iter([0.0, 1.0, gen.CALL_SECONDS - 0.2])  # the alarm is armed 0.2 s before the deadline
+
+    def clock() -> float:
+        return next(readings, gen.CALL_SECONDS - 0.1)
+
+    class BlockedStream(FakeStream):
+        def __iter__(self) -> Any:
+            time.sleep(5)  # a read that never returns in time
+            return iter(self.events)
+
+    def stream(**kwargs: Any) -> FakeStream:
+        h.bedrock.calls.append(kwargs)
+        return BlockedStream(message(DRAWING), [])
+
+    h.worker.deps = replace(h.worker.deps, clock=clock)
+    h.bedrock.stream = stream  # type: ignore[method-assign]
+    began = time.monotonic()
+    h.run(kind="background")
+    assert time.monotonic() - began < 2
+    assert h.read("error.json") == {"code": "timed_out"}
+    assert h.logger.lines()[-1]["outputTokens"] == 300
+
+
+def test_the_alarm_rings_restores_the_old_handler_and_refuses_a_deadline_already_gone() -> None:
+    before = signal.getsignal(signal.SIGALRM)
+    with pytest.raises(gen.DeadlinePassed), gen.deadline_alarm(0.05):
+        time.sleep(2)
+    assert signal.getsignal(signal.SIGALRM) == before
+    assert signal.getitimer(signal.ITIMER_REAL) == (0.0, 0.0)
+    with gen.deadline_alarm(5):
+        pass
+    assert signal.getitimer(signal.ITIMER_REAL) == (0.0, 0.0)
+    with pytest.raises(gen.DeadlinePassed), gen.deadline_alarm(0):
+        pass
+    assert gen.error_code_for(gen.DeadlinePassed()) == "timed_out"
+
+
+def test_the_shared_rules_are_unchanged_by_the_background_kind() -> None:
+    """Block 1 is the same bytes for every kind and for Gate P2 as committed: the background's own canvas is in its
+    kind block, which says it replaces the 256 root."""
+    root = '- The root is <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">.\n'
+    assert root in gen.RULES
+    assert "unless" not in gen.RULES
+    kind_block = gen.system_blocks("background")[2]["text"]
+    assert "replaces the rules' 256 x 256 root" in kind_block
+    assert 'viewBox="0 0 3840 2112" width="1920"' in kind_block

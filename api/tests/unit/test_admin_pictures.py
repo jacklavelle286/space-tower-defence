@@ -276,7 +276,12 @@ def test_the_wrong_size_is_png_shape(api: Pictures) -> None:
 def test_a_picture_over_512_kib_is_413(api: Pictures) -> None:
     status, body = api.upload(b"\x89PNG" + bytes(524_285))
     assert (status, body["error"]["code"]) == (413, "PAYLOAD_TOO_LARGE")
-    status, body = api.pcall(ADD, json.dumps({"pngBase64": "A" * 800_000}))
+    # The route's first guard is the largest kind's body (a background's, 5,600,000 bytes), before parsing.
+    status, body = api.pcall(ADD, json.dumps({"pngBase64": "A" * 5_600_000}))
+    assert (status, body["error"]["code"]) == (413, "PAYLOAD_TOO_LARGE")
+    # A 256 kind's body is still at most 768 KiB once the kind is known (the base64 itself is not even read).
+    status, body = api.pcall(ADD, json.dumps({"name": "Sun", "source": "UPLOAD", "kind": "avatar", "approve": False,
+                                              "textFree": True, "pngBase64": "A" * 800_000}))  # fmt: skip
     assert (status, body["error"]["code"]) == (413, "PAYLOAD_TOO_LARGE")
 
 
@@ -898,9 +903,10 @@ def test_a_stale_job_picture_gen_refused_fails_with_timed_out(api: Pictures) -> 
     assert (body["state"], body["error"]) == ("FAILED", "timed_out")
 
 
-def test_nothing_after_fifteen_minutes_is_timed_out(api: Pictures) -> None:
+def test_nothing_after_seventeen_minutes_is_timed_out(api: Pictures) -> None:
+    """Gate P2: JOB_TIMEOUT is 17 minutes (QUEUE_MAX_AGE 15): a job queued behind a whole 840 s run is still drawn."""
     assert start(api, 1)[0] == 202
-    api.clock.moment += timedelta(minutes=14)
+    api.clock.moment += timedelta(minutes=16)
     assert api.pcall(POLL, job=job_id(1))[1]["state"] == "QUEUED"
     api.clock.moment += timedelta(minutes=2)
     body = api.pcall(POLL, job=job_id(1))[1]
@@ -1136,3 +1142,148 @@ def test_activity_kinds_and_old_pictures_are_allowed_in_an_activity(api: Picture
 
 def test_repository_pictures_are_unaffected_by_kinds() -> None:
     assert definition_problems(MA_1001, "ma-1001", library={}) == []  # dice-2, dice-4 ...: the manifest, not kinds
+
+
+# --- Gate P2: the background kind (1920 x 1056, 4 MiB) ---------------------------------------------------------------
+
+BACKDROP = (REPO / "art" / "svg" / "map" / "luna-backdrop.svg").read_text(encoding="utf-8")
+
+
+def background_png() -> bytes:
+    from test_png_canon import sized_png
+
+    return sized_png(1920, 1056, (0, 2))
+
+
+def test_the_kind_sizes_come_from_the_contract() -> None:
+    from shared.pictures import KIND_IDS, kind_spec
+
+    entries = {k["id"]: k for k in json.loads((REPO / "contracts" / "limits.json").read_text())["picture"]["kinds"]}
+    for kind in KIND_IDS:
+        spec = kind_spec(kind)
+        entry = entries[kind]
+        assert (spec.width, spec.height, spec.svg_max_bytes, spec.max_bytes, spec.body_max_bytes, spec.max_tokens) == (
+            entry["width"], entry["height"], entry["svgMaxBytes"], entry["maxBytes"], entry["bodyMaxBytes"],
+            entry.get("maxTokens"),
+        )  # fmt: skip
+        if kind != "background":  # every 256 kind exactly as before Gate P2
+            assert (spec.width, spec.height, spec.svg_max_bytes, spec.max_bytes, spec.body_max_bytes) == (
+                256, 256, 65_536, 524_288, 786_432
+            )  # fmt: skip
+            assert spec.max_tokens is None
+    background = kind_spec("background")
+    assert (background.width, background.height, background.max_tokens) == (1920, 1056, 32_000)
+    # A 4 MiB stored PNG in base64 (R35's draft) and a 4 MiB upload's body both fit Lambda's 6 MB (6,291,456) payload.
+    assert background.max_bytes == 4_194_304
+    assert len(base64.b64encode(bytes(background.max_bytes))) + 4_096 < background.body_max_bytes < 6_291_456 - 65_536
+    assert max(kind_spec(k).body_max_bytes for k in KIND_IDS) == picture_admin.BODY_MAX_BYTES
+
+
+def test_a_background_is_stored_at_1920_by_1056_and_read_back(api: Pictures) -> None:
+    status, body = api.upload(background_png(), kind="background")
+    assert status == 201, body
+    picture = body["picture"]
+    assert picture["kind"] == "background"
+    header = api.table.get_item("PIC", picture["id"])
+    assert header is not None and (header["width"], header["height"]) == (1920, 1056)
+    stored = api.s3.get_object(Bucket=PICTURES, Key=f"store/{picture['id']}.png")["Body"].read()
+    assert stored[16:24] == bytes.fromhex("0000078000000420")  # IHDR 1920 x 1056
+    status, got = api.pcall(GET, id=picture["id"])
+    assert status == 200 and base64.b64decode(got["pngBase64"]) == stored
+
+
+def test_a_background_sized_png_is_refused_for_another_kind_and_a_square_one_for_a_background(api: Pictures) -> None:
+    status, body = api.upload(background_png(), kind="avatar")
+    assert (status, rules(body)) == (400, {("pngBase64", "png_shape")})
+    status, body = api.upload(png(), kind="background")
+    assert (status, rules(body)) == (400, {("pngBase64", "png_shape")})
+    assert api.table.query_prefix("PIC", "") == []
+
+
+def test_a_background_over_4_mib_is_413(api: Pictures) -> None:
+    status, body = api.upload(b"\x89PNG" + bytes(4_194_301), kind="background")
+    assert (status, body["error"]["code"]) == (413, "PAYLOAD_TOO_LARGE")
+
+
+def test_a_rewritten_background_over_4_mib_is_too_detailed(api: Pictures, monkeypatch: pytest.MonkeyPatch) -> None:
+    """A very busy photo: filter 0 can make the rewritten PNG bigger than the browser's. R35 could not send it back."""
+    real = picture_admin.canonicalise
+
+    def bigger(data: bytes, **kwargs: Any) -> Any:
+        result = real(data, **kwargs)
+        return type(result)(png=result.png + bytes(4_194_304), sha256=result.sha256, picture_id=result.picture_id)
+
+    monkeypatch.setattr(picture_admin, "canonicalise", bigger)
+    status, body = api.upload(background_png(), kind="background")
+    assert (status, rules(body)) == (400, {("pngBase64", "too_detailed")})
+    assert api.table.query_prefix("PIC", "") == []
+
+
+def test_a_background_drawing_is_polled_saved_and_checked_on_its_canvas(api: Pictures) -> None:
+    status, body = start(api, 1, kind="background")
+    assert (status, body["kind"]) == (202, "background")
+    assert api.messages()[0]["kind"] == "background"
+    assert len(BACKDROP.encode()) > 65_536  # a 256 kind's cap: the background's own caps must be used
+    put_job_object(api, 1, "result.json", {"svg": BACKDROP, "warnings": []})
+    body = api.pcall(POLL, job=job_id(1))[1]
+    assert body["state"] == "READY", body
+    assert body["svg"].startswith('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3840 2112" width="1920"')
+    status, saved = api.upload(background_png(), source="GENERATED", jobId=job_id(1))
+    assert status == 201, saved
+    assert saved["picture"]["kind"] == "background"
+
+
+def test_a_square_result_for_a_background_job_is_unusable(api: Pictures) -> None:
+    assert start(api, 1, kind="background")[0] == 202
+    put_job_object(api, 1, "result.json", {"svg": GOOD_SVG})  # viewBox 0 0 256 256
+    body = api.pcall(POLL, job=job_id(1))[1]
+    assert (body["state"], body["error"]) == ("FAILED", "unusable")
+
+
+def test_a_background_cannot_go_in_an_activity() -> None:
+    from shared.pictures import ACTIVITY_KINDS
+
+    assert "background" not in ACTIVITY_KINDS
+
+
+def test_a_background_takes_three_places_in_each_cap_and_says_so_on_the_job(api: Pictures) -> None:
+    """Gate P2: a background's worst case costs about 2.4 times a 256 kind's, so it counts 3 (limits.json capWeight):
+    the caps still bound the month's cost. Other kinds still count 1 and are stored as before (no capWeight)."""
+    status, body = start(api, 1, kind="background")
+    assert status == 202, body
+    assert (body["usedToday"], body["usedMonth"]) == (3, 3)
+    assert api.table.get_item("PICJOB", job_id(1))["capWeight"] == 3  # type: ignore[index]
+    assert start(api, 2)[0] == 202
+    assert api.counters() == (4, 4)
+    assert "capWeight" not in api.table.get_item("PICJOB", job_id(2))  # type: ignore[operator]
+
+
+def test_a_background_that_no_longer_fits_is_429_while_a_lighter_kind_still_starts(api: Pictures) -> None:
+    day, _ = cap_keys(api.clock.moment)
+    api.table.update_item("PICCAP", day, update="SET #n = :n", names={"#n": "n"}, values={":n": 98})
+    status, body = start(api, 1, kind="background")
+    assert (status, body["error"]["code"], body["error"]["details"]["period"]) == (429, "PICTURE_CAP_REACHED", "day")
+    assert api.counters()[0] == 98 and api.table.get_item("PICJOB", job_id(1)) is None
+    assert start(api, 2)[0] == 202
+    assert api.counters()[0] == 99
+    api.table.update_item("PICCAP", day, update="SET #n = :n", names={"#n": "n"}, values={":n": 97})
+    assert start(api, 3, kind="background")[0] == 202  # exactly fills the day: 97 + 3 = 100
+    assert api.counters()[0] == 100
+
+
+def test_a_cap_below_a_backgrounds_weight_refuses_it_without_counting(api: Pictures) -> None:
+    api.config = PictureConfig(bucket=PICTURES, queue_url=api.queue_url, daily_cap=100, monthly_cap=2)
+    status, body = start(api, 1, kind="background")
+    assert (status, body["error"]["details"]["period"]) == (429, "month")
+    assert api.counters() == (0, 0)
+    assert start(api, 2)[0] == 202
+
+
+def test_a_background_that_could_not_start_gets_all_three_places_back(api: Pictures) -> None:
+    assert start(api, 1)[0] == 202
+    api.sqs_client = BrokenSqs()
+    status, _ = start(api, 2, kind="background")
+    assert status == 503
+    assert api.counters() == (1, 1)
+    job = api.table.get_item("PICJOB", job_id(2))
+    assert job is not None and (job["state"], job["error"], job["capWeight"]) == ("FAILED", "could_not_start", 3)

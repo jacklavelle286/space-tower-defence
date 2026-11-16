@@ -119,6 +119,8 @@ def test_real_functions_build_twice_to_the_same_hashes(tmp_path: Path) -> None:
     # Gate P2: one prompt file per picture kind in contracts/limits.json, at kinds/<kind>.md beside handler.py.
     kinds = [k["id"] for k in json.loads((REPO / "contracts" / "limits.json").read_text())["picture"]["kinds"]]
     assert sorted(n for n in names if n.startswith("kinds/")) == sorted(f"kinds/{kind}.md" for kind in kinds)
+    # Gate P2 background: its kind file and its one example, the house battle backdrop.
+    assert "kinds/background.md" in names and "art/svg/map/luna-backdrop.svg" in names
 
 
 def test_every_picture_gen_prompt_file_exists() -> None:

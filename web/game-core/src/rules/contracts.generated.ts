@@ -6,7 +6,7 @@ export const LIMITS = {
   "bodyMaxBytes": {
     "ops": 65536,
     "adminActivityDraft": 65536,
-    "adminPicture": 786432,
+    "adminPicture": 5600000,
     "default": 8192
   },
   "opsPerBatch": {
@@ -67,8 +67,6 @@ export const LIMITS = {
   },
   "templateDomainMax": 5000,
   "picture": {
-    "side": 256,
-    "maxBytes": 524288,
     "uploadMaxBytes": 5242880,
     "uploadMaxSide": 4096,
     "nameMaxLength": 40,
@@ -80,42 +78,94 @@ export const LIMITS = {
       {
         "id": "activity-object",
         "label": "Activity picture (one object)",
-        "consumer": "activity"
+        "consumer": "activity",
+        "width": 256,
+        "height": 256,
+        "svgMaxBytes": 65536,
+        "maxBytes": 524288,
+        "bodyMaxBytes": 786432
       },
       {
         "id": "activity-scene",
         "label": "Activity scene (fills the square)",
-        "consumer": "activity"
+        "consumer": "activity",
+        "width": 256,
+        "height": 256,
+        "svgMaxBytes": 65536,
+        "maxBytes": 524288,
+        "bodyMaxBytes": 786432
       },
       {
         "id": "avatar",
         "label": "Profile avatar",
-        "consumer": "later"
+        "consumer": "later",
+        "width": 256,
+        "height": 256,
+        "svgMaxBytes": 65536,
+        "maxBytes": 524288,
+        "bodyMaxBytes": 786432
       },
       {
         "id": "alien",
         "label": "Alien (enemy)",
-        "consumer": "later"
+        "consumer": "later",
+        "width": 256,
+        "height": 256,
+        "svgMaxBytes": 65536,
+        "maxBytes": 524288,
+        "bodyMaxBytes": 786432
       },
       {
         "id": "astronaut",
         "label": "Astronaut (tower)",
-        "consumer": "later"
+        "consumer": "later",
+        "width": 256,
+        "height": 256,
+        "svgMaxBytes": 65536,
+        "maxBytes": 524288,
+        "bodyMaxBytes": 786432
       },
       {
         "id": "decoration",
         "label": "Map decoration",
-        "consumer": "later"
+        "consumer": "later",
+        "width": 256,
+        "height": 256,
+        "svgMaxBytes": 65536,
+        "maxBytes": 524288,
+        "bodyMaxBytes": 786432
       },
       {
         "id": "planet",
         "label": "Planet",
-        "consumer": "later"
+        "consumer": "later",
+        "width": 256,
+        "height": 256,
+        "svgMaxBytes": 65536,
+        "maxBytes": 524288,
+        "bodyMaxBytes": 786432
       },
       {
         "id": "badge",
         "label": "Badge",
-        "consumer": "later"
+        "consumer": "later",
+        "width": 256,
+        "height": 256,
+        "svgMaxBytes": 65536,
+        "maxBytes": 524288,
+        "bodyMaxBytes": 786432
+      },
+      {
+        "id": "background",
+        "label": "Background (battle scene)",
+        "consumer": "later",
+        "width": 1920,
+        "height": 1056,
+        "svgMaxBytes": 196608,
+        "maxBytes": 4194304,
+        "bodyMaxBytes": 5600000,
+        "maxTokens": 32000,
+        "capWeight": 3
       }
     ]
   },

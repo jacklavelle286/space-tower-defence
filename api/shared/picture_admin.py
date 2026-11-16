@@ -12,8 +12,12 @@ router stay in one place. Item shapes and keys are in shared/pictures.py.
     R39 GET    /api/admin/picture-jobs/{jobId}              a drawing's state, read from picture-gen's S3 objects
 
 Upload (R34). The browser has already decoded the file (PNG or JPEG only, at most 5 MB, at most 4096 px a side),
-drawn it letterboxed onto a 256 x 256 canvas and exported a PNG. admin-api trusts none of that: the decoded body is at
-most 512 KiB (413 PAYLOAD_TOO_LARGE), and shared/png_canon.py rewrites it from its pixels. The canonical file goes to
+drawn it onto a canvas the size of the picture's kind (256 x 256; 1920 x 1056 for a background) and exported a PNG.
+admin-api trusts none of that: the body and the decoded PNG are at most the kind's `bodyMaxBytes` and `maxBytes` (768
+KiB and 512 KiB; 5,600,000 bytes and 4 MiB for a background) (413 PAYLOAD_TOO_LARGE), and shared/png_canon.py
+rewrites it from its pixels at exactly the kind's size. A rewritten PNG over the kind's `maxBytes` (a very busy photo:
+filter 0 can grow it past the browser's file) is refused, rule `too_detailed`: a draft must fit Lambda's 6 MB response
+as base64 (R35; 4 MiB is 5.59 MB of base64). The canonical file goes to
 `store/<id>.png` with If-None-Match (a 412 means the same bytes are already there); the header and its audit item are
 one create-only transaction, so the same picture added twice answers 200 `duplicate: true`.
 
@@ -32,16 +36,18 @@ refuses it and the loop checks again), then both objects are deleted and both di
 served path. An invalidation that fails is logged (`invalidated: false`) and reported; the picture is still gone from
 the table and the bucket, and the one-year cache copy is what remains until it expires or is invalidated again.
 
-Drawing (R38). One transaction adds 1 to the London day and month counters (each conditioned on staying under its cap),
-creates the job (create-only: the client's jobId is the idempotency key) and writes the audit item. Then the job goes
-to SQS; if that fails, the job is FAILED `could_not_start` and both counters get their 1 back. A retry of a job whose
-message was never sent sends it then. Either cap at 0, or no queue configured, switches drawing off (429).
+Drawing (R38). One transaction adds the kind's cap weight (1; 3 for a background, Gate P2) to the London day and month
+counters (each conditioned on staying within its cap), creates the job (create-only: the client's jobId is the
+idempotency key) and writes the audit item. Then the job goes to SQS; if that fails, the job is FAILED
+`could_not_start` and both counters get the same weight back (the job stores a weight other than 1 as `capWeight`).
+A retry of a job whose message was never sent sends it then. Either cap at 0, or no queue configured, switches
+drawing off (429).
 
 Poll (R39). The job's S3 objects say where it is: `result.json` (re-sanitised here, so a planted file is still
 checked; picture-gen's palette warning is passed on only by name) is READY; `error.json` is FAILED with picture-gen's
 code; `progress.json` or `claim` is DRAWING, and FAILED `timed_out` only 15 minutes after the claim (the run died with
-no outcome); nothing is QUEUED, and nothing 15 minutes after the start is FAILED `timed_out` (picture-gen refuses to
-draw a job older than 13 minutes, so this never throws away a paid result). The outcome is stored on the job lazily.
+no outcome); nothing is QUEUED, and nothing 17 minutes after the start is FAILED `timed_out` (picture-gen refuses to
+draw a job older than 15 minutes, so this never throws away a paid result). The outcome is stored on the job lazily.
 
 Kinds (Gate P2). R38 requires `kind` (one of `picture.kinds` in contracts/limits.json); an unknown or missing kind is
 refused before the caps are counted. The job stores it and the SQS message carries it (left out for `activity-object`,
@@ -80,7 +86,6 @@ from shared.pictures import (
     DRAW_TIMEOUT,
     JOB_ERROR_MESSAGES,
     JOB_TIMEOUT,
-    MAX_BYTES,
     NAME_MAX,
     OPEN_JOB_WINDOW,
     PIC_PK,
@@ -98,10 +103,12 @@ from shared.pictures import (
     is_picture_id,
     job_key,
     kind_of,
+    kind_spec,
     new_picture_header,
     picture_users,
     picture_view,
     resets_at,
+    result_max_bytes,
     served_key,
     served_url,
     store_key,
@@ -113,10 +120,11 @@ from shared.rules.contracts import LIMITS
 from shared.svg_sanitise import WARNINGS as SANITISER_WARNINGS
 from shared.svg_sanitise import SvgRefused, sanitise
 
-BODY_MAX_BYTES: int = LIMITS["bodyMaxBytes"]["adminPicture"]  # 768 KiB of JSON carries the 512 KiB PNG in base64
+# The route's first guard: the largest kind's body (a background's 4 MiB PNG in base64 plus the other fields, under
+# Lambda's 6 MB request limit). Each kind's own `bodyMaxBytes` is checked once the kind is known.
+BODY_MAX_BYTES: int = LIMITS["bodyMaxBytes"]["adminPicture"]
 WRITE_TRIES = 3
 LOST_RACE = frozenset({"PreconditionFailed", "ConditionalRequestConflict"})  # 412; 409 while another put is in flight
-RESULT_MAX_BYTES = 262_144  # result.json: a 64 KiB SVG and its usage numbers, with room to spare
 SMALL_MAX_BYTES = 4_096  # error.json, progress.json
 
 Handler = Callable[[Request], dict[str, Any]]
@@ -301,33 +309,40 @@ def make_picture_handlers(
             raise invalid(problems)
         if body["approve"] and body["textFree"] is not True:
             raise invalid([problem("textFree", "not_text_free")])
-        try:
-            data = base64.b64decode(body["pngBase64"], validate=True)
-        except (binascii.Error, ValueError):
-            raise invalid([problem("pngBase64", "base64")]) from None
-        if len(data) > MAX_BYTES:
-            raise ApiError("PAYLOAD_TOO_LARGE")
-        try:
-            canonical = canonicalise(data)
-        except PngRefused as refused:
-            raise invalid([problem("pngBase64", refused.rule)]) from None
-        picture_id = canonical.picture_id
-        request.log["pictureId"] = picture_id
         content = table()
         description = None
         kind = body.get("kind", DEFAULT_KIND)
+        job: Mapping[str, Any] | None = None
         if job_id is not None:
+            # The kind first (a drawing is saved as the kind it was drawn as): it decides the size the PNG must be.
             job = content.get_item(PICJOB_PK, job_id)
             if job is None:
                 raise invalid([problem("jobId", "unknown_job")])
             if job.get("state") != "READY":
                 raise invalid([problem("jobId", "job_not_ready")])
             if "kind" in body and body["kind"] != kind_of(job):
-                raise invalid([problem("kind", "kind_mismatch")])  # a drawing is saved as the kind it was drawn as
+                raise invalid([problem("kind", "kind_mismatch")])
             kind = kind_of(job)
-            if job.get("pictureId") not in (None, picture_id):
-                raise invalid([problem("jobId", "job_used")])  # one drawing, one picture
             description = job.get("description") if isinstance(job.get("description"), str) else None
+        spec = kind_spec(kind)
+        if len(raw_body(request.event)) > spec.body_max_bytes:
+            raise ApiError("PAYLOAD_TOO_LARGE")
+        try:
+            data = base64.b64decode(body["pngBase64"], validate=True)
+        except (binascii.Error, ValueError):
+            raise invalid([problem("pngBase64", "base64")]) from None
+        if len(data) > spec.max_bytes:
+            raise ApiError("PAYLOAD_TOO_LARGE")
+        try:
+            canonical = canonicalise(data, width=spec.width, height=spec.height, max_input_bytes=spec.max_bytes)
+        except PngRefused as refused:
+            raise invalid([problem("pngBase64", refused.rule)]) from None
+        if len(canonical.png) > spec.max_bytes:
+            raise invalid([problem("pngBase64", "too_detailed")])  # R35 could not send it back (6 MB response)
+        picture_id = canonical.picture_id
+        request.log["pictureId"] = picture_id
+        if job is not None and job.get("pictureId") not in (None, picture_id):
+            raise invalid([problem("jobId", "job_used")])  # one drawing, one picture
         # The id is the pixels, so the same pixels saved as another kind would come back as the old picture, still that
         # kind, and the kind asked for would be lost without a word. Refuse it before the drawing is marked as used.
         existing = content.get_item(PIC_PK, picture_id, attributes=("pk", "kind"))
@@ -406,7 +421,7 @@ def make_picture_handlers(
         result: dict[str, Any] = {"picture": picture_view(header), "usedBy": picture_users(content, picture_id)}
         if header.get("state") == "DRAFT":
             config = services.config()
-            png = _get_object(services.s3(), config.bucket, store_key(picture_id), MAX_BYTES)
+            png = _get_object(services.s3(), config.bucket, store_key(picture_id), kind_spec(kind_of(header)).max_bytes)
             if png is not None:
                 result["pngBase64"] = base64.b64encode(png).decode("ascii")
         return json_response(200, result)
@@ -630,6 +645,20 @@ def make_picture_handlers(
                 raise invalid([problem("kind", "kind_mismatch")])  # a redraw keeps the kind it was drawn as
 
         day, month = cap_keys(moment)
+        weight = kind_spec(kind).cap_weight  # a background takes more places: its worst case costs more (Gate P2)
+        if weight > config.monthly_cap or weight > config.daily_cap:
+            # Never fits, however empty the counters are (an operator set a cap below the weight).
+            period = "month" if weight > config.monthly_cap else "day"
+            request.log["capPeriod"] = period
+            raise ApiError(
+                "PICTURE_CAP_REACHED",
+                details={
+                    "period": period,
+                    "resetsAt": iso_z(resets_at(moment, period)),
+                    "dailyCap": config.daily_cap,
+                    "monthlyCap": config.monthly_cap,
+                },
+            )
         job: dict[str, Any] = {
             "pk": PICJOB_PK,
             "sk": job_id,
@@ -647,10 +676,12 @@ def make_picture_handlers(
             job["previousJobId"] = previous
         if change is not None:
             job["change"] = change
+        if weight != 1:
+            job["capWeight"] = weight  # what a refund gives back; left out at 1, so other jobs are stored as before
         audit_pk, audit_sk = audit_key(moment, f"{job_id}#job-start")
         actions = [
-            _cap_action(content, day, config.daily_cap),
-            _cap_action(content, month, config.monthly_cap),
+            _cap_action(content, day, config.daily_cap, weight),
+            _cap_action(content, month, config.monthly_cap, weight),
             content.put_action(job, condition="attribute_not_exists(#pk)", names={"#pk": "pk"}),
             content.put_action(
                 audit_item(audit_pk, audit_sk, "picture-job-start", request.caller.sub, moment, jobId=job_id),
@@ -719,9 +750,10 @@ def make_picture_handlers(
         return json_response(202, {**_job_summary(job), **summary})
 
     def refund(job: Mapping[str, Any], moment: datetime) -> None:
-        """FAILED could_not_start and both counters get their 1 back, once: conditioned on the job still being
-        QUEUED and unsent, so a second failure (or a racing retry) cannot refund twice."""
+        """FAILED could_not_start and both counters get the job's cap weight back, once: conditioned on the job still
+        being QUEUED and unsent, so a second failure (or a racing retry) cannot refund twice."""
         content = table()
+        weight = int(job.get("capWeight", 1))
         job_values = {
             ":failed": "FAILED",
             ":error": "could_not_start",
@@ -744,8 +776,8 @@ def make_picture_handlers(
                     str(job[counter]),
                     update="ADD #n :minus",
                     names={"#n": "n"},
-                    values={":minus": -1, ":zero": 0},
-                    condition="#n > :zero",
+                    values={":minus": -weight, ":weight": weight},
+                    condition="#n >= :weight",
                 )
                 for counter in ("capDay", "capMonth")
             ),
@@ -766,8 +798,10 @@ def make_picture_handlers(
             return json_response(200, _failed(base, str(job.get("error") or "bedrock_error")))
         s3 = services.s3()
         prefix = config.job_prefix
+        kind = kind_of(job)
+        spec = kind_spec(kind)
         try:
-            result = _get_json(s3, config.bucket, job_key(prefix, job_id, "result.json"), RESULT_MAX_BYTES)
+            result = _get_json(s3, config.bucket, job_key(prefix, job_id, "result.json"), result_max_bytes(kind))
         except ValueError:
             result = {}  # unreadable: refused below as unusable
         if result is not None:
@@ -775,7 +809,7 @@ def make_picture_handlers(
                 svg = result.get("svg")
                 if not isinstance(svg, str):
                     raise SvgRefused("missing")
-                clean = sanitise(svg)
+                clean = sanitise(svg, canvas=(spec.width, spec.height), max_bytes=spec.svg_max_bytes)
             except SvgRefused:
                 store_outcome(job_id, "FAILED", moment, error="unusable")
                 return json_response(200, _failed(base, "unusable"))
@@ -865,14 +899,16 @@ def make_picture_handlers(
     }
 
 
-def _cap_action(content: DynamoTable, sk: str, cap: int) -> dict[str, Any]:
+def _cap_action(content: DynamoTable, sk: str, cap: int, weight: int = 1) -> dict[str, Any]:
+    """Add `weight` to the counter if it still fits under `cap` (the caller has checked weight <= cap). At weight 1
+    the condition is the same as before Gate P2 (#n < cap)."""
     return content.update_action(
         PICCAP_PK,
         sk,
-        update="ADD #n :one",
+        update="ADD #n :weight",
         names={"#n": "n"},
-        values={":one": 1, ":cap": cap},
-        condition="attribute_not_exists(#n) OR #n < :cap",
+        values={":weight": weight, ":room": cap - weight},
+        condition="attribute_not_exists(#n) OR #n <= :room",
     )
 
 

@@ -12,6 +12,7 @@ import {
   PICTURE_KINDS,
   pictureKindLabel,
   pictureKindOf,
+  pictureKindSpec,
 } from "./index";
 
 const ID = `lib-${"0123456789abcdef".repeat(2)}`;
@@ -50,6 +51,7 @@ describe("picture kinds", () => {
       "decoration",
       "planet",
       "badge",
+      "background",
     ]);
     expect(PICTURE_KINDS).toBe(LIMITS.picture.kinds);
     expect(new Set(PICTURE_KINDS.map((k) => k.id)).size).toBe(PICTURE_KINDS.length);
@@ -57,9 +59,10 @@ describe("picture kinds", () => {
 
   it("splits the kinds into activity ones and later ones", () => {
     expect(ACTIVITY_PICTURE_KINDS.map((k) => k.id)).toEqual(["activity-object", "activity-scene"]);
-    expect(LATER_PICTURE_KINDS.map((k) => k.id)).toEqual(["avatar", "alien", "astronaut", "decoration", "planet", "badge"]);
+    expect(LATER_PICTURE_KINDS.map((k) => k.id)).toEqual(["avatar", "alien", "astronaut", "decoration", "planet", "badge", "background"]);
     expect(isActivityPictureKind("activity-scene")).toBe(true);
     expect(isActivityPictureKind("avatar")).toBe(false);
+    expect(isActivityPictureKind("background")).toBe(false); // library only until Gate M
   });
 
   it("reads a missing or unknown kind as the default, activity-object", () => {
@@ -72,7 +75,23 @@ describe("picture kinds", () => {
     expect(isPictureKind(3)).toBe(false);
   });
 
+  it("gives each kind its size from limits.json: 256 x 256, and 1920 x 1056 for a background", () => {
+    for (const k of PICTURE_KINDS) {
+      const spec = pictureKindSpec(k.id);
+      expect([spec.width, spec.height]).toEqual(k.id === "background" ? [1920, 1056] : [256, 256]);
+      expect(spec.maxBytes).toBe(k.maxBytes);
+      expect(spec.svgMaxBytes).toBe(k.svgMaxBytes);
+      expect(spec.bodyMaxBytes).toBe(k.bodyMaxBytes);
+    }
+    expect(pictureKindSpec("background").maxBytes).toBe(4_194_304);
+  });
+
+  it("weighs a background as 3 drawings in the caps and every other kind as 1", () => {
+    for (const k of PICTURE_KINDS) expect(pictureKindSpec(k.id).capWeight).toBe(k.id === "background" ? 3 : 1);
+  });
+
   it("labels each kind", () => {
+    expect(pictureKindLabel("background")).toBe("Background (battle scene)");
     expect(pictureKindLabel("avatar")).toBe("Profile avatar");
     expect(pictureKindLabel("activity-scene")).toBe("Activity scene (fills the square)");
   });

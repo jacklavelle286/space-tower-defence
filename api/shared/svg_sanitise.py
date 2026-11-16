@@ -9,8 +9,9 @@ The rule is an allow-list. Anything not named here refuses the whole drawing (Sv
 "Claude's drawing couldn't be used safely. Press Try again." Only comments, processing instructions inside the
 parsed tree, `title`, `desc`, `metadata`, and the attributes `class`, `data-*` and `aria-*` are dropped silently.
 
-Pre-parse (on the bytes): UTF-8 without a BOM, at most MAX_BYTES; no `<!` except a comment (so no DOCTYPE, ENTITY or
-CDATA, and so no XXE and no entity expansion); no `<?` except one leading `<?xml version="1.0" encoding="UTF-8"?>`.
+Pre-parse (on the bytes): UTF-8 without a BOM, at most `max_bytes` (MAX_BYTES unless the kind says more); no `<!`
+except a comment (so no DOCTYPE, ENTITY or CDATA, and so no XXE and no entity expansion); no `<?` except one leading
+`<?xml version="1.0" encoding="UTF-8"?>`.
 
 Parse: xml.etree.ElementTree with expat. A parse error is a refusal. The root must be `svg` in the SVG namespace.
 
@@ -22,8 +23,12 @@ Attributes: the presentation set below with strict value rules, geometry per ele
 `clip-path="url(#id)"` naming a clipPath, and `href` / `xlink:href` on `use` only, exactly `#id` naming an element that
 is not its ancestor and holds no `use`. A clipPath holds plain shapes only: no `use` inside it and no `clip-path` on it
 or inside it. So every reference ends after at most one `use` and one clipPath, and there are no chains, no cycles
-(through `use` or `clip-path`) and no fan-out that grows with depth. The root's `viewBox`, `width`, `height` and
-`xmlns` are forced to `0 0 256 256`, 256, 256 and the SVG namespace. Every other attribute (any `on*`, `style`,
+(through `use` or `clip-path`) and no fan-out that grows with depth. The root's `width`, `height` and `xmlns` are
+forced to the picture kind's canvas and the SVG namespace. For a 256 x 256 canvas (every kind but background) the
+`viewBox` is forced to `0 0 256 256`, whatever it said, exactly as before kinds had sizes. For any other canvas (a
+1920 x 1056 background, Gate P2) the `viewBox` must be present and be the canvas at scale 1 or 2 (`0 0 1920 1056`, or
+`0 0 3840 2112` like the house backdrop art/svg/map/luna-backdrop.svg), else the drawing is refused (`viewbox`): a
+wrong aspect would be stretched or cut. Every other attribute (any `on*`, `style`,
 `xml:base`, ...) is refused. Text content other than whitespace is refused.
 
 Limits: MAX_ELEMENTS elements, MAX_DEPTH deep, MAX_USES `use` elements.
@@ -48,6 +53,8 @@ MAX_DEPTH = 24
 MAX_USES = 32
 MAX_COORD = 10_000.0
 SIDE = "256"
+DEFAULT_CANVAS = (256, 256)
+VIEWBOX_SCALES = (1, 2)  # a non-square canvas's viewBox may be the canvas itself or twice it (the "3840 backdrops")
 XML_DECLARATION = b'<?xml version="1.0" encoding="UTF-8"?>'
 PALETTE_WARNING = "colours_outside_palette"
 WARNINGS = frozenset({PALETTE_WARNING})  # every warning sanitise() can give (admin-api passes on only these)
@@ -89,7 +96,8 @@ GEOMETRY: dict[str, frozenset[str]] = {
     "polygon": frozenset({"points"}),
     "use": frozenset({"x", "y", "width", "height", "href"}),
 }
-ROOT_FORCED = {"viewBox": f"0 0 {SIDE} {SIDE}", "width": SIDE, "height": SIDE}
+ROOT_FORCED = {"viewBox": f"0 0 {SIDE} {SIDE}", "width": SIDE, "height": SIDE}  # the 256 x 256 canvas's root
+ROOT_KEYS = frozenset(ROOT_FORCED)
 ENUMS = {
     "stroke-linecap": frozenset({"butt", "round", "square"}),
     "stroke-linejoin": frozenset({"miter", "round", "bevel"}),
@@ -142,15 +150,22 @@ def palette_from_style(style_text: str) -> frozenset[str]:
     return frozenset(match.upper() for match in _HEX.findall(style_text))
 
 
-def sanitise(data: bytes | str, palette: Iterable[str] | None = None) -> SanitisedSvg:
-    """The sanitised SVG and its warnings, or SvgRefused."""
+def sanitise(
+    data: bytes | str,
+    palette: Iterable[str] | None = None,
+    *,
+    canvas: tuple[int, int] = DEFAULT_CANVAS,
+    max_bytes: int = MAX_BYTES,
+) -> SanitisedSvg:
+    """The sanitised SVG and its warnings, or SvgRefused. `canvas` (width, height) and `max_bytes` are the picture
+    kind's (contracts/limits.json `picture.kinds`: width, height, svgMaxBytes)."""
     raw = data.encode("utf-8") if isinstance(data, str) else bytes(data)
-    body = _pre_parse(raw)
+    body = _pre_parse(raw, max_bytes)
     root = _parse(body)
-    builder = _Builder()
+    builder = _Builder(canvas)
     tree = builder.build_root(root)
     builder.check_references(tree)
-    out = _serialise(tree)
+    out = _serialise(tree, builder.root_attrs)
     known = frozenset(c.upper() for c in palette) if palette is not None else None
     warnings: list[str] = []
     if known is not None:
@@ -167,8 +182,8 @@ def _expand(colour: str) -> str:
     return colour
 
 
-def _pre_parse(raw: bytes) -> bytes:
-    if len(raw) > MAX_BYTES:
+def _pre_parse(raw: bytes, max_bytes: int = MAX_BYTES) -> bytes:
+    if len(raw) > max_bytes:
         raise SvgRefused("too_large")
     if raw.startswith(b"\xef\xbb\xbf") or raw.startswith((b"\xff\xfe", b"\xfe\xff")):
         raise SvgRefused("bom")
@@ -244,8 +259,29 @@ def _transform(value: str) -> None:
         position = match.end()
 
 
+def _root_attrs(canvas: tuple[int, int], viewbox: str | None) -> dict[str, str]:
+    """The root's forced viewBox, width and height for `canvas`. 256 x 256: always `0 0 256 256` (whatever the file
+    said, as before Gate P2). Any other canvas: the file's viewBox must be the canvas at one of VIEWBOX_SCALES."""
+    width, height = canvas
+    if canvas == DEFAULT_CANVAS:
+        return dict(ROOT_FORCED)
+    if viewbox is None:
+        raise SvgRefused("viewbox")
+    parts = [p for p in _LIST_SPLIT.split(viewbox.strip(" \n")) if p]
+    if len(parts) != 4 or not all(_NUMBER.fullmatch(p) for p in parts):
+        raise SvgRefused("viewbox")
+    numbers = [float(p) for p in parts]
+    for scale in VIEWBOX_SCALES:
+        if numbers == [0.0, 0.0, float(width * scale), float(height * scale)]:
+            return {"viewBox": f"0 0 {width * scale} {height * scale}", "width": str(width), "height": str(height)}
+    raise SvgRefused("viewbox")  # another aspect or origin: it would be stretched, cut or shifted
+
+
 class _Builder:
-    def __init__(self) -> None:
+    def __init__(self, canvas: tuple[int, int] = DEFAULT_CANVAS) -> None:
+        self.canvas = canvas
+        self.viewbox: str | None = None  # the root's own viewBox, checked against the canvas in build_root
+        self.root_attrs: dict[str, str] = dict(ROOT_FORCED)
         self.count = 0
         self.uses = 0
         self.ids: dict[str, _Node] = {}
@@ -261,7 +297,8 @@ class _Builder:
         if not _blank(root.tail):
             raise SvgRefused("text")
         node = self._element(root, "svg", depth=1)
-        node.attrs.update(ROOT_FORCED)
+        self.root_attrs = _root_attrs(self.canvas, self.viewbox)
+        node.attrs.update(self.root_attrs)
         return node
 
     def _element(self, element: ET.Element, name: str, depth: int) -> _Node:
@@ -299,8 +336,10 @@ class _Builder:
                 raise SvgRefused("attribute_namespace")  # xml:base, xml:space, any other namespace
             if key == "class" or key.startswith(("data-", "aria-")):
                 continue
-            if name == "svg" and key in ROOT_FORCED:
-                continue  # forced below, whatever it said
+            if name == "svg" and key in ROOT_KEYS:
+                if key == "viewBox":
+                    self.viewbox = value  # checked against the canvas (a 256 canvas ignores it)
+                continue  # forced in build_root
             if key not in PRESENTATION and key not in GEOMETRY[name]:
                 raise SvgRefused("attribute")  # on*, style, and everything else
             if key in out:
@@ -401,13 +440,13 @@ def _escape(value: str) -> str:
     return value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
 
 
-def _serialise(root: _Node) -> str:
+def _serialise(root: _Node, root_attrs: dict[str, str]) -> str:
     parts: list[str] = []
 
     def write(node: _Node) -> None:
         attrs = dict(sorted(node.attrs.items()))
         if node.name == "svg":
-            attrs = {"xmlns": SVG_NS, **ROOT_FORCED, **{k: v for k, v in attrs.items() if k not in ROOT_FORCED}}
+            attrs = {"xmlns": SVG_NS, **root_attrs, **{k: v for k, v in attrs.items() if k not in ROOT_KEYS}}
         rendered = "".join(f' {key}="{_escape(value)}"' for key, value in attrs.items())
         if node.children:
             parts.append(f"<{node.name}{rendered}>")

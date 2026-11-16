@@ -341,3 +341,56 @@ def test_random_allow_listed_trees_round_trip(seed: int) -> None:
     assert sanitise(once).svg == once
     elements = len(list(ET.fromstring(text).iter()))  # noqa: S314 - built by this test
     assert len(list(ET.fromstring(once).iter())) == elements  # noqa: S314 - our own output
+
+
+# --- Gate P2: the background kind's canvas (1920 x 1056) -------------------------------------------------------------
+
+BG = (1920, 1056)
+BG_MAX = 196_608  # contracts/limits.json background svgMaxBytes
+BACKDROP = (REPO / "art" / "svg" / "map" / "luna-backdrop.svg").read_text(encoding="utf-8")
+
+
+def bg_open(viewbox: str) -> str:
+    return f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="{viewbox}" width="1" height="2">'
+
+
+@pytest.mark.parametrize("viewbox", ["0 0 1920 1056", "0 0 3840 2112", "0,0,3840,2112", "0 0 1920.0 1056"])
+def test_a_background_keeps_a_viewbox_of_its_aspect_and_gets_its_size(viewbox: str) -> None:
+    result = sanitise(svg('<rect width="10" height="10"/>', bg_open(viewbox)), canvas=BG, max_bytes=BG_MAX)
+    scale = 2 if "3840" in viewbox else 1
+    assert result.svg.startswith(
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {1920 * scale} {1056 * scale}" width="1920" '
+        'height="1056">'
+    )
+    assert sanitise(result.svg, canvas=BG, max_bytes=BG_MAX).svg == result.svg  # stable
+
+
+@pytest.mark.parametrize(
+    "viewbox",
+    ["0 0 256 256", "0 0 1920 1080", "0 0 3840 2160", "10 0 1920 1056", "0 0 960 528", "0 0 1920", "a b c d", None],
+)
+def test_a_background_with_another_aspect_or_no_viewbox_is_refused(viewbox: str | None) -> None:
+    opening = bg_open(viewbox) if viewbox is not None else '<svg xmlns="http://www.w3.org/2000/svg">'
+    with pytest.raises(SvgRefused, match="viewbox"):
+        sanitise(svg("<g/>", opening), canvas=BG, max_bytes=BG_MAX)
+
+
+def test_the_house_backdrop_passes_as_a_background_and_not_as_a_256_kind() -> None:
+    assert MAX_BYTES < len(BACKDROP.encode()) <= BG_MAX
+    result = sanitise(BACKDROP, PALETTE, canvas=BG, max_bytes=BG_MAX)  # its ground tints only warn (palette)
+    assert result.svg.startswith('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3840 2112" width="1920"')
+    with pytest.raises(SvgRefused, match="too_large"):
+        sanitise(BACKDROP)
+
+
+def test_a_256_canvas_still_forces_its_viewbox_whatever_the_file_says() -> None:
+    """Every 256 kind exactly as before Gate P2: a 3840 viewBox is overwritten, not refused."""
+    result = sanitise(svg("<g/>", bg_open("0 0 3840 2112")))
+    assert result.svg == sanitise(svg("<g/>")).svg
+    assert result.svg.startswith(OPEN[:-1])
+
+
+def test_the_background_size_limit_is_its_own() -> None:
+    big = svg("<g/>" * 50_000, bg_open("0 0 1920 1056"))  # 200 KB
+    with pytest.raises(SvgRefused, match="too_large"):
+        sanitise(big, canvas=BG, max_bytes=BG_MAX)

@@ -17,10 +17,12 @@ admin-api reads or writes these items (picture-gen writes S3 only):
                     picture-job-start
 
 `kind` (Gate P2) is one of `picture.kinds` in contracts/limits.json: what the picture is for (an activity object or
-scene, a profile avatar, an alien, ...). Kinds are set once, when the job or picture is created, and never change.
-Items written before kinds existed have no `kind` and read as `activity-object` (DEFAULT_KIND): no migration. Only
-kinds whose `consumer` is `activity` may appear in a learning activity (shared/content.py, rule
-`picture_not_for_activities`).
+scene, a profile avatar, an alien, a background, ...). Each kind also fixes its sizes (KindSpec): the stored PNG's width
+and height (256 x 256, or 1920 x 1056 for a background), the largest SVG, PNG and R34 body, and optionally its own
+max_tokens and cap weight (a background takes 3 places in the daily and monthly caps). Kinds are set once, when the job
+or picture is created, and never change. Items written before kinds existed have no `kind` and read as `activity-object`
+(DEFAULT_KIND): no migration. Only kinds whose `consumer` is `activity` may appear in a learning activity
+(shared/content.py, rule `picture_not_for_activities`).
 
 `pictureId` is "lib-" + the first 32 hex characters of the SHA-256 of the canonical PNG (shared/png_canon.py), so it
 fits a keyId and the same pixels always give the same ID. A picture's bytes never change: an edit is a new picture,
@@ -72,9 +74,7 @@ JOB_ERROR_MESSAGES = {
     "bad_request": "That kind of picture can't be drawn yet. Reload the page and try again.",
     "expired": "This drawing is too old to use now. Press Try again.",  # R39: a READY job whose result.json expired
 }
-PICTURE_LIMITS: Mapping[str, int] = LIMITS["picture"]
-SIDE: int = PICTURE_LIMITS["side"]
-MAX_BYTES: int = PICTURE_LIMITS["maxBytes"]  # decoded PNG, R34
+PICTURE_LIMITS: Mapping[str, Any] = LIMITS["picture"]
 NAME_MAX: int = PICTURE_LIMITS["nameMaxLength"]
 DESCRIPTION_MIN: int = PICTURE_LIMITS["descriptionMinLength"]
 DESCRIPTION_MAX: int = PICTURE_LIMITS["descriptionMaxLength"]
@@ -89,11 +89,20 @@ SERVED_CACHE_CONTROL = "public, max-age=31536000, immutable"  # served bytes nev
 # - QUEUE_MAX_AGE (picture-gen): a message older than this (from the job's start) is never drawn: picture-gen claims it
 #   and writes error.json timed_out without calling Bedrock. It is below JOB_TIMEOUT, so a job R39 has given up on can
 #   never be drawn and paid for afterwards.
-# - DRAW_TIMEOUT (R39): a claimed job with no outcome this long after its claim is FAILED timed_out. One run takes at
-#   most the function's 600 s timeout, so a claim this old with no outcome means the run died (no error.json).
-JOB_TIMEOUT = timedelta(minutes=15)
-QUEUE_MAX_AGE = timedelta(minutes=13)
+# - DRAW_TIMEOUT (R39): a claimed job with no outcome this long after its claim is FAILED timed_out. The claim is
+#   written inside the run, and one run takes at most WORKER_TIMEOUT (picture-gen's Lambda timeout,
+#   infrastructure/main/pictures.tf), so a claim this old with no outcome means the run died (no error.json).
+# Gate P2: a background drawing may take 7-12 minutes, so the function timeout rose from 600 s to 840 s, and picture-gen
+# stops its own call 780 s after the run starts (handler CALL_SECONDS). DRAW_TIMEOUT (900 s) stays 60 s past the
+# function timeout, so a background that is legitimately running is never declared timed_out. The wait before the
+# claim depends on how long the drawings ahead of it take: picture-gen runs two at once, so a job started behind two
+# others waits up to one whole run (840 s) plus the queue's polling. QUEUE_MAX_AGE rose from 13 to 15 minutes (60 s past
+# a run) and JOB_TIMEOUT from 15 to 17 minutes, keeping the 2 minutes between them. A job behind four or more running
+# or queued drawings can still wait longer and is then answered timed_out without being drawn, as before Gate P2.
+JOB_TIMEOUT = timedelta(minutes=17)
+QUEUE_MAX_AGE = timedelta(minutes=15)
 DRAW_TIMEOUT = timedelta(minutes=15)
+WORKER_TIMEOUT = timedelta(seconds=840)  # must equal module.picture_gen's timeout (a test reads pictures.tf)
 OPEN_JOB_WINDOW = timedelta(hours=24)  # R33 openJobs: jobs started in the last day that are QUEUED or READY
 LONDON = ZoneInfo("Europe/London")
 PUBLISH_REFS = "publishRefs"
@@ -103,6 +112,51 @@ KINDS: tuple[Mapping[str, str], ...] = tuple(LIMITS["picture"]["kinds"])
 KIND_IDS: tuple[str, ...] = tuple(kind["id"] for kind in KINDS)
 DEFAULT_KIND: str = LIMITS["picture"]["defaultKind"]
 ACTIVITY_KINDS: frozenset[str] = frozenset(kind["id"] for kind in KINDS if kind["consumer"] == "activity")
+
+
+@dataclass(frozen=True)
+class KindSpec:
+    """A kind's sizes, from its `picture.kinds` entry in contracts/limits.json (the one source; the admin app reads
+    the same entry). `max_tokens` is None for a kind that uses picture-gen's BEDROCK_MAX_TOKENS."""
+
+    width: int
+    height: int
+    svg_max_bytes: int  # the largest SVG picture-gen accepts and admin-api re-sanitises (R39)
+    max_bytes: int  # the largest decoded upload and stored PNG (R34), and the draft read cap (R35)
+    body_max_bytes: int  # the largest R34 JSON body (the PNG in base64 plus the other fields)
+    max_tokens: int | None
+    cap_weight: int = 1  # places one drawing takes in the daily and monthly caps (R38), so the caps still bound cost
+
+
+def _spec(entry: Mapping[str, Any]) -> KindSpec:
+    tokens = entry.get("maxTokens")
+    return KindSpec(
+        width=int(entry["width"]),
+        height=int(entry["height"]),
+        svg_max_bytes=int(entry["svgMaxBytes"]),
+        max_bytes=int(entry["maxBytes"]),
+        body_max_bytes=int(entry["bodyMaxBytes"]),
+        max_tokens=int(tokens) if tokens is not None else None,
+        cap_weight=int(entry.get("capWeight", 1)),
+    )
+
+
+KIND_SPECS: Mapping[str, KindSpec] = {str(entry["id"]): _spec(entry) for entry in KINDS}
+
+
+def kind_spec(kind: str) -> KindSpec:
+    """The sizes of `kind`; an unknown kind (or none) has the default kind's."""
+    return KIND_SPECS.get(kind, KIND_SPECS[DEFAULT_KIND])
+
+
+RESULT_MIN_BYTES = 262_144  # result.json for a 64 KiB SVG and its usage numbers, with room to spare (Gate P)
+
+
+def result_max_bytes(kind: str) -> int:
+    """The largest `jobs/<id>/result.json` read for a job of `kind`: the SVG can at most double when written as a
+    JSON string (every `"` becomes `\\"`), plus room for the usage numbers. 256 KiB for every 64 KiB kind, as before
+    Gate P2; 388 KiB for a background (192 KiB SVG)."""
+    return max(RESULT_MIN_BYTES, 2 * kind_spec(kind).svg_max_bytes + 4_096)
 
 
 def is_kind(value: Any) -> bool:
@@ -229,8 +283,8 @@ def new_picture_header(
         "kind": kind,
         "sha256": sha256,
         "bytes": size,
-        "width": SIDE,
-        "height": SIDE,
+        "width": kind_spec(kind).width,
+        "height": kind_spec(kind).height,
         "textFree": text_free,
         "createdBy": by,
         "createdAt": at,

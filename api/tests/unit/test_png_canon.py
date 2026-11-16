@@ -13,6 +13,7 @@ import zlib
 
 import pytest
 
+from shared import png_canon
 from shared.png_canon import (
     MAX_INPUT_BYTES,
     PICTURE_ID,
@@ -335,3 +336,80 @@ def decode(data: bytes) -> bytes:
 def test_encode_rgba_refuses_the_wrong_size() -> None:
     with pytest.raises(ValueError, match="wrong size"):
         encode_rgba(b"\x00" * 10)
+
+
+# --- Gate P2: sizes per kind and the faster unfilter ------------------------------------------------------------------
+
+BG_W, BG_H = 1920, 1056  # the background kind (contracts/limits.json)
+
+
+def sized_png(width: int, height: int, filters: tuple[int, ...] = (0,)) -> bytes:
+    """A width x height RGBA PNG: a cheap pattern (opaque), the rows filtered with `filters` (cycled)."""
+    stride = width * 4
+    row0 = bytes((x * 3) & 0xFF for x in range(stride))
+    rows = []
+    prior = bytes(stride)
+    for y in range(height):
+        row = row0[y % 7 :] + row0[: y % 7]
+        row = bytes(b | 1 for b in row) if y % 2 else row
+        kind = filters[y % len(filters)]
+        line = bytes((r - p) & 0xFF for r, p in zip(row, prior, strict=True)) if kind == 2 else row
+        rows.append(bytes([kind if kind == 2 else 0]) + line)
+        prior = row
+    header = chunk(b"IHDR", struct.pack(">IIBBBBB", width, height, 8, 6, 0, 0, 0))
+    return SIGNATURE + header + chunk(b"IDAT", zlib.compress(b"".join(rows), 6)) + chunk(b"IEND", b"")
+
+
+def test_a_256_picture_gives_the_same_bytes_and_id_as_before_kinds_had_sizes() -> None:
+    """The output of the code committed before Gate P2 for this picture (any filter): ids of saved pictures hold."""
+    for filters in ([0], [1], [2], [3], [4], [0, 1, 2, 3, 4]):
+        result = canonicalise(png(filters=filters))
+        assert result.sha256 == "acaf754c379dbe8d345c89a178bf131a089d0ddf6365a0f2a2d14d1f33c8a307", filters
+
+
+@pytest.mark.parametrize("bpp", [3, 4])
+def test_the_fast_unfilter_gives_the_textbook_loops_bytes_for_every_filter(bpp: int) -> None:
+    noisy = bytes((i * 7919 + (i >> 8) * 31 + (i * i >> 5)) & 0xFF for i in range(SIDE * SIDE * bpp))
+    for filters in ([0], [1], [2], [3], [4], [4, 3, 2, 1, 0], [1, 4, 4, 2, 3]):
+        raw = filtered(noisy, bpp, filters)
+        fast = png_canon._unfilter(raw, SIDE * bpp, bpp, SIDE)
+        assert fast == png_canon._unfilter_reference(raw, SIDE * bpp, bpp, SIDE) == noisy, filters
+
+
+def test_a_background_sized_png_is_accepted_at_its_kinds_size() -> None:
+    data = sized_png(BG_W, BG_H, (0, 2))
+    result = canonicalise(data, width=BG_W, height=BG_H, max_input_bytes=4_194_304)
+    assert struct.unpack(">II", result.png[16:24]) == (BG_W, BG_H)
+    assert PICTURE_ID.fullmatch(result.picture_id)
+
+
+def test_a_background_sized_png_is_refused_at_the_256_size_and_a_256_png_at_the_background_size() -> None:
+    assert rule(sized_png(BG_W, BG_H)) == "png_shape"  # the default (every 256 kind, an avatar too)
+    with pytest.raises(PngRefused) as refused:
+        canonicalise(png(), width=BG_W, height=BG_H, max_input_bytes=4_194_304)
+    assert (refused.value.rule, refused.value.detail) == ("png_shape", "size")
+
+
+def test_the_input_limit_is_the_callers() -> None:
+    data = sized_png(BG_W, BG_H)
+    with pytest.raises(PngRefused) as refused:
+        canonicalise(data, width=BG_W, height=BG_H, max_input_bytes=len(data) - 1)
+    assert refused.value.detail == "too_large"
+
+
+def test_a_worst_case_background_is_fast_enough() -> None:
+    """All-Paeth over noise at 1920 x 1056: 1.36 s for the worst photo measured on the laptop; generous here."""
+    noisy = bytes((i * 7919 + (i >> 8) * 31) & 0xFF for i in range(BG_W * 4))
+    stride = BG_W * 4
+    raw = b"".join(b"\x04" + noisy[y % 11 :] + noisy[: y % 11] for y in range(BG_H))
+    header = chunk(b"IHDR", struct.pack(">IIBBBBB", BG_W, BG_H, 8, 6, 0, 0, 0))
+    data = SIGNATURE + header + chunk(b"IDAT", zlib.compress(raw, 1)) + chunk(b"IEND", b"")
+    assert len(raw) == BG_H * (stride + 1)
+    started = time.monotonic()
+    canonicalise(data, width=BG_W, height=BG_H, max_input_bytes=len(data))
+    assert time.monotonic() - started < 10.0
+
+
+def test_encode_rgba_writes_a_non_square_picture() -> None:
+    out = encode_rgba(b"\x01\x02\x03\xff" * (4 * 2), 4, 2)
+    assert struct.unpack(">II", out[16:24]) == (4, 2)
