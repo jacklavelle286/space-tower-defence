@@ -1,6 +1,8 @@
 # Scope: the level designer (admin portal)
 
-Status: **[PROPOSAL]**, awaiting the owner's decisions (section 7). Date: 2026-11-16.
+Status: **accepted by the owner, 2026-11-16** ("go with the recommendations"): every recommendation in section 7 is
+**[CONFIRMED by owner, 2026-11-16]**; recorded in [ADR-0032](../decisions/0032-admin-level-designer-gate-m.md) (Proposed until
+its gate). Date: 2026-11-16.
 Builds on [scope-asset-kinds-and-makers.md §3](scope-asset-kinds-and-makers.md#3-part-2-makers) (Gate M, Design A runtime
 publish) and replaces its §3.1 "Map / level maker" with a fuller design. Paths are relative to the repo root. Labels follow
 CLAUDE.md. A `file:line` cited without a fresh check comes from the read-only findings and fact-check passes of 2026-11-16.
