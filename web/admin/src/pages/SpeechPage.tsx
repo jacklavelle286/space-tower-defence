@@ -71,70 +71,72 @@ export function SpeechPage({ api, initial }: Props) {
     <div className="split">
       <section className="list">
         <h2>Speech</h2>
-        {message !== null && (
-          <p className="error" role="alert">
-            {message}
+        <div className="list-card">
+          {message !== null && (
+            <p className="error" role="alert">
+              {message}
+            </p>
+          )}
+          <NewSpeech
+            api={api}
+            taken={taken}
+            onOpen={(id, created) => {
+              refresh();
+              select(id, created ? `Created ${id}.` : `${id} exists already, so it is opened here.`);
+            }}
+          />
+          <form className="filters" role="search" onSubmit={(e) => e.preventDefault()}>
+            <label>
+              Search <input type="search" value={filter.search} placeholder="ID or title" onChange={(e) => set({ search: e.target.value })} />
+            </label>
+            <label>
+              Kind{" "}
+              <select value={filter.kind} onChange={(e) => set({ kind: e.target.value as SpeechKind | "" })}>
+                <option value="">any</option>
+                {SPEECH_KINDS.map((k) => (
+                  <option key={k} value={k}>
+                    {KIND_INFO[k].label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              State{" "}
+              <select value={filter.state} onChange={(e) => set({ state: e.target.value as SpeechFilter["state"] })}>
+                <option value="">any</option>
+                <option value="DRAFT">draft</option>
+                <option value="APPROVED">approved</option>
+              </select>
+            </label>
+          </form>
+          <p className="muted" aria-live="polite">
+            Showing {shown.length} of {items.length}.
           </p>
-        )}
-        <NewSpeech
-          api={api}
-          taken={taken}
-          onOpen={(id, created) => {
-            refresh();
-            select(id, created ? `Created ${id}.` : `${id} exists already, so it is opened here.`);
-          }}
-        />
-        <form className="filters" role="search" onSubmit={(e) => e.preventDefault()}>
-          <label>
-            Search <input type="search" value={filter.search} placeholder="ID or title" onChange={(e) => set({ search: e.target.value })} />
-          </label>
-          <label>
-            Kind{" "}
-            <select value={filter.kind} onChange={(e) => set({ kind: e.target.value as SpeechKind | "" })}>
-              <option value="">any</option>
-              {SPEECH_KINDS.map((k) => (
-                <option key={k} value={k}>
-                  {KIND_INFO[k].label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            State{" "}
-            <select value={filter.state} onChange={(e) => set({ state: e.target.value as SpeechFilter["state"] })}>
-              <option value="">any</option>
-              <option value="DRAFT">draft</option>
-              <option value="APPROVED">approved</option>
-            </select>
-          </label>
-        </form>
-        <p className="muted" aria-live="polite">
-          Showing {shown.length} of {items.length}.
-        </p>
-        <button
-          type="button"
-          className="primary"
-          onClick={() => {
-            setNotice(null); // a note about the last create or delete is not a queue result
-            setQueue(drafts);
-          }}
-          disabled={!loaded || drafts.length === 0 || queue !== null}
-          title="Preview, play and approve each draft shown in the list, one after another"
-        >
-          Listening queue ({drafts.length} {drafts.length === 1 ? "draft" : "drafts"})
-        </button>
-        <ul>
-          {shown.map((item) => (
-            <li key={item.speechId}>
-              <button type="button" aria-pressed={selected === item.speechId} onClick={() => select(item.speechId)}>
-                <span>{item.speechId}</span>
-                <small>
-                  {KIND_INFO[item.kind].label} · {item.state === "APPROVED" ? "approved" : "draft"}
-                </small>
-              </button>
-            </li>
-          ))}
-        </ul>
+          <button
+            type="button"
+            className="primary"
+            onClick={() => {
+              setNotice(null); // a note about the last create or delete is not a queue result
+              setQueue(drafts);
+            }}
+            disabled={!loaded || drafts.length === 0 || queue !== null}
+            title="Preview, play and approve each draft shown in the list, one after another"
+          >
+            Listening queue ({drafts.length} {drafts.length === 1 ? "draft" : "drafts"})
+          </button>
+          <ul>
+            {shown.map((item) => (
+              <li key={item.speechId}>
+                <button type="button" aria-pressed={selected === item.speechId} onClick={() => select(item.speechId)}>
+                  <span>{item.speechId}</span>
+                  <small>
+                    {KIND_INFO[item.kind].label} · {item.state === "APPROVED" ? "approved" : "draft"}
+                  </small>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
       </section>
       <section className="detail">
         {/* Always mounted, so a screen reader announces a notice when it appears (a live region inserted together

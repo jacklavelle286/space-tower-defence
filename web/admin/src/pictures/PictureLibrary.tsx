@@ -250,12 +250,12 @@ function PictureDetails({
               </p>
             </>
           )}
-          <DeletePicture api={api} picture={summary} onDeleted={(done) => onChanged(done, true)} />
           <p className="actions">
             <button type="button" onClick={onClose}>
               Close
             </button>
           </p>
+          <DeletePicture api={api} picture={summary} onDeleted={(done) => onChanged(done, true)} />
         </div>
       </div>
     </section>

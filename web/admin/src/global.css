@@ -195,11 +195,21 @@ button.danger:hover:not(:disabled) {
   color: #fff;
 }
 
-/* A toggle that is on (speech list item, editor preview kinds, library tile). */
-:where(button:not(.preview-stage *))[aria-pressed="true"] {
+/* A toggle that is on (speech list item, editor preview kinds, picture picker, library tile): gold fill plus a second
+   plum ring inside the border, so "on" changes shape too, not only colour (gold on cream alone is about 1.25:1). This
+   rule is specific enough (0,2,1) to beat the component rules that set their own box-shadow; components that want a
+   different "on" look restate the ring. */
+button[aria-pressed="true"]:not(.preview-stage *) {
   background: var(--gold);
   border-color: var(--plum);
-  box-shadow: 0 0 0 2px var(--plum) inset;
+  box-shadow: inset 0 0 0 2px var(--plum);
+}
+
+button.primary:disabled {
+  background: var(--field);
+  border-style: dashed;
+  color: var(--muted);
+  opacity: 1;
 }
 
 button.link {
@@ -261,6 +271,11 @@ textarea::placeholder {
   box-shadow: 0 0 0 2px var(--gold);
 }
 
+/* A focused toggle that is on keeps its inner ring next to the gold halo (the rule above would replace it). */
+button[aria-pressed="true"]:focus-visible:not(.preview-stage *) {
+  box-shadow: inset 0 0 0 2px var(--plum), 0 0 0 2px var(--gold);
+}
+
 /* ---- App shell: night-blue sidebar, content on off-white ---------------------------------------------------------- */
 
 .shell {
@@ -312,12 +327,14 @@ textarea::placeholder {
   opacity: 0.85;
 }
 
+/* The link pills reach into the sidebar gutter so their text lines up with the logo and the account (border 2px +
+   padding 12px = 14px). */
 .top nav ul {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
   list-style: none;
-  margin: 0;
+  margin: 0 -14px;
   padding: 0;
 }
 
@@ -398,7 +415,7 @@ textarea::placeholder {
 }
 
 /* Below ~900px the sidebar becomes a top bar: logo and account on one line, the page links in a row underneath that
-   scrolls sideways inside itself (the page never scrolls sideways). */
+   wraps when it does not fit (the page never scrolls sideways). */
 @media (max-width: 900px) {
   .shell {
     display: block;
@@ -426,13 +443,13 @@ textarea::placeholder {
     grid-column: 1 / -1;
     grid-row: 2;
     min-width: 0;
-    overflow-x: auto;
-    padding: 2px 4px 6px;
-    margin: 0 -4px;
   }
 
+  /* The links wrap onto a second row when they do not fit, so none is cut off out of sight. */
   .top nav ul {
     flex-direction: row;
+    flex-wrap: wrap;
+    margin: 0;
   }
 
   .top nav a {
@@ -794,6 +811,20 @@ table.activities td {
   padding: 7px 10px;
 }
 
+table.activities td {
+  vertical-align: middle;
+}
+
+/* Topic (monospace IDs) and Type stay on one line, so rows stay one line high; the table scrolls inside its card. */
+table.activities td:nth-child(4) {
+  white-space: nowrap;
+  font-size: 0.82rem;
+}
+
+table.activities td:nth-child(6) {
+  white-space: nowrap;
+}
+
 table.activities td:first-child a {
   font-family: var(--font-mono);
   font-weight: 600;
@@ -842,19 +873,52 @@ table.ghost {
   }
 }
 
-/* The speech list: a cream card of selectable rows. */
+/* The speech list: the page title, then a cream card holding New speech, the filters and the selectable rows. */
 section.list {
+  min-width: 0;
+}
+
+.list-card {
   background: var(--card);
   border: var(--outline);
   border-radius: var(--radius-l);
   box-shadow: var(--shadow-card);
-  padding: var(--space-4);
-  min-width: 0;
+  padding: var(--space-1) var(--space-4) var(--space-4);
+}
+
+.list-card .new {
+  border-top: 0;
+  padding-top: 0;
+  margin-bottom: var(--space-3);
+}
+
+.list-card .new label {
+  display: grid;
+  gap: 2px;
+  font-weight: 600;
+}
+
+.list-card .new label :is(input, select, textarea) {
+  font-weight: 400;
+}
+
+.list-card .new p.muted {
+  margin: 0;
+}
+
+.list-card .new p.muted:empty {
+  display: none;
+}
+
+.list-card .new button[type="submit"] {
+  justify-self: start;
 }
 
 section.list .filters {
   display: grid;
   gap: var(--space-2);
+  border-top: 1px solid var(--line);
+  padding-top: var(--space-3);
 }
 
 section.list .filters label {
@@ -880,10 +944,21 @@ section.list .filters label {
   font-weight: 600;
   box-shadow: none;
   border-width: 1.5px;
+  padding-left: 18px;
 }
 
 .list li button small {
   font-weight: 400;
+}
+
+.list li button[aria-pressed="true"] {
+  background: #fff0c4;
+  border-color: var(--plum);
+  box-shadow: inset 6px 0 0 var(--plum), inset 0 0 0 1px var(--plum);
+}
+
+.list li button[aria-pressed="true"]:focus-visible {
+  box-shadow: inset 6px 0 0 var(--plum), inset 0 0 0 1px var(--plum), 0 0 0 2px var(--gold);
 }
 
 .detail {
@@ -1366,13 +1441,17 @@ button.picture-none {
   gap: var(--space-2);
 }
 
+.picture-details .danger-zone {
+  margin-top: var(--space-4);
+}
+
 .job-progress {
   font-weight: 700;
 }
 
 .library-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap: var(--space-3);
   list-style: none;
   margin: 0 0 var(--space-4);
@@ -1400,6 +1479,7 @@ button.library-item:hover:not(:disabled) {
 
 button.library-item[aria-pressed="true"] {
   background: var(--gold);
+  box-shadow: inset 0 0 0 3px var(--plum), var(--shadow-card);
 }
 
 button.library-item img {
@@ -1410,20 +1490,32 @@ button.library-item img {
   background: repeating-conic-gradient(#ece6d6 0% 25%, #ffffff 0% 50%) 50% / 12px 12px;
 }
 
+/* Inside a tile a pill may wrap, so it is a rounded tag rather than a 999px blob; the tile's plum outline is enough,
+   so the state pill drops its own border. */
 button.library-item .state,
 button.library-item .kind-tag {
   font-size: 0.72rem;
   white-space: normal;
   text-align: center;
+  border: 0;
+  border-radius: var(--radius-s);
+  line-height: 1.3;
+  padding: 2px 8px;
 }
 
-.library-draft {
+/* A draft has no published PNG yet: an empty 96px picture slot (same checker as a picture), dashed, saying "Draft". */
+button.library-item .thumb.empty.library-draft {
   display: inline-flex;
+  flex: none;
   align-items: center;
   justify-content: center;
   width: 96px;
   height: 96px;
+  border: 1.5px dashed var(--muted);
+  border-radius: var(--radius-s);
+  background: repeating-conic-gradient(#ece6d6 0% 25%, #ffffff 0% 50%) 50% / 12px 12px;
   color: var(--muted);
+  font-weight: 700;
 }
 
 /* ---- Motion ------------------------------------------------------------------------------------------------------ */
