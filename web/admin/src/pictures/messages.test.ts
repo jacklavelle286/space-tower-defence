@@ -75,6 +75,7 @@ describe("picture messages", () => {
     expect(jobFailureMessage("too_long")).toBe("The drawing got too complicated. Try a simpler description.");
     expect(jobFailureMessage("unusable")).toBe("Claude's drawing couldn't be used safely. Press Try again.");
     expect(jobFailureMessage("bad_request")).toBe("That kind of picture can't be drawn yet. Reload the page and try again.");
+    expect(jobFailureMessage("not_set_up")).toBe("Drawing isn't set up yet: the API key is missing.");
     for (const code of ["timed_out", "bedrock_error", "throttled", "something_new"]) expect(jobFailureMessage(code)).toBe("That didn't finish. Press Try again.");
   });
 

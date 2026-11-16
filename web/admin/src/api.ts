@@ -444,7 +444,7 @@ export type NewPictureJob = { jobId: string; description: string; kind: PictureK
 export type PictureJobStarted = { jobId: string; state?: string; kind?: PictureKindId } & PictureUsage;
 
 /** Why a drawing failed (R39 FAILED `error`). */
-export type PictureJobError = "declined" | "too_long" | "unusable" | "throttled" | "bedrock_error" | "timed_out" | "could_not_start" | "expired" | "bad_request";
+export type PictureJobError = "declined" | "too_long" | "unusable" | "throttled" | "bedrock_error" | "timed_out" | "could_not_start" | "expired" | "bad_request" | "not_set_up";
 
 /** R39: where a drawing job is. READY carries the sanitised SVG (admin-api sanitises it again before answering). */
 export type PictureJob =

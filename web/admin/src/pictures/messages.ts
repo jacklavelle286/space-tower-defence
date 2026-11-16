@@ -99,8 +99,11 @@ export function jobFailureMessage(code: string): string {
       return "The drawing couldn't start (it wasn't counted). Press Try again.";
     case "bad_request":
       return "That kind of picture can't be drawn yet. Reload the page and try again.";
+    case "not_set_up": // the OpenAI key secret has no value, or OpenAI refused the key (2026-11-16)
+      return "Drawing isn't set up yet: the API key is missing.";
     default:
-      return "That didn't finish. Press Try again."; // timed_out, bedrock_error, throttled and anything new
+      // timed_out, bedrock_error (any provider error, OpenAI's too: the name is kept), throttled and anything new
+      return "That didn't finish. Press Try again.";
   }
 }
 
