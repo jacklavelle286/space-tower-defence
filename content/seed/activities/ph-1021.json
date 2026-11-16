@@ -1,5 +1,5 @@
 {
-  "$comment": "Starter pack (ADR-0028), batch 3. Published by scripts/seed_content.py --apply --publish.",
+  "$comment": "Starter-pack seed activity (ADR-0028), held until it had a clip (C22.2 rule 6) and given its clips at Gate H1: The only clip reads the instruction; a word clip would give the answer away, and option clips are not played by the player yet. Loaded by scripts/seed_content.py; --publish publishes it once every referenced speech is approved in the admin app (until then it fails only with speech_not_approved).",
   "schemaVersion": 1,
   "activityId": "ph-1021",
   "title": "Which word has 3 beats",
@@ -10,9 +10,9 @@
   "rewardCategory": "BOTH",
   "interactionType": "MULTIPLE_CHOICE",
   "authoringMode": "FIXED",
-  "audioRequirement": "NONE",
+  "audioRequirement": "OPTIONAL",
   "prompt": {
-    "text": "Which word has 3 beats?"
+    "text": "Say each word and clap. Which word has 3 beats?"
   },
   "visualAssetReferences": [],
   "activityPayload": {
@@ -41,5 +41,9 @@
       "c"
     ]
   },
-  "speechDefinitionReferences": {}
+  "speechDefinitionReferences": {
+    "instruction": {
+      "speechId": "instruction-say-each-word-and-clap"
+    }
+  }
 }

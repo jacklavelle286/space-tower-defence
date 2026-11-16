@@ -1,5 +1,5 @@
 {
-  "$comment": "Starter-pack seed activity, batch 4 (phonics, reading with pictures). Loaded by scripts/seed_content.py; with --publish it is auto-published (ADR-0028).",
+  "$comment": "Starter-pack seed activity (ADR-0028), held until it had a clip (C22.2 rule 6) and given its clips at Gate H1: The child hears the whole word ('chip', tier A) and picks the letters for the missing sound; hearing the word does not say which letters spell it. Loaded by scripts/seed_content.py; --publish publishes it once every referenced speech is approved in the admin app (until then it fails only with speech_not_approved).",
   "schemaVersion": 1,
   "activityId": "ph-1013",
   "title": "Missing letters: chip",
@@ -10,9 +10,9 @@
   "rewardCategory": "BOTH",
   "interactionType": "MULTIPLE_CHOICE",
   "authoringMode": "FIXED",
-  "audioRequirement": "NONE",
+  "audioRequirement": "REQUIRED",
   "prompt": {
-    "text": "Which letters start the word for the picture? _ip"
+    "text": "Listen. What is missing from this word? _ip"
   },
   "visualAssetReferences": [
     "pic-chip"
@@ -47,5 +47,12 @@
       "c"
     ]
   },
-  "speechDefinitionReferences": {}
+  "speechDefinitionReferences": {
+    "prompt": {
+      "speechId": "word-chip"
+    },
+    "instruction": {
+      "speechId": "instruction-listen-what-is-missing"
+    }
+  }
 }

@@ -1,0 +1,7 @@
+{
+  "$comment": "Seed speech definition (ADR-0028 starter pack, held phonics batch). The /ee/ sound on its own (tier B, D9.2). The SSML body is the clip form the owner already heard and judged publishable in the bake-off (content/listening-verdicts.json sounds.ee.clip, variant main), so its clip key equals that clip's key for voice Amy on the generative engine (checked by api/tests/unit/test_seed_content.py). Loaded as a DRAFT by scripts/seed_content.py, then previewed, played to the end and approved in the admin app.",
+  "speechId": "phoneme-ee",
+  "title": "Sound ee, as in tree",
+  "kind": "PHONEME",
+  "ssml": "<phoneme alphabet=\"x-sampa\" ph=\"i\">ee</phoneme>."
+}

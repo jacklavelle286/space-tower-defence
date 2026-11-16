@@ -1,0 +1,7 @@
+{
+  "$comment": "Seed speech definition (ADR-0028 starter pack, held phonics batch). A shared instruction stem (C21 variant 'instruction', the player's 'Read it to me'; owner decision D-1): the on-screen instruction without the word the child must read. ID by the admin convention instruction-<first words>. Loaded as a DRAFT by scripts/seed_content.py, then previewed, played to the end and approved in the admin app.",
+  "speechId": "instruction-listen-what-is-missing",
+  "title": "Listen. What is missing from this word?",
+  "kind": "INSTRUCTION",
+  "text": "Listen. What is missing from this word?"
+}

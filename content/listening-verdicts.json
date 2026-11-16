@@ -1,5 +1,5 @@
 {
-  "$comment": "Phase 18 (M0-11) listening verdicts. Written by the owner from spikes/polly-listening/out/index.html after listening; ADR-0014 records the decision. Read by gate G-14 (Phase 19) and the R21 approve check: a PHONEME speech definition for sound <id> (speechId convention phoneme-<id>) is refused unless sounds[<id>].verdict is publishable or publishable-small-schwa. A sound that is missing, pending or word-only is refused (fail closed).",
+  "$comment": "Phase 18 (M0-11) listening verdicts. Written by the owner from spikes/polly-listening/out/index.html after listening; ADR-0014 records the decision. Read by gate G-14 (Phase 19) and the R21 approve check: a PHONEME speech definition for sound <id> (speechId convention phoneme-<id>) is refused only when sounds[<id>].verdict is word-only (ADR-0028: the operator's in-app Approve, after playing the exact clip, is the listening verdict for every other sound).",
   "schemaVersion": 1,
   "status": "complete",
   "adr": "docs/decisions/0014-listening-bake-off.md",

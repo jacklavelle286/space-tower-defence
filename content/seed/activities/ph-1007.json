@@ -1,5 +1,5 @@
 {
-  "$comment": "Starter-pack seed activity, batch 4 (phonics, reading with pictures). Loaded by scripts/seed_content.py; with --publish it is auto-published (ADR-0028).",
+  "$comment": "Starter-pack seed activity (ADR-0028), held until it had a clip (C22.2 rule 6) and given its clips at Gate H1: A reading item, so the only clip reads the instruction (Read it to me) and never says the word. Loaded by scripts/seed_content.py; --publish publishes it once every referenced speech is approved in the admin app (until then it fails only with speech_not_approved).",
   "schemaVersion": 1,
   "activityId": "ph-1007",
   "title": "Read the word: duck",
@@ -10,9 +10,9 @@
   "rewardCategory": "BOTH",
   "interactionType": "PICTURE_SELECT",
   "authoringMode": "FIXED",
-  "audioRequirement": "NONE",
+  "audioRequirement": "OPTIONAL",
   "prompt": {
-    "text": "Which picture is this word? duck"
+    "text": "Read the word, then tap its picture: duck"
   },
   "visualAssetReferences": [
     "pic-dog",
@@ -49,5 +49,9 @@
       "c"
     ]
   },
-  "speechDefinitionReferences": {}
+  "speechDefinitionReferences": {
+    "instruction": {
+      "speechId": "instruction-read-the-word-then-tap"
+    }
+  }
 }

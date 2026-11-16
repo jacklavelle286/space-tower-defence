@@ -1,5 +1,5 @@
 {
-  "$comment": "Starter pack (ADR-0028), batch 3. Published by scripts/seed_content.py --apply --publish.",
+  "$comment": "Starter-pack seed activity (ADR-0028), held until it had a clip (C22.2 rule 6) and given its clips at Gate H1: The clip is the shared /ee/ sound (verdict publishable in content/listening-verdicts.json); it does not say which spelling each word uses. Loaded by scripts/seed_content.py; --publish publishes it once every referenced speech is approved in the admin app (until then it fails only with speech_not_approved).",
   "schemaVersion": 1,
   "activityId": "ph-1023",
   "title": "Sort words by spelling: ee or ea",
@@ -10,9 +10,9 @@
   "rewardCategory": "BOTH",
   "interactionType": "OBJECT_MOVE",
   "authoringMode": "FIXED",
-  "audioRequirement": "NONE",
+  "audioRequirement": "REQUIRED",
   "prompt": {
-    "text": "These words share a sound. Sort them by how it is spelt."
+    "text": "Listen. These words all have this sound. Sort them by how it is spelt."
   },
   "visualAssetReferences": [],
   "activityPayload": {
@@ -65,5 +65,9 @@
       "o1=ee;o2=ea;o3=ee;o4=ea;o5=ee;o6=ea"
     ]
   },
-  "speechDefinitionReferences": {}
+  "speechDefinitionReferences": {
+    "prompt": {
+      "speechId": "phoneme-ee"
+    }
+  }
 }
