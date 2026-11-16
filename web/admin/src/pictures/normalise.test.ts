@@ -1,7 +1,8 @@
 // The upload normaliser and the SVG renderer, with a fake canvas: the first bytes decide the type (an SVG or GIF named
 // .png is refused), the 5 MB and 4096 px limits, the letterbox, the 512 KiB PNG limit, and "Use Chrome" when toBlob
-// fails. Plus the base64 round trip and the starting names.
-import { LIMITS } from "@scd/shared";
+// fails. Plus the base64 round trip and the starting names. Gate P2: an activity scene is cover-fitted, every other
+// kind contain-fitted.
+import { LIMITS, PICTURE_KINDS } from "@scd/shared";
 import { describe, expect, it } from "vitest";
 import { fileWith, FakeImages, JPEG_MAGIC, PNG_MAGIC } from "../testing/images";
 import {
@@ -9,6 +10,7 @@ import {
   declaredSize,
   blobToBase64,
   fitBox,
+  fitFor,
   nameFromDescription,
   nameFromFile,
   nameOk,
@@ -79,6 +81,17 @@ describe("fitBox", () => {
     expect(fitBox(10, 10)).toEqual({ x: 0, y: 0, width: 256, height: 256 }); // small pictures are scaled up
     expect(fitBox(4096, 1).height).toBe(1);
   });
+
+  it("covers the square for a scene: the short side fills it, centred, and the overflow sits off the canvas", () => {
+    expect(fitBox(512, 256, 256, "cover")).toEqual({ x: -128, y: 0, width: 512, height: 256 });
+    expect(fitBox(100, 400, 256, "cover")).toEqual({ x: 0, y: -384, width: 256, height: 1024 });
+    expect(fitBox(256, 256, 256, "cover")).toEqual({ x: 0, y: 0, width: 256, height: 256 });
+    expect(fitBox(10, 10, 256, "cover")).toEqual({ x: 0, y: 0, width: 256, height: 256 });
+  });
+
+  it("uses cover for the activity scene only, contain for every other kind", () => {
+    expect(PICTURE_KINDS.filter((k) => fitFor(k.id) === "cover").map((k) => k.id)).toEqual(["activity-scene"]);
+  });
 });
 
 describe("normaliseUpload", () => {
@@ -90,6 +103,12 @@ describe("normaliseUpload", () => {
       expect(images.drawn).toHaveLength(1);
       expect(images.drawn[0]?.box).toEqual({ x: 0, y: 64, width: 256, height: 128 });
     }
+  });
+
+  it("cover-fits when asked (an activity scene)", async () => {
+    const images = new FakeImages();
+    await normaliseUpload(fileWith(PNG_MAGIC, "beach.png"), images.tools, "cover");
+    expect(images.drawn[0]?.box).toEqual({ x: -128, y: 0, width: 512, height: 256 });
   });
 
   it("refuses SVG, GIF and anything else by its bytes, whatever the name, before decoding", async () => {

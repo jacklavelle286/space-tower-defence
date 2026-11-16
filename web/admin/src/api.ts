@@ -3,6 +3,7 @@
 //
 // Rule from G §1.3: branch on the HTTP status first, and read `error.code` only when the body is our envelope. A
 // gateway 401 (expired or wrong token) has no envelope.
+import type { PictureKindId } from "@scd/shared";
 
 export type Problem = { readonly field: string; readonly rule: string };
 
@@ -363,12 +364,15 @@ export type BankStatus = {
 export type PictureState = "DRAFT" | "APPROVED";
 export type PictureSource = "UPLOAD" | "GENERATED";
 
-/** One row of R33. `url` (/pictures/v1/<id>.png) is set for approved pictures only: drafts are never served. */
+/** One row of R33. `url` (/pictures/v1/<id>.png) is set for approved pictures only: drafts are never served.
+ * `kind` (Gate P2) is always sent; read it with pictureKindOf, which turns a missing or unknown kind into
+ * "activity-object", as admin-api reads rows saved before kinds. */
 export type PictureSummary = {
   id: string;
   name: string;
   state: PictureState;
   source: PictureSource;
+  kind?: PictureKindId;
   textFree?: boolean;
   createdAt?: string;
   approvedAt?: string;
@@ -388,6 +392,8 @@ export type OpenPictureJob = {
   description: string;
   state: "QUEUED" | "READY";
   startedAt: string;
+  /** The kind it is drawn as (pictureKindOf: a job from before kinds is "activity-object"). */
+  kind?: PictureKindId;
   previousJobId?: string;
   change?: string;
 };
@@ -414,6 +420,9 @@ export type Picture = PictureSummary & {
 export type NewPicture = {
   name: string;
   source: PictureSource;
+  /** UPLOAD: the kind (admin-api's default is "activity-object"). GENERATED: left out, the picture takes the job's
+   * kind (a different kind is 400 `kind_mismatch`). */
+  kind?: PictureKindId;
   jobId?: string;
   pngBase64: string;
   approve: boolean;
@@ -427,13 +436,15 @@ export type PictureDetail = { picture: Picture; usedBy: string[]; pngBase64?: st
  * cached copy stays until it expires). */
 export type PictureDeletion = { pictureId: string; deleted: true; invalidated?: boolean };
 
-/** R38's body. `jobId` is a UUIDv4 made here: the idempotency key, so a resend never counts twice. */
-export type NewPictureJob = { jobId: string; description: string; previousJobId?: string; change?: string };
+/** R38's body. `jobId` is a UUIDv4 made here: the idempotency key, so a resend never counts twice. `kind` is required
+ * (400 `required` or `unknown_kind` before any cap is counted); a redraw must keep the earlier job's kind
+ * (`kind_mismatch`). */
+export type NewPictureJob = { jobId: string; description: string; kind: PictureKindId; previousJobId?: string; change?: string };
 /** R38's 202 answer. */
-export type PictureJobStarted = { jobId: string; state?: string } & PictureUsage;
+export type PictureJobStarted = { jobId: string; state?: string; kind?: PictureKindId } & PictureUsage;
 
 /** Why a drawing failed (R39 FAILED `error`). */
-export type PictureJobError = "declined" | "too_long" | "unusable" | "throttled" | "bedrock_error" | "timed_out" | "could_not_start" | "expired";
+export type PictureJobError = "declined" | "too_long" | "unusable" | "throttled" | "bedrock_error" | "timed_out" | "could_not_start" | "expired" | "bad_request";
 
 /** R39: where a drawing job is. READY carries the sanitised SVG (admin-api sanitises it again before answering). */
 export type PictureJob =
@@ -570,9 +581,15 @@ export function adminApi(request: Request) {
         "DELETE",
         `/admin/activities/${id(activityId)}`,
       ) as Promise<Deletion>,
-    /** R33: the picture library (both states unless `state` is given), the drawing usage and the open drawing jobs. */
-    listPictures: (state?: PictureState) =>
-      request("GET", state === undefined ? "/admin/pictures" : `/admin/pictures?state=${state}`) as Promise<PictureList>,
+    /** R33: the picture library (both states unless `state` is given, every kind unless `kind` is), the drawing usage
+     * and the open drawing jobs. */
+    listPictures: (state?: PictureState, kind?: PictureKindId) => {
+      const query = new URLSearchParams();
+      if (state !== undefined) query.set("state", state);
+      if (kind !== undefined) query.set("kind", kind);
+      const qs = query.toString();
+      return request("GET", qs === "" ? "/admin/pictures" : `/admin/pictures?${qs}`) as Promise<PictureList>;
+    },
     /** R34: stores a browser-made 256x256 PNG; with `approve` (and `textFree`) it is approved in the same call. */
     createPicture: (body: NewPicture) => request("POST", "/admin/pictures", body) as Promise<PictureSaved>,
     /** R35: one picture, the activities that use it, and a draft's PNG. */

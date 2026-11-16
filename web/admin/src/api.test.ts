@@ -101,20 +101,24 @@ describe("API client", () => {
     const job = "0b6f5a4e-1d2c-4b3a-9f8e-7d6c5b4a3f2e";
     await api.listPictures();
     await api.listPictures("APPROVED");
-    await api.createPicture({ name: "Cat", source: "UPLOAD", pngBase64: "iVBO", approve: true, textFree: true });
+    await api.listPictures("APPROVED", "avatar");
+    await api.listPictures(undefined, "activity-scene");
+    await api.createPicture({ name: "Cat", source: "UPLOAD", kind: "activity-scene", pngBase64: "iVBO", approve: true, textFree: true });
     await api.getPicture(pic);
     await api.approvePicture(pic, { textFree: true });
     await api.deletePicture(pic);
-    await api.startPictureJob({ jobId: job, description: "a red kite" });
+    await api.startPictureJob({ jobId: job, description: "a red kite", kind: "avatar" });
     await api.getPictureJob(job);
     expect(calls.map((c) => [c.init.method, c.url, c.init.body === undefined ? undefined : JSON.parse(c.init.body as string)])).toEqual([
       ["GET", "/api/admin/pictures", undefined],
       ["GET", "/api/admin/pictures?state=APPROVED", undefined],
-      ["POST", "/api/admin/pictures", { name: "Cat", source: "UPLOAD", pngBase64: "iVBO", approve: true, textFree: true }],
+      ["GET", "/api/admin/pictures?state=APPROVED&kind=avatar", undefined],
+      ["GET", "/api/admin/pictures?kind=activity-scene", undefined],
+      ["POST", "/api/admin/pictures", { name: "Cat", source: "UPLOAD", kind: "activity-scene", pngBase64: "iVBO", approve: true, textFree: true }],
       ["GET", `/api/admin/pictures/${pic}`, undefined],
       ["POST", `/api/admin/pictures/${pic}/approve`, { textFree: true }],
       ["DELETE", `/api/admin/pictures/${pic}`, undefined],
-      ["POST", "/api/admin/picture-jobs", { jobId: job, description: "a red kite" }],
+      ["POST", "/api/admin/picture-jobs", { jobId: job, description: "a red kite", kind: "avatar" }],
       ["GET", `/api/admin/picture-jobs/${job}`, undefined],
     ]);
   });

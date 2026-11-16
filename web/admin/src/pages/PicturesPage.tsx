@@ -57,7 +57,8 @@ export function PicturesPage({ api, tab, tools, delay, newJobId }: Props) {
     <section className="pictures">
       <h2>Pictures</h2>
       <p className="muted">
-        Pictures for activities. Approved pictures appear in the activity editor under “My pictures”.
+        Pictures for activities, and pictures kept for later (avatars, aliens, planets and more). Approved activity
+        pictures appear in the activity editor under “My pictures”.
         {usage !== null && ` Drawings: ${usageText(usage)}.`}
       </p>
       <nav aria-label="Picture tabs" className="tabs">

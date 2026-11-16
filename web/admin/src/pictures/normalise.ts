@@ -11,7 +11,11 @@
 //
 // The browser parts sit behind ImageTools, so the tests use a fake canvas. The numbers are contracts/limits.json's
 // `picture` block, which admin-api reads too.
-import { LIMITS } from "@scd/shared";
+//
+// Picture kinds (Gate P2): an "Activity scene" fills the square, so its upload is cover-fitted (scaled until the square
+// is full, centred, the overflow cut off); every other kind keeps the whole picture, contain-fitted. A drawing is
+// already 256x256, so the two fits draw it the same way.
+import { LIMITS, type PictureKindId } from "@scd/shared";
 
 /** The side of every library picture, in pixels. */
 export const PICTURE_SIZE = LIMITS.picture.side;
@@ -105,9 +109,19 @@ export function declaredSize(bytes: Uint8Array): { width: number; height: number
 
 export type Box = { readonly x: number; readonly y: number; readonly width: number; readonly height: number };
 
-/** Where a `width` x `height` picture goes on the square canvas: as large as fits, aspect kept, centred. */
-export function fitBox(width: number, height: number, size = PICTURE_SIZE): Box {
-  const scale = Math.min(size / width, size / height);
+/** How a picture goes on the square: `contain` keeps all of it (see-through bars where it isn't square); `cover`
+ * fills the square and cuts off what sticks out. */
+export type Fit = "contain" | "cover";
+
+/** The fit for a kind: cover for an activity scene (it fills the square), contain for everything else. */
+export function fitFor(kind: PictureKindId): Fit {
+  return kind === "activity-scene" ? "cover" : "contain";
+}
+
+/** Where a `width` x `height` picture goes on the square canvas, aspect kept and centred: as large as fits (contain),
+ * or as small as fills it (cover; the box then starts left of or above the canvas and the canvas cuts it). */
+export function fitBox(width: number, height: number, size = PICTURE_SIZE, fit: Fit = "contain"): Box {
+  const scale = fit === "cover" ? Math.max(size / width, size / height) : Math.min(size / width, size / height);
   const w = Math.max(1, Math.round(width * scale));
   const h = Math.max(1, Math.round(height * scale));
   return { x: Math.floor((size - w) / 2), y: Math.floor((size - h) / 2), width: w, height: h };
@@ -176,11 +190,11 @@ export const browserTools: ImageTools = {
   release: (url) => URL.revokeObjectURL(url),
 };
 
-async function draw(picture: Drawable, tools: ImageTools): Promise<Blob> {
+async function draw(picture: Drawable, tools: ImageTools, fit: Fit): Promise<Blob> {
   try {
     if (picture.width > MAX_SIDE || picture.height > MAX_SIDE) throw new PictureError("too_many_pixels");
     if (picture.width < 1 || picture.height < 1) throw new PictureError("unreadable");
-    const png = await tools.toPng(picture, fitBox(picture.width, picture.height));
+    const png = await tools.toPng(picture, fitBox(picture.width, picture.height, PICTURE_SIZE, fit));
     if (png === null) throw new PictureError("no_canvas");
     if (png.size > PNG_MAX_BYTES) throw new PictureError("too_detailed");
     return png;
@@ -190,7 +204,7 @@ async function draw(picture: Drawable, tools: ImageTools): Promise<Blob> {
 }
 
 /** An uploaded file as a library PNG, or a PictureError saying why not. */
-export async function normaliseUpload(file: Blob, tools: ImageTools = browserTools): Promise<Blob> {
+export async function normaliseUpload(file: Blob, tools: ImageTools = browserTools, fit: Fit = "contain"): Promise<Blob> {
   const head = new Uint8Array(await file.slice(0, 12).arrayBuffer());
   if (sniff(head) === null) throw new PictureError("not_png_or_jpeg");
   if (file.size > UPLOAD_MAX_BYTES) throw new PictureError("file_too_big");
@@ -202,11 +216,11 @@ export async function normaliseUpload(file: Blob, tools: ImageTools = browserToo
   } catch {
     throw new PictureError("unreadable");
   }
-  return draw(picture, tools);
+  return draw(picture, tools, fit);
 }
 
 /** Claude's (sanitised) SVG as a library PNG, or a PictureError saying why not. */
-export async function renderSvg(svg: string, tools: ImageTools = browserTools): Promise<Blob> {
+export async function renderSvg(svg: string, tools: ImageTools = browserTools, fit: Fit = "contain"): Promise<Blob> {
   if (new TextEncoder().encode(svg).length > SVG_MAX_BYTES || !/^\s*<svg[\s>]/u.test(svg)) throw new PictureError("unreadable");
   let picture: Drawable;
   try {
@@ -214,7 +228,7 @@ export async function renderSvg(svg: string, tools: ImageTools = browserTools): 
   } catch {
     throw new PictureError("unreadable");
   }
-  return draw(picture, tools);
+  return draw(picture, tools, fit);
 }
 
 /** A blob's bytes as base64 (no data: prefix), for R34's `pngBase64`. */

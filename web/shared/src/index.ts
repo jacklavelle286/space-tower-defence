@@ -22,4 +22,19 @@ export {
   type TypedSpec,
 } from "./learning/canonical";
 export * from "./api";
-export { isLibraryPictureId, LIBRARY_PICTURE_ID, libraryPictureUrl } from "./pictures";
+export {
+  ACTIVITY_PICTURE_KINDS,
+  DEFAULT_PICTURE_KIND,
+  isActivityPictureKind,
+  isLibraryPictureId,
+  isPictureKind,
+  LATER_PICTURE_KINDS,
+  LIBRARY_PICTURE_ID,
+  libraryPictureUrl,
+  PICTURE_KINDS,
+  pictureKindLabel,
+  pictureKindOf,
+  type PictureKind,
+  type PictureKindConsumer,
+  type PictureKindId,
+} from "./pictures";

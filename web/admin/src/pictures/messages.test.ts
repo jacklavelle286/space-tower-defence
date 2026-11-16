@@ -35,6 +35,18 @@ describe("picture messages", () => {
     );
   });
 
+  it("words an unknown kind and a kind that doesn't match the drawing (Gate P2)", () => {
+    expect(pictureError(new ApiError(400, "VALIDATION_FAILED", [{ field: "kind", rule: "unknown_kind" }]))).toBe(
+      "That kind of picture isn't known here. Reload the page and try again.",
+    );
+    expect(pictureError(new ApiError(400, "VALIDATION_FAILED", [{ field: "kind", rule: "kind_mismatch" }]))).toBe(
+      "That drawing was made as a different kind of picture. Reload the page and try again.",
+    );
+    expect(pictureError(new ApiError(400, "VALIDATION_FAILED", [{ field: "kind", rule: "already_another_kind" }]))).toBe(
+      "This picture is already in My pictures as a different kind. Find it in the library, or change the picture.",
+    );
+  });
+
   it("reads the period of R38's 429", () => {
     expect(capPeriod(new ApiError(429, "PICTURE_CAP_REACHED", [], { period: "month" }))).toBe("month");
     expect(capPeriod(new ApiError(429, "PICTURE_CAP_REACHED", [], { period: "day" }))).toBe("day");
@@ -53,6 +65,7 @@ describe("picture messages", () => {
     expect(jobFailureMessage("declined")).toBe("Claude wouldn't draw that. Try different words.");
     expect(jobFailureMessage("too_long")).toBe("The drawing got too complicated. Try a simpler description.");
     expect(jobFailureMessage("unusable")).toBe("Claude's drawing couldn't be used safely. Press Try again.");
+    expect(jobFailureMessage("bad_request")).toBe("That kind of picture can't be drawn yet. Reload the page and try again.");
     for (const code of ["timed_out", "bedrock_error", "throttled", "something_new"]) expect(jobFailureMessage(code)).toBe("That didn't finish. Press Try again.");
   });
 

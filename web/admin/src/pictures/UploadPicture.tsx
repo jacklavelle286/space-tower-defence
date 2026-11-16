@@ -2,18 +2,26 @@
 // picture letterboxed on a transparent background), name it, tick "No letters, numbers or words in this picture", then
 // "Add and approve" (R34 with approve) or "Save as draft". The browser makes the PNG (normalise.ts); admin-api checks
 // it again and writes it from its pixels.
+//
+// Picture kinds (Gate P2): the operator says what the picture is for, "Activity picture (one object)" unless changed.
+// An "Activity scene" fills the square (cover: the edges that stick out are cut off); every other kind keeps the
+// whole picture with see-through bars (contain). Changing the kind after choosing a file makes the preview again.
+import { DEFAULT_PICTURE_KIND, type PictureKindId } from "@scd/shared";
 import { useEffect, useId, useRef, useState } from "react";
 import type { AdminApi } from "../api";
+import { KindSelect } from "./KindSelect";
 import { pictureError } from "./messages";
 import {
   blobToBase64,
   browserTools,
+  fitFor,
   nameFromFile,
   nameOk,
   NAME_MAX,
   normaliseUpload,
   PictureError,
   pictureProblemMessage,
+  type Fit,
   type ImageTools,
 } from "./normalise";
 import { TextFreeTick } from "./TextFreeTick";
@@ -28,6 +36,8 @@ type Props = {
 type Ready = { readonly png: Blob; readonly url: string };
 
 export function UploadPicture({ api, onSaved, tools = browserTools }: Props) {
+  const [kind, setKind] = useState<PictureKindId>(DEFAULT_PICTURE_KIND);
+  const [file, setFile] = useState<File | null>(null);
   const [ready, setReady] = useState<Ready | null>(null);
   const [name, setName] = useState("");
   const [textFree, setTextFree] = useState(false);
@@ -49,23 +59,42 @@ export function UploadPicture({ api, onSaved, tools = browserTools }: Props) {
     return () => tools.release(ready.url);
   }, [ready, tools]);
 
-  async function choose(file: File | undefined) {
+  async function prepare(chosen: File, fit: Fit, keepName: boolean) {
     setError(null);
     setDone(null);
     setReady(null);
     setTextFree(false);
-    if (file === undefined) return;
     setBusy(true);
     try {
-      const png = await normaliseUpload(file, tools);
+      const png = await normaliseUpload(chosen, tools, fit);
       setReady({ png, url: tools.preview(png) });
-      setName(nameFromFile(file.name));
+      if (!keepName) setName(nameFromFile(chosen.name));
     } catch (problem) {
       setError(problem instanceof PictureError ? pictureProblemMessage(problem.problem) : pictureProblemMessage("unreadable"));
+      setFile(null);
       if (fileInput.current !== null) fileInput.current.value = "";
     } finally {
       setBusy(false);
     }
+  }
+
+  async function choose(chosen: File | undefined) {
+    setFile(chosen ?? null);
+    if (chosen === undefined) {
+      setError(null);
+      setDone(null);
+      setReady(null);
+      setTextFree(false);
+      return;
+    }
+    await prepare(chosen, fitFor(kind), false);
+  }
+
+  /** A new kind: a picture already chosen is fitted again when the fit changes (contain or cover). */
+  async function changeKind(next: PictureKindId) {
+    const before = fitFor(kind);
+    setKind(next);
+    if (file !== null && fitFor(next) !== before) await prepare(file, fitFor(next), true);
   }
 
   async function save(approve: boolean) {
@@ -74,7 +103,7 @@ export function UploadPicture({ api, onSaved, tools = browserTools }: Props) {
     setError(null);
     try {
       const pngBase64 = await blobToBase64(ready.png);
-      const saved = await api.createPicture({ name, source: "UPLOAD", pngBase64, approve, textFree });
+      const saved = await api.createPicture({ name, source: "UPLOAD", kind, pngBase64, approve, textFree });
       const what = saved.picture.state === "APPROVED" ? "approved and in My pictures" : "saved as a draft";
       setDone(
         saved.duplicate === true
@@ -84,6 +113,7 @@ export function UploadPicture({ api, onSaved, tools = browserTools }: Props) {
       setReady(null);
       setTextFree(false);
       setName("");
+      setFile(null);
       if (fileInput.current !== null) fileInput.current.value = "";
       onSaved();
     } catch (failure) {
@@ -94,11 +124,21 @@ export function UploadPicture({ api, onSaved, tools = browserTools }: Props) {
   }
 
   const nameGood = nameOk(name);
+  const cover = fitFor(kind) === "cover";
   return (
     <section className="pictures-upload" aria-label="Upload a picture">
       <p className="muted">
-        PNG or JPEG only, up to 5 MB. No SVG files. The picture is made 256 by 256 pixels here in the browser, with a
-        see-through border if it isn't square; its hidden details (camera, place, date) are left out.
+        PNG or JPEG only, up to 5 MB. No SVG files. The picture is made 256 by 256 pixels here in the browser; its
+        hidden details (camera, place, date) are left out.
+      </p>
+      <p className="field">
+        <label htmlFor={`${nameId}-kind`}>What is this picture for?</label>
+        <KindSelect id={`${nameId}-kind`} value={kind} disabled={busy} describedBy={`${nameId}-kind-hint`} onChange={(next) => next !== "" && void changeKind(next)} />
+        <small id={`${nameId}-kind-hint`} className="muted">
+          {cover
+            ? "A scene fills the square: if the picture isn't square, its edges are cut off."
+            : "The whole picture is kept: if it isn't square, it gets a see-through border."}
+        </small>
       </p>
       <p className="field">
         <label htmlFor={`${nameId}-file`}>Picture file</label>

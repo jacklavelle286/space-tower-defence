@@ -377,6 +377,24 @@ describe("the editor", () => {
     expect(saved.definition.topicId).toBe("maths-number-one-more-less-to10");
   });
 
+  it("My pictures offers only the activity kinds: an old row and a scene, never an avatar or a planet (Gate P2)", async () => {
+    const fox = fake.seedPicture("Orange fox"); // saved before kinds: reads as activity-object
+    const beach = fake.seedPicture("Beach", "APPROVED", "UPLOAD", "activity-scene");
+    const ball = fake.seedPicture("Ball", "APPROVED", "UPLOAD", "activity-object");
+    fake.seedPicture("Captain Zed", "APPROVED", "GENERATED", "avatar");
+    fake.seedPicture("Red planet", "APPROVED", "UPLOAD", "planet");
+    fake.seed(draftOf("PICTURE_SELECT").definition, 1);
+    await openEditor("sp-9102");
+    fireEvent.click(screen.getByRole("button", { name: "Option a picture" }));
+    const dialog = screen.getByRole("dialog", { name: "Choose: Option a picture" });
+    const mine = await within(dialog).findByRole("region", { name: "My pictures" });
+    expect(within(mine).getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual([
+      `Ball (${ball.id})`,
+      `Beach (${beach.id})`,
+      `Orange fox (${fox.id})`,
+    ]);
+  });
+
   it("offers My pictures first: approved library pictures only, never drafts, shown by name (Phase 42a)", async () => {
     const fox = fake.seedPicture("Orange fox");
     const draft = fake.seedPicture("Kite draft", "DRAFT");

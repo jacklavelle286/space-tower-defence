@@ -18,6 +18,9 @@ describe("problems", () => {
     expect(describeProblem({ field: "topicId", rule: "topic_subject" })).toBe("Topic must start with the subject, for example maths-.");
     expect(describeProblem({ field: "activityPayload.tiles", rule: "count" })).toBe("Tiles has the wrong number of entries.");
     expect(describeProblem({ field: "title", rule: "some_new_rule" })).toBe('Title breaks the rule "some_new_rule".');
+    expect(describeProblem({ field: "activityPayload.options.3.assetId", rule: "picture_not_for_activities" })).toMatch(
+      /is a picture from My pictures that is kept for later, not for activities: choose another\.$/,
+    );
   });
 
   it("describes the topic registry rules as the topic's problem, whichever field is named", () => {

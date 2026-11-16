@@ -10,6 +10,10 @@ const RULES: Readonly<Record<string, string>> = {
   not_text_free: 'Tick "No letters, numbers or words in this picture" first.',
   picture_not_approved: "This picture isn't approved yet.",
   job_used: "A different picture has already been saved from this drawing.",
+  unknown_kind: "That kind of picture isn't known here. Reload the page and try again.",
+  kind_mismatch: "That drawing was made as a different kind of picture. Reload the page and try again.",
+  already_another_kind:
+    "This picture is already in My pictures as a different kind. Find it in the library, or change the picture.",
 };
 
 /** Words for a failed R34, R35, R36 or R37 call. */
@@ -86,6 +90,8 @@ export function jobFailureMessage(code: string): string {
       return "This drawing is too old to use now. Press Try again.";
     case "could_not_start":
       return "The drawing couldn't start (it wasn't counted). Press Try again.";
+    case "bad_request":
+      return "That kind of picture can't be drawn yet. Reload the page and try again.";
     default:
       return "That didn't finish. Press Try again."; // timed_out, bedrock_error, throttled and anything new
   }

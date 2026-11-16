@@ -5,8 +5,12 @@
 // one-click Approve (R34 GENERATED with approve), Try again with a change (previousJobId), Discard, the caps, failed
 // drawings in plain words, "Use Chrome" when toBlob fails, and open jobs coming back after a reload.
 // Library: filters, approving a draft, and Delete (refused while used, naming the activities).
+// Picture kinds (Gate P2): the kind menu on Upload (default activity picture; a scene is cover-fitted) and Draw (no
+// default), cards and redraws that keep their kind, old rows and jobs that read as activity pictures, the kind label
+// and filter in the library.
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { ApiError } from "../api";
 import { FakeAdminApi } from "../testing/fakeApi";
 import { FakeImages, fileWith, JPEG_MAGIC, PNG_MAGIC } from "../testing/images";
 import { TEXT_FREE_LABEL } from "../pictures/TextFreeTick";
@@ -73,7 +77,7 @@ describe("Upload", () => {
     expect(approve.disabled).toBe(false);
     fireEvent.click(approve);
     expect(await screen.findByText('"red kite" is approved and in My pictures.')).toBeTruthy();
-    expect(fake.callsNamed("createPicture").map((c) => c.args[0])).toEqual([{ name: "red kite", source: "UPLOAD", pngBase64: "(png)", approve: true, textFree: true }]);
+    expect(fake.callsNamed("createPicture").map((c) => c.args[0])).toEqual([{ name: "red kite", source: "UPLOAD", kind: "activity-object", pngBase64: "(png)", approve: true, textFree: true }]);
     await waitFor(() => expect(fake.callsNamed("listPictures")).toHaveLength(2)); // the library is read again
   });
 
@@ -82,7 +86,34 @@ describe("Upload", () => {
     pick(fileWith(PNG_MAGIC, "cat.png"));
     fireEvent.click(await screen.findByRole("button", { name: "Save as draft" }));
     expect(await screen.findByText('"cat" is saved as a draft.')).toBeTruthy();
-    expect(fake.callsNamed("createPicture").map((c) => c.args[0])).toEqual([{ name: "cat", source: "UPLOAD", pngBase64: "(png)", approve: false, textFree: false }]);
+    expect(fake.callsNamed("createPicture").map((c) => c.args[0])).toEqual([{ name: "cat", source: "UPLOAD", kind: "activity-object", pngBase64: "(png)", approve: false, textFree: false }]);
+  });
+
+  it("offers every kind in two groups, defaults to an activity picture (contain), and re-fits a scene (cover)", async () => {
+    await openPage("upload");
+    const select = screen.getByLabelText("What is this picture for?") as HTMLSelectElement;
+    expect(select.value).toBe("activity-object");
+    const groups = [...select.querySelectorAll("optgroup")].map((g) => [g.label, [...g.querySelectorAll("option")].map((o) => o.value)]);
+    expect(groups).toEqual([
+      ["Use in activities", ["activity-object", "activity-scene"]],
+      ["For later (not used in the game yet)", ["avatar", "alien", "astronaut", "decoration", "planet", "badge"]],
+    ]);
+    pick(fileWith(PNG_MAGIC, "moon.png")); // the fake decodes it as 512 x 256
+    await screen.findByRole("img", { name: "The picture as it will be stored" });
+    expect(images.drawn.at(-1)?.box).toEqual({ x: 0, y: 64, width: 256, height: 128 }); // contain: see-through bars
+    fireEvent.change(select, { target: { value: "activity-scene" } });
+    await waitFor(() => expect(images.drawn).toHaveLength(2)); // the preview is made again
+    expect(images.drawn.at(-1)?.box).toEqual({ x: -128, y: 0, width: 512, height: 256 }); // cover: the sides are cut off
+    expect(screen.getByText(/its edges are cut off/u)).toBeTruthy();
+    expect((await screen.findByLabelText("Name (for the admin only)") as HTMLInputElement).value).toBe("moon");
+    fireEvent.change(select, { target: { value: "planet" } });
+    await waitFor(() => expect(images.drawn).toHaveLength(3)); // back to contain
+    expect(images.drawn.at(-1)?.box).toEqual({ x: 0, y: 64, width: 256, height: 128 });
+    fireEvent.change(select, { target: { value: "avatar" } });
+    fireEvent.click(await screen.findByRole("button", { name: "Save as draft" }));
+    expect(await screen.findByText('"moon" is saved as a draft.')).toBeTruthy();
+    expect(images.drawn).toHaveLength(3); // planet to avatar keeps the fit: no new preview
+    expect(fake.callsNamed("createPicture").map((c) => c.args[0])).toEqual([{ name: "moon", source: "UPLOAD", kind: "avatar", pngBase64: "(png)", approve: false, textFree: false }]);
   });
 
   it("says Use Chrome when the browser can't make the PNG", async () => {
@@ -94,7 +125,8 @@ describe("Upload", () => {
 });
 
 describe("Draw with Claude", () => {
-  function describeDrawing(text: string) {
+  function describeDrawing(text: string, kind = "activity-object") {
+    fireEvent.change(screen.getByLabelText("What kind of picture should Claude draw?"), { target: { value: kind } });
     fireEvent.change(screen.getByLabelText("What should Claude draw?"), { target: { value: text } });
     fireEvent.click(screen.getByRole("button", { name: "Draw it" }));
   }
@@ -105,7 +137,7 @@ describe("Draw with Claude", () => {
     expect(screen.getAllByText(/97 of 100 left today · 140 of 150 left this month/u).length).toBeGreaterThan(0);
     fake.jobScripts.set(jobId(1), [{ state: "DRAWING", phase: "thinking", elapsedSeconds: 42 }]);
     describeDrawing("a smiling orange fox");
-    expect(fake.callsNamed("startPictureJob").map((c) => c.args[0])).toEqual([{ jobId: jobId(1), description: "a smiling orange fox" }]);
+    expect(fake.callsNamed("startPictureJob").map((c) => c.args[0])).toEqual([{ jobId: jobId(1), description: "a smiling orange fox", kind: "activity-object" }]);
     const card = await screen.findByRole("article", { name: "Drawing: a smiling orange fox" });
     expect(await within(card).findByText("Claude is thinking…")).toBeTruthy();
     expect(screen.getAllByText(/96 of 100 left today · 139 of 150 left this month/u).length).toBeGreaterThan(0);
@@ -147,14 +179,79 @@ describe("Draw with Claude", () => {
     fireEvent.change(within(card).getByLabelText("What should change?"), { target: { value: "make it blue" } });
     fireEvent.click(within(card).getByRole("button", { name: "Draw it again with this change" }));
     expect(fake.callsNamed("startPictureJob").map((c) => c.args[0])).toEqual([
-      { jobId: jobId(1), description: "a red kite" },
-      { jobId: jobId(2), description: "a red kite", previousJobId: jobId(1), change: "make it blue" },
+      { jobId: jobId(1), description: "a red kite", kind: "activity-object" },
+      { jobId: jobId(2), description: "a red kite", kind: "activity-object", previousJobId: jobId(1), change: "make it blue" },
     ]);
     card = await screen.findByRole("article", { name: "Drawing: a red kite" });
     expect(within(card).getByText("Change: make it blue")).toBeTruthy();
     fireEvent.click(await within(card).findByRole("button", { name: "Discard" }));
     expect(screen.queryByRole("article")).toBeNull();
     expect(fake.callsNamed("createPicture")).toEqual([]);
+  });
+
+  it("has no default kind: Draw it stays off until one is chosen, and the job, its card and its redraws keep it", async () => {
+    fake.nextJobScripts.push([{ state: "READY", svg: SVG }], [{ state: "READY", svg: SVG }]);
+    await openPage("draw");
+    const select = screen.getByLabelText("What kind of picture should Claude draw?") as HTMLSelectElement;
+    expect(select.value).toBe("");
+    expect([...select.querySelectorAll("optgroup")].map((g) => g.label)).toEqual(["Use in activities", "For later (not used in the game yet)"]);
+    fireEvent.change(screen.getByLabelText("What should Claude draw?"), { target: { value: "a smiling astronaut girl" } });
+    const draw = screen.getByRole("button", { name: "Draw it" }) as HTMLButtonElement;
+    expect(draw.disabled).toBe(true);
+    fireEvent.change(select, { target: { value: "avatar" } });
+    expect(draw.disabled).toBe(false);
+    fireEvent.click(draw);
+    const card = await screen.findByRole("article", { name: "Drawing: a smiling astronaut girl" });
+    expect(within(card).getByText("Profile avatar")).toBeTruthy();
+    fireEvent.click(await within(card).findByRole("button", { name: "Try again with a change" }));
+    fireEvent.change(within(card).getByLabelText("What should change?"), { target: { value: "curly hair" } });
+    fireEvent.click(within(card).getByRole("button", { name: "Draw it again with this change" }));
+    expect(fake.callsNamed("startPictureJob").map((c) => c.args[0])).toEqual([
+      { jobId: jobId(1), description: "a smiling astronaut girl", kind: "avatar" },
+      { jobId: jobId(2), description: "a smiling astronaut girl", kind: "avatar", previousJobId: jobId(1), change: "curly hair" },
+    ]);
+    const again = await screen.findByRole("article", { name: "Drawing: a smiling astronaut girl" });
+    fireEvent.click(await within(again).findByRole("button", { name: "Save as draft" }));
+    await within(again).findByText('"A smiling astronaut girl" is saved as a draft.');
+    // The saved picture takes the job's kind on the server: the body leaves it out, so it can never mismatch.
+    expect(fake.callsNamed("createPicture").map((c) => (c.args[0] as { kind?: string }).kind)).toEqual([undefined]);
+    expect([...fake.pictures.values()].map((p) => p.kind)).toEqual(["avatar"]);
+  });
+
+  it("a job brought back without a kind reads as an activity picture; one with a kind keeps it on Try again", async () => {
+    fake.openJobs = [
+      { jobId: jobId(8), description: "a green frog", state: "READY", startedAt: "2026-11-16T10:00:00Z" },
+      { jobId: jobId(9), description: "a red planet", kind: "planet", state: "READY", startedAt: "2026-11-16T10:00:00Z" },
+    ];
+    fake.jobScripts.set(jobId(8), [{ state: "FAILED", error: "timed_out" }]);
+    fake.jobScripts.set(jobId(9), [{ state: "FAILED", error: "timed_out" }]);
+    await openPage("draw");
+    const frog = await screen.findByRole("article", { name: "Drawing: a green frog" });
+    const planet = await screen.findByRole("article", { name: "Drawing: a red planet" });
+    expect(within(frog).getByText("Activity picture (one object)")).toBeTruthy();
+    expect(within(planet).getByText("Planet")).toBeTruthy();
+    fireEvent.click(await within(frog).findByRole("button", { name: "Try again" }));
+    fireEvent.click(await within(planet).findByRole("button", { name: "Try again" }));
+    expect(fake.callsNamed("startPictureJob").map((c) => (c.args[0] as { kind: string }).kind)).toEqual(["activity-object", "planet"]);
+  });
+
+  it("words R38's kind refusal and the worker's bad_request", async () => {
+    fake.nextJobScripts.push([{ state: "FAILED", error: "bad_request" }]);
+    await openPage("draw");
+    describeDrawing("a big red badge", "badge");
+    const card = await screen.findByRole("article", { name: "Drawing: a big red badge" });
+    expect(await within(card).findByText("That kind of picture can't be drawn yet. Reload the page and try again.")).toBeTruthy();
+    const start = fake.api.startPictureJob;
+    fake.api.startPictureJob = async () => {
+      throw new ApiError(400, "VALIDATION_FAILED", [{ field: "kind", rule: "unknown_kind" }]);
+    };
+    try {
+      describeDrawing("a big blue badge", "badge");
+      const refused = await screen.findByRole("article", { name: "Drawing: a big blue badge" });
+      expect(await within(refused).findByText("That kind of picture isn't known here. Reload the page and try again.")).toBeTruthy();
+    } finally {
+      fake.api.startPictureJob = start;
+    }
   });
 
   it("words a failed drawing and offers Try again without the old drawing", async () => {
@@ -165,8 +262,8 @@ describe("Draw with Claude", () => {
     expect(await within(card).findByText("Claude wouldn't draw that. Try different words.")).toBeTruthy();
     fireEvent.click(within(card).getByRole("button", { name: "Try again" }));
     expect(fake.callsNamed("startPictureJob").map((c) => c.args[0])).toEqual([
-      { jobId: jobId(1), description: "something odd" },
-      { jobId: jobId(2), description: "something odd" },
+      { jobId: jobId(1), description: "something odd", kind: "activity-object" },
+      { jobId: jobId(2), description: "something odd", kind: "activity-object" },
     ]);
   });
 
@@ -202,6 +299,7 @@ describe("Draw with Claude", () => {
   it("tidies spaces and new lines in the description and the change note instead of turning the button off", async () => {
     fake.nextJobScripts.push([{ state: "READY", svg: SVG }]);
     await openPage("draw");
+    fireEvent.change(screen.getByLabelText("What kind of picture should Claude draw?"), { target: { value: "activity-object" } });
     fireEvent.change(screen.getByLabelText("What should Claude draw?"), { target: { value: "  a red\n kite \n" } });
     expect(screen.getByText(/Extra spaces and new lines are tidied away/u)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Draw it" }));
@@ -210,8 +308,8 @@ describe("Draw with Claude", () => {
     fireEvent.change(within(card).getByLabelText("What should change?"), { target: { value: "make it blue \n" } });
     fireEvent.click(within(card).getByRole("button", { name: "Draw it again with this change" }));
     expect(fake.callsNamed("startPictureJob").map((c) => c.args[0])).toEqual([
-      { jobId: jobId(1), description: "a red kite" },
-      { jobId: jobId(2), description: "a red kite", previousJobId: jobId(1), change: "make it blue" },
+      { jobId: jobId(1), description: "a red kite", kind: "activity-object" },
+      { jobId: jobId(2), description: "a red kite", kind: "activity-object", previousJobId: jobId(1), change: "make it blue" },
     ]);
   });
 
@@ -288,7 +386,7 @@ describe("Library", () => {
     fake.seedPicture("Fox");
     fake.seedPicture("Kite draft", "DRAFT", "GENERATED");
     await openPage("library");
-    expect(screen.getByText("2 of 2 pictures. Only approved pictures can go in activities.", { exact: false })).toBeTruthy();
+    expect(screen.getByText("2 of 2 pictures. Only approved pictures of the activity kinds can go in activities.", { exact: false })).toBeTruthy();
     fireEvent.change(screen.getByLabelText("Show"), { target: { value: "DRAFT" } });
     expect(screen.getByRole("button", { name: "Kite draft (Draft)" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Fox (Approved)" })).toBeNull();
@@ -296,6 +394,28 @@ describe("Library", () => {
     fireEvent.change(screen.getByLabelText("From"), { target: { value: "UPLOAD" } });
     expect(screen.getByRole("button", { name: "Fox (Approved)" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Kite draft (Draft)" })).toBeNull();
+  });
+
+  it("labels every picture with its kind (an old row reads as an activity picture) and filters by kind", async () => {
+    fake.seedPicture("Fox"); // saved before kinds
+    fake.seedPicture("Beach", "APPROVED", "UPLOAD", "activity-scene");
+    fake.seedPicture("Captain Zed", "DRAFT", "GENERATED", "avatar");
+    await openPage("library");
+    const tile = (name: string) => screen.getByRole("button", { name: new RegExp(`^${name} \\(`, "u") });
+    expect(tile("Fox").textContent).toContain("Activity picture (one object)");
+    expect(tile("Beach").textContent).toContain("Activity scene (fills the square)");
+    expect(tile("Captain Zed").textContent).toContain("Profile avatar");
+    const kind = screen.getByLabelText("Kind") as HTMLSelectElement;
+    expect(kind.value).toBe("");
+    fireEvent.change(kind, { target: { value: "activity-object" } });
+    expect(screen.getAllByRole("button", { name: /\((Approved|Draft)\)$/u }).map((b) => b.getAttribute("aria-label"))).toEqual(["Fox (Approved)"]);
+    fireEvent.change(kind, { target: { value: "avatar" } });
+    expect(screen.getAllByRole("button", { name: /\((Approved|Draft)\)$/u }).map((b) => b.getAttribute("aria-label"))).toEqual(["Captain Zed (Draft)"]);
+    fireEvent.click(tile("Captain Zed"));
+    const details = await screen.findByRole("region", { name: "Picture: Captain Zed" });
+    expect(within(details).getByText("Profile avatar (not used in the game yet)")).toBeTruthy();
+    fireEvent.change(kind, { target: { value: "" } });
+    expect(screen.getByText(/^3 of 3 pictures/u)).toBeTruthy();
   });
 
   it("approves a draft only with the tick", async () => {

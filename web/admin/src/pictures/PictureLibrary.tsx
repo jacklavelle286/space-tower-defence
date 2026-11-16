@@ -3,10 +3,15 @@
 // Deleting an approved picture removes its served file too; admin-api refuses while any activity draft or version
 // uses it and names those activities, listed here as links. A draft's picture is not served, so it comes with R35
 // and is shown through a blob: URL.
+//
+// Picture kinds (Gate P2): each tile says what the picture is for, and the "Kind" filter shows one kind. A picture
+// saved before kinds reads as "Activity picture (one object)", as admin-api reads it.
+import { isActivityPictureKind, pictureKindLabel, pictureKindOf, type PictureKindId } from "@scd/shared";
 import { useEffect, useId, useRef, useState } from "react";
 import { ApiError, pictureUsers, type AdminApi, type PictureDetail, type PictureSource, type PictureState, type PictureSummary } from "../api";
 import { ConfirmDialog, useFocusReturn } from "../ConfirmDialog";
 import { hrefOf } from "../routes";
+import { KindSelect } from "./KindSelect";
 import { pictureError } from "./messages";
 import { base64ToBlob, browserTools, type ImageTools } from "./normalise";
 import { TextFreeTick } from "./TextFreeTick";
@@ -25,6 +30,7 @@ const SOURCE_LABEL: Record<PictureSource, string> = { UPLOAD: "Uploaded", GENERA
 export function PictureLibrary({ api, pictures, onChanged, tools = browserTools }: Props) {
   const [state, setState] = useState<PictureState | "">("");
   const [source, setSource] = useState<PictureSource | "">("");
+  const [kind, setKind] = useState<PictureKindId | "">("");
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
@@ -40,7 +46,13 @@ export function PictureLibrary({ api, pictures, onChanged, tools = browserTools 
 
   const needle = query.trim().toLowerCase();
   const shown = pictures
-    .filter((p) => (state === "" || p.state === state) && (source === "" || p.source === source) && (needle === "" || p.name.toLowerCase().includes(needle)))
+    .filter(
+      (p) =>
+        (state === "" || p.state === state) &&
+        (source === "" || p.source === source) &&
+        (kind === "" || pictureKindOf(p.kind) === kind) &&
+        (needle === "" || p.name.toLowerCase().includes(needle)),
+    )
     .sort((a, b) => a.name.localeCompare(b.name));
   const selected = open === null ? undefined : pictures.find((p) => p.id === open);
 
@@ -64,6 +76,10 @@ export function PictureLibrary({ api, pictures, onChanged, tools = browserTools 
           </select>
         </span>
         <span className="field">
+          <label htmlFor={`${ids}-kind`}>Kind</label>
+          <KindSelect id={`${ids}-kind`} value={kind} onChange={setKind} first="Every kind" />
+        </span>
+        <span className="field">
           <label htmlFor={`${ids}-search`}>Name</label>
           <input id={`${ids}-search`} type="search" value={query} onChange={(e) => setQuery(e.target.value)} />
         </span>
@@ -76,8 +92,8 @@ export function PictureLibrary({ api, pictures, onChanged, tools = browserTools 
         )}
       </div>
       <p className="muted">
-        {shown.length} of {pictures.length} picture{pictures.length === 1 ? "" : "s"}. Only approved pictures can go in
-        activities.
+        {shown.length} of {pictures.length} picture{pictures.length === 1 ? "" : "s"}. Only approved pictures of the
+        activity kinds can go in activities.
       </p>
       <ul className="library-grid">
         {shown.map((p) => (
@@ -95,6 +111,7 @@ export function PictureLibrary({ api, pictures, onChanged, tools = browserTools 
               <small className="muted">
                 {STATE_LABEL[p.state]} · {SOURCE_LABEL[p.source]}
               </small>
+              <small className="muted">{pictureKindLabel(pictureKindOf(p.kind))}</small>
             </button>
           </li>
         ))}
@@ -196,6 +213,10 @@ function PictureDetails({
       <div className="picture-review">
         {src !== null ? <img className="picture-preview" src={src} alt={summary.name} width={256} height={256} /> : <span className="thumb empty picture-preview" aria-hidden="true" />}
         <div className="picture-review-form">
+          <p>
+            {pictureKindLabel(pictureKindOf(summary.kind))}
+            {isActivityPictureKind(pictureKindOf(summary.kind)) ? "" : " (not used in the game yet)"}
+          </p>
           <p>
             {STATE_LABEL[summary.state]} · {SOURCE_LABEL[summary.source]}
             {detail?.picture.description !== undefined && <> · asked for “{detail.picture.description}”</>}

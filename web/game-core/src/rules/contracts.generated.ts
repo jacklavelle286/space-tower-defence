@@ -74,7 +74,50 @@ export const LIMITS = {
     "nameMaxLength": 40,
     "descriptionMinLength": 3,
     "descriptionMaxLength": 200,
-    "changeMaxLength": 200
+    "changeMaxLength": 200,
+    "defaultKind": "activity-object",
+    "kinds": [
+      {
+        "id": "activity-object",
+        "label": "Activity picture (one object)",
+        "consumer": "activity"
+      },
+      {
+        "id": "activity-scene",
+        "label": "Activity scene (fills the square)",
+        "consumer": "activity"
+      },
+      {
+        "id": "avatar",
+        "label": "Profile avatar",
+        "consumer": "later"
+      },
+      {
+        "id": "alien",
+        "label": "Alien (enemy)",
+        "consumer": "later"
+      },
+      {
+        "id": "astronaut",
+        "label": "Astronaut (tower)",
+        "consumer": "later"
+      },
+      {
+        "id": "decoration",
+        "label": "Map decoration",
+        "consumer": "later"
+      },
+      {
+        "id": "planet",
+        "label": "Planet",
+        "consumer": "later"
+      },
+      {
+        "id": "badge",
+        "label": "Badge",
+        "consumer": "later"
+      }
+    ]
   },
   "speechUrlSeconds": 300,
   "lease": {

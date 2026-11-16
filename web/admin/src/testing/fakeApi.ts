@@ -2,6 +2,7 @@
 // draftRevision -> 409 DRAFT_CONFLICT; publish needs every checklist line and the preview-solve of this revision).
 // Validation answers with `problems`, which a test sets: the real checks are admin-api's, and the shared fixtures
 // (contracts/fixtures/activities/) prove the editor's drafts pass them. Every call is recorded. Example IDs only.
+import { isPictureKind, pictureKindOf, type PictureKindId } from "@scd/shared";
 import {
   ApiError,
   type ActivitySummary,
@@ -76,6 +77,8 @@ export class FakeAdminApi {
   /** R39 answers for jobs a test did not script (by start order): the first started job gets the first script. */
   readonly nextJobScripts: PictureJob[][] = [];
   readonly startedJobs = new Set<string>();
+  /** The kind each started job is drawn as (R38), which a GENERATED picture takes (R34). */
+  readonly jobKinds = new Map<string, PictureKindId>();
   private clock = 0;
 
   private record(name: string, ...args: unknown[]) {
@@ -116,11 +119,20 @@ export class FakeAdminApi {
     });
   }
 
-  /** Puts a picture in the library. */
-  seedPicture(name: string, state: Picture["state"] = "APPROVED", source: Picture["source"] = "UPLOAD"): Picture {
+  /** Puts a picture in the library. Without `kind` it is a row saved before kinds (it reads as activity-object). */
+  seedPicture(name: string, state: Picture["state"] = "APPROVED", source: Picture["source"] = "UPLOAD", kind?: PictureKindId): Picture {
     const pngBase64 = btoa(`png-${name}`);
     const id = fakePictureId(pngBase64);
-    const picture: StoredPicture = { id, name, state, source, textFree: state === "APPROVED", pngBase64, ...(state === "APPROVED" ? { url: `/pictures/v1/${id}.png` } : {}) };
+    const picture: StoredPicture = {
+      id,
+      name,
+      state,
+      source,
+      ...(kind !== undefined ? { kind } : {}),
+      textFree: state === "APPROVED",
+      pngBase64,
+      ...(state === "APPROVED" ? { url: `/pictures/v1/${id}.png` } : {}),
+    };
     this.pictures.set(id, picture);
     return this.publicPicture(picture);
   }
@@ -232,15 +244,17 @@ export class FakeAdminApi {
       this.record("bankStatus");
       return clone(this.bank);
     },
-    listPictures: async (state) => {
-      this.record("listPictures", state);
+    listPictures: async (state, kind) => {
+      if (kind === undefined) this.record("listPictures", state);
+      else this.record("listPictures", state, kind);
       const pictures = [...this.pictures.values()]
-        .filter((p) => state === undefined || p.state === state)
+        .filter((p) => (state === undefined || p.state === state) && (kind === undefined || pictureKindOf(p.kind) === kind))
         .map((p) => ({
           id: p.id,
           name: p.name,
           state: p.state,
           source: p.source,
+          ...(p.kind !== undefined ? { kind: p.kind } : {}),
           ...(p.jobId !== undefined ? { jobId: p.jobId } : {}),
           ...(p.url !== undefined ? { url: p.url } : {}),
         }));
@@ -253,11 +267,17 @@ export class FakeAdminApi {
       const existing = this.pictures.get(id);
       if (existing !== undefined) return { picture: this.publicPicture(existing), duplicate: true };
       const approved = body.approve;
+      // As admin-api: a GENERATED picture takes its job's kind and refuses another; an upload defaults to activity-object.
+      const jobKind = body.jobId !== undefined ? this.jobKinds.get(body.jobId) : undefined;
+      if (body.source === "GENERATED" && body.kind !== undefined && body.kind !== pictureKindOf(jobKind)) {
+        throw new ApiError(400, "VALIDATION_FAILED", [{ field: "kind", rule: "kind_mismatch" }]);
+      }
       const stored: StoredPicture = {
         id,
         name: body.name,
         state: approved ? "APPROVED" : "DRAFT",
         source: body.source,
+        kind: body.source === "GENERATED" ? pictureKindOf(jobKind) : pictureKindOf(body.kind),
         textFree: body.textFree,
         pngBase64: body.pngBase64,
         ...(body.jobId !== undefined ? { jobId: body.jobId } : {}),
@@ -297,6 +317,10 @@ export class FakeAdminApi {
     },
     startPictureJob: async (body) => {
       this.record("startPictureJob", body);
+      // admin-api checks the kind before it counts anything (R38).
+      const kind: unknown = (body as { kind?: unknown }).kind;
+      if (kind === undefined) throw new ApiError(400, "VALIDATION_FAILED", [{ field: "kind", rule: "required" }]);
+      if (!isPictureKind(kind)) throw new ApiError(400, "VALIDATION_FAILED", [{ field: "kind", rule: "unknown_kind" }]);
       if (!this.startedJobs.has(body.jobId)) {
         const off = this.usage.drawingOn === false || this.usage.dailyCap <= 0 || this.usage.monthlyCap <= 0;
         if (off || this.usage.usedMonth >= this.usage.monthlyCap || this.usage.usedToday >= this.usage.dailyCap) {
@@ -308,11 +332,12 @@ export class FakeAdminApi {
           throw new ApiError(429, "PICTURE_CAP_REACHED", [], { period, resetsAt: "2026-11-17T00:00:00Z", dailyCap, monthlyCap });
         }
         this.startedJobs.add(body.jobId);
+        this.jobKinds.set(body.jobId, kind);
         this.usage = { ...this.usage, usedToday: this.usage.usedToday + 1, usedMonth: this.usage.usedMonth + 1 };
         const script = this.nextJobScripts.shift();
         if (script !== undefined && !this.jobScripts.has(body.jobId)) this.jobScripts.set(body.jobId, script);
       }
-      return { jobId: body.jobId, ...clone(this.usage) };
+      return { jobId: body.jobId, kind, ...clone(this.usage) };
     },
     getPictureJob: async (jobId) => {
       this.record("getPictureJob", jobId);

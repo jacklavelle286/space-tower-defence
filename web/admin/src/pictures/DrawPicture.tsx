@@ -1,4 +1,5 @@
-// Draw with Claude (Phase 42b): the operator describes a picture, R38 starts a drawing job (it counts toward the daily
+// Draw with Claude (Phase 42b): the operator chooses what the picture is for (its kind, Gate P2: there is no default,
+// so "Draw it" stays off until one is chosen) and describes it; R38 starts a drawing job (it counts toward the daily
 // and monthly caps), and a card follows it by asking R39 every 3 s (every 5 s after the first minute): "Waiting to
 // start", "Claude is thinking… 0:42", "Drawing… 1:20". When the job is READY the card turns Claude's SVG (sanitised by
 // the worker and again by admin-api) into a 256x256 PNG through an <img> and a canvas, never by putting the SVG into
@@ -9,15 +10,19 @@
 // that are still waiting or ready (R33 openJobs), except drawings already saved (admin-api stops listing them) and
 // drawings discarded in this browser (dismissed.ts).
 //
+// A card keeps its job's kind: Try again and Try again with a change draw the same kind (admin-api refuses a redraw of
+// another kind), and a card brought back after a reload takes the kind R33 lists for the job.
+//
 // Screen readers: each card's live region announces only changes of step ("Waiting to start", "Claude is thinking…",
 // "Drawing…", the outcome); the running clock sits outside it, so it is not read out every few seconds. Focus moves
 // to what replaced a control that went away: the saved message, the next card, or the description box.
-import { LIMITS } from "@scd/shared";
+import { LIMITS, pictureKindLabel, pictureKindOf, type PictureKindId } from "@scd/shared";
 import { useEffect, useId, useRef, useState } from "react";
 import { ApiError, describeError, type AdminApi, type NewPictureJob, type OpenPictureJob, type PictureJobStarted, type PictureUsage } from "../api";
 import { discardedJobs, rememberDiscarded } from "./dismissed";
 import { capMessage, capPeriod, capReached, capsFromError, clock, descriptionOk, drawingOff, jobFailureMessage, pictureError, pollDelay, tidyText, usageText } from "./messages";
-import { blobToBase64, browserTools, nameFromDescription, nameOk, NAME_MAX, PictureError, pictureProblemMessage, renderSvg, type ImageTools } from "./normalise";
+import { KindSelect } from "./KindSelect";
+import { blobToBase64, browserTools, fitFor, nameFromDescription, nameOk, NAME_MAX, PictureError, pictureProblemMessage, renderSvg, type ImageTools } from "./normalise";
 import { TextFreeTick } from "./TextFreeTick";
 
 export const DESCRIPTION_MIN = LIMITS.picture.descriptionMinLength;
@@ -29,6 +34,7 @@ type Spec = {
   readonly key: string;
   readonly jobId: string;
   readonly description: string;
+  readonly kind: PictureKindId;
   readonly previousJobId?: string;
   readonly change?: string;
   readonly start: boolean;
@@ -59,7 +65,7 @@ const nextKey = () => {
 
 function restored(job: OpenPictureJob): Spec {
   const started = Date.parse(job.startedAt);
-  return { key: nextKey(), jobId: job.jobId, description: job.description, start: false, startedAt: Number.isNaN(started) ? Date.now() : started };
+  return { key: nextKey(), jobId: job.jobId, description: job.description, kind: pictureKindOf(job.kind), start: false, startedAt: Number.isNaN(started) ? Date.now() : started };
 }
 
 export function DrawPicture({ api, usage, openJobs, onUsage, onChanged, tools = browserTools, delay = pollDelay, newJobId = () => crypto.randomUUID() }: Props) {
@@ -68,6 +74,7 @@ export function DrawPicture({ api, usage, openJobs, onUsage, onChanged, tools = 
     return openJobs.filter((job) => !discarded.has(job.jobId)).map(restored);
   });
   const [description, setDescription] = useState("");
+  const [kind, setKind] = useState<PictureKindId | "">("");
   const descriptionId = useId();
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const headings = useRef(new Map<string, HTMLHeadingElement>());
@@ -85,12 +92,13 @@ export function DrawPicture({ api, usage, openJobs, onUsage, onChanged, tools = 
   const off = drawingOff(usage);
   const reached = capReached(usage);
   const tidy = tidyText(description);
-  const good = descriptionOk(tidy, DESCRIPTION_MIN, DESCRIPTION_MAX);
+  const good = descriptionOk(tidy, DESCRIPTION_MIN, DESCRIPTION_MAX) && kind !== "";
 
-  const start = (text: string, previous?: { jobId: string; change?: string }): Spec => ({
+  const start = (text: string, drawAs: PictureKindId, previous?: { jobId: string; change?: string }): Spec => ({
     key: nextKey(),
     jobId: newJobId(),
     description: text,
+    kind: drawAs,
     ...(previous !== undefined ? { previousJobId: previous.jobId } : {}),
     ...(previous?.change !== undefined ? { change: previous.change } : {}),
     start: true,
@@ -98,8 +106,8 @@ export function DrawPicture({ api, usage, openJobs, onUsage, onChanged, tools = 
   });
 
   function draw() {
-    if (!good || off || reached !== null) return;
-    setCards((all) => [start(tidy), ...all]);
+    if (!good || off || reached !== null) return; // good includes a chosen kind
+    setCards((all) => [start(tidy, kind), ...all]);
     setDescription("");
   }
 
@@ -123,6 +131,13 @@ export function DrawPicture({ api, usage, openJobs, onUsage, onChanged, tools = 
       </p>
       {usage !== null && <p className="usage">{usageText(usage)}</p>}
       {(off || reached !== null) && <p className="notice">{capMessage(reached, usage)}</p>}
+      <p className="field">
+        <label htmlFor={`${descriptionId}-kind`}>What kind of picture should Claude draw?</label>
+        <KindSelect id={`${descriptionId}-kind`} value={kind} onChange={setKind} first="Choose a kind of picture…" describedBy={`${descriptionId}-kind-hint`} />
+        <small id={`${descriptionId}-kind-hint`} className="muted">
+          Claude draws each kind differently. Only the kinds under “Use in activities” can go in an activity.
+        </small>
+      </p>
       <p className="field">
         <label htmlFor={descriptionId}>What should Claude draw?</label>
         <textarea
@@ -159,7 +174,7 @@ export function DrawPicture({ api, usage, openJobs, onUsage, onChanged, tools = 
               else headings.current.set(spec.key, el);
             }}
             onDiscard={() => discard(spec)}
-            onRetry={(change) => replace(spec, start(spec.description, change === undefined ? undefined : { jobId: spec.jobId, change }))}
+            onRetry={(change) => replace(spec, start(spec.description, spec.kind, change === undefined ? undefined : { jobId: spec.jobId, change }))}
           />
         ))}
       </div>
@@ -194,6 +209,7 @@ function jobBody(spec: Spec): NewPictureJob {
   return {
     jobId: spec.jobId,
     description: spec.description,
+    kind: spec.kind,
     ...(spec.previousJobId !== undefined ? { previousJobId: spec.previousJobId } : {}),
     ...(spec.change !== undefined ? { change: spec.change } : {}),
   };
@@ -258,7 +274,7 @@ function JobCard({ api, spec, tools, delay, onUsage, onChanged, onDiscard, onRet
         case "READY": {
           set({ step: "rendering" });
           try {
-            const png = await renderSvg(job.svg, tools);
+            const png = await renderSvg(job.svg, tools, fitFor(spec.kind));
             if (!live) return;
             set({ step: "ready", png, url: tools.preview(png), warnings: job.warnings ?? [] });
           } catch (problem) {
@@ -294,7 +310,7 @@ function JobCard({ api, spec, tools, delay, onUsage, onChanged, onDiscard, onRet
             set({ step: "failed", message: capMessage(period, capsFromError(error)), canRetry: false });
             onChanged(); // the page reads the usage again and words the cap with its numbers
           } else {
-            set({ step: "failed", message: describeError(error), canRetry: true });
+            set({ step: "failed", message: pictureError(error), canRetry: true });
           }
           return;
         }
@@ -377,6 +393,7 @@ function JobCard({ api, spec, tools, delay, onUsage, onChanged, onDiscard, onRet
       <h3 ref={headingRef} tabIndex={-1}>
         “{spec.description}”
       </h3>
+      <p className="muted">{pictureKindLabel(spec.kind)}</p>
       {spec.change !== undefined && <p className="muted">Change: {spec.change}</p>}
       <div role="status">
         {line !== null && <p className="job-progress">{line}</p>}
