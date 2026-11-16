@@ -31,6 +31,19 @@ Decision:
   - picture-gen sanitises the SVG with a fail-closed allow-list and writes it to `jobs/`. It has no database access.
   - The admin browser renders the SVG to PNG through `<img>` and a canvas, never inlining it, and the PNG goes through the upload
     path. Approval needs a "no letters, numbers or words" tick.
+- **Picture kinds (Gate P2, folded into Gate P [CONFIRMED by owner, 2026-11-16]).**
+  - `contracts/limits.json` `picture.kinds` is the one list (id, label, consumer), read by admin-api, picture-gen and the admin
+    app: activity object (the default, and what every row without `kind` reads as), activity scene, profile avatar, alien,
+    astronaut, map decoration, planet, badge. All are drawn and stored at 256×256, so the sanitiser and PNG checks are unchanged.
+  - R38 requires `kind` (refused before the caps are counted); the job, the picture header and every view carry it; the SQS
+    message carries it unless it is `activity-object`, so a pre-kinds picture-gen keeps working while a release updates
+    admin-api first; a redraw keeps its job's kind; R33 filters by it. Publish refuses a picture whose kind is not for activities
+    (`picture_not_for_activities`).
+  - picture-gen's system prompt is three fixed blocks: kind-neutral rules, STYLE.md (cache breakpoint 1), then the kind block,
+    `kinds/<kind>.md` plus 1–3 house SVGs (breakpoint 2). Each kind block carries the safety line; avatar and astronaut carry
+    the cast rule.
+  - Not offered until Gate M: the battle backdrop (84 KB SVG, over the 65,536-byte sanitiser cap and the output budget), route
+    tiles (192 px and must tile edge to edge), and bosses (768 px).
 - **Limits.**
   - Caps: 100 drawings a day and 150 a month **[PROPOSAL: the monthly cap keeps the worst case near £47]**. A job that fails to
     start is refunded.

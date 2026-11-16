@@ -140,6 +140,9 @@ charged and writes no error.json, so the cap is not refunded [VERIFIED handler.p
 
 ### 2.6 Proposed Gate P2 (amends Gate P) [PROPOSAL]
 
+Status: **P2 was folded into Gate P [CONFIRMED by owner, 2026-11-16]**, with eight kinds (activity object, activity scene,
+avatar, alien, astronaut, decoration, planet, badge; all 256), recorded in ADR-0031.
+
 ADR-0026 and ADR-0031 are still `Proposed` [VERIFIED docs/decisions/0031-...md:2], so amend them rather than write a new ADR.
 
 | Phase | Builds | Checks |
