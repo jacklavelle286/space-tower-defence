@@ -4,8 +4,9 @@
 // it again and writes it from its pixels.
 //
 // Picture kinds (Gate P2): the operator says what the picture is for, "Activity picture (one object)" unless changed.
-// An "Activity scene" fills the square (cover: the edges that stick out are cut off); every other kind keeps the
-// whole picture with see-through bars (contain). Changing the kind after choosing a file makes the preview again.
+// An "Activity scene" fills the square and a "Background" fills its 1920x1056 screen (cover: the edges that stick out
+// are cut off); every other kind keeps the whole picture with see-through bars (contain). Changing the kind after
+// choosing a file makes the preview again when the size or the fit changes.
 import { DEFAULT_PICTURE_KIND, type PictureKindId } from "@scd/shared";
 import { useEffect, useId, useRef, useState } from "react";
 import type { AdminApi } from "../api";
@@ -14,6 +15,7 @@ import { pictureError } from "./messages";
 import {
   blobToBase64,
   browserTools,
+  canvasFor,
   fitFor,
   nameFromFile,
   nameOk,
@@ -21,7 +23,7 @@ import {
   normaliseUpload,
   PictureError,
   pictureProblemMessage,
-  type Fit,
+  previewSize,
   type ImageTools,
 } from "./normalise";
 import { TextFreeTick } from "./TextFreeTick";
@@ -59,14 +61,14 @@ export function UploadPicture({ api, onSaved, tools = browserTools }: Props) {
     return () => tools.release(ready.url);
   }, [ready, tools]);
 
-  async function prepare(chosen: File, fit: Fit, keepName: boolean) {
+  async function prepare(chosen: File, as: PictureKindId, keepName: boolean) {
     setError(null);
     setDone(null);
     setReady(null);
     setTextFree(false);
     setBusy(true);
     try {
-      const png = await normaliseUpload(chosen, tools, fit);
+      const png = await normaliseUpload(chosen, tools, as);
       setReady({ png, url: tools.preview(png) });
       if (!keepName) setName(nameFromFile(chosen.name));
     } catch (problem) {
@@ -87,14 +89,14 @@ export function UploadPicture({ api, onSaved, tools = browserTools }: Props) {
       setTextFree(false);
       return;
     }
-    await prepare(chosen, fitFor(kind), false);
+    await prepare(chosen, kind, false);
   }
 
-  /** A new kind: a picture already chosen is fitted again when the fit changes (contain or cover). */
+  /** A new kind: a picture already chosen is drawn again when the size or the fit changes (contain or cover). */
   async function changeKind(next: PictureKindId) {
-    const before = fitFor(kind);
+    const before = drawnAs(kind);
     setKind(next);
-    if (file !== null && fitFor(next) !== before) await prepare(file, fitFor(next), true);
+    if (file !== null && drawnAs(next) !== before) await prepare(file, next, true);
   }
 
   async function save(approve: boolean) {
@@ -125,18 +127,22 @@ export function UploadPicture({ api, onSaved, tools = browserTools }: Props) {
 
   const nameGood = nameOk(name);
   const cover = fitFor(kind) === "cover";
+  const canvas = canvasFor(kind);
+  const square = canvas.width === canvas.height;
   return (
     <section className="pictures-upload" aria-label="Upload a picture">
       <p className="muted">
-        PNG or JPEG only, up to 5 MB. No SVG files. The picture is made 256 by 256 pixels here in the browser; its
-        hidden details (camera, place, date) are left out.
+        PNG or JPEG only, up to 5 MB. No SVG files. The picture is made {canvas.width} by {canvas.height} pixels here in
+        the browser; its hidden details (camera, place, date) are left out.
       </p>
       <p className="field">
         <label htmlFor={`${nameId}-kind`}>What is this picture for?</label>
         <KindSelect id={`${nameId}-kind`} value={kind} disabled={busy} describedBy={`${nameId}-kind-hint`} onChange={(next) => next !== "" && void changeKind(next)} />
         <small id={`${nameId}-kind-hint`} className="muted">
           {cover
-            ? "A scene fills the square: if the picture isn't square, its edges are cut off."
+            ? square
+              ? "A scene fills the square: if the picture isn't square, its edges are cut off."
+              : "A background fills the whole game screen: if the picture is a different shape, its edges are cut off."
             : "The whole picture is kept: if it isn't square, it gets a see-through border."}
         </small>
       </p>
@@ -161,7 +167,7 @@ export function UploadPicture({ api, onSaved, tools = browserTools }: Props) {
       </div>
       {ready !== null && (
         <div className="picture-review">
-          <img className="picture-preview" src={ready.url} alt="The picture as it will be stored" width={256} height={256} />
+          <img className="picture-preview" src={ready.url} alt="The picture as it will be stored" {...previewSize(kind)} />
           <div className="picture-review-form">
             <p className="field">
               <label htmlFor={nameId}>Name (for the admin only)</label>
@@ -182,4 +188,10 @@ export function UploadPicture({ api, onSaved, tools = browserTools }: Props) {
       )}
     </section>
   );
+}
+
+/** What decides how a kind's upload is drawn: its canvas size and its fit. */
+function drawnAs(kind: PictureKindId): string {
+  const { width, height } = canvasFor(kind);
+  return `${width}x${height}:${fitFor(kind)}`;
 }

@@ -13,7 +13,7 @@ import { ConfirmDialog, useFocusReturn } from "../ConfirmDialog";
 import { hrefOf } from "../routes";
 import { KindSelect } from "./KindSelect";
 import { pictureError } from "./messages";
-import { base64ToBlob, browserTools, type ImageTools } from "./normalise";
+import { base64ToBlob, browserTools, previewSize, type ImageTools } from "./normalise";
 import { TextFreeTick } from "./TextFreeTick";
 
 type Props = {
@@ -211,7 +211,7 @@ function PictureDetails({
         {summary.name}
       </h3>
       <div className="picture-review">
-        {src !== null ? <img className="picture-preview" src={src} alt={summary.name} width={256} height={256} /> : <span className="thumb empty picture-preview" aria-hidden="true" />}
+        {src !== null ? <img className="picture-preview" src={src} alt={summary.name} {...previewSize(pictureKindOf(summary.kind))} /> : <span className="thumb empty picture-preview" aria-hidden="true" />}
         <div className="picture-review-form">
           <p>
             {pictureKindLabel(pictureKindOf(summary.kind))}

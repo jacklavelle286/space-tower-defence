@@ -1,5 +1,5 @@
-// Turning a picture into what the library stores (Phases 42a and 42b): a 256x256 PNG with a transparent background,
-// the picture contain-fitted (letterboxed) and centred. The browser does the decoding and drawing, so no image code
+// Turning a picture into what the library stores (Phases 42a and 42b): a PNG the size of the picture's kind (256x256;
+// 1920x1056 for a background, Gate P2) with a transparent background, the picture fitted and centred. The browser does the decoding and drawing, so no image code
 // runs in a Lambda; admin-api then checks the PNG strictly and writes it again from its pixels (api/shared/png_canon.py).
 //
 // Upload: the operator picks a PNG or JPEG of at most 5 MB (owner, 2026-11-16). The first bytes decide the type, not the
@@ -12,21 +12,31 @@
 // The browser parts sit behind ImageTools, so the tests use a fake canvas. The numbers are contracts/limits.json's
 // `picture` block, which admin-api reads too.
 //
-// Picture kinds (Gate P2): an "Activity scene" fills the square, so its upload is cover-fitted (scaled until the square
-// is full, centred, the overflow cut off); every other kind keeps the whole picture, contain-fitted. A drawing is
-// already 256x256, so the two fits draw it the same way.
-import { LIMITS, type PictureKindId } from "@scd/shared";
+// Picture kinds (Gate P2): an "Activity scene" fills the square and a "Background" fills its 1920x1056 screen, so their
+// uploads are cover-fitted (scaled until the canvas is full, centred, the overflow cut off); every other kind keeps the
+// whole picture, contain-fitted. A drawing is already its kind's shape, so the two fits draw it the same way. Each
+// kind's size and byte limits come from its contracts/limits.json entry (pictureKindSpec), as admin-api reads them.
+import { DEFAULT_PICTURE_KIND, LIMITS, pictureKindSpec, type PictureKindId } from "@scd/shared";
 
-/** The side of every library picture, in pixels. */
-export const PICTURE_SIZE = LIMITS.picture.side;
+/** A canvas size in pixels. */
+export type Canvas = { readonly width: number; readonly height: number };
+
+/** The canvas a kind's pictures are drawn and stored at. */
+export function canvasFor(kind: PictureKindId): Canvas {
+  const { width, height } = pictureKindSpec(kind);
+  return { width, height };
+}
+
+/** The side of the default kind's (square) picture, in pixels: 256. */
+export const PICTURE_SIZE = canvasFor(DEFAULT_PICTURE_KIND).width;
 /** The largest original file the operator may upload (owner, 2026-11-16: "up to 5 MB"). */
 export const UPLOAD_MAX_BYTES = LIMITS.picture.uploadMaxBytes;
 /** Pictures wider or taller than this are refused before drawing (a guard against huge decodes). */
 export const MAX_SIDE = LIMITS.picture.uploadMaxSide;
-/** The largest PNG admin-api accepts (R34; the base64 body limit is bodyMaxBytes.adminPicture). */
-export const PNG_MAX_BYTES = LIMITS.picture.maxBytes;
-/** The largest SVG the drawing job returns (the sanitiser's limit). */
-export const SVG_MAX_BYTES = 65_536;
+/** The largest PNG admin-api accepts for the default kind (R34; a kind's `maxBytes`: 4 MiB for a background). */
+export const PNG_MAX_BYTES = pictureKindSpec(DEFAULT_PICTURE_KIND).maxBytes;
+/** The largest SVG a drawing of the default kind returns (the sanitiser's limit; a kind's `svgMaxBytes`). */
+export const SVG_MAX_BYTES = pictureKindSpec(DEFAULT_PICTURE_KIND).svgMaxBytes;
 
 export type PictureProblem =
   /** Not a PNG or JPEG by its first bytes (SVG, GIF, WebP, HEIC, anything else). */
@@ -37,7 +47,7 @@ export type PictureProblem =
   | "too_many_pixels"
   /** The browser could not decode it. */
   | "unreadable"
-  /** The 256x256 PNG is over 512 KiB. */
+  /** The stored PNG would be over the kind's limit (512 KiB; 4 MiB for a background). */
   | "too_detailed"
   /** The browser would not turn the canvas into a PNG (canvas.toBlob failed): use Chrome. */
   | "no_canvas";
@@ -109,22 +119,30 @@ export function declaredSize(bytes: Uint8Array): { width: number; height: number
 
 export type Box = { readonly x: number; readonly y: number; readonly width: number; readonly height: number };
 
-/** How a picture goes on the square: `contain` keeps all of it (see-through bars where it isn't square); `cover`
- * fills the square and cuts off what sticks out. */
+/** How a picture goes on the canvas: `contain` keeps all of it (see-through bars where its shape differs); `cover`
+ * fills the canvas and cuts off what sticks out. */
 export type Fit = "contain" | "cover";
 
-/** The fit for a kind: cover for an activity scene (it fills the square), contain for everything else. */
+/** The fit for a kind: cover for an activity scene and a background (they fill their canvas), contain otherwise. */
 export function fitFor(kind: PictureKindId): Fit {
-  return kind === "activity-scene" ? "cover" : "contain";
+  return kind === "activity-scene" || kind === "background" ? "cover" : "contain";
 }
 
-/** Where a `width` x `height` picture goes on the square canvas, aspect kept and centred: as large as fits (contain),
- * or as small as fills it (cover; the box then starts left of or above the canvas and the canvas cuts it). */
-export function fitBox(width: number, height: number, size = PICTURE_SIZE, fit: Fit = "contain"): Box {
-  const scale = fit === "cover" ? Math.max(size / width, size / height) : Math.min(size / width, size / height);
+/** Where a `width` x `height` picture goes on the canvas (a square side, or a width and height), aspect kept and
+ * centred: as large as fits (contain), or as small as fills it (cover; the box then starts left of or above the
+ * canvas and the canvas cuts it). */
+export function fitBox(width: number, height: number, canvas: number | Canvas = PICTURE_SIZE, fit: Fit = "contain"): Box {
+  const { width: cw, height: ch } = typeof canvas === "number" ? { width: canvas, height: canvas } : canvas;
+  const scale = fit === "cover" ? Math.max(cw / width, ch / height) : Math.min(cw / width, ch / height);
   const w = Math.max(1, Math.round(width * scale));
   const h = Math.max(1, Math.round(height * scale));
-  return { x: Math.floor((size - w) / 2), y: Math.floor((size - h) / 2), width: w, height: h };
+  return { x: Math.floor((cw - w) / 2), y: Math.floor((ch - h) / 2), width: w, height: h };
+}
+
+/** The size to show a kind's picture at on the admin page: 256 square, or 480 wide for a background (its shape). */
+export function previewSize(kind: PictureKindId): Canvas {
+  const { width, height } = canvasFor(kind);
+  return width === height ? { width: 256, height: 256 } : { width: 480, height: Math.round((480 * height) / width) };
 }
 
 /** A decoded picture ready to draw. `close` frees it (an ImageBitmap, or a blob: URL). */
@@ -136,8 +154,9 @@ export type ImageTools = {
   decodeFile(file: Blob): Promise<Drawable>;
   /** Loads an SVG through an <img> (never into the page). */
   decodeSvg(svg: string): Promise<Drawable>;
-  /** Draws onto a transparent PICTURE_SIZE square canvas in `box` and returns the PNG, or null when toBlob fails. */
-  toPng(picture: Drawable, box: Box): Promise<Blob | null>;
+  /** Draws onto a transparent canvas of `canvas` size (default the 256 square) in `box` and returns the PNG, or null
+   * when toBlob fails. */
+  toPng(picture: Drawable, box: Box, canvas?: Canvas): Promise<Blob | null>;
   /** A blob: URL to show a PNG in an <img> (CSP img-src allows blob:). */
   preview(png: Blob): string;
   release(url: string): void;
@@ -170,13 +189,13 @@ export const browserTools: ImageTools = {
       throw error;
     }
   },
-  async toPng(picture, box) {
+  async toPng(picture, box, size = { width: PICTURE_SIZE, height: PICTURE_SIZE }) {
     const canvas = document.createElement("canvas");
-    canvas.width = PICTURE_SIZE;
-    canvas.height = PICTURE_SIZE;
+    canvas.width = size.width;
+    canvas.height = size.height;
     const context = canvas.getContext("2d");
     if (context === null) return null;
-    context.clearRect(0, 0, PICTURE_SIZE, PICTURE_SIZE);
+    context.clearRect(0, 0, size.width, size.height);
     context.imageSmoothingEnabled = true;
     context.imageSmoothingQuality = "high";
     context.drawImage(picture.source, box.x, box.y, box.width, box.height);
@@ -190,21 +209,22 @@ export const browserTools: ImageTools = {
   release: (url) => URL.revokeObjectURL(url),
 };
 
-async function draw(picture: Drawable, tools: ImageTools, fit: Fit): Promise<Blob> {
+async function draw(picture: Drawable, tools: ImageTools, kind: PictureKindId): Promise<Blob> {
   try {
     if (picture.width > MAX_SIDE || picture.height > MAX_SIDE) throw new PictureError("too_many_pixels");
     if (picture.width < 1 || picture.height < 1) throw new PictureError("unreadable");
-    const png = await tools.toPng(picture, fitBox(picture.width, picture.height, PICTURE_SIZE, fit));
+    const canvas = canvasFor(kind);
+    const png = await tools.toPng(picture, fitBox(picture.width, picture.height, canvas, fitFor(kind)), canvas);
     if (png === null) throw new PictureError("no_canvas");
-    if (png.size > PNG_MAX_BYTES) throw new PictureError("too_detailed");
+    if (png.size > pictureKindSpec(kind).maxBytes) throw new PictureError("too_detailed");
     return png;
   } finally {
     picture.close();
   }
 }
 
-/** An uploaded file as a library PNG, or a PictureError saying why not. */
-export async function normaliseUpload(file: Blob, tools: ImageTools = browserTools, fit: Fit = "contain"): Promise<Blob> {
+/** An uploaded file as a library PNG of `kind` (its size and fit), or a PictureError saying why not. */
+export async function normaliseUpload(file: Blob, tools: ImageTools = browserTools, kind: PictureKindId = DEFAULT_PICTURE_KIND): Promise<Blob> {
   const head = new Uint8Array(await file.slice(0, 12).arrayBuffer());
   if (sniff(head) === null) throw new PictureError("not_png_or_jpeg");
   if (file.size > UPLOAD_MAX_BYTES) throw new PictureError("file_too_big");
@@ -216,19 +236,19 @@ export async function normaliseUpload(file: Blob, tools: ImageTools = browserToo
   } catch {
     throw new PictureError("unreadable");
   }
-  return draw(picture, tools, fit);
+  return draw(picture, tools, kind);
 }
 
-/** Claude's (sanitised) SVG as a library PNG, or a PictureError saying why not. */
-export async function renderSvg(svg: string, tools: ImageTools = browserTools, fit: Fit = "contain"): Promise<Blob> {
-  if (new TextEncoder().encode(svg).length > SVG_MAX_BYTES || !/^\s*<svg[\s>]/u.test(svg)) throw new PictureError("unreadable");
+/** Claude's (sanitised) SVG as a library PNG of `kind`, or a PictureError saying why not. */
+export async function renderSvg(svg: string, tools: ImageTools = browserTools, kind: PictureKindId = DEFAULT_PICTURE_KIND): Promise<Blob> {
+  if (new TextEncoder().encode(svg).length > pictureKindSpec(kind).svgMaxBytes || !/^\s*<svg[\s>]/u.test(svg)) throw new PictureError("unreadable");
   let picture: Drawable;
   try {
     picture = await tools.decodeSvg(svg);
   } catch {
     throw new PictureError("unreadable");
   }
-  return draw(picture, tools, fit);
+  return draw(picture, tools, kind);
 }
 
 /** A blob's bytes as base64 (no data: prefix), for R34's `pngBase64`. */

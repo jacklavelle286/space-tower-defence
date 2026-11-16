@@ -1,7 +1,7 @@
 // The words the operator reads on the Pictures page: usage, caps, failed drawings, refusals, and the poll timing.
 import { describe, expect, it } from "vitest";
 import { ApiError } from "../api";
-import { capMessage, capPeriod, capReached, capsFromError, clock, descriptionOk, drawingOff, jobFailureMessage, pictureError, pollDelay, tidyText, usageText } from "./messages";
+import { capMessage, capPeriod, capReached, capsFromError, clock, descriptionOk, drawingOff, jobFailureMessage, pictureError, pollDelay, tidyText, usageText, weightMessage } from "./messages";
 
 const usage = (usedToday: number, usedMonth: number, dailyCap = 100, monthlyCap = 150) => ({ usedToday, dailyCap, usedMonth, monthlyCap });
 
@@ -13,6 +13,15 @@ describe("picture messages", () => {
     expect(capReached(usage(5, 150))).toBe("month");
     expect(capMessage("day", usage(100, 120))).toBe("You've drawn 100 pictures today. You can draw more tomorrow.");
     expect(capMessage("month", usage(3, 150))).toBe("You've drawn 150 pictures this month. You can draw more next month.");
+  });
+
+  it("checks a heavier kind's weight against what is left (a background takes 3 places)", () => {
+    expect(capReached(usage(97, 10), 3)).toBeNull(); // exactly fills the day
+    expect(capReached(usage(98, 10), 3)).toBe("day");
+    expect(capReached(usage(98, 10))).toBeNull(); // a lighter kind still fits
+    expect(capReached(usage(5, 148), 3)).toBe("month");
+    expect(weightMessage("day", 3)).toBe("This kind counts as 3 drawings, and fewer than 3 are left today. Choose another kind, or draw it tomorrow.");
+    expect(weightMessage("month", 3)).toMatch(/left this month\. Choose another kind, or draw it next month\.$/u);
   });
 
   it("says drawing is switched off when either cap is 0", () => {

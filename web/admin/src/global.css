@@ -1414,9 +1414,17 @@ button.picture-none {
   width: 256px;
   height: 256px;
   max-width: 100%;
+  object-fit: contain; /* a background (1920x1056) keeps its shape; see previewSize */
   border: var(--outline);
   border-radius: var(--radius);
   background: repeating-conic-gradient(#ece6d6 0% 25%, #ffffff 0% 50%) 50% / 16px 16px;
+}
+
+/* previewSize gives a background 480 x 264: keep that shape instead of the 256 square. */
+img.picture-preview[width="480"] {
+  width: 480px;
+  height: auto;
+  aspect-ratio: 1920 / 1056;
 }
 
 .job-cards {

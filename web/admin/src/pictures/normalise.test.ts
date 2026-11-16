@@ -1,14 +1,15 @@
 // The upload normaliser and the SVG renderer, with a fake canvas: the first bytes decide the type (an SVG or GIF named
 // .png is refused), the 5 MB and 4096 px limits, the letterbox, the 512 KiB PNG limit, and "Use Chrome" when toBlob
-// fails. Plus the base64 round trip and the starting names. Gate P2: an activity scene is cover-fitted, every other
-// kind contain-fitted.
-import { LIMITS, PICTURE_KINDS } from "@scd/shared";
+// fails. Plus the base64 round trip and the starting names. Gate P2: an activity scene and a background are
+// cover-fitted, every other kind contain-fitted; a background is 1920x1056 with its own byte limits.
+import { LIMITS, PICTURE_KINDS, pictureKindSpec } from "@scd/shared";
 import { describe, expect, it } from "vitest";
 import { fileWith, FakeImages, JPEG_MAGIC, PNG_MAGIC } from "../testing/images";
 import {
   base64ToBlob,
   declaredSize,
   blobToBase64,
+  canvasFor,
   fitBox,
   fitFor,
   nameFromDescription,
@@ -17,6 +18,7 @@ import {
   normaliseUpload,
   PictureError,
   pictureProblemMessage,
+  previewSize,
   renderSvg,
   sniff,
   type PictureProblem,
@@ -89,8 +91,15 @@ describe("fitBox", () => {
     expect(fitBox(10, 10, 256, "cover")).toEqual({ x: 0, y: 0, width: 256, height: 256 });
   });
 
-  it("uses cover for the activity scene only, contain for every other kind", () => {
-    expect(PICTURE_KINDS.filter((k) => fitFor(k.id) === "cover").map((k) => k.id)).toEqual(["activity-scene"]);
+  it("uses cover for the activity scene and the background, contain for every other kind", () => {
+    expect(PICTURE_KINDS.filter((k) => fitFor(k.id) === "cover").map((k) => k.id)).toEqual(["activity-scene", "background"]);
+  });
+
+  it("fits on a non-square canvas (a 1920x1056 background)", () => {
+    const screen = { width: 1920, height: 1056 };
+    expect(fitBox(4000, 3000, screen, "cover")).toEqual({ x: 0, y: -192, width: 1920, height: 1440 });
+    expect(fitBox(4000, 3000, screen, "contain")).toEqual({ x: 256, y: 0, width: 1408, height: 1056 });
+    expect(fitBox(3840, 2112, screen, "cover")).toEqual({ x: 0, y: 0, width: 1920, height: 1056 });
   });
 });
 
@@ -105,10 +114,37 @@ describe("normaliseUpload", () => {
     }
   });
 
-  it("cover-fits when asked (an activity scene)", async () => {
+  it("cover-fits an activity scene", async () => {
     const images = new FakeImages();
-    await normaliseUpload(fileWith(PNG_MAGIC, "beach.png"), images.tools, "cover");
+    await normaliseUpload(fileWith(PNG_MAGIC, "beach.png"), images.tools, "activity-scene");
     expect(images.drawn[0]?.box).toEqual({ x: -128, y: 0, width: 512, height: 256 });
+    expect(images.drawn[0]?.canvas).toEqual({ width: 256, height: 256 });
+  });
+
+  it("draws a background on a 1920x1056 canvas, cover-fitted, and allows its 4 MiB", async () => {
+    const images = new FakeImages();
+    images.size = { width: 4000, height: 3000 };
+    images.pngBytes = 3_000_000; // over a 256 kind's 512 KiB, under the background's 4 MiB
+    expect(await problemOf(normaliseUpload(fileWith(JPEG_MAGIC, "moon.jpg"), images.tools, "background"))).toBe("ok");
+    expect(images.drawn[0]).toEqual({ what: `file:64`, box: { x: 0, y: -192, width: 1920, height: 1440 }, canvas: { width: 1920, height: 1056 } });
+    expect(await problemOf(normaliseUpload(fileWith(JPEG_MAGIC, "moon.jpg"), images.tools, "avatar"))).toBe("too_detailed");
+    images.pngBytes = pictureKindSpec("background").maxBytes + 1;
+    expect(await problemOf(normaliseUpload(fileWith(JPEG_MAGIC, "moon.jpg"), images.tools, "background"))).toBe("too_detailed");
+  });
+
+  it("takes every kind's size and limits from the contract (256 kinds unchanged)", () => {
+    for (const k of PICTURE_KINDS) {
+      const spec = pictureKindSpec(k.id);
+      expect(canvasFor(k.id)).toEqual({ width: k.width, height: k.height });
+      if (k.id === "background") {
+        expect(spec).toEqual({ width: 1920, height: 1056, svgMaxBytes: 196_608, maxBytes: 4_194_304, bodyMaxBytes: 5_600_000, capWeight: 3 });
+        expect(previewSize(k.id)).toEqual({ width: 480, height: 264 });
+      } else {
+        expect(spec).toEqual({ width: 256, height: 256, svgMaxBytes: 65_536, maxBytes: 524_288, bodyMaxBytes: 786_432, capWeight: 1 });
+        expect(previewSize(k.id)).toEqual({ width: 256, height: 256 });
+      }
+    }
+    expect(LIMITS.bodyMaxBytes.adminPicture).toBe(Math.max(...PICTURE_KINDS.map((k) => k.bodyMaxBytes)));
   });
 
   it("refuses SVG, GIF and anything else by its bytes, whatever the name, before decoding", async () => {
@@ -137,7 +173,7 @@ describe("normaliseUpload", () => {
 
   it("refuses a PNG over 512 KiB as too detailed", async () => {
     const images = new FakeImages();
-    images.pngBytes = LIMITS.picture.maxBytes + 1;
+    images.pngBytes = pictureKindSpec("activity-object").maxBytes + 1;
     expect(await problemOf(normaliseUpload(fileWith(PNG_MAGIC, "busy.png"), images.tools))).toBe("too_detailed");
   });
 
@@ -158,6 +194,16 @@ describe("renderSvg", () => {
     expect(png.type).toBe("image/png");
     expect(images.decodedSvgs).toEqual([svg]);
     expect(images.drawn[0]?.box).toEqual({ x: 0, y: 0, width: 256, height: 256 });
+  });
+
+  it("draws a background drawing at 1920x1056 and allows its bigger SVG", async () => {
+    const images = new FakeImages();
+    images.svgSize = { width: 1920, height: 1056 };
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3840 2112" width="1920" height="1056">${" ".repeat(100_000)}</svg>`;
+    expect(await problemOf(renderSvg(svg, images.tools, "background"))).toBe("ok");
+    expect(images.drawn[0]?.box).toEqual({ x: 0, y: 0, width: 1920, height: 1056 });
+    expect(images.drawn[0]?.canvas).toEqual({ width: 1920, height: 1056 });
+    expect(await problemOf(renderSvg(svg, images.tools, "decoration"))).toBe("unreadable"); // over a 256 kind's 64 KiB
   });
 
   it("refuses something that is not an SVG, or over 64 KB, and says Use Chrome when toBlob fails", async () => {

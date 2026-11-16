@@ -2,7 +2,8 @@
 // so "Draw it" stays off until one is chosen) and describes it; R38 starts a drawing job (it counts toward the daily
 // and monthly caps), and a card follows it by asking R39 every 3 s (every 5 s after the first minute): "Waiting to
 // start", "Claude is thinking… 0:42", "Drawing… 1:20". When the job is READY the card turns Claude's SVG (sanitised by
-// the worker and again by admin-api) into a 256x256 PNG through an <img> and a canvas, never by putting the SVG into
+// the worker and again by admin-api) into a PNG of the kind's size (256x256; 1920x1056 for a background) through an
+// <img> and a canvas, never by putting the SVG into
 // the page, and shows it. From there: Approve (needs the "no letters, numbers or words" tick; one click sends R34
 // with approve), Save as draft, Try again, Try again with a change ("What should change?"), or Discard.
 //
@@ -16,13 +17,13 @@
 // Screen readers: each card's live region announces only changes of step ("Waiting to start", "Claude is thinking…",
 // "Drawing…", the outcome); the running clock sits outside it, so it is not read out every few seconds. Focus moves
 // to what replaced a control that went away: the saved message, the next card, or the description box.
-import { LIMITS, pictureKindLabel, pictureKindOf, type PictureKindId } from "@scd/shared";
+import { LIMITS, pictureKindLabel, pictureKindOf, pictureKindSpec, type PictureKindId } from "@scd/shared";
 import { useEffect, useId, useRef, useState } from "react";
 import { ApiError, describeError, type AdminApi, type NewPictureJob, type OpenPictureJob, type PictureJobStarted, type PictureUsage } from "../api";
 import { discardedJobs, rememberDiscarded } from "./dismissed";
-import { capMessage, capPeriod, capReached, capsFromError, clock, descriptionOk, drawingOff, jobFailureMessage, pictureError, pollDelay, tidyText, usageText } from "./messages";
+import { capMessage, capPeriod, capReached, capsFromError, clock, descriptionOk, drawingOff, jobFailureMessage, pictureError, pollDelay, tidyText, usageText, weightMessage } from "./messages";
 import { KindSelect } from "./KindSelect";
-import { blobToBase64, browserTools, fitFor, nameFromDescription, nameOk, NAME_MAX, PictureError, pictureProblemMessage, renderSvg, type ImageTools } from "./normalise";
+import { blobToBase64, browserTools, nameFromDescription, nameOk, NAME_MAX, PictureError, pictureProblemMessage, previewSize, renderSvg, type ImageTools } from "./normalise";
 import { TextFreeTick } from "./TextFreeTick";
 
 export const DESCRIPTION_MIN = LIMITS.picture.descriptionMinLength;
@@ -91,6 +92,9 @@ export function DrawPicture({ api, usage, openJobs, onUsage, onChanged, tools = 
 
   const off = drawingOff(usage);
   const reached = capReached(usage);
+  // A background takes 3 places in each cap (R38, Gate P2): it may not fit although lighter kinds still do.
+  const weight = kind === "" ? 1 : pictureKindSpec(kind).capWeight;
+  const noRoom = reached === null ? capReached(usage, weight) : null;
   const tidy = tidyText(description);
   const good = descriptionOk(tidy, DESCRIPTION_MIN, DESCRIPTION_MAX) && kind !== "";
 
@@ -106,7 +110,7 @@ export function DrawPicture({ api, usage, openJobs, onUsage, onChanged, tools = 
   });
 
   function draw() {
-    if (!good || off || reached !== null) return; // good includes a chosen kind
+    if (!good || off || reached !== null || noRoom !== null) return; // good includes a chosen kind
     setCards((all) => [start(tidy, kind), ...all]);
     setDescription("");
   }
@@ -131,11 +135,13 @@ export function DrawPicture({ api, usage, openJobs, onUsage, onChanged, tools = 
       </p>
       {usage !== null && <p className="usage">{usageText(usage)}</p>}
       {(off || reached !== null) && <p className="notice">{capMessage(reached, usage)}</p>}
+      {!off && noRoom !== null && <p className="notice">{weightMessage(noRoom, weight)}</p>}
       <p className="field">
         <label htmlFor={`${descriptionId}-kind`}>What kind of picture should Claude draw?</label>
         <KindSelect id={`${descriptionId}-kind`} value={kind} onChange={setKind} first="Choose a kind of picture…" describedBy={`${descriptionId}-kind-hint`} />
         <small id={`${descriptionId}-kind-hint`} className="muted">
           Claude draws each kind differently. Only the kinds under “Use in activities” can go in an activity.
+          {weight > 1 && ` This kind counts as ${weight} drawings in the daily and monthly limits.`}
         </small>
       </p>
       <p className="field">
@@ -155,7 +161,7 @@ export function DrawPicture({ api, usage, openJobs, onUsage, onChanged, tools = 
         </small>
       </p>
       <p className="actions">
-        <button type="button" className="primary" disabled={!good || off || reached !== null} onClick={draw}>
+        <button type="button" className="primary" disabled={!good || off || reached !== null || noRoom !== null} onClick={draw}>
           Draw it
         </button>
       </p>
@@ -274,7 +280,7 @@ function JobCard({ api, spec, tools, delay, onUsage, onChanged, onDiscard, onRet
         case "READY": {
           set({ step: "rendering" });
           try {
-            const png = await renderSvg(job.svg, tools, fitFor(spec.kind));
+            const png = await renderSvg(job.svg, tools, spec.kind);
             if (!live) return;
             set({ step: "ready", png, url: tools.preview(png), warnings: job.warnings ?? [] });
           } catch (problem) {
@@ -413,7 +419,7 @@ function JobCard({ api, spec, tools, delay, onUsage, onChanged, onDiscard, onRet
       )}
       {status.step === "ready" && (
         <div className="picture-review">
-          <img className="picture-preview" src={status.url} alt={`Claude's drawing of ${spec.description}`} width={256} height={256} />
+          <img className="picture-preview" src={status.url} alt={`Claude's drawing of ${spec.description}`} {...previewSize(spec.kind)} />
           <div className="picture-review-form">
             {status.warnings.length > 0 && <p className="muted">Notes: {status.warnings.join("; ")}</p>}
             <p className="field">

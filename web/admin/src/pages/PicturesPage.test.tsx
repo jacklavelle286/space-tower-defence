@@ -96,7 +96,7 @@ describe("Upload", () => {
     const groups = [...select.querySelectorAll("optgroup")].map((g) => [g.label, [...g.querySelectorAll("option")].map((o) => o.value)]);
     expect(groups).toEqual([
       ["Use in activities", ["activity-object", "activity-scene"]],
-      ["For later (not used in the game yet)", ["avatar", "alien", "astronaut", "decoration", "planet", "badge"]],
+      ["For later (not used in the game yet)", ["avatar", "alien", "astronaut", "decoration", "planet", "badge", "background"]],
     ]);
     pick(fileWith(PNG_MAGIC, "moon.png")); // the fake decodes it as 512 x 256
     await screen.findByRole("img", { name: "The picture as it will be stored" });
@@ -116,6 +116,21 @@ describe("Upload", () => {
     expect(fake.callsNamed("createPicture").map((c) => c.args[0])).toEqual([{ name: "moon", source: "UPLOAD", kind: "avatar", pngBase64: "(png)", approve: false, textFree: false }]);
   });
 
+  it("makes a background 1920 by 1056, cover-fitted, and shows it in its own shape", async () => {
+    await openPage("upload");
+    const select = screen.getByLabelText("What is this picture for?") as HTMLSelectElement;
+    fireEvent.change(select, { target: { value: "background" } });
+    expect(screen.getByText(/made 1920 by 1056 pixels/u)).toBeTruthy();
+    expect(screen.getByText(/fills the whole game screen/u)).toBeTruthy();
+    pick(fileWith(PNG_MAGIC, "moon.png")); // 512 x 256: wider than 1920:1056, so the sides are cut off
+    const preview = (await screen.findByRole("img", { name: "The picture as it will be stored" })) as HTMLImageElement;
+    expect(images.drawn.at(-1)).toEqual({ what: "file:64", box: { x: -96, y: 0, width: 2112, height: 1056 }, canvas: { width: 1920, height: 1056 } });
+    expect([preview.width, preview.height]).toEqual([480, 264]);
+    fireEvent.change(select, { target: { value: "activity-scene" } }); // cover too, but a different canvas
+    await waitFor(() => expect(images.drawn).toHaveLength(2));
+    expect(images.drawn.at(-1)?.canvas).toEqual({ width: 256, height: 256 });
+  });
+
   it("says Use Chrome when the browser can't make the PNG", async () => {
     images.failToBlob = true;
     await openPage("upload");
@@ -130,6 +145,26 @@ describe("Draw with Claude", () => {
     fireEvent.change(screen.getByLabelText("What should Claude draw?"), { target: { value: text } });
     fireEvent.click(screen.getByRole("button", { name: "Draw it" }));
   }
+
+  it("counts a background as 3 drawings, and stops one that no longer fits while other kinds still can", async () => {
+    fake.usage = { usedToday: 97, dailyCap: 100, usedMonth: 10, monthlyCap: 150 };
+    await openPage("draw");
+    fireEvent.change(screen.getByLabelText("What kind of picture should Claude draw?"), { target: { value: "background" } });
+    expect(screen.getByText(/This kind counts as 3 drawings in the daily and monthly limits\./u)).toBeTruthy();
+    describeDrawing("a quiet crater field", "background");
+    expect(await screen.findByRole("article", { name: "Drawing: a quiet crater field" })).toBeTruthy();
+    expect(screen.getAllByText(/0 of 100 left today/u).length).toBeGreaterThan(0);
+    fake.usage = { usedToday: 98, dailyCap: 100, usedMonth: 13, monthlyCap: 150 };
+    cleanup();
+    await openPage("draw");
+    fireEvent.change(screen.getByLabelText("What kind of picture should Claude draw?"), { target: { value: "background" } });
+    fireEvent.change(screen.getByLabelText("What should Claude draw?"), { target: { value: "a quiet crater field" } });
+    expect(screen.getByText(/fewer than 3 are left today/u)).toBeTruthy();
+    expect((screen.getByRole("button", { name: "Draw it" }) as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.change(screen.getByLabelText("What kind of picture should Claude draw?"), { target: { value: "planet" } });
+    expect(screen.queryByText(/fewer than 3 are left/u)).toBeNull();
+    expect((screen.getByRole("button", { name: "Draw it" }) as HTMLButtonElement).disabled).toBe(false);
+  });
 
   it("shows the usage, starts a job with a client job ID, and follows it to a picture", async () => {
     fake.usage = { usedToday: 3, dailyCap: 100, usedMonth: 10, monthlyCap: 150 };

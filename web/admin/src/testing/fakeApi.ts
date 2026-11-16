@@ -2,7 +2,7 @@
 // draftRevision -> 409 DRAFT_CONFLICT; publish needs every checklist line and the preview-solve of this revision).
 // Validation answers with `problems`, which a test sets: the real checks are admin-api's, and the shared fixtures
 // (contracts/fixtures/activities/) prove the editor's drafts pass them. Every call is recorded. Example IDs only.
-import { isPictureKind, pictureKindOf, type PictureKindId } from "@scd/shared";
+import { isPictureKind, pictureKindOf, pictureKindSpec, type PictureKindId } from "@scd/shared";
 import {
   ApiError,
   type ActivitySummary,
@@ -323,17 +323,18 @@ export class FakeAdminApi {
       if (!isPictureKind(kind)) throw new ApiError(400, "VALIDATION_FAILED", [{ field: "kind", rule: "unknown_kind" }]);
       if (!this.startedJobs.has(body.jobId)) {
         const off = this.usage.drawingOn === false || this.usage.dailyCap <= 0 || this.usage.monthlyCap <= 0;
-        if (off || this.usage.usedMonth >= this.usage.monthlyCap || this.usage.usedToday >= this.usage.dailyCap) {
+        const weight = pictureKindSpec(kind).capWeight; // a background takes 3 places (R38, Gate P2)
+        if (off || this.usage.usedMonth + weight > this.usage.monthlyCap || this.usage.usedToday + weight > this.usage.dailyCap) {
           // admin-api's 429 details (api/shared/picture_admin.py): "off" when a cap is 0 or no queue is set up (R33
           // drawingOn false), else the period and resetsAt (the month when both caps are full).
           const { dailyCap, monthlyCap } = this.usage;
           if (off) throw new ApiError(429, "PICTURE_CAP_REACHED", [], { period: "off", dailyCap, monthlyCap });
-          const period = this.usage.usedMonth >= monthlyCap ? "month" : "day";
+          const period = this.usage.usedMonth + weight > monthlyCap ? "month" : "day";
           throw new ApiError(429, "PICTURE_CAP_REACHED", [], { period, resetsAt: "2026-11-17T00:00:00Z", dailyCap, monthlyCap });
         }
         this.startedJobs.add(body.jobId);
         this.jobKinds.set(body.jobId, kind);
-        this.usage = { ...this.usage, usedToday: this.usage.usedToday + 1, usedMonth: this.usage.usedMonth + 1 };
+        this.usage = { ...this.usage, usedToday: this.usage.usedToday + weight, usedMonth: this.usage.usedMonth + weight };
         const script = this.nextJobScripts.shift();
         if (script !== undefined && !this.jobScripts.has(body.jobId)) this.jobScripts.set(body.jobId, script);
       }

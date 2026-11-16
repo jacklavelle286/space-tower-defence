@@ -5,7 +5,8 @@ import { ApiError, describeError, type PictureUsage } from "../api";
 
 const RULES: Readonly<Record<string, string>> = {
   not_png: "The picture couldn't be read as a PNG. Try again in Chrome.",
-  png_shape: "The picture wasn't a 256 by 256 PNG. Try again in Chrome.",
+  png_shape: "The picture wasn't the right size for its kind (256 by 256, or 1920 by 1056 for a background). Try again in Chrome.",
+  too_detailed: "Picture too detailed: it can't be stored. Try a simpler picture.",
   blank: "The picture is empty (completely see-through). Try another picture.",
   not_text_free: 'Tick "No letters, numbers or words in this picture" first.',
   picture_not_approved: "This picture isn't approved yet.",
@@ -35,12 +36,18 @@ export function drawingOff(usage: PictureCaps | null): boolean {
   return usage !== null && (usage.drawingOn === false || usage.dailyCap <= 0 || usage.monthlyCap <= 0);
 }
 
-/** Which cap is used up, if any. */
-export function capReached(usage: PictureUsage | null): "day" | "month" | null {
+/** Which cap has no room for one more drawing of `weight` places (R38: 1, or a heavier kind's capWeight), if any. */
+export function capReached(usage: PictureUsage | null, weight = 1): "day" | "month" | null {
   if (usage === null) return null;
-  if (usage.usedMonth >= usage.monthlyCap) return "month";
-  if (usage.usedToday >= usage.dailyCap) return "day";
+  if (usage.usedMonth + weight > usage.monthlyCap) return "month";
+  if (usage.usedToday + weight > usage.dailyCap) return "day";
   return null;
+}
+
+/** The words for a heavier kind that no longer fits although the caps still have room for others. */
+export function weightMessage(period: "day" | "month", weight: number): string {
+  const when = period === "month" ? "this month" : "today";
+  return `This kind counts as ${weight} drawings, and fewer than ${weight} are left ${when}. Choose another kind, or draw it ${period === "month" ? "next month" : "tomorrow"}.`;
 }
 
 /** "17 of 100 left today · 140 of 150 left this month". */
