@@ -77,7 +77,7 @@ from shared.activity_types import (
     check_payload,
 )
 from shared.clipkey import KINDS, PROVIDER
-from shared.pictures import PIC_PK, library_asset_ids
+from shared.pictures import ACTIVITY_KINDS, PIC_PK, kind_of, library_asset_ids
 from shared.pictures import PUBLISH_REFS as PICTURE_PUBLISH_REFS
 from shared.png_canon import PICTURE_ID
 from shared.rules.contracts import LIMITS
@@ -498,8 +498,10 @@ def _asset_problems(
 
     Library pictures (Gate P): an ID `lib-` + 32 hex characters is not in the repository manifest; it names a picture
     header in the content table (shared/pictures.py). With `library` (validate and publish read the headers, see
-    `publish_checks`) each one must exist (`unknown_asset`), be APPROVED (`picture_not_approved`) and be flagged
-    text-free (`not_text_free`). Without it (a seed, a fixture, no table) only the ID's form is checked."""
+    `publish_checks`) each one must exist (`unknown_asset`), be APPROVED (`picture_not_approved`), be flagged
+    text-free (`not_text_free`) and be of a kind made for activities (`picture_not_for_activities`: an avatar, an
+    alien or another "later" kind is refused; Gate P2). Without it (a seed, a fixture, no table) only the ID's form
+    is checked."""
     manifest = asset_manifest()
     problems: list[Problem] = []
     used: dict[str, str] = {}
@@ -542,6 +544,8 @@ def _library_rule(library: Mapping[str, Mapping[str, Any]] | None, picture_id: s
         return "picture_not_approved"
     if header.get("textFree") is not True:
         return "not_text_free"
+    if kind_of(header) not in ACTIVITY_KINDS:
+        return "picture_not_for_activities"
     return None
 
 
@@ -985,7 +989,8 @@ def publish_actions(
 
     Library pictures (Gate P) get the same guard: each picture header the definition names gains 1 on its own
     `publishRefs`, conditioned on it still being APPROVED and text-free, so R37 (picture delete) cannot remove a
-    picture a publish is committing, and a picture deleted or never approved refuses the publish."""
+    picture a publish is committing, and a picture deleted or never approved refuses the publish. A picture's kind
+    never changes after it is created, so `publish_checks` alone refuses a kind not made for activities."""
     definition = definition_for_publish(draft["definition"])  # registry curriculum when the draft has none
     domain_size = template_report(definition).domain_size if definition.get("authoringMode") == "TEMPLATE" else None
     vid = version_id(moment)

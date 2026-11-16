@@ -7,6 +7,7 @@ dependencies from PyPI) twice and compares the hashes.
 from __future__ import annotations
 
 import importlib.util
+import json
 import os
 import shutil
 import stat
@@ -115,6 +116,18 @@ def test_real_functions_build_twice_to_the_same_hashes(tmp_path: Path) -> None:
         names = archive.namelist()
     assert sorted(n for n in names if n.startswith("art/")) == sorted(build_lambdas.FUNCTION_FILES["picture_gen"])
     assert "handler.py" in names and not any(n.startswith("content/") for n in names)
+    # Gate P2: one prompt file per picture kind in contracts/limits.json, at kinds/<kind>.md beside handler.py.
+    kinds = [k["id"] for k in json.loads((REPO / "contracts" / "limits.json").read_text())["picture"]["kinds"]]
+    assert sorted(n for n in names if n.startswith("kinds/")) == sorted(f"kinds/{kind}.md" for kind in kinds)
+
+
+def test_every_picture_gen_prompt_file_exists() -> None:
+    """Every bundled example drawing and every kind file is in the repository, so the build cannot miss one."""
+    for relative in build_lambdas.FUNCTION_FILES["picture_gen"]:
+        assert (REPO / relative).is_file(), relative
+    kinds = [k["id"] for k in json.loads((REPO / "contracts" / "limits.json").read_text())["picture"]["kinds"]]
+    for kind in kinds:
+        assert (REPO / "api" / "functions" / "picture_gen" / "kinds" / f"{kind}.md").is_file(), kind
 
 
 def test_function_files_are_required(tmp_path: Path) -> None:
@@ -151,6 +164,14 @@ def test_each_zip_imports_with_the_lambda_layout(tmp_path: Path) -> None:
             f"assert v.verdicts_path() in (None, __import__('pathlib').Path({str(root)!r}) / 'content' / "
             "'listening-verdicts.json'), v.verdicts_path()"
         )
+        if Path(zip_path).stem == "picture-gen":
+            # Gate P2: every kind's system blocks build from the zip root alone (kinds/*.md and the examples).
+            probe += (
+                "; kinds = [k['id'] for k in c.LIMITS['picture']['kinds']]; "
+                "blocks = [handler.system_blocks(k) for k in kinds]; "
+                "assert all(b[2]['text'].startswith('<picture-kind id=') for b in blocks); "
+                f"assert all(handler._prompt_file(handler.kind_file(k)).is_relative_to({str(root)!r}) for k in kinds)"
+            )
         result = subprocess.run(  # noqa: S603 - fixed arguments, no shell
             [sys.executable, "-I", "-c", probe], cwd=tmp_path, capture_output=True, text=True, check=False
         )

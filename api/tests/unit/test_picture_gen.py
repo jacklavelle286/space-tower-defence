@@ -1,14 +1,16 @@
 """picture-gen (Gate P, Phase 42b) with a fake Bedrock client on moto S3. Bedrock is never called.
 
-The request shape is the design's: the model ID from configuration, three fixed system blocks with the cache
-breakpoint on the last, max_tokens 16000, adaptive thinking, and no sampling parameters. Every failure becomes
-`error.json` with nothing raised (a paid call is never redelivered); a claimed job is never drawn twice; the usage log
-line holds token counts and no prompt text.
+The request shape is the design's: the model ID from configuration, three fixed system blocks (kind-neutral rules,
+the style guide with cache breakpoint 1, the picture kind's block with breakpoint 2; Gate P2), max_tokens 16000,
+adaptive thinking, and no sampling parameters. Every failure becomes `error.json` with nothing raised (a paid call is
+never redelivered); a claimed job is never drawn twice; the usage log line holds token counts and no prompt text.
 """
 
 from __future__ import annotations
 
+import importlib.util
 import json
+import sys
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
@@ -19,6 +21,8 @@ import boto3
 import pytest
 from conftest import CapturedLogger, load_handler
 
+from shared.pictures import KIND_IDS
+from shared.rules.contracts import LIMITS
 from shared.svg_sanitise import sanitise
 
 gen = load_handler("picture_gen")
@@ -163,22 +167,88 @@ def test_the_request_has_the_designed_shape(h: Harness) -> None:
     assert not {"temperature", "top_p", "top_k"} & set(call)
     system = call["system"]
     assert [b["type"] for b in system] == ["text", "text", "text"]
-    assert ["cache_control" in b for b in system] == [False, False, True]
-    assert system[2]["cache_control"] == {"type": "ephemeral"}
+    assert ["cache_control" in b for b in system] == [False, True, True]  # breakpoints 1 and 2
+    assert system[1]["cache_control"] == system[2]["cache_control"] == {"type": "ephemeral"}
     assert system[0]["text"] == gen.RULES
     assert "Moonbeam Colony" in system[1]["text"]  # art/STYLE.md
-    for name in ("pic-cat.svg", "pic-boat.svg", "obj-rocket.svg", "pic-fish.svg"):
+    # No kind in the message (one sent before kinds existed): an activity object, today's behaviour.
+    assert system[2]["text"].startswith('<picture-kind id="activity-object">')
+    for name in ("pic-cat.svg", "pic-boat.svg", "obj-rocket.svg"):
         assert f'<example file="{name}">' in system[2]["text"]
     assert call["messages"] == [{"role": "user", "content": "<request>a friendly yellow sun</request>"}]
 
 
-def test_the_system_prompt_is_stable_bytes() -> None:
+@pytest.mark.parametrize("kind", KIND_IDS)
+def test_the_system_prompt_is_stable_bytes_for_every_kind(kind: str) -> None:
     """Fixed bytes between runs and builds (no time, no IDs, no ordering accidents), so the prompt cache hits."""
-    first = json.dumps(gen.system_blocks(), sort_keys=False)
+    first = json.dumps(gen.system_blocks(kind), sort_keys=False)
     gen.style_text.cache_clear()
-    gen.examples_text.cache_clear()
-    assert json.dumps(gen.system_blocks(), sort_keys=False) == first
+    gen.kind_text.cache_clear()
+    assert json.dumps(gen.system_blocks(kind), sort_keys=False) == first
     assert len(first) > 4 * 512  # comfortably over the 512-token cache minimum
+
+
+def test_every_kind_shares_the_first_two_blocks_and_has_its_own_third() -> None:
+    """Blocks 1-2 (rules, style guide, breakpoint 1) are the same bytes for every kind: one cache entry. Block 3 is
+    the kind's own, with breakpoint 2."""
+    blocks = {kind: gen.system_blocks(kind) for kind in KIND_IDS}
+    shared = blocks["activity-object"][:2]
+    for kind, system in blocks.items():
+        assert system[:2] == shared, kind
+        assert system[1]["cache_control"] == {"type": "ephemeral"}
+        assert system[2]["cache_control"] == {"type": "ephemeral"}
+        assert system[2]["text"].startswith(f'<picture-kind id="{kind}">\n')
+        for relative in gen.KIND_EXAMPLES[kind]:
+            assert f'<example file="{relative.name}">' in system[2]["text"]
+    assert len({system[2]["text"] for system in blocks.values()}) == len(KIND_IDS)
+
+
+def test_the_kinds_are_the_contract_kinds() -> None:
+    assert [k["id"] for k in LIMITS["picture"]["kinds"]] == list(KIND_IDS)
+    assert set(gen.KIND_EXAMPLES) == set(KIND_IDS)
+    for kind in KIND_IDS:
+        assert (gen._HERE / gen.kind_file(kind)).is_file(), kind
+        assert 1 <= len(gen.KIND_EXAMPLES[kind]) <= 3, kind
+
+
+@pytest.mark.parametrize("kind", KIND_IDS)
+def test_each_kind_block_has_its_rules_safety_line_and_small_examples(kind: str) -> None:
+    rules = (gen._HERE / gen.kind_file(kind)).read_text(encoding="utf-8")
+    assert "256 x 256" in rules
+    for word in ("Canvas:", "Anchor:", "Background:", "Outline:"):
+        assert word in rules, (kind, word)
+    safety = (
+        "friendly, never frightening, for ages 5-7; no weapons, blood or gore; "
+        "no letters, numbers or letter-like shapes"
+    )
+    assert safety in rules
+    examples = sum(len((REPO_ROOT / relative).read_bytes()) for relative in gen.KIND_EXAMPLES[kind])
+    assert examples < 12_000, (kind, examples)
+
+
+def test_the_human_cast_rule_is_in_the_avatar_and_astronaut_blocks() -> None:
+    avatar = (gen._HERE / gen.kind_file("avatar")).read_text(encoding="utf-8")
+    astronaut = (gen._HERE / gen.kind_file("astronaut")).read_text(encoding="utf-8")
+    assert "cheerful boys with light skin and short hair" in avatar
+    assert "every human character is a white European man" in astronaut
+
+
+def test_the_core_rules_are_kind_neutral() -> None:
+    """The "one object, centred, no background" rules moved out of the core into the activity-object block."""
+    assert "one object, centred" not in gen.RULES.lower()
+    assert 'viewBox="0 0 256 256"' in gen.RULES and "<svg-refused/>" in gen.RULES and "<request>" in gen.RULES
+    assert "One object, centred" in (gen._HERE / gen.kind_file("activity-object")).read_text(encoding="utf-8")
+
+
+def test_every_kind_example_is_bundled_by_build_lambdas() -> None:
+    spec = importlib.util.spec_from_file_location("build_lambdas_for_test", REPO_ROOT / "scripts" / "build_lambdas.py")
+    assert spec is not None and spec.loader is not None
+    build = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = build
+    spec.loader.exec_module(build)
+    bundled = set(build.FUNCTION_FILES["picture_gen"])
+    wanted = {gen.STYLE_FILE.as_posix(), *(p.as_posix() for paths in gen.KIND_EXAMPLES.values() for p in paths)}
+    assert bundled == wanted
 
 
 def test_the_prompt_roots_survive_the_lambda_layout() -> None:
@@ -191,12 +261,34 @@ def test_the_prompt_roots_survive_the_lambda_layout() -> None:
 
 
 def test_the_prompt_files_load_from_a_zip_root(tmp_path: Path) -> None:
-    """The packaged layout: art/ beside handler.py. Every prompt file resolves inside the zip root."""
-    for relative in (gen.STYLE_FILE, *gen.EXAMPLE_FILES):
+    """The packaged layout: art/ and kinds/ beside handler.py. Every prompt file resolves inside the zip root."""
+    examples = [p for paths in gen.KIND_EXAMPLES.values() for p in paths]
+    for relative in (gen.STYLE_FILE, *examples):
         target = tmp_path / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes((REPO_ROOT / relative).read_bytes())
         assert gen._prompt_file(relative, here=tmp_path) == target
+    for kind in KIND_IDS:
+        target = tmp_path / gen.kind_file(kind)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes((gen._HERE / gen.kind_file(kind)).read_bytes())
+        assert gen._prompt_file(gen.kind_file(kind), here=tmp_path) == target
+
+
+def test_the_prompt_files_load_from_the_lambda_task_root(tmp_path: Path) -> None:
+    """/var/task has only two parents: the kind files and examples resolve from the zip root alone."""
+    task = tmp_path / "task"
+    for relative in [gen.STYLE_FILE, *(p for paths in gen.KIND_EXAMPLES.values() for p in paths)]:
+        (task / relative).parent.mkdir(parents=True, exist_ok=True)
+        (task / relative).write_bytes((REPO_ROOT / relative).read_bytes())
+    for kind in KIND_IDS:
+        (task / gen.kind_file(kind)).parent.mkdir(parents=True, exist_ok=True)
+        (task / gen.kind_file(kind)).write_bytes((gen._HERE / gen.kind_file(kind)).read_bytes())
+    assert gen.prompt_roots(task)[0] == task
+    for kind in KIND_IDS:
+        assert gen._prompt_file(gen.kind_file(kind), here=task) == task / gen.kind_file(kind)
+        for relative in gen.KIND_EXAMPLES[kind]:
+            assert gen._prompt_file(relative, here=task) == task / relative
 
 
 def test_a_good_drawing_is_sanitised_and_stored_with_its_usage(h: Harness) -> None:
@@ -286,6 +378,44 @@ def test_an_sdk_exception_is_an_error_object(h: Harness, error: Exception, code:
     assert h.logger.lines()[-1]["errorType"] == type(error).__name__
 
 
+class PermissionDeniedError(Exception):
+    """Shaped like the SDK's APIStatusError for a Bedrock 403: a status and the response headers."""
+
+    status_code = 403
+
+    def __init__(self, error_type: str) -> None:
+        super().__init__("You don't have access to the model with the specified model ID. secret prompt text")
+        self.response = SimpleNamespace(headers={"x-amzn-ErrorType": error_type})
+
+
+def test_a_refused_call_logs_the_status_and_aws_error_type_but_never_the_message(h: Harness) -> None:
+    """A 2026-11-16 production 403 (model agreement not accepted) could not be explained from the log."""
+    h.bedrock.error = PermissionDeniedError(
+        "AccessDeniedException:http://internal.amazon.com/coral/com.amazon.bedrock/"
+    )
+    h.run()
+    line = h.logger.lines()[-1]
+    seen = (line["code"], line["upstreamStatus"], line["upstreamError"])
+    assert seen == ("bedrock_error", 403, "AccessDeniedException")
+    assert "secret" not in json.dumps(h.logger.lines())
+
+
+@pytest.mark.parametrize("bad", ["Access Denied: x", "x" * 65, "<script>", ""])
+def test_an_odd_error_type_header_is_left_out(h: Harness, bad: str) -> None:
+    h.bedrock.error = PermissionDeniedError(bad)
+    h.run()
+    line = h.logger.lines()[-1]
+    assert line["upstreamStatus"] == 403
+    assert "upstreamError" not in line
+
+
+def test_an_error_without_a_response_logs_no_upstream_fields(h: Harness) -> None:
+    h.bedrock.error = RuntimeError("connection reset")
+    h.run()
+    line = h.logger.lines()[-1]
+    assert "upstreamStatus" not in line and "upstreamError" not in line
+
+
 def test_a_stream_that_breaks_logs_the_tokens_reported_so_far(h: Harness) -> None:
     """Tokens streamed before the break are billed: the usage line (and so the hourly alarm) carries them."""
     h.bedrock.error = RuntimeError("read timeout")
@@ -362,6 +492,39 @@ def test_try_again_sends_the_previous_drawing_and_the_change(h: Harness) -> None
     assert h.bedrock.calls[0]["system"] == gen.system_blocks()
 
 
+def test_a_message_with_a_kind_is_drawn_with_that_kinds_block(h: Harness) -> None:
+    h.run(kind="avatar")
+    [call] = h.bedrock.calls
+    assert call["system"] == gen.system_blocks("avatar")
+    assert '<example file="avatar-07.svg">' in call["system"][2]["text"]
+    assert h.logger.lines()[-1]["kind"] == "avatar"
+
+
+def test_a_message_without_a_kind_is_an_activity_object(h: Harness) -> None:
+    h.run()
+    assert h.bedrock.calls[0]["system"] == gen.system_blocks("activity-object")
+    assert h.logger.lines()[-1]["kind"] == "activity-object"
+
+
+@pytest.mark.parametrize("kind", ["boss", "backdrop", "", 7, None])
+def test_an_unknown_kind_is_answered_bad_request_without_a_call(h: Harness, kind: Any) -> None:
+    h.run(kind=kind)
+    assert h.bedrock.calls == []
+    assert h.read("error.json") == {"code": "bad_request"}
+    assert h.read("claim") == b""
+    assert h.read("result.json") is None
+    line = h.logger.lines()[-1]
+    assert (line["result"], line["code"]) == ("ERROR", "bad_request")
+
+
+def test_a_redraw_keeps_the_kind_of_its_job(h: Harness) -> None:
+    h.s3.put_object(Bucket=BUCKET, Key=f"jobs/{PREVIOUS}/result.json", Body=json.dumps({"svg": sanitise(DRAWING).svg}))
+    h.run(kind="badge", previousJobId=PREVIOUS, change="a bigger star")
+    [call] = h.bedrock.calls
+    assert call["system"] == gen.system_blocks("badge")
+    assert "<previous-drawing>" in call["messages"][0]["content"]
+
+
 def test_a_missing_or_unusable_previous_drawing_starts_fresh(h: Harness) -> None:
     h.run(previousJobId=PREVIOUS, change="bigger")
     assert h.bedrock.calls[0]["messages"][0]["content"] == "<request>a friendly yellow sun</request>"
@@ -392,6 +555,7 @@ def test_the_usage_line_has_token_counts_and_no_prompt_text(h: Harness) -> None:
         "metric": "picture_usage",
         "jobId": JOB,
         "model": "eu.anthropic.claude-opus-5-5",
+        "kind": "activity-object",
         "inputTokens": 120,
         "outputTokens": 1200,
         "cacheReadTokens": 0,

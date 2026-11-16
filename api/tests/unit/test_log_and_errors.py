@@ -85,6 +85,9 @@ PICTURE_FIELDS = {
     "model",
     "invalidated",
     "queuedSeconds",
+    "kind",
+    "upstreamStatus",
+    "upstreamError",
 }
 
 

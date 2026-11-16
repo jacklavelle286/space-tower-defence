@@ -9,8 +9,9 @@ Each zip holds, at its root:
                                                                 fixtures and routes.json stay out
   content/listening-verdicts.json (admin-api only)              the G-14 verdicts shared/verdicts.py reads when a
                                                                 PHONEME speech definition is approved (Phase 20)
-  art/STYLE.md, art/svg/activity/<4 examples> (picture-gen only) the fixed system prompt's style guide and examples
-                                                                (Phase 42b)
+  art/STYLE.md, art/svg/<family>/<examples> (picture-gen only)  the fixed system prompt's style guide and each picture
+                                                                kind's examples (Phase 42b; kinds Gate P2); the kind
+                                                                files are in the function folder (kinds/*.md)
   the runtime dependencies                                      installed for Lambda's python3.14 on arm64: from
                                                                 api/requirements.txt, or from the function's own
                                                                 hash-pinned lock (picture-gen, below)
@@ -84,15 +85,29 @@ _SKIPPED_SUFFIXES = frozenset({".pyc", ".pyo"})
 # Globs under contracts/, the files the code reads: limits, schemas (shared/rules), topic registry (shared/topics).
 CONTRACT_FILES = ("limits.json", "topics.json", "schemas/*.schema.json")
 # Repository files one function reads at run time, at the same relative path in its zip (Phase 20).
-# picture-gen: the house style and four example drawings, sent as fixed system-prompt blocks (Phase 42b).
+# picture-gen: the house style and every picture kind's example drawings, sent as fixed system-prompt blocks (Phase
+# 42b; kinds Gate P2). This list must hold every path in KIND_EXAMPLES in api/functions/picture_gen/handler.py (an api
+# test checks); the kind files themselves (api/functions/picture_gen/kinds/*.md) travel with the function folder.
 FUNCTION_FILES: Mapping[str, tuple[str, ...]] = {
     "admin_api": ("content/listening-verdicts.json",),
     "picture_gen": (
         "art/STYLE.md",
-        "art/svg/activity/pic-cat.svg",
-        "art/svg/activity/pic-boat.svg",
+        "art/svg/activity/obj-planet.svg",
         "art/svg/activity/obj-rocket.svg",
-        "art/svg/activity/pic-fish.svg",
+        "art/svg/activity/pic-boat.svg",
+        "art/svg/activity/pic-cat.svg",
+        "art/svg/activity/pic-night-sky.svg",
+        "art/svg/aliens/alien-blob-walk-01.svg",
+        "art/svg/aliens/alien-slime-walk-01.svg",
+        "art/svg/astronauts/nova-l1-idle-01.svg",
+        "art/svg/avatars/avatar-02.svg",
+        "art/svg/avatars/avatar-07.svg",
+        "art/svg/badges/badge-first-steps.svg",
+        "art/svg/badges/badge-keep-trying.svg",
+        "art/svg/map/deco-antenna.svg",
+        "art/svg/map/deco-crater-1.svg",
+        "art/svg/map/deco-rock-1.svg",
+        "art/svg/planets/planet-luna-1.svg",
     ),
 }
 # Functions installed from their own hash-pinned lock (pip --require-hashes, backlog B-4) instead of

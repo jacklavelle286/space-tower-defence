@@ -3,7 +3,7 @@
 The handlers are built here and registered by api/functions/admin_api/handler.py, so the function's allow-list and
 router stay in one place. Item shapes and keys are in shared/pictures.py.
 
-    R33 GET    /api/admin/pictures[?state=DRAFT|APPROVED]   pictures, today's and this month's drawing counts, open jobs
+    R33 GET    /api/admin/pictures[?state=&kind=]           pictures, today's and this month's drawing counts, open jobs
     R34 POST   /api/admin/pictures                          add a picture (JSON with base64 PNG), optionally approve it
     R35 GET    /api/admin/pictures/{id}                     one picture, the activities using it, a draft's PNG
     R36 POST   /api/admin/pictures/{id}/approve             approve a draft (the text-free tick is required)
@@ -43,6 +43,14 @@ code; `progress.json` or `claim` is DRAWING, and FAILED `timed_out` only 15 minu
 no outcome); nothing is QUEUED, and nothing 15 minutes after the start is FAILED `timed_out` (picture-gen refuses to
 draw a job older than 13 minutes, so this never throws away a paid result). The outcome is stored on the job lazily.
 
+Kinds (Gate P2). R38 requires `kind` (one of `picture.kinds` in contracts/limits.json); an unknown or missing kind is
+refused before the caps are counted. The job stores it and the SQS message carries it (left out for `activity-object`,
+which picture-gen assumes), so picture-gen draws with that kind's prompt; a redraw (`previousJobId`) must keep the
+earlier job's kind (`kind_mismatch`). R34 takes an optional `kind` (default `activity-object`); a picture saved from a
+drawing takes the job's kind, and a different `kind` in the body is refused (`kind_mismatch`). The same pixels already
+saved as another kind are refused (`already_another_kind`), not answered as a duplicate of the other kind. Every picture
+view and R33 row carries `kind`; items saved before kinds existed read as `activity-object`. R33 filters on `?kind=`.
+
 Saving a drawing (R34 GENERATED) marks its job with the picture's ID first, so R33 stops listing it as an open job and
 the same drawing cannot become a second, different picture (`job_used`).
 """
@@ -66,6 +74,7 @@ from shared.data import DynamoTable
 from shared.errors import ApiError, json_response
 from shared.pictures import (
     CHANGE_MAX,
+    DEFAULT_KIND,
     DESCRIPTION_MAX,
     DESCRIPTION_MIN,
     DRAW_TIMEOUT,
@@ -85,8 +94,10 @@ from shared.pictures import (
     WORKER_ERRORS,
     PictureConfig,
     cap_keys,
+    is_kind,
     is_picture_id,
     job_key,
+    kind_of,
     new_picture_header,
     picture_users,
     picture_view,
@@ -221,18 +232,28 @@ def make_picture_handlers(
 
     def list_pictures(request: Request) -> dict[str, Any]:
         state = query_param(request.event, "state")
+        kind = query_param(request.event, "kind")
+        problems = []
         if state is not None and state not in ("DRAFT", "APPROVED"):
-            raise invalid([problem("state", "enum")])
+            problems.append(problem("state", "enum"))
+        if kind is not None and not is_kind(kind):
+            problems.append(problem("kind", "unknown_kind"))
+        if problems:
+            raise invalid(problems)
         content = table()
         headers = content.query_prefix(PIC_PK, "")
-        pictures = [picture_view(h) for h in headers if state is None or h.get("state") == state]
+        pictures = [
+            picture_view(h)
+            for h in headers
+            if (state is None or h.get("state") == state) and (kind is None or kind_of(h) == kind)
+        ]
         pictures.sort(key=lambda p: (str(p.get("createdAt")), p["id"]), reverse=True)
         moment = now()
         config = services.config()
         jobs = content.query_prefix(
             PICJOB_PK,
             "",
-            attributes=("sk", "state", "description", "startedAt", "previousJobId", "change", "pictureId"),
+            attributes=("sk", "state", "description", "kind", "startedAt", "previousJobId", "change", "pictureId"),
         )
         since = iso_z(moment - OPEN_JOB_WINDOW)
         open_jobs = [
@@ -252,7 +273,7 @@ def make_picture_handlers(
         body = json_object(request.event, max_bytes=BODY_MAX_BYTES)
         _only_fields(
             body,
-            {"name", "source", "jobId", "pngBase64", "approve", "textFree"},
+            {"name", "source", "kind", "jobId", "pngBase64", "approve", "textFree"},
             {"name", "source", "pngBase64", "approve", "textFree"},
         )
         problems = []
@@ -261,6 +282,8 @@ def make_picture_handlers(
             problems.append(problem("name", "length"))
         if body["source"] not in SOURCES:
             problems.append(problem("source", "enum"))
+        if "kind" in body and not is_kind(body["kind"]):
+            problems.append(problem("kind", "unknown_kind"))
         if not isinstance(body["approve"], bool):
             problems.append(problem("approve", "type"))
         if not isinstance(body["textFree"], bool):
@@ -292,15 +315,25 @@ def make_picture_handlers(
         request.log["pictureId"] = picture_id
         content = table()
         description = None
+        kind = body.get("kind", DEFAULT_KIND)
         if job_id is not None:
             job = content.get_item(PICJOB_PK, job_id)
             if job is None:
                 raise invalid([problem("jobId", "unknown_job")])
             if job.get("state") != "READY":
                 raise invalid([problem("jobId", "job_not_ready")])
+            if "kind" in body and body["kind"] != kind_of(job):
+                raise invalid([problem("kind", "kind_mismatch")])  # a drawing is saved as the kind it was drawn as
+            kind = kind_of(job)
             if job.get("pictureId") not in (None, picture_id):
                 raise invalid([problem("jobId", "job_used")])  # one drawing, one picture
             description = job.get("description") if isinstance(job.get("description"), str) else None
+        # The id is the pixels, so the same pixels saved as another kind would come back as the old picture, still that
+        # kind, and the kind asked for would be lost without a word. Refuse it before the drawing is marked as used.
+        existing = content.get_item(PIC_PK, picture_id, attributes=("pk", "kind"))
+        if existing is not None and kind_of(existing) != kind:
+            raise invalid([problem("kind", "already_another_kind")])
+        if job_id is not None:
             # Mark the drawing as used before the picture is created, so it stops coming back as an open job and
             # cannot become a second, different picture. The same pixels again (a retry) pass the condition.
             try:
@@ -336,6 +369,7 @@ def make_picture_handlers(
             picture_id=picture_id,
             name=str(name),
             source=body["source"],
+            kind=kind,
             sha256=canonical.sha256,
             size=len(canonical.png),
             text_free=body["textFree"],
@@ -547,9 +581,14 @@ def make_picture_handlers(
 
     def start_job(request: Request) -> dict[str, Any]:
         body = json_object(request.event)
-        _only_fields(body, {"jobId", "description", "previousJobId", "change"}, {"jobId", "description"})
+        _only_fields(
+            body, {"jobId", "description", "kind", "previousJobId", "change"}, {"jobId", "description", "kind"}
+        )
         problems = []
         job_id = body["jobId"]
+        kind = body["kind"]
+        if not is_kind(kind):
+            problems.append(problem("kind", "unknown_kind"))  # before anything is counted against the caps
         if not (isinstance(job_id, str) and UUID.fullmatch(job_id)):
             problems.append(problem("jobId", "pattern"))
         description = body["description"]
@@ -582,11 +621,13 @@ def make_picture_handlers(
         if existing is not None:
             return retry_job(request, config, existing, moment)
         if previous is not None:
-            earlier = content.get_item(PICJOB_PK, previous, attributes=("pk", "state"))
+            earlier = content.get_item(PICJOB_PK, previous, attributes=("pk", "state", "kind"))
             if earlier is None:
                 raise invalid([problem("previousJobId", "unknown_job")])
             if earlier.get("state") != "READY":
                 raise invalid([problem("previousJobId", "job_not_ready")])
+            if kind_of(earlier) != kind:
+                raise invalid([problem("kind", "kind_mismatch")])  # a redraw keeps the kind it was drawn as
 
         day, month = cap_keys(moment)
         job: dict[str, Any] = {
@@ -594,6 +635,7 @@ def make_picture_handlers(
             "sk": job_id,
             "jobId": job_id,
             "description": description,
+            "kind": kind,
             "state": "QUEUED",
             "sent": False,
             "startedAt": iso_z(moment),
@@ -640,6 +682,12 @@ def make_picture_handlers(
 
     def send_job(request: Request, config: PictureConfig, job: Mapping[str, Any], moment: datetime) -> dict[str, Any]:
         message = {"jobId": job["jobId"], "description": job["description"]}
+        # `kind` goes only when it is not the default: picture-gen reads a missing kind as activity-object, and a
+        # picture-gen from before kinds refuses any key it does not know. Leaving it out keeps activity-object jobs
+        # working while a release updates admin-api a few seconds before picture-gen. A job saved before kinds
+        # existed (retried unsent) is an activity object, so it also goes without one.
+        if kind_of(job) != DEFAULT_KIND:
+            message["kind"] = kind_of(job)
         for name in ("previousJobId", "change", "startedAt"):  # startedAt: picture-gen refuses a stale job
             if job.get(name) is not None:
                 message[name] = job[name]
@@ -661,7 +709,7 @@ def make_picture_handlers(
         )
         summary = generation_summary(config, moment)
         request.log.update(usedToday=summary["usedToday"], usedMonth=summary["usedMonth"])
-        return json_response(202, {"jobId": job["jobId"], "state": "QUEUED", **summary})
+        return json_response(202, {"jobId": job["jobId"], "state": "QUEUED", "kind": kind_of(job), **summary})
 
     def retry_job(request: Request, config: PictureConfig, job: Mapping[str, Any], moment: datetime) -> dict[str, Any]:
         """The same jobId again: never counted twice. A job whose message never went is sent now."""
@@ -833,6 +881,7 @@ def _job_summary(job: Mapping[str, Any]) -> dict[str, Any]:
         "jobId": job.get("sk"),
         "state": job.get("state"),
         "description": job.get("description"),
+        "kind": kind_of(job),
         "startedAt": job.get("startedAt"),
     }
     for name in ("previousJobId", "change"):

@@ -216,6 +216,7 @@ def test_an_upload_is_canonicalised_stored_as_a_draft_and_never_served(api: Pict
         "name": "Sun",
         "state": "DRAFT",
         "source": "UPLOAD",
+        "kind": "activity-object",
         "textFree": True,
         "createdAt": picture["createdAt"],
     }
@@ -617,7 +618,8 @@ def test_no_repository_asset_id_looks_like_a_library_picture() -> None:
 
 
 def start(api: Pictures, n: int, **body: Any) -> tuple:
-    return api.pcall(START, {"jobId": job_id(n), "description": "a friendly yellow sun", **body})
+    body = {"jobId": job_id(n), "description": "a friendly yellow sun", "kind": "activity-object", **body}
+    return api.pcall(START, body)
 
 
 def test_a_start_counts_queues_the_message_and_reports_the_counts(api: Pictures) -> None:
@@ -626,6 +628,7 @@ def test_a_start_counts_queues_the_message_and_reports_the_counts(api: Pictures)
     assert body == {
         "jobId": job_id(1),
         "state": "QUEUED",
+        "kind": "activity-object",
         "usedToday": 1,
         "dailyCap": 100,
         "usedMonth": 1,
@@ -633,7 +636,11 @@ def test_a_start_counts_queues_the_message_and_reports_the_counts(api: Pictures)
         "drawingOn": True,
     }
     assert api.messages() == [
-        {"jobId": job_id(1), "description": "a friendly yellow sun", "startedAt": "2026-11-20T10:14:01Z"}
+        {
+            "jobId": job_id(1),
+            "description": "a friendly yellow sun",
+            "startedAt": "2026-11-20T10:14:01Z",
+        }
     ]
     job = api.table.get_item("PICJOB", job_id(1))
     assert job is not None and job["sent"] is True and job["state"] == "QUEUED" and job["createdBy"] == SUB
@@ -728,7 +735,8 @@ def test_zero_caps_or_no_queue_switch_drawing_off(api: Pictures) -> None:
 
 
 def test_start_body_checks(api: Pictures) -> None:
-    assert rules(api.pcall(START, {"jobId": "x", "description": "a sun"})[1]) == {("jobId", "pattern")}
+    bad_id = {"jobId": "x", "description": "a sun", "kind": "avatar"}
+    assert rules(api.pcall(START, bad_id)[1]) == {("jobId", "pattern")}
     assert rules(start(api, 1, description="ab")[1]) == {("description", "length")}
     assert rules(start(api, 1, description="draw <script>")[1]) == {("description", "length")}
     assert rules(start(api, 1, change="bigger")[1]) == {("change", "needs_previous_job")}
@@ -971,3 +979,160 @@ def test_config_reads_the_environment(monkeypatch: pytest.MonkeyPatch) -> None:
     config = PictureConfig.from_env()
     assert (config.distribution_ids, config.daily_cap, config.monthly_cap) == (("E1", "E2"), 100, 0)
     assert config.drawing_on is False  # a cap that does not read is 0: drawing off (fail closed)
+
+
+# --- Picture kinds (Gate P2) ------------------------------------------------------------------------------------------
+
+
+def list_query(api: Pictures, **query: str) -> tuple[int, dict[str, Any]]:
+    response = api.router.handle(
+        {**event_for(api.base, LIST, cognito__groups="[admin]"), "queryStringParameters": query}
+    )
+    return response["statusCode"], json.loads(response["body"])
+
+
+def forget_kind(api: Pictures, pk: str, sk: str) -> None:
+    """Make the item look as it did before kinds existed (Gate P2): no `kind` attribute."""
+    api.raw.update_item(
+        TableName=api.table.table_name,
+        Key={"pk": {"S": pk}, "sk": {"S": sk}},
+        UpdateExpression="REMOVE #k",
+        ExpressionAttributeNames={"#k": "kind"},
+    )
+
+
+def ready_job(api: Pictures, n: int, kind: str) -> None:
+    assert start(api, n, kind=kind)[0] == 202
+    put_job_object(api, n, "result.json", {"svg": GOOD_SVG})
+    assert api.pcall(POLL, job=job_id(n))[1]["state"] == "READY"
+
+
+def test_a_start_without_a_known_kind_is_refused_before_the_cap_is_counted(api: Pictures) -> None:
+    day, month = cap_keys(api.clock.moment)
+    for sk in (day, month):  # both caps full: a kind problem must still be the answer, and nothing is counted
+        api.table.update_item("PICCAP", sk, update="SET #n = :n", names={"#n": "n"}, values={":n": 100})
+    api.config = PictureConfig(bucket=PICTURES, queue_url=api.queue_url, daily_cap=100, monthly_cap=100)
+    missing = api.pcall(START, {"jobId": job_id(1), "description": "a friendly yellow sun"})
+    assert (missing[0], rules(missing[1])) == (400, {("kind", "required")})
+    for kind in ("boss", "backdrop", "Avatar", "", 3, None):
+        status, body = start(api, 1, kind=kind)
+        assert (status, rules(body)) == (400, {("kind", "unknown_kind")}), kind
+    assert api.counters() == (100, 100)
+    assert api.table.query_prefix("PICJOB", "") == []
+    assert api.messages() == []
+    assert audits(api, "picture-job-start") == []
+
+
+def test_a_start_stores_the_kind_on_the_job_and_the_message(api: Pictures) -> None:
+    status, body = start(api, 1, kind="avatar")
+    assert (status, body["kind"]) == (202, "avatar")
+    assert api.table.get_item("PICJOB", job_id(1))["kind"] == "avatar"  # type: ignore[index]
+    [message] = api.messages()
+    assert message["kind"] == "avatar"
+    assert api.pcall(POLL, job=job_id(1))[1]["kind"] == "avatar"
+    assert [j["kind"] for j in api.pcall(LIST)[1]["openJobs"]] == ["avatar"]
+
+
+def test_a_redraw_keeps_the_kind_of_the_earlier_job(api: Pictures) -> None:
+    ready_job(api, 1, "avatar")
+    api.messages()
+    status, body = start(api, 2, kind="badge", previousJobId=job_id(1), change="bigger")
+    assert (status, rules(body)) == (400, {("kind", "kind_mismatch")})
+    assert api.counters() == (1, 1)
+    status, body = start(api, 2, kind="avatar", previousJobId=job_id(1), change="bigger")
+    assert (status, body["kind"]) == (202, "avatar")
+    assert api.messages()[0]["kind"] == "avatar"
+
+
+def test_jobs_saved_before_kinds_read_as_activity_objects(api: Pictures) -> None:
+    """No migration: a PICJOB item without `kind` is an activity object in R33, R39, a redraw and a resend."""
+    ready_job(api, 1, "activity-object")
+    api.messages()
+    forget_kind(api, "PICJOB", job_id(1))
+    assert [j["kind"] for j in api.pcall(LIST)[1]["openJobs"]] == ["activity-object"]
+    assert api.pcall(POLL, job=job_id(1))[1]["kind"] == "activity-object"
+    assert rules(start(api, 2, kind="avatar", previousJobId=job_id(1))[1]) == {("kind", "kind_mismatch")}
+    assert start(api, 2, previousJobId=job_id(1))[0] == 202
+    # An old job whose message never went is sent as an activity object: with no kind, which picture-gen defaults.
+    api.messages()
+    assert start(api, 3)[0] == 202
+    api.messages()
+    forget_kind(api, "PICJOB", job_id(3))
+    api.table.update_item("PICJOB", job_id(3), update="SET #s = :f", names={"#s": "sent"}, values={":f": False})
+    assert start(api, 3)[0] == 202
+    assert "kind" not in api.messages()[0]
+
+
+def test_an_upload_takes_an_optional_kind(api: Pictures) -> None:
+    status, body = api.upload()
+    assert (status, body["picture"]["kind"]) == (201, "activity-object")
+    assert api.table.get_item("PIC", body["picture"]["id"])["kind"] == "activity-object"  # type: ignore[index]
+    status, body = api.upload(other_png(), kind="planet")
+    assert (status, body["picture"]["kind"]) == (201, "planet")
+    assert api.table.get_item("PIC", body["picture"]["id"])["kind"] == "planet"  # type: ignore[index]
+    for kind in ("boss", 1, None):
+        status, body = api.upload(other_png(), kind=kind)
+        assert (status, rules(body)) == (400, {("kind", "unknown_kind")}), kind
+
+
+def test_a_generated_picture_takes_its_jobs_kind_and_refuses_another(api: Pictures) -> None:
+    ready_job(api, 1, "avatar")
+    status, body = api.upload(source="GENERATED", jobId=job_id(1), kind="activity-object")
+    assert (status, rules(body)) == (400, {("kind", "kind_mismatch")})
+    assert "pictureId" not in api.table.get_item("PICJOB", job_id(1))  # type: ignore[operator]  # not used up
+    status, body = api.upload(source="GENERATED", jobId=job_id(1))
+    assert (status, body["picture"]["kind"]) == (201, "avatar")
+    assert api.upload(source="GENERATED", jobId=job_id(1), kind="avatar")[0] == 200  # the same kind is fine
+
+
+def test_the_same_pixels_as_another_kind_are_refused_not_silently_kept(api: Pictures) -> None:
+    planet = api.upload(kind="planet")[1]["picture"]["id"]
+    for body in ({"kind": "activity-object", "approve": True}, {}):  # a missing kind is activity-object
+        status, answer = api.upload(**body)
+        assert (status, rules(answer)) == (400, {("kind", "already_another_kind")}), body
+    assert api.table.get_item("PIC", planet)["state"] == "DRAFT"  # type: ignore[index]  # not approved by the refusal
+    assert api.upload(kind="planet")[0] == 200  # the same kind is still a duplicate, as before
+    # A drawing whose pixels are already a picture of another kind is refused before the drawing is used up.
+    ready_job(api, 1, "avatar")
+    status, answer = api.upload(source="GENERATED", jobId=job_id(1))
+    assert (status, rules(answer)) == (400, {("kind", "already_another_kind")})
+    assert "pictureId" not in api.table.get_item("PICJOB", job_id(1))  # type: ignore[operator]
+
+
+def test_pictures_saved_before_kinds_read_as_activity_objects_and_r33_filters_by_kind(api: Pictures) -> None:
+    old = api.upload()[1]["picture"]["id"]
+    forget_kind(api, "PIC", old)
+    avatar = api.upload(other_png(), kind="avatar")[1]["picture"]["id"]
+    pictures = {p["id"]: p["kind"] for p in api.pcall(LIST)[1]["pictures"]}
+    assert pictures == {old: "activity-object", avatar: "avatar"}
+    assert api.pcall(GET, id=old)[1]["picture"]["kind"] == "activity-object"
+    assert [p["id"] for p in list_query(api, kind="activity-object")[1]["pictures"]] == [old]
+    assert [p["id"] for p in list_query(api, kind="avatar")[1]["pictures"]] == [avatar]
+    assert list_query(api, kind="badge")[1]["pictures"] == []
+    assert [p["id"] for p in list_query(api, kind="avatar", state="DRAFT")[1]["pictures"]] == [avatar]
+    status, body = list_query(api, kind="boss")
+    assert (status, rules(body)) == (400, {("kind", "unknown_kind")})
+
+
+def test_a_picture_not_made_for_activities_is_refused_in_an_activity(api: Pictures) -> None:
+    field = "activityPayload.options.3.assetId"
+    avatar = api.upload(kind="avatar", approve=True)[1]["picture"]["id"]
+    revision = create(api, with_picture(avatar))
+    assert validate(api, revision) == {(field, "picture_not_for_activities")}
+    status, body = publish(api, revision, activity_id="ma-1001")
+    assert status == 400, body
+    assert api.table.get_item("PIC", avatar)["publishRefs"] == 0  # type: ignore[index]
+
+
+@pytest.mark.parametrize("kind", ["activity-object", "activity-scene", None])
+def test_activity_kinds_and_old_pictures_are_allowed_in_an_activity(api: Pictures, kind: str | None) -> None:
+    picture_id = approved_picture(api) if kind is None else api.upload(kind=kind, approve=True)[1]["picture"]["id"]
+    if kind is None:
+        forget_kind(api, "PIC", picture_id)
+    revision = create(api, with_picture(picture_id))
+    assert validate(api, revision) == set()
+    assert publish(api, revision, activity_id="ma-1001")[0] == 201
+
+
+def test_repository_pictures_are_unaffected_by_kinds() -> None:
+    assert definition_problems(MA_1001, "ma-1001", library={}) == []  # dice-2, dice-4 ...: the manifest, not kinds

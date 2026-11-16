@@ -4,16 +4,23 @@ Pictures the operator uploads or has Claude draw live in the `content` table bes
 admin-api reads or writes these items (picture-gen writes S3 only):
 
     picture header  pk PIC     sk <pictureId>         name, state (DRAFT | APPROVED), source (UPLOAD | GENERATED),
-                                                      sha256, bytes, width, height, textFree, jobId?, description?,
+                                                      kind?, sha256, bytes, width, height, textFree, jobId?,
+                                                      description?,
                                                       createdBy, createdAt, approvedBy?, approvedAt?, publishRefs
-    drawing job     pk PICJOB  sk <jobId>             description, previousJobId?, change?, state (QUEUED | READY |
-                                                      FAILED), error?, sent, startedAt, finishedAt?, usage?,
+    drawing job     pk PICJOB  sk <jobId>             description, kind?, previousJobId?, change?, state (QUEUED |
+                                                      READY | FAILED), error?, sent, startedAt, finishedAt?, usage?,
                                                       capDay, capMonth, createdBy, pictureId? (set by R34 when a
                                                       picture is saved from the drawing; R33 then stops listing it)
     cap counter     pk PICCAP  sk D#<yyyy-mm-dd>      n: drawings started that London day
                                sk M#<yyyy-mm>         n: drawings started that London month
     audit           the existing AUDIT#<yyyy-mm> items, actions picture-create, picture-approve, picture-delete and
                     picture-job-start
+
+`kind` (Gate P2) is one of `picture.kinds` in contracts/limits.json: what the picture is for (an activity object or
+scene, a profile avatar, an alien, ...). Kinds are set once, when the job or picture is created, and never change.
+Items written before kinds existed have no `kind` and read as `activity-object` (DEFAULT_KIND): no migration. Only
+kinds whose `consumer` is `activity` may appear in a learning activity (shared/content.py, rule
+`picture_not_for_activities`).
 
 `pictureId` is "lib-" + the first 32 hex characters of the SHA-256 of the canonical PNG (shared/png_canon.py), so it
 fits a keyId and the same pixels always give the same ID. A picture's bytes never change: an edit is a new picture,
@@ -49,9 +56,10 @@ PICCAP_PK = "PICCAP"
 STATES = ("DRAFT", "APPROVED")
 SOURCES = ("UPLOAD", "GENERATED")
 JOB_STATES = ("QUEUED", "READY", "FAILED")
-# picture-gen's error.json codes (timed_out: a message that waited in the queue past QUEUE_MAX_AGE, never drawn), plus
-# the ones admin-api sets itself (could_not_start, timed_out, expired).
-WORKER_ERRORS = ("declined", "too_long", "unusable", "throttled", "bedrock_error", "timed_out")
+# picture-gen's error.json codes (timed_out: a message that waited in the queue past QUEUE_MAX_AGE, never drawn;
+# bad_request: a message picture-gen cannot draw, such as a kind it does not know, never drawn), plus the ones
+# admin-api sets itself (could_not_start, timed_out, expired).
+WORKER_ERRORS = ("declined", "too_long", "unusable", "throttled", "bedrock_error", "timed_out", "bad_request")
 JOB_ERRORS = (*WORKER_ERRORS, "could_not_start", "expired")
 JOB_ERROR_MESSAGES = {
     "declined": "Claude wouldn't draw that. Try different words.",
@@ -61,6 +69,7 @@ JOB_ERROR_MESSAGES = {
     "bedrock_error": "That didn't finish. Press Try again.",
     "timed_out": "That didn't finish. Press Try again.",
     "could_not_start": "That didn't finish. Press Try again.",
+    "bad_request": "That kind of picture can't be drawn yet. Reload the page and try again.",
     "expired": "This drawing is too old to use now. Press Try again.",  # R39: a READY job whose result.json expired
 }
 PICTURE_LIMITS: Mapping[str, int] = LIMITS["picture"]
@@ -89,6 +98,21 @@ OPEN_JOB_WINDOW = timedelta(hours=24)  # R33 openJobs: jobs started in the last 
 LONDON = ZoneInfo("Europe/London")
 PUBLISH_REFS = "publishRefs"
 UUID = re.compile(LIMITS["ids"]["uuid"].removeprefix("^").removesuffix("$"))
+# Picture kinds (Gate P2): {id, label, consumer} in menu order, from contracts/limits.json.
+KINDS: tuple[Mapping[str, str], ...] = tuple(LIMITS["picture"]["kinds"])
+KIND_IDS: tuple[str, ...] = tuple(kind["id"] for kind in KINDS)
+DEFAULT_KIND: str = LIMITS["picture"]["defaultKind"]
+ACTIVITY_KINDS: frozenset[str] = frozenset(kind["id"] for kind in KINDS if kind["consumer"] == "activity")
+
+
+def is_kind(value: Any) -> bool:
+    return isinstance(value, str) and value in KIND_IDS
+
+
+def kind_of(item: Mapping[str, Any]) -> str:
+    """A picture header's or job's kind: an item saved before kinds existed (no `kind`) is an activity object."""
+    value = item.get("kind")
+    return value if is_kind(value) else DEFAULT_KIND
 
 
 def store_key(picture_id: str) -> str:
@@ -186,6 +210,7 @@ def new_picture_header(
     picture_id: str,
     name: str,
     source: str,
+    kind: str,
     sha256: str,
     size: int,
     text_free: bool,
@@ -201,6 +226,7 @@ def new_picture_header(
         "name": name,
         "state": "DRAFT",
         "source": source,
+        "kind": kind,
         "sha256": sha256,
         "bytes": size,
         "width": SIDE,
@@ -225,6 +251,7 @@ def picture_view(header: Mapping[str, Any]) -> dict[str, Any]:
         "name": header.get("name"),
         "state": header.get("state"),
         "source": header.get("source"),
+        "kind": kind_of(header),
         "textFree": header.get("textFree") is True,
         "createdAt": header.get("createdAt"),
     }

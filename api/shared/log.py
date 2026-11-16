@@ -62,6 +62,9 @@ ALLOWED_FIELDS: frozenset[str] = frozenset(
         "model",
         "invalidated",
         "queuedSeconds",  # picture-gen: how long a stale job waited before it was refused (timed_out)
+        "upstreamStatus",  # picture-gen: the HTTP status Bedrock answered (an int), on a failed call
+        "upstreamError",  # picture-gen: x-amzn-ErrorType, letters only (e.g. AccessDeniedException); never a message
+        "kind",  # picture-gen (Gate P2): the job's picture kind, one of picture.kinds in contracts/limits.json
     }
 )
 
