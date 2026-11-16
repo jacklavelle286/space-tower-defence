@@ -1,4 +1,4 @@
-// The admin's API client and the shapes of the routes it uses (plan G §12 R17-R27, R31, R16). Same origin: every call goes
+// The admin's API client and the shapes of the routes it uses (plan G §12 R17-R27, R31, R32, R16). Same origin: every call goes
 // to /api on admin.aliens.jackgl.com, with the operator's access token (G §1.1).
 //
 // Rule from G §1.3: branch on the HTTP status first, and read `error.code` only when the body is our envelope. A
@@ -261,6 +261,17 @@ export type Validation = {
 export type Publication = { versionId: string; displayNumber: number };
 /** R31's body: what was removed. */
 export type Deletion = { activityId: string; deletedVersions: string[] };
+/** R32's body: what was removed (the approved version IDs; clips stay in the audio bucket). */
+export type SpeechDeletion = { speechId: string; deletedVersions: string[] };
+
+/** The activities R32 named when it refused a delete (`usedBy.<activityId>`, rule `speech_in_use`), else []. */
+export function speechUsers(error: unknown): string[] {
+  if (!(error instanceof ApiError) || error.code !== "VALIDATION_FAILED") return [];
+  const prefix = "usedBy.";
+  return error.details
+    .filter((p) => p.rule === "speech_in_use" && p.field.startsWith(prefix))
+    .map((p) => p.field.slice(prefix.length));
+}
 
 /** R30 bank status (Phase 42; shared/selection/eligibility.py). `rewardCategory` is the slot kind: a BOTH activity is
  * counted in both. `mode`: READY (the plan's rules), STARTER (not eligible yet; games use the starter rules), BLOCKED
@@ -402,6 +413,14 @@ export function adminApi(request: Request) {
         `/admin/speech-definitions/${id(speechId)}/approve`,
         body,
       ) as Promise<Approval>,
+    /** R32: removes a speech definition no activity uses (header, draft, every approved version). 400 with
+     * `speech_in_use` problems (read them with speechUsers) while an activity draft or version names it; 404 when
+     * nothing is left. */
+    deleteSpeech: (speechId: string) =>
+      request(
+        "DELETE",
+        `/admin/speech-definitions/${id(speechId)}`,
+      ) as Promise<SpeechDeletion>,
     /** R22, every page: the list is cut into pages of 200 (nextCursor), and the new-activity ID needs every ID. */
     listActivities: () => allPages<ActivitySummary>("/admin/activities"),
     /** R23: 201 for a new activity; 200 with the existing one when the ID is already taken (create is idempotent). */

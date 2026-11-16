@@ -1,4 +1,4 @@
-"""admin-api: content administration, operator only (plan G §12 R17-R31, E.6.3; Phase 20, M1-19).
+"""admin-api: content administration, operator only (plan G §12 R17-R32, E.6.3; Phase 20, M1-19).
 
 Every route needs the operator authoriser at the gateway and, here, `token_use = access` and the exact group `admin`
 (shared/auth.py), checked from the route key before anything is read. A player token never reaches this function: the
@@ -9,8 +9,10 @@ Phase 20 answered the minimal admin path (D §D8.6): speech definitions R17-R21 
 adds the activity lifecycle: validation of all six interaction types and two-step activities, retire (R28) and
 withdraw (R29). Phase 42 (M3-07) adds bank status (R30), counted by the same function selection uses
 (shared/selection/eligibility.py). The owner's decision of 2026-11-16 adds delete (R31,
-`DELETE /api/admin/activities/{id}`): the header, the draft and every version go, with an audit item. Item shapes
-and checks are in shared/content.py and shared/activity_types.py.
+`DELETE /api/admin/activities/{id}`): the header, the draft and every version go, with an audit item. The owner's
+ask of 2026-11-16 ("I can't delete sounds") adds R32, `DELETE /api/admin/speech-definitions/{id}`, the same for a
+speech definition, refused while any activity draft or version references it. Item shapes and checks are in
+shared/content.py and shared/activity_types.py.
 
 Speech approval (R21, F §12.6 C7, D §D9.3) never synthesises. It recomputes the clip key from the SAVED draft (its kind
 picks the engine, with the same TTS_* configuration as `tts`) and requires that object in the audio bucket: the object
@@ -101,6 +103,7 @@ from shared.content import (
     publish_checks,
     speech_body,
     speech_pk,
+    speech_refs,
     valid_title,
     validation_extras,
     version_id,
@@ -140,6 +143,7 @@ ROUTES: dict[str, str] = {
     "POST /api/admin/activities/{id}/withdraw": OPERATOR,
     "GET /api/admin/bank-status": OPERATOR,
     "DELETE /api/admin/activities/{id}": OPERATOR,
+    "DELETE /api/admin/speech-definitions/{id}": OPERATOR,
 }
 
 DRAFT_MAX_BYTES: int = LIMITS["bodyMaxBytes"]["adminActivityDraft"]  # 64 KB for PUT .../draft (G §12)
@@ -147,7 +151,7 @@ LIST_LIMIT: dict[str, int] = LIMITS["adminListLimit"]
 REVIEW_NOTE_MAX = 500  # [ASSUMPTION]
 WITHDRAW_REASON_MAX = 200  # G R29 [ASSUMPTION]
 WRITE_TRIES = 3  # retire, withdraw and delete re-read and retry when a concurrent change refused their transaction
-# Delete (R31) removes the versions in its one transaction while they fit beside the draft, header and audit item.
+# Delete (R31, R32) removes the versions in its one transaction while they fit beside the draft, header and audit item.
 DELETE_VERSIONS_IN_TRANSACTION = MAX_TRANSACTION_ACTIONS - 3
 
 
@@ -949,6 +953,74 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
                 return json_response(200, {"activityId": activity_id, "deletedVersions": listed})
         raise ApiError("THROTTLED")  # the activity kept changing under us; the client retries the same request
 
+    def delete_speech(request: Request) -> dict[str, Any]:
+        """R32 (owner ask 2026-11-16, "I can't delete sounds"): remove a speech definition for good: the header, the
+        draft and every approved version, plus one audit item (`delete`, the version IDs removed, by the caller's
+        `sub`). Built like R31: the header goes first, in one transaction with the draft and the audit item, with the
+        versions too while they fit; a retry finishes a partial delete without a second audit item; nothing left: 404.
+        The header delete is conditioned on the `approvedVersion` that was read, so an approval landing between the
+        read and the delete (a version this request did not see) refuses it and the loop re-reads.
+
+        Refused (400 VALIDATION_FAILED, one `{field: "usedBy.<activityId>", rule: "speech_in_use"}` per activity) while
+        any activity draft or any activity version, published, retired or withdrawn, references the definition
+        (`speech_users`), so no activity can lose a sound it names. Clips in S3 are content-addressed and may be
+        shared by other definitions: they are never deleted (admin-api has no DeleteObject).
+
+        Race (known, harmless): a draft save that adds a reference after the check is not blocked; that draft then
+        names a definition that does not exist, which validate and publish refuse (`speech_not_approved`). A publish
+        cannot slip through: R27's transaction re-checks each referenced header's `approvedVersion`, which fails once
+        the header is gone."""
+        speech_id = path_id(request)
+        request.log.update(speechId=speech_id, action="delete")
+        content = table()
+        pk = speech_pk(speech_id)
+        checked = False
+        for _ in range(WRITE_TRIES):
+            header = content.get_item(SPEECH_PK, speech_id)
+            draft = content.get_item(pk, DRAFT_SK, attributes=("pk",))
+            version_sks = sorted(str(v["sk"]) for v in content.query_prefix(pk, VERSION_PREFIX, attributes=("sk",)))
+            listed = [sk.removeprefix(VERSION_PREFIX) for sk in version_sks]
+            if header is None:
+                if draft is None and not version_sks:
+                    raise ApiError("NOT_FOUND")
+                # An earlier delete removed the header (its audit item lists every version) and stopped: finish it.
+                for sk in version_sks:
+                    content.delete_item(pk, sk)
+                content.delete_item(pk, DRAFT_SK)
+                request.log.update(resumed=True)
+                return json_response(200, {"speechId": speech_id, "deletedVersions": listed})
+            if not checked:
+                users = speech_users(content, speech_id)
+                if users:
+                    request.log["usedBy"] = len(users)
+                    raise invalid([problem(f"usedBy.{activity_id}", "speech_in_use") for activity_id in users])
+                checked = True
+            in_transaction = len(version_sks) <= DELETE_VERSIONS_IN_TRANSACTION
+            moment = deps.now()
+            audit_pk, audit_sk = audit_key(moment, f"{speech_id}#delete")
+            audit = audit_item(
+                audit_pk, audit_sk, "delete", request.caller.sub, moment, speechId=speech_id, versionIds=listed
+            )
+            approved = header.get("approvedVersion")
+            actions = [content.delete_action(pk, sk) for sk in version_sks] if in_transaction else []
+            actions.append(content.delete_action(pk, DRAFT_SK))
+            actions.append(
+                content.delete_action(
+                    SPEECH_PK,
+                    speech_id,
+                    condition="attribute_exists(#pk) AND " + ("#v = :v" if approved else "attribute_not_exists(#v)"),
+                    names={"#pk": "pk", "#v": "approvedVersion"},
+                    values={":v": approved} if approved else None,
+                )
+            )
+            actions.append(content.put_action(audit, condition="attribute_not_exists(#pk)", names={"#pk": "pk"}))
+            if transact(content, actions) is None:
+                if not in_transaction:
+                    for sk in version_sks:
+                        content.delete_item(pk, sk)
+                return json_response(200, {"speechId": speech_id, "deletedVersions": listed})
+        raise ApiError("THROTTLED")  # the definition kept changing under us; the client retries the same request
+
     # --- R30 bank status (C24.7, D §D8.5; Phase 42) -------------------------------------------------------------------
 
     def released_wave_sets() -> ReleasedWaveSets | None:
@@ -994,6 +1066,7 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         "POST /api/admin/activities/{id}/withdraw": withdraw_activity,
         "GET /api/admin/bank-status": get_bank_status,
         "DELETE /api/admin/activities/{id}": delete_activity,
+        "DELETE /api/admin/speech-definitions/{id}": delete_speech,
     }
     return Router(routes=ROUTES, handlers=handlers, logger=logger)
 
@@ -1004,6 +1077,39 @@ def create_actions(table: DynamoTable, header: Mapping[str, Any], draft: Mapping
         table.put_action(header, condition="attribute_not_exists(#pk)", names={"#pk": "pk"}),
         table.put_action(draft, condition="attribute_not_exists(#pk)", names={"#pk": "pk"}),
     ]
+
+
+def speech_users(content: DynamoTable, speech_id: str) -> list[str]:
+    """The IDs of the activities whose draft or any version (withdrawn and retired ones included) references
+    `speech_id` in `speechDefinitionReferences` (R32). Drafts hold `{speechId}` under `definition`; versions hold the
+    resolved `{speechId, speechVersion, clipKey}` at the top level. Template instruction clips are variants of the same
+    map, and an additional step carries no references of its own, so this map is the only place a reference lives.
+
+    Reads (admin-api has no Scan): the activity header partition (one Query), every draft by BatchGetItem (100 keys per
+    call), and a Query of the versions only for activities that were ever published (a header without
+    `publishedVersion` has no versions: publish writes both in one transaction). With the 85-activity bank that is
+    under a hundred strongly consistent requests and a few hundred read units at most: fine for a rare operator action
+    on a small table. An activity whose header an interrupted R31 already removed is not read: it is out of the bank
+    and a retry of that delete removes what is left."""
+    headers = content.query_prefix(ACT_PK, "", attributes=("sk", "publishedVersion"))
+    ids = sorted(str(h["sk"]) for h in headers)
+    users: set[str] = set()
+    drafts = content.batch_get([(activity_pk(activity_id), DRAFT_SK) for activity_id in ids])
+    for activity_id in ids:
+        draft = drafts.get((activity_pk(activity_id), DRAFT_SK))
+        definition = draft.get("definition") if draft is not None else None
+        if isinstance(definition, Mapping) and speech_id in speech_refs(definition).values():
+            users.add(activity_id)
+    for header in headers:
+        activity_id = str(header["sk"])
+        if activity_id in users or not header.get("publishedVersion"):
+            continue
+        versions = content.query_prefix(
+            activity_pk(activity_id), VERSION_PREFIX, attributes=("sk", "speechDefinitionReferences")
+        )
+        if any(speech_id in speech_refs(v).values() for v in versions):
+            users.add(activity_id)
+    return sorted(users)
 
 
 def valid_reason(value: str) -> bool:

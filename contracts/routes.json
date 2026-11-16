@@ -1,5 +1,5 @@
 {
-  "$comment": "Machine-readable copy of the route catalogue in docs/plan/G-api-contracts.md section 2 (R1-R30), plus R31 (DELETE an activity; owner decision 2026-11-16). Route key = method + ' ' + path; paths keep the /api prefix (ADR-0001). Read by the api unit tests (each function's allow-list must equal its rows), the plan gate G-12 and the release smoke test. scope is the value of the Terraform variable player_route_scope / operator_route_scope.",
+  "$comment": "Machine-readable copy of the route catalogue in docs/plan/G-api-contracts.md section 2 (R1-R30), plus R31 (DELETE an activity; owner decision 2026-11-16) and R32 (DELETE a speech definition; owner ask 2026-11-16). Route key = method + ' ' + path; paths keep the /api prefix (ADR-0001). Read by the api unit tests (each function's allow-list must equal its rows), the plan gate G-12 and the release smoke test. scope is the value of the Terraform variable player_route_scope / operator_route_scope.",
   "version": 1,
   "routes": [
     {
@@ -246,6 +246,14 @@
       "id": "R31",
       "method": "DELETE",
       "path": "/api/admin/activities/{id}",
+      "function": "admin-api",
+      "authoriser": "operator",
+      "scope": "ops/content"
+    },
+    {
+      "id": "R32",
+      "method": "DELETE",
+      "path": "/api/admin/speech-definitions/{id}",
       "function": "admin-api",
       "authoriser": "operator",
       "scope": "ops/content"

@@ -1,6 +1,7 @@
 import { PANEL_COPY } from "@scd/shared/learning";
-import { useEffect, useId, useRef, useState, type ReactNode, type RefObject } from "react";
+import { useId, useRef, useState } from "react";
 import { ApiError, describeError, type AdminApi } from "../api";
+import { ConfirmDialog, useFocusReturn } from "../ConfirmDialog";
 import { forgetUnsaved } from "../editor/unsaved";
 import { setFlash } from "../flash";
 import { hrefOf } from "../routes";
@@ -23,17 +24,7 @@ export function DeleteActivity({ api, activityId, navigate = (hash) => window.lo
   const [message, setMessage] = useState<string | null>(null);
   const headingId = useId();
   const triggerRef = useRef<HTMLButtonElement>(null);
-  const wasOpen = useRef(false);
-
-  // Closing the dialog (Cancel, Escape, a failed delete) unmounts it, which leaves focus on <body>; put it back on the
-  // button that opened it. This runs after the dialog's own cleanup, so nothing moves focus again afterwards.
-  useEffect(() => {
-    if (open) wasOpen.current = true;
-    else if (wasOpen.current) {
-      wasOpen.current = false;
-      triggerRef.current?.focus();
-    }
-  }, [open]);
+  useFocusReturn(open, triggerRef); // closing the dialog puts focus back on the button that opened it
 
   function leave(flash: string) {
     forgetUnsaved(activityId); // an ID used again later must not get this activity's kept edits back
@@ -102,45 +93,5 @@ export function DeleteActivity({ api, activityId, navigate = (hash) => window.lo
         </ConfirmDialog>
       )}
     </section>
-  );
-}
-
-/** A native modal <dialog> (focus trapped, Escape cancels) with its Cancel button focused when it opens. Where
- * showModal is missing (older browsers, jsdom) it opens as a plain open dialog. */
-function ConfirmDialog({
-  labelledBy,
-  onCancel,
-  children,
-}: {
-  labelledBy: string;
-  onCancel: () => void;
-  children: (cancelRef: RefObject<HTMLButtonElement | null>) => ReactNode;
-}) {
-  const ref = useRef<HTMLDialogElement>(null);
-  const cancelRef = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    const dialog = ref.current;
-    if (dialog === null) return;
-    if (!dialog.open) {
-      if (typeof dialog.showModal === "function") dialog.showModal();
-      else dialog.setAttribute("open", "");
-    }
-    cancelRef.current?.focus();
-    return () => {
-      if (dialog.open && typeof dialog.close === "function") dialog.close();
-    };
-  }, []);
-  return (
-    <dialog
-      ref={ref}
-      className="confirm"
-      aria-labelledby={labelledBy}
-      onCancel={(event) => {
-        event.preventDefault(); // React decides when it closes (not while the delete is being sent)
-        onCancel();
-      }}
-    >
-      {children(cancelRef)}
-    </dialog>
   );
 }

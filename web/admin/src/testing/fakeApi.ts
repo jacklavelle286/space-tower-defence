@@ -32,6 +32,9 @@ export class FakeAdminApi {
   bank: BankStatus = clone(BANK);
   /** What the next validate returns as problems (empty: valid). */
   problems: Problem[] = [];
+  /** The activities R32 names when it refuses to delete a speech definition (a test sets them). */
+  speechUsers: Record<string, string[]> = {};
+  readonly deletedSpeech = new Set<string>();
   private clock = 0;
 
   private record(name: string, ...args: unknown[]) {
@@ -75,7 +78,18 @@ export class FakeAdminApi {
   readonly api: AdminApi = {
     listSpeech: async () => {
       this.record("listSpeech");
-      return { items: clone([...SPEECH]) };
+      return { items: clone(SPEECH.filter((s) => !this.deletedSpeech.has(s.speechId))) };
+    },
+    deleteSpeech: async (speechId: string) => {
+      this.record("deleteSpeech", speechId);
+      const users = this.speechUsers[speechId] ?? [];
+      if (users.length > 0) {
+        throw new ApiError(400, "VALIDATION_FAILED", users.map((id) => ({ field: `usedBy.${id}`, rule: "speech_in_use" })));
+      }
+      const summary = SPEECH.find((s) => s.speechId === speechId);
+      if (summary === undefined || this.deletedSpeech.has(speechId)) throw new ApiError(404, "NOT_FOUND");
+      this.deletedSpeech.add(speechId);
+      return { speechId, deletedVersions: summary.approvedVersion === null ? [] : [summary.approvedVersion] };
     },
     createSpeech: async () => {
       throw new ApiError(501, "NOT_IMPLEMENTED");
@@ -83,7 +97,7 @@ export class FakeAdminApi {
     getSpeech: async (speechId: string) => {
       this.record("getSpeech", speechId);
       const summary = SPEECH.find((s) => s.speechId === speechId);
-      if (summary === undefined) throw new ApiError(404, "NOT_FOUND");
+      if (summary === undefined || this.deletedSpeech.has(speechId)) throw new ApiError(404, "NOT_FOUND");
       const view: SpeechView = {
         header: summary,
         draft: { kind: summary.kind, provider: "polly", engine: "neural", voiceId: "Amy", draftRevision: 1, take: 1, updatedAt: summary.updatedAt, clipKey: "k", text: "sh" },
