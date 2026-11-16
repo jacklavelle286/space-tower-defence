@@ -1,0 +1,53 @@
+{
+  "$comment": "Starter-pack seed activity, batch 4 (phonics, reading with pictures). Loaded by scripts/seed_content.py; with --publish it is auto-published (ADR-0028).",
+  "schemaVersion": 1,
+  "activityId": "ph-1006",
+  "title": "Read the word: ring",
+  "subject": "phonics",
+  "topicId": "phonics-blend-digraph-words",
+  "minAge": 5,
+  "maxAge": 5,
+  "rewardCategory": "BOTH",
+  "interactionType": "PICTURE_SELECT",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Which picture is this word? ring"
+  },
+  "visualAssetReferences": [
+    "pic-rain",
+    "pic-ring",
+    "pic-pin",
+    "pic-web"
+  ],
+  "activityPayload": {
+    "options": [
+      {
+        "id": "a",
+        "assetId": "pic-rain",
+        "alt": "water falling from a grey cloud"
+      },
+      {
+        "id": "b",
+        "assetId": "pic-ring",
+        "alt": "a gold band with a pink jewel"
+      },
+      {
+        "id": "c",
+        "assetId": "pic-pin",
+        "alt": "a red-topped spike for sticking in"
+      },
+      {
+        "id": "d",
+        "assetId": "pic-web",
+        "alt": "a white net spun by a spider"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "b"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

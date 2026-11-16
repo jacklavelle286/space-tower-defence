@@ -1,0 +1,57 @@
+{
+  "$comment": "Starter-pack seed activity, batch 4 (phonics, reading with pictures). Loaded by scripts/seed_content.py; with --publish it is auto-published (ADR-0028).",
+  "schemaVersion": 1,
+  "activityId": "ph-1009",
+  "title": "Which picture ends with /sh/?",
+  "subject": "phonics",
+  "topicId": "phonics-blend-digraph-words",
+  "minAge": 5,
+  "maxAge": 5,
+  "rewardCategory": "BOTH",
+  "interactionType": "PICTURE_SELECT",
+  "authoringMode": "FIXED",
+  "audioRequirement": "REQUIRED",
+  "prompt": {
+    "text": "Listen. Which picture ends with this sound?"
+  },
+  "visualAssetReferences": [
+    "pic-fox",
+    "pic-frog",
+    "pic-fish",
+    "pic-flag"
+  ],
+  "activityPayload": {
+    "options": [
+      {
+        "id": "a",
+        "assetId": "pic-fox",
+        "alt": "an orange animal with a bushy tail"
+      },
+      {
+        "id": "b",
+        "assetId": "pic-frog",
+        "alt": "a green animal with big eyes"
+      },
+      {
+        "id": "c",
+        "assetId": "pic-fish",
+        "alt": "an orange swimmer with fins"
+      },
+      {
+        "id": "d",
+        "assetId": "pic-flag",
+        "alt": "an orange cloth on a pole"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "c"
+    ]
+  },
+  "speechDefinitionReferences": {
+    "prompt": {
+      "speechId": "phoneme-sh"
+    }
+  }
+}

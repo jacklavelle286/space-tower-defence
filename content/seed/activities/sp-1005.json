@@ -1,0 +1,51 @@
+{
+  "$comment": "Starter-pack seed activity, batch 5 (choose or build the word for a picture). Loaded by scripts/seed_content.py; with --publish it is auto-published (ADR-0028).",
+  "schemaVersion": 1,
+  "activityId": "sp-1005",
+  "title": "Missing letter for the picture (van)",
+  "subject": "spelling",
+  "topicId": "spelling-cvc-missing-letter",
+  "minAge": 5,
+  "maxAge": 5,
+  "rewardCategory": "BOTH",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "_ a n. Which letter makes the word for the picture?"
+  },
+  "visualAssetReferences": [
+    "pic-van"
+  ],
+  "activityPayload": {
+    "optionStyle": "GRAPHEME",
+    "options": [
+      {
+        "id": "a",
+        "text": "f"
+      },
+      {
+        "id": "b",
+        "text": "p"
+      },
+      {
+        "id": "c",
+        "text": "v"
+      },
+      {
+        "id": "d",
+        "text": "b"
+      }
+    ],
+    "stimulus": {
+      "assetId": "pic-van",
+      "alt": "a green vehicle for carrying things"
+    }
+  },
+  "answerSpecification": {
+    "accepted": [
+      "c"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

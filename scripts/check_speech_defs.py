@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
-"""Speech-definition check (gate G-14, plan H §H.10; spine S5.2, E §E.4.1a; Phase 19, brought forward from Phase 20).
+"""Speech-definition check (gate G-14, plan H §H.10; spine S5.2, E §E.4.1a; Phase 19; rule changed by ADR-0028).
 
-A PHONEME speech definition is refused unless its sound has a publishable verdict in content/listening-verdicts.json:
+A PHONEME speech definition is refused only when its sound has the verdict `word-only` in
+content/listening-verdicts.json. The operator's in-app Approve (preview the exact clip, listen, tick) is the listening
+verdict (owner decision 2026-11-16, ADR-0028), so this is the same rule admin-api applies (api/shared/verdicts.py):
 
   verdicts-file      the verdicts file exists, has schemaVersion 1, and every sound's verdict is one of
                      verdictValues.PHONEME or "pending"
   phoneme-verdict    a definition with kind PHONEME names its sound by the speechId convention `phoneme-<sound id>`,
-                     and sounds[<sound id>].verdict is `publishable` or `publishable-small-schwa`. Missing, `pending`
-                     or `word-only` is refused (fail closed: a sound nobody has listened to is not taught in isolation)
+                     and sounds[<sound id>].verdict is not `word-only` (a word-only sound is taught only inside words).
+                     Missing, `pending` and the publishable verdicts pass: the operator listens before approving
   kind               every speech definition's kind is WORD, PHONEME, LETTER_NAME, INSTRUCTION or DICTATION
 
 What is a speech definition: any JSON object, at any depth, in a .json file under content/seed/, that has both
@@ -39,7 +41,7 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 VERDICTS = Path("content/listening-verdicts.json")
 SEED = Path("content/seed")
 KINDS = frozenset({"WORD", "PHONEME", "LETTER_NAME", "INSTRUCTION", "DICTATION"})
-PUBLISHABLE = frozenset({"publishable", "publishable-small-schwa"})
+WORD_ONLY = "word-only"
 PHONEME_PREFIX = "phoneme-"
 
 
@@ -102,11 +104,8 @@ def check(root: Path) -> tuple[int, list[str]]:
                 continue
             sound = sounds.get(speech_id.removeprefix(PHONEME_PREFIX))
             verdict = sound.get("verdict") if isinstance(sound, dict) else None
-            if verdict not in PUBLISHABLE:
-                problems.append(
-                    f"{shown}: phoneme-verdict: {name} has verdict {verdict or 'missing'}, "
-                    "not publishable or publishable-small-schwa"
-                )
+            if verdict == WORD_ONLY:
+                problems.append(f"{shown}: phoneme-verdict: {name} has verdict word-only (taught only inside words)")
     return (EXIT_VIOLATION if problems else EXIT_OK), problems
 
 

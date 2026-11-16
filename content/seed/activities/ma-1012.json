@@ -1,0 +1,45 @@
+{
+  "$comment": "Starter pack, batch 1 (maths, age 5). Seeded by scripts/seed_content.py; with --publish it is published as the starter pack (ADR-0028).",
+  "schemaVersion": 1,
+  "activityId": "ma-1012",
+  "title": "Which two numbers make 10",
+  "subject": "maths",
+  "topicId": "maths-bonds-to10",
+  "minAge": 5,
+  "maxAge": 6,
+  "rewardCategory": "BOTH",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Which two numbers make 10?"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "optionStyle": "TEXT",
+    "options": [
+      {
+        "id": "a",
+        "text": "5 and 4"
+      },
+      {
+        "id": "b",
+        "text": "7 and 2"
+      },
+      {
+        "id": "c",
+        "text": "6 and 4"
+      },
+      {
+        "id": "d",
+        "text": "8 and 1"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "c"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

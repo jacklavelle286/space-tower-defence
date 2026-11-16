@@ -1,9 +1,9 @@
 """Phase 20 admin path (G §12 R17-R27, D §D8.6, D §D9.3; M1-19) on moto, with the real `tts` preview route.
 
 The exit criteria come first: the approved version records the same `clipKey` as the preview; approval refuses a draft
-whose exact input was never previewed; a PHONEME definition needs a publishable listening verdict (G-14); an operator
-without `admin`, or a player token, is refused with 403 on every admin route before anything is read (I §I.2.7); the
-published activity is what selection and packs read.
+whose exact input was never previewed; the operator's approve is the listening verdict, so only a PHONEME whose sound
+is word-only is refused (G-14, ADR-0028); an operator without `admin`, or a player token, is refused with 403 on every
+admin route before anything is read (I §I.2.7); the published activity is what selection and packs read.
 """
 
 from __future__ import annotations
@@ -18,6 +18,7 @@ import pytest
 from conftest import REPO, CapturedLogger, RecordingClient, event_for, load_handler
 from test_tts import BUCKET, PREFIX, FakePolly
 
+from shared import verdicts
 from shared.clipkey import SpeechConfig
 from shared.content import CHECKLIST, CREATE_FIELDS
 from shared.data import DynamoTable
@@ -253,17 +254,24 @@ def test_approve_is_safe_to_retry_and_refuses_a_stale_revision(api: Admin) -> No
     assert (status, body["error"]["code"]) == (409, "DRAFT_CONFLICT")
 
 
-def test_g14_refuses_a_phoneme_without_a_publishable_verdict(api: Admin) -> None:
-    verdicts = json.loads((REPO / "content" / "listening-verdicts.json").read_text())["sounds"]
-    refused = sorted(s for s, v in verdicts.items() if v["verdict"] not in ("publishable", "publishable-small-schwa"))
-    assert refused, "the verdicts file has no refused sound to test with"
-    sound = refused[0]
-    speech_id = f"phoneme-{sound}"
-    api.speech(speech_id, "PHONEME", text=sound)
-    api.preview("PHONEME", text=sound)
+def test_g14_refuses_only_a_word_only_phoneme(api: Admin, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(verdicts, "_sounds", lambda: {"ng": {"verdict": "word-only"}})
+    api.speech("phoneme-ng", "PHONEME", text="ng")
+    api.preview("PHONEME", text="ng")
+    status, body = api.approve("phoneme-ng", 1)
+    assert (status, rules(body)) == (400, {("speechId", "phoneme_word_only")})
+    assert api.table.query_prefix("SPEECH#phoneme-ng", "V#") == []
+
+
+def test_the_operators_approve_is_the_verdict_for_a_pending_sound(api: Admin) -> None:
+    sounds = json.loads((REPO / "content" / "listening-verdicts.json").read_text())["sounds"]
+    pending = sorted(s for s, v in sounds.items() if v["verdict"] == "pending")
+    assert pending, "the verdicts file has no pending sound to test with"
+    speech_id = f"phoneme-{pending[0]}"
+    api.speech(speech_id, "PHONEME", text=pending[0])
+    api.preview("PHONEME", text=pending[0])
     status, body = api.approve(speech_id, 1)
-    expected = "phoneme_word_only" if verdicts[sound]["verdict"] == "word-only" else "phoneme_no_verdict"
-    assert (status, rules(body)) == (400, {("speechId", expected)})
+    assert status == 200, body  # previewed, listened to and ticked: approved (ADR-0028)
 
 
 def test_phoneme_refusal_rules() -> None:
@@ -272,13 +280,13 @@ def test_phoneme_refusal_rules() -> None:
         "b": {"verdict": "publishable-small-schwa"},
         "ng": {"verdict": "word-only"},
         "th": {"verdict": "pending"},
+        "x": {"verdict": "rejected"},
+        "y": "not an object",
     }
-    assert phoneme_refusal("phoneme-sh", sounds) is None
-    assert phoneme_refusal("phoneme-b", sounds) is None
-    assert phoneme_refusal("phoneme-ng", sounds) == "phoneme_word_only"
-    assert phoneme_refusal("phoneme-th", sounds) == "phoneme_no_verdict"
-    assert phoneme_refusal("phoneme-zz", sounds) == "phoneme_no_verdict"
-    assert phoneme_refusal("sh-sound", sounds) == "phoneme_no_verdict"
+    assert phoneme_refusal("phoneme-ng", sounds) == "phoneme_word_only"  # the only refusal (ADR-0028)
+    for allowed in ("phoneme-sh", "phoneme-b", "phoneme-th", "phoneme-x", "phoneme-y", "phoneme-zz", "sh-sound"):
+        assert phoneme_refusal(allowed, sounds) is None, allowed
+    assert phoneme_refusal("phoneme-ng", {}) is None  # no verdicts file: no word-only list
 
 
 def test_speech_draft_save_checks_like_a_preview_and_uses_draft_revision(api: Admin) -> None:

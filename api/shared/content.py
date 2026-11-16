@@ -51,7 +51,7 @@ import re
 from collections.abc import Iterable, Mapping
 from datetime import UTC, datetime
 from decimal import Decimal
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from shared.activity_types import (
     INTERACTION_TYPES,
@@ -66,6 +66,9 @@ from shared.activity_types import (
 from shared.clipkey import KINDS, PROVIDER
 from shared.rules.contracts import LIMITS
 from shared.topics import get_topic
+
+if TYPE_CHECKING:
+    from shared.data import DynamoTable
 
 SPEECH_PK = "SPEECH"
 ACT_PK = "ACT"
@@ -693,6 +696,7 @@ def published_version(
     by: str,
     at: datetime,
     from_draft_revision: int,
+    seed_note: str | None = None,
 ) -> dict[str, Any]:
     """The immutable version item: the definition's fields at the top level (what packs, selection and ops read),
     speech refs resolved, and the review record (never sent to a player: runs.py copies an allow-list).
@@ -700,7 +704,10 @@ def published_version(
     `definition` is what `definition_for_publish` returns. `definitionHash` covers the whole published body: every
     definition field (the registry curriculum included when the server wrote it), the resolved speech refs and the
     version ID; not the review record, `publishedBy`, `publishedAt`, `fromDraftRevision` or the keys. So the hash
-    proves the published record never changed, whichever fields the server filled in."""
+    proves the published record never changed, whichever fields the server filled in.
+
+    `seed_note` is set only by scripts/seed_content.py --publish (ADR-0028): the review record then also says
+    `seeded: true` with that note. R27's request body cannot set either (`checklist_problems` refuses other keys)."""
     body = {name: plain(value) for name, value in definition.items() if name != "speechDefinitionReferences"}
     body["speechDefinitionReferences"] = {variant: dict(ref) for variant, ref in sorted(resolved.items())}
     body["version"] = version
@@ -718,7 +725,137 @@ def published_version(
         "fromDraftRevision": from_draft_revision,
         "definitionHash": definition_hash(body),
     }
+    if seed_note is not None:
+        item["review"].update(seeded=True, reviewNote=seed_note)
     return item
+
+
+# --- Publish (R27), shared by admin-api and scripts/seed_content.py --publish ----------------------------------------
+
+
+def audit_item(pk: str, sk: str, action: str, by: str, moment: datetime, **ids: Any) -> dict[str, Any]:
+    return {"pk": pk, "sk": sk, "action": action, "by": by, "at": iso_z(moment), **ids}
+
+
+def publish_checks(
+    table: DynamoTable, header: Mapping[str, Any], draft: Mapping[str, Any], activity_id: str
+) -> tuple[list[Problem], dict[str, dict[str, str]]]:
+    """C22.2 subset: (problems, resolved speech refs {variant: {speechId, speechVersion, clipKey}}).
+
+    Reads the referenced speech headers and their approved versions from `table` (reads only)."""
+    definition = draft.get("definition")
+    problems = definition_problems(definition, activity_id, header)  # registry checks until the first publish
+    if not isinstance(definition, Mapping):
+        return problems, {}
+    problems += locked_problems(header, definition)
+    refs = speech_refs(definition)
+    found = table.batch_get([(SPEECH_PK, speech_id) for speech_id in set(refs.values())])
+    headers = {speech_id: found.get((SPEECH_PK, speech_id)) for speech_id in set(refs.values())}
+    problems += approval_problems(refs, headers)
+    resolved: dict[str, dict[str, str]] = {}
+    approved = {
+        speech_id: str(h["approvedVersion"])
+        for speech_id, h in headers.items()
+        if h is not None and h.get("state") == "APPROVED" and h.get("approvedVersion")
+    }
+    versions = table.batch_get([(speech_pk(s), f"{VERSION_PREFIX}{v}") for s, v in approved.items()])
+    for variant, speech_id in sorted(refs.items()):
+        if speech_id not in approved:
+            continue
+        version = versions.get((speech_pk(speech_id), f"{VERSION_PREFIX}{approved[speech_id]}"))
+        clip = version.get("clipKey") if version is not None else None
+        if not isinstance(clip, str):
+            problems.append(problem(f"speechDefinitionReferences.{variant}", "speech_not_approved"))
+            continue
+        resolved[variant] = {"speechId": speech_id, "speechVersion": approved[speech_id], "clipKey": clip}
+    return problems, resolved
+
+
+def publish_actions(
+    table: DynamoTable,
+    *,
+    activity_id: str,
+    header: Mapping[str, Any],
+    draft: Mapping[str, Any],
+    revision: int,
+    resolved: Mapping[str, Mapping[str, str]],
+    review: Mapping[str, Any],
+    by: str,
+    moment: datetime,
+    seed_note: str | None = None,
+) -> tuple[str, list[dict[str, Any]]]:
+    """(versionId, the one transaction R27 writes) for a draft that passed `checklist_problems` and `publish_checks`.
+
+    The transaction: the immutable version (attribute_not_exists), the header moved to PUBLISHED (conditioned on the
+    `publishedVersion` that was read, so of two concurrent publishes only one wins), a check that the draft is still
+    at `revision`, a check that each referenced speech definition still has the approved version that was resolved,
+    and the audit item."""
+    definition = definition_for_publish(draft["definition"])  # registry curriculum when the draft has none
+    vid = version_id(moment)
+    version = published_version(
+        definition=definition,
+        resolved=resolved,
+        version=vid,
+        review=review,
+        by=by,
+        at=moment,
+        from_draft_revision=revision,
+        seed_note=seed_note,
+    )
+    header_set = {
+        **header_fields(definition),
+        "state": "PUBLISHED",
+        "publishedVersion": vid,
+        "fromDraftRevision": revision,
+        "updatedAt": iso_z(moment),
+    }
+    names = {f"#h{i}": name for i, name in enumerate(header_set)}
+    values: dict[str, Any] = {f":h{i}": value for i, value in enumerate(header_set.values())}
+    update = "SET " + ", ".join(f"{n} = {v}" for n, v in zip(names, values, strict=True))
+    pv = next(n for n, name in names.items() if name == "publishedVersion")
+    published = header.get("publishedVersion")
+    if published:
+        header_condition = f"attribute_exists(#pk) AND {pv} = :prev"
+        values[":prev"] = str(published)
+    else:
+        header_condition = f"attribute_exists(#pk) AND attribute_not_exists({pv})"
+    audit_pk, audit_sk = audit_key(moment, f"{activity_id}#publish#{vid}")
+    actions = [
+        table.put_action(version, condition="attribute_not_exists(#pk)", names={"#pk": "pk"}),
+        table.update_action(
+            ACT_PK,
+            activity_id,
+            update=update,
+            names={**names, "#pk": "pk"},
+            values=values,
+            condition=header_condition,
+        ),
+        table.condition_check_action(
+            activity_pk(activity_id),
+            DRAFT_SK,
+            condition="#rev = :r",
+            names={"#rev": "draftRevision"},
+            values={":r": revision},
+        ),
+    ]
+    for speech_id, speech_version in sorted({(r["speechId"], r["speechVersion"]) for r in resolved.values()}):
+        actions.append(
+            table.condition_check_action(
+                SPEECH_PK,
+                speech_id,
+                condition="#v = :v",
+                names={"#v": "approvedVersion"},
+                values={":v": speech_version},
+            )
+        )
+    actions.append(
+        table.put_action(
+            audit_item(audit_pk, audit_sk, "publish", by, moment, activityId=activity_id, versionId=vid),
+            condition="attribute_not_exists(#pk)",
+            names={"#pk": "pk"},
+        )
+    )
+    return vid, actions
 
 
 def display_numbers(version_ids: Iterable[str]) -> dict[str, int]:

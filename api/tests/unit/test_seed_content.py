@@ -13,6 +13,7 @@ from typing import Any
 import pytest
 from conftest import REPO
 
+from shared.content import CHECKLIST, definition_hash, definition_problems
 from shared.data import DynamoTable
 
 CONTENT = "test-content"
@@ -42,6 +43,18 @@ def content(ddb: Any) -> Any:
         BillingMode="PAY_PER_REQUEST",
     )
     return ddb
+
+
+@pytest.fixture(autouse=True)
+def minimal_seed(tmp_path_factory: pytest.TempPathFactory, monkeypatch: pytest.MonkeyPatch) -> Path:
+    """The seed-run tests use a fixed seed folder (the speech seeds and ph-0102 only), so the starter pack growing in
+    content/seed/activities never changes what they expect. The pack itself is checked file by file at the end."""
+    seed_dir = tmp_path_factory.mktemp("minimal") / "seed"
+    shutil.copytree(REPO / "content" / "seed" / "speech", seed_dir / "speech")
+    (seed_dir / "activities").mkdir()
+    shutil.copy(REPO / "content" / "seed" / "activities" / "ph-0102.json", seed_dir / "activities")
+    monkeypatch.setattr(seed_content, "SEED_DIR", seed_dir)
+    return seed_dir
 
 
 def run(content: Any, *args: str, seed_dir: Path | None = None) -> int:
@@ -118,7 +131,7 @@ def test_an_operator_edit_is_never_overwritten(content: Any) -> None:
 def test_the_create_is_conditional_even_if_the_read_raced(content: Any) -> None:
     """The dry-run read is only for the report: the write itself is attribute_not_exists, so an item created between
     the read and the write is still never overwritten."""
-    seeds = seed_content.load_seeds(REPO / "content" / "seed", seed_content.datetime.now(seed_content.UTC))
+    seeds = seed_content.load_seeds(seed_content.SEED_DIR, seed_content.datetime.now(seed_content.UTC))
     table = DynamoTable(content, CONTENT)
     assert seed_content.apply_seed(table, seeds[0]) == "created"
     assert seed_content.apply_seed(table, seeds[0]) == "skipped, exists"
@@ -126,7 +139,7 @@ def test_the_create_is_conditional_even_if_the_read_raced(content: Any) -> None:
 
 def test_a_bad_seed_stops_before_any_call(tmp_path: Path, content: Any, capsys: pytest.CaptureFixture[str]) -> None:
     seed_dir = tmp_path / "seed"
-    shutil.copytree(REPO / "content" / "seed", seed_dir)
+    shutil.copytree(seed_content.SEED_DIR, seed_dir)
     path = seed_dir / "activities" / "ph-0102.json"
     doc = json.loads(path.read_text())
     doc["answerSpecification"] = {"accepted": ["z"]}
@@ -139,11 +152,14 @@ def test_a_bad_seed_stops_before_any_call(tmp_path: Path, content: Any, capsys: 
     assert "answerSpecification.accepted.0 not_an_option" in capsys.readouterr().err
 
 
-def test_a_phoneme_without_a_publishable_verdict_is_refused(tmp_path: Path) -> None:
-    verdicts = json.loads((REPO / "content" / "listening-verdicts.json").read_text())["sounds"]
-    refused = sorted(s for s, v in verdicts.items() if v["verdict"] not in ("publishable", "publishable-small-schwa"))
-    path = tmp_path / f"phoneme-{refused[0]}.json"
-    path.write_text(json.dumps({"speechId": path.stem, "title": "t", "kind": "PHONEME", "text": refused[0]}))
+def test_a_word_only_phoneme_is_refused(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """ADR-0028: only a sound judged `word-only` is refused (G-14); no sound in the file is word-only today, so the
+    verdicts are replaced for this test."""
+    from shared import verdicts
+
+    monkeypatch.setattr(verdicts, "_sounds", lambda: {"zz": {"verdict": "word-only"}})
+    path = tmp_path / "phoneme-zz.json"
+    path.write_text(json.dumps({"speechId": path.stem, "title": "t", "kind": "PHONEME", "text": "zz"}))
     with pytest.raises(seed_content.SeedError, match="G-14"):
         seed_content.speech_seed(path, seed_content.datetime.now(seed_content.UTC))
 
@@ -152,3 +168,194 @@ def test_output_names_ids_only(content: Any, capsys: pytest.CaptureFixture[str])
     run(content, "--apply")
     out = capsys.readouterr().out
     assert "prosody" not in out and "Listen." not in out
+
+
+# --- --publish (ADR-0028) -------------------------------------------------------------------------------------------
+
+SPEECH_VERSION = "20261101T090000Z"
+CLIP = "clips/phoneme-sh-test.mp3"
+
+
+def approve_speech(content: Any, speech_id: str = "phoneme-sh") -> None:
+    """The items R21 leaves behind for an approved speech definition (header APPROVED + the version's clipKey)."""
+    table = DynamoTable(content, CONTENT)
+    header = {
+        "pk": "SPEECH",
+        "sk": speech_id,
+        "kind": "PHONEME",
+        "state": "APPROVED",
+        "approvedVersion": SPEECH_VERSION,
+    }
+    version = {"pk": f"SPEECH#{speech_id}", "sk": f"V#{SPEECH_VERSION}", "clipKey": CLIP}
+    new = {"condition": "attribute_not_exists(#pk)", "names": {"#pk": "pk"}}
+    table.transact_write([table.put_action(header, **new), table.put_action(version, **new)])
+
+
+def seed_copy(tmp_path: Path) -> Path:
+    seed_dir = tmp_path / "seed"
+    shutil.copytree(seed_content.SEED_DIR, seed_dir)
+    return seed_dir
+
+
+def add_activity(seed_dir: Path, activity_id: str, **changes: Any) -> None:
+    doc = json.loads((seed_dir / "activities" / "ph-0102.json").read_text())
+    doc.update(activityId=activity_id, **changes)
+    (seed_dir / "activities" / f"{activity_id}.json").write_text(json.dumps(doc))
+
+
+def keys(content: Any) -> list[tuple[str, str]]:
+    return [(i["pk"]["S"], i["sk"]["S"]) for i in items(content)]
+
+
+def test_publish_dry_run_writes_nothing(content: Any, capsys: pytest.CaptureFixture[str]) -> None:
+    approve_speech(content)
+    before = items(content)
+    assert run(content, "--dry-run", "--publish") == 0
+    out = capsys.readouterr().out
+    assert "activity ph-0102: would create (dry run); would publish (dry run)" in out
+    assert items(content) == before
+
+
+def test_publish_creates_and_publishes_like_r27(content: Any, capsys: pytest.CaptureFixture[str]) -> None:
+    approve_speech(content)
+    assert run(content, "--apply", "--publish") == 0
+    out = capsys.readouterr().out
+    assert "activity ph-0102: created; published " in out
+    assert "published: 1" in out and "failed: 0" in out
+    table = DynamoTable(content, CONTENT)
+    header = table.get_item("ACT", "ph-0102")
+    assert header is not None and header["state"] == "PUBLISHED" and header["fromDraftRevision"] == 0
+    vid = header["publishedVersion"]
+    version = table.get_item("ACT#ph-0102", f"V#{vid}")
+    assert version is not None
+    assert version["publishedBy"] == "seed_content.py" and version["fromDraftRevision"] == 0
+    assert version["review"] == {
+        "checklist": dict.fromkeys(CHECKLIST, True),
+        "previewSolvedDraftRevision": 0,
+        "seeded": True,
+        "reviewNote": "Starter pack, auto-published by seed_content.py (ADR-0028)",
+    }
+    assert version["speechDefinitionReferences"] == {
+        "prompt": {"speechId": "phoneme-sh", "speechVersion": SPEECH_VERSION, "clipKey": CLIP}
+    }
+    excluded = {"pk", "sk", "review", "publishedBy", "publishedAt", "fromDraftRevision", "definitionHash"}
+    body = {k: v for k, v in version.items() if k not in excluded}
+    assert version["definitionHash"] == definition_hash(body) and body["version"] == vid
+    audits = [i for i in keys(content) if i[0].startswith("AUDIT#")]
+    assert len(audits) == 1 and audits[0][1].endswith(f"#ph-0102#publish#{vid}")
+    audit = table.get_item(*audits[0])
+    assert audit is not None and (audit["action"], audit["by"], audit["versionId"]) == (
+        "publish",
+        "seed_content.py",
+        vid,
+    )
+
+
+def test_publish_rerun_is_a_no_op(content: Any, capsys: pytest.CaptureFixture[str]) -> None:
+    approve_speech(content)
+    assert run(content, "--apply", "--publish") == 0
+    after_first = items(content)
+    capsys.readouterr()
+    assert run(content, "--apply", "--publish") == 0
+    out = capsys.readouterr().out
+    assert "activity ph-0102: already published (" in out and "published: 0" in out
+    assert items(content) == after_first
+
+
+def test_unapproved_speech_blocks_publish_and_the_others_carry_on(
+    tmp_path: Path, content: Any, capsys: pytest.CaptureFixture[str]
+) -> None:
+    approve_speech(content, "phoneme-s")  # ph-0103 uses this approved clip; ph-0102's phoneme-sh is only a draft
+    seed_dir = seed_copy(tmp_path)
+    add_activity(seed_dir, "ph-0103", speechDefinitionReferences={"prompt": {"speechId": "phoneme-s"}})
+    assert run(content, "--apply", "--publish", seed_dir=seed_dir) == 3  # phoneme-sh is only a draft
+    out = capsys.readouterr().out
+    assert "speechDefinitionReferences.prompt speech_not_approved" in out
+    assert "activity ph-0103: created; published " in out
+    table = DynamoTable(content, CONTENT)
+    header = table.get_item("ACT", "ph-0102")
+    assert header is not None and header["state"] == "DRAFT" and "publishedVersion" not in header
+    assert not [k for k in keys(content) if k[0] == "ACT#ph-0102" and k[1].startswith("V#")]
+    assert len([k for k in keys(content) if k[0].startswith("AUDIT#")]) == 1  # ph-0103's only
+
+
+def test_an_invalid_definition_is_reported_and_the_others_carry_on(
+    tmp_path: Path, content: Any, capsys: pytest.CaptureFixture[str]
+) -> None:
+    approve_speech(content)
+    seed_dir = seed_copy(tmp_path)
+    add_activity(seed_dir, "ph-0104", answerSpecification={"accepted": ["z"]})
+    assert run(content, "--apply", "--publish", seed_dir=seed_dir) == 3
+    out = capsys.readouterr().out
+    assert "activity ph-0104: answerSpecification.accepted.0 not_an_option" in out
+    assert "activity ph-0102: created; published " in out
+    assert "failed: 1" in out
+    assert not [k for k in keys(content) if "ph-0104" in k[0] or k[1] == "ph-0104"]
+
+
+def test_a_topic_rule_blocks_publish(tmp_path: Path, content: Any, capsys: pytest.CaptureFixture[str]) -> None:
+    """The full definition checks run with the header, so the registry rules apply (topic_ages here)."""
+    approve_speech(content)
+    seed_dir = seed_copy(tmp_path)
+    add_activity(seed_dir, "ph-0105", topicId="phonics-not-a-registered-topic")
+    assert run(content, "--apply", "--publish", seed_dir=seed_dir) == 3
+    assert "activity ph-0105: topicId unknown_topic" in capsys.readouterr().out
+
+
+def test_an_existing_different_draft_is_not_overwritten_or_published(
+    content: Any, capsys: pytest.CaptureFixture[str]
+) -> None:
+    approve_speech(content)
+    assert run(content, "--apply") == 0  # drafts only, as before --publish existed
+    table = DynamoTable(content, CONTENT)
+    draft = table.get_item("ACT#ph-0102", "DRAFT")
+    assert draft is not None
+    edited = {**draft["definition"], "title": "An operator's own title"}
+    table.update_item(
+        "ACT#ph-0102",
+        "DRAFT",
+        update="SET #def = :d, #rev = :r",
+        names={"#def": "definition", "#rev": "draftRevision"},
+        values={":d": edited, ":r": 1},
+    )
+    before = items(content)
+    capsys.readouterr()
+    assert run(content, "--apply", "--publish") == 0
+    out = capsys.readouterr().out
+    assert "activity ph-0102: existing draft differs from the seed file: not overwritten, not published" in out
+    assert items(content) == before
+
+
+def test_an_existing_identical_draft_is_published(content: Any, capsys: pytest.CaptureFixture[str]) -> None:
+    approve_speech(content)
+    assert run(content, "--apply") == 0
+    capsys.readouterr()
+    assert run(content, "--apply", "--publish") == 0
+    out = capsys.readouterr().out
+    assert "activity ph-0102: published " in out and "created: 0" in out
+
+
+@pytest.mark.parametrize(
+    "path", sorted((REPO / "content" / "seed" / "activities").glob("*.json")), ids=lambda p: p.stem
+)
+def test_every_seed_activity_passes_the_definition_checks(path: Path) -> None:
+    """Every file in content/seed/activities (the starter pack grows here): the full C22.2 definition checks with
+    the topic registry rules (no header: nothing is published yet), and the file is named after its activityId."""
+    doc = json.loads(path.read_text(encoding="utf-8"))
+    doc.pop("$comment", None)
+    assert doc.get("activityId") == path.stem
+    assert definition_problems(doc, path.stem) == []
+
+
+def test_the_whole_pack_would_seed_and_publish(content: Any, capsys: pytest.CaptureFixture[str]) -> None:
+    """The real content/seed folder, on moto: a plain dry run loads every seed (any bad file would stop it with exit
+    1), and a publish dry run with phoneme-sh approved reports nothing failed."""
+    pack = REPO / "content" / "seed"
+    activities = sorted(p.stem for p in (pack / "activities").glob("*.json"))
+    assert run(content, "--dry-run", seed_dir=pack) == 0
+    approve_speech(content)
+    capsys.readouterr()
+    assert run(content, "--dry-run", "--publish", seed_dir=pack) == 0
+    out = capsys.readouterr().out
+    assert "failed: 0" in out and f"published: {len(activities)}" in out
+    assert all(f"activity {a}: would create (dry run); would publish (dry run)" in out for a in activities)

@@ -1,0 +1,45 @@
+{
+  "$comment": "Starter pack, batch 6 (spelling, ADR-0028). Loaded and auto-published by scripts/seed_content.py --publish.",
+  "schemaVersion": 1,
+  "activityId": "sp-1017",
+  "title": "Spell said",
+  "subject": "spelling",
+  "topicId": "spelling-y1-exception-words",
+  "minAge": 6,
+  "maxAge": 7,
+  "rewardCategory": "BOTH",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Which word is spelt correctly?"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "optionStyle": "WORD",
+    "options": [
+      {
+        "id": "a",
+        "text": "sed"
+      },
+      {
+        "id": "b",
+        "text": "said"
+      },
+      {
+        "id": "c",
+        "text": "sayd"
+      },
+      {
+        "id": "d",
+        "text": "siad"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "b"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

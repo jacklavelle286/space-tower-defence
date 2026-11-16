@@ -1,0 +1,45 @@
+{
+  "$comment": "Starter pack, batch 2 (maths, age 6-7). Seeded by scripts/seed_content.py; with --publish it is auto-published (ADR-0028).",
+  "schemaVersion": 1,
+  "activityId": "ma-1018",
+  "title": "Which word means 14",
+  "subject": "maths",
+  "topicId": "maths-number-words-to20",
+  "minAge": 6,
+  "maxAge": 6,
+  "rewardCategory": "BOTH",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Which word means 14?"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "optionStyle": "WORD",
+    "options": [
+      {
+        "id": "a",
+        "text": "forty"
+      },
+      {
+        "id": "b",
+        "text": "fourteen"
+      },
+      {
+        "id": "c",
+        "text": "four"
+      },
+      {
+        "id": "d",
+        "text": "fifteen"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "b"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

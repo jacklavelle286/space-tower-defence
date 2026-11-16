@@ -1,0 +1,28 @@
+{
+  "$comment": "Starter pack, batch 2 (maths, age 6-7). Seeded by scripts/seed_content.py; with --publish it is auto-published (ADR-0028).",
+  "schemaVersion": 1,
+  "activityId": "ma-1017",
+  "title": "One less than 70",
+  "subject": "maths",
+  "topicId": "maths-number-one-more-less-to100",
+  "minAge": 6,
+  "maxAge": 6,
+  "rewardCategory": "BOTH",
+  "interactionType": "TYPED",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "What is one less than 70?"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "mode": "NUMERIC",
+    "maxLength": 2
+  },
+  "answerSpecification": {
+    "accepted": [
+      "69"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

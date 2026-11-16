@@ -1,0 +1,45 @@
+{
+  "$comment": "Starter pack (ADR-0028), batch 3. Published by scripts/seed_content.py --apply --publish.",
+  "schemaVersion": 1,
+  "activityId": "ma-1030",
+  "title": "Which is true: compare 56 and 65",
+  "subject": "maths",
+  "topicId": "maths-compare-symbols-to100",
+  "minAge": 7,
+  "maxAge": 7,
+  "rewardCategory": "BOTH",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Which one is true?"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "optionStyle": "TEXT",
+    "options": [
+      {
+        "id": "a",
+        "text": "56 is more than 65"
+      },
+      {
+        "id": "b",
+        "text": "56 is less than 65"
+      },
+      {
+        "id": "c",
+        "text": "56 is equal to 65"
+      },
+      {
+        "id": "d",
+        "text": "65 is less than 56"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "b"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

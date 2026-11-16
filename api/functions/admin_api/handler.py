@@ -13,8 +13,9 @@ function it shares with selection. Item shapes and checks are in shared/content.
 Speech approval (R21, F §12.6 C7, D §D9.3) never synthesises. It recomputes the clip key from the SAVED draft (its kind
 picks the engine, with the same TTS_* configuration as `tts`) and requires that object in the audio bucket: the object
 exists only if `POST /api/admin/speech/preview` rendered exactly this draft's input, so "a preview of the same draft
-revision exists" is a fact the server can check, not a claim from the browser. A PHONEME definition also needs a
-publishable verdict in content/listening-verdicts.json (G-14, shared/verdicts.py). The version records `clipKey`, the
+revision exists" is a fact the server can check, not a claim from the browser. That listen-and-approve is the
+listening verdict (ADR-0028); a PHONEME definition is refused only when its sound is `word-only` in
+content/listening-verdicts.json (G-14, shared/verdicts.py). The version records `clipKey`, the
 `sha256` of the MP3 bytes, the render date (the object's LastModified), `engine`, `voiceId`, `take` and the review
 record.
 
@@ -74,13 +75,11 @@ from shared.content import (
     VERSION_ID,
     VERSION_PREFIX,
     activity_pk,
-    approval_problems,
     as_int,
+    audit_item,
     audit_key,
     check_create_fields,
     checklist_problems,
-    definition_for_publish,
-    definition_problems,
     display_numbers,
     header_fields,
     initial_definition,
@@ -90,10 +89,10 @@ from shared.content import (
     new_speech_items,
     plain,
     problem,
-    published_version,
+    publish_actions,
+    publish_checks,
     speech_body,
     speech_pk,
-    speech_refs,
     valid_title,
     version_id,
 )
@@ -440,7 +439,7 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
             doc = clip_input(kind, config, text=text, ssml=ssml, take=take)
         except ClipInputError as error:
             raise invalid([problem(error.field, error.rule)]) from None
-        if kind == "PHONEME":
+        if kind == "PHONEME":  # the operator's approve is the verdict; only a word-only sound is refused (ADR-0028)
             refusal = phoneme_refusal(speech_id)
             if refusal is not None:
                 raise invalid([problem("speechId", refusal)])
@@ -661,38 +660,6 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
             raise ApiError("DRAFT_CONFLICT")
         return json_response(200, activity_view(activity_id))
 
-    def publish_checks(
-        header: Mapping[str, Any], draft: Mapping[str, Any], activity_id: str
-    ) -> tuple[list[dict[str, str]], dict[str, dict[str, str]]]:
-        """C22.2 subset: (problems, resolved speech refs {variant: {speechId, speechVersion, clipKey}})."""
-        definition = draft.get("definition")
-        problems = definition_problems(definition, activity_id, header)  # registry checks until the first publish
-        if not isinstance(definition, Mapping):
-            return problems, {}
-        problems += locked_problems(header, definition)
-        refs = speech_refs(definition)
-        content = table()
-        found = content.batch_get([(SPEECH_PK, speech_id) for speech_id in set(refs.values())])
-        headers = {speech_id: found.get((SPEECH_PK, speech_id)) for speech_id in set(refs.values())}
-        problems += approval_problems(refs, headers)
-        resolved: dict[str, dict[str, str]] = {}
-        approved = {
-            speech_id: str(h["approvedVersion"])
-            for speech_id, h in headers.items()
-            if h is not None and h.get("state") == "APPROVED" and h.get("approvedVersion")
-        }
-        versions = content.batch_get([(speech_pk(s), f"{VERSION_PREFIX}{v}") for s, v in approved.items()])
-        for variant, speech_id in sorted(refs.items()):
-            if speech_id not in approved:
-                continue
-            version = versions.get((speech_pk(speech_id), f"{VERSION_PREFIX}{approved[speech_id]}"))
-            clip = version.get("clipKey") if version is not None else None
-            if not isinstance(clip, str):
-                problems.append(problem(f"speechDefinitionReferences.{variant}", "speech_not_approved"))
-                continue
-            resolved[variant] = {"speechId": speech_id, "speechVersion": approved[speech_id], "clipKey": clip}
-        return problems, resolved
-
     def validate_activity(request: Request) -> dict[str, Any]:
         activity_id = path_id(request)
         request.log["activityId"] = activity_id
@@ -702,7 +669,7 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         header, draft = activity_items(activity_id)
         if as_int(draft.get("draftRevision")) != revision:
             raise ApiError("DRAFT_CONFLICT")
-        problems, _ = publish_checks(header, draft, activity_id)
+        problems, _ = publish_checks(table(), header, draft, activity_id)
         return json_response(
             200, {"valid": not problems, "problems": problems, "draftRevision": revision, "domainSize": 1}
         )
@@ -722,79 +689,23 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         if as_int(draft.get("draftRevision")) != revision:
             raise ApiError("DRAFT_CONFLICT")
         problems = checklist_problems(body["review"], revision)
-        checks, resolved = publish_checks(header, draft, activity_id)
+        checks, resolved = publish_checks(content, header, draft, activity_id)
         problems += checks
         if problems:
             raise invalid(problems)
 
-        definition = definition_for_publish(draft["definition"])  # registry curriculum when the draft has none
-        moment = deps.now()
-        vid = version_id(moment)
-        request.log["versionId"] = vid
-        version = published_version(
-            definition=definition,
+        vid, actions = publish_actions(
+            content,
+            activity_id=activity_id,
+            header=header,
+            draft=draft,
+            revision=revision,
             resolved=resolved,
-            version=vid,
             review=body["review"],
             by=request.caller.sub,
-            at=moment,
-            from_draft_revision=revision,
+            moment=deps.now(),
         )
-        header_set = {
-            **header_fields(definition),
-            "state": "PUBLISHED",
-            "publishedVersion": vid,
-            "fromDraftRevision": revision,
-            "updatedAt": iso_z(moment),
-        }
-        names = {f"#h{i}": name for i, name in enumerate(header_set)}
-        values = {f":h{i}": value for i, value in enumerate(header_set.values())}
-        update = "SET " + ", ".join(f"{n} = {v}" for n, v in zip(names, values, strict=True))
-        # Two tabs: only the transaction that still sees the publishedVersion it read can move the header.
-        pv = next(n for n, name in names.items() if name == "publishedVersion")
-        if published:
-            header_condition = f"attribute_exists(#pk) AND {pv} = :prev"
-            values[":prev"] = str(published)
-        else:
-            header_condition = f"attribute_exists(#pk) AND attribute_not_exists({pv})"
-        audit_pk, audit_sk = audit_key(moment, f"{activity_id}#publish#{vid}")
-        actions = [
-            content.put_action(version, condition="attribute_not_exists(#pk)", names={"#pk": "pk"}),
-            content.update_action(
-                ACT_PK,
-                activity_id,
-                update=update,
-                names={**names, "#pk": "pk"},
-                values=values,
-                condition=header_condition,
-            ),
-            content.condition_check_action(
-                activity_pk(activity_id),
-                DRAFT_SK,
-                condition="#rev = :r",
-                names={"#rev": "draftRevision"},
-                values={":r": revision},
-            ),
-        ]
-        for speech_id, speech_version in sorted({(r["speechId"], r["speechVersion"]) for r in resolved.values()}):
-            actions.append(
-                content.condition_check_action(
-                    SPEECH_PK,
-                    speech_id,
-                    condition="#v = :v",
-                    names={"#v": "approvedVersion"},
-                    values={":v": speech_version},
-                )
-            )
-        actions.append(
-            content.put_action(
-                audit_item(
-                    audit_pk, audit_sk, "publish", request.caller.sub, moment, activityId=activity_id, versionId=vid
-                ),
-                condition="attribute_not_exists(#pk)",
-                names={"#pk": "pk"},
-            )
-        )
+        request.log["versionId"] = vid
         if transact(content, actions) is not None:
             now_header = content.get_item(ACT_PK, activity_id)
             if now_header is not None and as_int(now_header.get("fromDraftRevision")) == revision:
@@ -948,10 +859,6 @@ def valid_reason(value: str) -> bool:
 def retire_view(header: Mapping[str, Any]) -> dict[str, Any]:
     """R28's body: the header, as R24 shows it."""
     return {**activity_summary(header), "fromDraftRevision": as_int(header.get("fromDraftRevision"))}
-
-
-def audit_item(pk: str, sk: str, action: str, by: str, moment: datetime, **ids: str) -> dict[str, Any]:
-    return {"pk": pk, "sk": sk, "action": action, "by": by, "at": iso_z(moment), **ids}
 
 
 def approve_result(version: Mapping[str, Any]) -> dict[str, Any]:

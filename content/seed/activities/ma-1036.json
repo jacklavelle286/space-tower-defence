@@ -1,0 +1,77 @@
+{
+  "$comment": "Starter pack (ADR-0028), batch 3. Published by scripts/seed_content.py --apply --publish.",
+  "schemaVersion": 1,
+  "activityId": "ma-1036",
+  "title": "Pentagon: find it, then count its sides",
+  "subject": "maths",
+  "topicId": "maths-shape-properties",
+  "minAge": 7,
+  "maxAge": 7,
+  "rewardCategory": "BOTH",
+  "interactionType": "PICTURE_SELECT",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Two parts. Do both, then press Check."
+  },
+  "visualAssetReferences": [
+    "shape-hexagon",
+    "shape-pentagon",
+    "shape-square",
+    "shape-triangle"
+  ],
+  "activityPayload": {
+    "layout": "GRID",
+    "options": [
+      {
+        "id": "a",
+        "assetId": "shape-hexagon",
+        "alt": "a teal shape"
+      },
+      {
+        "id": "b",
+        "assetId": "shape-pentagon",
+        "alt": "a pink shape"
+      },
+      {
+        "id": "c",
+        "assetId": "shape-square",
+        "alt": "a green shape"
+      },
+      {
+        "id": "d",
+        "assetId": "shape-triangle",
+        "alt": "a yellow shape"
+      }
+    ],
+    "partPrompt": "Tap the pentagon."
+  },
+  "answerSpecification": {
+    "accepted": [
+      "b|5"
+    ]
+  },
+  "additionalSteps": [
+    {
+      "interactionType": "NUMBER_SELECT",
+      "prompt": {
+        "text": "How many sides does a pentagon have?"
+      },
+      "activityPayload": {
+        "numberSet": {
+          "kind": "RANGE",
+          "min": 0,
+          "max": 10,
+          "step": 1
+        },
+        "display": "TRACK"
+      },
+      "answerSpecification": {
+        "accepted": [
+          "5"
+        ]
+      }
+    }
+  ],
+  "speechDefinitionReferences": {}
+}

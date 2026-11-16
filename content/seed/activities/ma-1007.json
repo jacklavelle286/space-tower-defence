@@ -1,0 +1,41 @@
+{
+  "$comment": "Starter pack, batch 1 (maths, age 5). Seeded by scripts/seed_content.py; with --publish it is published as the starter pack (ADR-0028).",
+  "schemaVersion": 1,
+  "activityId": "ma-1007",
+  "title": "Put 4 rockets in the tray, then 2 more",
+  "subject": "maths",
+  "topicId": "maths-add-within10",
+  "minAge": 5,
+  "maxAge": 5,
+  "rewardCategory": "BOTH",
+  "interactionType": "OBJECT_MOVE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Put 4 rockets in the tray. Then put in 2 more."
+  },
+  "visualAssetReferences": [
+    "obj-rocket",
+    "tray"
+  ],
+  "activityPayload": {
+    "mode": "DISTRIBUTE",
+    "objectAssetId": "obj-rocket",
+    "objectAlt": "a rocket",
+    "sourceCount": 9,
+    "zones": [
+      {
+        "id": "z1",
+        "label": "Tray",
+        "assetId": "tray"
+      }
+    ],
+    "requireAllPlaced": false
+  },
+  "answerSpecification": {
+    "accepted": [
+      "z1=6"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

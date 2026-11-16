@@ -1,0 +1,28 @@
+{
+  "$comment": "Starter pack, batch 2 (maths, age 6-7). Seeded by scripts/seed_content.py; with --publish it is auto-published (ADR-0028).",
+  "schemaVersion": 1,
+  "activityId": "ma-1026",
+  "title": "Bond to 20: 20 − 6",
+  "subject": "maths",
+  "topicId": "maths-bonds-to20",
+  "minAge": 6,
+  "maxAge": 7,
+  "rewardCategory": "BOTH",
+  "interactionType": "TYPED",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "20 − 6 = ?"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "mode": "NUMERIC",
+    "maxLength": 2
+  },
+  "answerSpecification": {
+    "accepted": [
+      "14"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

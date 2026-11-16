@@ -1,0 +1,45 @@
+{
+  "$comment": "Starter pack, batch 1 (maths, age 5). Seeded by scripts/seed_content.py; with --publish it is published as the starter pack (ADR-0028).",
+  "schemaVersion": 1,
+  "activityId": "ma-1005",
+  "title": "One less than 8",
+  "subject": "maths",
+  "topicId": "maths-number-one-more-less-to10",
+  "minAge": 5,
+  "maxAge": 5,
+  "rewardCategory": "BOTH",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "What is one less than 8?"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "optionStyle": "NUMERAL",
+    "options": [
+      {
+        "id": "a",
+        "text": "6"
+      },
+      {
+        "id": "b",
+        "text": "7"
+      },
+      {
+        "id": "c",
+        "text": "8"
+      },
+      {
+        "id": "d",
+        "text": "9"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "b"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

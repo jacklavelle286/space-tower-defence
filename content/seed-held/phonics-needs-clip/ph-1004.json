@@ -1,0 +1,51 @@
+{
+  "$comment": "Starter-pack seed activity, batch 4 (phonics, reading with pictures). Loaded by scripts/seed_content.py; with --publish it is auto-published (ADR-0028).",
+  "schemaVersion": 1,
+  "activityId": "ph-1004",
+  "title": "Pick the word for the picture: frog",
+  "subject": "phonics",
+  "topicId": "phonics-blend-adjacent-consonants",
+  "minAge": 5,
+  "maxAge": 6,
+  "rewardCategory": "BOTH",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Which word names the picture?"
+  },
+  "visualAssetReferences": [
+    "pic-frog"
+  ],
+  "activityPayload": {
+    "optionStyle": "WORD",
+    "options": [
+      {
+        "id": "a",
+        "text": "fog"
+      },
+      {
+        "id": "b",
+        "text": "from"
+      },
+      {
+        "id": "c",
+        "text": "frost"
+      },
+      {
+        "id": "d",
+        "text": "frog"
+      }
+    ],
+    "stimulus": {
+      "assetId": "pic-frog",
+      "alt": "a green animal with big eyes"
+    }
+  },
+  "answerSpecification": {
+    "accepted": [
+      "d"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

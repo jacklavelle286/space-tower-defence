@@ -1,0 +1,45 @@
+{
+  "$comment": "Starter pack, batch 2 (maths, age 6-7). Seeded by scripts/seed_content.py; with --publish it is auto-published (ADR-0028).",
+  "schemaVersion": 1,
+  "activityId": "ma-1015",
+  "title": "Count in 5s: what comes after 15",
+  "subject": "maths",
+  "topicId": "maths-count-steps-2-5-10",
+  "minAge": 6,
+  "maxAge": 6,
+  "rewardCategory": "BOTH",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Count in 5s: 5, 10, 15, ... What comes next?"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "optionStyle": "NUMERAL",
+    "options": [
+      {
+        "id": "a",
+        "text": "16"
+      },
+      {
+        "id": "b",
+        "text": "20"
+      },
+      {
+        "id": "c",
+        "text": "25"
+      },
+      {
+        "id": "d",
+        "text": "30"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "b"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

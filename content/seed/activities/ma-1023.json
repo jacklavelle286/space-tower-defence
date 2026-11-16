@@ -1,0 +1,39 @@
+{
+  "$comment": "Starter pack, batch 2 (maths, age 6-7). Seeded by scripts/seed_content.py; with --publish it is auto-published (ADR-0028).",
+  "schemaVersion": 1,
+  "activityId": "ma-1023",
+  "title": "Array: 3 rows of 2 dots",
+  "subject": "maths",
+  "topicId": "maths-multiply-groups-arrays",
+  "minAge": 6,
+  "maxAge": 6,
+  "rewardCategory": "BOTH",
+  "interactionType": "NUMBER_SELECT",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "3 rows of 2 dots. How many dots?"
+  },
+  "visualAssetReferences": [
+    "dice-6"
+  ],
+  "activityPayload": {
+    "numberSet": {
+      "kind": "RANGE",
+      "min": 0,
+      "max": 10,
+      "step": 1
+    },
+    "display": "TRACK",
+    "stimulus": {
+      "assetId": "dice-6",
+      "alt": "a dice with dots in rows"
+    }
+  },
+  "answerSpecification": {
+    "accepted": [
+      "6"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

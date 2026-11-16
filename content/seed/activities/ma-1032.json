@@ -1,0 +1,28 @@
+{
+  "$comment": "Starter pack (ADR-0028), batch 3. Published by scripts/seed_content.py --apply --publish.",
+  "schemaVersion": 1,
+  "activityId": "ma-1032",
+  "title": "Add two 2-digit numbers: 34 + 25",
+  "subject": "maths",
+  "topicId": "maths-add-two-digit",
+  "minAge": 7,
+  "maxAge": 7,
+  "rewardCategory": "BOTH",
+  "interactionType": "TYPED",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "34 + 25 = ?"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "mode": "NUMERIC",
+    "maxLength": 3
+  },
+  "answerSpecification": {
+    "accepted": [
+      "59"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

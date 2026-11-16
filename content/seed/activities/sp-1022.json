@@ -1,0 +1,66 @@
+{
+  "$comment": "Starter pack, batch 6 (spelling, ADR-0028). Loaded and auto-published by scripts/seed_content.py --publish.",
+  "schemaVersion": 1,
+  "activityId": "sp-1022",
+  "title": "Suffix rules two parts (running, baked)",
+  "subject": "spelling",
+  "topicId": "spelling-y2-suffix-rules",
+  "minAge": 7,
+  "maxAge": 7,
+  "rewardCategory": "BOTH",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Two parts. Do both, then press Check."
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "optionStyle": "WORD",
+    "options": [
+      {
+        "id": "a",
+        "text": "running"
+      },
+      {
+        "id": "b",
+        "text": "runing"
+      },
+      {
+        "id": "c",
+        "text": "runeing"
+      },
+      {
+        "id": "d",
+        "text": "runnin"
+      }
+    ],
+    "partPrompt": "run + ing = ?"
+  },
+  "additionalSteps": [
+    {
+      "interactionType": "TYPED",
+      "prompt": {
+        "text": "Add ed to bake. Type the new word."
+      },
+      "activityPayload": {
+        "mode": "WORD",
+        "maxLength": 8,
+        "cue": {
+          "text": "bake + ed"
+        }
+      },
+      "answerSpecification": {
+        "accepted": [
+          "baked"
+        ]
+      }
+    }
+  ],
+  "answerSpecification": {
+    "accepted": [
+      "a|baked"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

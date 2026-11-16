@@ -1,0 +1,41 @@
+{
+  "$comment": "Starter pack, batch 1 (maths, age 5). Seeded by scripts/seed_content.py; with --publish it is published as the starter pack (ADR-0028).",
+  "schemaVersion": 1,
+  "activityId": "ma-1002",
+  "title": "Put 7 stars in the tray",
+  "subject": "maths",
+  "topicId": "maths-count-objects-to10",
+  "minAge": 5,
+  "maxAge": 5,
+  "rewardCategory": "BOTH",
+  "interactionType": "OBJECT_MOVE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Put 7 stars in the tray."
+  },
+  "visualAssetReferences": [
+    "obj-star",
+    "tray"
+  ],
+  "activityPayload": {
+    "mode": "DISTRIBUTE",
+    "objectAssetId": "obj-star",
+    "objectAlt": "a star",
+    "sourceCount": 10,
+    "zones": [
+      {
+        "id": "z1",
+        "label": "Tray",
+        "assetId": "tray"
+      }
+    ],
+    "requireAllPlaced": false
+  },
+  "answerSpecification": {
+    "accepted": [
+      "z1=7"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

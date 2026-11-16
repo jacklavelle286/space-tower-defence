@@ -1,0 +1,76 @@
+{
+  "$comment": "Starter pack, batch 2 (maths, age 6-7). Seeded by scripts/seed_content.py; with --publish it is auto-published (ADR-0028).",
+  "schemaVersion": 1,
+  "activityId": "ma-1024",
+  "title": "Sort shapes: flat or solid",
+  "subject": "maths",
+  "topicId": "maths-shape-name-2d-3d",
+  "minAge": 6,
+  "maxAge": 6,
+  "rewardCategory": "BOTH",
+  "interactionType": "OBJECT_MOVE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Sort the shapes: flat or solid?"
+  },
+  "visualAssetReferences": [
+    "shape-rectangle",
+    "shape-cube",
+    "shape-triangle",
+    "shape-cuboid",
+    "shape-square",
+    "shape-cylinder"
+  ],
+  "activityPayload": {
+    "mode": "SORT",
+    "objects": [
+      {
+        "id": "o1",
+        "assetId": "shape-rectangle",
+        "alt": "an orange rectangle"
+      },
+      {
+        "id": "o2",
+        "assetId": "shape-cube",
+        "alt": "a light blue cube"
+      },
+      {
+        "id": "o3",
+        "assetId": "shape-triangle",
+        "alt": "a yellow triangle"
+      },
+      {
+        "id": "o4",
+        "assetId": "shape-cuboid",
+        "alt": "an orange cuboid"
+      },
+      {
+        "id": "o5",
+        "assetId": "shape-square",
+        "alt": "a green square"
+      },
+      {
+        "id": "o6",
+        "assetId": "shape-cylinder",
+        "alt": "a yellow cylinder"
+      }
+    ],
+    "bins": [
+      {
+        "id": "flat",
+        "label": "Flat"
+      },
+      {
+        "id": "solid",
+        "label": "Solid"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "o1=flat;o2=solid;o3=flat;o4=solid;o5=flat;o6=solid"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

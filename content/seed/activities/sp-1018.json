@@ -1,0 +1,54 @@
+{
+  "$comment": "Starter pack, batch 6 (spelling, ADR-0028). Loaded and auto-published by scripts/seed_content.py --publish.",
+  "schemaVersion": 1,
+  "activityId": "sp-1018",
+  "title": "Which one is the night (night or knight)",
+  "subject": "spelling",
+  "topicId": "spelling-y2-homophones",
+  "minAge": 7,
+  "maxAge": 7,
+  "rewardCategory": "BOTH",
+  "interactionType": "PICTURE_SELECT",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Which picture shows the night?"
+  },
+  "visualAssetReferences": [
+    "pic-knight",
+    "pic-night-sky",
+    "pic-sun",
+    "pic-knot"
+  ],
+  "activityPayload": {
+    "layout": "GRID",
+    "options": [
+      {
+        "id": "a",
+        "assetId": "pic-knight",
+        "alt": "a person in armour with a shield"
+      },
+      {
+        "id": "b",
+        "assetId": "pic-night-sky",
+        "alt": "a dark sky with a moon and stars"
+      },
+      {
+        "id": "c",
+        "assetId": "pic-sun",
+        "alt": "a bright yellow sun"
+      },
+      {
+        "id": "d",
+        "assetId": "pic-knot",
+        "alt": "a rope tied in a loop"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "b"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

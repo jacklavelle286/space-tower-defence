@@ -1,0 +1,53 @@
+{
+  "$comment": "Starter-pack seed activity, batch 4 (phonics, reading with pictures). Loaded by scripts/seed_content.py; with --publish it is auto-published (ADR-0028).",
+  "schemaVersion": 1,
+  "activityId": "ph-1005",
+  "title": "Read the word: sun",
+  "subject": "phonics",
+  "topicId": "phonics-blend-cvc",
+  "minAge": 5,
+  "maxAge": 5,
+  "rewardCategory": "BOTH",
+  "interactionType": "PICTURE_SELECT",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Which picture is this word? sun"
+  },
+  "visualAssetReferences": [
+    "pic-bus",
+    "pic-sock",
+    "pic-cup",
+    "pic-sun"
+  ],
+  "activityPayload": {
+    "options": [
+      {
+        "id": "a",
+        "assetId": "pic-bus",
+        "alt": "a long yellow vehicle with many windows"
+      },
+      {
+        "id": "b",
+        "assetId": "pic-sock",
+        "alt": "a striped thing you wear on your foot"
+      },
+      {
+        "id": "c",
+        "assetId": "pic-cup",
+        "alt": "a blue drink holder on a saucer"
+      },
+      {
+        "id": "d",
+        "assetId": "pic-sun",
+        "alt": "a bright yellow circle with points"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "d"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

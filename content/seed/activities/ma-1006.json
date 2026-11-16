@@ -1,0 +1,45 @@
+{
+  "$comment": "Starter pack, batch 1 (maths, age 5). Seeded by scripts/seed_content.py; with --publish it is published as the starter pack (ADR-0028).",
+  "schemaVersion": 1,
+  "activityId": "ma-1006",
+  "title": "3 and how many more make 5",
+  "subject": "maths",
+  "topicId": "maths-bonds-to5",
+  "minAge": 5,
+  "maxAge": 5,
+  "rewardCategory": "BOTH",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "3 and how many more make 5?"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "optionStyle": "NUMERAL",
+    "options": [
+      {
+        "id": "a",
+        "text": "1"
+      },
+      {
+        "id": "b",
+        "text": "2"
+      },
+      {
+        "id": "c",
+        "text": "3"
+      },
+      {
+        "id": "d",
+        "text": "4"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "b"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

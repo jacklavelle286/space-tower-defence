@@ -1,0 +1,54 @@
+{
+  "$comment": "Starter pack, batch 1 (maths, age 5). Seeded by scripts/seed_content.py; with --publish it is published as the starter pack (ADR-0028).",
+  "schemaVersion": 1,
+  "activityId": "ma-1001",
+  "title": "Which dice shows 4",
+  "subject": "maths",
+  "topicId": "maths-count-subitise-to5",
+  "minAge": 5,
+  "maxAge": 5,
+  "rewardCategory": "BOTH",
+  "interactionType": "PICTURE_SELECT",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Which dice shows 4?"
+  },
+  "visualAssetReferences": [
+    "dice-2",
+    "dice-4",
+    "dice-5",
+    "dice-3"
+  ],
+  "activityPayload": {
+    "layout": "GRID",
+    "options": [
+      {
+        "id": "a",
+        "assetId": "dice-2",
+        "alt": "a dice with dots"
+      },
+      {
+        "id": "b",
+        "assetId": "dice-4",
+        "alt": "a dice with spots"
+      },
+      {
+        "id": "c",
+        "assetId": "dice-5",
+        "alt": "a white dice"
+      },
+      {
+        "id": "d",
+        "assetId": "dice-3",
+        "alt": "a dice"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "b"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

@@ -1,0 +1,45 @@
+{
+  "$comment": "Starter pack, batch 6 (spelling, ADR-0028). Loaded and auto-published by scripts/seed_content.py --publish.",
+  "schemaVersion": 1,
+  "activityId": "sp-1023",
+  "title": "Spell station (tion)",
+  "subject": "spelling",
+  "topicId": "spelling-y2-tion",
+  "minAge": 7,
+  "maxAge": 7,
+  "rewardCategory": "BOTH",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "A train stops at a ... Which spelling is right?"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "optionStyle": "WORD",
+    "options": [
+      {
+        "id": "a",
+        "text": "stashun"
+      },
+      {
+        "id": "b",
+        "text": "station"
+      },
+      {
+        "id": "c",
+        "text": "staytion"
+      },
+      {
+        "id": "d",
+        "text": "statian"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "b"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

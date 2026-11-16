@@ -61,13 +61,17 @@ def test_publishable_sounds_and_other_kinds_pass(tmp_path: Path) -> None:
     assert check_speech_defs.check(root) == (0, [])
 
 
-@pytest.mark.parametrize(("sound", "verdict"), [("th", "word-only"), ("ng", "pending"), ("zz", "missing")])
-def test_a_phoneme_without_a_publishable_verdict_fails(tmp_path: Path, sound: str, verdict: str) -> None:
-    code, messages = check_speech_defs.check(repo(tmp_path, {"speech": phoneme(sound)}))
+# pending, missing: the operator's listen-and-approve decides (ADR-0028)
+@pytest.mark.parametrize("sound", ["ng", "zz"])
+def test_a_phoneme_with_a_pending_or_missing_verdict_passes(tmp_path: Path, sound: str) -> None:
+    assert check_speech_defs.check(repo(tmp_path, {"speech": phoneme(sound)})) == (0, [])
+
+
+def test_a_word_only_phoneme_fails(tmp_path: Path) -> None:
+    code, messages = check_speech_defs.check(repo(tmp_path, {"speech": phoneme("th")}))
     assert code == 1
     assert messages == [
-        f"content/seed/0.json: phoneme-verdict: phoneme-{sound} has verdict {verdict}, "
-        "not publishable or publishable-small-schwa"
+        "content/seed/0.json: phoneme-verdict: phoneme-th has verdict word-only (taught only inside words)"
     ]
 
 

@@ -1,0 +1,56 @@
+{
+  "$comment": "Starter-pack seed activity, batch 5 (choose or build the word for a picture). Loaded by scripts/seed_content.py; with --publish it is auto-published (ADR-0028).",
+  "schemaVersion": 1,
+  "activityId": "sp-1002",
+  "title": "Build the word for the picture (sun)",
+  "subject": "spelling",
+  "topicId": "spelling-cvc-build",
+  "minAge": 5,
+  "maxAge": 5,
+  "rewardCategory": "BOTH",
+  "interactionType": "ARRANGE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Make the word for the picture."
+  },
+  "visualAssetReferences": [
+    "pic-sun"
+  ],
+  "activityPayload": {
+    "mode": "LETTERS",
+    "tiles": [
+      {
+        "id": "t1",
+        "value": "n"
+      },
+      {
+        "id": "t2",
+        "value": "i"
+      },
+      {
+        "id": "t3",
+        "value": "s"
+      },
+      {
+        "id": "t4",
+        "value": "m"
+      },
+      {
+        "id": "t5",
+        "value": "u"
+      }
+    ],
+    "slots": 3,
+    "cue": {
+      "assetId": "pic-sun",
+      "alt": "a bright yellow shape with points"
+    }
+  },
+  "answerSpecification": {
+    "accepted": [
+      "sun"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

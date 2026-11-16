@@ -1,0 +1,33 @@
+{
+  "$comment": "Starter pack (ADR-0028), batch 3. Published by scripts/seed_content.py --apply --publish.",
+  "schemaVersion": 1,
+  "activityId": "ma-1031",
+  "title": "Tens to 100: 30 + ? = 100",
+  "subject": "maths",
+  "topicId": "maths-bonds-tens-to100",
+  "minAge": 7,
+  "maxAge": 7,
+  "rewardCategory": "BOTH",
+  "interactionType": "NUMBER_SELECT",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "30 + ? = 100"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "numberSet": {
+      "kind": "RANGE",
+      "min": 0,
+      "max": 100,
+      "step": 10
+    },
+    "display": "GRID"
+  },
+  "answerSpecification": {
+    "accepted": [
+      "70"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

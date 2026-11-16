@@ -1,0 +1,39 @@
+{
+  "$comment": "Starter pack (ADR-0028), batch 3. Published by scripts/seed_content.py --apply --publish.",
+  "schemaVersion": 1,
+  "activityId": "ph-1020",
+  "title": "Beats in rocket",
+  "subject": "phonics",
+  "topicId": "phonics-syllables-multi",
+  "minAge": 7,
+  "maxAge": 7,
+  "rewardCategory": "BOTH",
+  "interactionType": "NUMBER_SELECT",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Clap the word rocket. How many beats?"
+  },
+  "visualAssetReferences": [
+    "obj-rocket"
+  ],
+  "activityPayload": {
+    "numberSet": {
+      "kind": "RANGE",
+      "min": 1,
+      "max": 5,
+      "step": 1
+    },
+    "display": "TRACK",
+    "stimulus": {
+      "assetId": "obj-rocket",
+      "alt": "a rocket"
+    }
+  },
+  "answerSpecification": {
+    "accepted": [
+      "2"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

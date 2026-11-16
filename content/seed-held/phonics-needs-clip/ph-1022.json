@@ -1,0 +1,91 @@
+{
+  "$comment": "Starter pack (ADR-0028), batch 3. Published by scripts/seed_content.py --apply --publish.",
+  "schemaVersion": 1,
+  "activityId": "ph-1022",
+  "title": "kn words: knot and knight",
+  "subject": "phonics",
+  "topicId": "phonics-gpc-y2-consonant-spellings",
+  "minAge": 7,
+  "maxAge": 7,
+  "rewardCategory": "BOTH",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Two parts. Do both, then press Check."
+  },
+  "visualAssetReferences": [
+    "pic-knot",
+    "pic-knight"
+  ],
+  "activityPayload": {
+    "optionStyle": "WORD",
+    "options": [
+      {
+        "id": "a",
+        "text": "knot"
+      },
+      {
+        "id": "b",
+        "text": "not"
+      },
+      {
+        "id": "c",
+        "text": "nut"
+      },
+      {
+        "id": "d",
+        "text": "note"
+      }
+    ],
+    "stimulus": {
+      "assetId": "pic-knot",
+      "alt": "a rope tied in a loop"
+    },
+    "partPrompt": "Which word names the picture?"
+  },
+  "answerSpecification": {
+    "accepted": [
+      "a|b"
+    ]
+  },
+  "additionalSteps": [
+    {
+      "interactionType": "MULTIPLE_CHOICE",
+      "prompt": {
+        "text": "Which word names this picture?"
+      },
+      "activityPayload": {
+        "optionStyle": "WORD",
+        "options": [
+          {
+            "id": "a",
+            "text": "night"
+          },
+          {
+            "id": "b",
+            "text": "knight"
+          },
+          {
+            "id": "c",
+            "text": "nut"
+          },
+          {
+            "id": "d",
+            "text": "kit"
+          }
+        ],
+        "stimulus": {
+          "assetId": "pic-knight",
+          "alt": "a person in armour with a shield"
+        }
+      },
+      "answerSpecification": {
+        "accepted": [
+          "b"
+        ]
+      }
+    }
+  ],
+  "speechDefinitionReferences": {}
+}

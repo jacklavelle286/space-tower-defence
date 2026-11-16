@@ -1,0 +1,31 @@
+{
+  "$comment": "Starter pack, batch 6 (spelling, ADR-0028). Loaded and auto-published by scripts/seed_content.py --publish.",
+  "schemaVersion": 1,
+  "activityId": "sp-1024",
+  "title": "Plural of baby (y to ies)",
+  "subject": "spelling",
+  "topicId": "spelling-y2-y-endings",
+  "minAge": 7,
+  "maxAge": 7,
+  "rewardCategory": "BOTH",
+  "interactionType": "TYPED",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Type the word for more than one."
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "mode": "WORD",
+    "maxLength": 8,
+    "cue": {
+      "text": "one baby, two ..."
+    }
+  },
+  "answerSpecification": {
+    "accepted": [
+      "babies"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

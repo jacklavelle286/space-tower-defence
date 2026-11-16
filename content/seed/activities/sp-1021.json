@@ -1,0 +1,45 @@
+{
+  "$comment": "Starter pack, batch 6 (spelling, ADR-0028). Loaded and auto-published by scripts/seed_content.py --publish.",
+  "schemaVersion": 1,
+  "activityId": "sp-1021",
+  "title": "Short form of do not",
+  "subject": "spelling",
+  "topicId": "spelling-y2-contractions",
+  "minAge": 7,
+  "maxAge": 7,
+  "rewardCategory": "BOTH",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "What is the short way to write do not?"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "optionStyle": "WORD",
+    "options": [
+      {
+        "id": "a",
+        "text": "dont"
+      },
+      {
+        "id": "b",
+        "text": "do'nt"
+      },
+      {
+        "id": "c",
+        "text": "don't"
+      },
+      {
+        "id": "d",
+        "text": "dn't"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "c"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

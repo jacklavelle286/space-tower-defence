@@ -1,0 +1,63 @@
+{
+  "$comment": "Starter pack (ADR-0028), batch 3. Published by scripts/seed_content.py --apply --publish.",
+  "schemaVersion": 1,
+  "activityId": "ma-1034",
+  "title": "2 times table: find one, then 2 × 9",
+  "subject": "maths",
+  "topicId": "maths-times-tables-2-5-10",
+  "minAge": 7,
+  "maxAge": 7,
+  "rewardCategory": "BOTH",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Two parts. Do both, then press Check."
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "optionStyle": "NUMERAL",
+    "options": [
+      {
+        "id": "a",
+        "text": "7"
+      },
+      {
+        "id": "b",
+        "text": "13"
+      },
+      {
+        "id": "c",
+        "text": "18"
+      },
+      {
+        "id": "d",
+        "text": "21"
+      }
+    ],
+    "partPrompt": "Which number is in the 2 times table?"
+  },
+  "answerSpecification": {
+    "accepted": [
+      "c|18"
+    ]
+  },
+  "additionalSteps": [
+    {
+      "interactionType": "TYPED",
+      "prompt": {
+        "text": "2 × 9 = ?"
+      },
+      "activityPayload": {
+        "mode": "NUMERIC",
+        "maxLength": 2
+      },
+      "answerSpecification": {
+        "accepted": [
+          "18"
+        ]
+      }
+    }
+  ],
+  "speechDefinitionReferences": {}
+}

@@ -1,0 +1,31 @@
+{
+  "$comment": "Starter pack, batch 6 (spelling, ADR-0028). Loaded and auto-published by scripts/seed_content.py --publish.",
+  "schemaVersion": 1,
+  "activityId": "sp-1020",
+  "title": "Add ful to play",
+  "subject": "spelling",
+  "topicId": "spelling-y2-suffixes",
+  "minAge": 7,
+  "maxAge": 7,
+  "rewardCategory": "BOTH",
+  "interactionType": "TYPED",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Add the ending. Type the new word."
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "mode": "WORD",
+    "maxLength": 10,
+    "cue": {
+      "text": "play + ful"
+    }
+  },
+  "answerSpecification": {
+    "accepted": [
+      "playful"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

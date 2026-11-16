@@ -1,0 +1,45 @@
+{
+  "$comment": "Starter pack (ADR-0028), batch 3. Published by scripts/seed_content.py --apply --publish.",
+  "schemaVersion": 1,
+  "activityId": "ph-1024",
+  "title": "Suffix -less: which word means without care",
+  "subject": "phonics",
+  "topicId": "phonics-suffix-words-read",
+  "minAge": 7,
+  "maxAge": 7,
+  "rewardCategory": "BOTH",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Which word means without care?"
+  },
+  "visualAssetReferences": [],
+  "activityPayload": {
+    "optionStyle": "WORD",
+    "options": [
+      {
+        "id": "a",
+        "text": "careful"
+      },
+      {
+        "id": "b",
+        "text": "careless"
+      },
+      {
+        "id": "c",
+        "text": "caring"
+      },
+      {
+        "id": "d",
+        "text": "cared"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "b"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

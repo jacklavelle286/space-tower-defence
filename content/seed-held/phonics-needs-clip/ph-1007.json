@@ -1,0 +1,53 @@
+{
+  "$comment": "Starter-pack seed activity, batch 4 (phonics, reading with pictures). Loaded by scripts/seed_content.py; with --publish it is auto-published (ADR-0028).",
+  "schemaVersion": 1,
+  "activityId": "ph-1007",
+  "title": "Read the word: duck",
+  "subject": "phonics",
+  "topicId": "phonics-blend-cvc",
+  "minAge": 5,
+  "maxAge": 5,
+  "rewardCategory": "BOTH",
+  "interactionType": "PICTURE_SELECT",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Which picture is this word? duck"
+  },
+  "visualAssetReferences": [
+    "pic-dog",
+    "pic-sock",
+    "pic-duck",
+    "pic-bus"
+  ],
+  "activityPayload": {
+    "options": [
+      {
+        "id": "a",
+        "assetId": "pic-dog",
+        "alt": "a brown pet with floppy ears"
+      },
+      {
+        "id": "b",
+        "assetId": "pic-sock",
+        "alt": "a striped thing you wear on your foot"
+      },
+      {
+        "id": "c",
+        "assetId": "pic-duck",
+        "alt": "a yellow bird with an orange beak"
+      },
+      {
+        "id": "d",
+        "assetId": "pic-bus",
+        "alt": "a long yellow vehicle with many windows"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "c"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

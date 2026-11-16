@@ -1,0 +1,51 @@
+{
+  "$comment": "Starter pack, batch 6 (spelling, ADR-0028). Loaded and auto-published by scripts/seed_content.py --publish.",
+  "schemaVersion": 1,
+  "activityId": "sp-1011",
+  "title": "Spell rain (ai)",
+  "subject": "spelling",
+  "topicId": "spelling-y1-vowel-digraphs-1",
+  "minAge": 6,
+  "maxAge": 6,
+  "rewardCategory": "BOTH",
+  "interactionType": "MULTIPLE_CHOICE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Which spelling is right?"
+  },
+  "visualAssetReferences": [
+    "pic-rain"
+  ],
+  "activityPayload": {
+    "optionStyle": "WORD",
+    "options": [
+      {
+        "id": "a",
+        "text": "rane"
+      },
+      {
+        "id": "b",
+        "text": "rain"
+      },
+      {
+        "id": "c",
+        "text": "rayn"
+      },
+      {
+        "id": "d",
+        "text": "raen"
+      }
+    ],
+    "stimulus": {
+      "assetId": "pic-rain",
+      "alt": "water falling from a grey cloud"
+    }
+  },
+  "answerSpecification": {
+    "accepted": [
+      "b"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

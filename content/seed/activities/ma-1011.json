@@ -1,0 +1,54 @@
+{
+  "$comment": "Starter pack, batch 1 (maths, age 5). Seeded by scripts/seed_content.py; with --publish it is published as the starter pack (ADR-0028).",
+  "schemaVersion": 1,
+  "activityId": "ma-1011",
+  "title": "Tap the triangle",
+  "subject": "maths",
+  "topicId": "maths-shape-name-2d",
+  "minAge": 5,
+  "maxAge": 5,
+  "rewardCategory": "BOTH",
+  "interactionType": "PICTURE_SELECT",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "Tap the triangle."
+  },
+  "visualAssetReferences": [
+    "shape-circle",
+    "shape-square",
+    "shape-triangle",
+    "shape-rectangle"
+  ],
+  "activityPayload": {
+    "layout": "GRID",
+    "options": [
+      {
+        "id": "a",
+        "assetId": "shape-circle",
+        "alt": "a blue shape"
+      },
+      {
+        "id": "b",
+        "assetId": "shape-square",
+        "alt": "a green shape"
+      },
+      {
+        "id": "c",
+        "assetId": "shape-triangle",
+        "alt": "a yellow shape"
+      },
+      {
+        "id": "d",
+        "assetId": "shape-rectangle",
+        "alt": "an orange shape"
+      }
+    ]
+  },
+  "answerSpecification": {
+    "accepted": [
+      "c"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}

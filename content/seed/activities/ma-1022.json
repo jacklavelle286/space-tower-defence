@@ -1,0 +1,41 @@
+{
+  "$comment": "Starter pack, batch 2 (maths, age 6-7). Seeded by scripts/seed_content.py; with --publish it is auto-published (ADR-0028).",
+  "schemaVersion": 1,
+  "activityId": "ma-1022",
+  "title": "Half of 12 comets into the tray",
+  "subject": "maths",
+  "topicId": "maths-double-halve-to20",
+  "minAge": 6,
+  "maxAge": 6,
+  "rewardCategory": "BOTH",
+  "interactionType": "OBJECT_MOVE",
+  "authoringMode": "FIXED",
+  "audioRequirement": "NONE",
+  "prompt": {
+    "text": "There are 12 comets. Put half of them in the tray."
+  },
+  "visualAssetReferences": [
+    "obj-comet",
+    "tray"
+  ],
+  "activityPayload": {
+    "mode": "DISTRIBUTE",
+    "objectAssetId": "obj-comet",
+    "objectAlt": "a yellow comet",
+    "sourceCount": 12,
+    "zones": [
+      {
+        "id": "z1",
+        "label": "Tray",
+        "assetId": "tray"
+      }
+    ],
+    "requireAllPlaced": false
+  },
+  "answerSpecification": {
+    "accepted": [
+      "z1=6"
+    ]
+  },
+  "speechDefinitionReferences": {}
+}
