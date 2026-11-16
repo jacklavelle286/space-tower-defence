@@ -267,14 +267,14 @@ entry below still says what it builds, how to test it and what to look at.
 | E | 24–28 | Roster, targeting, aliens, bosses, meteor powers |
 | F | 29–34, 43–44 | Run lifecycle, plausibility bounds, HUD and shop, saved games, backup runbook, learning summaries, withdrawal; playtest P2 |
 | J | 50–56 | Campaign, meteor offers, badges, challenges, endless, resets; playtest P3 |
-| M | LD0–LD10 + alien maker (new, about 13) | **Level and planet designer, tiers 1 and 2** (maps, pads, waves, wave sets, backgrounds, decorations, bot checks, tester preview, file export, then runtime publish; new planets with art, tile sets, campaign, unlock and Home choice) ([ADR-0032](decisions/0032-admin-level-designer-gate-m.md), [scope](plan/scope-level-designer.md)). Phase entries are written when Gate J is approved |
+| M | LD0–LD13 + alien maker (new, about 16) | **Level and planet designer, all three tiers** (maps, pads, waves, wave sets, backgrounds, decorations, bot checks, tester preview, file export, then runtime publish; new planets with art, tile sets, campaign, unlock and Home choice; routes turning any direction, real-graphics test play, difficulty-curve tools) ([ADR-0032](decisions/0032-admin-level-designer-gate-m.md), [scope](plan/scope-level-designer.md)). Phase entries are written when Gate J is approved |
 | L | 64–74 | Art and sound polish, performance, accessibility, scoped CI role, drills, monitoring, acceptance P4 (without AC-30..34), data freeze: **launch, online only** |
 | K | 57–63 | **After launch.** Offline: local database, queue, audio cache, divergence, takeover, versions, hard cases; AC-30..34 accepted here |
 
 Order reworked by the owner on 2026-11-15: content before game systems, offline after launch
 ([ADR-0024](decisions/0024-content-first-offline-after-launch.md)). Rows are in build order. Phase 69 and Phase 71 no longer
 wait for Phases 63 and 62. Gate M added by the owner on 2026-11-16 ([ADR-0032](decisions/0032-admin-level-designer-gate-m.md)): level and planet
-designer (tiers 1 and 2) after J and before L; tier 3 decided after tier 1.
+designer (all three tiers) after J and before L; launch waits for all of it.
 
 ## How each phase is described
 

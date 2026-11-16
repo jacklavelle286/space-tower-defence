@@ -47,7 +47,7 @@ The rules are in [J §J.6](../plan/J-execution-backlog.md#j6-decision-log-practi
 | [0029](0029-activity-hard-delete.md) | Activities (R31) and unused speech (R32) can be deleted: header, draft and versions; audit item kept; in-progress slots read as withdrawn | Proposed |
 | [0030](0030-gate-h1-speech-templates-selection.md) | Gate H1: approve bound to the played clip, 17 template generators (5,000-instance check), starter rules until an age is eligible | Accepted |
 | [0031](0031-gate-p-picture-library-and-generation.md) | Gate P: pictures bucket at /pictures/*, browser conversion with strict server PNG check, fifth Lambda picture-gen (Opus 5.5, EU profile) via SQS, caps 100/day 150/month, budget USD 65 | Proposed |
-| [0032](0032-admin-level-designer-gate-m.md) | Admin level and planet designer (tiers 1 and 2) as new Gate M after J, before L; export first, runtime publish in LD6; two blocking bot checks; tester preview | Proposed |
+| [0032](0032-admin-level-designer-gate-m.md) | Admin level and planet designer (all three tiers) as new Gate M after J, before L; export first, runtime publish in LD6; two blocking bot checks; tester preview | Proposed |
 
 ## Next in line
 

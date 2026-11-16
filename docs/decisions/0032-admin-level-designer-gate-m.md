@@ -11,10 +11,12 @@ section 7 ("go with the recommendations") **[CONFIRMED by owner, 2026-11-16]**.
 Decision:
 - **Scope change.** v1 gains an operator-only level designer, never child-facing: levels on planet 1 (tier 1) **and new planets**
   with their own art, tile sets, campaign, unlock and a planet choice on Home (tier 2). The owner moved tier 2 before launch the
-  same day ("I'd like to be able to design multiple planets also") **[CONFIRMED by owner, 2026-11-16]**. Flexible routes and
-  real-renderer test play (tier 3) are decided after tier 1.
+  same day ("I'd like to be able to design multiple planets also") **[CONFIRMED by owner, 2026-11-16]**. Tier 3 (flexible routes,
+  entry and colony on any edge, a real-graphics test-play window, difficulty-curve tools) is in too: the owner wants every tier
+  fully built before the game is playable **[CONFIRMED by owner, 2026-11-16]**.
 - **Placement.** It is a new **Gate M**, after J and before L: tier 1 (LD0-LD7, about 8 phases), tier 2 (LD8-LD10, about 3,
-  including the asset manifest and a Route tile picture kind) and the alien maker (1-2 phases), about 13 in all.
+  including the asset manifest and a Route tile picture kind), tier 3 (LD11-LD13, about 3) and the alien maker (1-2 phases),
+  about 16 in all. Launch (Gate L) waits for all of it.
 - **Shape.** The schema allows several maps per planet, and challenge-only waves go in `challengeWaves` with string IDs (a C13
   amendment). The art lives in the planet document for tier 1 and moves to the asset manifest in tier 2. Route length is a hard band of 30-50 cells, with a warning outside
   36-44. Pads are canonicalised by route progress on new maps.

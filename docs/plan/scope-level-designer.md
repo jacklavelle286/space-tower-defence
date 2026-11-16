@@ -2,8 +2,8 @@
 
 Status: **accepted by the owner, 2026-11-16** ("go with the recommendations"): every recommendation in section 7 is
 **[CONFIRMED by owner, 2026-11-16]**; recorded in [ADR-0032](../decisions/0032-admin-level-designer-gate-m.md) (Proposed until
-its gate). **Changed the same day:** the owner wants multiple planets designable before launch, so tier 2 joins tier 1 in
-Gate M (decision 1 below) **[CONFIRMED by owner, 2026-11-16]**. Date: 2026-11-16.
+its gate). **Changed the same day:** the owner wants multiple planets designable and every tier fully built before the game is
+playable, so tiers 2 and 3 join tier 1 in Gate M (decision 1 below) **[CONFIRMED by owner, 2026-11-16]**. Date: 2026-11-16.
 Builds on [scope-asset-kinds-and-makers.md §3](scope-asset-kinds-and-makers.md#3-part-2-makers) (Gate M, Design A runtime
 publish) and replaces its §3.1 "Map / level maker" with a fuller design. Paths are relative to the repo root. Labels follow
 CLAUDE.md. A `file:line` cited without a fresh check comes from the read-only findings and fact-check passes of 2026-11-16.
@@ -23,7 +23,7 @@ game-data.ts:33-35].
 |---|---|---|---|
 | 1 | Complete levels on planet 1: several maps (campaign map plus challenge maps), pads, waves, wave sets, backdrop and decorations, headless test play, tester preview, publish, rollback | 8 | Gate M, after J and before L |
 | 2 | New planets: planet art, tile sets, own campaign, unlocks, a planet choice on Home | 3 | Gate M, after tier 1 (owner moved it before launch, 2026-11-16; amends prompt.md:141-143) |
-| 3 | Flexible routes (turns in any direction, portal and colony on any edge), real-renderer test play window, difficulty-curve tools | 3 | Any time after tier 1; each phase stands alone |
+| 3 | Flexible routes (turns in any direction, portal and colony on any edge), real-renderer test play window, difficulty-curve tools | 3 | Gate M, after tier 2 (owner: every tier built before the game is playable, 2026-11-16) |
 
 Tier 1 alone is about **8 phases**. All three tiers come to about 14. The alien maker (scope doc §3.2) adds 1-2. So Gate M with
 tier 1 plus the alien maker is about 10, close to the 8-10 in the earlier answer. With every tier it is about 16.
@@ -438,8 +438,8 @@ seeds; competent), each at 0%, 60% and 100% learning success (C9.6, C17.2), usin
 ## 7. Decisions for you
 
 1. **Scope change.** A level designer goes beyond "content administration only" (B §B1.2). *Recommend:* yes to tier 1, dated;
-   tier 2 after launch; tier 3 decided after tier 1. **Owner, 2026-11-16: tiers 1 and 2 both in Gate M before launch; tier 3
-   decided after tier 1.**
+   tier 2 after launch; tier 3 decided after tier 1. **Owner, 2026-11-16: all three tiers in Gate M, fully built before the game
+   is playable.**
 2. **Maps per planet.** Schema 2 with challenge maps, or one map per planet (each new map replaces Moonbeam)? *Recommend:*
    schema 2, so new routes do not force re-tuning all 50 campaign waves.
 3. **Challenge-only waves.** Allowed, as `challengeWaves` with string ids (not numbers 51-99, which C11.1 gives to endless),
