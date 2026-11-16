@@ -182,6 +182,7 @@ class FakeAdmin {
       validate: unused,
       publish: unused,
       deleteActivity: unused,
+      deleteSpeech: unused,
     };
     return api as unknown as AdminApi;
   }

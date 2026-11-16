@@ -3,12 +3,14 @@ import { describeError, SPEECH_KINDS, type AdminApi, type SpeechKind, type Speec
 import { KIND_INFO } from "../speech/ids";
 import { ListeningQueue } from "../speech/ListeningQueue";
 import { filterSpeech, NO_SPEECH_FILTER, type SpeechFilter } from "../speech/list";
+import { DeleteSpeech } from "../speech/DeleteSpeech";
 import { NewSpeech } from "../speech/NewSpeech";
 import { SpeechEditor } from "../speech/SpeechEditor";
 
 // A9 (D §D9.3; Phase 40, M3-05): the speech list (search, kind, state) and "New speech" on the left; the chosen
-// definition's editor, preview, listening checks and Approve on the right (speech/SpeechEditor.tsx). "Listening queue"
-// (2026-11-16) walks the drafts shown in the list, one clip at a time, in the right-hand panel (speech/ListeningQueue.tsx).
+// definition's editor, preview, listening checks and Approve on the right (speech/SpeechEditor.tsx), and below them
+// "Delete speech" (R32, speech/DeleteSpeech.tsx). "Listening queue" (2026-11-16) walks the drafts shown in the list, one
+// clip at a time, in the right-hand panel (speech/ListeningQueue.tsx).
 
 const PAGE = "speech";
 
@@ -41,6 +43,14 @@ export function SpeechPage({ api, initial }: Props) {
   }, [api]);
 
   useEffect(refresh, [refresh]);
+
+  // After Delete speech (R32): back to the list with nothing chosen, and the message where the editor was.
+  const deleted = (note: string) => {
+    setSelected(null);
+    setNotice(note);
+    window.history.replaceState(null, "", `#${PAGE}`);
+    refresh();
+  };
 
   const shown = useMemo(() => filterSpeech(items, filter), [items, filter]);
   // null until the list has loaded once: New speech cannot see a taken ID without it.
@@ -115,6 +125,11 @@ export function SpeechPage({ api, initial }: Props) {
         </ul>
       </section>
       <section className="detail">
+        {notice !== null && (
+          <p className="ok" role="status">
+            {notice}
+          </p>
+        )}
         {queue !== null ? (
           <ListeningQueue
             api={api}
@@ -129,12 +144,8 @@ export function SpeechPage({ api, initial }: Props) {
           <p>Choose a speech definition, or make a new one.</p>
         ) : (
           <>
-            {notice !== null && (
-              <p className="ok" role="status">
-                {notice}
-              </p>
-            )}
             <SpeechEditor key={selected} api={api} speechId={selected} onChange={refresh} />
+            <DeleteSpeech key={`delete-${selected}`} api={api} speechId={selected} onDeleted={deleted} />
           </>
         )}
       </section>

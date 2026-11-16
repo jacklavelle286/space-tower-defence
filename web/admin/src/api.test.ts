@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ApiError, adminApi, describeError, makeRequest } from "./api";
+import { ApiError, adminApi, describeError, makeRequest, speechUsers } from "./api";
 
 type Call = { url: string; init: RequestInit };
 
@@ -54,6 +54,23 @@ describe("API client", () => {
       .deleteActivity("ph-0102")
       .catch((e: unknown) => e);
     expect(describeError(missing)).toBe("Not found.");
+  });
+
+  it("deletes a speech definition with DELETE and reads a refusal's activities (R32)", async () => {
+    const calls: Call[] = [];
+    const api = adminApi(makeRequest("/api", "t", fakeFetch(200, { speechId: "word-cat", deletedVersions: [] }, calls)));
+    expect(await api.deleteSpeech("word-cat")).toEqual({ speechId: "word-cat", deletedVersions: [] });
+    expect(calls.map((c) => [c.url, c.init.method, c.init.body])).toEqual([["/api/admin/speech-definitions/word-cat", "DELETE", undefined]]);
+    const details = [
+      { field: "usedBy.ph-0102", rule: "speech_in_use" },
+      { field: "usedBy.ph-0199", rule: "speech_in_use" },
+    ];
+    const refused = await adminApi(makeRequest("/api", "t", fakeFetch(400, { error: { code: "VALIDATION_FAILED", message: "x", details } })))
+      .deleteSpeech("phoneme-sh")
+      .catch((e: unknown) => e);
+    expect(speechUsers(refused)).toEqual(["ph-0102", "ph-0199"]);
+    expect(speechUsers(new ApiError(400, "VALIDATION_FAILED", [{ field: "speechId", rule: "pattern" }]))).toEqual([]);
+    expect(speechUsers(new ApiError(404, "NOT_FOUND"))).toEqual([]);
   });
 
   it("does not trust a body that is not our envelope", async () => {
