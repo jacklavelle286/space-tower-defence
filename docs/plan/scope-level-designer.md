@@ -240,13 +240,31 @@ reuse of approved backdrops first.
 | LD1 Rules + shared map | `planetProblems`, hard parser rules, coverage/order modules, `@scd/shared/map` with decoration ART entries | luna-1-c1 passes; one known-bad fixture per rule; property test: any doc with no hard problems runs through `routeTiles` and builds bounds; layout tests moved; sim-agreement green | M |
 | LD2 Schema 2 + player art | `maps{}`, `mapId`, `challengeWaves`, `map.art`, per-set pads in bounds, Python passthrough, backdrop and deco rendering with skip-on-fail | v1 and v2 parse; old runs replay identically; bounds contract tests; publisher bounds byte-identical to build-bounds.ts (scope doc §3.6); Moonbeam pixel-identical | L |
 | LD3 Map editor | Levels routes and pages, SVG canvas, route/pad/deco/backdrop tools, keyboard cursor, shared undo, live problems, LEVEL draft lifecycle, delete rules, conflict screen, **Download** and **Upload level file** | Reducer and undo tests; keyboard-only Playwright run; pytest on moto; routes contract; ddblocal race | L |
-| LD4 Waves + wave sets | Wave table and helpers, challenge waves, wave-set and challenge editor, friendly ranges, mini-map presets, impact warnings | Model tests; TS/Python contract fixtures; G-15 errors land on cells | L |
+| LD4 Waves + wave sets | Wave table and helpers, keyframes with fill-in and the Vary button (3.4), challenge waves, wave-set and challenge editor, friendly ranges, mini-map presets, impact warnings | Model tests; TS/Python contract fixtures; G-15 errors land on cells | L |
 | LD5 Test play | Worker runner, C17.1 bots at 0/60/100% learning, presets-only board, results table, `testPlayedDraftRevision` | Same revision gives the same table twice; known-bad levels (unwinnable, plays itself, too long) each raise their rule; time budget from LD0 | M |
 | LD6 Publisher | Lambda, IAM, bucket Deny, counter, section merge, current.json ownership, versions.json per wave set, create-run allow-list, freeze flag, WebP conversion, ADR | terraform fmt/validate/plan (read-only); moto and ddblocal tests; player-api retire/invalid/resume tests per wave set; stale-source refusal test | L |
 | LD7 Publish UX + preview | Diff, checklist, tester profiles and preview versions, Make live, Retire, Invalid, version history | End to end in a non-prod env after you dispatch the release; rollback test; preview never reaches a non-tester (test) | M |
 
 From LD3 the designer is already useful: Download level file, commit, normal release. That needs no ADR change. LD6 makes it
 portal-only. Upload level file also serves the restore drill and repo-to-portal moves.
+
+### 3.1a Owner additions, 2026-11-16 [CONFIRMED by owner, 2026-11-16]
+
+**Keyframes and fill-in (tier 1, LD4).** You set a few waves (for example wave 1 = 20 x type 1; wave 50 = 40 x type 1 +
+20 x type 2) and the designer fills every wave in between along a curve: counts and mix ratios interpolate, boss waves stay on
+every tenth wave, and any wave can be overridden by hand (an override is kept when the keyframes move). The bot checks then run
+over the whole ramp.
+
+**Vary button (tier 1, LD4).** Re-rolls the alien mix, counts and timing inside a difficulty budget per wave, so each wave stays
+near the curve. Every roll is seeded and shown before you keep it. **All of this happens at design time**: what you publish is a
+fixed list of waves, so gameplay stays predictable between attempts as prompt.md:409 requires. There is no randomness per play,
+in the campaign or in challenges.
+
+**Planet versions (tiers 1-2).** Each planet has one live version and any number of named drafts (for example "Luna v3 (draft)",
+started by copying the live version or an older one). You edit, check and tester-preview a draft while the live version keeps
+serving children. **Make live** switches that one planet only; other planets are untouched. Older versions are kept, because
+saved runs stay pinned to the version they started on, and **Make live** on an older version is the rollback. The Versions
+panel shows which version is live, who made each and when, and a summary of differences between any two.
 
 ### 3.2 Tier 2: new planets
 
@@ -463,6 +481,8 @@ seeds; competent), each at 0%, 60% and 100% learning success (C9.6, C17.2), usin
 15. **Background resolution.** The kind is 1920x1056 (1x); the hand-drawn backdrop is 3840x2112. *Recommend:* accept 1x for
     now and judge it on your laptop after the Background release.
 16. **Ruleset (tier 2).** One global ruleset or one per planet? *Recommend:* global.
+17. **Waves at design time (owner, 2026-11-16).** Keyframes, fill-in and the Vary button in tier 1; no randomness per play;
+    published waves are fixed. Planet versions with named drafts beside the live version (3.1a). **Decided.**
 
 ## 8. Risks and unknowns
 

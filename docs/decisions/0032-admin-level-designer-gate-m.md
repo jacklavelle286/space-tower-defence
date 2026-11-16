@@ -20,6 +20,9 @@ Decision:
 - **Shape.** The schema allows several maps per planet, and challenge-only waves go in `challengeWaves` with string IDs (a C13
   amendment). The art lives in the planet document for tier 1 and moves to the asset manifest in tier 2. Route length is a hard band of 30-50 cells, with a warning outside
   36-44. Pads are canonicalised by route progress on new maps.
+- **Waves at design time.** Keyframes with fill-in and a seeded Vary button, both in tier 1; published waves are fixed, with no
+  randomness per play (prompt.md:409 holds). **Planet versions:** named drafts are built and tester-previewed beside the live
+  version; Make live switches one planet; older versions stay for pinned runs and rollback **[CONFIRMED by owner, 2026-11-16]**.
 - **Delivery.** Download and upload of a level file comes first (LD3). Runtime publish follows in LD6, with per-level drafts owning
   their sections, a stale-source refusal, and retire or invalid per (version, wave set).
 - **Checks.** Two bot results block publish from the start: the minimal bot clears waves 1-5, and the competent bot at 0% learning
