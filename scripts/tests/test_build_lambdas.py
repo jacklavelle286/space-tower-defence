@@ -304,8 +304,8 @@ def test_the_picture_gen_lock_is_complete_and_consistent() -> None:
     assert "openai" in inputs  # the OpenAI provider (owner decision 2026-11-16)
     for name in ("boto3", "botocore", "anthropic", "openai"):
         assert locked[name] == dev[name], name
-    # The SDKs' HTTP stack is pinned for the tests too (httpx2 and httpcore2 are held back in the lock), and every package
-    # pinned in both files (requirements-dev.txt and the requirements.txt it includes) is at the same version.
+    # The SDKs' HTTP stack is pinned for the tests too (httpx2 and httpcore2 are held back in the lock), and every
+    # package pinned in both files (requirements-dev.txt and the requirements.txt it includes) is at the same version.
     for raw in (api / build_lambdas.BASE_REQUIREMENTS).read_text().splitlines():
         line = raw.split("#", 1)[0].strip()
         if "==" in line:
