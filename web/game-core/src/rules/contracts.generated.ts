@@ -6,6 +6,7 @@ export const LIMITS = {
   "bodyMaxBytes": {
     "ops": 65536,
     "adminActivityDraft": 65536,
+    "adminPicture": 786432,
     "default": 8192
   },
   "opsPerBatch": {
@@ -65,6 +66,16 @@ export const LIMITS = {
     "max": 50
   },
   "templateDomainMax": 5000,
+  "picture": {
+    "side": 256,
+    "maxBytes": 524288,
+    "uploadMaxBytes": 5242880,
+    "uploadMaxSide": 4096,
+    "nameMaxLength": 40,
+    "descriptionMinLength": 3,
+    "descriptionMaxLength": 200,
+    "changeMaxLength": 200
+  },
   "speechUrlSeconds": 300,
   "lease": {
     "seconds": 180,

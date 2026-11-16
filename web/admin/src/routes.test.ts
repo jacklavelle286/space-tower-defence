@@ -11,6 +11,10 @@ describe("hash routes", () => {
     ["#speech/phoneme-sh", { page: "speech", id: "phoneme-sh" }],
     ["#bank", { page: "bank" }],
     ["#new-activity", { page: "new" }],
+    ["#pictures", { page: "pictures", tab: "upload" }],
+    ["#pictures/draw", { page: "pictures", tab: "draw" }],
+    ["#pictures/library", { page: "pictures", tab: "library" }],
+    ["#pictures/nonsense", { page: "pictures", tab: "upload" }],
     ["#nonsense", { page: "activities" }],
   ])("%s", (hash, route) => {
     expect(parseRoute(hash)).toEqual(route);
@@ -30,6 +34,9 @@ describe("hash routes", () => {
       { page: "speech", id: "phoneme-sh" },
       { page: "bank" },
       { page: "new" },
+      { page: "pictures", tab: "upload" },
+      { page: "pictures", tab: "draw" },
+      { page: "pictures", tab: "library" },
     ];
     for (const route of routes) expect(parseRoute(hrefOf(route))).toEqual(route);
   });

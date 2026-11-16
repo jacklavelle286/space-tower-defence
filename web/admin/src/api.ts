@@ -1,4 +1,4 @@
-// The admin's API client and the shapes of the routes it uses (plan G §12 R17-R27, R31, R32, R16). Same origin: every call goes
+// The admin's API client and the shapes of the routes it uses (plan G §12 R17-R27, R31, R32, R16; pictures R33-R39). Same origin: every call goes
 // to /api on admin.aliens.jackgl.com, with the operator's access token (G §1.1).
 //
 // Rule from G §1.3: branch on the HTTP status first, and read `error.code` only when the body is our envelope. A
@@ -10,12 +10,16 @@ export class ApiError extends Error {
   readonly status: number;
   readonly code: string;
   readonly details: readonly Problem[];
+  /** Structured details some codes carry as an object instead of a problem list (G §1.2), for example
+   * PICTURE_CAP_REACHED's `{period, resetsAt}`. Empty for every other error. */
+  readonly info: Readonly<Record<string, unknown>>;
 
-  constructor(status: number, code: string, details: readonly Problem[] = []) {
+  constructor(status: number, code: string, details: readonly Problem[] = [], info: Readonly<Record<string, unknown>> = {}) {
     super(`${status} ${code}`);
     this.status = status;
     this.code = code;
     this.details = details;
+    this.info = info;
   }
 }
 
@@ -25,7 +29,7 @@ export type Request = (
   body?: unknown,
 ) => Promise<unknown>;
 
-function envelope(body: unknown): { code: string; details: Problem[] } | null {
+function envelope(body: unknown): { code: string; details: Problem[]; info: Record<string, unknown> } | null {
   if (typeof body !== "object" || body === null || !("error" in body))
     return null;
   const error = (body as { error: unknown }).error;
@@ -42,7 +46,8 @@ function envelope(body: unknown): { code: string; details: Problem[] } | null {
           typeof d.rule === "string",
       )
     : [];
-  return { code, details: problems };
+  const info = typeof details === "object" && details !== null && !Array.isArray(details) ? { ...(details as Record<string, unknown>) } : {};
+  return { code, details: problems, info };
 }
 
 export function makeRequest(
@@ -72,7 +77,7 @@ export function makeRequest(
     const error = envelope(parsed);
     throw error === null
       ? new ApiError(response.status, "GATEWAY")
-      : new ApiError(response.status, error.code, error.details);
+      : new ApiError(response.status, error.code, error.details, error.info);
   };
 }
 
@@ -94,6 +99,10 @@ export function describeError(error: unknown): string {
       return "The voice service could not make this clip. Try again.";
     case "THROTTLED":
       return "Busy. Wait a moment and try again.";
+    case "PAYLOAD_TOO_LARGE":
+      return "That picture is too big to send. Try a simpler picture.";
+    case "PICTURE_CAP_REACHED":
+      return "No more drawing for now: the limit is reached.";
     case "NETWORK":
       return "No connection. Check the internet and try again.";
     default:
@@ -349,6 +358,99 @@ export type BankStatus = {
   ageBands: BankBand[];
 };
 
+// --- Pictures (R33-R39, Phases 42a and 42b) --------------------------------------------------------------------------
+
+export type PictureState = "DRAFT" | "APPROVED";
+export type PictureSource = "UPLOAD" | "GENERATED";
+
+/** One row of R33. `url` (/pictures/v1/<id>.png) is set for approved pictures only: drafts are never served. */
+export type PictureSummary = {
+  id: string;
+  name: string;
+  state: PictureState;
+  source: PictureSource;
+  textFree?: boolean;
+  createdAt?: string;
+  approvedAt?: string;
+  jobId?: string;
+  description?: string;
+  url?: string;
+};
+
+/** The drawing caps and how many drawings were started today (Europe/London) and this month. A cap of 0 switches
+ * drawing off. */
+export type PictureUsage = { usedToday: number; dailyCap: number; usedMonth: number; monthlyCap: number; drawingOn?: boolean };
+
+/** A drawing job from the last 24 hours that is still QUEUED or READY, so a reload brings its card back. The row
+ * shape is admin-api's job summary (api/shared/picture_admin.py `_job_summary`). */
+export type OpenPictureJob = {
+  jobId: string;
+  description: string;
+  state: "QUEUED" | "READY";
+  startedAt: string;
+  previousJobId?: string;
+  change?: string;
+};
+
+export type PictureList = { pictures: PictureSummary[]; generation: PictureUsage; openJobs: OpenPictureJob[] };
+
+/** The picture header (R34, R35, R36). Picture bytes never change: an edit makes a new picture. */
+export type Picture = PictureSummary & {
+  sha256?: string;
+  bytes?: number;
+  width?: number;
+  height?: number;
+  textFree: boolean;
+  jobId?: string;
+  description?: string;
+  createdBy?: string;
+  createdAt?: string;
+  approvedBy?: string;
+  approvedAt?: string;
+  publishRefs?: number;
+};
+
+/** R34's body: a 256x256 PNG the browser made (at most 512 KiB), base64 without a data: prefix. */
+export type NewPicture = {
+  name: string;
+  source: PictureSource;
+  jobId?: string;
+  pngBase64: string;
+  approve: boolean;
+  textFree: boolean;
+};
+/** R34's answer: 201 for a new picture; 200 with `duplicate: true` when the same pixels are already stored. */
+export type PictureSaved = { picture: Picture; duplicate?: boolean };
+/** R35: the header, the activities that use it, and the PNG for a draft (an approved picture is served at `url`). */
+export type PictureDetail = { picture: Picture; usedBy: string[]; pngBase64?: string };
+/** R37's answer. `invalidated` is set for an approved picture only: false when a CloudFront invalidation failed (the
+ * cached copy stays until it expires). */
+export type PictureDeletion = { pictureId: string; deleted: true; invalidated?: boolean };
+
+/** R38's body. `jobId` is a UUIDv4 made here: the idempotency key, so a resend never counts twice. */
+export type NewPictureJob = { jobId: string; description: string; previousJobId?: string; change?: string };
+/** R38's 202 answer. */
+export type PictureJobStarted = { jobId: string; state?: string } & PictureUsage;
+
+/** Why a drawing failed (R39 FAILED `error`). */
+export type PictureJobError = "declined" | "too_long" | "unusable" | "throttled" | "bedrock_error" | "timed_out" | "could_not_start" | "expired";
+
+/** R39: where a drawing job is. READY carries the sanitised SVG (admin-api sanitises it again before answering). */
+export type PictureJob =
+  | { state: "QUEUED"; elapsedSeconds?: number }
+  | { state: "DRAWING"; phase?: "thinking" | "drawing"; elapsedSeconds?: number; outputTokens?: number }
+  | { state: "READY"; svg: string; warnings?: string[] }
+  | { state: "FAILED"; error: PictureJobError | string; message?: string };
+
+/** The activities R37 named when it refused a delete (`usedBy.<activityId>`, rule `picture_in_use`), else []. */
+export function pictureUsers(error: unknown): string[] {
+  if (!(error instanceof ApiError) || error.code !== "VALIDATION_FAILED") return [];
+  const prefix = "usedBy.";
+  return error.details
+    .filter((p) => p.rule === "picture_in_use" && p.field.startsWith(prefix))
+    .map((p) => p.field.slice(prefix.length));
+}
+
 /** A guard against a server that never stops paging: 50 pages of 200 is far beyond the bank's size (plan C19). */
 const MAX_PAGES = 50;
 
@@ -468,6 +570,25 @@ export function adminApi(request: Request) {
         "DELETE",
         `/admin/activities/${id(activityId)}`,
       ) as Promise<Deletion>,
+    /** R33: the picture library (both states unless `state` is given), the drawing usage and the open drawing jobs. */
+    listPictures: (state?: PictureState) =>
+      request("GET", state === undefined ? "/admin/pictures" : `/admin/pictures?state=${state}`) as Promise<PictureList>,
+    /** R34: stores a browser-made 256x256 PNG; with `approve` (and `textFree`) it is approved in the same call. */
+    createPicture: (body: NewPicture) => request("POST", "/admin/pictures", body) as Promise<PictureSaved>,
+    /** R35: one picture, the activities that use it, and a draft's PNG. */
+    getPicture: (pictureId: string) => request("GET", `/admin/pictures/${id(pictureId)}`) as Promise<PictureDetail>,
+    /** R36: approves a draft. Refused unless the operator ticked "no letters, numbers or words". */
+    approvePicture: (pictureId: string, body: { textFree: true; name?: string }) =>
+      request("POST", `/admin/pictures/${id(pictureId)}/approve`, body) as Promise<PictureSaved>,
+    /** R37: deletes a draft, or an approved picture no activity uses (removes the served file too). 400 with
+     * `picture_in_use` problems (read them with pictureUsers) while an activity draft or version names it. */
+    deletePicture: (pictureId: string) =>
+      request("DELETE", `/admin/pictures/${id(pictureId)}`) as Promise<PictureDeletion>,
+    /** R38: starts a drawing (counts toward the daily and monthly caps; 429 PICTURE_CAP_REACHED when one is reached). */
+    startPictureJob: (body: NewPictureJob) =>
+      request("POST", "/admin/picture-jobs", body) as Promise<PictureJobStarted>,
+    /** R39: where a drawing job is. */
+    getPictureJob: (jobId: string) => request("GET", `/admin/picture-jobs/${id(jobId)}`) as Promise<PictureJob>,
   };
 }
 

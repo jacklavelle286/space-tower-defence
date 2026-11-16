@@ -72,6 +72,7 @@ const RULES: Record<string, string> = {
   cue_required: "needs a cue: a picture, rule text, or a prompt clip",
   unknown_asset: "is not in the picture library",
   not_text_free: "has text in it, which activity pictures may not have",
+  picture_not_approved: "is a picture from My pictures that is not approved",
   asset_not_listed: "is not in the activity's picture list",
   asset_unused: "is listed but not used",
   review_note_required: "is needed when there is more than one accepted answer: say why each one is right",

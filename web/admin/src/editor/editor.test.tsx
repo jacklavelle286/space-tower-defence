@@ -377,6 +377,30 @@ describe("the editor", () => {
     expect(saved.definition.topicId).toBe("maths-number-one-more-less-to10");
   });
 
+  it("offers My pictures first: approved library pictures only, never drafts, shown by name (Phase 42a)", async () => {
+    const fox = fake.seedPicture("Orange fox");
+    const draft = fake.seedPicture("Kite draft", "DRAFT");
+    fake.seed(draftOf("PICTURE_SELECT").definition, 1);
+    await openEditor("sp-9102");
+    fireEvent.click(screen.getByRole("button", { name: "Option a picture" }));
+    const dialog = screen.getByRole("dialog", { name: "Choose: Option a picture" });
+    const mine = await within(dialog).findByRole("region", { name: "My pictures" });
+    expect(within(dialog).getAllByRole("heading", { level: 4 })[0]?.textContent).toBe("My pictures");
+    expect(within(mine).getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual([`Orange fox (${fox.id})`]);
+    expect(mine.querySelector("img")?.getAttribute("src")).toBe(`/pictures/v1/${fox.id}.png`);
+    expect(within(dialog).queryByRole("button", { name: new RegExp(draft.id, "u") })).toBeNull();
+    expect(fake.callsNamed("listPictures").map((c) => c.args)).toEqual([["APPROVED"]]);
+    fireEvent.change(within(dialog).getByRole("searchbox"), { target: { value: "fox" } });
+    expect(within(dialog).getAllByRole("button").map((b) => b.getAttribute("aria-label"))).toEqual([`Orange fox (${fox.id})`, pictureLabel("pic-fox"), pictureLabel("pic-foxes")]);
+    fireEvent.click(within(dialog).getByRole("button", { name: `Orange fox (${fox.id})` }));
+    const button = screen.getByRole("button", { name: "Option a picture" });
+    expect(button.textContent).toContain("Orange fox");
+    // Opening another picker reads the list no more.
+    fireEvent.click(screen.getByRole("button", { name: "Option b picture" }));
+    await screen.findByRole("dialog", { name: "Choose: Option b picture" });
+    expect(fake.callsNamed("listPictures")).toHaveLength(1);
+  });
+
   it("chooses a picture from the thumbnails, searches, and Escape closes and returns the cursor", async () => {
     fake.seed(draftOf("PICTURE_SELECT").definition, 1);
     await openEditor("sp-9102");

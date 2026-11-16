@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ApiError, adminApi, describeError, makeRequest, speechUsers } from "./api";
+import { ApiError, adminApi, describeError, makeRequest, pictureUsers, speechUsers } from "./api";
 
 type Call = { url: string; init: RequestInit };
 
@@ -92,5 +92,46 @@ describe("API client", () => {
     const list = await adminApi(makeRequest("/api", "t", fetchFn)).listActivities();
     expect(list.items.map((i) => i.activityId)).toEqual(["ma-0001", "ma-0002", "ph-0001"]);
     expect(urls).toEqual(Object.keys(pages));
+  });
+
+  it("calls the picture routes R33-R39 with the design's paths and bodies", async () => {
+    const calls: Call[] = [];
+    const api = adminApi(makeRequest("/api", "t", fakeFetch(200, {}, calls)));
+    const pic = `lib-${"a".repeat(32)}`;
+    const job = "0b6f5a4e-1d2c-4b3a-9f8e-7d6c5b4a3f2e";
+    await api.listPictures();
+    await api.listPictures("APPROVED");
+    await api.createPicture({ name: "Cat", source: "UPLOAD", pngBase64: "iVBO", approve: true, textFree: true });
+    await api.getPicture(pic);
+    await api.approvePicture(pic, { textFree: true });
+    await api.deletePicture(pic);
+    await api.startPictureJob({ jobId: job, description: "a red kite" });
+    await api.getPictureJob(job);
+    expect(calls.map((c) => [c.init.method, c.url, c.init.body === undefined ? undefined : JSON.parse(c.init.body as string)])).toEqual([
+      ["GET", "/api/admin/pictures", undefined],
+      ["GET", "/api/admin/pictures?state=APPROVED", undefined],
+      ["POST", "/api/admin/pictures", { name: "Cat", source: "UPLOAD", pngBase64: "iVBO", approve: true, textFree: true }],
+      ["GET", `/api/admin/pictures/${pic}`, undefined],
+      ["POST", `/api/admin/pictures/${pic}/approve`, { textFree: true }],
+      ["DELETE", `/api/admin/pictures/${pic}`, undefined],
+      ["POST", "/api/admin/picture-jobs", { jobId: job, description: "a red kite" }],
+      ["GET", `/api/admin/picture-jobs/${job}`, undefined],
+    ]);
+  });
+
+  it("keeps a code's structured details (the cap's period) and reads a picture delete refusal", async () => {
+    const capped = await makeRequest("/api", "t", fakeFetch(429, { error: { code: "PICTURE_CAP_REACHED", message: "x", details: { period: "day", resetsAt: "2026-11-17T00:00:00Z" } } }))(
+      "POST",
+      "/admin/picture-jobs",
+    ).catch((e: unknown) => e);
+    expect((capped as ApiError).info).toEqual({ period: "day", resetsAt: "2026-11-17T00:00:00Z" });
+    expect((capped as ApiError).details).toEqual([]);
+    const details = [{ field: "usedBy.ph-0102", rule: "picture_in_use" }, { field: "usedBy.ph-0102", rule: "speech_in_use" }];
+    const refused = await makeRequest("/api", "t", fakeFetch(400, { error: { code: "VALIDATION_FAILED", message: "x", details } }))("DELETE", "/admin/pictures/x").catch(
+      (e: unknown) => e,
+    );
+    expect(pictureUsers(refused)).toEqual(["ph-0102"]);
+    expect((refused as ApiError).info).toEqual({});
+    expect(pictureUsers(new ApiError(404, "NOT_FOUND"))).toEqual([]);
   });
 });

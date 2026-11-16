@@ -4,8 +4,13 @@
 //
 // The button's element ID is the field path (problems.ts fieldId) and the visible label names it, so a validation
 // problem can move the cursor here and tests and screen readers find it by its label.
+//
+// "My pictures" (Phase 42a) comes first: the operator's approved library pictures (library.tsx), loaded when the panel
+// first opens. Drafts never appear. A library picture is shown by its library name.
+import { isLibraryPictureId } from "@scd/shared";
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
-import { pictureFamilies, pictureLabel, pictureName, pictureUrl } from "./assets";
+import { MY_PICTURES, pictureFamilies, pictureName, pictureUrl } from "./assets";
+import { usePictureLibrary } from "./library";
 import { fieldId } from "./problems";
 
 type Props = {
@@ -25,7 +30,19 @@ export function PicturePicker({ path, label, value, onChange, optional = false }
   const search = useRef<HTMLInputElement>(null);
   const id = fieldId(path);
   const dialogId = `${useId()}-pictures`;
-  const url = value === "" ? null : pictureUrl(value);
+  const library = usePictureLibrary();
+  const names = new Map((library.pictures ?? []).map((p) => [p.id, p.name]));
+  const nameOf = (assetId: string) => names.get(assetId) ?? pictureName(assetId);
+  const isMine = value !== "" && isLibraryPictureId(value);
+  /** A library picture that is not (or no longer) approved: the loaded list does not have it. */
+  const missingMine = isMine && library.pictures !== null && !names.has(value);
+  const url = value === "" || missingMine ? null : pictureUrl(value);
+  const { load } = library;
+
+  // A field that already shows a library picture needs its name.
+  useEffect(() => {
+    if (isMine) load();
+  }, [isMine, load]);
 
   const close = (refocus: boolean) => {
     setOpen(false);
@@ -39,6 +56,7 @@ export function PicturePicker({ path, label, value, onChange, optional = false }
 
   useEffect(() => {
     if (!open) return;
+    load();
     search.current?.focus();
     const outside = (event: MouseEvent) => {
       if (root.current !== null && !root.current.contains(event.target as Node)) {
@@ -48,9 +66,9 @@ export function PicturePicker({ path, label, value, onChange, optional = false }
     };
     document.addEventListener("mousedown", outside);
     return () => document.removeEventListener("mousedown", outside);
-  }, [open]);
+  }, [open, load]);
 
-  const families = pictureFamilies(query);
+  const families = pictureFamilies(query, library.pictures ?? []);
   const first = families[0]?.ids[0];
 
   /** Escape closes; arrows, Home and End move between the thumbnails (Tab works too). */
@@ -73,7 +91,16 @@ export function PicturePicker({ path, label, value, onChange, optional = false }
     choices[Math.max(0, Math.min(choices.length - 1, next))]?.focus();
   };
 
-  const current = value === "" ? (optional ? "No picture" : "Choose a picture…") : url === null ? `${value} (not in the library)` : pictureName(value);
+  const current =
+    value === ""
+      ? optional
+        ? "No picture"
+        : "Choose a picture…"
+      : missingMine
+        ? `${value} (not an approved picture in My pictures)`
+        : url === null
+          ? `${value} (not in the library)`
+          : nameOf(value);
 
   return (
     <span
@@ -120,6 +147,8 @@ export function PicturePicker({ path, label, value, onChange, optional = false }
             }}
           />
           <div className="picture-scroll">
+            {library.pictures === null && !library.failed && <p className="muted">Loading {MY_PICTURES}…</p>}
+            {library.failed && <p className="error">{MY_PICTURES} couldn't be loaded. Close and open this again to retry.</p>}
             {optional && (
               <button type="button" className="picture-choice picture-none" aria-pressed={value === ""} onClick={() => choose("")}>
                 <span className="thumb empty" aria-hidden="true" />
@@ -136,12 +165,12 @@ export function PicturePicker({ path, label, value, onChange, optional = false }
                       type="button"
                       className="picture-choice"
                       aria-pressed={assetId === value}
-                      aria-label={pictureLabel(assetId)}
+                      aria-label={`${nameOf(assetId)} (${assetId})`}
                       title={assetId}
                       onClick={() => choose(assetId)}
                     >
                       <img src={pictureUrl(assetId) ?? ""} alt="" width={64} height={64} loading="lazy" />
-                      <span>{pictureName(assetId)}</span>
+                      <span>{nameOf(assetId)}</span>
                     </button>
                   ))}
                 </div>

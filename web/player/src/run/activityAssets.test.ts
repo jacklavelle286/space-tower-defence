@@ -25,4 +25,13 @@ describe("activity pictures", () => {
     expect(activityAssetUrl("pic-unicorn")).toBeNull();
     expect(activityAssetUrl("../ui/logo")).toBeNull();
   });
+
+  it("serves a library picture from /pictures/v1/, and only an exact library ID", () => {
+    const id = `lib-${"0123456789abcdef".repeat(2)}`;
+    expect(activityAssetUrl(id)).toBe(`/pictures/v1/${id}.png`);
+    expect(activityAssetUrl(`lib-${"a".repeat(33)}`)).toBeNull();
+    expect(activityAssetUrl(`lib-${"A".repeat(32)}`)).toBeNull();
+    expect(activityAssetUrl("lib-../x")).toBeNull();
+    expect(ACTIVITY_ASSET_IDS.some((a) => a.startsWith("lib-"))).toBe(false);
+  });
 });

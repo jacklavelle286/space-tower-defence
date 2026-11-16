@@ -12,6 +12,7 @@ import { canPublish, PUBLISH_CHECKLIST } from "../review";
 import { SelectField, TextField } from "./fields";
 import { agesText, subjectName, topicGroups, topicLabel, topicSuits } from "./identity";
 import { AUDIO_OPTIONS, blankStep, fromDefinition, KINDS, legacyFields, REWARD_OPTIONS, rewardHint, sameDefinition, speechVariants, toDefinition, type EditorState, type StepKind } from "./model";
+import { PictureLibraryProvider } from "./library";
 import { PreviewSolve, type PlayUrl } from "./PreviewSolve";
 import { describeProblem, fieldId, focusTarget, LEGACY_NOTICE_ID } from "./problems";
 import { StepEditor } from "./StepEditor";
@@ -143,6 +144,7 @@ export function ActivityEditor({ api, activityId, play, onLoad }: Props) {
   const kinds = locked ? KINDS.filter((k) => k.interactionType === header.interactionType) : KINDS;
 
   return (
+    <PictureLibraryProvider api={api}>
     <div className="editor">
       <h2>
         {state.title || activityId} <small>{activityId}</small>
@@ -335,6 +337,7 @@ export function ActivityEditor({ api, activityId, play, onLoad }: Props) {
         </table>
       )}
     </div>
+    </PictureLibraryProvider>
   );
 }
 

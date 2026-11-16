@@ -22,3 +22,4 @@ export {
   type TypedSpec,
 } from "./learning/canonical";
 export * from "./api";
+export { isLibraryPictureId, LIBRARY_PICTURE_ID, libraryPictureUrl } from "./pictures";

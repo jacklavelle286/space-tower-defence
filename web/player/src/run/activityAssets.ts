@@ -2,6 +2,8 @@
 // The pictures are the catalogue's "activity" family (docs/art/asset-catalogue.json), served as loose files from
 // /assets/activity/ (atlas "activity": DOM images, not Phaser textures). activityAssets.test.ts checks this list
 // against the catalogue and that every file exists, so a renamed picture fails the tests rather than a child's panel.
+// Pictures from the operator's library ("lib-" IDs, Phase 42a) are served from /pictures/v1/ on the same site.
+import { libraryPictureUrl } from "@scd/shared";
 
 /** Pictures drawn as PNG (author size 2x, shown at 128 px). */
 const PNG = [
@@ -26,8 +28,10 @@ const FILES = new Map<string, string>([...PNG.map((id) => [id, `${id}.png`] as c
 /** Every activity picture ID this app can show. */
 export const ACTIVITY_ASSET_IDS: readonly string[] = [...FILES.keys()];
 
-/** The URL of an activity picture, or null when this app has no picture with that ID. */
+/** The URL of an activity picture, or null when this app has no picture with that ID. A library ID resolves to its
+ * served file; only approved pictures exist there, and publish refuses any other library ID. */
 export function activityAssetUrl(assetId: string): string | null {
   const file = FILES.get(assetId);
-  return file === undefined ? null : `/assets/activity/${file}`;
+  if (file !== undefined) return `/assets/activity/${file}`;
+  return libraryPictureUrl(assetId);
 }

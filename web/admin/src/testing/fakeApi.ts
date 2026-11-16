@@ -2,7 +2,22 @@
 // draftRevision -> 409 DRAFT_CONFLICT; publish needs every checklist line and the preview-solve of this revision).
 // Validation answers with `problems`, which a test sets: the real checks are admin-api's, and the shared fixtures
 // (contracts/fixtures/activities/) prove the editor's drafts pass them. Every call is recorded. Example IDs only.
-import { ApiError, type ActivitySummary, type ActivityView, type AdminApi, type BankStatus, type Definition, type NewActivity, type Problem, type SpeechSummary, type SpeechView } from "../api";
+import {
+  ApiError,
+  type ActivitySummary,
+  type ActivityView,
+  type AdminApi,
+  type BankStatus,
+  type Definition,
+  type NewActivity,
+  type OpenPictureJob,
+  type Picture,
+  type PictureJob,
+  type PictureUsage,
+  type Problem,
+  type SpeechSummary,
+  type SpeechView,
+} from "../api";
 import { PUBLISH_CHECKLIST } from "../review";
 import { BANK } from "./bank";
 
@@ -21,6 +36,20 @@ export const SPEECH: readonly SpeechSummary[] = [
   { speechId: "word-draft-only", title: "Not approved yet", kind: "WORD", state: "DRAFT", approvedVersion: null, updatedAt: "2026-11-15T10:02:00Z" },
 ];
 
+/** A fake library ID from the PNG's base64 (the real one is the sha256 of the canonical PNG). */
+export function fakePictureId(pngBase64: string): string {
+  let a = 0x811c9dc5;
+  let b = 0x01000193;
+  for (let i = 0; i < pngBase64.length; i += 1) {
+    a = Math.imul(a ^ pngBase64.charCodeAt(i), 0x01000193) >>> 0;
+    b = Math.imul(b + pngBase64.charCodeAt(i), 0x5bd1e995) >>> 0;
+  }
+  const hex = (n: number) => n.toString(16).padStart(8, "0");
+  return `lib-${hex(a)}${hex(b)}${hex((a ^ b) >>> 0)}${hex((a + b) >>> 0)}`;
+}
+
+type StoredPicture = Picture & { pngBase64: string };
+
 type Stored = { header: ActivityView["header"]; definition: Definition; draftRevision: number; versions: ActivityView["versions"] };
 
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
@@ -35,6 +64,18 @@ export class FakeAdminApi {
   /** The activities R32 names when it refuses to delete a speech definition (a test sets them). */
   speechUsers: Record<string, string[]> = {};
   readonly deletedSpeech = new Set<string>();
+  /** The picture library (R33-R37). */
+  readonly pictures = new Map<string, StoredPicture>();
+  /** The activities R37 names when it refuses to delete a picture (a test sets them). */
+  pictureUsers: Record<string, string[]> = {};
+  /** R33's drawing usage; R38 counts against it and refuses at a cap, as admin-api does. */
+  usage: PictureUsage = { usedToday: 0, dailyCap: 100, usedMonth: 0, monthlyCap: 150 };
+  openJobs: OpenPictureJob[] = [];
+  /** What R39 answers for each job, in order; the last answer repeats. A job with no script stays QUEUED. */
+  readonly jobScripts = new Map<string, PictureJob[]>();
+  /** R39 answers for jobs a test did not script (by start order): the first started job gets the first script. */
+  readonly nextJobScripts: PictureJob[][] = [];
+  readonly startedJobs = new Set<string>();
   private clock = 0;
 
   private record(name: string, ...args: unknown[]) {
@@ -73,6 +114,20 @@ export class FakeAdminApi {
       draftRevision,
       versions: publishedVersion === null ? [] : [{ versionId: publishedVersion, displayNumber: 1, publishedAt: "2026-11-15T10:00:00Z", publishedBy: "operator" }],
     });
+  }
+
+  /** Puts a picture in the library. */
+  seedPicture(name: string, state: Picture["state"] = "APPROVED", source: Picture["source"] = "UPLOAD"): Picture {
+    const pngBase64 = btoa(`png-${name}`);
+    const id = fakePictureId(pngBase64);
+    const picture: StoredPicture = { id, name, state, source, textFree: state === "APPROVED", pngBase64, ...(state === "APPROVED" ? { url: `/pictures/v1/${id}.png` } : {}) };
+    this.pictures.set(id, picture);
+    return this.publicPicture(picture);
+  }
+
+  private publicPicture(stored: StoredPicture): Picture {
+    const { pngBase64: _png, ...picture } = stored;
+    return clone(picture);
   }
 
   readonly api: AdminApi = {
@@ -176,6 +231,95 @@ export class FakeAdminApi {
     bankStatus: async () => {
       this.record("bankStatus");
       return clone(this.bank);
+    },
+    listPictures: async (state) => {
+      this.record("listPictures", state);
+      const pictures = [...this.pictures.values()]
+        .filter((p) => state === undefined || p.state === state)
+        .map((p) => ({
+          id: p.id,
+          name: p.name,
+          state: p.state,
+          source: p.source,
+          ...(p.jobId !== undefined ? { jobId: p.jobId } : {}),
+          ...(p.url !== undefined ? { url: p.url } : {}),
+        }));
+      return { pictures, generation: clone(this.usage), openJobs: clone(this.openJobs) };
+    },
+    createPicture: async (body) => {
+      this.record("createPicture", { ...body, pngBase64: body.pngBase64.length > 0 ? "(png)" : "" });
+      if (body.approve && !body.textFree) throw new ApiError(400, "VALIDATION_FAILED", [{ field: "textFree", rule: "not_text_free" }]);
+      const id = fakePictureId(body.pngBase64);
+      const existing = this.pictures.get(id);
+      if (existing !== undefined) return { picture: this.publicPicture(existing), duplicate: true };
+      const approved = body.approve;
+      const stored: StoredPicture = {
+        id,
+        name: body.name,
+        state: approved ? "APPROVED" : "DRAFT",
+        source: body.source,
+        textFree: body.textFree,
+        pngBase64: body.pngBase64,
+        ...(body.jobId !== undefined ? { jobId: body.jobId } : {}),
+        ...(approved ? { url: `/pictures/v1/${id}.png` } : {}),
+      };
+      this.pictures.set(id, stored);
+      return { picture: this.publicPicture(stored) };
+    },
+    getPicture: async (pictureId) => {
+      this.record("getPicture", pictureId);
+      const stored = this.pictures.get(pictureId);
+      if (stored === undefined) throw new ApiError(404, "NOT_FOUND");
+      return {
+        picture: this.publicPicture(stored),
+        usedBy: [...(this.pictureUsers[pictureId] ?? [])],
+        ...(stored.state === "DRAFT" ? { pngBase64: stored.pngBase64 } : {}),
+      };
+    },
+    approvePicture: async (pictureId, body) => {
+      this.record("approvePicture", pictureId, body);
+      const stored = this.pictures.get(pictureId);
+      if (stored === undefined) throw new ApiError(404, "NOT_FOUND");
+      if (body.textFree !== true) throw new ApiError(400, "VALIDATION_FAILED", [{ field: "textFree", rule: "not_text_free" }]);
+      stored.state = "APPROVED";
+      stored.textFree = true;
+      stored.url = `/pictures/v1/${pictureId}.png`;
+      return { picture: this.publicPicture(stored) };
+    },
+    deletePicture: async (pictureId) => {
+      this.record("deletePicture", pictureId);
+      const users = this.pictureUsers[pictureId] ?? [];
+      if (users.length > 0) {
+        throw new ApiError(400, "VALIDATION_FAILED", users.map((id) => ({ field: `usedBy.${id}`, rule: "picture_in_use" })));
+      }
+      if (!this.pictures.delete(pictureId)) throw new ApiError(404, "NOT_FOUND");
+      return { pictureId, deleted: true };
+    },
+    startPictureJob: async (body) => {
+      this.record("startPictureJob", body);
+      if (!this.startedJobs.has(body.jobId)) {
+        const off = this.usage.drawingOn === false || this.usage.dailyCap <= 0 || this.usage.monthlyCap <= 0;
+        if (off || this.usage.usedMonth >= this.usage.monthlyCap || this.usage.usedToday >= this.usage.dailyCap) {
+          // admin-api's 429 details (api/shared/picture_admin.py): "off" when a cap is 0 or no queue is set up (R33
+          // drawingOn false), else the period and resetsAt (the month when both caps are full).
+          const { dailyCap, monthlyCap } = this.usage;
+          if (off) throw new ApiError(429, "PICTURE_CAP_REACHED", [], { period: "off", dailyCap, monthlyCap });
+          const period = this.usage.usedMonth >= monthlyCap ? "month" : "day";
+          throw new ApiError(429, "PICTURE_CAP_REACHED", [], { period, resetsAt: "2026-11-17T00:00:00Z", dailyCap, monthlyCap });
+        }
+        this.startedJobs.add(body.jobId);
+        this.usage = { ...this.usage, usedToday: this.usage.usedToday + 1, usedMonth: this.usage.usedMonth + 1 };
+        const script = this.nextJobScripts.shift();
+        if (script !== undefined && !this.jobScripts.has(body.jobId)) this.jobScripts.set(body.jobId, script);
+      }
+      return { jobId: body.jobId, ...clone(this.usage) };
+    },
+    getPictureJob: async (jobId) => {
+      this.record("getPictureJob", jobId);
+      const script = this.jobScripts.get(jobId);
+      if (script === undefined || script.length === 0) return { state: "QUEUED" };
+      const next = script.length > 1 ? script.shift() : script[0];
+      return clone(next as PictureJob);
     },
   };
 
