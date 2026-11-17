@@ -64,6 +64,9 @@ export {
   type WaveSet,
 } from "./data/game-data";
 
+export { asSchema2, levelOwnsField, mergeLevel, ownsCampaign, type LevelSections } from "./data/level";
+
 export * from "./sim";
 export * from "./bot";
 export * from "./map";
+export * from "./waves";
