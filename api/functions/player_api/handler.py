@@ -507,8 +507,11 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         released = deps.game_data().released_planets()
         unlocks = {planet.planet_id: unlocked for planet, unlocked in _with_unlocks(released, profile)}
         if body["planetId"] not in unlocks:
-            raise ApiError("CONTENT_VERSION_UNSUPPORTED", "Planet is not in the released game data")
-        if not unlocks[body["planetId"]]:
+            # LD10: an unreleased planet only as a tester's preview (can_start above checked the tester list).
+            preview = deps.game_data().versions().state(body["campaignVersion"], body["waveSetId"]) == "preview"
+            if not preview:
+                raise ApiError("CONTENT_VERSION_UNSUPPORTED", "Planet is not in the released game data")
+        elif not unlocks[body["planetId"]]:
             raise ApiError("CONTENT_UNAVAILABLE", "Planet is locked", details={"reason": "PLANET_LOCKED"})
         statuses = [item.get("status") for item in table.query_prefix(pk, RUN_PREFIX, attributes=("status",))]
         if statuses.count("IN_PROGRESS") >= IN_PROGRESS_CAP:  # the soft cap, from the G1 Query
@@ -949,10 +952,30 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
                     "planetId": planet.planet_id,
                     "name": planet.name,
                     "campaignVersion": planet.campaign_version,  # LD9: each released planet has its own
+                    **({"icon": planet.icon} if planet.icon is not None else {}),  # LD10: a library Planet picture
                     "unlocked": unlocked,
                     "waveSets": wave_sets,
                 }
             )
+        if sub in versions.testers:
+            # LD10: a planet not yet released, for its testers: its newest preview version, open to them.
+            released_ids = {p["planetId"] for p in planets}
+            for other in _unreleased_previews(deps.game_data(), versions, released_ids):
+                planets.append(
+                    {
+                        "planetId": other.planet_id,
+                        "name": other.name,
+                        "campaignVersion": other.campaign_version,
+                        **({"icon": other.icon} if other.icon is not None else {}),
+                        "unlocked": True,
+                        "preview": True,
+                        "waveSets": [
+                            entry_for(ws, other.campaign_version, False)
+                            for ws in other.wave_sets
+                            if versions.state(other.campaign_version, ws.wave_set_id) == "preview"
+                        ],
+                    }
+                )
         return json_response(200, {"ageBand": band, "planets": planets})
 
     handlers = {
@@ -990,6 +1013,21 @@ def _preview_planets(reader: GameDataReader, versions: Versions, live: Planet) -
         if len(found) == PREVIEW_VERSIONS:
             break
     return found
+
+
+def _unreleased_previews(reader: GameDataReader, versions: Versions, released: set[str]) -> list[Planet]:
+    """Planets current.json does not list that have a preview version: the newest per planet (LD10)."""
+    newest: dict[str, Planet] = {}
+    for version in sorted(versions.states, key=_allocation, reverse=True):
+        if "preview" not in versions.states[version].values():
+            continue
+        try:
+            planet = reader.planet(version)
+        except GameDataUnavailable:
+            continue
+        if planet.planet_id not in released and planet.planet_id not in newest:
+            newest[planet.planet_id] = planet
+    return list(newest.values())[:PREVIEW_VERSIONS]
 
 
 def _allocation(version: str) -> tuple[int, str]:

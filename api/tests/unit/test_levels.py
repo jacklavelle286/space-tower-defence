@@ -50,6 +50,7 @@ def test_create_get_save_list_delete(api: Admin) -> None:
         "levelId": "zigzag",
         "name": "Zigzag",
         "status": "DRAFT",
+        "planetId": "luna-1",  # LD10: a level with no planet is the repository planet's
         "updatedAt": view["header"]["updatedAt"],
     }
     assert view["draft"]["draftRevision"] == 0 and view["draft"]["level"] == level()

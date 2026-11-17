@@ -87,3 +87,40 @@ def api_bounds(ruleset: str) -> Any:
     from runs_harness import load_bounds_fixture
 
     return load_bounds_fixture(ruleset, "luna-1-c1")
+
+
+def test_an_unreleased_planet_is_a_testers_preview_and_nobody_elses(ddb: Any, player_event: dict) -> None:
+    import boto3
+    from runs_harness import SUB
+
+    api = RunsApi(ddb)
+    s3 = boto3.client("s3", region_name="eu-west-2")
+    mars = json.loads((REPO / "game-data" / "campaign" / "luna-1-c1.json").read_text())
+    mars.update(version="mars-1-a1", planetId="mars-1", name="Red Dust")
+    s3.put_object(Bucket=BUCKET, Key="game-data/campaign/mars-1-a1.json", Body=json.dumps(mars).encode())
+
+    def versions(testers: list[str]) -> None:
+        body = {
+            "kind": "versions",
+            "schema": 1,
+            "testers": testers,
+            "versions": {"mars-1-a1": {"first-contact": "preview"}},
+        }
+        s3.put_object(Bucket=BUCKET, Key="game-data/versions.json", Body=json.dumps(body).encode())
+        api.reader._versions = None  # past the reader's cache
+
+    api.profile(player_event)
+    api.bounds = lambda ruleset, campaign: api_bounds(ruleset)
+    versions(["0f0e0d0c-0b0a-4908-8706-050403020100"])
+    _, body = api.call(player_event, "GET /api/planets")
+    assert [p["planetId"] for p in body["planets"]] == ["luna-1"]
+    status, _ = api.create(player_event, planetId="mars-1", campaignVersion="mars-1-a1")
+    assert status == 409
+
+    versions([SUB])
+    _, body = api.call(player_event, "GET /api/planets")
+    mars_entry = body["planets"][1]
+    assert (mars_entry["planetId"], mars_entry["preview"], mars_entry["unlocked"]) == ("mars-1", True, True)
+    assert [(w["waveSetId"], w["campaignVersion"]) for w in mars_entry["waveSets"]] == [("first-contact", "mars-1-a1")]
+    status, created = api.create(player_event, planetId="mars-1", campaignVersion="mars-1-a1")
+    assert status == 201, created

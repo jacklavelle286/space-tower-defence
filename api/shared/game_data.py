@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -40,6 +41,7 @@ DEFAULT_PREFIX = "game-data/"
 CURRENT_TTL_SECONDS = 60.0  # [ASSUMPTION] a release shows up within a minute; the files are tiny
 MAX_FILE_BYTES = 1024 * 1024
 MODES = frozenset({"CAMPAIGN", "CHALLENGE"})
+LIBRARY_ICON = re.compile(r"^lib-[0-9a-f]{32}\Z")
 MAX_PLANETS = 20  # current.json schema 2 (game-core parseCurrent's limit too)
 DEFAULT_MANIFEST_VERSION = "m1"  # Gate M, LD8: the asset manifest of the repo art (web/shared/src/manifest)
 
@@ -93,6 +95,7 @@ class Planet:
     name: str
     campaign_version: str
     wave_sets: tuple[WaveSet, ...]
+    icon: str | None = None  # the planet's library Planet picture (look.icon, LD10); None: the repo icon
 
 
 def _parse_planet(data: Any, version: str) -> Planet:
@@ -124,7 +127,11 @@ def _parse_planet(data: Any, version: str) -> Planet:
                 preset_placements=_placements(ws.get("presetPlacements"), where),
             )
         )
-    return Planet(planet_id=planet_id, name=name, campaign_version=version, wave_sets=tuple(parsed))
+    look = data.get("look")
+    icon = look.get("icon") if isinstance(look, dict) else None
+    if icon is not None and (not isinstance(icon, str) or not LIBRARY_ICON.match(icon)):
+        raise GameDataUnavailable(f"campaign {version}: bad look.icon")
+    return Planet(planet_id=planet_id, name=name, campaign_version=version, wave_sets=tuple(parsed), icon=icon)
 
 
 class CurrentInvalid(ValueError):

@@ -134,6 +134,7 @@ from shared.level_admin import make_level_handlers
 from shared.log import ApiLogger
 from shared.picture_admin import PictureServices, make_picture_handlers
 from shared.pictures import PictureConfig
+from shared.planet_admin import make_planet_handlers
 from shared.router import Request, Router
 from shared.rules.contracts import LIMITS
 from shared.selection.bank import HEADER_PK
@@ -179,6 +180,10 @@ ROUTES: dict[str, str] = {
     "POST /api/admin/game-data/live": OPERATOR,
     "POST /api/admin/game-data/states": OPERATOR,
     "PUT /api/admin/game-data/testers": OPERATOR,
+    "GET /api/admin/planets": OPERATOR,
+    "POST /api/admin/planets": OPERATOR,
+    "PUT /api/admin/planets/{id}": OPERATOR,
+    "POST /api/admin/planets/{id}/release": OPERATOR,
 }
 
 DRAFT_MAX_BYTES: int = LIMITS["bodyMaxBytes"]["adminActivityDraft"]  # 64 KB for PUT .../draft (G §12)
@@ -1155,6 +1160,9 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         ),
         **make_level_handlers(table=table, now=deps.now, transact=transact, page=page),
         **make_gamedata_handlers(
+            table=table, now=deps.now, transact=transact, game_data=deps.game_data, publisher=deps.publisher
+        ),
+        **make_planet_handlers(
             table=table, now=deps.now, transact=transact, game_data=deps.game_data, publisher=deps.publisher
         ),
     }

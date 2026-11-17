@@ -31,6 +31,7 @@ from shared.errors import ApiError, json_response
 from shared.gamedata_admin import level_publishing
 from shared.levels import DRAFT_SK, LEVEL_ID, LEVEL_PK, level_pk, level_problems, level_summary, new_level_items
 from shared.pictures import PICCAP_PK, cap_keys, level_cap_key
+from shared.planets import DEFAULT_PLANET, PLANET_ID, PLANET_PK
 from shared.router import Request
 from shared.rules.contracts import LIMITS
 
@@ -102,8 +103,18 @@ def make_level_handlers(
 
     def create_level(request: Request) -> dict[str, Any]:
         body = json_object(request.event, max_bytes=LEVEL_MAX_BYTES)
-        _only(body, {"level"})
+        problems = [problem(name, "additionalProperties") for name in body if name not in {"level", "planetId"}]
+        if "level" not in body:
+            problems.append(problem("level", "required"))
+        if problems:
+            raise _invalid(problems)
         level = body["level"]
+        # LD10: the planet the level belongs to; luna-1 (the repository planet) or one in the planet registry.
+        planet_id = body.get("planetId", DEFAULT_PLANET)
+        if not isinstance(planet_id, str) or not PLANET_ID.match(planet_id):
+            raise _invalid([problem("planetId", "pattern")])
+        if planet_id != DEFAULT_PLANET and table().get_item(PLANET_PK, planet_id) is None:
+            raise _invalid([problem("planetId", "unknown_planet")])
         level_id = level.get("levelId") if isinstance(level, Mapping) else None
         if not isinstance(level_id, str) or not LEVEL_ID.fullmatch(level_id):
             raise _invalid([problem("level.levelId", "pattern")])
@@ -112,7 +123,9 @@ def make_level_handlers(
             raise _invalid(problems)
         request.log["levelId"] = level_id
         moment, by = now(), request.caller.sub
-        header, draft = new_level_items(level=level, by=by, at=moment)
+        header, draft = new_level_items(
+            level=level, by=by, at=moment, planet_id=None if planet_id == DEFAULT_PLANET else planet_id
+        )
         content = table()
         pk, sk = audit_key(moment, level_id)
         actions = [

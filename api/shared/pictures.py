@@ -394,6 +394,10 @@ def picture_users(content: DynamoTable, picture_id: str) -> list[str]:
         if any(picture_id in library_asset_ids(v.get("visualAssetReferences")) for v in versions):
             users.add(activity_id)
     users.update(f"level:{level_id}" for level_id in level_picture_users(content, picture_id))
+    # Gate M, LD10: a planet's icon or default backdrop (the registry; a released planet's look is in its documents).
+    for planet in content.query_prefix("PLANET", "", attributes=("sk", "icon", "backdrop")):
+        if picture_id in (planet.get("icon"), planet.get("backdrop")):
+            users.add(f"planet:{planet['sk']}")
     return sorted(users)
 
 

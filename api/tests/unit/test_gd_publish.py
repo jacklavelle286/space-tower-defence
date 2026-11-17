@@ -482,3 +482,87 @@ def test_make_live_refuses_a_planet_that_is_not_released(env: Env) -> None:
     with pytest.raises(PublishRefused) as refused:
         env.publisher.make_live("venus-1-c1", "op")
     assert refused.value.code == "NOT_RELEASED"
+
+
+# --- New planets and their release (Gate M, LD10) ---------------------------------------------------------------------
+
+CAMPAIGN_LEVEL = json.loads(
+    (REPO / "contracts" / "fixtures" / "levels" / "shapes.json").read_text(), parse_float=Decimal
+)["valid"]["campaign"]
+
+
+def mars_planet(env: Env, with_campaign: bool = True) -> None:
+    """An unreleased planet mars-1 in the registry, and a level of it (the campaign one, or the challenge one)."""
+    env.table.transact_write(
+        [
+            env.table.put_action(
+                {"pk": "PLANET", "sk": "mars-1", "planetId": "mars-1", "name": "Red Dust", "icon": None,
+                 "artSet": "moon", "backdrop": None, "status": "DRAFT"},
+                condition="attribute_not_exists(#pk)",
+                names={"#pk": "pk"},
+            )
+        ]
+    )  # fmt: skip
+    body = (
+        CAMPAIGN_LEVEL
+        if with_campaign
+        else json.loads(json.dumps(LEVEL, default=float).replace('"zigzag', '"mars'), parse_float=Decimal)
+    )
+    header, draft = new_level_items(level=body, by=OPERATOR, at=env.clock, planet_id="mars-1")
+    for item in (header, draft):
+        env.table.transact_write(
+            [env.table.put_action(item, condition="attribute_not_exists(#pk)", names={"#pk": "pk"})]
+        )
+
+
+def test_a_new_planet_starts_from_its_campaign_as_a_preview(env: Env) -> None:
+    mars_planet(env)
+    level_id = CAMPAIGN_LEVEL["levelId"]
+    out = env.publisher.publish(level_id, 0, "mars-1-new", True, OPERATOR)  # live asked, but not released
+    assert (out["campaignVersion"], out["live"], out["liveRefused"]) == ("mars-1-a1", False, "NOT_RELEASED")
+    assert env.current() == LIVE  # current.json untouched
+    assert env.table.get_item("PLANET", "mars-1")["latestVersion"] == "mars-1-a1"
+    assert env.check.calls[0]["planet"]["version"] == "mars-1-new" and env.check.calls[0]["planet"]["waves"] == []
+    with pytest.raises(PublishRefused) as stale:  # the head moved on to mars-1-a1
+        env.publisher.publish(level_id, 1, "mars-1-new", False, OPERATOR)
+    assert stale.value.code in ("STALE_SOURCE", "DRAFT_CONFLICT")
+
+
+def test_a_new_planets_first_level_must_own_the_campaign(env: Env) -> None:
+    mars_planet(env, with_campaign=False)
+    with pytest.raises(PublishRefused) as refused:
+        env.publisher.publish("mars", 0, "mars-1-new", False, OPERATOR)
+    assert refused.value.code == "NEEDS_CAMPAIGN"
+
+
+def test_releasing_a_planet_appends_it_to_current_json(env: Env) -> None:
+    mars_planet(env)
+    with pytest.raises(PublishRefused) as early:
+        env.publisher.release_planet("mars-1", OPERATOR)
+    assert early.value.code == "NOT_READY"
+    env.publisher.publish(CAMPAIGN_LEVEL["levelId"], 0, "mars-1-new", False, OPERATOR)
+    out = env.publisher.release_planet("mars-1", OPERATOR)
+    assert (out["released"], out["order"]) == (True, 1)
+    assert env.get("current.json") == {
+        "schema": 2,
+        "rulesetVersion": "r4",
+        "campaignVersion": LIVE,
+        "planets": [
+            {"planetId": "luna-1", "campaignVersion": LIVE},  # schema 1's entry, named now
+            {"planetId": "mars-1", "campaignVersion": "mars-1-a1"},
+        ],
+    }
+    assert env.states().state("mars-1-a1", "blob-parade") == "published"
+    assert env.table.get_item("PLANET", "mars-1")["status"] == "RELEASED"
+    assert env.publisher.release_planet("mars-1", OPERATOR)["released"] is True  # a repeat changes nothing
+
+
+def test_a_planet_without_its_full_campaign_is_not_released(env: Env) -> None:
+    mars_planet(env)
+    env.publisher.publish(CAMPAIGN_LEVEL["levelId"], 0, "mars-1-new", False, OPERATOR)
+    short = env.get("campaign/mars-1-a1.json")
+    short["waves"] = short["waves"][:49]
+    env.put("campaign/mars-1-a1.json", json.dumps(short).encode())
+    with pytest.raises(PublishRefused) as refused:
+        env.publisher.release_planet("mars-1", OPERATOR)
+    assert refused.value.code == "NOT_READY"

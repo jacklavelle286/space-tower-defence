@@ -214,11 +214,14 @@ def _wave_problems(level: Mapping[str, Any], level_id: str) -> list[Problem]:
     return out
 
 
-def new_level_items(*, level: Mapping[str, Any], by: str, at: datetime) -> tuple[dict[str, Any], dict[str, Any]]:
-    """A new level: header (status DRAFT) + draft (draftRevision 0) holding the level file body."""
+def new_level_items(
+    *, level: Mapping[str, Any], by: str, at: datetime, planet_id: str | None = None
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """A new level: header (status DRAFT) + draft (draftRevision 0) holding the level file body. `planet_id` (LD10):
+    the planet it belongs to; left out it is luna-1's (shared/planets.py DEFAULT_PLANET)."""
     level_id = str(level["levelId"])
     now = iso_z(at)
-    header = {
+    header: dict[str, Any] = {
         "pk": LEVEL_PK,
         "sk": level_id,
         "levelId": level_id,
@@ -228,6 +231,8 @@ def new_level_items(*, level: Mapping[str, Any], by: str, at: datetime) -> tuple
         "createdAt": now,
         "updatedAt": now,
     }
+    if planet_id is not None:
+        header["planetId"] = planet_id
     draft = {
         "pk": level_pk(level_id),
         "sk": DRAFT_SK,
@@ -245,5 +250,6 @@ def level_summary(header: Mapping[str, Any]) -> dict[str, Any]:
         "levelId": header.get("sk"),
         "name": header.get("name"),
         "status": header.get("status"),
+        "planetId": header.get("planetId") or "luna-1",  # LD10: absent is the repository planet
         "updatedAt": header.get("updatedAt"),
     }

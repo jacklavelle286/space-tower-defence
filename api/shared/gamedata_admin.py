@@ -34,13 +34,14 @@ import boto3
 from botocore.config import Config
 from botocore.exceptions import ClientError
 
-from shared.body import json_object
+from shared.body import json_object, query_param
 from shared.bounds import VERSION
 from shared.content import as_int, iso_z, plain, problem
 from shared.data import DynamoTable
 from shared.errors import ApiError, json_response
 from shared.game_data import GameDataReader, GameDataUnavailable
 from shared.levels import DRAFT_SK, LEVEL_ID, LEVEL_PK, level_pk
+from shared.planets import PLANET_ID, PLANET_PK, empty_planet, new_version_token, with_registry_look
 from shared.router import Request
 from shared.versions import SUB, WAVE_SET_ID
 
@@ -201,11 +202,31 @@ def make_gamedata_handlers(
 
     # --- R46, R47 ------------------------------------------------------------------------------------------------
 
+    def base_for(r: GameDataReader, planet_id: str | None) -> tuple[str, str, dict[str, Any]]:
+        """(planetId, sourceVersion, document) a level of `planet_id` is merged into (LD10; shared/planets.py): a
+        released planet's live document, else an unreleased one's newest with the registry's look, else its empty
+        starting document. No planet: the first released planet (luna-1)."""
+        released = r.released_planets()
+        if planet_id is None:
+            first = released[0]
+            return first.planet_id, first.campaign_version, r.document(first.campaign_version)
+        for planet in released:
+            if planet.planet_id == planet_id:
+                return planet_id, planet.campaign_version, r.document(planet.campaign_version)
+        found = table().get_item(PLANET_PK, planet_id) if PLANET_ID.match(planet_id) else None
+        if found is None:
+            raise ApiError("NOT_FOUND")
+        item = plain(found)
+        latest = item.get("latestVersion")
+        if not latest:
+            return planet_id, new_version_token(planet_id), empty_planet(item)
+        return planet_id, str(latest), with_registry_look(r.document(str(latest)), item)
+
     def get_game_data(request: Request) -> dict[str, Any]:
         try:
             r = reader()
             current = r.current()
-            live = r.document(current["campaignVersion"])
+            base_planet, base_version, live = base_for(r, query_param(request.event, "planet"))
             versions = r.versions()
             listed = r.campaign_versions()[:VERSIONS_LIMIT]
         except GameDataUnavailable:
@@ -246,7 +267,8 @@ def make_gamedata_handlers(
             200,
             {
                 "current": current,
-                "live": live,
+                "live": live,  # the document levels of `base.planetId` are merged into (LD10: ?planet=)
+                "base": {"planetId": base_planet, "sourceVersion": base_version},
                 "testers": sorted(versions.testers),
                 "versions": rows,
                 "history": [

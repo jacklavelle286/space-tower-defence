@@ -145,6 +145,8 @@ def dispatch(publisher: Publisher, event: Mapping[str, Any]) -> dict[str, Any]:
             return publisher.set_state(event.get("campaignVersion"), event.get("waveSetId"), event.get("state"), by)
         if action == "setTesters":
             return publisher.set_testers(event.get("testers"), by)
+        if action == "releasePlanet":
+            return publisher.release_planet(event.get("planetId"), by)
         raise PublishRefused("INVALID", "unknown action")
     except PublishRefused as refusal:
         if action == "publish":
