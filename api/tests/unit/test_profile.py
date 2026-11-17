@@ -538,6 +538,48 @@ def test_planets_lists_the_released_planet_for_the_age_band(api: Api, player_eve
     }  # fmt: skip
 
 
+def _preview(api: Api, testers: list[str], live_state: str = "published") -> None:
+    """luna-1-a1 (a copy of luna-1-c1) holds a preview of first-contact; current.json still names luna-1-c1."""
+    doc = json.loads((REPO / "game-data" / "campaign" / "luna-1-c1.json").read_text())
+    doc["version"] = "luna-1-a1"
+    api.s3.put_object(Bucket=BUCKET, Key="game-data/campaign/luna-1-a1.json", Body=json.dumps(doc).encode())
+    versions = {
+        "kind": "versions",
+        "schema": 1,
+        "testers": testers,
+        "versions": {"luna-1-a1": {"first-contact": "preview"}, "luna-1-c1": {"first-contact": live_state}},
+    }
+    api.s3.put_object(Bucket=BUCKET, Key="game-data/versions.json", Body=json.dumps(versions).encode())
+
+
+def test_a_tester_sees_preview_wave_sets_with_their_version(api: Api, player_event: dict) -> None:
+    put(api, player_event)
+    _preview(api, [SUB])
+    status, body = api.call(player_event, "GET /api/planets")
+    assert status == 200
+    assert [(w["waveSetId"], w.get("campaignVersion"), w.get("preview")) for w in body["planets"][0]["waveSets"]] == [
+        ("first-contact", None, None),
+        ("first-contact", "luna-1-a1", True),
+    ]
+
+
+def test_a_preview_never_reaches_an_account_that_does_not_test(api: Api, player_event: dict) -> None:
+    put(api, player_event)
+    _preview(api, ["0f0e0d0c-0b0a-4908-8706-050403020100"], live_state="preview")
+    status, body = api.call(player_event, "GET /api/planets")
+    assert status == 200 and body["planets"][0]["waveSets"] == []  # neither the live preview nor luna-1-a1's
+
+
+def test_a_live_preview_is_marked_for_its_tester(api: Api, player_event: dict) -> None:
+    put(api, player_event)
+    _preview(api, [SUB], live_state="preview")
+    _, body = api.call(player_event, "GET /api/planets")
+    assert [(w.get("campaignVersion"), w.get("preview")) for w in body["planets"][0]["waveSets"]] == [
+        (None, True),
+        ("luna-1-a1", True),
+    ]
+
+
 def test_planets_without_a_profile_is_profile_not_found(api: Api, player_event: dict) -> None:
     status, body = api.call(player_event, "GET /api/planets")
 

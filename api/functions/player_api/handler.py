@@ -117,6 +117,7 @@ ROUTES: dict[str, str] = {
 
 PROFILE_SK = "PROFILE"
 UNLOCK_AFTER_WAVE = 20  # the next planet unlocks at bestCompletedWave >= 20 on the one before (spine S8.1, G §3 R6)
+PREVIEW_VERSIONS = 3  # [ASSUMPTION] the newest versions with preview wave sets a tester sees on Home (Gate M, LD7)
 UUID = re.compile(LIMITS["ids"]["uuid"].removesuffix("$") + r"\Z")  # Python's $ also matches before a final newline
 DEVICE_LABEL_MAX: int = LIMITS["deviceLabelMaxLength"]
 INTEGER_MAX: int = LIMITS["integerMax"]
@@ -909,23 +910,39 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         planets: list[dict[str, Any]] = []
         versions = deps.game_data().versions()
         sub = request.caller.sub
+
+        def entry_for(ws: Any, version: str, live: bool) -> dict[str, Any]:
+            entry: dict[str, Any] = {
+                "waveSetId": ws.wave_set_id,
+                "mode": ws.mode,
+                "name": ws.name,
+                "finalWave": ws.final_wave,
+                "available": band is not None,
+            }
+            # BANK_NOT_READY is decided by selection inside POST /api/runs (Phase 16); this list does not run it
+            # yet, so only the age band decides here.
+            if band is None:
+                entry["reason"] = "AGE_OUT_OF_RANGE"
+            if versions.state(version, ws.wave_set_id) == "preview":
+                entry["preview"] = True  # LD7: shown to a tester only, marked so Home can say so
+            if not live:
+                entry["campaignVersion"] = version  # LD7: a preview version that current.json does not name
+            return entry
+
         for planet, unlocked in _with_unlocks(deps.game_data().released_planets(), profile):
-            wave_sets = []
-            for ws in planet.wave_sets:
-                if not versions.can_start(planet.campaign_version, ws.wave_set_id, sub):
-                    continue  # LD6: retired, invalid, or a preview this account does not test
-                entry: dict[str, Any] = {
-                    "waveSetId": ws.wave_set_id,
-                    "mode": ws.mode,
-                    "name": ws.name,
-                    "finalWave": ws.final_wave,
-                    "available": band is not None,
-                }
-                # BANK_NOT_READY is decided by selection inside POST /api/runs (Phase 16); this list does not run it
-                # yet, so only the age band decides here.
-                if band is None:
-                    entry["reason"] = "AGE_OUT_OF_RANGE"
-                wave_sets.append(entry)
+            wave_sets = [
+                entry_for(ws, planet.campaign_version, True)
+                for ws in planet.wave_sets
+                # LD6: retired, invalid, or a preview this account does not test
+                if versions.can_start(planet.campaign_version, ws.wave_set_id, sub)
+            ]
+            if sub in versions.testers:
+                wave_sets += [
+                    entry_for(ws, other.campaign_version, False)
+                    for other in _preview_planets(deps.game_data(), versions, planet)
+                    for ws in other.wave_sets
+                    if versions.state(other.campaign_version, ws.wave_set_id) == "preview"
+                ]
             planets.append(
                 {"planetId": planet.planet_id, "name": planet.name, "unlocked": unlocked, "waveSets": wave_sets}
             )
@@ -948,6 +965,30 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         "DELETE /api/session": delete_session,
     }
     return Router(routes=ROUTES, handlers=handlers, logger=logger)
+
+
+def _preview_planets(reader: GameDataReader, versions: Versions, live: Planet) -> list[Planet]:
+    """The newest PREVIEW_VERSIONS versions of `live`'s planet that hold a preview wave set (Gate M, LD7): what a
+    tester's Home offers beside the live version. An unreadable document is left out."""
+    found: list[Planet] = []
+    for version in sorted(versions.states, key=_allocation, reverse=True):
+        if version == live.campaign_version or "preview" not in versions.states[version].values():
+            continue
+        try:
+            planet = reader.planet(version)
+        except GameDataUnavailable:
+            continue
+        if planet.planet_id == live.planet_id:
+            found.append(planet)
+        if len(found) == PREVIEW_VERSIONS:
+            break
+    return found
+
+
+def _allocation(version: str) -> tuple[int, str]:
+    """luna-1-a12 sorts after luna-1-a9: the publisher's counter, then the text."""
+    head, _, number = version.rpartition("-a")
+    return (int(number), head) if head and number.isdigit() else (-1, version)
 
 
 DEFAULT_DEPS = Deps()
