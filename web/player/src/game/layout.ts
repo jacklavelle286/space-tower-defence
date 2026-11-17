@@ -4,7 +4,7 @@
 import { UNITS_PER_TILE } from "@scd/game-core";
 import { TILE_PX } from "@scd/shared/map";
 
-export { CANVAS_HEIGHT, CANVAS_WIDTH, colonyArt, routeTiles, TILE_PX, tileToPx, type RouteTile } from "@scd/shared/map";
+export { CANVAS_HEIGHT, CANVAS_WIDTH, colonyArt, mapEnds, routeTiles, TILE_PX, tileToPx, type RouteTile } from "@scd/shared/map";
 
 /** Pixel position of a simulation coordinate in units (60,000 per tile). */
 export function unitsToPx(u: number): number {

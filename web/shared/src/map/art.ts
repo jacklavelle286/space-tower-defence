@@ -65,6 +65,26 @@ export const MAP_ART = {
 } as const satisfies Record<string, ArtAsset>;
 
 /**
+ * The route art for routes in any direction (Gate M, LD11): heading left, the left turns, and the caps for a route that
+ * starts on the top, bottom or right edge or ends heading down, up or left. A table of its own, not part of MAP_ART,
+ * because MAP_ART's roles are the ones every published art set must fill (manifest.ts): these are optional roles, so
+ * the manifests published before LD11 (m1, pinned by runs) stay valid and draw these from the repo.
+ */
+export const ROUTE_ART = {
+  routeLeft: still("route-straight-l", L, CENTRE, TILE),
+  cornerLeftDown: still("route-corner-left-down", L, CENTRE, TILE),
+  cornerDownLeft: still("route-corner-down-left", L, CENTRE, TILE),
+  cornerLeftUp: still("route-corner-left-up", L, CENTRE, TILE),
+  cornerUpLeft: still("route-corner-up-left", L, CENTRE, TILE),
+  portalEndDown: still("route-portal-end-down", L, CENTRE, TILE),
+  portalEndUp: still("route-portal-end-up", L, CENTRE, TILE),
+  portalEndLeft: still("route-portal-end-left", L, CENTRE, TILE),
+  colonyEndDown: still("route-colony-end-down", L, CENTRE, TILE),
+  colonyEndUp: still("route-colony-end-up", L, CENTRE, TILE),
+  colonyEndLeft: still("route-colony-end-left", L, CENTRE, TILE),
+} as const satisfies Record<string, ArtAsset>;
+
+/**
  * The repo decorations a map may place (scope-level-designer.md §3.1 `map.art.decorations[].art`), by catalogue id.
  * Rocks, the antenna, lamps and the flag stand on their feet; craters lie flat, centred on their tile.
  */

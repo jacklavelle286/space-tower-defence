@@ -2,6 +2,8 @@
 import { UNITS_PER_TILE } from "@scd/game-core";
 import { describe, expect, it } from "vitest";
 import { ART } from "./assets";
+import { ROUTE_ART } from "@scd/shared/map";
+import FIXTURES from "../../../game-core/src/map/fixtures-any-direction.json";
 import { colonyArt, routeTiles, tileToPx, unitsToPx } from "./layout";
 
 const LUNA: [number, number][] = [[0, 2], [4, 2], [4, 8], [8, 8], [8, 3], [12, 3], [12, 8], [16, 8], [16, 3], [19, 3]];
@@ -33,8 +35,30 @@ describe("layout", () => {
     expect(tiles.find((t) => t.x === 4 && t.y === 5)?.art).toBe(ART.routeDown);
   });
 
-  it("refuses a turn it has no art for", () => {
-    expect(() => routeTiles([[5, 5], [5, 2], [2, 2]])).toThrow(/no route corner art/);
+  it("has a tile for all twelve cases and a cap for each of the four headings at both ends (LD11)", () => {
+    const tiles = Object.values(FIXTURES.routes).flatMap((route) => routeTiles(route as [number, number][]));
+    const ids = new Set(tiles.map((t) => t.art.id));
+    const straights = ["route-straight-h", "route-straight-l", "route-straight-v", "route-straight-up"];
+    const corners = ["right-down", "down-right", "right-up", "up-right", "left-down", "down-left", "left-up", "up-left"].map((c) => `route-corner-${c}`);
+    const caps = ["", "-down", "-up", "-left"].flatMap((h) => [`route-portal-end${h}`, `route-colony-end${h}`]);
+    for (const id of [...straights, ...corners, ...caps]) expect(ids, id).toContain(id);
+    // Every LD11 tile is in the shared table the scene and the editor load from.
+    for (const art of Object.values(ROUTE_ART)) expect(ids).toContain(art.id);
+  });
+
+  it("picks each piece by the route's own headings", () => {
+    const tiles = routeTiles([[19, 2], [13, 2], [13, 8], [7, 8], [7, 3], [2, 3], [2, 10]]);
+    expect(tiles[0]?.art).toBe(ROUTE_ART.portalEndLeft);
+    expect(tiles.find((t) => t.x === 16 && t.y === 2)?.art).toBe(ROUTE_ART.routeLeft);
+    expect(tiles.find((t) => t.x === 13 && t.y === 2)?.art).toBe(ROUTE_ART.cornerLeftDown);
+    expect(tiles.find((t) => t.x === 13 && t.y === 8)?.art).toBe(ROUTE_ART.cornerDownLeft);
+    expect(tiles.find((t) => t.x === 7 && t.y === 8)?.art).toBe(ROUTE_ART.cornerLeftUp);
+    expect(tiles.find((t) => t.x === 7 && t.y === 3)?.art).toBe(ROUTE_ART.cornerUpLeft);
+    expect(tiles.at(-1)?.art).toBe(ROUTE_ART.colonyEndDown);
+  });
+
+  it("refuses a reversal (game-core's hard rules refuse it first, as a crossing)", () => {
+    expect(() => routeTiles([[5, 5], [8, 5], [2, 5]])).toThrow(/no route corner art/);
   });
 
   it("shows a worried colony at half health and very worried at a quarter (D10)", () => {

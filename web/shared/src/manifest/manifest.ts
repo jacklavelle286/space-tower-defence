@@ -16,7 +16,7 @@
 // or lists in a shape the code cannot draw (a still where the code animates, or the reverse), stays the repo asset. The
 // scene loads the manifest's URL and, if that file fails, the repo file for the same texture key, so a missing picture
 // never stops a battle. No manifest at all (it failed to load) is the repo art throughout.
-import { frameUrl, MAP_ART, type ArtAsset } from "../map/art";
+import { frameUrl, MAP_ART, ROUTE_ART, type ArtAsset } from "../map/art";
 
 export const MANIFEST_SCHEMA = 1;
 /** The manifest a run with no pinned version uses: the repo art as it was before manifests (LD8). */
@@ -26,6 +26,10 @@ export const DEFAULT_ART_SET = "moon";
 /** The roles an art set must fill: the map's pieces, as MAP_ART names them. */
 export const ART_SET_ROLES = Object.keys(MAP_ART) as readonly (keyof typeof MAP_ART)[];
 export type ArtSetRole = (typeof ART_SET_ROLES)[number];
+/** The roles an art set may fill (LD11: the route art for routes in any direction, ROUTE_ART). One it leaves out is
+ *  drawn with the repo piece, so every manifest published before LD11 stays valid. */
+export const OPTIONAL_ART_SET_ROLES = Object.keys(ROUTE_ART) as readonly (keyof typeof ROUTE_ART)[];
+export type OptionalArtSetRole = (typeof OPTIONAL_ART_SET_ROLES)[number];
 
 const ASSET_ID = /^[a-z0-9-]{1,40}$/u;
 const VERSION = /^[a-z0-9.-]{1,40}$/u;
@@ -43,7 +47,7 @@ export interface ManifestEntry {
 export interface AssetManifest {
   readonly version: string;
   readonly assets: Readonly<Record<string, ManifestEntry>>;
-  readonly artSets: Readonly<Record<string, Readonly<Record<ArtSetRole, string>>>>;
+  readonly artSets: Readonly<Record<string, Readonly<Record<ArtSetRole, string> & Partial<Record<OptionalArtSetRole, string>>>>>;
 }
 
 export class ManifestError extends Error {}
@@ -100,12 +104,13 @@ export function parseManifest(raw: unknown, version?: string): AssetManifest {
   for (const [setId, set] of Object.entries(setsRaw)) {
     const at = `manifest.artSets.${setId}`;
     if (!ASSET_ID.test(setId) || !isObj(set)) fail(at, "bad set");
-    exactKeys(set, at, ART_SET_ROLES);
-    for (const role of ART_SET_ROLES) {
+    for (const role of ART_SET_ROLES) if (!Object.hasOwn(set, role)) fail(at, `"${role}" is missing`);
+    for (const role of Object.keys(set)) {
+      if (!(ART_SET_ROLES as readonly string[]).includes(role) && !(OPTIONAL_ART_SET_ROLES as readonly string[]).includes(role)) fail(at, `unknown key "${role}"`);
       const id = set[role];
       if (typeof id !== "string" || !Object.hasOwn(assets, id)) fail(`${at}.${role}`, "must name an asset in this manifest");
     }
-    artSets[setId] = set as Record<ArtSetRole, string>;
+    artSets[setId] = set as AssetManifest["artSets"][string];
   }
   return { version: v, assets, artSets };
 }
@@ -145,7 +150,10 @@ export interface ArtBinding {
 }
 
 const frameKeyOf = (a: ArtAsset, n: number): string => (a.frames === 1 ? a.id : `${a.id}-${String(n).padStart(2, "0")}`);
-const ROLE_BY_ID = new Map<string, ArtSetRole>(ART_SET_ROLES.map((role) => [MAP_ART[role].id, role]));
+const ROLE_BY_ID = new Map<string, ArtSetRole | OptionalArtSetRole>([
+  ...ART_SET_ROLES.map((role) => [MAP_ART[role].id, role] as const),
+  ...OPTIONAL_ART_SET_ROLES.map((role) => [ROUTE_ART[role].id, role] as const),
+]);
 
 /** The binding for a parsed manifest, or the repo binding for null. */
 export function bindManifest(manifest: AssetManifest | null): ArtBinding {

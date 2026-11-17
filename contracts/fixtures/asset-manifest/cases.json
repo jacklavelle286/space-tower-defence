@@ -1,5 +1,5 @@
 {
- "$comment": "Asset manifest shapes (Gate M, LD8; web/shared/src/manifest/manifest.ts, api/shared/asset_manifest.py). Both parsers accept every valid manifest and refuse every invalid one; `field` is where the problem is (both name it as a prefix of their error).",
+ "$comment": "Asset manifest shapes (Gate M, LD8; web/shared/src/manifest/manifest.ts, api/shared/asset_manifest.py). Both parsers accept every valid manifest and refuse every invalid one; `field` is where the problem is (both name it as a prefix of their error). LD11: an art set may also fill the optional roles of ROUTE_ART.",
  "valid": [
   {
    "name": "moon only",
@@ -611,6 +611,305 @@
       "colonyHealthy": "a-colonyhealthy",
       "colonyWorried": "a-colonyworried",
       "colonyVeryWorried": "a-colonyveryworried"
+     }
+    }
+   }
+  },
+  {
+   "name": "an art set may name the LD11 route roles (optional)",
+   "manifest": {
+    "kind": "asset-manifest",
+    "schema": 1,
+    "version": "m9",
+    "assets": {
+     "a-backdrop": {
+      "frames": [
+       "/assets/luna-1/backdrop.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-routeh": {
+      "frames": [
+       "/assets/luna-1/routeh.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-routedown": {
+      "frames": [
+       "/assets/luna-1/routedown.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-routeup": {
+      "frames": [
+       "/assets/luna-1/routeup.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-cornerrightdown": {
+      "frames": [
+       "/assets/luna-1/cornerrightdown.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-cornerdownright": {
+      "frames": [
+       "/assets/luna-1/cornerdownright.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-cornerrightup": {
+      "frames": [
+       "/assets/luna-1/cornerrightup.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-cornerupright": {
+      "frames": [
+       "/assets/luna-1/cornerupright.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-portalend": {
+      "frames": [
+       "/assets/luna-1/portalend.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-colonyend": {
+      "frames": [
+       "/assets/luna-1/colonyend.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-portal": {
+      "frames": [
+       "/assets/luna-1/portal.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-padempty": {
+      "frames": [
+       "/assets/luna-1/padempty.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-padhover": {
+      "frames": [
+       "/assets/luna-1/padhover.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-padselected": {
+      "frames": [
+       "/assets/luna-1/padselected.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-padclosed": {
+      "frames": [
+       "/assets/luna-1/padclosed.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-colonyhealthy": {
+      "frames": [
+       "/assets/luna-1/colonyhealthy.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-colonyworried": {
+      "frames": [
+       "/assets/luna-1/colonyworried.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-colonyveryworried": {
+      "frames": [
+       "/assets/luna-1/colonyveryworried.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "alien-blob-walk": {
+      "frames": [
+       "/assets/common/alien-blob-walk-01.png",
+       "/assets/common/alien-blob-walk-02.png",
+       "/assets/common/alien-blob-walk-03.png",
+       "/assets/common/alien-blob-walk-04.png",
+       "/assets/common/alien-blob-walk-05.png",
+       "/assets/common/alien-blob-walk-06.png"
+      ],
+      "anchor": [
+       0.5,
+       1
+      ],
+      "size": [
+       128,
+       128
+      ]
+     },
+     "lib-0123456789abcdef0123456789abcdef": {
+      "frames": [
+       "/pictures/v1/lib-0123456789abcdef0123456789abcdef.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     }
+    },
+    "artSets": {
+     "moon": {
+      "backdrop": "a-backdrop",
+      "routeH": "a-routeh",
+      "routeDown": "a-routedown",
+      "routeUp": "a-routeup",
+      "cornerRightDown": "a-cornerrightdown",
+      "cornerDownRight": "a-cornerdownright",
+      "cornerRightUp": "a-cornerrightup",
+      "cornerUpRight": "a-cornerupright",
+      "portalEnd": "a-portalend",
+      "colonyEnd": "a-colonyend",
+      "portal": "a-portal",
+      "padEmpty": "a-padempty",
+      "padHover": "a-padhover",
+      "padSelected": "a-padselected",
+      "padClosed": "a-padclosed",
+      "colonyHealthy": "a-colonyhealthy",
+      "colonyWorried": "a-colonyworried",
+      "colonyVeryWorried": "a-colonyveryworried",
+      "routeLeft": "a-routeh",
+      "colonyEndDown": "a-colonyend"
      }
     }
    }
@@ -3589,6 +3888,604 @@
     }
    },
    "field": "manifest.artSets.moon.portal"
+  },
+  {
+   "name": "an art set role nobody knows",
+   "manifest": {
+    "kind": "asset-manifest",
+    "schema": 1,
+    "version": "m9",
+    "assets": {
+     "a-backdrop": {
+      "frames": [
+       "/assets/luna-1/backdrop.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-routeh": {
+      "frames": [
+       "/assets/luna-1/routeh.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-routedown": {
+      "frames": [
+       "/assets/luna-1/routedown.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-routeup": {
+      "frames": [
+       "/assets/luna-1/routeup.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-cornerrightdown": {
+      "frames": [
+       "/assets/luna-1/cornerrightdown.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-cornerdownright": {
+      "frames": [
+       "/assets/luna-1/cornerdownright.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-cornerrightup": {
+      "frames": [
+       "/assets/luna-1/cornerrightup.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-cornerupright": {
+      "frames": [
+       "/assets/luna-1/cornerupright.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-portalend": {
+      "frames": [
+       "/assets/luna-1/portalend.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-colonyend": {
+      "frames": [
+       "/assets/luna-1/colonyend.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-portal": {
+      "frames": [
+       "/assets/luna-1/portal.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-padempty": {
+      "frames": [
+       "/assets/luna-1/padempty.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-padhover": {
+      "frames": [
+       "/assets/luna-1/padhover.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-padselected": {
+      "frames": [
+       "/assets/luna-1/padselected.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-padclosed": {
+      "frames": [
+       "/assets/luna-1/padclosed.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-colonyhealthy": {
+      "frames": [
+       "/assets/luna-1/colonyhealthy.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-colonyworried": {
+      "frames": [
+       "/assets/luna-1/colonyworried.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-colonyveryworried": {
+      "frames": [
+       "/assets/luna-1/colonyveryworried.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "alien-blob-walk": {
+      "frames": [
+       "/assets/common/alien-blob-walk-01.png",
+       "/assets/common/alien-blob-walk-02.png",
+       "/assets/common/alien-blob-walk-03.png",
+       "/assets/common/alien-blob-walk-04.png",
+       "/assets/common/alien-blob-walk-05.png",
+       "/assets/common/alien-blob-walk-06.png"
+      ],
+      "anchor": [
+       0.5,
+       1
+      ],
+      "size": [
+       128,
+       128
+      ]
+     },
+     "lib-0123456789abcdef0123456789abcdef": {
+      "frames": [
+       "/pictures/v1/lib-0123456789abcdef0123456789abcdef.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     }
+    },
+    "artSets": {
+     "moon": {
+      "backdrop": "a-backdrop",
+      "routeH": "a-routeh",
+      "routeDown": "a-routedown",
+      "routeUp": "a-routeup",
+      "cornerRightDown": "a-cornerrightdown",
+      "cornerDownRight": "a-cornerdownright",
+      "cornerRightUp": "a-cornerrightup",
+      "cornerUpRight": "a-cornerupright",
+      "portalEnd": "a-portalend",
+      "colonyEnd": "a-colonyend",
+      "portal": "a-portal",
+      "padEmpty": "a-padempty",
+      "padHover": "a-padhover",
+      "padSelected": "a-padselected",
+      "padClosed": "a-padclosed",
+      "colonyHealthy": "a-colonyhealthy",
+      "colonyWorried": "a-colonyworried",
+      "colonyVeryWorried": "a-colonyveryworried",
+      "routeDiagonal": "a-routeh"
+     }
+    }
+   },
+   "field": "manifest.artSets.moon"
+  },
+  {
+   "name": "an optional role must name an asset in the manifest",
+   "manifest": {
+    "kind": "asset-manifest",
+    "schema": 1,
+    "version": "m9",
+    "assets": {
+     "a-backdrop": {
+      "frames": [
+       "/assets/luna-1/backdrop.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-routeh": {
+      "frames": [
+       "/assets/luna-1/routeh.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-routedown": {
+      "frames": [
+       "/assets/luna-1/routedown.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-routeup": {
+      "frames": [
+       "/assets/luna-1/routeup.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-cornerrightdown": {
+      "frames": [
+       "/assets/luna-1/cornerrightdown.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-cornerdownright": {
+      "frames": [
+       "/assets/luna-1/cornerdownright.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-cornerrightup": {
+      "frames": [
+       "/assets/luna-1/cornerrightup.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-cornerupright": {
+      "frames": [
+       "/assets/luna-1/cornerupright.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-portalend": {
+      "frames": [
+       "/assets/luna-1/portalend.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-colonyend": {
+      "frames": [
+       "/assets/luna-1/colonyend.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-portal": {
+      "frames": [
+       "/assets/luna-1/portal.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-padempty": {
+      "frames": [
+       "/assets/luna-1/padempty.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-padhover": {
+      "frames": [
+       "/assets/luna-1/padhover.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-padselected": {
+      "frames": [
+       "/assets/luna-1/padselected.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-padclosed": {
+      "frames": [
+       "/assets/luna-1/padclosed.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-colonyhealthy": {
+      "frames": [
+       "/assets/luna-1/colonyhealthy.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-colonyworried": {
+      "frames": [
+       "/assets/luna-1/colonyworried.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "a-colonyveryworried": {
+      "frames": [
+       "/assets/luna-1/colonyveryworried.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     },
+     "alien-blob-walk": {
+      "frames": [
+       "/assets/common/alien-blob-walk-01.png",
+       "/assets/common/alien-blob-walk-02.png",
+       "/assets/common/alien-blob-walk-03.png",
+       "/assets/common/alien-blob-walk-04.png",
+       "/assets/common/alien-blob-walk-05.png",
+       "/assets/common/alien-blob-walk-06.png"
+      ],
+      "anchor": [
+       0.5,
+       1
+      ],
+      "size": [
+       128,
+       128
+      ]
+     },
+     "lib-0123456789abcdef0123456789abcdef": {
+      "frames": [
+       "/pictures/v1/lib-0123456789abcdef0123456789abcdef.png"
+      ],
+      "anchor": [
+       0.5,
+       0.5
+      ],
+      "size": [
+       96,
+       96
+      ]
+     }
+    },
+    "artSets": {
+     "moon": {
+      "backdrop": "a-backdrop",
+      "routeH": "a-routeh",
+      "routeDown": "a-routedown",
+      "routeUp": "a-routeup",
+      "cornerRightDown": "a-cornerrightdown",
+      "cornerDownRight": "a-cornerdownright",
+      "cornerRightUp": "a-cornerrightup",
+      "cornerUpRight": "a-cornerupright",
+      "portalEnd": "a-portalend",
+      "colonyEnd": "a-colonyend",
+      "portal": "a-portal",
+      "padEmpty": "a-padempty",
+      "padHover": "a-padhover",
+      "padSelected": "a-padselected",
+      "padClosed": "a-padclosed",
+      "colonyHealthy": "a-colonyhealthy",
+      "colonyWorried": "a-colonyworried",
+      "colonyVeryWorried": "a-colonyveryworried",
+      "routeLeft": "no-such-asset"
+     }
+    }
+   },
+   "field": "manifest.artSets.moon.routeLeft"
   }
  ]
 }

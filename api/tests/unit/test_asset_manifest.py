@@ -12,7 +12,13 @@ import boto3
 import pytest
 from conftest import REPO
 
-from shared.asset_manifest import ART_SET_ROLES, ManifestInvalid, manifest_pictures, parse_manifest
+from shared.asset_manifest import (
+    ART_SET_ROLES,
+    OPTIONAL_ART_SET_ROLES,
+    ManifestInvalid,
+    manifest_pictures,
+    parse_manifest,
+)
 from shared.game_data import GameDataReader, GameDataUnavailable
 
 CASES = json.loads((REPO / "contracts" / "fixtures" / "asset-manifest" / "cases.json").read_text())
@@ -35,6 +41,9 @@ def test_the_roles_are_the_map_art_keys() -> None:
     source = (REPO / "web" / "shared" / "src" / "map" / "art.ts").read_text()
     block = source[source.index("export const MAP_ART = {") : source.index("} as const satisfies")]
     assert tuple(re.findall(r"^  (\w+): ", block, re.MULTILINE)) == ART_SET_ROLES
+    route = source[source.index("export const ROUTE_ART = {") :]
+    route = route[: route.index("} as const satisfies")]
+    assert tuple(re.findall(r"^  (\w+): ", route, re.MULTILINE)) == OPTIONAL_ART_SET_ROLES
 
 
 def test_the_published_m1_parses_and_uses_no_library_picture() -> None:

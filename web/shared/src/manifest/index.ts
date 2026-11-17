@@ -8,10 +8,12 @@ export {
   ManifestError,
   manifestFromArt,
   MOON_ART_SET,
+  OPTIONAL_ART_SET_ROLES,
   parseManifest,
   REPO_ART,
   type ArtBinding,
   type ArtSetRole,
   type AssetManifest,
   type ManifestEntry,
+  type OptionalArtSetRole,
 } from "./manifest";

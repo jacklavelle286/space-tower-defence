@@ -51,7 +51,7 @@ import type { GameBridge } from "./GameBridge";
 import { nearestProgress } from "../hud/padNav";
 import { pressedOnCanvas } from "./pointer";
 import { Pool } from "./pool";
-import { CANVAS_HEIGHT, CANVAS_WIDTH, colonyArt, routeTiles, TILE_PX, tileToPx, unitsToPx } from "./layout";
+import { CANVAS_HEIGHT, CANVAS_WIDTH, colonyArt, mapEnds, routeTiles, TILE_PX, tileToPx, unitsToPx } from "./layout";
 import { backdropKey, mapPicturesToLoad, placedDecorations } from "./mapArt";
 
 /** Animation speed for every looped and one-shot animation, frames per second (cosmetic). */
@@ -67,9 +67,6 @@ const GADGET_DY = -46;
 const BEAM_THICKNESS = 40;
 /** The colony is drawn smaller than its 384 px catalogue size: the map's last column leaves room for about 240. */
 const COLONY_PX = 240;
-/** Colony feet relative to the gate tile centre: pulled left so it fits on the canvas and sits over the route end. */
-const COLONY_DX = -72;
-const COLONY_DY = 74;
 /** A slowed alien is drawn with a frost tint while its slow lasts (C5.4; cosmetic, read from the battle state). */
 const FROST_TINT = 0x9fd8ff;
 /** Sol's buff ring in the pad preview (C5.6), a different colour from an attacker's range circle. */
@@ -179,6 +176,12 @@ export class BattleScene extends Scene {
     return this.#art.map(asset, this.#bridge.config.artSet); // the planet's art set (LD10); moon by default
   }
 
+  /** The LD11 route pieces this map uses (left turns, other caps): only those are loaded, so Moonbeam loads as before. */
+  get #routeArt(): ArtAsset[] {
+    const repo = new Set(Object.values(ART).map((a) => a.id));
+    return [...new Map(routeTiles(this.#bridge.config.route.waypoints).map((t) => [t.art.id, t.art])).values()].filter((a) => !repo.has(a.id));
+  }
+
   /** The walks of the ruleset's made aliens (Gate M, AM1): every alien type with no art of its own. */
   get #madeAliens(): ArtAsset[] {
     return Object.keys(this.#bridge.config.aliens).filter((type) => !hasAlienArt(type)).map(madeAlienArt);
@@ -199,7 +202,7 @@ export class BattleScene extends Scene {
       retried.add(file.key);
       this.load.image(file.key, repo);
     });
-    const repo = [...Object.values(ART), ...this.#madeAliens, ...(this.#hasPowers ? Object.values(POWER_ART) : [])];
+    const repo = [...Object.values(ART), ...this.#routeArt, ...this.#madeAliens, ...(this.#hasPowers ? Object.values(POWER_ART) : [])];
     for (const [key, url] of this.#art.frames(repo, this.#bridge.config.artSet)) this.load.image(key, url);
     // The map's own backdrop and decorations (Gate M, LD2). One that fails to load is skipped in create().
     for (const { key, url } of mapPicturesToLoad(this.#bridge.config, this.#art)) if (!this.textures.exists(key)) this.load.image(key, url);
@@ -230,13 +233,16 @@ export class BattleScene extends Scene {
       image.setDepth(1);
     }
 
-    const [startX, startY] = config.route.waypoints[0] ?? [0, 0];
-    const portal = this.add.sprite(tileToPx(startX) - TILE_PX / 2, tileToPx(startY), frameKey(this.#b(ART.portal), 1));
+    // The portal on the edge the route starts from, the colony over its last stretch (game-core routeEnds, which the
+    // footprint rule uses too; LD11: any edge). A route heading right draws exactly where it always has.
+    const ends = mapEnds(config.route.waypoints);
+    const portalAt = ends?.portal ?? { x: 0, y: tileToPx(0) };
+    const portal = this.add.sprite(portalAt.x, portalAt.y, frameKey(this.#b(ART.portal), 1));
     place(portal, this.#b(ART.portal));
     portal.setDepth(2).play(this.#b(ART.portal).id);
 
-    const [gateX, gateY] = config.route.waypoints[config.route.waypoints.length - 1] ?? [0, 0];
-    this.#colony = this.add.image(tileToPx(gateX) + COLONY_DX, tileToPx(gateY) + COLONY_DY, frameKey(this.#b(ART.colonyHealthy), 1));
+    const colonyAt = ends?.colony ?? { x: CANVAS_WIDTH - COLONY_PX / 2, y: CANVAS_HEIGHT / 2 };
+    this.#colony = this.add.image(colonyAt.x, colonyAt.y + COLONY_PX / 2, frameKey(this.#b(ART.colonyHealthy), 1));
     place(this.#colony, this.#b(ART.colonyHealthy));
     this.#colony.setDisplaySize(COLONY_PX, COLONY_PX).setDepth(3);
 
@@ -632,8 +638,8 @@ export class BattleScene extends Scene {
         break;
       }
       case "leaked": {
-        const [gx, gy] = this.#bridge.config.route.waypoints[this.#bridge.config.route.waypoints.length - 1] ?? [0, 0];
-        this.#playOnce(ART.leak, tileToPx(gx) - 24, tileToPx(gy), 20);
+        const leak = mapEnds(this.#bridge.config.route.waypoints)?.leak;
+        if (leak !== undefined) this.#playOnce(ART.leak, leak.x, leak.y, 20);
         break;
       }
       case "shot": {

@@ -42,6 +42,21 @@ ART_SET_ROLES = (
     "colonyWorried",
     "colonyVeryWorried",
 )
+# The roles an art set may fill (Gate M, LD11): the keys of ROUTE_ART in art.ts, route art for routes in any direction.
+# One an art set leaves out is drawn with the repo piece, so manifests published before LD11 stay valid.
+OPTIONAL_ART_SET_ROLES = (
+    "routeLeft",
+    "cornerLeftDown",
+    "cornerDownLeft",
+    "cornerLeftUp",
+    "cornerUpLeft",
+    "portalEndDown",
+    "portalEndUp",
+    "portalEndLeft",
+    "colonyEndDown",
+    "colonyEndUp",
+    "colonyEndLeft",
+)
 ASSET_ID = re.compile(r"^[a-z0-9-]{1,40}\Z")
 URL = re.compile(r"^(?:/assets/[a-z0-9][a-z0-9/_.-]{0,150}\.(?:png|webp)|/pictures/v1/(lib-[0-9a-f]{32})\.png)\Z")
 MAX_ASSETS = 400
@@ -116,9 +131,13 @@ def parse_manifest(raw: Any, version: str | None = None) -> dict[str, Any]:
         at = f"manifest.artSets.{set_id}"
         if not ASSET_ID.match(set_id) or not isinstance(art_set, dict):
             raise _fail(at, "bad set")
-        _exact(art_set, at, ART_SET_ROLES)
         for role in ART_SET_ROLES:
-            if not isinstance(art_set[role], str) or art_set[role] not in assets:
+            if role not in art_set:
+                raise _fail(at, f'"{role}" is missing')
+        for role, asset in art_set.items():
+            if role not in ART_SET_ROLES and role not in OPTIONAL_ART_SET_ROLES:
+                raise _fail(at, f'unknown key "{role}"')
+            if not isinstance(asset, str) or asset not in assets:
                 raise _fail(f"{at}.{role}", "must name an asset in this manifest")
     return raw
 

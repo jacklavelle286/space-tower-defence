@@ -4,7 +4,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { DECORATIONS, frameUrl } from "@scd/shared/map";
+import { DECORATIONS, frameUrl, ROUTE_ART } from "@scd/shared/map";
 import { bindManifest, parseManifest } from "@scd/shared/manifest";
 import { alienArt, allFrames, ART, bossArt, bossBubbleArt, bubbleLayersArt, hasAlienArt, madeAlienArt, POWER_ART, powerFrames } from "./assets";
 
@@ -35,6 +35,18 @@ describe("battlefield art", () => {
   });
 
   it.each(Object.values(DECORATIONS).map((a) => [a.id, a]))("decoration %s matches its catalogue entry and its file exists (LD1)", (id, asset) => {
+    const entry = byId.get(id);
+    expect(entry, `catalogue has no ${id}`).toBeDefined();
+    expect({
+      path: `/${entry?.appPath?.replace(/^web\/player\/public\//, "")}`,
+      frames: entry?.frames,
+      anchor: entry?.anchor,
+      displaySize: entry?.displaySize,
+    }).toEqual({ path: asset.path, frames: asset.frames, anchor: [...asset.anchor], displaySize: [...asset.displaySize] });
+    expect(existsSync(join(PUBLIC, frameUrl(asset, 1)))).toBe(true);
+  });
+
+  it.each(Object.values(ROUTE_ART).map((a) => [a.id, a]))("route piece %s matches its catalogue entry and its file exists (LD11)", (id, asset) => {
     const entry = byId.get(id);
     expect(entry, `catalogue has no ${id}`).toBeDefined();
     expect({
