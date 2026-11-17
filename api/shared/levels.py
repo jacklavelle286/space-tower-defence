@@ -7,6 +7,11 @@ the content table; the same JSON is the **level file** the operator downloads an
      "map": {"name", "grid", "route", "pads", "art": {"backdrop", "decorations"}},
      "challengeWaves": {}, "waveSets": {}}
 
+From LD4 a level may also carry `waves` (the campaign's 50 waves: a level that owns the campaign has them and a
+"campaign" wave set); its own challenge waves and wave sets are named "<levelId>" or "<levelId>-...", and every wave
+set is played on the level's map (`mapId` = levelId). `design` holds the editor's keyframes and hand-set waves (wave
+numbers); it never reaches the planet document.
+
 Items (content table):
 
     pk LEVEL            sk <levelId>    header {levelId, name, status DRAFT, createdBy, createdAt, updatedAt}
@@ -40,6 +45,11 @@ GRID = (20, 11)  # the battlefield is drawn at 20 x 11 tiles (game-core GRID_COL
 MAX_WAYPOINTS = 64  # shape only; the design rule (16) is game-core's
 MAX_PADS = 32
 MAX_DECORATIONS = 24
+MAX_CAMPAIGN_WAVES = 50
+WAVE_SET_KEYS = frozenset(
+    {"mode", "name", "mapId", "waves", "meteorAfter", "startCredits", "colonyHealth", "classes", "padsOpenAsForWave",
+     "presetPlacements"}
+)  # fmt: skip
 
 Problem = dict[str, str]
 
@@ -130,7 +140,7 @@ def level_problems(level: Any, level_id: str) -> list[Problem]:
     if not isinstance(level, Mapping):
         return [problem("level", "type")]
     keys = {"kind", "schema", "levelId", "name", "map", "challengeWaves", "waveSets"}
-    out = [problem(f"level.{k}", "additionalProperties") for k in sorted(set(level) - keys)]
+    out = [problem(f"level.{k}", "additionalProperties") for k in sorted(set(level) - keys - {"waves", "design"})]
     out += [problem(f"level.{k}", "required") for k in sorted(keys - set(level))]
     if out:
         return out
@@ -142,12 +152,65 @@ def level_problems(level: Any, level_id: str) -> list[Problem]:
         out.append(problem("level.levelId", "matches_path"))
     if not _name_ok(level["name"]):
         out.append(problem("level.name", "name"))
-    for section in ("challengeWaves", "waveSets"):
-        if not isinstance(level[section], Mapping) or not all(
-            isinstance(k, str) and KEY_ID.fullmatch(k) for k in level[section]
-        ):
-            out.append(problem(f"level.{section}", "type"))
+    design = level.get("design", {})
+    lists_ok = isinstance(design, Mapping) and set(design) <= {"keyframes", "overrides"}
+    if not lists_ok or not all(
+        isinstance(v, list) and all(_int_in(n, 1, MAX_CAMPAIGN_WAVES) for n in v) for v in design.values()
+    ):
+        out.append(problem("level.design", "design"))
+    out += _wave_problems(level, level_id)
     out += _map_problems(level_id, level["map"])
+    return out
+
+
+def _owned_id(key: Any, level_id: str) -> bool:
+    """A challenge wave or wave set the level owns is named after it ("<levelId>" or "<levelId>-..."), so two
+    levels can never claim the same section of the planet."""
+    return isinstance(key, str) and bool(KEY_ID.fullmatch(key)) and (key == level_id or key.startswith(f"{level_id}-"))
+
+
+def _wave_body_ok(body: Any) -> bool:
+    if not isinstance(body, Mapping) or not {"groups", "hpMult", "speedMult"} <= set(body) <= {
+        "groups",
+        "hpMult",
+        "speedMult",
+        "wave",
+    }:
+        return False
+    groups = body["groups"]
+    return isinstance(groups, list) and 1 <= len(groups) <= 20 and all(isinstance(g, Mapping) for g in groups)
+
+
+def _wave_problems(level: Mapping[str, Any], level_id: str) -> list[Problem]:
+    """Shape of the waves, challenge waves and wave sets (LD4). Their numbers are game-core's parser's to check."""
+    out: list[Problem] = []
+    waves = level.get("waves", [])
+    if not isinstance(waves, list) or len(waves) > MAX_CAMPAIGN_WAVES or not all(_wave_body_ok(w) for w in waves):
+        out.append(problem("level.waves", "waves"))
+    challenge = level["challengeWaves"]
+    if not isinstance(challenge, Mapping):
+        out.append(problem("level.challengeWaves", "type"))
+    else:
+        for key, body in challenge.items():
+            if not _owned_id(key, level_id):
+                out.append(problem(f"level.challengeWaves.{key}", "owned_id"))
+            elif not _wave_body_ok(body):
+                out.append(problem(f"level.challengeWaves.{key}", "wave"))
+    sets = level["waveSets"]
+    if not isinstance(sets, Mapping):
+        out.append(problem("level.waveSets", "type"))
+        return out
+    for key, ws in sets.items():
+        where = f"level.waveSets.{key}"
+        if key == "campaign":
+            if not waves:  # a campaign level carries the campaign's waves
+                out.append(problem(where, "campaign_without_waves"))
+        elif not _owned_id(key, level_id):
+            out.append(problem(where, "owned_id"))
+        if not isinstance(ws, Mapping) or set(ws) != WAVE_SET_KEYS:
+            out.append(problem(where, "wave_set"))
+        elif ws["mapId"] != level_id:
+            out.append(problem(f"{where}.mapId", "matches_level"))
     return out
 
 

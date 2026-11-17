@@ -9,6 +9,7 @@ import json
 from typing import Any
 
 import pytest
+from conftest import REPO
 from test_admin_api import Admin
 
 from shared.levels import level_problems
@@ -127,3 +128,19 @@ def test_a_picture_a_level_draft_uses_is_reported(api: Admin) -> None:
     api.call("POST /api/admin/levels", {"level": level()})
     assert level_picture_users(api.table, LIB) == ["zigzag"]
     assert level_picture_users(api.table, "lib-ffffffffffffffffffffffffffffffff") == []
+
+
+SHAPES = json.loads((REPO / "contracts" / "fixtures" / "levels" / "shapes.json").read_text())
+
+
+@pytest.mark.parametrize("name", sorted(SHAPES["valid"]))
+def test_shared_valid_level_files_have_no_shape_problems(name: str) -> None:
+    body = SHAPES["valid"][name]
+    assert level_problems(body, body["levelId"]) == []
+
+
+@pytest.mark.parametrize("name", sorted(SHAPES["invalid"]))
+def test_shared_invalid_level_files_name_their_problem(name: str) -> None:
+    case = SHAPES["invalid"][name]
+    problems = level_problems(case["level"], case["level"]["levelId"])
+    assert {"field": case["field"], "rule": case["rule"]} in problems

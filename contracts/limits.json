@@ -103,6 +103,17 @@
     "versionPattern": "^[a-z0-9.-]{1,40}$",
     "createRunMaxActions": 100
   },
+  "levelDesigner": {
+    "$comment": "Friendly ranges for the level designer's inputs (Gate M, LD4; scope-level-designer.md 3.1 step 9) [PROPOSAL]. Narrower than game-core's parser accepts, so a slip cannot make a wave set no child could play. The publisher (LD6) holds drafts to them too.",
+    "startCredits": { "min": 50, "max": 2000 },
+    "colonyHealth": { "min": 10, "max": 20 },
+    "challengeWaves": { "min": 2, "max": 8 },
+    "groupCount": { "min": 1, "max": 60 },
+    "groupSeconds": { "min": 0, "max": 120 },
+    "hpMult": { "min": 0.5, "max": 20 },
+    "speedMult": { "min": 0.5, "max": 1.5 },
+    "groupsPerWave": { "max": 12 }
+  },
   "ids": {
     "uuid": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
     "slotId": "^[NM]-[0-9]{3}$",
