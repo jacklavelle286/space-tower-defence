@@ -8,7 +8,7 @@
     "dev": "vite",
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json",
     "test": "vitest run",
-    "build": "vite build",
+    "build": "vite build && npm --prefix ../player run build:preview",
     "preview": "vite preview"
   },
   "dependencies": {

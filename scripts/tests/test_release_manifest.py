@@ -244,3 +244,34 @@ def test_game_data_version_pattern_matches_the_limits_file() -> None:
     # of the game-data version pattern; this keeps the copy equal to the one source.
     limits = json.loads((SCRIPTS.parent / "contracts" / "limits.json").read_text(encoding="utf-8"))
     assert f"^{release_manifest._VERSION}$" == limits["gameData"]["versionPattern"]
+
+
+def test_the_admins_battle_preview_is_classified(tmp_path: Path) -> None:
+    """Gate M, LD12: the admin build carries the battle preview under preview/ and the battle art (copied from the
+    player's public/, the admin app's PUBLIC) at the root assets/; the admin's own bundles stay hashed."""
+    public, dist = tmp_path / "public", tmp_path / "dist"
+    touch(public, "assets/common/alien-blob-walk-01.png")
+    for rel in ("index.html", "assets/index-DR5M5KOV.js", "assets/common/alien-blob-walk-01.png",
+                "preview/battle-preview.html", "preview/assets/phaser-Jn7k4xZd.js",
+                "preview/assets/battle-preview-Bz_vihfi.js"):
+        touch(dist, rel)
+    groups = release_manifest.classify_dist(dist, public)
+    assert groups["entry"] == ["index.html"]
+    assert groups["unhashed"] == ["assets/common/alien-blob-walk-01.png", "preview/battle-preview.html"]
+    assert groups["hashed"] == [
+        "assets/index-DR5M5KOV.js",
+        "preview/assets/battle-preview-Bz_vihfi.js",
+        "preview/assets/phaser-Jn7k4xZd.js",
+    ]
+    touch(dist, "preview/notes.txt")  # anything else under preview/ has no safe cache header
+    with pytest.raises(release_manifest.ManifestError, match="preview/notes.txt"):
+        release_manifest.classify_dist(dist, public)
+
+
+def test_the_real_admin_build_is_classified() -> None:
+    """When web/admin/dist has been built (npm run build), every file in it has a group."""
+    root = SCRIPTS.parent / "web"
+    if not (root / "admin" / "dist" / "preview" / "battle-preview.html").is_file():
+        pytest.skip("web/admin/dist is not built with the preview")
+    groups = release_manifest.classify_dist(root / "admin" / "dist", root / "player" / "public")
+    assert "preview/battle-preview.html" in groups["unhashed"]

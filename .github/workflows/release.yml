@@ -433,7 +433,7 @@ jobs:
             --release-id "$RELEASE_ID" --git-sha "$SHA" --ref "$INPUT_REF" --run-id "$GITHUB_RUN_ID" \
             --actor "$GITHUB_ACTOR" --started-at "$STARTED_AT" --out "$OUT/manifest.json" \
             --app player web/player/dist web/player/public "static/$PLAYER_SHA256/player.tar.gz" "$PLAYER_SHA256" \
-            --app admin web/admin/dist - "static/$ADMIN_SHA256/admin.tar.gz" "$ADMIN_SHA256" \
+            --app admin web/admin/dist web/player/public "static/$ADMIN_SHA256/admin.tar.gz" "$ADMIN_SHA256" \
             --lambda player-api "$OUT/lambda/player-api.zip" \
             --lambda admin-api "$OUT/lambda/admin-api.zip" \
             --lambda tts "$OUT/lambda/tts.zip" \

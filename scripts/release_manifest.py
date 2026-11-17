@@ -10,7 +10,11 @@
            gameData         game-data/<kind>/<version>.json (Phase 13)   -> immutable, uploaded create-only first
            gameDataCurrent  game-data/current.json                       -> no-cache, after the files it names
          (the release writes the game-data tree into the player's dist/ with web/game-core/scripts/build-bounds.ts;
-         H.8.5 b and e). Any other file stops the build: an unclassified file cannot be given a safe cache header.
+         H.8.5 b and e).
+           preview/  the admin's battle preview (Gate M, LD12; web/player/vite.preview.config.ts): its page
+                     preview/battle-preview.html (no-cache, with the unhashed files) and its content-hashed
+                     preview/assets/*; the battle art it copies to the admin's root assets/ comes from
+                     web/player/public, which is therefore the admin app's PUBLIC. Any other file stops the build: an unclassified file cannot be given a safe cache header.
          For each of the seven Lambda zips (five before Gate M LD6, four before Phase 42b) it records the
          content-addressed key lambda/<key>/<sha256>.zip and the SHA-256 (hex and base64), from the zip file itself (Phase 8; scripts/lambda_artifacts.py turns that section
          into release.tfvars.json).
@@ -47,6 +51,8 @@ SHA256_HEX = re.compile(r"^[0-9a-f]{64}$")
 # Vite's default asset name is assets/[name]-[hash].[ext]; Vite 8 (Rolldown) hashes are 8 URL-safe characters.
 VITE_HASHED = re.compile(r"^assets/.+-[A-Za-z0-9_-]{8}\.[A-Za-z0-9]+$")
 ENTRY_FILES = frozenset({"index.html"})
+PREVIEW_PREFIX = "preview/"
+PREVIEW_PAGE = "battle-preview.html"
 # Game data on the player site (H.8.5): /game-data/<kind>/<version>.json, versions ^[a-z0-9.-]{1,40}$, and a bounds
 # file named by its pair <rulesetVersion>__<campaignVersion>; plus the one mutable pointer, current.json.
 GAME_DATA_PREFIX = "game-data/"
@@ -80,6 +86,14 @@ def classify_dist(dist: Path, public: Path | None) -> dict[str, list[str]]:
                 groups["gameDataCurrent"].append(rel)
             elif GAME_DATA_VERSIONED.match(rel):
                 groups["gameData"].append(rel)
+            else:
+                unknown.append(rel)
+        elif rel.startswith(PREVIEW_PREFIX):
+            sub = rel[len(PREVIEW_PREFIX) :]
+            if sub == PREVIEW_PAGE:
+                groups["unhashed"].append(rel)
+            elif VITE_HASHED.match(sub):
+                groups["hashed"].append(rel)
             else:
                 unknown.append(rel)
         elif rel in public_files:  # checked first: a public file is never treated as hashed, whatever its name

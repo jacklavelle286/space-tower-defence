@@ -1,6 +1,7 @@
 import { CHECK_TEXT, type CellState, type WaveSetReport } from "@scd/game-core";
 import { useEffect, useRef, useState } from "react";
 import type { LevelFile, LevelReview } from "../api";
+import { PreviewPanel } from "./preview/PreviewPanel";
 import {
   ownedWaveSets,
   runChecks,
@@ -254,6 +255,7 @@ export function TestTab({
       {reports?.map((r) => (
         <Report key={r.waveSetId} report={r} />
       ))}
+      <PreviewPanel level={level} blocked={blocked} />
     </div>
   );
 }
