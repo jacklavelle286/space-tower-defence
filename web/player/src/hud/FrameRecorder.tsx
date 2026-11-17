@@ -16,6 +16,8 @@ interface Result {
 export function FrameRecorder({ hud }: { hud: HudState }) {
   const deltas = useRef<number[]>([]);
   const running = useRef(false);
+  // The wave being recorded, taken when it starts: once it is cleared the run has already moved on to the next wave.
+  const recordingWave = useRef<number | null>(null);
   const [results, setResults] = useState<Result[]>([]);
   const [copied, setCopied] = useState(false);
   const latest = useRef(hud);
@@ -39,11 +41,14 @@ export function FrameRecorder({ hud }: { hud: HudState }) {
   useEffect(() => {
     const live = hud.battle === "IN_WAVE" && !hud.paused && hud.aiming === null;
     running.current = live;
+    if (live && recordingWave.current === null) recordingWave.current = latest.current.wave;
     if (hud.battle === "CLEARED" || hud.battle === "DEFEATED") {
       const stats = frameStats(deltas.current);
       deltas.current = [];
+      const wave = recordingWave.current ?? latest.current.wave;
+      recordingWave.current = null;
       if (stats !== null) {
-        const { wave, speed, battle } = latest.current;
+        const { speed, battle } = latest.current;
         setResults((old) => [...old, { wave, outcome: battle ?? "", speed, stats }]);
       }
     }

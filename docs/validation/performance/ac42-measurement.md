@@ -6,7 +6,7 @@ adds load ([C §C14](../../plan/C-game-and-learning-design.md#c14-performance-bu
 [I §I.3](../../plan/I-validation.md) AC-42). This file holds the procedure and the record; the target then goes into an
 ADR that amends C14.
 
-Status: **procedure ready, not yet run**. Figures below are **[UNVERIFIED]** until the owner fills them in.
+Status: **first measurement recorded** (owner, 2026-11-17; one run of each scenario). Target: [ADR-0035](../../decisions/0035-ac42-performance-target.md).
 
 ## Procedure (about 15 minutes, on the children's laptop)
 
@@ -34,12 +34,12 @@ art not yet packed into atlases, Phase 64).
 
 | # | Date | Laptop (model, CPU threads, browser) | Scenario | Speed | Min fps | 1%-low fps | Avg fps | Slowest frame (ms) | Notes |
 |---|---|---|---|---|---|---|---|---|---|
-| 1 | | | (a) wave 37, weak board | 2x | | | | | |
-| 2 | | | (a) | 2x | | | | | |
-| 3 | | | (a) | 2x | | | | | |
-| 4 | | | (b) stress | 2x | | | | | |
-| 5 | | | (b) | 2x | | | | | |
-| 6 | | | (b) | 2x | | | | | |
+| 1 | 2026-11-17 | The children's machine (model not recorded); 8 CPU threads; VS Code's built-in browser (Electron 43, Chrome 150); window 1556×722, canvas 1095×602, DPR 1 | (a) wave 37, weak board (defeated) | 2x | 59.5 | 59.5 | 60.0 | 16.8 | 1428 frames / 23.8 s |
+| 2 | 2026-11-17 | same | (b) stress | 2x | 29.9 | 53.0 | 59.9 | 33.4 | 824 frames / 13.7 s; the recorder labelled it "wave 2" (label bug, fixed after this run) |
+| 3 | 2026-11-17 | same | the small wave after the stress wave (not a scenario) | 2x | 59.5 | 59.5 | 60.0 | 16.8 | 390 frames / 6.5 s |
+
+For comparison only: a headless Chrome on the build machine (no graphics card) gave 15–21 fps average on the same scenes;
+that is the software renderer, not the game.
 
 React commits during combat stay at 10 per second or fewer: proven by test (web/player/src/hud/BattlefieldControls.test.tsx,
 "commits at most once per 100 ms of frames"), not measured here.
