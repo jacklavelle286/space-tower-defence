@@ -99,8 +99,9 @@ export function VersionsPage({ api }: { api: Pick<AdminApi, "getGameData" | "get
       </p>
       <h2 id="versions-heading">Versions</h2>
       <p className="muted">
-        Live for new games: <strong>{data.current.campaignVersion}</strong> (rules {data.current.rulesetVersion}). Saved games
-        always stay on the version they started on.
+        Live for new games:{" "}
+        <strong>{(data.current.planets ?? []).length > 1 ? (data.current.planets ?? []).map((p) => `${p.planetId ?? "?"} ${p.campaignVersion}`).join(", ") : data.current.campaignVersion}</strong>{" "}
+        (rules {data.current.rulesetVersion}). Saved games always stay on the version they started on.
       </p>
       {message !== null && (
         <p role="status" className="notice">

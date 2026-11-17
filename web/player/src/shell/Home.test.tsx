@@ -83,6 +83,20 @@ describe("Home run setup (Phase 53)", () => {
     expect(onNewGame).toHaveBeenCalledWith({ planetId: "luna-1", waveSetId: "campaign", campaignVersion: "luna-1-a3" }, expect.anything());
   });
 
+  it("two released planets (Gate M, LD9): a section each; a locked one says what opens it", async () => {
+    const mars = { planetId: "mars-1", name: "Red Dust", unlocked: true, waveSets: [set("campaign", "CAMPAIGN", "Big Trek", 50)] };
+    const onNewGame = renderHome({ ageBand: 6, planets: [FULL.planets[0]!, mars] });
+    expect(await screen.findByRole("heading", { name: "New game: Moonbeam Colony" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "New game: Red Dust" })).toBeTruthy();
+    const marsSection = screen.getByRole("heading", { name: "New game: Red Dust" }).closest("section")!;
+    await act(async () => (marsSection.querySelector("button") as HTMLButtonElement).click());
+    expect(onNewGame).toHaveBeenCalledWith({ planetId: "mars-1", waveSetId: "campaign" }, expect.anything());
+    cleanup();
+    renderHome({ ageBand: 6, planets: [FULL.planets[0]!, { ...mars, unlocked: false }] });
+    expect(await screen.findByText("Clear wave 20 on Moonbeam Colony to open this planet.")).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "New game: Red Dust" })).toBeNull();
+  });
+
   it("with one wave set (the live game today): the single New game button, as before", async () => {
     renderHome(ONE);
     expect(await screen.findByRole("button", { name: "New game" })).toBeTruthy();

@@ -168,33 +168,43 @@ export function Home({
         </section>
       ) : null}
 
-      {allChoices(planets).length > 1 ? (
-        <section className="panel run-setup" aria-labelledby="setup-heading">
-          <h2 id="setup-heading">{COPY.runSetup.heading(allChoices(planets)[0]?.planetName ?? "")}</h2>
-          <ul>
-            {allChoices(planets).map(({ choice: c, set }, i, list) => (
-              <li key={choiceKey(c)}>
-                {set.mode === "CHALLENGE" && list[i - 1]?.set.mode !== "CHALLENGE" ? <h3>{COPY.runSetup.challenges}</h3> : null}
-                <div className="setup-row">
-                  <span className="setup-name">
-                    <strong>{set.name}</strong>{" "}
-                    {set.preview === true ? <span className="preview-tag">{COPY.home.preview}</span> : null}{" "}
-                    {set.mode === "CAMPAIGN" ? COPY.runSetup.campaignLength(set.finalWave) : COPY.runSetup.waves(set.finalWave)}
-                    {COPY.runSetup.about[c.waveSetId] !== undefined ? <span className="setup-about">{COPY.runSetup.about[c.waveSetId]}</span> : null}
-                  </span>
-                  {set.available ? (
-                    <button type="button" className="btn btn-small btn-go" disabled={!online || busy} onClick={() => void start(c)}>
-                      {COPY.runSetup.start}
-                    </button>
-                  ) : (
-                    <span className="reason">{set.reason === "AGE_OUT_OF_RANGE" ? COPY.home.ageOutOfRange : COPY.home.comingLater}</span>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
+      {allChoices(planets).length > 1
+        ? (planets?.planets ?? [])
+            .filter((planet) => planet.unlocked)
+            .map((planet) => {
+              const choices = allChoices({ ageBand: planets?.ageBand ?? null, planets: [planet] });
+              if (choices.length === 0) return null;
+              // One section per planet (Gate M, LD9): the campaign first, then its quick challenges.
+              const headingId = `setup-heading-${planet.planetId}`;
+              return (
+                <section key={planet.planetId} className="panel run-setup" aria-labelledby={headingId}>
+                  <h2 id={headingId}>{COPY.runSetup.heading(planet.name)}</h2>
+                  <ul>
+                    {choices.map(({ choice: c, set }, i, list) => (
+                      <li key={choiceKey(c)}>
+                        {set.mode === "CHALLENGE" && list[i - 1]?.set.mode !== "CHALLENGE" ? <h3>{COPY.runSetup.challenges}</h3> : null}
+                        <div className="setup-row">
+                          <span className="setup-name">
+                            <strong>{set.name}</strong>{" "}
+                            {set.preview === true ? <span className="preview-tag">{COPY.home.preview}</span> : null}{" "}
+                            {set.mode === "CAMPAIGN" ? COPY.runSetup.campaignLength(set.finalWave) : COPY.runSetup.waves(set.finalWave)}
+                            {COPY.runSetup.about[c.waveSetId] !== undefined ? <span className="setup-about">{COPY.runSetup.about[c.waveSetId]}</span> : null}
+                          </span>
+                          {set.available ? (
+                            <button type="button" className="btn btn-small btn-go" disabled={!online || busy} onClick={() => void start(c)}>
+                              {COPY.runSetup.start}
+                            </button>
+                          ) : (
+                            <span className="reason">{set.reason === "AGE_OUT_OF_RANGE" ? COPY.home.ageOutOfRange : COPY.home.comingLater}</span>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              );
+            })
+        : null}
 
       <section className="home-actions">
         {allChoices(planets).length > 1 ? null : (
@@ -262,6 +272,9 @@ export function Home({
                 <img src={`/assets/ui/planet-${planet.planetId}.png`} alt="" width={96} height={96} />
                 <div>
                   <h3>{planet.name}</h3>
+                  {planet.unlocked ? null : (
+                    <p className="reason">{COPY.home.planetLocked(planets.planets[planets.planets.indexOf(planet) - 1]?.name ?? "")}</p>
+                  )}
                   <ul className="wave-sets">
                     {planet.waveSets.map((ws) => (
                       <li key={`${ws.waveSetId}@${ws.campaignVersion ?? ""}`}>

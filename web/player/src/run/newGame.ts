@@ -62,13 +62,28 @@ export async function createRun(
   }
   // CONTENT_VERSION_UNSUPPORTED: re-read current.json and try once more with a new runId (D7.3).
   for (let round = 0; round < 2; round += 1) {
+    // The chosen planet's live version (Gate M, LD9: current.json lists each released planet; schema 1 names one,
+    // so its only campaign is the planet's). A preview carries its own version.
+    const listed = current.planets.find((p) => p.planetId === choice.planetId);
+    const single = current.planets.length === 1 && current.planets[0]?.planetId === null ? current.campaignVersion : undefined;
+    const campaignVersion = choice.campaignVersion ?? listed?.campaignVersion ?? single;
+    if (campaignVersion === undefined) {
+      // The planet is not (or no longer) released: read current.json again once, as for a stale version.
+      if (round === 1) return { kind: "upgrade" };
+      try {
+        current = await deps.loadCurrent();
+      } catch {
+        return { kind: "failed" };
+      }
+      continue;
+    }
     const result = await deps.queue.control(() =>
       deps.api.createRun({
         runId,
         planetId: choice.planetId,
         waveSetId: choice.waveSetId,
         rulesetVersion: current.rulesetVersion,
-        campaignVersion: choice.campaignVersion ?? current.campaignVersion,
+        campaignVersion,
         sessionId: deps.lease.sessionId,
         deviceLabel: deps.lease.deviceLabel,
         ...(options.takeover ? { takeover: true } : {}),

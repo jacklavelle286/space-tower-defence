@@ -31,6 +31,20 @@ function topicTitle(topicId: string): string {
   return topicById(topicId)?.title ?? topicId;
 }
 
+/**
+ * The badge shelf: every C12 badge, then each other released planet's campaign badge (Gate M, LD9: campaign-<planetId>,
+ * named after the planet and drawn with the Moon's trophy until it has its own art), then anything else earned.
+ */
+export function badgeShelf(earned: readonly string[], planets: readonly { planetId: string; name: string }[]): { id: string; name: string; rule: string; art: string }[] {
+  const known: { id: string; name: string; rule: string; art: string }[] = COPY.badges.map((b) => ({ ...b, art: b.id }));
+  for (const planet of planets) {
+    const id = `campaign-${planet.planetId}`;
+    if (!known.some((b) => b.id === id)) known.push({ id, name: COPY.progress.planetHero(planet.name), rule: COPY.progress.planetHeroRule(planet.name), art: "campaign-luna-1" });
+  }
+  const extra = earned.filter((id) => !known.some((b) => b.id === id));
+  return [...known, ...extra.map((id) => ({ id, name: id.startsWith("campaign-") ? COPY.progress.planetHero(id.slice("campaign-".length)) : id, rule: "", art: id.startsWith("campaign-") ? "campaign-luna-1" : id }))];
+}
+
 export function MyProgress({ api, onBack }: { api: Pick<PlayerApi, "getProgress" | "getPlanets">; onBack: () => void }) {
   const [progress, setProgress] = useState<Progress | null>(null);
   const [planets, setPlanets] = useState<Planets | null>(null);
@@ -112,12 +126,12 @@ export function MyProgress({ api, onBack }: { api: Pick<PlayerApi, "getProgress"
         <section aria-labelledby="progress-badges">
           <h2 id="progress-badges">{COPY.progress.badgesHeading}</h2>
           <ul className="badge-shelf">
-            {[...COPY.badges, ...badges.filter((id) => !COPY.badges.some((b) => b.id === id)).map((id) => ({ id, name: id, rule: "" }))].map(
+            {badgeShelf(badges, planets?.planets ?? []).map(
               (badge) => {
                 const have = badges.includes(badge.id);
                 return (
                   <li key={badge.id} className={have ? "badge badge-earned" : "badge"}>
-                    <img src={`/assets/ui/badge-${badge.id}${have ? "" : "-outline"}.png`} alt="" width={88} height={88} />
+                    <img src={`/assets/ui/badge-${badge.art}${have ? "" : "-outline"}.png`} alt="" width={88} height={88} />
                     <strong>{badge.name}</strong>
                     <span className="visually-hidden">{have ? COPY.progress.earned : COPY.progress.notYet}</span>
                     {have ? null : <span className="badge-rule">{badge.rule}</span>}

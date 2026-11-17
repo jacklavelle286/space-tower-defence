@@ -766,7 +766,8 @@ export type WaveSetState = "published" | "preview" | "retired" | "invalid";
 
 /** R46: what is published, newest version first. */
 export type GameData = {
-  current: { rulesetVersion: string; campaignVersion: string };
+  /** current.json; `planets` (LD9) lists each released planet's live version, planetId null in schema 1. */
+  current: { rulesetVersion: string; campaignVersion: string; planets?: { planetId: string | null; campaignVersion: string }[] };
   live: unknown;
   testers: string[];
   versions: {

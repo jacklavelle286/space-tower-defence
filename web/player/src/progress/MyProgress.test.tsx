@@ -3,7 +3,7 @@ import type { Progress } from "@scd/shared";
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import type { PlayerApi } from "../api/playerApi";
-import { MyProgress, subjectTotals } from "./MyProgress";
+import { badgeShelf, MyProgress, subjectTotals } from "./MyProgress";
 
 afterEach(cleanup);
 
@@ -58,5 +58,18 @@ describe("MyProgress (Phase 43, D4 P12)", () => {
     cleanup();
     render(<MyProgress api={api(null)} onBack={() => {}} />);
     expect(await screen.findByText(/couldn't load your progress/)).toBeTruthy();
+  });
+});
+
+describe("badgeShelf (Gate M, LD9)", () => {
+  it("adds each other released planet's campaign badge, named after it and drawn with the Moon's trophy", () => {
+    const shelf = badgeShelf(["campaign-mars-1"], [
+      { planetId: "luna-1", name: "Moonbeam Colony" },
+      { planetId: "mars-1", name: "Red Dust" },
+    ]);
+    expect(shelf.filter((b) => b.id.startsWith("campaign-"))).toEqual([
+      { id: "campaign-luna-1", name: "Colony Hero", rule: "Clear all 50 waves", art: "campaign-luna-1" },
+      { id: "campaign-mars-1", name: "Red Dust Hero", rule: "Clear all 50 waves on Red Dust", art: "campaign-luna-1" },
+    ]);
   });
 });

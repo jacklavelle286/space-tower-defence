@@ -44,6 +44,7 @@ export const COPY = {
     starting: "Starting…", // [PROPOSAL]
     noWaveSet: "There is no game you can start yet.", // [PROPOSAL]
     preview: "Test level", // Gate M, LD7 [PROPOSAL]: a preview only tester accounts see
+    planetLocked: (previous: string) => `Clear wave 20 on ${previous} to open this planet.`, // Gate M, LD9 [PROPOSAL]
     planetsHeading: "Planets",
     comingLater: "Coming later",
     ageOutOfRange: "We don't have activities for your age yet.", // D7.3 AGE_OUT_OF_RANGE
@@ -125,6 +126,8 @@ export const COPY = {
     planetsHeading: "Planets",
     best: (planet: string, n: number) => `${planet}: best ${n} ${n === 1 ? "wave" : "waves"} cleared`,
     badgesHeading: "Badges",
+    planetHero: (planet: string) => `${planet} Hero`, // Gate M, LD9 [PROPOSAL]: another planet's campaign badge
+    planetHeroRule: (planet: string) => `Clear all 50 waves on ${planet}`,
     earned: "Earned",
     notYet: "Not yet",
     back: "Home",

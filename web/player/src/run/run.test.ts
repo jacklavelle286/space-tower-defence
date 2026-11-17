@@ -1,6 +1,7 @@
 // The run screen's parts that need no browser: rebuilding the run from the cloud save, the op acknowledgements, the
 // synced run, the lease, and New game.
 import type { ApiResult, OpsBatchBody, OpsResponse } from "@scd/shared";
+import type { CurrentPointers } from "@scd/game-core";
 import { describe, expect, it, vi } from "vitest";
 import { PROTOCOL_VERSION } from "../sync/protocol";
 import { SyncQueue, type NewOp } from "../sync/queue";
@@ -289,7 +290,7 @@ describe("PlayLease", () => {
 
 describe("createRun (New game)", () => {
   const choice = { planetId: "luna-1", waveSetId: "first-contact" };
-  const current = async () => ({ rulesetVersion: "r1", campaignVersion: "luna-1-c1" });
+  const current = async (): Promise<CurrentPointers> => ({ rulesetVersion: "r1", campaignVersion: "luna-1-c1", planets: [{ planetId: null, campaignVersion: "luna-1-c1" }] });
 
   function deps(answers: ApiResult<unknown>[]) {
     const sent: Record<string, unknown>[] = [];
@@ -376,6 +377,25 @@ describe("createRun (New game)", () => {
     expect(t.sent[0]).toMatchObject({ rulesetVersion: "r1", campaignVersion: "luna-1-a3" });
     expect(outcome).toEqual({ kind: "unavailable", reason: "PREVIEW_CLOSED" });
     expect(t.sent).toHaveLength(1);
+  });
+
+  it("schema 2 (Gate M, LD9): a new game on a planet uses that planet's live version; an unlisted one is not started", async () => {
+    const created = { kind: "error" as const, status: 400, code: "VALIDATION_FAILED", body: null };
+    const t = deps([created]);
+    t.deps.loadCurrent = async () => ({
+      rulesetVersion: "r4",
+      campaignVersion: "luna-1-a4",
+      planets: [
+        { planetId: "luna-1", campaignVersion: "luna-1-a4" },
+        { planetId: "mars-1", campaignVersion: "mars-1-a1" },
+      ],
+    });
+    await createRun(t.deps as never, { planetId: "mars-1", waveSetId: "campaign" });
+    expect(t.sent[0]).toMatchObject({ planetId: "mars-1", rulesetVersion: "r4", campaignVersion: "mars-1-a1" });
+    const none = deps([]);
+    none.deps.loadCurrent = t.deps.loadCurrent;
+    expect(await createRun(none.deps as never, { planetId: "venus-1", waveSetId: "campaign" })).toEqual({ kind: "upgrade" });
+    expect(none.sent).toHaveLength(0); // read again once, still not released: nothing sent
   });
 
   it("TAKEOVER_CONFIRM_REQUIRED keeps the runId for the repeat with takeover: true", async () => {

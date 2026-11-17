@@ -118,6 +118,8 @@ export interface WaveSetEntry {
 export interface PlanetEntry {
   planetId: string;
   name: string;
+  /** The campaign version new games on this planet use (Gate M, LD9). */
+  campaignVersion?: string;
   unlocked: boolean;
   waveSets: WaveSetEntry[];
 }
