@@ -1176,11 +1176,13 @@ def test_the_kind_sizes_come_from_the_contract() -> None:
             entry["width"], entry["height"], entry["svgMaxBytes"], entry["maxBytes"], entry["bodyMaxBytes"],
             entry.get("maxTokens"),
         )  # fmt: skip
-        if kind != "background":  # every 256 kind exactly as before Gate P2
+        if kind not in ("background", "route-tile"):  # every 256 kind exactly as before Gate P2
             assert (spec.width, spec.height, spec.svg_max_bytes, spec.max_bytes, spec.body_max_bytes) == (
                 256, 256, 65_536, 524_288, 786_432
             )  # fmt: skip
             assert spec.max_tokens is None
+    tile = kind_spec("route-tile")  # Gate M, LD8: one 96 px map tile at 2x
+    assert (tile.width, tile.height, tile.max_tokens) == (192, 192, None)
     background = kind_spec("background")
     assert (background.width, background.height, background.max_tokens) == (1920, 1056, 32_000)
     # A 4 MiB stored PNG in base64 (R35's draft) and a 4 MiB upload's body both fit Lambda's 6 MB (6,291,456) payload.

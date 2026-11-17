@@ -96,7 +96,7 @@ describe("Upload", () => {
     const groups = [...select.querySelectorAll("optgroup")].map((g) => [g.label, [...g.querySelectorAll("option")].map((o) => o.value)]);
     expect(groups).toEqual([
       ["Use in activities", ["activity-object", "activity-scene"]],
-      ["For later (not used in the game yet)", ["avatar", "alien", "astronaut", "decoration", "planet", "badge", "background"]],
+      ["For later (not used in the game yet)", ["avatar", "alien", "astronaut", "decoration", "planet", "badge", "background", "route-tile"]],
     ]);
     pick(fileWith(PNG_MAGIC, "moon.png")); // the fake decodes it as 512 x 256
     await screen.findByRole("img", { name: "The picture as it will be stored" });

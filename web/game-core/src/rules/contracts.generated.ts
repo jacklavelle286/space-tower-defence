@@ -166,6 +166,16 @@ export const LIMITS = {
         "bodyMaxBytes": 5600000,
         "maxTokens": 32000,
         "capWeight": 3
+      },
+      {
+        "id": "route-tile",
+        "label": "Route tile (map path piece)",
+        "consumer": "later",
+        "width": 192,
+        "height": 192,
+        "svgMaxBytes": 65536,
+        "maxBytes": 524288,
+        "bodyMaxBytes": 786432
       }
     ]
   },

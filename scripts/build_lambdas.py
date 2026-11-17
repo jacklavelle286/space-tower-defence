@@ -116,6 +116,8 @@ FUNCTION_FILES: Mapping[str, tuple[str, ...]] = {
         "art/svg/map/deco-crater-1.svg",
         "art/svg/map/deco-rock-1.svg",
         "art/svg/map/luna-backdrop.svg",
+        "art/svg/map/route-corner-right-down.svg",
+        "art/svg/map/route-straight-h.svg",
         "art/svg/planets/planet-luna-1.svg",
     ),
 }

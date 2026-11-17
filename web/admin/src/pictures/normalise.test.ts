@@ -139,6 +139,10 @@ describe("normaliseUpload", () => {
       if (k.id === "background") {
         expect(spec).toEqual({ width: 1920, height: 1056, svgMaxBytes: 196_608, maxBytes: 4_194_304, bodyMaxBytes: 5_600_000, capWeight: 3 });
         expect(previewSize(k.id)).toEqual({ width: 480, height: 264 });
+      } else if (k.id === "route-tile") {
+        // Gate M, LD8: one 96 px map tile drawn at 2x
+        expect(spec).toEqual({ width: 192, height: 192, svgMaxBytes: 65_536, maxBytes: 524_288, bodyMaxBytes: 786_432, capWeight: 1 });
+        expect(previewSize(k.id)).toEqual({ width: 256, height: 256 });
       } else {
         expect(spec).toEqual({ width: 256, height: 256, svgMaxBytes: 65_536, maxBytes: 524_288, bodyMaxBytes: 786_432, capWeight: 1 });
         expect(previewSize(k.id)).toEqual({ width: 256, height: 256 });

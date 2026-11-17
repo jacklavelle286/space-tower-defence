@@ -52,6 +52,7 @@ describe("picture kinds", () => {
       "planet",
       "badge",
       "background",
+      "route-tile",
     ]);
     expect(PICTURE_KINDS).toBe(LIMITS.picture.kinds);
     expect(new Set(PICTURE_KINDS.map((k) => k.id)).size).toBe(PICTURE_KINDS.length);
@@ -59,7 +60,7 @@ describe("picture kinds", () => {
 
   it("splits the kinds into activity ones and later ones", () => {
     expect(ACTIVITY_PICTURE_KINDS.map((k) => k.id)).toEqual(["activity-object", "activity-scene"]);
-    expect(LATER_PICTURE_KINDS.map((k) => k.id)).toEqual(["avatar", "alien", "astronaut", "decoration", "planet", "badge", "background"]);
+    expect(LATER_PICTURE_KINDS.map((k) => k.id)).toEqual(["avatar", "alien", "astronaut", "decoration", "planet", "badge", "background", "route-tile"]);
     expect(isActivityPictureKind("activity-scene")).toBe(true);
     expect(isActivityPictureKind("avatar")).toBe(false);
     expect(isActivityPictureKind("background")).toBe(false); // library only until Gate M
@@ -78,7 +79,7 @@ describe("picture kinds", () => {
   it("gives each kind its size from limits.json: 256 x 256, and 1920 x 1056 for a background", () => {
     for (const k of PICTURE_KINDS) {
       const spec = pictureKindSpec(k.id);
-      expect([spec.width, spec.height]).toEqual(k.id === "background" ? [1920, 1056] : [256, 256]);
+      expect([spec.width, spec.height]).toEqual(k.id === "background" ? [1920, 1056] : k.id === "route-tile" ? [192, 192] : [256, 256]);
       expect(spec.maxBytes).toBe(k.maxBytes);
       expect(spec.svgMaxBytes).toBe(k.svgMaxBytes);
       expect(spec.bodyMaxBytes).toBe(k.bodyMaxBytes);

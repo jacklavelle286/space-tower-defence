@@ -168,6 +168,10 @@ KIND_EXAMPLES: Mapping[str, tuple[Path, ...]] = {
     "background": (
         Path("art/svg/map/luna-backdrop.svg"),  # the house battle backdrop: ground, swells, craters, calm centre
     ),
+    "route-tile": (  # Gate M, LD8: 192 x 192, edges that join
+        Path("art/svg/map/route-straight-h.svg"),
+        Path("art/svg/map/route-corner-right-down.svg"),
+    ),
 }
 PROGRESS_SECONDS = 10.0
 SDK_TIMEOUT_SECONDS = 280.0  # two tries (max_retries=1): 2 x (10 + 280) = 580 s, under the 840 s function timeout
