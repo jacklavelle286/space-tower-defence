@@ -26,7 +26,10 @@
  *   armour, bubble layers, flying, cluster, healer, and children (carriers and splitters, C6.3); `descendantOnly`
  *   aliens; a planet document's spawn group may name a carrier's `cargo`; the caps of C6.4 in full (deferred spawns,
  *   held descendant releases). Every alien has a `traits` object (possibly empty) in mechanics 3; mechanics 1 and 2
- *   refuse it, because their simulation would ignore the traits (ADR-0034).
+ *   refuse it, because their simulation would ignore the traits (ADR-0034). Phase 27 (M2-04) added the bosses of C7
+ *   to mechanics 3, before any ruleset with mechanics 3 was published: an optional `bosses` object, each boss with its
+ *   phases (armour, speed, bubble layers for itself and its neighbours, releases) and its defeat release; a wave may
+ *   schedule one boss. Mechanics 1 and 2 refuse `bosses` for the same reason (ADR-0034, amended).
  */
 export const SUPPORTED_MECHANICS: readonly number[] = [1, 2, 3];
 
@@ -186,6 +189,53 @@ export interface Alien {
   descendantOnly: boolean;
 }
 
+/**
+ * What happens the moment a boss enters a phase (C7). Every key is optional; an absent key means "nothing".
+ *   selfBubbles  the boss's bubble layers are SET to this many (C7 "gains N bubble layers")
+ *   giveBubbles  every other live non-boss alien within `radius` tiles is raised to at least `layers` layers
+ *   release      aliens released at the boss's route position, as a carrier's are (C6.3), counting towards the caps
+ * The first phase is the boss as it arrives: only selfBubbles is allowed there (it is the boss's starting layers).
+ */
+export interface BossPhaseActions {
+  selfBubbles?: number;
+  giveBubbles?: { layers: number; radius: number };
+  release?: ReleaseSpec[];
+}
+
+/**
+ * One boss phase (C7). It begins the moment the boss's health falls to or below fromPct % of its maximum (the first
+ * phase has fromPct 100: the boss arrives in it). Armour and the speed factor replace the previous phase's.
+ */
+export interface BossPhase {
+  fromPct: number;
+  name: string;
+  /** Times the boss's base speed. */
+  speedFactor: number;
+  armour: number;
+  /** Absent when entering the phase does nothing but change armour and speed. */
+  onEnter?: BossPhaseActions;
+}
+
+/**
+ * A boss (C7), mechanics 3 from Phase 27. Health and speed are absolute: a wave's hpMult and speedMult do not apply
+ * (its escorts and releases are ordinary aliens of the wave and do scale). The shape is tools/sim/game_data.json's
+ * `bosses` entry, key for key, except that the simulator's bossSlowFactor 0.5 is slowFactorPct 50 here (integers,
+ * C2.2) and its prose (`based`, `rule`, each phase's `cue`) and the duplicate top-level armour and bubbles are left out.
+ */
+export interface Boss {
+  name: string;
+  hp: number;
+  /** Tiles per second before the phase's speedFactor. */
+  speed: number;
+  leak: number;
+  bounty: number;
+  /** A slow works at this percentage of its strength on the boss (C7 "slows work at half strength": 50). */
+  slowFactorPct: number;
+  phases: BossPhase[];
+  /** Released when the boss is defeated, never when it leaks (C7: the Mothership's 4 Moon Blobs). */
+  onDefeatRelease?: ReleaseSpec[];
+}
+
 export interface RewardBlock {
   afterWaveFrom: number;
   afterWaveTo: number;
@@ -208,6 +258,8 @@ export interface Ruleset {
   slow?: SlowRules;
   classes: Record<string, AstronautClass>;
   aliens: Record<string, Alien>;
+  /** Mechanics 3 and later (C7, Phase 27); {} when the ruleset has none (always before mechanics 3). */
+  bosses: Record<string, Boss>;
   economy: {
     startingCredits: number;
     waveClearBonus: number;
@@ -240,6 +292,11 @@ export interface SpawnGroup {
   gap: number;
   /** A carrier's cargo for this group, replacing its default children (C6.3: waves 38, 43, 47). Mechanics 3. */
   cargo?: ReleaseSpec[];
+}
+
+/** True when `type` names one of the ruleset's bosses rather than an alien (a spawn group may name either, C7). */
+export function isBoss(ruleset: Pick<Ruleset, "bosses">, type: string): boolean {
+  return Object.hasOwn(ruleset.bosses, type);
 }
 
 export interface AuthoredWave {
@@ -584,7 +641,7 @@ function parseAlien(raw: unknown, path: string, mechanics: number): Alien {
 /**
  * Check one release list against the ruleset's aliens (C6.3): every type exists, and none of them releases anything
  * itself ("cargo may not contain Crafts or Split Slimes; Slimelets never split"). So a release is one generation deep
- * below the alien a wave schedules. Bosses, whose releases may contain Split Slimes (depth 2), arrive in Phase 27.
+ * below the alien a wave schedules. A boss's releases may go one generation deeper (checkBossReleases).
  */
 export function checkReleases(releases: readonly ReleaseSpec[], aliens: Readonly<Record<string, Alien>>, path: string): void {
   releases.forEach((r, i) => {
@@ -594,6 +651,87 @@ export function checkReleases(releases: readonly ReleaseSpec[], aliens: Readonly
       fail(`${path}[${i}].type`, `"${r.type}" releases aliens itself; a release may not contain a carrier or splitter (C6.3)`);
     }
   });
+}
+
+/**
+ * Check one of a boss's release lists (C6.3, C7): every type is an alien of the ruleset (never a boss), and a released
+ * carrier or splitter is allowed ("only a boss release may contain Split Slimes"), its own children releasing nothing
+ * (checkAlienCatalogue has checked that). So a boss's descendants are at most two generations deep, which C6.4's
+ * maxDescendantDepth must allow.
+ */
+function checkBossReleases(releases: readonly ReleaseSpec[], aliens: Readonly<Record<string, Alien>>, caps: Ruleset["caps"], path: string): void {
+  releases.forEach((r, i) => {
+    const alien = aliens[r.type];
+    if (alien === undefined) fail(`${path}[${i}].type`, `alien "${r.type}" is not in this ruleset (a boss never releases a boss)`);
+    const depth = alien.traits.children === undefined ? 1 : 2;
+    if (caps.maxDescendantDepth < depth) {
+      fail(`${path}[${i}].type`, `releasing "${r.type}" needs maxDescendantDepth ${depth}, the ruleset allows ${caps.maxDescendantDepth}`);
+    }
+  });
+}
+
+function parseBossPhase(raw: unknown, path: string, index: number, previousPct: number): BossPhase {
+  const o = obj(raw, path, ["fromPct", "name", "speedFactor", "armour"], ["onEnter"]);
+  // The first phase is the boss as it arrives; each later one starts at a strictly lower health.
+  const fromPct = index === 0 ? int(o["fromPct"], `${path}.fromPct`, 100, 100) : int(o["fromPct"], `${path}.fromPct`, 1, previousPct - 1);
+  const phase: BossPhase = {
+    fromPct,
+    name: str(o["name"], `${path}.name`),
+    speedFactor: num(o["speedFactor"], `${path}.speedFactor`, false, 10),
+    armour: int(o["armour"], `${path}.armour`, 0, 1000),
+  };
+  if (Object.hasOwn(o, "onEnter")) {
+    // In the first phase only selfBubbles: it is the boss's layers on arrival (tools/sim/sim.py Game._spawn reads only
+    // that from the first phase; a gift or a release "on arrival" is not a C7 rule).
+    const e = obj(o["onEnter"], `${path}.onEnter`, [], index === 0 ? ["selfBubbles"] : ["selfBubbles", "giveBubbles", "release"]);
+    const actions: BossPhaseActions = {};
+    if (Object.hasOwn(e, "selfBubbles")) actions.selfBubbles = int(e["selfBubbles"], `${path}.onEnter.selfBubbles`, 1, 100);
+    if (Object.hasOwn(e, "giveBubbles")) {
+      const g = obj(e["giveBubbles"], `${path}.onEnter.giveBubbles`, ["layers", "radius"]);
+      actions.giveBubbles = {
+        layers: int(g["layers"], `${path}.onEnter.giveBubbles.layers`, 1, 100),
+        radius: num(g["radius"], `${path}.onEnter.giveBubbles.radius`, false, 20),
+      };
+    }
+    if (Object.hasOwn(e, "release")) actions.release = parseReleases(e["release"], `${path}.onEnter.release`);
+    if (Object.keys(actions).length === 0) fail(`${path}.onEnter`, "is empty: leave it out");
+    phase.onEnter = actions;
+  }
+  return phase;
+}
+
+/** One boss (C7). Its release lists are checked against the aliens by checkBossReleases. */
+function parseBoss(raw: unknown, path: string): Boss {
+  const o = obj(raw, path, ["name", "hp", "speed", "leak", "bounty", "slowFactorPct", "phases"], ["onDefeatRelease"]);
+  let previousPct = 101;
+  const phases = arr(o["phases"], `${path}.phases`, 1, 10).map((p, i) => {
+    const phase = parseBossPhase(p, `${path}.phases[${i}]`, i, previousPct);
+    previousPct = phase.fromPct;
+    return phase;
+  });
+  const boss: Boss = {
+    name: str(o["name"], `${path}.name`),
+    hp: int(o["hp"], `${path}.hp`, 1, 1000000),
+    speed: num(o["speed"], `${path}.speed`, false, 20),
+    leak: int(o["leak"], `${path}.leak`, 1, 100),
+    bounty: int(o["bounty"], `${path}.bounty`, 0, 100000),
+    slowFactorPct: int(o["slowFactorPct"], `${path}.slowFactorPct`, 0, 100),
+    phases,
+  };
+  if (Object.hasOwn(o, "onDefeatRelease")) boss.onDefeatRelease = parseReleases(o["onDefeatRelease"], `${path}.onDefeatRelease`);
+  return boss;
+}
+
+/** The checks between bosses and aliens: no ID is both (a spawn group names either), and every release is valid. */
+function checkBosses(bosses: Readonly<Record<string, Boss>>, aliens: Readonly<Record<string, Alien>>, caps: Ruleset["caps"]): void {
+  for (const [id, boss] of Object.entries(bosses)) {
+    const p = `ruleset.bosses.${id}`;
+    if (Object.hasOwn(aliens, id)) fail(p, `"${id}" is also an alien: a spawn group could not tell which it names`);
+    boss.phases.forEach((phase, i) => {
+      if (phase.onEnter?.release !== undefined) checkBossReleases(phase.onEnter.release, aliens, caps, `${p}.phases[${i}].onEnter.release`);
+    });
+    if (boss.onDefeatRelease !== undefined) checkBossReleases(boss.onDefeatRelease, aliens, caps, `${p}.onDefeatRelease`);
+  }
 }
 
 /** The checks that need every alien at once: releases (C6.3), the depth cap (C6.4), one shared heal clock (C6.1). */
@@ -617,12 +755,13 @@ function checkAlienCatalogue(aliens: Readonly<Record<string, Alien>>, caps: Rule
 }
 
 export function parseRuleset(raw: unknown): Ruleset {
-  // "slow" is checked against the mechanics number below: required from mechanics 2, refused in mechanics 1.
+  // "slow" is checked against the mechanics number below: required from mechanics 2, refused in mechanics 1; and
+  // "bosses": allowed from mechanics 3, refused before.
   const top = obj(
     raw,
     "ruleset",
     ["kind", "version", "mechanics", "simulation", "colony", "classes", "aliens", "economy", "sell", "caps", "powerRules"],
-    ["$comment", "slow"],
+    ["$comment", "slow", "bosses"],
   );
   if (top["kind"] !== "ruleset") fail("ruleset.kind", 'must be "ruleset"');
   const version = checkVersion(top["version"], "ruleset.version");
@@ -705,6 +844,14 @@ export function parseRuleset(raw: unknown): Ruleset {
   const aliens = idMap(top["aliens"], "ruleset.aliens", (v, p) => parseAlien(v, p, mechanics));
   checkAlienCatalogue(aliens, caps);
 
+  // C7. A mechanics 1 or 2 game-core has no boss phases, so it would play a boss as a big plain alien: refused.
+  let bosses: Record<string, Boss> = {};
+  if (Object.hasOwn(top, "bosses")) {
+    if (mechanics < 3) fail("ruleset.bosses", "is mechanics 3; mechanics 1 and 2 have no bosses");
+    bosses = idMap(top["bosses"], "ruleset.bosses", parseBoss);
+    checkBosses(bosses, aliens, caps);
+  }
+
   return {
     kind: "ruleset",
     version,
@@ -714,6 +861,7 @@ export function parseRuleset(raw: unknown): Ruleset {
     ...(slow === undefined ? {} : { slow }),
     classes: idMap(top["classes"], "ruleset.classes", (v, p) => parseClass(v, p, mechanics)),
     aliens,
+    bosses,
     economy: {
       startingCredits: int(e["startingCredits"], "ruleset.economy.startingCredits", 0, 100000),
       waveClearBonus: int(e["waveClearBonus"], "ruleset.economy.waveClearBonus", 0, 100000),
@@ -886,22 +1034,32 @@ export function parsePlanet(raw: unknown, ruleset: Ruleset): PlanetDocument {
   const waves = arr(top["waves"], "planet.waves", 1).map((v, i) => {
     const p = `planet.waves[${i}]`;
     const w = obj(v, p, ["wave", "groups", "hpMult", "speedMult"]);
+    let bossGroups = 0;
     const groups = arr(w["groups"], `${p}.groups`, 1, 20).map((gv, j): SpawnGroup => {
       const gp = `${p}.groups[${j}]`;
       // A carrier's cargo (C6.3) is a mechanics 3 rule; an older ruleset's simulation would ignore it.
       const group = obj(gv, gp, ["type", "count", "at", "gap"], ruleset.mechanics >= 3 ? ["cargo"] : []);
       const type = str(group["type"], `${gp}.type`, KEY_ID_PATTERN, 40);
-      const alien = ruleset.aliens[type];
-      if (alien === undefined) fail(`${gp}.type`, `alien "${type}" is not in ruleset ${ruleset.version}`);
-      if (alien.descendantOnly) fail(`${gp}.type`, `"${type}" is only ever released by another alien, never scheduled (C6.1)`);
+      const count = int(group["count"], `${gp}.count`, 1, 200);
+      if (isBoss(ruleset, type)) {
+        // C7: a boss wave has one boss. Its releases are its phases' and its defeat's, never a wave's cargo.
+        bossGroups += 1;
+        if (count !== 1 || bossGroups > 1) fail(`${gp}`, `a wave schedules at most one boss, once ("${type}")`);
+        if (Object.hasOwn(group, "cargo")) fail(`${gp}.cargo`, `"${type}" is a boss: its releases are in the ruleset`);
+      } else {
+        const alien = ruleset.aliens[type];
+        if (alien === undefined) fail(`${gp}.type`, `alien "${type}" is not in ruleset ${ruleset.version}`);
+        if (alien.descendantOnly) fail(`${gp}.type`, `"${type}" is only ever released by another alien, never scheduled (C6.1)`);
+      }
       const parsed: SpawnGroup = {
         type,
-        count: int(group["count"], `${gp}.count`, 1, 200),
+        count,
         at: num(group["at"], `${gp}.at`, true, 600),
         gap: num(group["gap"], `${gp}.gap`, true, 600),
       };
       if (Object.hasOwn(group, "cargo")) {
-        if (alien.traits.children === undefined) fail(`${gp}.cargo`, `"${type}" releases nothing, so it has no cargo to name`);
+        const alien = ruleset.aliens[type];
+        if (alien?.traits.children === undefined) fail(`${gp}.cargo`, `"${type}" releases nothing, so it has no cargo to name`);
         parsed.cargo = parseReleases(group["cargo"], `${gp}.cargo`);
         checkReleases(parsed.cargo, ruleset.aliens, `${gp}.cargo`);
       }
@@ -937,9 +1095,18 @@ export function parsePlanet(raw: unknown, ruleset: Ruleset): PlanetDocument {
 /**
  * Credits one alien of `type` is worth if it and everything it releases is defeated (C6.3: parent and offspring
  * bounties are separate lines; a Craft pays 6 and each of its Moon Blobs 4). `releases` is a group's cargo, or the
- * type's own children when the group names none. Bosses arrive in Phase 27.
+ * type's own children when the group names none. A boss (C7) is worth its bounty plus everything every phase and its
+ * defeat release: phase actions always run before the defeat check, so a boss wave's bounty is a constant
+ * (tools/sim/sim.py Game._type_bounty).
  */
 export function alienBounty(ruleset: Ruleset, type: string, releases?: readonly ReleaseSpec[]): number {
+  const boss = ruleset.bosses[type];
+  if (boss !== undefined) {
+    let total = boss.bounty;
+    const all = [...boss.phases.flatMap((p) => p.onEnter?.release ?? []), ...(boss.onDefeatRelease ?? [])];
+    for (const r of all) total += r.count * alienBounty(ruleset, r.type);
+    return total;
+  }
   const alien = ruleset.aliens[type];
   if (alien === undefined) return 0;
   let total = alien.bounty;

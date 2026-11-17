@@ -15,7 +15,11 @@
 // Aliens (Phase 26, M2-03, mechanics 3): each alien's traits become AlienStats fields the simulation reads (armour,
 // bubble layers, flying, healer, children); no part of the simulation names an alien type. The caps of C6.4 are
 // compiled to whole ticks here, and so is the healers' shared clock.
-import type { AttackKind, AuthoredWave, ClassLevel, PlanetDocument, ReleaseSpec, Ruleset, Targeting, WaveSet } from "../data/game-data";
+//
+// Bosses (Phase 27, M2-04, C7): each boss is compiled into an AlienStats like any alien, with `boss` set to its
+// phases in simulation units (speed per tick, gift radius squared). The simulation reads the boss's phase from its
+// health with bossPhaseAt; nothing names a boss.
+import type { AttackKind, AuthoredWave, Boss, ClassLevel, PlanetDocument, ReleaseSpec, Ruleset, Targeting, WaveSet } from "../data/game-data";
 import { STEPS_PER_SECOND } from "../clock";
 import { buildRoute, UNITS_PER_TILE, type Route } from "./route";
 
@@ -99,6 +103,30 @@ export interface HealerStats {
   readonly radiusTiles: number;
 }
 
+/** One boss phase (C7) in simulation units. */
+export interface BossPhaseStats {
+  /** The phase begins when health x 100 <= fromPct x maximum health (integers, C2.2). */
+  readonly fromPct: number;
+  readonly name: string;
+  /** Units per tick in this phase: the boss's base speed x the phase's speedFactor (no wave speedMult, C7). */
+  readonly speed: number;
+  readonly armour: number;
+  /** On entering: the boss's bubble layers are set to this, or null to leave them as they are. */
+  readonly selfBubbles: number | null;
+  /** On entering: every other live non-boss alien within radius is raised to at least `layers` layers, or null. */
+  readonly giveBubbles: { readonly layers: number; readonly radiusSq: number; readonly radiusTiles: number } | null;
+  /** On entering: released at the boss's route position (C6.3 timing and caps); empty for none. */
+  readonly release: readonly ReleaseSpec[];
+}
+
+/** What makes an alien a boss (C7). */
+export interface BossStats {
+  /** In order; phases[0] (fromPct 100) is the boss as it arrives. */
+  readonly phases: readonly BossPhaseStats[];
+  /** A slow works on the boss at this percentage of its strength (C7: 50, "half strength"). */
+  readonly slowFactorPct: number;
+}
+
 export interface AlienStats {
   readonly id: string;
   readonly name: string;
@@ -121,6 +149,8 @@ export interface AlienStats {
   readonly children: readonly ReleaseSpec[];
   /** Never scheduled by a wave, only released (Slimelet). */
   readonly descendantOnly: boolean;
+  /** Set for a boss (C7): its health is absolute (`hp`, no hpMult) and its speed and armour come from its phase. */
+  readonly boss: BossStats | null;
 }
 
 /** The object caps of C6.4, durations in ticks. */
@@ -165,6 +195,8 @@ export interface WavePlan {
   readonly spawns: readonly ScheduledSpawn[];
   readonly hpMult: number;
   readonly speedMult: number;
+  /** True when the wave schedules a boss: clearing it repairs colony.repairOnBossClear (C7). */
+  readonly hasBoss: boolean;
 }
 
 export interface BattleConfig {
@@ -188,6 +220,8 @@ export interface BattleConfig {
     readonly shieldAbsoluteCap: number;
     /** All Miras together repair at most this much health per cleared wave (C5.5). */
     readonly miraRepairCapPerWave: number;
+    /** Health repaired when a wave with a boss is cleared, whether the boss was defeated or leaked (C7). */
+    readonly repairOnBossClear: number;
   };
   /** C5.4. capPct 0 in a mechanics 1 ruleset, which has no slow attack. */
   readonly slow: { readonly capPct: number; readonly refreshTicks: number };
@@ -233,12 +267,31 @@ export function buffedDamage(damage: number, buffPct: number): number {
   return Math.floor((damage * (100 + buffPct) + 50) / 100);
 }
 
+/**
+ * The boss phase health puts a boss in (C7): the last phase whose threshold health has reached, health x 100 <=
+ * fromPct x maxHp, in integers. A pure function of health: the same health always gives the same phase, and lower
+ * health never gives an earlier one. (The battle keeps the deepest phase a boss has reached: a Patchling may heal a
+ * boss, but a phase that has begun never ends, because its actions cannot be undone.)
+ */
+export function bossPhaseAt(boss: BossStats, hp: number, maxHp: number): number {
+  let phase = 0;
+  for (let i = 1; i < boss.phases.length; i += 1) {
+    if (hp * 100 <= (boss.phases[i]?.fromPct ?? 0) * maxHp) phase = i;
+  }
+  return phase;
+}
+
+/** A slow's strength on a boss (C7 "slows work at half strength"): floor(pct x slowFactorPct / 100), before the cap. */
+export function bossSlowPct(pct: number, slowFactorPct: number): number {
+  return Math.floor((pct * slowFactorPct) / 100);
+}
+
 /** Sell refund (C2.2, C5.7): floor(floor(invested x 70 / 100) / 5) x 5. */
 export function sellRefund(invested: number, sell: BattleConfig["sell"]): number {
   return Math.floor(Math.floor((invested * sell.refundPct) / 100) / sell.roundDownTo) * sell.roundDownTo;
 }
 
-function wavePlan(position: number, wave: AuthoredWave): WavePlan {
+function wavePlan(position: number, wave: AuthoredWave, bosses: Readonly<Record<string, Boss>>): WavePlan {
   const spawns: (ScheduledSpawn & { order: number })[] = [];
   let order = 0;
   for (const group of wave.groups) {
@@ -253,6 +306,45 @@ function wavePlan(position: number, wave: AuthoredWave): WavePlan {
     spawns: spawns.map(({ tick, type, cargo }) => ({ tick, type, cargo })),
     hpMult: wave.hpMult,
     speedMult: wave.speedMult,
+    hasBoss: wave.groups.some((g) => Object.hasOwn(bosses, g.type)),
+  };
+}
+
+/** A boss as an AlienStats (C7): its arrival phase gives its starting armour and layers, its defeat release is its children. */
+function bossAlienStats(id: string, boss: Boss): AlienStats {
+  const phases = boss.phases.map(
+    (p): BossPhaseStats => ({
+      fromPct: p.fromPct,
+      name: p.name,
+      // The same conversion as every alien's speed. 0.45 x 1.15 (Captain Clank cracked, Queen Bubbla's storm) is
+      // 0.5175 tiles/s, 517.5 units a tick, which in floating point is 517.4999... and rounds to 517.
+      speed: speedToUnitsPerTick(boss.speed * p.speedFactor),
+      armour: p.armour,
+      selfBubbles: p.onEnter?.selfBubbles ?? null,
+      giveBubbles:
+        p.onEnter?.giveBubbles === undefined
+          ? null
+          : { layers: p.onEnter.giveBubbles.layers, radiusSq: tilesSq(p.onEnter.giveBubbles.radius), radiusTiles: p.onEnter.giveBubbles.radius },
+      release: p.onEnter?.release ?? [],
+    }),
+  );
+  const arrival = phases[0];
+  if (arrival === undefined) throw new Error(`boss ${id} has no phases`); // parseRuleset requires one
+  return {
+    id,
+    name: boss.name,
+    hp: boss.hp,
+    speed: boss.speed,
+    leak: boss.leak,
+    bounty: boss.bounty,
+    armour: arrival.armour,
+    bubbles: arrival.selfBubbles ?? 0,
+    flying: false,
+    cluster: false,
+    healer: null,
+    children: boss.onDefeatRelease ?? [],
+    descendantOnly: false,
+    boss: { phases, slowFactorPct: boss.slowFactorPct },
   };
 }
 
@@ -330,10 +422,14 @@ export function compileBattleConfig(ruleset: Ruleset, planet: PlanetDocument, wa
       healer: healer === undefined ? null : { amount: healer.amount, radiusSq: tilesSq(healer.radius), radiusTiles: healer.radius },
       children: a.traits.children ?? [],
       descendantOnly: a.descendantOnly,
+      boss: null,
     };
     // parseRuleset has checked that every healer has the same period (one shared clock).
     if (healer !== undefined) healPeriodTicks = Math.max(1, secondsToTicks(healer.period));
   }
+
+  // parseRuleset has refused a boss ID that is also an alien ID, so this adds and never replaces.
+  for (const [id, boss] of Object.entries(ruleset.bosses)) aliens[id] = bossAlienStats(id, boss);
 
   const authored = new Map(planet.waves.map((w) => [w.wave, w]));
   const waves = waveSet.waves.map((n, i) => {
@@ -342,7 +438,7 @@ export function compileBattleConfig(ruleset: Ruleset, planet: PlanetDocument, wa
     for (const g of w.groups) {
       if (aliens[g.type] === undefined) throw new Error(`wave ${n}: alien "${g.type}" is not in ruleset ${ruleset.version}`);
     }
-    return wavePlan(i + 1, w);
+    return wavePlan(i + 1, w, ruleset.bosses);
   });
 
   const pads = planet.map.pads.map((p) => ({
@@ -371,6 +467,7 @@ export function compileBattleConfig(ruleset: Ruleset, planet: PlanetDocument, wa
       shieldCap: ruleset.colony.shieldCap,
       shieldAbsoluteCap: ruleset.colony.shieldAbsoluteCap,
       miraRepairCapPerWave: ruleset.colony.miraRepairCapPerWave,
+      repairOnBossClear: ruleset.colony.repairOnBossClear,
     },
     slow: {
       capPct: ruleset.slow?.capPct ?? 0,

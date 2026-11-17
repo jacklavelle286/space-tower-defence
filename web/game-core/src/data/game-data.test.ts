@@ -1,7 +1,8 @@
 // Game data (Phase 13, M1-23): the repository's game-data/ builds, the G-15 wave-set action limit refuses an oversized
 // wave set, version strings are path-safe, and the bounds fixture api/tests reads is the generated one. Phase 24
 // (M2-01): ruleset r2 and the mechanics 2 parse rules for the six-class roster. Phase 26 (M2-03): ruleset r3 and the
-// mechanics 3 parse rules for the alien catalogue, traits, releases and cargo.
+// mechanics 3 parse rules for the alien catalogue, traits, releases and cargo. Phase 27 (M2-04): the bosses in r3 and
+// their parse rules.
 import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -476,6 +477,88 @@ describe("ruleset r3 and mechanics 3 (Phase 26, M2-03; ADR-0034)", () => {
     expect(() => parsePlanet(planetWithGroup({ type: "slimelet", count: 2, at: 0, gap: 1 }), r3)).toThrow(
       /"slimelet" is only ever released by another alien, never scheduled/,
     );
+  });
+});
+
+describe("bosses in ruleset r3 (Phase 27, M2-04; C7; ADR-0034 amended)", () => {
+  const r3 = parseRuleset(RULESET3_RAW);
+  const bossesOf = (raw: JsonObject): Record<string, JsonObject> => raw["bosses"] as Record<string, JsonObject>;
+  const phasesOf = (raw: JsonObject, id: string): JsonObject[] => (bossesOf(raw)[id] as JsonObject)["phases"] as JsonObject[];
+  /** The planet document with wave 1's groups replaced. */
+  function planetWithGroups(groups: JsonObject[]): JsonObject {
+    const doc = copy(PLANET_RAW);
+    ((doc["waves"] as JsonObject[])[0] as JsonObject)["groups"] = groups;
+    return doc;
+  }
+  const boss = (type = "boss1"): JsonObject => ({ type, count: 1, at: 8, gap: 0 });
+
+  it("r3 holds the five bosses of C7 under mechanics 3; r1 and r2 have none", () => {
+    expect(Object.keys(r3.bosses)).toEqual(["boss1", "boss2", "boss3", "boss4", "boss5"]);
+    expect(parseRuleset(RULESET_RAW).bosses).toEqual({});
+    expect(parseRuleset(RULESET2_RAW).bosses).toEqual({});
+  });
+
+  it("mechanics 1 and 2 refuse bosses (their game-core would play a boss with no phases); mechanics 3 may leave them out", () => {
+    const in2 = copy(RULESET2_RAW);
+    in2["bosses"] = copy(RULESET3_RAW["bosses"]);
+    expect(() => parseRuleset(in2)).toThrow(/ruleset.bosses: is mechanics 3; mechanics 1 and 2 have no bosses/);
+    const none = copy(RULESET3_RAW);
+    delete none["bosses"];
+    expect(parseRuleset(none).bosses).toEqual({});
+  });
+
+  it("phases: the first starts at 100%, each next one strictly lower; the first may only set the boss's own layers", () => {
+    const notFull = copy(RULESET3_RAW);
+    (phasesOf(notFull, "boss1")[0] as JsonObject)["fromPct"] = 90;
+    expect(() => parseRuleset(notFull)).toThrow(/boss1.phases\[0\].fromPct: must be between 100 and 100/);
+    const notLower = copy(RULESET3_RAW);
+    (phasesOf(notLower, "boss2")[2] as JsonObject)["fromPct"] = 60;
+    expect(() => parseRuleset(notLower)).toThrow(/boss2.phases\[2\].fromPct: must be between 1 and 59/);
+    const giftOnArrival = copy(RULESET3_RAW);
+    (phasesOf(giftOnArrival, "boss3")[0] as JsonObject)["onEnter"] = { selfBubbles: 8, giveBubbles: { layers: 1, radius: 2 } };
+    expect(() => parseRuleset(giftOnArrival)).toThrow(/boss3.phases\[0\].onEnter: unknown key "giveBubbles"/);
+    const empty = copy(RULESET3_RAW);
+    (phasesOf(empty, "boss1")[1] as JsonObject)["onEnter"] = {};
+    expect(() => parseRuleset(empty)).toThrow(/boss1.phases\[1\].onEnter: is empty/);
+    const fraction = copy(RULESET3_RAW);
+    (phasesOf(fraction, "boss2")[0] as JsonObject)["armour"] = 5.5;
+    expect(() => parseRuleset(fraction)).toThrow(/boss2.phases\[0\].armour: must be an integer/);
+  });
+
+  it("releases: aliens only, never a boss; a Split Slime is allowed (C6.3: only a boss release may contain one) if depth 2 is", () => {
+    const bossInRelease = copy(RULESET3_RAW);
+    (bossesOf(bossInRelease)["boss5"] as JsonObject)["onDefeatRelease"] = [{ type: "boss1", count: 1 }];
+    expect(() => parseRuleset(bossInRelease)).toThrow(/boss5.onDefeatRelease\[0\].type: alien "boss1" is not in this ruleset/);
+    expect(r3.bosses["boss5"]?.phases[2]?.onEnter?.release?.[0]).toEqual({ type: "slime", count: 2 });
+    const shallow = copy(RULESET3_RAW);
+    (shallow["caps"] as JsonObject)["maxDescendantDepth"] = 1;
+    expect(() => parseRuleset(shallow)).toThrow(/boss5.phases\[2\].onEnter.release\[0\].type: releasing "slime" needs maxDescendantDepth 2/);
+  });
+
+  it("a boss ID may not also be an alien ID (a spawn group names one or the other)", () => {
+    const clash = copy(RULESET3_RAW);
+    bossesOf(clash)["blob"] = copy(bossesOf(clash)["boss1"] as JsonObject);
+    expect(() => parseRuleset(clash)).toThrow(/bosses.blob: "blob" is also an alien/);
+  });
+
+  it("a wave may schedule one boss, once, with no cargo; only under a ruleset that has it", () => {
+    const doc = planetWithGroups([{ type: "blob", count: 4, at: 0, gap: 2 }, boss()]);
+    expect(parsePlanet(doc, r3).waves[0]?.groups[1]).toEqual({ type: "boss1", count: 1, at: 8, gap: 0 });
+    expect(() => parsePlanet(doc, parseRuleset(RULESET2_RAW))).toThrow(/alien "boss1" is not in ruleset r2/);
+    expect(() => parsePlanet(planetWithGroups([{ ...boss(), count: 2 }]), r3)).toThrow(/at most one boss, once/);
+    expect(() => parsePlanet(planetWithGroups([boss(), boss("boss2")]), r3)).toThrow(/groups\[1\]: a wave schedules at most one boss/);
+    expect(() => parsePlanet(planetWithGroups([{ ...boss("boss4"), cargo: [{ type: "mite", count: 1 }] }]), r3)).toThrow(
+      /"boss4" is a boss: its releases are in the ruleset/,
+    );
+  });
+
+  it("the bounds file's maxBounty counts a boss with everything it releases (C8.2 wave 40: 4 x 3 + 171 + 6 x 2 = 195)", () => {
+    const wave40 = [
+      { type: "flutter", count: 4, at: 0, gap: 1.5 },
+      boss("boss4"),
+      { type: "mite", count: 6, at: 40, gap: 1 },
+    ];
+    expect(buildBounds(r3, parsePlanet(planetWithGroups(wave40), r3)).waveSets["first-contact"]?.maxBounty[0]).toBe(195);
   });
 });
 

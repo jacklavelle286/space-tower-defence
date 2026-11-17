@@ -1,7 +1,7 @@
 // The battle simulation for one wave (Phase 14, M1-21; C2 simulation rules, spine S4 and S10). Phase 24 (M2-01) added
 // the six-class roster and economy; Phase 25 (M2-02) the targeting modes (C5.3), Pip's slow (C5.4), Mira's shield and
 // repair (C5.5) and Sol's buff (C5.6); Phase 26 (M2-03) the alien traits (C6.1, C6.2), carriers and splitters (C6.3)
-// and the object caps (C6.4).
+// and the object caps (C6.4); Phase 27 (M2-04) the bosses and their phases (C7).
 //
 // A Battle is plain data: one wave, built from the run snapshot, advanced one fixed tick at a time by `step`. The
 // renderer reads it and draws; it never changes it. Everything is deterministic: integers only (C2.2), no clock, no
@@ -10,30 +10,48 @@
 //   2. scheduled spawns that are due, then descendant releases that are due, both within the caps (C6.4)
 //   3. support timers: Mira's shield pulses, in pad order; then the healers' shared pulse (C6.1)
 //   4. astronaut attacks, in pad order p01 -> p16 (C2.4: instant hits), with Sol's buff on the damage; each hit goes
-//      through the alien's traits in the C2.2 order (flying, bubble layer, armour); a defeated carrier or splitter
-//      queues its descendants (C6.3)
+//      through the alien's traits in the C2.2 order (flying, bubble layer, armour); a boss whose health falls past a
+//      phase threshold enters that phase at once, its actions before the defeat check (C7); a defeated carrier,
+//      splitter or boss queues its descendants (C6.3)
 //   5. alien movement, in id order, at the slowed speed while a slow lasts; an alien reaching the end leaks at once
 //      (a carrier that leaks releases nothing)
-//   6. defeat check (colony health <= 0), then the wave-complete check (and Mira's repair on a cleared wave)
+//   6. defeat check (colony health <= 0), then the wave-complete check (and the repair on a cleared wave: Mira's,
+//      and a boss wave's, C7)
 //
 // Traits are data (ruleset mechanics 3, compiled into AlienStats): nothing here names an alien type. An alien's
 // armour, layers, flying, heal and children come from its AlienStats, so a new alien with existing traits needs only
-// new data.
+// new data. A boss is an alien whose AlienStats has `boss` set: its phases (C7) are data too, and nothing here names a
+// boss. Its phase is a pure function of its health (bossPhaseAt); entering one changes its armour and speed and may
+// set its own bubble layers, give layers to aliens near it, and release aliens. A boss's state (phase, layers,
+// speed) lives on its AlienState, which no other wave ever sees (below).
 //
 // Every comparison that decides something (which alien to aim at, whether a slow replaces another, whose buff is
 // larger, whether a pulse is due) compares integers. Towers are kept in pad order and aliens in id order, and the
 // targeting tie-breaks end on the alien id, so no choice depends on the order a list happens to be in.
 //
 // One Battle per wave, made fresh from the snapshot, is how "no timer or cooldown crosses a wave boundary" (spine S4,
-// C2.5) holds by construction: attack timers start ready, and nothing but the snapshot is carried over.
+// C2.5) holds by construction: attack timers start ready, and nothing but the snapshot is carried over. The same goes
+// for bosses (C2.5 "boss phases belong to aliens; no alien survives a wave"): a boss's phase, layers and speed live on
+// its AlienState, its pending releases on this Battle, and the next wave's Battle starts with neither. The compiled
+// BattleConfig is shared between waves and is only ever read.
 //
 // `step`, `startWave` and the command functions change the Battle they are given (it is the caller's private
 // object; copying every tick would only cost time). They read nothing else and return nothing hidden, so the same
 // Battle and the same calls always give the same result.
 import type { ReleaseSpec } from "../data/game-data";
 import type { Placement, Snapshot, Targeting } from "../rules";
-import type { AlienStats, BattleConfig, ClassStats, LevelStats, PadInfo, ShotStats, WavePlan } from "./config";
-import { armouredDamage, buffedDamage, flyingBlastDamage, healAmount, sellRefund, speedToUnitsPerTick, waveHealth } from "./config";
+import type { AlienStats, BattleConfig, BossPhaseStats, BossStats, ClassStats, LevelStats, PadInfo, ShotStats, WavePlan } from "./config";
+import {
+  armouredDamage,
+  bossPhaseAt,
+  bossSlowPct,
+  buffedDamage,
+  flyingBlastDamage,
+  healAmount,
+  sellRefund,
+  speedToUnitsPerTick,
+  waveHealth,
+} from "./config";
 import { nextInt, waveSeed } from "./rng";
 import { routePoint, withinRange, type Point } from "./route";
 
@@ -87,26 +105,30 @@ export interface AlienState {
   readonly maxHp: number;
   /** Route progress in units. */
   progress: number;
-  /** Units per tick, unslowed. */
-  readonly speed: number;
+  /** Units per tick, unslowed. Fixed at spawn, except that a boss takes each phase's speed as it enters it (C7). */
+  speed: number;
   /** The slow on this alien in percent (already capped, C5.4), or 0. 0 whenever slowTicksLeft is 0. */
   slowPct: number;
   /** Ticks of movement the slow still lasts; 0 = not slowed. */
   slowTicksLeft: number;
   /** Cosmetic: walk-animation start frame, 0..ALIEN_LOOKS-1, from the wave's seeded generator. */
   readonly look: number;
-  /** Bubble layers left (C6.1 Bubble Guard): each absorbs one whole hit, then pops. Never grows. */
+  /** Bubble layers left (C6.1 Bubble Guard): each absorbs one whole hit, then pops. Only a boss phase adds layers,
+   *  to the boss itself or to the aliens near it (C7 Queen Bubbla, the Great Glorp). */
   bubbles: number;
   /** 0 for an alien the wave scheduled, 1 for a descendant (C6.3); never above the ruleset's maxDescendantDepth. */
   readonly depth: number;
   /** What it releases when defeated: the wave's cargo, or its type's children; empty for most aliens (C6.3). */
   readonly cargo: readonly ReleaseSpec[];
+  /** A boss's phase, an index into its phases (C7): the deepest one its health has reached. Always 0 for an alien. */
+  phase: number;
 }
 
 /**
  * One defeated parent's descendants waiting to come out (C6.3). They come out one at a time at `progress`, the
  * parent's route progress when it was defeated: the first on the tick after the defeat, each next one a release gap
- * after the previous. While the caps are reached (C6.4) the next one waits here; nothing is dropped.
+ * after the previous. While the caps are reached (C6.4) the next one waits here; nothing is dropped. A boss queues
+ * one of these each time a phase releases aliens (C7), from where it stands then, and one more when it is defeated.
  */
 export interface PendingRelease {
   readonly parentId: number;
@@ -128,7 +150,9 @@ export interface PendingRelease {
  * `repaired`: Mira's repair when the wave is cleared (C5.5), the health actually added.
  * `healPulse`: one per live healer when the shared heal clock ticks (C6.1), where it stands, for the sparkle ring.
  * `healed`: an alien a heal pulse reached, with the health actually added (0 never reported).
- * `released`: a descendant came out of a defeated parent (C6.3).
+ * `released`: a descendant came out of a defeated parent (C6.3), or of a boss entering a phase (C7).
+ * `bossPhase`: a boss entered phase `phase` (C7), where it stood; one event per phase when one hit crosses several.
+ * `bubbleGift`: a boss phase raised a nearby alien's bubble layers (C7 "gives 1 bubble layer"), to `layers`.
  */
 export type BattleEvent =
   | { readonly kind: "shot"; readonly tick: number; readonly padId: string; readonly alienId: number; readonly damage: number }
@@ -138,6 +162,8 @@ export type BattleEvent =
   | { readonly kind: "healPulse"; readonly tick: number; readonly alienId: number; readonly at: Point }
   | { readonly kind: "healed"; readonly tick: number; readonly alienId: number; readonly health: number }
   | { readonly kind: "released"; readonly tick: number; readonly alienId: number; readonly parentId: number; readonly type: string }
+  | { readonly kind: "bossPhase"; readonly tick: number; readonly alienId: number; readonly type: string; readonly phase: number; readonly at: Point }
+  | { readonly kind: "bubbleGift"; readonly tick: number; readonly bossId: number; readonly alienId: number; readonly layers: number }
   | {
       readonly kind: "defeated";
       readonly tick: number;
@@ -427,9 +453,18 @@ function speedKey(a: AlienState): number {
   return a.speed * (100 - a.slowPct);
 }
 
-/** The slow this shot would leave on an alien (C5.4: never above the cap; bosses at half strength from Phase 27). */
-function effectiveSlowPct(battle: Battle, pct: number): number {
-  return Math.min(pct, battle.config.slow.capPct);
+/** The boss rules of an alien, or null for an ordinary alien. */
+function bossOf(battle: Readonly<Battle>, alien: AlienState): BossStats | null {
+  return battle.config.aliens[alien.type]?.boss ?? null;
+}
+
+/**
+ * The slow a shot of strength `pct` would leave on `alien` (C5.4): never above the cap, and on a boss at its
+ * slowFactorPct of the strength first (C7 "slows work at half strength": Pip's 40% is 20% on a boss).
+ */
+function effectiveSlowPct(battle: Battle, alien: AlienState, pct: number): number {
+  const boss = bossOf(battle, alien);
+  return Math.min(boss === null ? pct : bossSlowPct(pct, boss.slowFactorPct), battle.config.slow.capPct);
 }
 
 /**
@@ -438,7 +473,7 @@ function effectiveSlowPct(battle: Battle, pct: number): number {
  * refreshWithinSeconds, or is weaker than the slow this Pip would apply.
  */
 function wantsSlow(battle: Battle, a: AlienState, slowPct: number): boolean {
-  return a.slowTicksLeft <= battle.config.slow.refreshTicks || a.slowPct < effectiveSlowPct(battle, slowPct);
+  return a.slowTicksLeft <= battle.config.slow.refreshTicks || a.slowPct < effectiveSlowPct(battle, a, slowPct);
 }
 
 /** A candidate target and its integer sort keys, most important first. */
@@ -505,12 +540,12 @@ function pickTarget(battle: Battle, tower: Tower, shot: ShotStats, pad: PadInfo)
 // ---- support effects (C5.4 - C5.6) ------------------------------------------------------------------------------
 
 /**
- * Put a slow on an alien (C5.4). No stacking: an alien has one slow at a time. A slow is first capped; one that is
- * equal or stronger than the current slow replaces it and keeps the longer of the two remaining times; a weaker one
- * is ignored. (An unslowed alien has slowPct 0, so any slow replaces "none".)
+ * Put a slow on an alien (C5.4). No stacking: an alien has one slow at a time. A slow is first capped (and halved on
+ * a boss, C7); one that is equal or stronger than the current slow replaces it and keeps the longer of the two
+ * remaining times; a weaker one is ignored. (An unslowed alien has slowPct 0, so any slow replaces "none".)
  */
 function applySlow(battle: Battle, alien: AlienState, pct: number, ticks: number): void {
-  const capped = effectiveSlowPct(battle, pct);
+  const capped = effectiveSlowPct(battle, alien, pct);
   if (capped <= 0 || capped < alien.slowPct) return;
   alien.slowPct = capped;
   alien.slowTicksLeft = Math.max(alien.slowTicksLeft, ticks);
@@ -551,14 +586,17 @@ function addShield(battle: Battle, points: number, limit: number): number {
 }
 
 /**
- * Mira's repair when a wave is cleared (C4, C5.5): each Mira adds her level's repairOnWaveClear (level 3: 1), the
- * total is capped at miraRepairCapPerWave however many Miras stand, and health never goes above the maximum.
+ * The repair when a wave is cleared (C4): Mira's (C5.5: each Mira adds her level's repairOnWaveClear, level 3: 1, the
+ * total capped at miraRepairCapPerWave however many Miras stand), plus repairOnBossClear if the wave had a boss (C7:
+ * "completing a boss wave repairs 3 health", whether the boss was defeated or reached the colony; tools/sim/sim.py
+ * run_wave adds the two the same way). Health never goes above the maximum.
  */
-function repairOnClear(battle: Battle, tick: number): void {
+function repairOnClear(battle: Battle, plan: WavePlan, tick: number): void {
   const { config } = battle;
-  let repair = 0;
-  for (const t of battle.towers) repair += levelOf(classOf(config, t.classId), t.level).shield?.repairOnWaveClear ?? 0;
-  const healed = Math.max(0, Math.min(Math.min(repair, config.colony.miraRepairCapPerWave), config.colony.maxHealth - battle.health));
+  let mira = 0;
+  for (const t of battle.towers) mira += levelOf(classOf(config, t.classId), t.level).shield?.repairOnWaveClear ?? 0;
+  const repair = Math.min(mira, config.colony.miraRepairCapPerWave) + (plan.hasBoss ? config.colony.repairOnBossClear : 0);
+  const healed = Math.max(0, Math.min(repair, config.colony.maxHealth - battle.health));
   if (healed === 0) return;
   battle.health += healed;
   battle.events.push({ kind: "repaired", tick, health: healed });
@@ -573,25 +611,27 @@ function alienStatsOf(config: BattleConfig, type: string): AlienStats {
 /**
  * A new alien at route `progress` with the next id (C2.2: ids in spawn order, descendants included). Health and speed
  * are scaled by the wave (C6.1); armour, layers and leak are not. `cargo` replaces the type's own children (C6.3).
+ * A boss (C7) arrives in its first phase with its absolute health and that phase's speed: the wave scales neither.
  */
 function spawn(battle: Battle, plan: WavePlan, type: string, progress: number, depth: number, cargo: readonly ReleaseSpec[] | null): AlienState {
   const stats = alienStatsOf(battle.config, type);
   const look = nextInt(battle.rng, ALIEN_LOOKS);
   battle.rng = look.state;
-  const hp = waveHealth(stats.hp, plan.hpMult);
+  const hp = stats.boss === null ? waveHealth(stats.hp, plan.hpMult) : stats.hp;
   const alien: AlienState = {
     id: battle.nextAlienId,
     type,
     hp,
     maxHp: hp,
     progress,
-    speed: speedToUnitsPerTick(stats.speed * plan.speedMult),
+    speed: stats.boss?.phases[0]?.speed ?? speedToUnitsPerTick(stats.speed * plan.speedMult),
     slowPct: 0,
     slowTicksLeft: 0,
     look: look.value,
     bubbles: stats.bubbles,
     depth,
     cargo: cargo ?? stats.children,
+    phase: 0,
   };
   battle.aliens.push(alien);
   battle.nextAlienId += 1;
@@ -685,32 +725,77 @@ function healPulse(battle: Battle, plan: WavePlan, tick: number): void {
 }
 
 /**
- * A defeated alien: its bounty is paid once (C6.1), and a carrier or splitter queues its descendants at its route
- * progress (C6.3). The first comes out on the next tick: releases run in step 2, before this tick's attacks.
+ * Queue `releases` to come out of `parent` at its route progress now (C6.3): the first on the next tick (releases run
+ * in step 2, before this tick's attacks), each next one a release gap after the previous.
  */
-function defeat(battle: Battle, alien: AlienState, stats: AlienStats, at: Point): void {
-  battle.credits += stats.bounty;
-  battle.stats.defeated += 1;
-  battle.stats.bounty += stats.bounty;
-  battle.events.push({ kind: "defeated", tick: battle.tick, alienId: alien.id, type: alien.type, bounty: stats.bounty, at });
-  if (alien.cargo.length === 0) return;
-  const depth = alien.depth + 1;
+function queueRelease(battle: Battle, parent: AlienState, releases: readonly ReleaseSpec[]): void {
+  if (releases.length === 0) return;
+  const depth = parent.depth + 1;
   // parseRuleset and parsePlanet refuse any release list that could go deeper (C6.3), so this never throws.
-  if (depth > battle.config.caps.maxDescendantDepth) throw new Error(`battle: alien ${alien.id} would release generation ${depth}`);
+  if (depth > battle.config.caps.maxDescendantDepth) throw new Error(`battle: alien ${parent.id} would release generation ${depth}`);
   battle.releases.push({
-    parentId: alien.id,
-    progress: alien.progress,
+    parentId: parent.id,
+    progress: parent.progress,
     depth,
-    types: alien.cargo.flatMap((r) => Array.from({ length: r.count }, () => r.type)),
+    types: releases.flatMap((r) => Array.from({ length: r.count }, () => r.type)),
     released: 0,
     nextTick: battle.tick + 1,
   });
 }
 
 /**
+ * A defeated alien: its bounty is paid once (C6.1), and a carrier, splitter or boss queues what it releases on defeat
+ * at its route progress (C6.3; a boss's onDefeatRelease, C7).
+ */
+function defeat(battle: Battle, alien: AlienState, stats: AlienStats, at: Point): void {
+  battle.credits += stats.bounty;
+  battle.stats.defeated += 1;
+  battle.stats.bounty += stats.bounty;
+  battle.events.push({ kind: "defeated", tick: battle.tick, alienId: alien.id, type: alien.type, bounty: stats.bounty, at });
+  queueRelease(battle, alien, alien.cargo);
+}
+
+/**
+ * A boss enters `phase` (C7), the moment the damage that took it there lands. In order: the phase's armour and speed
+ * replace the last phase's (armour is read from the phase in hit(); a slow on the boss keeps working on the new
+ * speed); its own bubble layers are set; every other live non-boss alien whose point is within the gift radius of
+ * the boss's point is raised to at least the gift's layers, in id order; and its release is queued where it stands.
+ */
+function enterBossPhase(battle: Battle, boss: AlienState, phase: BossPhaseStats, index: number, at: Point): void {
+  boss.phase = index;
+  boss.speed = phase.speed;
+  battle.events.push({ kind: "bossPhase", tick: battle.tick, alienId: boss.id, type: boss.type, phase: index, at });
+  if (phase.selfBubbles !== null) boss.bubbles = phase.selfBubbles;
+  const gift = phase.giveBubbles;
+  if (gift !== null) {
+    for (const other of battle.aliens) {
+      if (other === boss || other.hp <= 0 || other.bubbles >= gift.layers || bossOf(battle, other) !== null) continue;
+      if (!withinRange(routePoint(battle.config.route, other.progress), at.x, at.y, gift.radiusSq)) continue;
+      other.bubbles = gift.layers;
+      battle.events.push({ kind: "bubbleGift", tick: battle.tick, bossId: boss.id, alienId: other.id, layers: gift.layers });
+    }
+  }
+  queueRelease(battle, boss, phase.release);
+}
+
+/**
+ * After damage lands on a boss: every phase its health has now reached and it has not yet entered begins, in order
+ * (C7: "if one hit crosses two thresholds, both phases' actions run in order"). bossPhaseAt is a pure function of
+ * health; a phase never ends once begun, so a boss a Patchling healed stays in its phase.
+ */
+function advanceBossPhase(battle: Battle, alien: AlienState, boss: BossStats, at: Point): void {
+  const reached = bossPhaseAt(boss, alien.hp, alien.maxHp);
+  for (let index = alien.phase + 1; index <= reached; index += 1) {
+    const phase = boss.phases[index];
+    if (phase !== undefined) enterBossPhase(battle, alien, phase, index, at);
+  }
+}
+
+/**
  * One hit on one alien, in the C2.2 order (base damage and Sol's buff are already in `damage`): a blast on a flying
  * alien is halved, rounded up -> a bubble layer, if one is left, absorbs the whole hit and pops -> armour takes its
- * share, at least 1 landing -> health (never below 0). Returns true if the hit defeated it.
+ * share, at least 1 landing (a boss's armour is its phase's) -> health (never below 0) -> a boss enters every phase
+ * its health has reached, before the defeat check (C7, C2.3 step 4). Returns true if the hit defeated it.
  */
 function hit(battle: Battle, tower: Tower, alien: AlienState, damage: number, at: Point, blast: boolean): boolean {
   const stats = alienStatsOf(battle.config, alien.type);
@@ -720,10 +805,12 @@ function hit(battle: Battle, tower: Tower, alien: AlienState, damage: number, at
     battle.events.push({ kind: "popped", tick: battle.tick, padId: tower.padId, alienId: alien.id, layersLeft: alien.bubbles });
     return false;
   }
-  const dealt = Math.min(armouredDamage(afterFlying, stats.armour), alien.hp);
+  const armour = stats.boss?.phases[alien.phase]?.armour ?? stats.armour;
+  const dealt = Math.min(armouredDamage(afterFlying, armour), alien.hp);
   alien.hp -= dealt;
   battle.stats.damage += dealt;
   battle.events.push({ kind: "shot", tick: battle.tick, padId: tower.padId, alienId: alien.id, damage: dealt });
+  if (stats.boss !== null) advanceBossPhase(battle, alien, stats.boss, at);
   if (alien.hp > 0) return false;
   defeat(battle, alien, stats, at);
   return true;
@@ -806,8 +893,9 @@ export function step(battle: Battle): void {
     if (anyDefeated) battle.aliens = battle.aliens.filter((a) => a.hp > 0);
   }
 
-  // 5. Movement in id order; leaks come off the shield first, then health (C4). A carrier or splitter that leaks
-  //    applies its own leak damage and releases nothing (C6.3): only defeat() queues releases. A slowed alien moves
+  // 5. Movement in id order; leaks come off the shield first, then health (C4). A carrier, splitter or boss that leaks
+  //    applies its own leak damage and releases nothing more (C6.3, C7): only defeat() and a boss phase queue
+  //    releases, and what a boss phase queued before it leaked still comes out. A slowed alien moves
   //    floor(speed x (100 - slow%) / 100) units this tick (under one unit, 1/60,000 of a tile, is dropped), and the
   //    tick counts off its slow.
   if (battle.aliens.length > 0) {
@@ -845,7 +933,7 @@ export function step(battle: Battle): void {
     // C6.3 (AC-10): complete only when the schedule is exhausted, no release is queued and no alien is active.
     battle.status = "CLEARED";
     battle.queue = [];
-    repairOnClear(battle, tick);
+    repairOnClear(battle, plan, tick);
   }
 }
 

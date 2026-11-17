@@ -424,7 +424,7 @@ describe("what each class does when it fires (C5.2), as far as Phase 24 goes", (
   // Pad p04 is at (6, 5). The route runs down x = 4 from (4, 2) to (4, 8): route progress 4 + (y - 2) tiles there.
   const at = (y: number): number => Math.round((4 + (y - 2)) * UNITS_PER_TILE);
   function alien(id: number, y: number): AlienState {
-    return { id, type: "blob", hp: 24, maxHp: 24, progress: at(y), speed: 1000, slowPct: 0, slowTicksLeft: 0, look: 0, bubbles: 0, depth: 0, cargo: [] };
+    return { id, type: "blob", hp: 24, maxHp: 24, progress: at(y), speed: 1000, slowPct: 0, slowTicksLeft: 0, look: 0, bubbles: 0, depth: 0, cargo: [], phase: 0 };
   }
   /**
    * One tick with these aliens on the route and one astronaut on p04, aiming with `mode` (default: the class's default

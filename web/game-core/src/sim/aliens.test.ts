@@ -89,6 +89,7 @@ function alien(id: number, type: string, y: number, more: Partial<AlienState> = 
     bubbles: s.bubbles,
     depth: 0,
     cargo: s.children,
+    phase: 0,
     ...more,
   };
 }

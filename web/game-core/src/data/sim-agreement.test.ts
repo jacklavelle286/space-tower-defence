@@ -1,6 +1,6 @@
 // Every number in game-data/ agrees with the balance simulator (tools/sim/game_data.json, the C17 evidence): the
-// rulesets r1 (Nova only), r2 (the six-class roster, Phase 24) and r3 (the alien catalogue, Phase 26), and the planet
-// document. Prices, cumulative costs
+// rulesets r1 (Nova only), r2 (the six-class roster, Phase 24) and r3 (the alien catalogue, Phase 26, and the bosses,
+// Phase 27), and the planet document. Prices, cumulative costs
 // and sell refunds equal the simulator's own C5.2 roster table, and the bounds file's maxBounty equals its "Total
 // bounty available" column (C8.2); both tables are tools/sim/tables.json, written by the Python model.
 // Where game-data/ renames something, the mapping is stated here: pad IDs are lower case (C3.2), and the
@@ -153,9 +153,10 @@ describe("ruleset r3 is the whole alien catalogue (Phase 26, M2-03)", () => {
     expect(ruleset3.mechanics).toBe(3);
   });
 
-  it("changes nothing r2 had except the aliens", () => {
-    const { aliens: a2, version: _v2, mechanics: _m2, ...rest2 } = ruleset2;
-    const { aliens: a3, version: _v3, mechanics: _m3, ...rest3 } = ruleset3;
+  it("changes nothing r2 had except the aliens (and adds the bosses, Phase 27)", () => {
+    const { aliens: a2, version: _v2, mechanics: _m2, bosses: b2, ...rest2 } = ruleset2;
+    const { aliens: a3, version: _v3, mechanics: _m3, bosses: _b3, ...rest3 } = ruleset3;
+    expect(b2).toEqual({});
     expect(rest3).toEqual(rest2);
     expect(a3["blob"]).toEqual(a2["blob"]);
   });
@@ -181,9 +182,9 @@ describe("ruleset r3 is the whole alien catalogue (Phase 26, M2-03)", () => {
     expect(alienBounty(ruleset3, "craft", [{ type: "mite", count: 6 }])).toBe(6 + 6 * 2); // wave 38's cargo
   });
 
-  it("every non-boss campaign wave's bounty, cargo included, equals the simulator's 'Total bounty available' (C8.2)", () => {
-    // The simulator's 45 non-boss waves as authored waves (the five boss waves wait for Phase 27). waveBounty is what
-    // the bounds file's maxBounty uses, so this also checks the server's bound for every alien, carrier and cargo.
+  it("every campaign wave's bounty, cargo and bosses included, equals the simulator's 'Total bounty available' (C8.2)", () => {
+    // The simulator's 50 waves as authored waves (Phase 27 added the five boss waves). waveBounty is what the bounds
+    // file's maxBounty uses, so this also checks the server's bound for every alien, carrier, cargo and boss.
     const table: string = simTables.tables.waves;
     const header = table.split("\n")[0]?.split("|").map((c) => c.trim()) ?? [];
     const col = header.indexOf("Total bounty available");
@@ -196,8 +197,9 @@ describe("ruleset r3 is the whole alien catalogue (Phase 26, M2-03)", () => {
           return [Number(cells[1]), Number(cells[col])];
         }),
     );
-    const waves: Loose[] = sim.waves.filter((w: Loose) => w.boss === null);
-    expect(waves).toHaveLength(45);
+    const waves: Loose[] = sim.waves;
+    expect(waves).toHaveLength(50);
+    expect(waves.filter((w) => w.boss !== null).map((w) => w.wave)).toEqual([10, 20, 30, 40, 50]);
     expect(waves.some((w) => w.groups.some((g: Loose) => g.cargo !== undefined))).toBe(true);
     for (const w of waves) {
       const wave: AuthoredWave = { wave: w.wave, groups: w.groups, hpMult: w.hpMult, speedMult: w.speedMult };
@@ -230,6 +232,71 @@ describe("ruleset r3 is the whole alien catalogue (Phase 26, M2-03)", () => {
       "armour: max(1, damage - armour)",
       "health",
     ]);
+  });
+});
+
+describe("ruleset r3's bosses are the simulator's (Phase 27, M2-04, C7)", () => {
+  it("the same five bosses, every number, every phase and action; the simulator's prose and duplicates left out", () => {
+    expect(Object.keys(ruleset3.bosses)).toEqual(Object.keys(sim.bosses).sort());
+    expect(Object.keys(ruleset3.bosses)).toEqual(["boss1", "boss2", "boss3", "boss4", "boss5"]);
+    for (const [id, boss] of Object.entries(ruleset3.bosses)) {
+      const s = sim.bosses[id];
+      // The simulator's top-level armour and bubbles repeat its first phase's (Game._spawn reads the phase); `wave`
+      // is where the campaign puts the boss, which is planet data (C8), not ruleset data.
+      expect(s.armour, id).toBe(s.phases[0].armour);
+      expect(s.bubbles, id).toBe(s.phases[0].onEnter?.selfBubbles ?? 0);
+      expect(boss, id).toEqual({
+        name: s.name,
+        hp: s.hp,
+        speed: s.speed,
+        leak: s.leak,
+        bounty: s.bounty,
+        slowFactorPct: Math.round(s.bossSlowFactor * 100),
+        phases: s.phases.map(({ cue: _cue, ...phase }: Loose) => phase),
+        ...(s.onDefeatRelease === undefined ? {} : { onDefeatRelease: s.onDefeatRelease }),
+      });
+    }
+  });
+
+  it("the C7 tables, as C states them (initial playtest settings, C17.7)", () => {
+    const b = (id: string) => ruleset3.bosses[id];
+    expect(["boss1", "boss2", "boss3", "boss4", "boss5"].map((id) => [b(id)?.name, b(id)?.hp, b(id)?.speed, b(id)?.leak, b(id)?.bounty])).toEqual([
+      ["King Wobble", 450, 0.5, 8, 50],
+      ["Captain Clank", 1000, 0.45, 10, 75],
+      ["Queen Bubbla", 2200, 0.45, 12, 100],
+      ["The Mothership", 2300, 0.4, 14, 125],
+      ["The Great Glorp", 3600, 0.4, 20, 150],
+    ]);
+    expect(b("boss2")?.phases.map((p) => [p.fromPct, p.armour, p.speedFactor])).toEqual([
+      [100, 5, 1],
+      [60, 2, 1.15],
+      [25, 0, 1.4],
+    ]);
+    expect(b("boss3")?.phases[1]?.onEnter).toEqual({ selfBubbles: 8, giveBubbles: { layers: 1, radius: 2 } });
+    expect(b("boss4")?.onDefeatRelease).toEqual([{ type: "blob", count: 4 }]);
+    expect(b("boss5")?.phases[2]?.onEnter?.release).toEqual([
+      { type: "slime", count: 2 },
+      { type: "mite", count: 4 },
+    ]);
+  });
+
+  it("slows on bosses: the simulator's half strength (combatRules.slow.bossSlowFactor and every boss's own)", () => {
+    expect(sim.combatRules.slow.bossSlowFactor).toBe(0.5);
+    for (const boss of Object.values(ruleset3.bosses)) expect(boss.slowFactorPct).toBe(50);
+  });
+
+  it("a boss is worth its bounty plus every release (sim.py Game._type_bounty): the Great Glorp 150 + 6 + 2 x 5 + 4 x 2", () => {
+    expect(alienBounty(ruleset3, "boss1")).toBe(50);
+    expect(alienBounty(ruleset3, "boss4")).toBe(125 + 4 * 2 + 4 * 3 + 2 * 5 + 4 * 4);
+    expect(alienBounty(ruleset3, "boss5")).toBe(150 + 6 * 1 + 2 * (3 + 2 * 1) + 4 * 2);
+  });
+
+  it("the simulator's phase test is C7's: a phase begins when health x 100 <= fromPct x maximum (sim.py Game._boss_phase)", () => {
+    const simSource = readFileSync(join(SIM_DIR, "sim.py"), "utf8");
+    expect(simSource).toContain('a.hp * 100 <= ph[a.phase + 1]["fromPct"] * a.maxhp');
+    // Health and speed are the boss's own, not scaled by the wave (Game._spawn).
+    expect(simSource).toContain('a.maxhp = int(wd.get("bossHp") or b["hp"])');
+    expect(simSource).toContain('a.speed = b["speed"] * b["phases"][0]["speedFactor"]');
   });
 });
 
