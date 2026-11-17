@@ -85,6 +85,8 @@ export interface LevelStats {
 export interface ClassStats {
   readonly id: string;
   readonly name: string;
+  /** "Frost Explorer": display only (the shop card's title, D4); the simulation never reads it. */
+  readonly role: string;
   readonly attack: AttackKind;
   /** Placeable while preparing wave unlockAfterWave + 1 and later, in a CAMPAIGN wave set (C5.9). */
   readonly unlockAfterWave: number;
@@ -444,6 +446,7 @@ export function compileBattleConfig(ruleset: Ruleset, planet: PlanetDocument, wa
     classes[id] = {
       id,
       name: c.name,
+      role: c.role,
       attack: c.attack,
       unlockAfterWave: c.unlockAfterWave,
       deployCap: c.deployCap,
