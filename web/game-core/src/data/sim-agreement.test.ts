@@ -541,6 +541,9 @@ describe("planet document luna-1-c2: the 50-wave campaign (Phase 50, M4-01; C8.2
     expect(bounds.waveSets["campaign"]?.createRunActions).toBeLessThanOrEqual(100);
     expect(bounds.waveSets["campaign"]?.maxBounty).toHaveLength(50);
     expect(bounds.waveSets["campaign"]?.normalRewardByInterval).toHaveLength(49);
+    // Phase 51: CREATE_RUN prices meteor slots from the data; an r1 file has no rotation (and keeps its bytes).
+    expect(bounds.powerAwardRotation).toEqual(["frost-pulse", "comet-burst", "colony-shield"]);
+    expect(buildBounds(ruleset, planet).powerAwardRotation).toBeUndefined();
   });
 
   it("a new campaign run has 49 normal and 5 meteor slots; meteors award the powers in rotation (C9.2, C10)", () => {

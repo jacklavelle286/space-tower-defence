@@ -67,7 +67,6 @@ from shared.selection.draws import draw, shuffle
 
 ALGORITHM_VERSION = 1
 PARAM_DRAWS = 16  # seeded tries for a template instance before walking the domain [ASSUMPTION]
-POWER_ROTATION = ("frost-pulse", "comet-burst", "colony-shield")  # C10 award mapping, by meteor number
 
 
 class BankNotReady(Exception):
@@ -153,12 +152,19 @@ class SlotPlan:
     resolved: dict[str, Any] | None = None  # a materialised template instance (C25.1); None for a FIXED activity
 
 
-def slot_specs(final_wave: int, meteor_after: Sequence[int], normal_rewards: Sequence[int]) -> list[SlotSpec]:
+def slot_specs(
+    final_wave: int,
+    meteor_after: Sequence[int],
+    normal_rewards: Sequence[int],
+    award_rotation: Sequence[str] = (),
+) -> list[SlotSpec]:
     """Every slot of an authored wave set, in play order, with its rotation subject and pinned reward.
 
     `normal_rewards[k - 1]` is the credits for `N-k` (the bounds file's `normalRewardByInterval`, which the build
-    script takes from the ruleset by interval, C9.2). Meteor j pays one charge of POWER_ROTATION[(j - 1) mod 3].
-    """
+    script takes from the ruleset by interval, C9.2). Meteor j pays one charge of `award_rotation[(j - 1) mod len]`
+    (the bounds file's `powerAwardRotation`, the ruleset's C10 rotation; Phase 51). Without a rotation a meteor spec
+    carries no powerId: fine for counting demand (eligibility, bank status), never for a run, so CREATE_RUN refuses
+    a wave set with meteors and no rotation before it gets here."""
     specs = [
         SlotSpec(
             slot_id=slot_id_for("NORMAL", k),
@@ -176,7 +182,11 @@ def slot_specs(final_wave: int, meteor_after: Sequence[int], normal_rewards: Seq
                 kind="METEOR",
                 interval=interval,
                 subject=SUBJECTS[(j - 1) % 3],
-                reward={"credits": 0, "powerId": POWER_ROTATION[(j - 1) % 3]},
+                reward=(
+                    {"credits": 0, "powerId": award_rotation[(j - 1) % len(award_rotation)]}
+                    if award_rotation
+                    else {"credits": 0}
+                ),
             )
         )
     specs.sort(key=lambda spec: (spec.interval, spec.kind != "NORMAL"))

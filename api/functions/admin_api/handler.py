@@ -1083,7 +1083,8 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
                     if ws is None:
                         continue  # not playable: POST /api/runs refuses it before selection
                     rewards = list(ws["normalRewardByInterval"])
-                    specs = slot_specs(int(ws["finalWave"]), list(ws["meteorAfter"]), rewards)
+                    rotation = list(bounds.get("powerAwardRotation", []))
+                    specs = slot_specs(int(ws["finalWave"]), list(ws["meteorAfter"]), rewards, rotation)
                     released.append((wave_set.wave_set_id, specs))
         except (GameDataUnavailable, BoundsUnavailable):
             return None

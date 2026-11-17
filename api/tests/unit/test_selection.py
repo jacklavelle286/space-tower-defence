@@ -91,8 +91,11 @@ def test_play_order_puts_the_normal_slot_before_the_meteor() -> None:
     assert [s.slot_id for s in specs][8:10] == ["N-009", "M-009"]
 
 
+ROTATION = ["frost-pulse", "comet-burst", "colony-shield"]  # r3's powerRules.awardRotation, via the bounds file
+
+
 def test_rewards_come_from_the_interval_and_the_meteor_number_never_from_content() -> None:
-    specs = slot_specs(50, [9, 19, 29, 39, 49], CAMPAIGN_REWARDS)
+    specs = slot_specs(50, [9, 19, 29, 39, 49], CAMPAIGN_REWARDS, ROTATION)
     by_id = {s.slot_id: s.reward for s in specs}
     assert by_id["N-001"] == {"credits": 30} and by_id["N-010"] == {"credits": 40} and by_id["N-049"] == {"credits": 75}
     assert [by_id[f"M-0{n}9"]["powerId"] for n in range(5)] == [
@@ -396,3 +399,11 @@ def test_spells_answer_finds_a_run_anywhere_in_the_row() -> None:
     assert not spells_answer(["t", "a", "c", "o"], "LETTERS", ["cat"])
     assert spells_answer(["1", "2"], "SEQUENCE", ["1,2"])
     assert not spells_answer(["2", "1"], "SEQUENCE", ["1,2"])
+
+
+def test_the_meteor_award_follows_the_data_rotation_and_none_without_one() -> None:
+    """Phase 51: the rotation comes from the bounds file (the ruleset), not from code."""
+    specs = slot_specs(20, [9, 19], [30] * 19, ["colony-shield"])
+    assert [s.reward for s in specs if s.kind == "METEOR"] == [{"credits": 0, "powerId": "colony-shield"}] * 2
+    no_rotation = slot_specs(20, [9, 19], [30] * 19)  # demand counting only (eligibility, bank status)
+    assert [s.reward for s in no_rotation if s.kind == "METEOR"] == [{"credits": 0}] * 2

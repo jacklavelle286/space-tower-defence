@@ -408,6 +408,12 @@ export interface Bounds {
   mechanics: number;
   colony: { maxHealth: number; shieldCap: number };
   powerInventoryCap: number;
+  /**
+   * The power the j-th meteor challenge of a run awards, round and round (C10 award rotation; Phase 51). Only in a
+   * bounds file for a ruleset with powers, so earlier files (r1) keep their published bytes. CREATE_RUN prices
+   * meteor slots from it.
+   */
+  powerAwardRotation?: string[];
   sell: { refundPct: number; roundDownTo: number };
   /** targeting: the modes a placement of this class may store (spine S6 rule 4, "targeting valid"; placementTargetings:
    *  only FRONT for a class that does not aim). targetingFromLevel (Phase 30, M2-07): the level a mode opens at, only
@@ -1297,6 +1303,7 @@ export function buildBounds(ruleset: Ruleset, planet: PlanetDocument): Bounds {
     mechanics: ruleset.mechanics,
     colony: { maxHealth: ruleset.colony.maxHealth, shieldCap: ruleset.colony.shieldCap },
     powerInventoryCap: ruleset.powerRules.inventoryCapPerPower,
+    ...((ruleset.powerRules.awardRotation?.length ?? 0) > 0 ? { powerAwardRotation: [...(ruleset.powerRules.awardRotation ?? [])] } : {}),
     sell: { ...ruleset.sell },
     classes,
     pads,

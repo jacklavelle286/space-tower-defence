@@ -89,7 +89,12 @@ def _obj(value: Any, where: str, keys: frozenset[str] | None = None) -> Mapping[
 
 def parse_bounds(data: Any, ruleset_version: str, campaign_version: str) -> dict[str, Any]:
     """Check a decoded bounds file for the given pair and return it. Raises BoundsUnavailable on any problem."""
-    top = _obj(data, "bounds", _TOP_KEYS)
+    top = _obj(data, "bounds")
+    if not _TOP_KEYS <= set(top) <= {*_TOP_KEYS, "powerAwardRotation"}:
+        raise BoundsUnavailable(f"bounds keys {sorted(top)} are not {sorted(_TOP_KEYS)} (+ powerAwardRotation)")
+    rotation = top.get("powerAwardRotation", [])
+    if not isinstance(rotation, list) or not all(isinstance(p, str) and KEY_ID.match(p) for p in rotation):
+        raise BoundsUnavailable("bounds.powerAwardRotation must be a list of power IDs (Phase 51)")
     if top["kind"] != "bounds":
         raise BoundsUnavailable(f"bounds.kind is {top['kind']!r}, expected 'bounds'")
     if (top["rulesetVersion"], top["campaignVersion"]) != (ruleset_version, campaign_version):

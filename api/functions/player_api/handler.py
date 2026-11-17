@@ -496,10 +496,16 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         if statuses.count("IN_PROGRESS") >= IN_PROGRESS_CAP:  # the soft cap, from the G1 Query
             raise ApiError("RUN_LIMIT_REACHED", "Too many games in progress")
 
+        # A wave set with meteor challenges is playable only with the ruleset's power rotation (C10; Phase 51).
+        if ws_bounds["meteorAfter"] and not bounds.get("powerAwardRotation"):
+            raise ApiError("CONTENT_VERSION_UNSUPPORTED")
         # Selection (C24): pinned once, here; a replay never re-selects.
         seed = deps.seed()
         specs = slot_specs(
-            int(ws_bounds["finalWave"]), list(ws_bounds["meteorAfter"]), list(ws_bounds["normalRewardByInterval"])
+            int(ws_bounds["finalWave"]),
+            list(ws_bounds["meteorAfter"]),
+            list(ws_bounds["normalRewardByInterval"]),
+            list(bounds.get("powerAwardRotation", [])),
         )
         content = deps.content()
         try:

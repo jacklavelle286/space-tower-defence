@@ -85,8 +85,11 @@ def test_bounds_are_cached_per_container(site: Any) -> None:
 def test_a_missing_bounds_file_is_unavailable_and_not_cached(site: Any) -> None:
     with pytest.raises(BoundsUnavailable, match="NoSuchKey"):
         load_bounds(RULESET, "luna-1-c9")
-    site.put_object(Bucket=BUCKET, Key=bounds_key(RULESET, "luna-1-c9"),
-                    Body=FIXTURE.read_text().replace(f'"{CAMPAIGN}"', '"luna-1-c9"'))
+    site.put_object(
+        Bucket=BUCKET,
+        Key=bounds_key(RULESET, "luna-1-c9"),
+        Body=FIXTURE.read_text().replace(f'"{CAMPAIGN}"', '"luna-1-c9"'),
+    )
     assert load_bounds(RULESET, "luna-1-c9")["campaignVersion"] == "luna-1-c9"
 
 
@@ -137,8 +140,12 @@ def _set(data: dict[str, Any]) -> dict[str, Any]:
         (lambda d: d["classes"]["nova"].pop("targeting"), "keys"),
         (lambda d: _set(d).update(maxBounty=[24]), "maxBounty must have finalWave"),
         (lambda d: _set(d).update(createRunActions=5), "createRunActions must be 4"),
-        (lambda d: _set(d).update(finalWave=99, maxBounty=[1] * 99, normalRewardByInterval=[1] * 98,
-                                  meteorAfter=[1], createRunActions=101), "at most 100"),
+        (
+            lambda d: _set(d).update(
+                finalWave=99, maxBounty=[1] * 99, normalRewardByInterval=[1] * 98, meteorAfter=[1], createRunActions=101
+            ),
+            "at most 100",
+        ),
         (lambda d: _set(d).update(classes=["pip"]), "classes must name classes"),
         (lambda d: _set(d).update(mode="ENDLESS"), "mode"),
     ],
@@ -162,3 +169,14 @@ def test_patterns_and_limits_come_from_the_limits_file() -> None:
     assert VERSION.match("r1") and VERSION.match("luna-1-c1") and not VERSION.match("r1\n")
     assert not VERSION.match("a_b") and not VERSION.match("x" * 41)
     assert KEY_ID.match("nova") and not KEY_ID.match("v1.2")
+
+
+def test_a_power_award_rotation_is_accepted_and_checked() -> None:
+    """Phase 51: bounds files of rulesets with powers carry the C10 rotation; CREATE_RUN prices meteor slots from it."""
+    data = json.loads(FIXTURE.read_text())
+    assert "powerAwardRotation" not in data  # r1 has no powers: its published bytes are unchanged
+    with_rotation = {**data, "powerAwardRotation": ["frost-pulse", "comet-burst", "colony-shield"]}
+    assert parse_bounds(with_rotation, RULESET, CAMPAIGN)["powerAwardRotation"][1] == "comet-burst"
+    for bad in (["Frost Pulse"], "frost-pulse", [1]):
+        with pytest.raises(BoundsUnavailable, match="powerAwardRotation"):
+            parse_bounds({**data, "powerAwardRotation": bad}, RULESET, CAMPAIGN)
