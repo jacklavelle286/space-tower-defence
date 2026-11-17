@@ -1,5 +1,5 @@
 // Public entry point of the pure rules package: the fixed-timestep clock (Phase 10), the rules (Phase 11), the game
-// data parsers (Phase 13) and the battle simulation (Phase 14).
+// data parsers (Phase 13), the battle simulation (Phase 14), the test players and the map rules (Gate M, LD0-LD1).
 
 export {
   advanceClock,
@@ -20,6 +20,7 @@ export * from "./rules";
 export {
   alienBounty,
   ATTACK_KINDS,
+  buildBounds,
   GameDataError,
   isBoss,
   learningReward,
@@ -53,3 +54,4 @@ export {
 
 export * from "./sim";
 export * from "./bot";
+export * from "./map";

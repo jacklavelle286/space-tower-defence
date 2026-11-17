@@ -2127,8 +2127,9 @@ Gate M has no J tasks: J was written before the owner added the gate. Each entry
 What changed since the scope was written (2026-11-16), checked on 2026-11-17 **[VERIFIED in the repo]**:
 - Phase 50 wrote the 50 campaign waves; the live pair is `r4` + `luna-1-c2` (campaign, three challenges, endless). "Copy
   Moonbeam" therefore copies a full campaign, not two waves.
-- Bosses (Phase 27) and endless (Phase 54) exist, so the "bosses only on 10/20/30/40/50" rule is hard from LD1, and the
-  "editing waves 41–49 changes endless" warning applies from LD4.
+- Bosses (Phase 27) and endless (Phase 54) exist, so the "bosses only on 10/20/30/40/50" rule applies from LD1 (as a
+  publishing block: the simulation can play a boss on any wave), and the "editing waves 41–49 changes endless" warning
+  applies from LD4.
 - Pads already open in stages during a campaign (`padOpen`, Phase 50), so the designer's "Opens after wave" field has a
   consumer.
 

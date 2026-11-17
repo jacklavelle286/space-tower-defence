@@ -12,7 +12,8 @@ import type { Battle, Command } from "../sim/battle";
 import { checkCommand, classAvailability, giveCommand } from "../sim/battle";
 import { padOpen, sellRefund, type BattleConfig, type ClassStats, type PadInfo } from "../sim/config";
 import { nextRandom } from "../sim/rng";
-import { MOONBEAM_BLUEPRINT, padReach, type Blueprint } from "./board";
+import { padReach } from "../map/coverage";
+import { MOONBEAM_BLUEPRINT, type Blueprint } from "./board";
 import type { Policy, WaveOutcome } from "./runner";
 import { runTrial } from "./trial";
 

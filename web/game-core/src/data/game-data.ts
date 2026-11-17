@@ -9,8 +9,10 @@
 // The game-data build gate G-15 (spine S5.1, H.10) lives in parsePlanet: a wave set whose create-run transaction
 // would need more than 100 DynamoDB actions is refused.
 //
-// This module imports nothing, so Node can run web/game-core/scripts/build-bounds.ts directly (type stripping) and
-// it stays as pure as the rest of game-core.
+// This module imports only src/map/ and src/sim/route.ts (Gate M, LD1: the hard map rules), each with an explicit
+// .ts extension, so Node can run web/game-core/scripts/build-bounds.ts directly (type stripping) and it stays as pure
+// as the rest of game-core.
+import { hardMapProblems, problemMessage } from "../map/rules.ts";
 
 /**
  * The mechanics numbers this game-core can run (spine S5.1). Support is additive forever: never remove one.
@@ -35,6 +37,7 @@
  *   `powerRules` (uses per wave, the shared lockout, the meteor award rotation). Mechanics 1 and 2 refuse `powers`: their
  *   simulation has no usePower command (ADR-0034, amended again).
  */
+
 export const SUPPORTED_MECHANICS: readonly number[] = [1, 2, 3, 4];
 
 /**
@@ -1285,6 +1288,10 @@ export function parsePlanet(raw: unknown, ruleset: Ruleset): PlanetDocument {
     "planet.map.pads (tiles)",
   );
   if (!pads.some((p) => p.opensAfterWave === 0)) fail("planet.map.pads", "at least one pad must be open from the start");
+  // Gate M (LD1): the map rules the renderer and simulation need (tier 1 route art, grid, no crossing, no pad on the
+  // route); the softer design rules are planetProblems' (src/map/rules.ts), checked by the editor and the publisher.
+  const mapProblem = hardMapProblems({ grid: { cols, rows }, route, pads })[0];
+  if (mapProblem !== undefined) fail(mapProblem.field, problemMessage(mapProblem));
 
   const waves = arr(top["waves"], "planet.waves", 1).map((v, i) => {
     const p = `planet.waves[${i}]`;

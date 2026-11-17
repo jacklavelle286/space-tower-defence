@@ -4,10 +4,7 @@
     // No "DOM" in lib and no Node types: window, document, setTimeout, performance, process and
     // friends do not type-check in the rules code. Tests are checked by tsconfig.test.json.
     "lib": ["ES2023"],
-    "types": [],
-    // scripts/build-bounds.ts imports src/data/game-data.ts with its extension so Node 24 can run it directly
-    // (type stripping does not resolve extensionless imports). Allowed because nothing here emits JavaScript.
-    "allowImportingTsExtensions": true
+    "types": []
   },
   "include": ["src"],
   "exclude": ["src/**/*.test.ts"]

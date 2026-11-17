@@ -18,7 +18,8 @@
 // published must never change (add a new version instead). The bounds file is generated here and never hand-edited.
 // Only the pair named by current.json gets a bounds file; earlier pairs keep the files earlier releases published.
 //
-// It imports only node: modules and src/data/game-data.ts (which imports nothing), so Node 24 runs it directly.
+// It imports only node: modules and src/data/game-data.ts (which imports src/map/ and src/sim/route.ts with explicit
+// .ts extensions), so Node 24 runs it directly.
 import { mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { argv, exit } from "node:process";

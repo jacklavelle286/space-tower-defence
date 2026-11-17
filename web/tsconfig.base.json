@@ -13,6 +13,9 @@
     "isolatedModules": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "noEmit": true
+    "noEmit": true,
+    // game-core/src/data/game-data.ts and src/map/ import with .ts extensions so Node 24 runs
+    // game-core/scripts/build-bounds.ts directly (type stripping has no resolver); allowed because nothing emits.
+    "allowImportingTsExtensions": true
   }
 }
