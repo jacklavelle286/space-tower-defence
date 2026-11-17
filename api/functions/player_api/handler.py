@@ -5,7 +5,8 @@ Phase 16 adds runs and the session lease (G §4, §7): `POST /api/runs`, `GET /a
 `GET /api/runs/{runId}/pack`, `PUT` and `DELETE /api/session`. Phase 17 adds the ops batch (G §5):
 `POST /api/runs/{runId}/ops`, applied by shared/ops.py. Phase 29 adds `POST /api/runs/{runId}/endless` (G §6): the
 same pipeline for exactly one CHOOSE_ENDLESS (endless slot planning arrives with endless content, Phase 54). Phase 32
-adds `GET /api/runs` (G §4 R7, shared/runlist.py) and the G9 prune after an op ends a run (shared/prune.py). The other
+adds `GET /api/runs` (G §4 R7, shared/runlist.py) and the G9 prune after an op ends a run (shared/prune.py). Phase 43
+adds `GET /api/me/progress` (G §3 R2): the learning summaries the resolving transactions keep. The other
 catalogued routes still answer 501 NOT_IMPLEMENTED until their phase adds a handler.
 
 The date of birth is write-only (spine S2): it enters in PUT/PATCH, is stored as PROFILE.dob, and is read back only to
@@ -117,6 +118,7 @@ UUID = re.compile(LIMITS["ids"]["uuid"].removesuffix("$") + r"\Z")  # Python's $
 DEVICE_LABEL_MAX: int = LIMITS["deviceLabelMaxLength"]
 INTEGER_MAX: int = LIMITS["integerMax"]
 IN_PROGRESS_CAP: int = LIMITS["inProgressRunsSoftCap"]
+SUMMARY_PREFIX = "SUM#"  # SUM#<subject>#<topicId> (spine S8.1, F §10.2)
 ATTEMPTS = 3  # tries for a write that meets a transaction conflict, throttling or a raced lease, then 503 THROTTLED
 CCF = "ConditionalCheckFailed"  # a cancellation reason's code (the single-item error adds "Exception")
 _CONTROL = re.compile(r"[\x00-\x1f\x7f]")
@@ -771,6 +773,39 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         pk = _pk(request)
         return json_response(200, _me_view(deps, table, pk, _profile_or_404(table, pk), session_id))
 
+    def get_progress(request: Request) -> dict[str, Any]:
+        """R2: one summary per topic the child has resolved an activity in (counts only: no answers, attempt numbers or
+        age band), plus planets and badges as in R1. The counters are written in the resolving op's transaction
+        (shared/ops.py summary_update), so a replay or a VOID/DECLINED slot never moves them."""
+        table = deps.game()
+        pk = _pk(request)
+        profile = _profile_or_404(table, pk)
+        summaries = []
+        for item in table.query_prefix(pk, SUMMARY_PREFIX):
+            parts = str(item.get("sk")).split("#")
+            if len(parts) != 3:
+                continue
+            summaries.append(
+                {
+                    "subject": parts[1],
+                    "topicId": parts[2],
+                    "completed": int(plain(item.get("completed")) or 0),
+                    "succeeded": int(plain(item.get("succeeded")) or 0),
+                    "failed": int(plain(item.get("failed")) or 0),
+                    "lastResolvedAt": item.get("lastResolvedAt"),
+                }
+            )
+        summaries.sort(key=lambda s: (s["subject"], s["topicId"]))
+        planets, badges = profile.get("planets"), profile.get("badges")
+        return json_response(
+            200,
+            {
+                "summaries": summaries,
+                "planets": plain(planets) if isinstance(planets, Mapping) else {},
+                "badges": plain(badges) if isinstance(badges, Mapping) else {},
+            },
+        )
+
     def put_profile(request: Request) -> dict[str, Any]:
         session_id = _session_id(request)
         now = deps.now()
@@ -860,6 +895,7 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
 
     handlers = {
         "GET /api/me": get_me,
+        "GET /api/me/progress": get_progress,
         "PUT /api/me/profile": put_profile,
         "PATCH /api/me/profile": patch_profile,
         "GET /api/planets": get_planets,

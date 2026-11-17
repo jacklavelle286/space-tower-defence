@@ -681,6 +681,7 @@ def test_pack_marks_a_missing_version_and_an_unplayable_run(api: RunsApi, player
 def test_the_lambda_router_has_exactly_this_phases_handlers() -> None:
     assert set(player_api.ROUTER.handlers) == {
         "GET /api/me",
+        "GET /api/me/progress",  # Phase 43
         "PUT /api/me/profile",
         "PATCH /api/me/profile",
         "GET /api/planets",
