@@ -1,10 +1,10 @@
 // The battlefield's asset table matches docs/art/asset-catalogue.json (path, frames, anchor, display size) and
 // every frame it loads exists under web/player/public/. Until the asset manifest exists (Phase 64), this test is
 // what keeps the hand-written table honest.
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { allFrames, ART } from "./assets";
+import { alienArt, allFrames, ART, bubbleLayersArt, hasAlienArt } from "./assets";
 
 const REPO = join(import.meta.dirname, "..", "..", "..", "..");
 const PUBLIC = join(REPO, "web", "player", "public");
@@ -30,6 +30,27 @@ describe("battlefield art", () => {
       anchor: entry?.anchor,
       displaySize: entry?.displaySize,
     }).toEqual({ path: asset.path, frames: asset.frames, anchor: [...asset.anchor], displaySize: [...asset.displaySize] });
+  });
+
+  it("every alien in every ruleset in game-data/ has its own art (Phase 26)", () => {
+    const rulesets = readdirSync(join(REPO, "game-data", "ruleset")).map(
+      (f) => JSON.parse(readFileSync(join(REPO, "game-data", "ruleset", f), "utf8")) as { aliens: Record<string, unknown> },
+    );
+    const types = new Set(rulesets.flatMap((r) => Object.keys(r.aliens)));
+    expect(types.size).toBe(10);
+    for (const type of types) expect(hasAlienArt(type), type).toBe(true);
+    expect(alienArt("craft").defeat?.id).toBe("alien-craft-release");
+    expect(alienArt("not-yet-drawn").move.id).toBe("alien-blob-walk");
+  });
+
+  it("a Bubble Guard's overlay shows the layers it has left", () => {
+    expect([0, 1, 2, 3, 4].map((n) => bubbleLayersArt(n)?.id ?? null)).toEqual([
+      null,
+      "alien-guard-layers-1",
+      "alien-guard-layers-2",
+      "alien-guard-layers-3",
+      "alien-guard-layers-4",
+    ]);
   });
 
   it("every frame it loads is a file in public/", () => {

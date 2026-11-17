@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { loadCurrent, loadGameDataVersions, type GameData } from "../game/gameData";
 import { LocalRun } from "../game/localRun";
 import { ActivityPlaceholder, PLACEHOLDER_ANSWER } from "./ActivityPlaceholder";
+import { devWave } from "./devWave";
 import { Battlefield, WAVE_SET_ID } from "./Battlefield";
 import { useGameBridge } from "./bridgeContext";
 import { EndScreen } from "./EndScreen";
@@ -29,6 +30,8 @@ interface LocalOptions {
   readonly allClasses: boolean;
   /** Start with this many credits instead of the wave set's starting credits. */
   readonly credits: number | null;
+  /** A dev wave played first: "all" (every alien a wave may schedule) or "type:count,..." (e.g. "craft:2,slime:3"). */
+  readonly aliens: string | null;
 }
 
 /**
@@ -40,6 +43,10 @@ interface LocalOptions {
  * document), ?roster=all (the local wave set offers every class in the ruleset) and ?credits=<0..100000>. For example
  * /play/local?ruleset=r2&roster=all&credits=2000. They change only this development page: game data, current.json
  * and the real run screen are untouched.
+ *
+ * Phase 26 adds ?aliens= for trying the alien catalogue: a dev wave played before the wave set's own waves, with
+ * ?aliens=all for every alien a wave may schedule (two of each) or a list such as ?aliens=craft:2,slime:3,patch:2.
+ * For example /play/local?ruleset=r3&roster=all&credits=3000&aliens=all.
  */
 function localOptions(search: string): LocalOptions {
   const params = new URLSearchParams(search);
@@ -53,21 +60,33 @@ function localOptions(search: string): LocalOptions {
     ruleset: params.get("ruleset"),
     allClasses: params.get("roster") === "all",
     credits: Number.isInteger(credits) && credits >= 0 && credits <= 100_000 ? credits : null,
+    aliens: params.get("aliens"),
   };
 }
 
-/** The game data for the local slice: current.json's versions, or ?ruleset=, with ?roster=all applied. */
+/** The game data for the local slice: current.json's versions, or ?ruleset=, with ?roster=all and ?aliens= applied. */
 async function localGameData(options: LocalOptions): Promise<GameData> {
   const current = await loadCurrent();
   const data = await loadGameDataVersions(options.ruleset ?? current.rulesetVersion, current.campaignVersion);
-  const waveSet = data.planet.waveSets[WAVE_SET_ID];
-  if (!options.allClasses || waveSet === undefined) return data;
-  // A copy of the planet document whose local wave set lists every class, in the ruleset's unlock order. A CHALLENGE
-  // wave set ignores unlock waves (C13), so every class can be placed from wave 1.
-  const classes = Object.entries(data.ruleset.classes)
-    .sort(([, a], [, b]) => a.unlockAfterWave - b.unlockAfterWave)
-    .map(([id]) => id);
-  return { ...data, planet: { ...data.planet, waveSets: { ...data.planet.waveSets, [WAVE_SET_ID]: { ...waveSet, classes } } } };
+  let waveSet = data.planet.waveSets[WAVE_SET_ID];
+  if (waveSet === undefined) return data;
+  let waves = data.planet.waves;
+  if (options.allClasses) {
+    // The local wave set lists every class, in the ruleset's unlock order. A CHALLENGE wave set ignores unlock waves
+    // (C13), so every class can be placed from wave 1.
+    const classes = Object.entries(data.ruleset.classes)
+      .sort(([, a], [, b]) => a.unlockAfterWave - b.unlockAfterWave)
+      .map(([id]) => id);
+    waveSet = { ...waveSet, classes };
+  }
+  if (options.aliens !== null) {
+    // The dev wave is a new authored wave (numbered after the planet's own) that the local wave set plays first.
+    const dev = devWave(data.ruleset, options.aliens, Math.max(...waves.map((w) => w.wave)) + 1);
+    waves = [...waves, dev];
+    waveSet = { ...waveSet, waves: [dev.wave, ...waveSet.waves] };
+  }
+  // A copy of the planet document: the loaded data and the game-data/ files are untouched.
+  return { ...data, planet: { ...data.planet, waves, waveSets: { ...data.planet.waveSets, [WAVE_SET_ID]: waveSet } } };
 }
 
 function startingRun(data: GameData, options: LocalOptions): RunState {

@@ -5,11 +5,29 @@
 // Each frame: bridge.frame(delta) advances the simulation by whole ticks, then the scene syncs one sprite per
 // tower and per alien with the battle, and plays cosmetic effects (stars, leak puffs) for the events since the
 // last frame. Beams are drawn from the tower's last shot (tick and landing point), so they are state, not timers.
-import { routePoint, type Battle, type BattleEvent } from "@scd/game-core";
+//
+// Phase 26: every alien of C6.1 is drawn with its own art, and the traits show (a Flutter's shadow, a Bubble Guard's
+// remaining layers, a Patchling's heal ring, a Shellback's clonk, a Craft's doors opening). Alien sprites and one-shot
+// effects come from pools (pool.ts): created once, hidden when done, and reused for the next alien or effect.
+import { routePoint, type AlienState, type Battle, type BattleEvent } from "@scd/game-core";
 import { GameObjects, Scene, type Input } from "phaser";
-import { allFrames, ART, ASTRONAUT_LOOPED, ASTRONAUT_ONE_SHOT, astronautArt, beamArt, frameKey, type ArtAsset } from "./assets";
+import {
+  ALIEN_LOOPED,
+  ALIEN_ONE_SHOT,
+  alienArt,
+  allFrames,
+  ART,
+  ASTRONAUT_LOOPED,
+  ASTRONAUT_ONE_SHOT,
+  astronautArt,
+  beamArt,
+  bubbleLayersArt,
+  frameKey,
+  type ArtAsset,
+} from "./assets";
 import type { GameBridge } from "./GameBridge";
 import { pressedOnCanvas } from "./pointer";
+import { Pool } from "./pool";
 import { colonyArt, routeTiles, TILE_PX, tileToPx, unitsToPx } from "./layout";
 
 /** Animation speed for every looped and one-shot animation, frames per second (cosmetic). */
@@ -32,9 +50,35 @@ const COLONY_DY = 74;
 const FROST_TINT = 0x9fd8ff;
 /** Sol's buff ring in the pad preview (C5.6), a different colour from an attacker's range circle. */
 const BUFF_RING = 0xffc857;
+/** Where a flying alien's shadow sits, and the centre of a Bubble Guard's layers, relative to its feet (art fit). */
+const SHADOW_DY = -4;
+const LAYERS_DY = -48;
+/** Where small effects on an alien (clonk, heal sparkle, layer pop) play, relative to its feet. */
+const ON_ALIEN_DY = -40;
+/** One-shot effects alive at once (C14 budgets 240 particles and 32 + 16 effects; one sprite here is one effect). */
+const EFFECT_LIMIT = 64;
 
-const LOOPED: readonly ArtAsset[] = [ART.portal, ART.blobWalk, ...ASTRONAUT_LOOPED, ART.novaBeam1, ART.novaBeam2, ART.novaBeam3];
-const ONE_SHOT: readonly ArtAsset[] = [...ASTRONAUT_ONE_SHOT, ART.popStars, ART.leak, ART.place];
+const LOOPED: readonly ArtAsset[] = [ART.portal, ...ALIEN_LOOPED, ...ASTRONAUT_LOOPED, ART.novaBeam1, ART.novaBeam2, ART.novaBeam3];
+const ONE_SHOT: readonly ArtAsset[] = [
+  ...ASTRONAUT_ONE_SHOT,
+  ...ALIEN_ONE_SHOT,
+  ART.popStars,
+  ART.leak,
+  ART.place,
+  ART.guardPop,
+  ART.patchHeal,
+  ART.armourClonk,
+  ART.healed,
+];
+
+/** The sprites that draw one alien; reused from the pool for the next alien when this one is gone. */
+interface AlienView {
+  readonly body: GameObjects.Sprite;
+  /** A flying alien's shadow on the path below it (C6.1 Orbit Flutter). */
+  readonly shadow: GameObjects.Image;
+  /** A Bubble Guard's remaining layers (C6.1). */
+  readonly layers: GameObjects.Image;
+}
 
 interface TowerView {
   readonly classId: string;
@@ -54,7 +98,10 @@ export class BattleScene extends Scene {
   readonly #pads = new Map<string, GameObjects.Image>();
   #hoverPad: string | null = null;
   readonly #towers = new Map<string, TowerView>();
-  readonly #aliens = new Map<number, GameObjects.Sprite>();
+  /** The view drawing each alien on the route, by alien id. Views come from and go back to #alienPool. */
+  readonly #aliens = new Map<number, AlienView>();
+  #alienPool: Pool<AlienView> | null = null;
+  #effectPool: Pool<GameObjects.Sprite> | null = null;
   #colony: GameObjects.Image | null = null;
   #range: GameObjects.Graphics | null = null;
   /** Pads that already had an astronaut when this wave's battle was made (no "placed" sparkle for those). */
@@ -112,6 +159,27 @@ export class BattleScene extends Scene {
     }
 
     this.#range = this.add.graphics().setDepth(5);
+
+    this.#alienPool = new Pool<AlienView>(
+      () => ({
+        body: this.add.sprite(0, 0, frameKey(ART.blobWalk, 1)).setVisible(false),
+        shadow: this.add.image(0, 0, frameKey(ART.flutterShadow, 1)).setVisible(false),
+        layers: this.add.image(0, 0, frameKey(ART.guardLayers4, 1)).setVisible(false),
+      }),
+      (view) => {
+        view.body.stop().clearTint().setVisible(false);
+        view.shadow.setVisible(false);
+        view.layers.setVisible(false);
+      },
+    );
+    this.#effectPool = new Pool<GameObjects.Sprite>(
+      () => this.add.sprite(0, 0, frameKey(ART.popStars, 1)).setVisible(false),
+      (sprite) => {
+        sprite.off("animationcomplete");
+        sprite.stop().setVisible(false);
+      },
+      EFFECT_LIMIT,
+    );
   }
 
   override update(_time: number, delta: number): void {
@@ -128,14 +196,14 @@ export class BattleScene extends Scene {
     for (const event of this.#bridge.takeSceneEvents()) this.#effect(event);
   }
 
-  /** A new wave's battle: the old sprites go, the next sync rebuilds them from the new state. */
+  /** A new wave's battle: tower sprites go, alien views return to the pool; the next sync rebuilds from the new state. */
   #newBattle(battle: Readonly<Battle> | null): void {
     for (const view of this.#towers.values()) {
       view.sprite.destroy();
       view.beam.destroy();
     }
     this.#towers.clear();
-    for (const sprite of this.#aliens.values()) sprite.destroy();
+    this.#alienPool?.releaseAll();
     this.#aliens.clear();
     this.#battle = battle;
     this.#restored = new Set(battle?.towers.map((t) => t.padId) ?? []);
@@ -231,29 +299,52 @@ export class BattleScene extends Scene {
     }
   }
 
+  /** An alien's feet on the canvas, in pixels. */
+  #feet(alien: Readonly<AlienState>): { x: number; y: number } {
+    const p = routePoint(this.#bridge.config.route, alien.progress);
+    return { x: unitsToPx(p.x), y: unitsToPx(p.y) + ALIEN_FEET_DY };
+  }
+
+  /** Set a pooled view up for a newly arrived alien: its own art, its walk started at its seeded frame. */
+  #setUpAlien(view: AlienView, alien: Readonly<AlienState>): void {
+    const art = alienArt(alien.type).move;
+    view.body.setTexture(frameKey(art, 1));
+    place(view.body, art);
+    // The seeded look picks the starting frame, so a group does not bob in step (cosmetic).
+    view.body.setVisible(true).play({ key: art.id, startFrame: alien.look % art.frames });
+    place(view.shadow, ART.flutterShadow);
+    view.shadow.setVisible(this.#bridge.config.aliens[alien.type]?.flying === true);
+  }
+
   #drawAliens(battle: Readonly<Battle>): void {
+    const pool = this.#alienPool;
+    if (pool === null) return;
     const present = new Set<number>();
-    const route = this.#bridge.config.route;
     for (const alien of battle.aliens) {
       present.add(alien.id);
-      const p = routePoint(route, alien.progress);
-      const x = unitsToPx(p.x);
-      const y = unitsToPx(p.y) + ALIEN_FEET_DY;
-      let sprite = this.#aliens.get(alien.id);
-      if (sprite === undefined) {
-        sprite = this.add.sprite(x, y, frameKey(ART.blobWalk, 1));
-        place(sprite, ART.blobWalk);
-        // The seeded look picks the starting frame, so a group does not bob in step (cosmetic).
-        sprite.play({ key: ART.blobWalk.id, startFrame: alien.look % ART.blobWalk.frames });
-        this.#aliens.set(alien.id, sprite);
+      const { x, y } = this.#feet(alien);
+      let view = this.#aliens.get(alien.id);
+      if (view === undefined) {
+        view = pool.acquire();
+        this.#setUpAlien(view, alien);
+        this.#aliens.set(alien.id, view);
       }
-      sprite.setPosition(x, y).setDepth(10 + y / 1000);
-      if (alien.slowTicksLeft > 0) sprite.setTint(FROST_TINT);
-      else sprite.clearTint();
+      const depth = 10 + y / 1000;
+      view.body.setPosition(x, y).setDepth(depth);
+      if (alien.slowTicksLeft > 0) view.body.setTint(FROST_TINT);
+      else view.body.clearTint();
+      if (view.shadow.visible) view.shadow.setPosition(x, y + SHADOW_DY).setDepth(depth - 0.0005);
+      // The layers it has left: the overlay shrinks a ring at each pop and goes when the last one pops.
+      const layers = bubbleLayersArt(alien.bubbles);
+      view.layers.setVisible(layers !== null);
+      if (layers !== null) {
+        view.layers.setTexture(frameKey(layers, 1)).setPosition(x, y + LAYERS_DY).setDepth(depth + 0.0005);
+        place(view.layers, layers);
+      }
     }
-    for (const [id, sprite] of this.#aliens) {
+    for (const [id, view] of this.#aliens) {
       if (present.has(id)) continue;
-      sprite.destroy();
+      pool.release(view);
       this.#aliens.delete(id);
     }
   }
@@ -264,18 +355,64 @@ export class BattleScene extends Scene {
   }
 
   #effect(event: BattleEvent): void {
-    if (event.kind === "defeated") {
-      this.#playOnce(ART.popStars, unitsToPx(event.at.x), unitsToPx(event.at.y) + ALIEN_FEET_DY - 40, 20);
-    } else if (event.kind === "leaked") {
-      const [gx, gy] = this.#bridge.config.route.waypoints[this.#bridge.config.route.waypoints.length - 1] ?? [0, 0];
-      this.#playOnce(ART.leak, tileToPx(gx) - 24, tileToPx(gy), 20);
+    const battle = this.#bridge.battle;
+    /** The alien an event is about, if it is still on the route (a hit may also have defeated it). */
+    const living = (id: number) => battle?.aliens.find((a) => a.id === id);
+    switch (event.kind) {
+      case "defeated": {
+        const x = unitsToPx(event.at.x);
+        const y = unitsToPx(event.at.y) + ALIEN_FEET_DY;
+        // A Split Slime splits and a Craft opens its doors as its descendants are queued (C6.3), then the stars.
+        const defeat = alienArt(event.type).defeat;
+        if (defeat !== null) this.#playOnce(defeat, x, y, 19);
+        this.#playOnce(ART.popStars, x, y - 40, 20);
+        break;
+      }
+      case "leaked": {
+        const [gx, gy] = this.#bridge.config.route.waypoints[this.#bridge.config.route.waypoints.length - 1] ?? [0, 0];
+        this.#playOnce(ART.leak, tileToPx(gx) - 24, tileToPx(gy), 20);
+        break;
+      }
+      case "shot": {
+        // C6.1 Shellback: "hits make a 'clonk' spark". Read from the trait, so any armoured alien clonks.
+        const alien = living(event.alienId);
+        if (alien === undefined || (this.#bridge.config.aliens[alien.type]?.armour ?? 0) === 0) break;
+        const { x, y } = this.#feet(alien);
+        this.#playOnce(ART.armourClonk, x, y + ON_ALIEN_DY, 20);
+        break;
+      }
+      case "popped": {
+        const alien = living(event.alienId);
+        if (alien === undefined) break;
+        const { x, y } = this.#feet(alien);
+        this.#playOnce(ART.guardPop, x, y + LAYERS_DY, 20);
+        break;
+      }
+      case "healPulse": {
+        // The sparkle ring lies on the ground around the Patchling (its art is already squashed to 4:3).
+        this.#playOnce(ART.patchHeal, unitsToPx(event.at.x), unitsToPx(event.at.y) + ALIEN_FEET_DY - 8, 8);
+        break;
+      }
+      case "healed": {
+        const alien = living(event.alienId);
+        if (alien === undefined) break;
+        const { x, y } = this.#feet(alien);
+        this.#playOnce(ART.healed, x, y + ON_ALIEN_DY, 20);
+        break;
+      }
+      default:
+        break;
     }
   }
 
+  /** Play a one-shot effect with a pooled sprite, which goes back to the pool when the animation ends. */
   #playOnce(asset: ArtAsset, x: number, y: number, depth: number): void {
-    const sprite = this.add.sprite(x, y, frameKey(asset, 1));
+    const pool = this.#effectPool;
+    if (pool === null) return;
+    const sprite = pool.acquire();
+    sprite.setTexture(frameKey(asset, 1)).setPosition(x, y).setVisible(true);
     place(sprite, asset);
     sprite.setDepth(depth).play(asset.id);
-    sprite.once("animationcomplete", () => sprite.destroy());
+    sprite.once("animationcomplete", () => pool.release(sprite));
   }
 }

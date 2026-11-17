@@ -194,7 +194,14 @@ export class GameBridge {
       runStatus: run.status,
       runPhase: run.phase ?? null,
       battle: b?.status ?? null,
-      aliensLeft: b === null ? 0 : b.aliens.length + (this.config.waves[b.wave - 1]?.spawns.length ?? 0) - b.spawnIndex,
+      // On the route, still scheduled, and still to come out of defeated carriers and splitters (C6.3).
+      aliensLeft:
+        b === null
+          ? 0
+          : b.aliens.length +
+            (this.config.waves[b.wave - 1]?.spawns.length ?? 0) -
+            b.spawnIndex +
+            b.releases.reduce((n, r) => n + r.types.length - r.released, 0),
       speed: this.#speed,
       paused: this.#paused,
       highestCompletedWave: run.highestCompletedWave,

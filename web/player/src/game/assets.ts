@@ -96,7 +96,28 @@ export const ART = {
   novaBeam1: anim("fx-nova-beam-l1", C, 3, [0, 0.5], [64, 64]),
   novaBeam2: anim("fx-nova-beam-l2", C, 3, [0, 0.5], [64, 64]),
   novaBeam3: anim("fx-nova-beam-l3", C, 3, [0, 0.5], [64, 64]),
+  // Aliens (Phase 26): one walk (or hover, fly, hop, bob) loop each, plus the trait overlays and one-shot effects.
   blobWalk: anim("alien-blob-walk", C, 6, FEET, [128, 128]),
+  miteWalk: anim("alien-mite-walk", C, 6, FEET, [64, 64]),
+  shellWalk: anim("alien-shell-walk", C, 6, FEET, [128, 128]),
+  swarmBob: anim("alien-swarm-bob", C, 4, FEET, [32, 32]),
+  flutterFly: anim("alien-flutter-fly", C, 6, FEET, [128, 128]),
+  flutterShadow: still("alien-flutter-shadow", C, CENTRE, [64, 48]),
+  guardWalk: anim("alien-guard-walk", C, 6, FEET, [128, 128]),
+  guardLayers1: still("alien-guard-layers-1", C, CENTRE, [128, 128]),
+  guardLayers2: still("alien-guard-layers-2", C, CENTRE, [128, 128]),
+  guardLayers3: still("alien-guard-layers-3", C, CENTRE, [128, 128]),
+  guardLayers4: still("alien-guard-layers-4", C, CENTRE, [128, 128]),
+  guardPop: anim("alien-guard-pop", C, 4, CENTRE, [128, 128]),
+  patchWalk: anim("alien-patch-walk", C, 6, FEET, [128, 128]),
+  patchHeal: anim("alien-patch-heal", C, 6, CENTRE, [288, 288]),
+  slimeWalk: anim("alien-slime-walk", C, 6, FEET, [128, 128]),
+  slimeSplit: anim("alien-slime-split", C, 6, FEET, [128, 128]),
+  slimeletHop: anim("alien-slimelet-hop", C, 4, FEET, [64, 64]),
+  craftHover: anim("alien-craft-hover", C, 6, FEET, [256, 256]),
+  craftRelease: anim("alien-craft-release", C, 6, FEET, [256, 256]),
+  armourClonk: anim("fx-armour-clonk", C, 3, CENTRE, [64, 64]),
+  healed: anim("fx-healed", C, 4, CENTRE, [64, 64]),
   popStars: anim("fx-pop-stars", C, 8, CENTRE, [128, 128]),
   leak: anim("fx-leak", C, 6, CENTRE, [128, 128]),
   place: anim("fx-place", C, 6, [0.5, 0.62], [128, 128]),
@@ -166,6 +187,48 @@ export function astronautArt(classId: string, level: number): { idle: ArtAsset; 
   const art = ASTRONAUTS[classId]?.[level - 1];
   if (art === undefined) throw new Error(`no art for class ${classId} level ${level}`);
   return art;
+}
+
+/**
+ * How each alien of C6.1 is drawn: its looped movement animation, and the one-shot it plays instead of the star burst
+ * when it is defeated (the Split Slime splits, the Craft opens its doors). Keyed by the ruleset's alien ID.
+ */
+export interface AlienArt {
+  readonly move: ArtAsset;
+  readonly defeat: ArtAsset | null;
+}
+
+const ALIENS: Readonly<Record<string, AlienArt>> = {
+  blob: { move: ART.blobWalk, defeat: null },
+  mite: { move: ART.miteWalk, defeat: null },
+  shell: { move: ART.shellWalk, defeat: null },
+  swarm: { move: ART.swarmBob, defeat: null },
+  flutter: { move: ART.flutterFly, defeat: null },
+  guard: { move: ART.guardWalk, defeat: null },
+  patch: { move: ART.patchWalk, defeat: null },
+  slime: { move: ART.slimeWalk, defeat: ART.slimeSplit },
+  slimelet: { move: ART.slimeletHop, defeat: null },
+  craft: { move: ART.craftHover, defeat: ART.craftRelease },
+};
+
+/** Every alien's movement loop, for the scene to register. */
+export const ALIEN_LOOPED: readonly ArtAsset[] = Object.values(ALIENS).map((a) => a.move);
+export const ALIEN_ONE_SHOT: readonly ArtAsset[] = Object.values(ALIENS).flatMap((a) => (a.defeat === null ? [] : [a.defeat]));
+
+/** The art for an alien type. A type with no art yet (a later ruleset's new alien) is drawn as a Moon Blob. */
+export function alienArt(type: string): AlienArt {
+  return ALIENS[type] ?? { move: ART.blobWalk, defeat: null };
+}
+
+/** True when `type` has its own art (assets.test.ts checks every alien in every ruleset). */
+export function hasAlienArt(type: string): boolean {
+  return Object.hasOwn(ALIENS, type);
+}
+
+/** The bubble overlay for a Bubble Guard with `layers` layers left (1 to 4), or null for none. */
+export function bubbleLayersArt(layers: number): ArtAsset | null {
+  const all = [ART.guardLayers1, ART.guardLayers2, ART.guardLayers3, ART.guardLayers4];
+  return layers <= 0 ? null : (all[Math.min(layers, all.length) - 1] ?? null);
 }
 
 /** Nova's beam, drawn from her gadget to the alien she hit. Other classes' shot effects are not drawn yet. */
