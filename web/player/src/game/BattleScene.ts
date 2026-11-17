@@ -289,8 +289,10 @@ export class BattleScene extends Scene {
       const image = this.#pads.get(pad.id);
       if (image === undefined) continue;
       // A chosen shop card makes every open empty pad glow: those are the pads that would take it (D4 "Placing").
-      const takes = this.#bridge.armed !== null && pad.open && !(battle?.towers.some((t) => t.padId === pad.id) ?? false);
-      const art = !pad.open
+      const open = this.#bridge.isPadOpen(pad.id);
+      const takes = this.#bridge.armed !== null && open && !(battle?.towers.some((t) => t.padId === pad.id) ?? false);
+      if (image.input) image.input.cursor = open ? "pointer" : "default"; // a campaign pad opens mid-run (C3.3)
+      const art = !open
         ? ART.padClosed
         : pad.id === selected
           ? ART.padSelected
@@ -308,7 +310,7 @@ export class BattleScene extends Scene {
     const armed = this.#bridge.armed;
     const previewAt = this.#hoverPad ?? this.#bridge.focusedPad;
     const preview = this.#bridge.config.pads.find((p) => p.id === previewAt);
-    if (armed !== null && preview !== undefined && preview.open && !(battle?.towers.some((t) => t.padId === preview.id) ?? false)) {
+    if (armed !== null && preview !== undefined && this.#bridge.isPadOpen(preview.id) && !(battle?.towers.some((t) => t.padId === preview.id) ?? false)) {
       const first = this.#bridge.config.classes[armed]?.levels[0];
       const r = first?.shot?.rangeTiles ?? first?.buff?.radiusTiles;
       if (r !== undefined) {

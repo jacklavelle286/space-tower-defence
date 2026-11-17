@@ -48,8 +48,7 @@ export function PadButtons({ bridge, hud }: { bridge: GameBridge; hud: HudState 
     const focusFirst = () => {
       const battle = bridge.battle;
       const first = order.find((id) => {
-        const pad = bridge.config.pads.find((p) => p.id === id);
-        return pad?.open === true && !(battle?.towers.some((t) => t.padId === id) ?? false);
+        return bridge.isPadOpen(id) && !(battle?.towers.some((t) => t.padId === id) ?? false);
       });
       if (first !== undefined) buttons.current.get(first)?.focus();
     };
@@ -76,7 +75,7 @@ export function PadButtons({ bridge, hud }: { bridge: GameBridge; hud: HudState 
             }}
             type="button"
             className="bf-pad-btn"
-            aria-label={padLabel(bridge.config, bridge.battle, id)}
+            aria-label={padLabel(bridge.config, bridge.battle, id, bridge.isPadOpen(id))}
             aria-pressed={selected}
             data-armed={hud.armed !== null || undefined}
             style={{

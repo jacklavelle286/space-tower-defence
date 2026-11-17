@@ -68,11 +68,11 @@ const AIM_WORDS: Record<Targeting, string> = {
 };
 
 /** What a screen reader hears for a pad button (D5.2): "Pad 4, Nova level 2, aiming at the front", "Pad 5, empty". */
-export function padLabel(config: BattleConfig, battle: Readonly<Battle> | null, padId: string): string {
+export function padLabel(config: BattleConfig, battle: Readonly<Battle> | null, padId: string, open?: boolean): string {
   const pad = config.pads.find((p) => p.id === padId);
   const name = `Pad ${Number.parseInt(padId.replace(/\D/g, ""), 10) || padId}`;
   if (pad === undefined) return name;
-  if (!pad.open) return `${name}, opens after wave ${pad.opensAfterWave}`;
+  if (!(open ?? pad.open)) return `${name}, opens after wave ${pad.opensAfterWave}`;
   const tower = battle?.towers.find((t) => t.padId === padId);
   if (tower === undefined) return `${name}, empty`;
   const cls = config.classes[tower.classId];

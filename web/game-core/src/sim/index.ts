@@ -37,6 +37,7 @@ export {
   healAmount,
   secondsToTicks,
   sellRefund,
+  padOpen,
   speedToUnitsPerTick,
   waveHealth,
   type AlienStats,

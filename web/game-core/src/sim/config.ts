@@ -206,8 +206,19 @@ export interface PadInfo {
   readonly cx: number;
   readonly cy: number;
   readonly opensAfterWave: number;
-  /** Open in this run's wave set (C3.3; a CHALLENGE fixes it with padsOpenAsForWave). */
+  /**
+   * Open from the start of this wave set (padsOpenAsForWave). A CHALLENGE fixes its pads with that; in a CAMPAIGN more
+   * pads open as waves are cleared (C3.3): ask padOpen for the pads of a given wave.
+   */
   readonly open: boolean;
+}
+
+/**
+ * Whether `pad` takes an astronaut while preparing or fighting `wave` (C3.3, tools/sim Game.pad_is_open): open from the
+ * start of the wave set, or, in a CAMPAIGN, once the wave cleared just before is at or past the pad's opensAfterWave.
+ */
+export function padOpen(config: Pick<BattleConfig, "waveSet">, pad: PadInfo, wave: number): boolean {
+  return pad.open || (config.waveSet.mode === "CAMPAIGN" && pad.opensAfterWave <= wave - 1);
 }
 
 export interface ScheduledSpawn {

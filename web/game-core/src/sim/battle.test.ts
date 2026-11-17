@@ -19,6 +19,7 @@ import {
   drainEvents,
   giveCommand,
   initialRunState,
+  padOpen,
   runFrame,
   sellRefund,
   startWave,
@@ -153,6 +154,18 @@ describe("commands (C2.3 step 1, AC-07, AC-09)", () => {
       "PAD_OCCUPIED",
       "NOT_ENOUGH_CREDITS",
     ]);
+  });
+
+  it("in a CAMPAIGN, pads open as waves are cleared (C3.3); a CHALLENGE keeps its fixed pads", () => {
+    const r3 = parseRuleset(readJson("ruleset/r3.json"));
+    const c2 = compileBattleConfig(r3, parsePlanet(readJson("campaign/luna-1-c2.json"), r3), "campaign");
+    const p03 = (wave: number) => giveCommand(createBattle(c2, START, wave, SEED), { kind: "place", padId: "p03", classId: "nova" });
+    expect(p03(5)).toEqual({ ok: false, reason: "PAD_CLOSED" }); // opens after wave 5: preparing wave 6
+    expect(p03(6)).toEqual({ ok: true });
+    const pad = c2.pads.find((p) => p.id === "p01");
+    if (pad === undefined) throw new Error("no p01");
+    expect([padOpen(c2, pad, 20), padOpen(c2, pad, 21)]).toEqual([false, true]);
+    expect(padOpen(config, pad, 50)).toBe(false); // first-contact is a CHALLENGE: its pads never change
   });
 
   it("two purchases queued in one tick with credits for one: exactly one applies, credits never go negative", () => {

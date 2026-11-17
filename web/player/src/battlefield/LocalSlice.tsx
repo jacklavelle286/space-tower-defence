@@ -38,6 +38,10 @@ interface LocalOptions {
   readonly stress: boolean;
   /** Phase 34: show the frame-time recorder (minimum, 1%-low and average frame rate per wave). */
   readonly perf: boolean;
+  /** Phase 50: play this planet document instead of current.json's (e.g. luna-1-c2, the 50-wave campaign). */
+  readonly planet: string | null;
+  /** Phase 50: play this wave set of the planet (default first-contact; "campaign" in luna-1-c2). */
+  readonly waveSetId: string;
   /** A dev wave played first: "all" (every alien a wave may schedule) or "type:count,..." (e.g. "craft:2,slime:3"). */
   readonly aliens: string | null;
   /** Dev boss waves played first (after ?aliens='s): "all" (one wave per boss) or one boss ID (e.g. "boss3"). */
@@ -88,14 +92,16 @@ function localOptions(search: string): LocalOptions {
     simWave: params.get("simWave"),
     stress: params.get("stress") === "1",
     perf: params.get("perf") === "1",
+    planet: params.get("planet"),
+    waveSetId: params.get("set") ?? WAVE_SET_ID,
   };
 }
 
 /** The game data for the local slice: current.json's versions, or ?ruleset=, with ?roster=all, ?aliens= and ?boss= applied. */
 async function localGameData(options: LocalOptions): Promise<GameData> {
   const current = await loadCurrent();
-  const data = await loadGameDataVersions(options.ruleset ?? current.rulesetVersion, current.campaignVersion);
-  let waveSet = data.planet.waveSets[WAVE_SET_ID];
+  const data = await loadGameDataVersions(options.ruleset ?? current.rulesetVersion, options.planet ?? current.campaignVersion);
+  let waveSet = data.planet.waveSets[options.waveSetId];
   if (waveSet === undefined) return data;
   let waves = data.planet.waves;
   if (options.allClasses) {
@@ -126,11 +132,11 @@ async function localGameData(options: LocalOptions): Promise<GameData> {
     waveSet = { ...waveSet, waves: [...dev.map((w) => w.wave), ...waveSet.waves] };
   }
   // A copy of the planet document: the loaded data and the game-data/ files are untouched.
-  return { ...data, planet: { ...data.planet, waves, waveSets: { ...data.planet.waveSets, [WAVE_SET_ID]: waveSet } } };
+  return { ...data, planet: { ...data.planet, waves, waveSets: { ...data.planet.waveSets, [options.waveSetId]: waveSet } } };
 }
 
 function startingRun(data: GameData, options: LocalOptions): RunState {
-  const config = compileBattleConfig(data.ruleset, data.planet, WAVE_SET_ID);
+  const config = compileBattleConfig(data.ruleset, data.planet, options.waveSetId);
   const run = initialRunState(data.ruleset, config, [PLACEHOLDER_ANSWER]);
   if (run.snapshot === undefined) return run;
   const { snapshot } = run;
@@ -181,7 +187,7 @@ export function LocalSlice() {
   else if (data === null || game === null) body = <p style={{ padding: 16 }}>Loading…</p>;
   else
     body = (
-      <Battlefield key={game.n} data={data} waveSetId={WAVE_SET_ID} run={game.run} seed={options.seed} speed={options.speed}>
+      <Battlefield key={game.n} data={data} waveSetId={options.waveSetId} run={game.run} seed={options.seed} speed={options.speed}>
         <Overlays run={game.run} autoPlay={options.autoPlay} perf={options.perf} onNewGame={newGame} />
       </Battlefield>
     );
@@ -212,9 +218,10 @@ function Overlays({
   return (
     <>
       <Hud bridge={bridge} hud={hud} />
-      <BattlefieldControls bridge={bridge} hud={hud} active={!ended && hud.runPhase !== "ACTIVITY"} />
+      <BattlefieldControls bridge={bridge} hud={hud} active={!ended && hud.runPhase !== "ACTIVITY" && hud.runPhase !== "METEOR"} />
       {perf && <FrameRecorder hud={hud} />}
-      {hud.runPhase === "ACTIVITY" && <ActivityPlaceholder run={run} afterWave={hud.wave - 1} />}
+      {/* A meteor challenge gets the same placeholder locally (the meteor offer is Phase 51). */}
+      {(hud.runPhase === "ACTIVITY" || hud.runPhase === "METEOR") && <ActivityPlaceholder run={run} afterWave={hud.wave - 1} />}
       {hud.paused && !ended && hud.battle === "IN_WAVE" && <PausedCard bridge={bridge} />}
       {ended && <EndScreen hud={hud} onAction={onNewGame} actionLabel="New game" />}
     </>

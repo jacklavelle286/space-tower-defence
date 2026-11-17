@@ -68,6 +68,7 @@ import {
   cometDamage,
   flyingBlastDamage,
   healAmount,
+  padOpen,
   sellRefund,
   speedToUnitsPerTick,
   waveHealth,
@@ -387,7 +388,7 @@ export function checkCommand(battle: Readonly<Battle>, command: Command): Comman
   const tower = battle.towers.find((t) => t.padId === command.padId);
   switch (command.kind) {
     case "place": {
-      if (!pad.open) return { ok: false, reason: "PAD_CLOSED" };
+      if (!padOpen(config, pad, battle.wave)) return { ok: false, reason: "PAD_CLOSED" };
       if (tower !== undefined) return { ok: false, reason: "PAD_OCCUPIED" };
       const availability = classAvailability(config, command.classId, battle.wave);
       if (availability === "NOT_IN_SET") return { ok: false, reason: "CLASS_UNAVAILABLE" };

@@ -21,6 +21,7 @@
 import {
   UNITS_PER_TILE,
   battleSnapshot,
+  padOpen,
   checkCommand,
   createBattle,
   drainEvents,
@@ -204,6 +205,13 @@ export class GameBridge {
     return this.#armed;
   }
 
+  /** Whether `padId` takes an astronaut in the wave on screen (C3.3: in a campaign, pads open as waves are cleared). */
+  isPadOpen(padId: string): boolean {
+    const pad = this.config.pads.find((p) => p.id === padId);
+    if (pad === undefined) return false;
+    return padOpen(this.config, pad, this.#battle?.wave ?? this.#run.state.wave);
+  }
+
   /** The pad with keyboard focus (the scene previews the armed class's range there), or null. */
   get focusedPad(): string | null {
     return this.#focusedPad;
@@ -288,7 +296,8 @@ export class GameBridge {
     // Every offer is game-core's own check of the purchase (checkCommand), so the panel can never offer what the
     // simulation would refuse; the simulation still checks the real command when it applies (AC-09).
     const offers: PlaceOffer[] = [];
-    if (fighting && tower === null && pad.open) {
+    const open = padOpen(this.config, pad, b.wave);
+    if (fighting && tower === null && open) {
       for (const classId of this.config.waveSet.classes) {
         const offered = this.config.classes[classId];
         const cost = offered?.levels[0]?.cost;
@@ -299,7 +308,7 @@ export class GameBridge {
     }
     return {
       padId,
-      open: pad.open,
+      open,
       tower:
         tower === null ? null : { classId: tower.classId, name: cls?.name ?? tower.classId, level: tower.level, targeting: tower.targeting },
       offers,
@@ -449,7 +458,7 @@ export class GameBridge {
     this.#armed = null;
     const b = this.#battle;
     const pad = padId === null ? undefined : this.config.pads.find((p) => p.id === padId);
-    if (armed !== null && b !== null && pad !== undefined && pad.open && !b.towers.some((t) => t.padId === pad.id)) {
+    if (armed !== null && b !== null && pad !== undefined && padOpen(this.config, pad, b.wave) && !b.towers.some((t) => t.padId === pad.id)) {
       this.#selectedPad = null;
       this.place(pad.id, armed);
       return;
