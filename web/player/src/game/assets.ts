@@ -6,7 +6,7 @@
 // canvas. The PNGs are drawn at 2x (authorSize), so sprites are always shown scaled down to displaySize.
 // assets.test.ts checks every entry against the catalogue, so a renamed or resized asset fails the tests.
 
-import { anim, CENTRE, COMMON_DIR, FEET, frameKey, frameUrl, MAP_ART, still, type ArtAsset } from "@scd/shared/map";
+import { anim, CENTRE, COMMON_DIR, FEET, frameKey, frameUrl, LUNA_DIR, MAP_ART, still, type ArtAsset } from "@scd/shared/map";
 
 export { frameKey, frameUrl, type ArtAsset } from "@scd/shared/map";
 
@@ -15,6 +15,11 @@ const C = COMMON_DIR;
 export const ART = {
   // The map (route, portal, pads, colony) comes from @scd/shared/map, which the level editor draws from too (LD1).
   ...MAP_ART,
+  // Phase 65 (owner report, 2026-11-17): the dome over the colony while it holds shield points (Mira's pulses or the
+  // Colony Shield power), a flash when it takes a hit, and its break when the last point goes.
+  colonyShieldOn: anim("colony-shield-on", LUNA_DIR, 4, FEET, [384, 384]),
+  colonyShieldHit: still("colony-shield-hit", LUNA_DIR, FEET, [384, 384]),
+  colonyShieldBreak: anim("colony-shield-break", LUNA_DIR, 4, FEET, [384, 384]),
   novaIdle1: anim("nova-l1-idle", C, 4, FEET, [128, 128]),
   novaAttack1: anim("nova-l1-attack", C, 4, FEET, [128, 128]),
   novaIdle2: anim("nova-l2-idle", C, 4, FEET, [128, 128]),

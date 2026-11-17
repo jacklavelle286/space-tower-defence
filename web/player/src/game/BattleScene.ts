@@ -102,8 +102,9 @@ const BOSS_BUBBLE_DY = -130;
 /** The arrival ring lies on the ground (its art note: "squash to 4:3"). */
 const BOSS_RING: readonly [number, number] = [BOSS_PX, (BOSS_PX * 3) / 4];
 
-const LOOPED: readonly ArtAsset[] = [ART.portal, ...ALIEN_LOOPED, ...BOSS_LOOPED, ...ASTRONAUT_LOOPED, ART.novaBeam1, ART.novaBeam2, ART.novaBeam3];
+const LOOPED: readonly ArtAsset[] = [ART.portal, ART.colonyShieldOn, ...ALIEN_LOOPED, ...BOSS_LOOPED, ...ASTRONAUT_LOOPED, ART.novaBeam1, ART.novaBeam2, ART.novaBeam3];
 const ONE_SHOT: readonly ArtAsset[] = [
+  ART.colonyShieldBreak,
   ...ASTRONAUT_ONE_SHOT,
   ...ALIEN_ONE_SHOT,
   ...BOSS_ONE_SHOT,
@@ -152,6 +153,9 @@ export class BattleScene extends Scene {
   #alienPool: Pool<AlienView> | null = null;
   #effectPool: Pool<GameObjects.Sprite> | null = null;
   #colony: GameObjects.Image | null = null;
+  /** The shield dome over the colony (Phase 65), and the shield points it showed last frame. */
+  #dome: GameObjects.Sprite | null = null;
+  #domeShield = 0;
   #range: GameObjects.Graphics | null = null;
   /** The Comet Burst aiming ring (Phase 31). */
   #aimRing: GameObjects.Graphics | null = null;
@@ -245,6 +249,9 @@ export class BattleScene extends Scene {
     this.#colony = this.add.image(colonyAt.x, colonyAt.y + COLONY_PX / 2, frameKey(this.#b(ART.colonyHealthy), 1));
     place(this.#colony, this.#b(ART.colonyHealthy));
     this.#colony.setDisplaySize(COLONY_PX, COLONY_PX).setDepth(3);
+    this.#dome = this.add.sprite(colonyAt.x, colonyAt.y + COLONY_PX / 2, frameKey(this.#b(ART.colonyShieldOn), 1));
+    place(this.#dome, this.#b(ART.colonyShieldOn));
+    this.#dome.setDisplaySize(COLONY_PX, COLONY_PX).setDepth(3.5).setVisible(false);
 
     for (const pad of config.pads) {
       const image = this.add.image(tileToPx(pad.x), tileToPx(pad.y), frameKey(this.#b(pad.open ? ART.padEmpty : ART.padClosed), 1));
@@ -314,6 +321,7 @@ export class BattleScene extends Scene {
 
   /** A new wave's battle: tower sprites go, alien views return to the pool; the next sync rebuilds from the new state. */
   #newBattle(battle: Readonly<Battle> | null): void {
+    this.#domeShield = battle?.shield ?? 0; // a wave starts from its own shield: no break or flash for the change
     for (const view of this.#towers.values()) {
       view.sprite.destroy();
       view.beam.destroy();
@@ -588,6 +596,37 @@ export class BattleScene extends Scene {
   #drawColony(battle: Readonly<Battle>): void {
     const art = colonyArt(battle.health, this.#bridge.config.colony.maxHealth);
     this.#colony?.setTexture(frameKey(this.#b(art), 1)).setDisplaySize(COLONY_PX, COLONY_PX);
+    this.#drawShield(battle.shield);
+  }
+
+  /**
+   * The dome over the colony while it holds shield points (Phase 65; C4, C5.5, C10): stronger the fuller the shield
+   * (against shieldCap; a Colony Shield above it shows full), a flash when a leak takes points off, the break when the
+   * last point goes. A new wave starts from its own shield without a break.
+   */
+  #drawShield(shield: number): void {
+    const dome = this.#dome;
+    if (dome === null) return;
+    const before = this.#domeShield;
+    this.#domeShield = shield;
+    if (shield > 0) {
+      const full = Math.max(1, this.#bridge.config.colony.shieldCap);
+      dome.setAlpha(0.45 + 0.55 * Math.min(1, shield / full));
+      if (!dome.visible) dome.setVisible(true).play(this.#b(ART.colonyShieldOn).id);
+      if (shield < before) this.#shieldHit(dome.x, dome.y);
+      return;
+    }
+    if (!dome.visible) return;
+    dome.setVisible(false).stop();
+    if (before > 0) this.#playOnce(ART.colonyShieldBreak, dome.x, dome.y, 3.6, [COLONY_PX, COLONY_PX]);
+  }
+
+  /** A short flash over the dome where a leak hit it. */
+  #shieldHit(x: number, y: number): void {
+    const flash = this.add.image(x, y, frameKey(this.#b(ART.colonyShieldHit), 1));
+    place(flash, this.#b(ART.colonyShieldHit));
+    flash.setDisplaySize(COLONY_PX, COLONY_PX).setDepth(3.6);
+    this.tweens.add({ targets: flash, alpha: 0, duration: 350, onComplete: () => flash.destroy() });
   }
 
   #effect(event: BattleEvent): void {

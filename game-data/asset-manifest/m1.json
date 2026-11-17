@@ -767,6 +767,51 @@
     384
    ]
   },
+  "colony-shield-break": {
+   "frames": [
+    "/assets/luna-1/colony-shield-break-01.png",
+    "/assets/luna-1/colony-shield-break-02.png",
+    "/assets/luna-1/colony-shield-break-03.png",
+    "/assets/luna-1/colony-shield-break-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "colony-shield-hit": {
+   "frames": [
+    "/assets/luna-1/colony-shield-hit.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "colony-shield-on": {
+   "frames": [
+    "/assets/luna-1/colony-shield-on-01.png",
+    "/assets/luna-1/colony-shield-on-02.png",
+    "/assets/luna-1/colony-shield-on-03.png",
+    "/assets/luna-1/colony-shield-on-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
   "colony-very-worried": {
    "frames": [
     "/assets/luna-1/colony-very-worried.png"
