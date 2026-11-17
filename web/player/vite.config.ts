@@ -8,7 +8,7 @@ const GAME_DATA_DIR = resolve(import.meta.dirname, "..", "..", "game-data");
 /** Only these paths are served: current.json and versioned ruleset and planet documents (VERSION_PATTERN). */
 /** The simulator's campaign, which the local battlefield's ?simWave= imports (Phase 34; dev and perf builds only). */
 const SIM_DATA = resolve(import.meta.dirname, "..", "..", "tools", "sim", "game_data.json");
-const GAME_DATA_PATH = /^\/(current\.json|(ruleset|campaign)\/[a-z0-9.-]{1,40}\.json)$/;
+const GAME_DATA_PATH = /^\/(current\.json|(ruleset|campaign|asset-manifest)\/[a-z0-9.-]{1,40}\.json)$/;
 
 /**
  * Development only: serve game-data/ at /game-data/, the same paths the release publishes, so `npm run dev` plays the

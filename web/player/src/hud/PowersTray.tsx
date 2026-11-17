@@ -76,7 +76,8 @@ export function PowersTray({ bridge, hud }: { bridge: GameBridge; hud: HudState 
             type="button"
             className="bf-power"
             title={`${p.name} (key ${p.key})`}
-            aria-label={`${p.name}, ${hud.powers[p.id] ?? 0} left, key ${p.key}`}
+            // The name holds the button's visible "1 · 0" (WCAG 2.5.3, axe label-content-name-mismatch: Phase 68).
+            aria-label={`${p.name}, key ${p.key} · ${hud.powers[p.id] ?? 0} left`}
             disabled={!fighting || (hud.powers[p.id] ?? 0) < 1}
             onClick={() => {
               setRefusal(null);
