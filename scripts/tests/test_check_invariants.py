@@ -54,6 +54,17 @@ module "player_pool" {
 WITH_ALARMS = "  alarm_topic_arn = module.monitoring.alarm_topic_arn"
 
 
+BACKUP_CALL = """\
+module "backup" {
+  source = "../modules/backup"
+
+  name_prefix     = local.name_prefix
+  table_arns      = { game = local.table_arns.game, content = local.table_arns.content }
+  alarm_topic_arn = module.monitoring.alerts_topic_arn
+}
+"""
+
+
 def lambda_call(alarm_line: str = WITH_ALARMS, name: str = "player_api") -> str:
     return LAMBDA_CALL.replace("ALARM", alarm_line).replace('"player_api"', f'"{name}"')
 
@@ -67,6 +78,7 @@ def repo(tmp_path: Path) -> Path:
     (tmp_path / "infrastructure" / "modules" / "static_site" / "main.tf").write_text(CLEAN_MODULE)
     (tmp_path / "infrastructure" / "main").mkdir(parents=True)
     (tmp_path / "infrastructure" / "main" / "main.tf").write_text(lambda_call())
+    (tmp_path / "infrastructure" / "main" / "backup.tf").write_text(BACKUP_CALL)
     return tmp_path
 
 
@@ -209,3 +221,25 @@ def test_real_repository_passes() -> None:
     """The real workflows and Terraform satisfy G-5 (spike.yml was deleted in Phase 6; no exemption), and every one of
     the four lambda_function calls passes its alarm topic (Phase 9)."""
     assert check_invariants.check(REPO) == []
+
+
+# --- backup-selection (Phase 33) ------------------------------------------------------------------------------------
+
+
+def test_no_backup_module_call_is_caught(repo: Path) -> None:
+    (repo / "infrastructure" / "main" / "backup.tf").unlink()
+    assert rules_hit(repo) == {"backup-selection"}
+
+
+@pytest.mark.parametrize("dropped", ["local.table_arns.game", "local.table_arns.content"])
+def test_a_table_missing_from_the_backup_selection_is_caught(repo: Path, dropped: str) -> None:
+    text = BACKUP_CALL.replace(f", content = {dropped}", "").replace(f"game = {dropped}, ", "")
+    assert dropped not in text
+    (repo / "infrastructure" / "main" / "backup.tf").write_text(text)
+    assert rules_hit(repo) == {"backup-selection"}
+
+
+def test_a_table_named_only_in_a_comment_does_not_count(repo: Path) -> None:
+    text = BACKUP_CALL.replace("content = local.table_arns.content", "# content = local.table_arns.content\n")
+    (repo / "infrastructure" / "main" / "backup.tf").write_text(text)
+    assert rules_hit(repo) == {"backup-selection"}

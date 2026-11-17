@@ -233,7 +233,7 @@ jobs:
       - name: G-4 terraform tests (mock providers)
         run: |
           terraform -chdir=infrastructure/main test
-          for dir in infrastructure/modules/monitoring infrastructure/modules/static_site; do
+          for dir in infrastructure/modules/backup infrastructure/modules/monitoring infrastructure/modules/static_site; do
             terraform -chdir="$dir" init -input=false -backend=false -lockfile=readonly  # committed lock: the root's aws
             terraform -chdir="$dir" test
           done

@@ -17,8 +17,12 @@ Rule in force from Phase 9:
                                  alarm_topic_arn to something other than null: the module creates the function's Errors
                                  and Throttles alarms on that topic (H.14), so a fifth function cannot arrive without them
 
-The last G-5 rule, "both tables in the backup selection", arrives with its subject in Phase 33. Adding it earlier would
-fail every release in between.
+Rule in force from Phase 33:
+
+  backup-selection               the main root (infrastructure/main/*.tf) calls the backup module (source ending in
+                                 modules/backup) with both tables in table_arns: local.table_arns.game and
+                                 local.table_arns.content (plan H.13, spine S8.4), so neither table can drop out of
+                                 the daily backup unnoticed
 
 The workflow rules match comments too, on purpose: they mirror the plan's check
 `grep -rn -- 'destroy\\|-auto-approve\\|update-function-code' .github/`, and a comment explaining a destroy is still a
@@ -140,6 +144,9 @@ ALARM_INPUT = "alarm_topic_arn"
 ALARM_INPUT_SET = re.compile(rf"^[ \t]*{ALARM_INPUT}\s*=\s*(?!null\s*$)\S", re.MULTILINE)
 MODULE_START = re.compile(r'^[ \t]*module\s+"([^"]+)"\s*\{', re.MULTILINE)
 HEREDOC = re.compile(r"<<-?\s*([A-Za-z_][A-Za-z0-9_]*)\n.*?^\s*\1\s*$", re.MULTILINE | re.DOTALL)
+BACKUP_MODULE_SOURCE = re.compile(r'^[ \t]*source\s*=\s*"(?:[^"]*/)?modules/backup/?"\s*$', re.MULTILINE)
+BACKUP_TABLES = ("local.table_arns.game", "local.table_arns.content")
+BACKUP_MESSAGE = "the main root must call the backup module with both tables (local.table_arns.game and .content, H.13)"
 LAMBDA_ALARMS_MESSAGE = (f"a lambda_function module call must set {ALARM_INPUT} (the alarm topic): every function gets "
                          "Errors and Throttles alarms (H.14)")
 
@@ -208,13 +215,31 @@ def check_lambda_alarms(repo: Path) -> list[Violation]:
     return found
 
 
+def check_backup_selection(repo: Path) -> list[Violation]:
+    main = repo / "infrastructure" / "main"
+    calls: list[tuple[Path, int, str, str]] = []
+    for path in sorted(main.glob("*.tf")) if main.is_dir() else []:
+        for name, line, block in _module_blocks(path.read_text(encoding="utf-8", errors="replace")):
+            if BACKUP_MODULE_SOURCE.search(block):
+                calls.append((path, line, name, block))
+    if not calls:
+        return [Violation(Path("infrastructure/main"), 0, "backup-selection", BACKUP_MESSAGE, "no backup module call")]
+    found: list[Violation] = []
+    for path, line, name, block in calls:
+        missing = [t for t in BACKUP_TABLES if t not in block]
+        if missing:
+            found.append(Violation(path.relative_to(repo), line, "backup-selection", BACKUP_MESSAGE,
+                                   f'module "{name}" lacks {", ".join(missing)}'))
+    return found
+
+
 def check(repo: Path) -> list[Violation]:
-    return check_github(repo) + check_terraform(repo) + check_lambda_alarms(repo)
+    return check_github(repo) + check_terraform(repo) + check_lambda_alarms(repo) + check_backup_selection(repo)
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        description="Gate G-5: repository invariants (workflow strings, custom_error_response, Lambda alarms).")
+        description="Gate G-5: repository invariants (workflow strings, custom_error_response, Lambda alarms, backups).")
     parser.add_argument("--root", type=Path, default=REPO_ROOT, help="repository root (default: this script's repository)")
     args = parser.parse_args(argv)
     repo: Path = args.root.resolve()
@@ -230,7 +255,7 @@ def main(argv: list[str] | None = None) -> int:
     if violations:
         print(f"check_invariants: FAILED: {len(violations)} violation(s) of G-5", file=sys.stderr)
         return EXIT_VIOLATION
-    rules = len(WORKFLOW_RULES) + len(TERRAFORM_RULES) + 1  # + lambda-alarms
+    rules = len(WORKFLOW_RULES) + len(TERRAFORM_RULES) + 2  # + lambda-alarms, backup-selection
     print(f"check_invariants: OK: {rules} G-5 rules hold")
     return EXIT_OK
 
