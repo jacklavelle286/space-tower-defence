@@ -18,7 +18,9 @@
 // Phase 28: a meteor power's `power` event plays its effect (a frost wash over the field, a comet ring where the burst
 // landed, the dome flaring over the colony). The effects are loaded only when the ruleset has powers, so the live r1
 // game loads nothing new. Slowed aliens keep the frost tint they already had (state, not a timer).
-import { buffPctAt, routePoint, type AlienState, type Battle, type BattleEvent } from "@scd/game-core";
+// Gate E review: Sol never fires, so each astronaut a Sol boosts gets a glow, a gold link line from that Sol (from
+// game-core's buffSourceAt, the simulation's own rule) and rising pluses. Only their motion uses the scene clock.
+import { buffSourceAt, routePoint, type AlienState, type Battle, type BattleEvent } from "@scd/game-core";
 import { GameObjects, Scene, type Input } from "phaser";
 import {
   ALIEN_LOOPED,
@@ -68,6 +70,17 @@ const BUFF_RING = 0xffc857;
 /** The glow under an astronaut while a Sol boosts it (C5.6), read from the battle each frame (state, not a timer). */
 const BOOST_GLOW_RX = 40;
 const BOOST_GLOW_RY = 14;
+/** The link from a Sol to each astronaut it boosts: a gold line at chest height with dots flowing along it. */
+const BOOST_CHEST_DY = -44;
+const BOOST_FLOW_MS = 900;
+const BOOST_FLOW_DOTS = 3;
+/** Pluses rising off a boosted astronaut: three at a time, each rising BOOST_PLUS_RISE px over BOOST_PLUS_MS. */
+const BOOST_PLUS_MS = 1200;
+const BOOST_PLUS_RISE = 56;
+const BOOST_PLUS_TOP_DY = -128;
+const BOOST_PLUS_DX = [-30, 0, 30] as const;
+const BOOST_PLUS_ARM = 11;
+const INK = 0x2a1e3d;
 /** Where a flying alien's shadow sits, and the centre of a Bubble Guard's layers, relative to its feet (art fit). */
 const SHADOW_DY = -4;
 const LAYERS_DY = -48;
@@ -138,6 +151,8 @@ export class BattleScene extends Scene {
   #range: GameObjects.Graphics | null = null;
   /** Glows under the astronauts a Sol is boosting, so a Sol's work shows on the field (Sol never shoots). */
   #boost: GameObjects.Graphics | null = null;
+  /** The pluses above boosted astronauts (drawn over the sprites). */
+  #boostFx: GameObjects.Graphics | null = null;
   /** Pads that already had an astronaut when this wave's battle was made (no "placed" sparkle for those). */
   #restored = new Set<string>();
 
@@ -200,6 +215,7 @@ export class BattleScene extends Scene {
 
     this.#range = this.add.graphics().setDepth(5);
     this.#boost = this.add.graphics().setDepth(6);
+    this.#boostFx = this.add.graphics().setDepth(30);
 
     this.#alienPool = new Pool<AlienView>(
       () => ({
@@ -280,8 +296,12 @@ export class BattleScene extends Scene {
     const present = new Set<string>();
     // Sol never fires (C5.6): Sol raises the damage of attackers whose pad the ring reaches. buffPctAt is the
     // simulation's own answer, so a glow appears exactly where the bonus applies.
+    // The link line and pluses move with the scene clock: cosmetic only, like the animation frames.
     const boost = this.#boost;
+    const fx = this.#boostFx;
     boost?.clear();
+    fx?.clear();
+    const now = this.time.now;
     for (const tower of battle.towers) {
       present.add(tower.padId);
       const pad = this.#bridge.config.pads.find((p) => p.id === tower.padId);
@@ -289,9 +309,10 @@ export class BattleScene extends Scene {
       const x = tileToPx(pad.x);
       const y = tileToPx(pad.y) + ASTRONAUT_FEET_DY;
       const art = astronautArt(tower.classId, tower.level);
-      if (boost !== null && buffPctAt(battle, tower.padId) > 0) {
-        boost.fillStyle(BUFF_RING, 0.45).fillEllipse(x, y, BOOST_GLOW_RX * 2, BOOST_GLOW_RY * 2);
-        boost.lineStyle(3, BUFF_RING, 0.9).strokeEllipse(x, y, BOOST_GLOW_RX * 2, BOOST_GLOW_RY * 2);
+      const source = boost === null || fx === null ? null : buffSourceAt(battle, tower.padId);
+      const solPad = source === null ? undefined : this.#bridge.config.pads.find((p) => p.id === source.solPadId);
+      if (boost !== null && fx !== null && solPad !== undefined) {
+        this.#drawBoost(boost, fx, now, { x: tileToPx(solPad.x), y: tileToPx(solPad.y) + ASTRONAUT_FEET_DY }, { x, y }, pad.x + pad.y);
       }
       let view = this.#towers.get(tower.padId);
       // A sale and a purchase on the same pad within one frame (or one tick) leave a different class there.
@@ -348,6 +369,42 @@ export class BattleScene extends Scene {
       view.beam.destroy();
       this.#towers.delete(padId);
     }
+  }
+
+  /**
+   * One Sol boost (C5.6), from the Sol's feet `from` to the boosted astronaut's feet `to`: a glow at the astronaut's
+   * feet, a gold line between their chests with dots flowing from the Sol, and pluses rising off the astronaut.
+   * `seed` staggers the pluses so neighbouring astronauts do not pulse in step.
+   */
+  #drawBoost(
+    under: GameObjects.Graphics,
+    over: GameObjects.Graphics,
+    now: number,
+    from: { x: number; y: number },
+    to: { x: number; y: number },
+    seed: number,
+  ): void {
+    under.fillStyle(BUFF_RING, 0.45).fillEllipse(to.x, to.y, BOOST_GLOW_RX * 2, BOOST_GLOW_RY * 2);
+    under.lineStyle(3, BUFF_RING, 0.9).strokeEllipse(to.x, to.y, BOOST_GLOW_RX * 2, BOOST_GLOW_RY * 2);
+    const ax = from.x;
+    const ay = from.y + BOOST_CHEST_DY;
+    const bx = to.x;
+    const by = to.y + BOOST_CHEST_DY;
+    under.lineStyle(16, BUFF_RING, 0.3).lineBetween(ax, ay, bx, by);
+    under.lineStyle(6, BUFF_RING, 0.9).lineBetween(ax, ay, bx, by);
+    for (let i = 0; i < BOOST_FLOW_DOTS; i++) {
+      const q = (now / BOOST_FLOW_MS + i / BOOST_FLOW_DOTS) % 1;
+      under.fillStyle(0xffffff, 0.9).fillCircle(ax + (bx - ax) * q, ay + (by - ay) * q, 7);
+    }
+    BOOST_PLUS_DX.forEach((dx, i) => {
+      const p = (now / BOOST_PLUS_MS + i / BOOST_PLUS_DX.length + seed * 0.37) % 1;
+      const cx = to.x + dx;
+      const cy = to.y + BOOST_PLUS_TOP_DY - p * BOOST_PLUS_RISE;
+      const alpha = p < 0.2 ? p / 0.2 : 1 - (p - 0.2) / 0.8;
+      const a = BOOST_PLUS_ARM;
+      over.fillStyle(INK, alpha).fillRect(cx - a - 3, cy - 6, (a + 3) * 2, 12).fillRect(cx - 6, cy - a - 3, 12, (a + 3) * 2);
+      over.fillStyle(BUFF_RING, alpha).fillRect(cx - a, cy - 3, a * 2, 6).fillRect(cx - 3, cy - a, 6, a * 2);
+    });
   }
 
   /** An alien's feet on the canvas, in pixels. */
