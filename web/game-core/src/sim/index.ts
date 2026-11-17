@@ -6,6 +6,7 @@ export {
   ALIEN_LOOKS,
   battleSnapshot,
   buffPctAt,
+  buffSourceAt,
   checkCommand,
   classAvailability,
   createBattle,

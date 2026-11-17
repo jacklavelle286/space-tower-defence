@@ -644,17 +644,28 @@ function applySlow(battle: Battle, alien: AlienState, pct: number, ticks: number
  * its own level's number and nothing else, so buffs cannot feed each other (no loop, whatever the board).
  */
 export function buffPctAt(battle: Readonly<Battle>, padId: string): number {
+  return buffSourceAt(battle, padId)?.pct ?? 0;
+}
+
+/**
+ * The Sol whose buff applies to the astronaut on `padId` and its percent, or null when none does (buffPctAt's rule).
+ * Of equal-strength Sols the first in tower order is named; the percent is the same either way. The player uses the
+ * pad to draw the link from that Sol (cosmetic); the simulation only reads the percent.
+ */
+export function buffSourceAt(battle: Readonly<Battle>, padId: string): { readonly pct: number; readonly solPadId: string } | null {
   const { config } = battle;
   const tower = battle.towers.find((t) => t.padId === padId);
   const pad = config.pads.find((p) => p.id === padId);
-  if (tower === undefined || pad === undefined) return 0;
-  if (levelOf(classOf(config, tower.classId), tower.level).shot === null) return 0; // a support class is not buffed
-  let best = 0;
+  if (tower === undefined || pad === undefined) return null;
+  if (levelOf(classOf(config, tower.classId), tower.level).shot === null) return null; // a support class is not buffed
+  let best: { pct: number; solPadId: string } | null = null;
   for (const sol of battle.towers) {
     const buff = levelOf(classOf(config, sol.classId), sol.level).buff;
-    if (buff === null || buff.pct <= best) continue;
+    if (buff === null || buff.pct <= (best?.pct ?? 0)) continue;
     const solPad = config.pads.find((p) => p.id === sol.padId);
-    if (solPad !== undefined && withinRange({ x: pad.cx, y: pad.cy }, solPad.cx, solPad.cy, buff.radiusSq)) best = buff.pct;
+    if (solPad !== undefined && withinRange({ x: pad.cx, y: pad.cy }, solPad.cx, solPad.cy, buff.radiusSq)) {
+      best = { pct: buff.pct, solPadId: sol.padId };
+    }
   }
   return best;
 }

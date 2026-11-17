@@ -17,6 +17,7 @@ import {
   battleSnapshot,
   buffedDamage,
   buffPctAt,
+  buffSourceAt,
   compileBattleConfig,
   createBattle,
   drainEvents,
@@ -436,6 +437,10 @@ describe("C5.6 Sol's buff: strongest wins, attackers only, damage only, no loops
     expect(buffPctAt(battle, "p13")).toBe(25);
     const swapped = fight([place("p13", "nova"), place("p12", "sol", 2), place("p16", "sol", 1)], []);
     expect(buffPctAt(swapped, "p13")).toBe(25);
+    // buffSourceAt names the Sol that applies (the player draws its link from there; Phase 28 review).
+    expect(buffSourceAt(battle, "p13")).toEqual({ pct: 25, solPadId: "p16" });
+    expect(buffSourceAt(swapped, "p13")).toEqual({ pct: 25, solPadId: "p12" });
+    expect(buffSourceAt(battle, "p12")).toBeNull(); // a Sol is never buffed
   });
 
   it("no loop: Sols in each other's radius buff neither each other nor Mira, and no buff ever exceeds the largest Sol level", () => {
