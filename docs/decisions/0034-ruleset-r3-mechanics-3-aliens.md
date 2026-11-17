@@ -45,6 +45,26 @@ differences: release timing (1) applies to the Mothership's doors; 0.45 × 1.15 
 Queen Bubbla's baseline wave ends one tick later. Both models agree the C17.4 "Nova only" board beats each boss
 (`python3 -B tools/sim/boss_baseline.py`; `web/game-core/src/sim/bosses.test.ts`).
 
+Amended in Phase 28 (M2-05, M2-10), before r3 was published: r3 gains `powers`, the three meteor powers of
+[C §C10](../plan/C-game-and-learning-design.md#c10-meteor-powers) number for number from `tools/sim/game_data.json`, under
+the contracts' hyphenated key IDs (`frost-pulse`, `comet-burst`, `colony-shield`; the simulator's `frost_pulse` etc.), each with
+an `effect` the simulation reads instead of the ID: `slow` (50% for 6 s, the C5.4 rules: cap, one slow at a time, a boss at its
+`slowFactorPct`, so 25%), `burst` (within 1.5 tiles of a route point, ceil(50% of maximum health), a boss 10%, straight off
+health: no armour, no bubble layer popped, flying not halved; boss phases and the defeat check as for a shot) and `shield` (+10 up
+to `shieldAbsoluteCap` 20). `powerRules` gains `perWaveUseLimitPerPower` 1, `sharedLockoutSeconds` 3 and `awardRotation`
+(Frost Pulse, Comet Burst, Colony Shield, round again; `meteorAward`), required with `powers` and refused without them. **Still
+mechanics 3**: no mechanics 3 game-core or r3 has been published, mechanics 1 and 2 refuse `powers` (their game-core has no
+`usePower`), and a Phase 27 parser would refuse it as an unknown key. Simulation: `usePower` is a command applied at a tick
+boundary like the others; a charge is spent only by a use; a use is refused with a reason (`UNKNOWN_POWER`, `NOT_NOW` outside a
+wave, `NO_CHARGE`, `POWER_USED_THIS_WAVE`, `POWER_LOCKED`, `BAD_TARGET`); the use counts and the lockout live on the Battle and are
+cleared when the wave ends, which also trims the shield to 10; the snapshot carries only the counts. The inventory cap is enforced
+in one place, the reducer's grant (`grantPowerCharge`; its Python mirror `_grant`): nothing in a battle adds a charge. Simulator
+difference (4), found here: the simulator counts a slow down in float seconds, so its 6 s Frost Pulse lasts 361 ticks and Pip's
+4 s 241; game-core's last 360 and 240 (C2.1 `round(seconds × 60)`). Whole boss waves with powers on fixed ticks agree with
+`python3 -B tools/sim/power_baseline.py` run with game-core's timing (difference 1 and whole-tick slows); `tools/sim` is unchanged.
+Determinism (M2-10): the Great Glorp's wave through the real frame loop at 30, 60 and 144 Hz, 2x, jittery frames, pauses and
+the 30-step cap gives the same tick count, post-wave snapshot, event log and final state.
+
 Evidence: **[VERIFIED]** 2026-11-17: `web/game-core/src/data/sim-agreement.test.ts` (every r3 alien number and trait, the
 rounding rules, C8.2 bounty per wave); `web/game-core/src/sim/aliens.test.ts` (one test per trait, C6.3 releases, C6.4 caps,
 a stress wave of 240 aliens that reaches 60 alive and 24 descendants and never passes them, five whole waves where both models
@@ -52,3 +72,7 @@ agree); `web/game-core/src/data/game-data.test.ts` (mechanics 3 parse rules); `n
 Phase 27: `web/game-core/src/sim/bosses.test.ts` (each boss's phases and actions, slows and heals on bosses, leaks, no
 state across waves, determinism, the baseline defence per boss and four mixed-board boss waves agreeing with the simulator);
 every boss number and all 50 campaign waves' bounty in `sim-agreement.test.ts`; the boss parse rules in `game-data.test.ts`.
+Phase 28: `web/game-core/src/sim/powers.test.ts` (each power's effect, charges, the cap, refusals, the per-wave limit and the
+lockout, nothing across a wave, four whole boss waves with powers agreeing with the simulator);
+`web/game-core/src/sim/determinism.test.ts` (the frame-rate test); the power parse rules in `game-data.test.ts`; every power
+number and rule in `sim-agreement.test.ts`; `web/game-core/src/purity.test.ts` (no wall clock or host randomness).

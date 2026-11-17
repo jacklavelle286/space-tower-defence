@@ -49,7 +49,7 @@ The rules are in [J §J.6](../plan/J-execution-backlog.md#j6-decision-log-practi
 | [0031](0031-gate-p-picture-library-and-generation.md) | Gate P: pictures bucket at /pictures/*, browser conversion with strict server PNG check, fifth Lambda picture-gen via SQS (OpenAI gpt-6.1-sol, EU residency, key in Secrets Manager since 2026-11-16; Bedrock Opus 5.5 a variable away), caps 100/day 150/month, budget USD 65 | Accepted |
 | [0032](0032-admin-level-designer-gate-m.md) | Admin level and planet designer (all three tiers) as new Gate M after J, before L; export first, runtime publish in LD6; two blocking bot checks; tester preview | Proposed |
 | [0033](0033-ruleset-r2-mechanics-2-roster.md) | Ruleset r2 with mechanics 2 holds the six-class roster; current.json stays on r1 until Phase 25 | Proposed |
-| [0034](0034-ruleset-r3-mechanics-3-aliens.md) | Ruleset r3 with mechanics 3 holds the alien catalogue (traits as data), carriers, splitters and caps (amended in Phase 27: and the five bosses); current.json stays on r1 | Proposed |
+| [0034](0034-ruleset-r3-mechanics-3-aliens.md) | Ruleset r3 with mechanics 3 holds the alien catalogue (traits as data), carriers, splitters and caps (amended in Phase 27: and the five bosses; in Phase 28: and the meteor powers); current.json stays on r1 | Proposed |
 
 ## Next in line
 
