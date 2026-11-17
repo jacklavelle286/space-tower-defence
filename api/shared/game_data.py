@@ -4,6 +4,8 @@ The release publishes the game-data files on the player site bucket under GAME_D
 
     <prefix>current.json                  {"rulesetVersion", "campaignVersion"}: the versions new runs use (overwritten)
     <prefix>campaign/<version>.json       one planet document (create-only, never changes)
+    <prefix>versions.json                 states per (campaign version, wave set) from the game-data publisher
+                                          (Gate M, LD6; shared/versions.py); absent until the first admin publish
 
 "Released planets" are the planets `current.json` names; today that is one campaignVersion, so one planet. Python reads
 only the planet's id, name and wave-set headings (mode, name, length) and, for run creation (Phase 16), each wave
@@ -27,6 +29,7 @@ import boto3
 from botocore.exceptions import ClientError
 
 from shared.bounds import KEY_ID, VERSION
+from shared.versions import Versions, VersionsUnavailable, parse_versions
 
 BUCKET_ENV = "GAME_DATA_BUCKET"
 PREFIX_ENV = "GAME_DATA_PREFIX"
@@ -38,6 +41,10 @@ MODES = frozenset({"CAMPAIGN", "CHALLENGE"})
 
 class GameDataUnavailable(Exception):
     """current.json or a planet document cannot be loaded: missing, unreadable or malformed."""
+
+
+class _Missing(Exception):
+    """An optional file (versions.json) does not exist."""
 
 
 @dataclass(frozen=True)
@@ -131,6 +138,7 @@ class GameDataReader:
         self._s3 = s3
         self._clock = clock
         self._current: tuple[float, dict[str, str]] | None = None
+        self._versions: tuple[float, Versions] | None = None
         self._planets: dict[str, Planet] = {}
 
     def _client(self) -> Any:
@@ -138,7 +146,7 @@ class GameDataReader:
             self._s3 = boto3.client("s3")
         return self._s3
 
-    def _get_json(self, key: str) -> Any:
+    def _get_json(self, key: str, *, missing_ok: bool = False) -> Any:
         if not self.bucket:
             raise GameDataUnavailable(f"no bucket: set {BUCKET_ENV}")
         try:
@@ -146,6 +154,8 @@ class GameDataReader:
             body = response["Body"].read(MAX_FILE_BYTES + 1)
         except ClientError as exc:
             code = exc.response.get("Error", {}).get("Code", "")
+            if missing_ok and code == "NoSuchKey":  # 404 needs s3:ListBucket on the prefix (infrastructure/main)
+                raise _Missing from exc
             raise GameDataUnavailable(f"s3://{self.bucket}/{key}: {code or exc}") from exc
         if len(body) > MAX_FILE_BYTES:
             raise GameDataUnavailable(f"s3://{self.bucket}/{key} is too large")
@@ -169,6 +179,22 @@ class GameDataReader:
                 raise GameDataUnavailable(f"current.json: bad {name}")
             versions[name] = value
         self._current = (now, versions)
+        return versions
+
+    def versions(self) -> Versions:
+        """The publisher's states (cached for CURRENT_TTL_SECONDS, like current.json). No file: no states, so every
+        version is published. A malformed file raises GameDataUnavailable (fail closed)."""
+        now = self._clock()
+        if self._versions is not None and now - self._versions[0] < CURRENT_TTL_SECONDS:
+            return self._versions[1]
+        key = f"{self.prefix}versions.json"
+        try:
+            versions = parse_versions(self._get_json(key, missing_ok=True))
+        except _Missing:
+            versions = Versions()
+        except VersionsUnavailable as exc:
+            raise GameDataUnavailable(str(exc)) from exc
+        self._versions = (now, versions)
         return versions
 
     def planet(self, campaign_version: str) -> Planet:

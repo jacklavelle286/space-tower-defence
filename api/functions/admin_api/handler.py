@@ -1083,9 +1083,12 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
             reader = deps.game_data()
             ruleset = reader.current()["rulesetVersion"]
             released: list[tuple[str, list[Any]]] = []
+            versions = reader.versions()
             for planet in reader.released_planets():
                 bounds = deps.bounds(ruleset, planet.campaign_version)
                 for wave_set in planet.wave_sets:
+                    if versions.state(planet.campaign_version, wave_set.wave_set_id) != "published":
+                        continue  # LD6: a preview, retired or invalid wave set takes no new games from children
                     ws = bounds["waveSets"].get(wave_set.wave_set_id)
                     if ws is None:
                         continue  # not playable: POST /api/runs refuses it before selection

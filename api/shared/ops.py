@@ -9,7 +9,8 @@ with every `game` read consistent:
   (b) SESSION `sessionId` and `generation` equal the batch's      else STALE_SESSION, stop
   (c) run not terminal                                            else REJECTED RUN_TERMINAL
   (d) `expectedRevision == revision`                              else REJECTED STALE_REVISION
-  (e) the pinned bounds file loads (skipped for ABANDON, FINISH_RUN) else REJECTED CONTENT_VERSION_UNSUPPORTED
+  (e) the pinned bounds file loads and (LD6) the (version, wave set) is not marked invalid (both skipped for ABANDON,
+      FINISH_RUN) else REJECTED CONTENT_VERSION_UNSUPPORTED
   (f) phase, wave, current slot } the rules reducer, shared/rules else REJECTED PHASE_MISMATCH
   (g) payload schema            } (the browser's decisions)       else REJECTED VALIDATION_FAILED
       plus the placements' values against the pinned bounds file (pads, classes, levels, targeting)
@@ -421,10 +422,12 @@ class OpsBatch:
         sleep: Callable[[float], None],
         random: Callable[[], float],
         log: Log,
+        resumable: Callable[[str, str], bool] = lambda _campaign, _wave_set: True,
     ) -> None:
         self.table = table
         self._content = content
         self._bounds = bounds
+        self._resumable = resumable  # Gate M, LD6: False for a (version, wave set) marked invalid (shared/versions.py)
         self._now = now
         self._sleep = sleep
         self._random = random
@@ -542,6 +545,8 @@ class OpsBatch:
                 return rejected("CONTENT_VERSION_UNSUPPORTED")
             if str(run.get("waveSetId")) not in bounds["waveSets"]:
                 return rejected("CONTENT_VERSION_UNSUPPORTED")
+            if not self._resumable(str(pins.get("campaignVersion")), str(run.get("waveSetId"))):
+                return rejected("CONTENT_VERSION_UNSUPPORTED")  # invalid: only ABANDON or FINISH_RUN may close it
 
         # The addressed slot's pinned version: read only when an attempt could be judged or voided.
         accepted: dict[str, list[str] | None] = {}

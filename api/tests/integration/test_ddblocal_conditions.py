@@ -31,10 +31,12 @@ def test_conditional_put_refused_on_duplicate_alone_and_in_a_transaction(ddb_loc
     # passed its condition ("None"), the second did not. All or nothing: the first put is not written either.
     fresh = {"pk": {"S": "PLAYER#g13"}, "sk": {"S": "RUN#1"}}
     with pytest.raises(ClientError) as caught:
-        ddb_local.transact_write_items(TransactItems=[
-            {"Put": {"TableName": table, "Item": fresh, "ConditionExpression": NEW_ONLY}},
-            {"Put": {"TableName": table, "Item": ITEM, "ConditionExpression": NEW_ONLY}},
-        ])
+        ddb_local.transact_write_items(
+            TransactItems=[
+                {"Put": {"TableName": table, "Item": fresh, "ConditionExpression": NEW_ONLY}},
+                {"Put": {"TableName": table, "Item": ITEM, "ConditionExpression": NEW_ONLY}},
+            ]
+        )
     error = caught.value.response
     assert error["Error"]["Code"] == "TransactionCanceledException"
     assert [r["Code"] for r in error["CancellationReasons"]] == ["None", "ConditionalCheckFailed"]

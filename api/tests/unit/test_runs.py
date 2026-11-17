@@ -367,6 +367,9 @@ class TwoPlanets:
     def released_planets(self) -> list[Planet]:
         return [self.real.planet("luna-1-c1"), self.mars]
 
+    def versions(self) -> Any:
+        return self.real.versions()
+
 
 def test_planet_locked_until_the_planet_before_reaches_wave_20(ddb: Any, player_event: dict) -> None:
     api = RunsApi(ddb)

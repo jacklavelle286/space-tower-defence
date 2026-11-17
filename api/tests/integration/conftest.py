@@ -55,8 +55,10 @@ def table(ddb_local: Any) -> Iterator[str]:
     name = f"g13-{uuid.uuid4().hex[:12]}"
     ddb_local.create_table(
         TableName=name,
-        AttributeDefinitions=[{"AttributeName": "pk", "AttributeType": "S"},
-                              {"AttributeName": "sk", "AttributeType": "S"}],
+        AttributeDefinitions=[
+            {"AttributeName": "pk", "AttributeType": "S"},
+            {"AttributeName": "sk", "AttributeType": "S"},
+        ],
         KeySchema=[{"AttributeName": "pk", "KeyType": "HASH"}, {"AttributeName": "sk", "KeyType": "RANGE"}],
         BillingMode="PAY_PER_REQUEST",
     )

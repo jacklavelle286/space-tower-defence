@@ -95,6 +95,7 @@ from shared.session import (
     same_holder_update,
     takeover_update,
 )
+from shared.versions import Versions
 
 # This function's allow-list. tests/unit/test_routes_contract.py checks it equals contracts/routes.json.
 ROUTES: dict[str, str] = {
@@ -301,14 +302,17 @@ def _session_view(session: Mapping[str, Any] | None, session_id: str | None, now
 
 
 class _Playability:
-    """Whether a pinned (ruleset, campaign) pair can be played: its bounds file loads (spine S5.1). Asked once per pair
-    per request."""
+    """Whether a pinned (ruleset, campaign) pair can be played: its bounds file loads (spine S5.1), and (Gate M, LD6)
+    the run's wave set is not marked invalid in versions.json. Asked once per pair per request; versions.json is read
+    at most once per request, and only for a run that names its wave set."""
 
-    def __init__(self, bounds: Callable[[str, str], Any]) -> None:
+    def __init__(self, bounds: Callable[[str, str], Any], versions: Callable[[], Versions]) -> None:
         self._bounds = bounds
+        self._versions = versions
+        self._loaded: Versions | None = None
         self._seen: dict[tuple[str, str], bool] = {}
 
-    def __call__(self, ruleset: Any, campaign: Any) -> bool:
+    def __call__(self, ruleset: Any, campaign: Any, wave_set: Any = None) -> bool:
         if not isinstance(ruleset, str) or not isinstance(campaign, str):
             return False
         key = (ruleset, campaign)
@@ -319,7 +323,11 @@ class _Playability:
                 self._seen[key] = False
             else:
                 self._seen[key] = True
-        return self._seen[key]
+        if not self._seen[key] or wave_set is None:
+            return self._seen[key]
+        if self._loaded is None:
+            self._loaded = self._versions()
+        return self._loaded.can_resume(campaign, wave_set)
 
 
 def _me_view(deps: Deps, table: DynamoTable, pk: str, profile: Mapping[str, Any], session_id: str | None) -> dict:
@@ -334,7 +342,7 @@ def _me_view(deps: Deps, table: DynamoTable, pk: str, profile: Mapping[str, Any]
     ]
     runs.sort(key=lambda item: str(item["sk"]))  # ties by runId, then newest first (stable sort)
     runs.sort(key=lambda item: str(item.get("lastPlayedAt") or ""), reverse=True)
-    playable = _Playability(deps.bounds)
+    playable = _Playability(deps.bounds, lambda: deps.game_data().versions())
     planets, badges = profile.get("planets"), profile.get("badges")
     return {
         "nickname": profile.get("nickname"),
@@ -380,6 +388,9 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
     def pause(attempt: int) -> None:
         deps.sleep(jittered_pause(attempt, deps.random))
 
+    def _playability() -> _Playability:
+        return _Playability(deps.bounds, lambda: deps.game_data().versions())
+
     # --- Views that read slots and pinned versions ----------------------------------------------------------------
 
     def current_slot(run: Mapping[str, Any], slots: list[dict[str, Any]] | None, table: DynamoTable, pk: str):
@@ -401,7 +412,7 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         return current_slot_view(slot, withdrawn=version is None or bool(version.get("withdrawn")))
 
     def view_of(run: Mapping[str, Any], table: DynamoTable, pk: str, slots: list[dict[str, Any]] | None = None):
-        return run_view(run, _Playability(deps.bounds), current_slot(run, slots, table, pk))
+        return run_view(run, _playability(), current_slot(run, slots, table, pk))
 
     # --- The session claim (R13 steps 2-4; also R8's replay) -------------------------------------------------------
 
@@ -483,6 +494,10 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         ws_bounds = bounds["waveSets"].get(body["waveSetId"])
         if wave_set is None or ws_bounds is None:
             raise invalid("waveSetId", "enum")
+        # Gate M, LD6: a preview wave set is for tester accounts only; a retired or invalid one takes no new runs. The
+        # player re-reads current.json on this code and tries once more (newGame.ts, D7.3).
+        if not deps.game_data().versions().can_start(body["campaignVersion"], body["waveSetId"], request.caller.sub):
+            raise ApiError("CONTENT_VERSION_UNSUPPORTED", "This wave set is not open for new games")
 
         now = deps.now()
         band = age_band(stored_age(profile, today_in_london(now)))
@@ -613,7 +628,7 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         _profile_or_404(table, pk)
         items = table.query_prefix(pk, RUN_PREFIX, attributes=RUN_SUMMARY_ATTRIBUTES)
         chunk, next_cursor = page(items, state, limit, offset)
-        playable = _Playability(deps.bounds)
+        playable = _playability()
         return json_response(200, {"items": [run_summary(item, playable) for item in chunk], "nextCursor": next_cursor})
 
     def get_run(request: Request) -> dict[str, Any]:
@@ -644,7 +659,7 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         }
         versions = read_versions(deps.content(), pins) if pins else {}
         pins_map = run.get("pins") if isinstance(run.get("pins"), Mapping) else {}
-        playable = _Playability(deps.bounds)(pins_map.get("rulesetVersion"), pins_map.get("campaignVersion"))
+        playable = _playability()(pins_map.get("rulesetVersion"), pins_map.get("campaignVersion"), run.get("waveSetId"))
         return json_response(200, pack_body(run, slots, versions, playable))
 
     # --- R13 PUT /api/session, R14 DELETE /api/session ---------------------------------------------------------------
@@ -753,6 +768,7 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
             table=table,
             content=deps.content,
             bounds=deps.bounds,
+            resumable=lambda campaign, wave_set: deps.game_data().versions().can_resume(campaign, wave_set),
             now=deps.now,
             sleep=deps.sleep,
             random=deps.random,
@@ -891,9 +907,13 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
             raise ApiError("PROFILE_NOT_FOUND")
         band = age_band(stored_age(profile, today_in_london(now)))
         planets: list[dict[str, Any]] = []
+        versions = deps.game_data().versions()
+        sub = request.caller.sub
         for planet, unlocked in _with_unlocks(deps.game_data().released_planets(), profile):
             wave_sets = []
             for ws in planet.wave_sets:
+                if not versions.can_start(planet.campaign_version, ws.wave_set_id, sub):
+                    continue  # LD6: retired, invalid, or a preview this account does not test
                 entry: dict[str, Any] = {
                     "waveSetId": ws.wave_set_id,
                     "mode": ws.mode,

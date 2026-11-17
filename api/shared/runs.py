@@ -166,12 +166,13 @@ def _pins(item: Mapping[str, Any]) -> Mapping[str, Any]:
     return pins if isinstance(pins, Mapping) else {}
 
 
-def is_playable(item: Mapping[str, Any], playable: Callable[[Any, Any], bool]) -> bool:
+def is_playable(item: Mapping[str, Any], playable: Callable[[Any, Any, Any], bool]) -> bool:
+    """Whether the run can go on: its pins load and its (version, wave set) is not invalid (LD6, shared/versions.py)."""
     pins = _pins(item)
-    return playable(pins.get("rulesetVersion"), pins.get("campaignVersion"))
+    return playable(pins.get("rulesetVersion"), pins.get("campaignVersion"), item.get("waveSetId"))
 
 
-def run_summary(item: Mapping[str, Any], playable: Callable[[Any, Any], bool]) -> dict[str, Any]:
+def run_summary(item: Mapping[str, Any], playable: Callable[[Any, Any, Any], bool]) -> dict[str, Any]:
     """RunSummary (G §4.1) from a RUN item: named fields only."""
     summary: dict[str, Any] = {"runId": str(item["sk"]).removeprefix(RUN_PREFIX)}
     for name in _SUMMARY_FIELDS:
@@ -212,7 +213,7 @@ def current_slot_of(run: Mapping[str, Any]) -> str | None:
 
 def run_view(
     run: Mapping[str, Any],
-    playable: Callable[[Any, Any], bool],
+    playable: Callable[[Any, Any, Any], bool],
     current_slot: dict[str, Any] | None,
 ) -> dict[str, Any]:
     """RunView (G §4.1): RunSummary + plannedThrough, snapshot (absent when terminal), seed, pins, currentSlot,

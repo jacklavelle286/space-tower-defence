@@ -220,6 +220,19 @@ data "aws_iam_policy_document" "player_api" {
     actions   = ["s3:GetObject"]
     resources = ["${module.player_site.bucket_arn}/${local.game_data_prefix}*"]
   }
+
+  # Gate M, LD6: so GetObject on game-data/versions.json before the first admin publish is 404 (no states), not 403.
+  statement {
+    sid       = "GameDataPrefixList"
+    actions   = ["s3:ListBucket"]
+    resources = [module.player_site.bucket_arn]
+
+    condition {
+      test     = "StringLike"
+      variable = "s3:prefix"
+      values   = ["${local.game_data_prefix}*"]
+    }
+  }
 }
 
 module "player_api" {
@@ -280,6 +293,19 @@ data "aws_iam_policy_document" "admin_api" {
     sid       = "GameDataRead"
     actions   = ["s3:GetObject"]
     resources = ["${module.player_site.bucket_arn}/${local.game_data_prefix}*"]
+  }
+
+  # Gate M, LD6: so GetObject on game-data/versions.json before the first admin publish is 404 (no states), not 403.
+  statement {
+    sid       = "GameDataPrefixList"
+    actions   = ["s3:ListBucket"]
+    resources = [module.player_site.bucket_arn]
+
+    condition {
+      test     = "StringLike"
+      variable = "s3:prefix"
+      values   = ["${local.game_data_prefix}*"]
+    }
   }
 
   # So HeadObject on a missing clip is 404, not 403 (E.6.4 notes).
