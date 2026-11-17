@@ -38,7 +38,7 @@ function problem(result: ApiResult<unknown>): LoadOutcome {
 export async function loadRun(
   api: Pick<PlayerApi, "getRun" | "getPack">,
   runId: string,
-  loadData: (rulesetVersion: string, campaignVersion: string) => Promise<GameData>,
+  loadData: (rulesetVersion: string, campaignVersion: string, manifestVersion: string | null) => Promise<GameData>,
 ): Promise<LoadOutcome> {
   const runResult = await api.getRun(runId);
   if (runResult.kind !== "ok") return problem(runResult);
@@ -56,7 +56,7 @@ export async function loadRun(
   let data: GameData;
   try {
     pack = parsePack(packResult.body);
-    data = await loadData(detail.pins.rulesetVersion, detail.pins.campaignVersion);
+    data = await loadData(detail.pins.rulesetVersion, detail.pins.campaignVersion, detail.pins.assetManifestVersion);
   } catch {
     return { kind: "failed" };
   }

@@ -25,16 +25,15 @@
 // the route point nearest the press (C10; the bridge pauses the battle while aiming, C2.1).
 // Gate M (LD2): a map's own backdrop and decorations (mapArt.ts), each skipped if its file fails to load.
 import { UNITS_PER_TILE, buffSourceAt, routePoint, type AlienState, type Battle, type BattleEvent } from "@scd/game-core";
-import { GameObjects, Scene, type Input } from "phaser";
+import { REPO_ART, type ArtBinding } from "@scd/shared/manifest";
+import { GameObjects, Loader, Scene, type Input } from "phaser";
 import {
   ALIEN_LOOPED,
   ALIEN_ONE_SHOT,
   alienArt,
-  allFrames,
   ART,
   ASTRONAUT_LOOPED,
   POWER_ART,
-  powerFrames,
   ASTRONAUT_ONE_SHOT,
   astronautArt,
   beamArt,
@@ -164,9 +163,18 @@ export class BattleScene extends Scene {
   /** Pads that already had an astronaut when this wave's battle was made (no "placed" sparkle for those). */
   #restored = new Set<string>();
 
-  constructor(bridge: GameBridge) {
+  /** How this run's art is drawn: through its pinned asset manifest, with the repo files as fallbacks (Gate M, LD8). */
+  readonly #art: ArtBinding;
+
+  constructor(bridge: GameBridge, art: ArtBinding = REPO_ART) {
     super("battle");
     this.#bridge = bridge;
+    this.#art = art;
+  }
+
+  /** The asset as this run draws it: a map piece through the art set, anything else through the manifest. */
+  #b(asset: ArtAsset): ArtAsset {
+    return this.#art.map(asset);
   }
 
   /** True when the ruleset has meteor powers (C10; mechanics 3): only then are their effects loaded and played. */
@@ -175,47 +183,57 @@ export class BattleScene extends Scene {
   }
 
   preload(): void {
-    for (const [key, url] of allFrames()) this.load.image(key, url);
-    if (this.#hasPowers) for (const [key, url] of powerFrames()) this.load.image(key, url);
+    // Every frame as the run's manifest names it. A file that fails is loaded again from the repo under the same
+    // texture key, once (Gate M, LD8): a missing picture never stops a battle.
+    const retried = new Set<string>();
+    this.load.on(Loader.Events.FILE_LOAD_ERROR, (file: Loader.File) => {
+      const repo = this.#art.fallback(file.key);
+      if (repo === null || retried.has(file.key)) return;
+      retried.add(file.key);
+      this.load.image(file.key, repo);
+    });
+    for (const [key, url] of this.#art.frames([...Object.values(ART), ...(this.#hasPowers ? Object.values(POWER_ART) : [])])) this.load.image(key, url);
     // The map's own backdrop and decorations (Gate M, LD2). One that fails to load is skipped in create().
-    for (const { key, url } of mapPicturesToLoad(this.#bridge.config)) if (!this.textures.exists(key)) this.load.image(key, url);
+    for (const { key, url } of mapPicturesToLoad(this.#bridge.config, this.#art)) if (!this.textures.exists(key)) this.load.image(key, url);
   }
 
   create(): void {
-    for (const asset of [...LOOPED, ...ONE_SHOT, ...(this.#hasPowers ? Object.values(POWER_ART) : [])]) {
+    for (const repo of [...LOOPED, ...ONE_SHOT, ...(this.#hasPowers ? Object.values(POWER_ART) : [])]) {
+      const asset = this.#b(repo);
+      if (this.anims.exists(asset.id)) continue;
       const frames = Array.from({ length: asset.frames }, (_, i) => ({ key: frameKey(asset, i + 1) }));
-      this.anims.create({ key: asset.id, frames, frameRate: ANIM_FPS, repeat: LOOPED.includes(asset) ? -1 : 0 });
+      this.anims.create({ key: asset.id, frames, frameRate: ANIM_FPS, repeat: LOOPED.includes(repo) ? -1 : 0 });
     }
     const config = this.#bridge.config;
 
     // The map's own backdrop when it has one and it loaded; otherwise the repo Moonbeam ground (Gate M, LD2).
-    const backdrop = this.add.image(0, 0, backdropKey(config, (key) => this.textures.exists(key)));
-    place(backdrop, ART.backdrop);
+    const backdrop = this.add.image(0, 0, backdropKey(config, (key) => this.textures.exists(key), this.#b(ART.backdrop).id));
+    place(backdrop, this.#b(ART.backdrop));
     backdrop.setDepth(0);
-    for (const d of placedDecorations(config)) {
+    for (const d of placedDecorations(config, this.#art)) {
       if (!this.textures.exists(d.key)) continue; // failed to load: skipped, never a broken battle
       this.add.image(d.x, d.y, d.key).setOrigin(d.anchor[0], d.anchor[1]).setDisplaySize(d.size[0], d.size[1]).setDepth(d.depth);
     }
 
     for (const tile of routeTiles(config.route.waypoints)) {
-      const image = this.add.image(tileToPx(tile.x), tileToPx(tile.y), frameKey(tile.art, 1));
-      place(image, tile.art);
+      const image = this.add.image(tileToPx(tile.x), tileToPx(tile.y), frameKey(this.#b(tile.art), 1));
+      place(image, this.#b(tile.art));
       image.setDepth(1);
     }
 
     const [startX, startY] = config.route.waypoints[0] ?? [0, 0];
-    const portal = this.add.sprite(tileToPx(startX) - TILE_PX / 2, tileToPx(startY), frameKey(ART.portal, 1));
-    place(portal, ART.portal);
-    portal.setDepth(2).play(ART.portal.id);
+    const portal = this.add.sprite(tileToPx(startX) - TILE_PX / 2, tileToPx(startY), frameKey(this.#b(ART.portal), 1));
+    place(portal, this.#b(ART.portal));
+    portal.setDepth(2).play(this.#b(ART.portal).id);
 
     const [gateX, gateY] = config.route.waypoints[config.route.waypoints.length - 1] ?? [0, 0];
-    this.#colony = this.add.image(tileToPx(gateX) + COLONY_DX, tileToPx(gateY) + COLONY_DY, frameKey(ART.colonyHealthy, 1));
-    place(this.#colony, ART.colonyHealthy);
+    this.#colony = this.add.image(tileToPx(gateX) + COLONY_DX, tileToPx(gateY) + COLONY_DY, frameKey(this.#b(ART.colonyHealthy), 1));
+    place(this.#colony, this.#b(ART.colonyHealthy));
     this.#colony.setDisplaySize(COLONY_PX, COLONY_PX).setDepth(3);
 
     for (const pad of config.pads) {
-      const image = this.add.image(tileToPx(pad.x), tileToPx(pad.y), frameKey(pad.open ? ART.padEmpty : ART.padClosed, 1));
-      place(image, ART.padEmpty);
+      const image = this.add.image(tileToPx(pad.x), tileToPx(pad.y), frameKey(this.#b(pad.open ? ART.padEmpty : ART.padClosed), 1));
+      place(image, this.#b(ART.padEmpty));
       image.setDepth(4).setInteractive({ useHandCursor: pad.open });
       image.on("pointerdown", (pointer: Input.Pointer) => {
         // Phaser also listens on window and hit-tests presses that land on DOM overlays above the canvas (the
@@ -243,9 +261,9 @@ export class BattleScene extends Scene {
 
     this.#alienPool = new Pool<AlienView>(
       () => ({
-        body: this.add.sprite(0, 0, frameKey(ART.blobWalk, 1)).setVisible(false),
-        shadow: this.add.image(0, 0, frameKey(ART.flutterShadow, 1)).setVisible(false),
-        layers: this.add.image(0, 0, frameKey(ART.guardLayers4, 1)).setVisible(false),
+        body: this.add.sprite(0, 0, frameKey(this.#b(ART.blobWalk), 1)).setVisible(false),
+        shadow: this.add.image(0, 0, frameKey(this.#b(ART.flutterShadow), 1)).setVisible(false),
+        layers: this.add.image(0, 0, frameKey(this.#b(ART.guardLayers4), 1)).setVisible(false),
         phase: -1,
       }),
       (view) => {
@@ -256,7 +274,7 @@ export class BattleScene extends Scene {
       },
     );
     this.#effectPool = new Pool<GameObjects.Sprite>(
-      () => this.add.sprite(0, 0, frameKey(ART.popStars, 1)).setVisible(false),
+      () => this.add.sprite(0, 0, frameKey(this.#b(ART.popStars), 1)).setVisible(false),
       (sprite) => {
         sprite.off("animationcomplete");
         sprite.stop().setVisible(false);
@@ -308,7 +326,8 @@ export class BattleScene extends Scene {
           : pad.id === this.#hoverPad || takes
             ? ART.padHover
             : ART.padEmpty;
-      image.setTexture(frameKey(art, 1)).setDisplaySize(art.displaySize[0], art.displaySize[1]);
+      const bound = this.#b(art);
+      image.setTexture(frameKey(bound, 1)).setDisplaySize(bound.displaySize[0], bound.displaySize[1]);
     }
     // The range preview uses the simulation's own range for the tower's level (C3.1: the preview is the truth).
     const range = this.#range;
@@ -371,23 +390,23 @@ export class BattleScene extends Scene {
         view = undefined;
       }
       if (view === undefined) {
-        const sprite = this.add.sprite(x, y, frameKey(art.idle, 1));
-        place(sprite, art.idle);
-        sprite.setDepth(10 + y / 1000).play(art.idle.id);
-        const beam = this.add.sprite(x, y, frameKey(beamArt(tower.level), 1)).setVisible(false).setDepth(9);
+        const sprite = this.add.sprite(x, y, frameKey(this.#b(art.idle), 1));
+        place(sprite, this.#b(art.idle));
+        sprite.setDepth(10 + y / 1000).play(this.#b(art.idle).id);
+        const beam = this.add.sprite(x, y, frameKey(this.#b(beamArt(tower.level)), 1)).setVisible(false).setDepth(9);
         view = { classId: tower.classId, sprite, beam, level: tower.level, lastShotSeen: tower.lastShotTick };
         this.#towers.set(tower.padId, view);
         if (!this.#restored.has(tower.padId)) this.#playOnce(ART.place, x, y - 8, 9);
       }
       if (view.level !== tower.level) {
         view.level = tower.level;
-        view.sprite.play(art.idle.id);
+        view.sprite.play(this.#b(art.idle).id);
       }
       const shot = tower.lastShotAt;
       if (tower.lastShotTick !== view.lastShotSeen) {
         view.lastShotSeen = tower.lastShotTick;
         if (shot !== null) view.sprite.setFlipX(unitsToPx(shot.x) < x);
-        view.sprite.play(art.attack.id).chain(art.idle.id);
+        view.sprite.play(this.#b(art.attack).id).chain(this.#b(art.idle).id);
       }
       // Only Nova has a beam; the other classes' shot effects (frost, comet, orbit shot) are not drawn yet.
       const showBeam =
@@ -398,7 +417,7 @@ export class BattleScene extends Scene {
         battle.tick - tower.lastShotTick < BEAM_TICKS;
       view.beam.setVisible(showBeam);
       if (showBeam) {
-        const beamAsset = beamArt(tower.level);
+        const beamAsset = this.#b(beamArt(tower.level));
         const sx = x + (view.sprite.flipX ? -GADGET_DX : GADGET_DX);
         const sy = y + GADGET_DY;
         const tx = unitsToPx(shot.x);
@@ -485,20 +504,20 @@ export class BattleScene extends Scene {
     if (boss !== null) {
       // A boss arrives in its first phase (C7), with a ring on the ground where it appears.
       const move = boss.phases[alien.phase]?.move ?? ART.wobbleWalk;
-      view.body.setTexture(frameKey(move, 1));
-      place(view.body, move);
-      view.body.setDisplaySize(BOSS_PX, BOSS_PX).setVisible(true).play(move.id);
+      view.body.setTexture(frameKey(this.#b(move), 1));
+      place(view.body, this.#b(move));
+      view.body.setDisplaySize(BOSS_PX, BOSS_PX).setVisible(true).play(this.#b(move).id);
       view.phase = alien.phase;
       const { x, y } = this.#feet(alien);
       this.#playOnce(ART.bossArrive, x, y, 8, BOSS_RING);
       return;
     }
-    const art = alienArt(alien.type).move;
+    const art = this.#b(alienArt(alien.type).move);
     view.body.setTexture(frameKey(art, 1));
     place(view.body, art);
     // The seeded look picks the starting frame, so a group does not bob in step (cosmetic).
     view.body.setVisible(true).play({ key: art.id, startFrame: alien.look % art.frames });
-    place(view.shadow, ART.flutterShadow);
+    place(view.shadow, this.#b(ART.flutterShadow));
     view.shadow.setVisible(this.#bridge.config.aliens[alien.type]?.flying === true);
   }
 
@@ -527,8 +546,8 @@ export class BattleScene extends Scene {
         view.phase = alien.phase;
         const art = boss.phases[alien.phase];
         if (art !== undefined) {
-          if (art.enter === null) view.body.play(art.move.id);
-          else view.body.play(art.enter.id).chain(art.move.id);
+          if (art.enter === null) view.body.play(this.#b(art.move).id);
+          else view.body.play(this.#b(art.enter).id).chain(this.#b(art.move).id);
         }
       }
       // The layers it has left: the overlay shrinks a ring at each pop and goes when the last one pops. A boss's
@@ -537,10 +556,10 @@ export class BattleScene extends Scene {
       view.layers.setVisible(layers !== null);
       if (layers !== null) {
         view.layers
-          .setTexture(frameKey(layers, 1))
+          .setTexture(frameKey(this.#b(layers), 1))
           .setPosition(x, y + (boss === null ? LAYERS_DY : BOSS_BUBBLE_DY))
           .setDepth(depth + 0.0005);
-        place(view.layers, layers);
+        place(view.layers, this.#b(layers));
         if (boss !== null) view.layers.setDisplaySize(BOSS_PX, BOSS_PX);
       }
     }
@@ -553,7 +572,7 @@ export class BattleScene extends Scene {
 
   #drawColony(battle: Readonly<Battle>): void {
     const art = colonyArt(battle.health, this.#bridge.config.colony.maxHealth);
-    this.#colony?.setTexture(frameKey(art, 1)).setDisplaySize(COLONY_PX, COLONY_PX);
+    this.#colony?.setTexture(frameKey(this.#b(art), 1)).setDisplaySize(COLONY_PX, COLONY_PX);
   }
 
   #effect(event: BattleEvent): void {
@@ -649,10 +668,10 @@ export class BattleScene extends Scene {
     const pool = this.#effectPool;
     if (pool === null) return;
     const sprite = pool.acquire();
-    sprite.setTexture(frameKey(asset, 1)).setPosition(x, y).setVisible(true);
-    place(sprite, asset);
+    sprite.setTexture(frameKey(this.#b(asset), 1)).setPosition(x, y).setVisible(true);
+    place(sprite, this.#b(asset));
     if (size !== undefined) sprite.setDisplaySize(size[0], size[1]);
-    sprite.setDepth(depth).play(asset.id);
+    sprite.setDepth(depth).play(this.#b(asset).id);
     sprite.once("animationcomplete", () => pool.release(sprite));
   }
 }

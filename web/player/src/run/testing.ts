@@ -7,6 +7,7 @@ import type { ApiResult } from "@scd/shared";
 import { keyFor } from "@scd/shared/audio/testing";
 import type { PlayerApi } from "../api/playerApi";
 import { FakeRunServer, type FakeActivityEntry, type FakeClip, type FakeReply } from "../dev/fakeRunServer";
+import { REPO_ART } from "@scd/shared/manifest";
 import type { GameData } from "../game/gameData";
 
 const GAME_DATA = join(import.meta.dirname, "..", "..", "..", "..", "game-data");
@@ -14,7 +15,7 @@ const readJson = (path: string): unknown => JSON.parse(readFileSync(join(GAME_DA
 
 export function testGameData(): GameData {
   const ruleset = parseRuleset(readJson("ruleset/r1.json"));
-  return { ruleset, planet: parsePlanet(readJson("campaign/luna-1-c1.json"), ruleset) };
+  return { ruleset, planet: parsePlanet(readJson("campaign/luna-1-c1.json"), ruleset), art: REPO_ART };
 }
 
 export const RUN_ID = "4b1e0000-0000-4000-8000-0000000000aa";

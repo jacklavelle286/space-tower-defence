@@ -4,8 +4,8 @@
 // needs a new manifest version. Regenerate before m1 is first released with: WRITE_MANIFEST=1 npx vitest run manifestSeed
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { DEFAULT_MANIFEST_VERSION, manifestFromArt, MOON_ART_SET, parseManifest } from "@scd/shared/manifest";
-import { DECORATIONS } from "@scd/shared/map";
+import { bindManifest, DEFAULT_MANIFEST_VERSION, manifestFromArt, MOON_ART_SET, parseManifest } from "@scd/shared/manifest";
+import { DECORATIONS, frameKey, frameUrl } from "@scd/shared/map";
 import { describe, expect, it } from "vitest";
 import { ART, POWER_ART } from "./assets";
 
@@ -29,6 +29,20 @@ describe("the m1 asset manifest", () => {
     const manifest = parseManifest(JSON.parse(text), DEFAULT_MANIFEST_VERSION);
     for (const entry of Object.values(manifest.assets)) {
       for (const url of entry.frames) expect(existsSync(join(REPO, "web", "player", "public", url)), url).toBe(true);
+    }
+  });
+});
+
+describe("drawing through m1", () => {
+  it("resolves every repo asset to the repo files, keys, anchors and sizes: the battlefield looks the same", () => {
+    const art = bindManifest(parseManifest(JSON.parse(text), DEFAULT_MANIFEST_VERSION));
+    for (const repo of [...Object.values(ART), ...Object.values(POWER_ART), ...Object.values(DECORATIONS)]) {
+      const bound = art.map(repo);
+      expect([bound.id, bound.frames, bound.anchor, bound.displaySize]).toEqual([repo.id, repo.frames, repo.anchor, repo.displaySize]);
+      for (let n = 1; n <= repo.frames; n += 1) {
+        expect([frameKey(bound, n), frameUrl(bound, n)]).toEqual([frameKey(repo, n), frameUrl(repo, n)]);
+        expect(art.fallback(frameKey(repo, n))).toBeNull();
+      }
     }
   });
 });

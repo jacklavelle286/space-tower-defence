@@ -47,7 +47,7 @@ export function Battlefield({ data, waveSetId, run, seed, speed, children, onBri
       height: CANVAS_HEIGHT,
       backgroundColor: "#141633",
       scale: { mode: Scale.FIT, autoCenter: Scale.CENTER_HORIZONTALLY },
-      scene: [new BattleScene(created)],
+      scene: [new BattleScene(created, data.art)],
       // Keyboard shortcuts and accessible controls live in the React DOM (plan E.5.2).
       input: { keyboard: false },
     });
@@ -67,7 +67,7 @@ export function Battlefield({ data, waveSetId, run, seed, speed, children, onBri
       setBridge(null);
       onBridge?.(null);
     };
-  }, [config, run, seed, speed, onBridge]);
+  }, [config, data.art, run, seed, speed, onBridge]);
 
   return (
     <div className="bf">

@@ -35,7 +35,8 @@ export interface RunServices {
   tracker: AckTracker;
   lease: PlayLease;
   clips: ClipPlayer;
-  loadData: (rulesetVersion: string, campaignVersion: string) => Promise<GameData>;
+  /** The pinned versions' game data; `manifestVersion` null is m1 (a run saved before asset manifests, LD8). */
+  loadData: (rulesetVersion: string, campaignVersion: string, manifestVersion: string | null) => Promise<GameData>;
   /** Back to Home (after the lease is released). */
   onLeave: () => void;
   onSignIn: () => void;
