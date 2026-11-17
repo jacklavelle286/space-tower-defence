@@ -248,6 +248,29 @@ export const LIMITS = {
     },
     "backdropMaxBytes": 1048576
   },
+  "alienMaker": {
+    "$comment": "Gate M, AM1 (scope-asset-kinds-and-makers.md 3.2, ADR-0041) [PROPOSAL]: a made alien's ID (a ruleset key; with the 'alien-' prefix and '-walk' suffix it is the manifest's asset ID, at most 40 characters) and its stats, inside the plain aliens' range in r4 (Bubble Swarm to Shellback; no traits, mechanics 1 stats). speed moves in steps of speedStep. frames: the walk the animator makes from one drawing (STYLE section 11).",
+    "idPattern": "^[a-z][a-z0-9]{1,23}$",
+    "nameMaxLength": 24,
+    "hp": {
+      "min": 8,
+      "max": 60
+    },
+    "speed": {
+      "min": 0.6,
+      "max": 2
+    },
+    "speedStep": 0.1,
+    "leak": {
+      "min": 1,
+      "max": 2
+    },
+    "bounty": {
+      "min": 1,
+      "max": 6
+    },
+    "frames": 6
+  },
   "ids": {
     "uuid": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
     "slotId": "^[NM]-[0-9]{3}$",

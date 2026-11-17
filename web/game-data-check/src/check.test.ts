@@ -6,7 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { buildGameData, GAME_DATA_DIR } from "../../game-core/scripts/build-bounds.ts";
-import { check, utf8Bytes, type CheckInput } from "./check";
+import { check, rebuild, utf8Bytes, type CheckInput } from "./check";
 import { handler } from "./handler";
 
 const readJson = (...parts: string[]): Record<string, unknown> => JSON.parse(readFileSync(join(...parts), "utf8")) as Record<string, unknown>;
@@ -131,5 +131,30 @@ describe("check", () => {
 
   it("counts UTF-8 bytes as Buffer does", () => {
     for (const text of ["abc", "é", "€", "🚀", "Zigzag 🚀 é"]) expect(utf8Bytes(text)).toBe(Buffer.byteLength(text));
+  });
+});
+
+describe("rebuild (AM1: a published document's bounds under a new ruleset)", () => {
+  const withZorp = {
+    ...RULESET,
+    version: "r4-a1",
+    aliens: { ...(RULESET["aliens"] as Record<string, unknown>), zorp: { name: "Zorp", hp: 30, speed: 1.1, leak: 1, bounty: 4, traits: {} } },
+  };
+
+  it("builds the live campaign's bounds for the ruleset with a made alien: the same as the release's build would", async () => {
+    const out = await handler({ mode: "rebuild", ruleset: withZorp, planet: LIVE });
+    expect(out).toMatchObject({ ok: true, problems: [], boundsVersion: "r4-a1__luna-1-c2" });
+    const dir = mkdtempSync(join(tmpdir(), "rebuild-"));
+    for (const sub of ["ruleset", "campaign", "asset-manifest"]) mkdirSync(join(dir, sub));
+    writeFileSync(join(dir, "ruleset", "r4-a1.json"), JSON.stringify(withZorp));
+    copyFileSync(join(GAME_DATA_DIR, "campaign", "luna-1-c2.json"), join(dir, "campaign", "luna-1-c2.json"));
+    copyFileSync(join(GAME_DATA_DIR, "asset-manifest", "m1.json"), join(dir, "asset-manifest", "m1.json"));
+    writeFileSync(join(dir, "current.json"), JSON.stringify({ rulesetVersion: "r4-a1", campaignVersion: "luna-1-c2" }));
+    expect(out.boundsJson).toBe(buildGameData(dir).files.get("bounds/r4-a1__luna-1-c2.json"));
+  });
+
+  it("refuses a ruleset or a document that does not parse", () => {
+    expect(rebuild({ mode: "rebuild", ruleset: { ...withZorp, aliens: { zorp: { name: "Zorp" } } }, planet: LIVE })).toMatchObject({ ok: false, boundsJson: null });
+    expect(rebuild({ mode: "rebuild", ruleset: withZorp, planet: { kind: "campaign" } }).problems[0]).toMatchObject({ field: "planet", rule: "parse" });
   });
 });

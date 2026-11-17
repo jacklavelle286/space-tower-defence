@@ -147,3 +147,41 @@ export function check(input: CheckInput): CheckOutput {
   const ok = !blockingProblem && !findings.some((f) => f.severity === "block");
   return { ok, problems, findings, planetJson, boundsJson: bounds, boundsVersion: boundsVersion(ruleset.version, input.version), pictures, waveSets };
 }
+
+/**
+ * A published planet document's bounds under another ruleset (Gate M, AM1; ADR-0041): when the publisher writes a new
+ * ruleset (a made alien), every playable planet version needs a bounds file for it, or new runs on that version are
+ * refused. The document is parsed as published (no merge, no version stamp); nothing is judged but the parse.
+ */
+export interface RebuildInput {
+  readonly mode: "rebuild";
+  readonly ruleset: unknown;
+  readonly planet: unknown;
+}
+
+export interface RebuildOutput {
+  readonly ok: boolean;
+  readonly problems: readonly CheckProblem[];
+  readonly boundsJson: string | null;
+  readonly boundsVersion: string | null;
+}
+
+export function rebuild(input: RebuildInput): RebuildOutput {
+  let ruleset: Ruleset;
+  let planet: PlanetDocument;
+  try {
+    ruleset = parseRuleset(input.ruleset);
+  } catch (error) {
+    return { ok: false, problems: [fail("ruleset", error instanceof Error ? error.message : String(error))], boundsJson: null, boundsVersion: null };
+  }
+  try {
+    planet = parsePlanet(input.planet, ruleset);
+  } catch (error) {
+    return { ok: false, problems: [fail("planet", error instanceof Error ? error.message : String(error))], boundsJson: null, boundsVersion: null };
+  }
+  const bounds = boundsJson(buildBounds(ruleset, planet));
+  if (utf8Bytes(bounds) > MAX_FILE_BYTES) {
+    return { ok: false, problems: [{ field: "bounds", rule: "fileTooLarge", severity: "block", message: "The bounds file would be over 1 MiB." }], boundsJson: null, boundsVersion: null };
+  }
+  return { ok: true, problems: [], boundsJson: bounds, boundsVersion: boundsVersion(ruleset.version, planet.version) };
+}
