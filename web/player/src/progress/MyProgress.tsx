@@ -3,7 +3,8 @@
 // topicById). Below, each planet's best ("Moonbeam Colony: best 34 waves cleared") and any badges earned. Counts only:
 // no percentages, grades, ages, school years, streaks or comparisons (prompt.md:155, 527).
 // "Stars" are activities got right; "still practising" are the ones that ran out of tries (no penalty, C26).
-// Badge rules and the outlined, unearned shelf arrive with the badges themselves (Phase 52).
+// The badge shelf (Phase 52, C12): every v1 badge, earned ones in colour, the rest as outlines with their rule in words
+// ("Clear wave 10"); never a count of what is missing, never a comparison.
 import { topicById, type Planets, type Progress, type TopicSummary } from "@scd/shared";
 import { useEffect, useState } from "react";
 import type { PlayerApi } from "../api/playerApi";
@@ -107,13 +108,23 @@ export function MyProgress({ api, onBack }: { api: Pick<PlayerApi, "getProgress"
           </ul>
         </section>
       ) : null}
-      {badges.length > 0 ? (
+      {progress !== null ? (
         <section aria-labelledby="progress-badges">
           <h2 id="progress-badges">{COPY.progress.badgesHeading}</h2>
-          <ul className="progress-topics">
-            {badges.map((b) => (
-              <li key={b}>{b}</li>
-            ))}
+          <ul className="badge-shelf">
+            {[...COPY.badges, ...badges.filter((id) => !COPY.badges.some((b) => b.id === id)).map((id) => ({ id, name: id, rule: "" }))].map(
+              (badge) => {
+                const have = badges.includes(badge.id);
+                return (
+                  <li key={badge.id} className={have ? "badge badge-earned" : "badge"}>
+                    <img src={`/assets/ui/badge-${badge.id}${have ? "" : "-outline"}.png`} alt="" width={88} height={88} />
+                    <strong>{badge.name}</strong>
+                    <span className="visually-hidden">{have ? COPY.progress.earned : COPY.progress.notYet}</span>
+                    {have ? null : <span className="badge-rule">{badge.rule}</span>}
+                  </li>
+                );
+              },
+            )}
           </ul>
         </section>
       ) : null}

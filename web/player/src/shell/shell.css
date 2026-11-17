@@ -576,3 +576,40 @@ body {
   font-size: 18px;
   line-height: 1.5;
 }
+
+/* The badge shelf (Phase 52, D4 P12). */
+.badge-shelf {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 14px;
+  margin: 8px 0 24px;
+  padding: 0;
+  list-style: none;
+}
+
+.badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  opacity: 0.75;
+}
+
+.badge-earned {
+  opacity: 1;
+}
+
+.badge-rule {
+  font-size: 15px;
+}
+
+/* Text for screen readers only (the badge shelf's "Earned" / "Not yet"). */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

@@ -38,7 +38,18 @@ describe("MyProgress (Phase 43, D4 P12)", () => {
     expect(await screen.findByText("Moonbeam Colony: best 2 waves cleared")).toBeTruthy();
     act(() => screen.getAllByRole("button", { name: "Show topics" })[0]?.click());
     expect(screen.getByText("Count objects to 10")).toBeTruthy();
-    expect(document.body.textContent).not.toMatch(/%|grade|age \d/i); // no percentages, grades or ages
+    expect(document.body.textContent).not.toMatch(/%|\bgrades?\b|\bage \d/i); // no percentages, grades or ages
+  });
+
+  it("the badge shelf: earned badges in colour, the rest outlined with their rule in words (Phase 52)", async () => {
+    render(<MyProgress api={api({ ...PROGRESS, badges: { "first-steps": "2026-11-17T09:00:00Z" } })} onBack={() => {}} />);
+    const earned = (await screen.findByText("First Steps")).closest("li");
+    expect(earned?.className).toContain("badge-earned");
+    expect(earned?.querySelector("img")?.getAttribute("src")).toBe("/assets/ui/badge-first-steps.png");
+    const notYet = screen.getByText("Wobble Stopper").closest("li");
+    expect(notYet?.querySelector("img")?.getAttribute("src")).toBe("/assets/ui/badge-boss-1-outline.png");
+    expect(screen.getByText("Clear wave 10")).toBeTruthy();
+    expect(screen.getAllByRole("listitem").filter((li) => li.classList.contains("badge"))).toHaveLength(10);
   });
 
   it("says so when there is nothing yet, and when it cannot load", async () => {

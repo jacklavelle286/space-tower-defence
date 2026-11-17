@@ -66,6 +66,8 @@ export const COPY = {
     planetsHeading: "Planets",
     best: (planet: string, n: number) => `${planet}: best ${n} ${n === 1 ? "wave" : "waves"} cleared`,
     badgesHeading: "Badges",
+    earned: "Earned",
+    notYet: "Not yet",
     back: "Home",
     failed: "We couldn't load your progress. Please check the internet and try again.",
   },
@@ -128,6 +130,19 @@ export const COPY = {
     learning: "Learning time", // [PROPOSAL] heading of the panel when the activity cannot be shown
     voidedContinue: "Continue",
   },
+  // C12 badges (Phase 52): names [PROPOSAL]; rules in words for the not-yet shelf (D4 P12).
+  badges: [
+    { id: "first-steps", name: "First Steps", rule: "Clear wave 1 of the campaign" },
+    { id: "boss-1", name: "Wobble Stopper", rule: "Clear wave 10" },
+    { id: "boss-2", name: "Clank Cracker", rule: "Clear wave 20" },
+    { id: "boss-3", name: "Bubble Popper", rule: "Clear wave 30" },
+    { id: "boss-4", name: "Mothership Mover", rule: "Clear wave 40" },
+    { id: "campaign-luna-1", name: "Colony Hero", rule: "Clear all 50 waves" },
+    { id: "endless-60", name: "Star Voyager", rule: "Reach wave 60 in endless" },
+    { id: "safe-and-sound", name: "Safe and Sound", rule: "Beat a boss without losing health" },
+    { id: "full-crew", name: "Full Crew", rule: "Have all six astronauts out at once" },
+    { id: "top-team", name: "Top Team", rule: "Upgrade an astronaut to level 3" },
+  ] as const,
   meteor: {
     // D4 P9 meteor offer [CONFIRMED] wording for heading and No thanks reply; P8 full-power line [PROPOSAL]
     heading: "Meteor challenge!",
