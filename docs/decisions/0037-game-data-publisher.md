@@ -25,6 +25,17 @@ Decision:
 - **Backdrops** are served as the approved PNG under a 1 MiB cap. WebP conversion is deferred [PROPOSAL: it needs a second served
   URL and a player change; revisit on the first measured Background].
 
+- **Portal (LD7).** admin-api R46-R52 read what is published and ask the publisher; it never writes game data. Publish
+  is queued (PUB# QUEUED, asynchronous invoke) behind the checklist: a test play of this draft revision against this
+  live version with no red result (R45 records the version), and four hand ticks. Refusals are 409 PUBLISH_REFUSED;
+  a published level is never deleted (409 LEVEL_PUBLISHED). The designer merges and checks against the live document
+  from R46, not the build's copy [PROPOSAL].
+- **Testers (LD7).** A tester is named by their account's tester code (Cognito sub, shown in the player's Settings);
+  their planets list adds the preview wave sets of the newest three versions, each with its campaignVersion, which
+  New game uses instead of current.json's. R8's tester check stays the guard [PROPOSAL].
+- **Drawing spend (LD7).** A drawing may name its level; a per-level month count shows on the Levels page. The
+  Background "sub-cap" is Gate P2's weight of three places [PROPOSAL].
+
 Alternatives: one Node function (R30 and the DynamoDB helpers rewritten in JavaScript); the browser builds bounds (player-api
 would trust operator-supplied numbers); a pull request per publish (no portal-only path, which ADR-0032 asked for).
 
@@ -36,5 +47,6 @@ Consequences:
 - A rollback release can no longer reuse a build from before LD6 (seven Lambda keys).
 - The first publish measures the checker's Lambda time against the 300 s timeout [UNVERIFIED].
 
-Evidence: web/game-data-check tests (bounds parity with build-bounds.ts); api tests test_gd_publish.py and test_versions.py;
-terraform tests publisher.tftest.hcl; read-only plan 18 add, 4 change, 0 destroy (2026-11-17).
+Evidence: web/game-data-check tests (bounds parity with build-bounds.ts); api tests test_gd_publish.py, test_versions.py,
+test_gamedata_admin.py; terraform tests publisher.tftest.hcl; read-only plan 18 add, 4 change, 0 destroy (2026-11-17);
+admin tests PublishTab, VersionsPage, diff.
