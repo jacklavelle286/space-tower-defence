@@ -254,3 +254,19 @@ describe("Phase 38 types on a saved run", () => {
     expect(serverSlot(setup).status).toBe("SUCCEEDED");
   });
 });
+
+describe("a withdrawn activity (Phase 44, F §4.4, D6.4)", () => {
+  it("tells the child calmly, and Continue sends DISMISS_SLOT: VOIDED, the reward once, nothing judged", async () => {
+    const setup = await serverAtActivity();
+    setup.server.withdraw(RUN_ID, "N-001");
+    const credits = setup.server.state.runs[0]!.state.snapshot!.credits;
+    await pageLoad(setup, new IDBFactory());
+    expect(await screen.findByText(COPY.voided)).toBeTruthy();
+    expect(screen.queryAllByRole("radio")).toHaveLength(0); // the withdrawn definition is never shown
+    await act(async () => fireEvent.click(screen.getByRole("button", { name: COPY.continue })));
+    await waitFor(() => expect(serverSlot(setup).status).toBe("VOIDED"));
+    expect(serverSlot(setup).attempts).toHaveLength(0);
+    expect(setup.server.state.runs[0]!.state.snapshot!.credits).toBe(credits + serverSlot(setup).reward.credits);
+    expect(setup.server.state.runs[0]!.state.phase).toBe("BUILD");
+  });
+});

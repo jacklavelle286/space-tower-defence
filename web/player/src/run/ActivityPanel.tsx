@@ -98,9 +98,10 @@ export function ActivityPanel(props: ActivityPanelProps) {
 }
 
 /**
- * A withdrawn activity (its definition is not in the pack): the child is told and still gets the reward (D6.4). In
- * Milestone 1 the op that voids it is a SUBMIT_ATTEMPT, which the server and the reducer both turn into VOID without
- * judging it (spine S3.3); DISMISS_SLOT arrives with withdrawal (Phase 44). [ASSUMPTION]
+ * A withdrawn activity (its definition is not in the pack): the child is told, calmly, and still gets the reward (D6.4).
+ * Continue sends DISMISS_SLOT (Phase 44, F §4.4): the server and the reducer both turn it into VOID, granting the
+ * reward exactly once and leaving the learning summary unchanged. A slot that was already resolved stays as recorded
+ * (D-9): Continue just moves on.
  */
 function UnshowableActivity(props: ActivityPanelProps & { status: string; withdrawn: boolean }) {
   const { run, tracker, onContinue, onSaveAndExit, onResync, status, withdrawn } = props;
@@ -113,7 +114,7 @@ function UnshowableActivity(props: ActivityPanelProps & { status: string; withdr
       return;
     }
     setBusy(true);
-    const submitted = run.submitAttempt("withdrawn");
+    const submitted = run.dismissSlot();
     const ack = submitted === null ? null : await tracker.waitFor(submitted.opId);
     setBusy(false);
     if (ack?.kind === "applied") onContinue();

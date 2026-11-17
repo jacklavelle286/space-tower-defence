@@ -569,14 +569,15 @@ class OpsBatch:
             result["outcome"] = outcome
         if "attempt" in reduced:
             result["attempt"] = reduced["attempt"]
-        # A pinned version that cannot be found is treated as withdrawn, and logged at ERROR (F §4.4).
+        # A pinned version that cannot be found is treated as withdrawn, and logged at ERROR (F §4.4). Every other VOID
+        # is logged with code VOIDED and its slotId: the audit trail of a withdrawal reaching a child's run (Phase 44).
         missing = outcome == "VOIDED" and version_missing
         return _Decision(
             result=result,
             revision=new_state["revision"],
             actions=actions,
             level="ERROR" if missing else "INFO",
-            log_code="VERSION_MISSING" if missing else None,
+            log_code="VERSION_MISSING" if missing else "VOIDED" if outcome == "VOIDED" else None,
             slot_id=reads.addressed,
         )
 

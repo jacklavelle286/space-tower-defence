@@ -115,6 +115,17 @@ export class SyncedRun implements RunPort {
     return this.#state.campaignCompleted ? this.#apply("FINISH_RUN", {}) !== null : this.#apply("ABANDON", {}) !== null;
   }
 
+  /**
+   * Put away the current slot (Phase 44): DISMISS_SLOT, which the reducer accepts for a withdrawn slot (VOIDED, the
+   * reward granted once) or a meteor before any attempt (DECLINED, Phase 51). Null when there is no current slot or
+   * the reducer refuses it.
+   */
+  dismissSlot(): SubmittedAttempt | null {
+    const slotId = currentSlotId(this.#state);
+    if (slotId === null) return null;
+    return this.#apply("DISMISS_SLOT", { slotId });
+  }
+
   /** One try at the current activity: one SUBMIT_ATTEMPT op. Null when there is no current slot to answer. */
   submitAttempt(answer: string): SubmittedAttempt | null {
     const slotId = currentSlotId(this.#state);

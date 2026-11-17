@@ -320,6 +320,14 @@ export class FakeRunServer {
     return lease;
   }
 
+  /** Withdraw the activity pinned by one slot (an operator's R-withdraw, for tests): the run view and pack say so. */
+  withdraw(runId: string, slotId: string): void {
+    const run = this.#run(runId);
+    if (run === undefined) return;
+    run.state = { ...run.state, slots: run.state.slots.map((s) => (s.slotId === slotId ? { ...s, withdrawn: true } : s)) };
+    this.#save();
+  }
+
   summary(run: StoredRun) {
     const s = run.state;
     return {
