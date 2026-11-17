@@ -240,6 +240,7 @@ The overview table keeps one row per phase; the gate log gets one row per part.
 | Body: why (one or two lines), the J task IDs, and the checks run. | `Delivers M1-07 part 1. Checks: terraform fmt/validate, plan_guard tests.` |
 | One concern per commit; tests in the same commit as the code they test. | — |
 | Decisions: the ADR goes in the same commit as the change that made the decision ([J §J.6.1](plan/J-execution-backlog.md#j61-what-and-why-proposal)). | `P05 docs: ADR-0012 auth spike results` |
+| Gate M phases have no number: the subject starts `PLD<n>` or `PAM<n>` (the Stage M entries were committed as `P57 docs`, before this row). | `PLD0 core: C17.1 bots in game-core` |
 | Gate commits: `P<nn> docs: gate summary` updates the gate log; your approval edit is `P<nn> docs: gate approved`. | — |
 | Claude's commits end with a `Co-Authored-By:` trailer naming Claude. Never commit secrets, tokens, `.terraform*` folders or clip audio. | — |
 
