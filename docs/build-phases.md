@@ -2822,7 +2822,7 @@ game at 1x and 2x and redraw any SVG that reads badly there.
 | Field | Detail |
 |---|---|
 | J tasks | M6-01b |
-| In scope | Every D10.2–D10.7 row: in-game check, anchors and stand points, animation timing, fixes to `art/svg/` re-rendered with `tools/art/render.py` |
+| In scope | Every D10.2–D10.7 row: in-game check, anchors and stand points, animation timing, fixes to `art/svg/` re-rendered with `tools/art/render.py`; **colony shield shown while held** (owner report, 2026-11-17): Mira's shield points (and a meteor Colony Shield) raise `colony.shield`, but the colony only flashes the dome once for the power (`fx-colony-shield-boost`); draw a dome on the colony while shield > 0, fading as points are used |
 | Out of scope | Interface art |
 | Files | `art/svg/`, `web/player/public/assets/`, `game-data/asset-manifest/` |
 | Depends on | Phase 64 |
@@ -2911,7 +2911,7 @@ logo), the UI font choice, and the rest of D10.9 (remaining age 6–7 noun pictu
 | Field | Detail |
 |---|---|
 | J tasks | M6-03 |
-| In scope | Player and admin; axe on every screen. Learning panel (owner ask, 2026-11-17): Tab stays inside an open activity (today aria-modal only, so Tab can reach the HUD behind it), and a short on-screen keys line per interaction type |
+| In scope | Player and admin; axe on every screen. Learning panel (owner ask, 2026-11-17): Tab stays inside an open activity (today aria-modal only, so Tab can reach the HUD behind it), and a short on-screen keys line per interaction type. Battlefield (owner report, 2026-11-17): after placing an astronaut from a pad button, that button's focus ring (`.bf-pad-btn:focus-visible`, an HTML outline and halo over the canvas) covers the astronaut until focus moves; a pad that holds one needs a ring that leaves it visible |
 | Out of scope | — |
 | Files | `web/player/e2e/`, `web/admin/` |
 | Depends on | Phases 38, 31 |
