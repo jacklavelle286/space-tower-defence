@@ -2911,7 +2911,7 @@ logo), the UI font choice, and the rest of D10.9 (remaining age 6–7 noun pictu
 | Field | Detail |
 |---|---|
 | J tasks | M6-03 |
-| In scope | Player and admin; axe on every screen |
+| In scope | Player and admin; axe on every screen. Learning panel (owner ask, 2026-11-17): Tab stays inside an open activity (today aria-modal only, so Tab can reach the HUD behind it), and a short on-screen keys line per interaction type |
 | Out of scope | — |
 | Files | `web/player/e2e/`, `web/admin/` |
 | Depends on | Phases 38, 31 |
