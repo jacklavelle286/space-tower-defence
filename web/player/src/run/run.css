@@ -40,6 +40,46 @@
   padding: 8px 16px;
 }
 
+.run-top-actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* Give up / Finish confirmation (D4 P6). */
+.run-confirm-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgb(20 16 40 / 60%);
+}
+
+.run-confirm {
+  max-width: 560px;
+  padding: 24px 28px;
+  border: 5px solid var(--plum);
+  border-radius: 28px;
+  background: var(--cream);
+  color: var(--plum);
+  font-size: 24px;
+  text-align: center;
+}
+
+.run-confirm p {
+  margin: 0 0 20px;
+}
+
+.run-confirm-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  justify-content: center;
+  align-items: center;
+}
+
 .run-notice {
   margin: 0 16px 8px;
 }

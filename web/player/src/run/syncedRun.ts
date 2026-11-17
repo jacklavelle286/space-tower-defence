@@ -107,6 +107,14 @@ export class SyncedRun implements RunPort {
     return this.#apply("SAVE_PREP", { credits, placements }) !== null;
   }
 
+  /**
+   * End this game on purpose (D4 P6): ABANDON before the campaign is complete, FINISH_RUN after it (spine S3.2).
+   * Both are queueable, so this works offline too. Returns whether an op was queued.
+   */
+  endGame(): boolean {
+    return this.#state.campaignCompleted ? this.#apply("FINISH_RUN", {}) !== null : this.#apply("ABANDON", {}) !== null;
+  }
+
   /** One try at the current activity: one SUBMIT_ATTEMPT op. Null when there is no current slot to answer. */
   submitAttempt(answer: string): SubmittedAttempt | null {
     const slotId = currentSlotId(this.#state);

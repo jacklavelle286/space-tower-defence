@@ -228,6 +228,9 @@ function ReadyRun({
     bridgeRef.current = bridge;
   }, []);
   const [leaving, setLeaving] = useState(false);
+  const [confirmEnd, setConfirmEnd] = useState(false);
+  // Whether the game was already paused when the dialog opened, so Keep it leaves it as it was.
+  const pausedBefore = useRef(false);
   // While the learning panel (which has its own Save and exit, D6.1) or the end screen is up, the top bar's Save and
   // exit is hidden, so there is one obvious action.
   const [overlayOpen, setOverlayOpen] = useState(false);
@@ -263,6 +266,17 @@ function ReadyRun({
     await onLeave();
   }, [leaving, onLeave, run]);
 
+  // Give up (ABANDON) or, once the campaign is complete, Finish (FINISH_RUN): confirmed first (D4 P6), then Home.
+  const endGame = useCallback(async () => {
+    if (leaving) return;
+    setLeaving(true);
+    setConfirmEnd(false);
+    bridgeRef.current?.pause();
+    run.endGame();
+    await onLeave();
+  }, [leaving, onLeave, run]);
+  const finishing = run.state.campaignCompleted;
+
   // D7.1: signing in leaves the page, and a wave is never saved mid-way (spine S3.2), so in a wave the Sign in
   // button first says that the wave will start again.
   const signInWarning = useCallback(() => {
@@ -277,11 +291,35 @@ function ReadyRun({
       <header className="run-top">
         <SyncChip queue={services.queue} onSignIn={services.onSignIn} signInWarning={signInWarning} />
         {overlayOpen ? null : (
-          <button type="button" className="btn btn-small" disabled={leaving} onClick={() => void saveAndExit()}>
-            {leaving ? COPY.run.saving : COPY.run.saveAndExit}
-          </button>
+          <span className="run-top-actions">
+            <button
+              type="button"
+              className="btn btn-small"
+              disabled={leaving}
+              onClick={() => {
+                pausedBefore.current = bridgeRef.current?.paused ?? false;
+                bridgeRef.current?.pause();
+                setConfirmEnd(true);
+              }}
+            >
+              {finishing ? COPY.run.finish : COPY.run.giveUp}
+            </button>
+            <button type="button" className="btn btn-small" disabled={leaving} onClick={() => void saveAndExit()}>
+              {leaving ? COPY.run.saving : COPY.run.saveAndExit}
+            </button>
+          </span>
         )}
       </header>
+      {confirmEnd ? (
+        <EndGameDialog
+          finishing={finishing}
+          onKeep={() => {
+            setConfirmEnd(false);
+            if (!pausedBefore.current) bridgeRef.current?.resume();
+          }}
+          onConfirm={() => void endGame()}
+        />
+      ) : null}
       {restartNotice !== null ? (
         <p className="notice run-notice" role="status">
           {restartNotice}
@@ -291,6 +329,35 @@ function ReadyRun({
         <RunOverlays run={run} loaded={loaded} services={services} onResync={resync} onSaveAndExit={saveAndExit} onLeave={onLeave} onOverlay={setOverlayOpen} />
       </Battlefield>
     </main>
+  );
+}
+
+/** "Give up this game?" / "Finish this game?" with Keep it first and focused, so Enter never ends a game by accident. */
+function EndGameDialog({ finishing, onKeep, onConfirm }: { finishing: boolean; onKeep: () => void; onConfirm: () => void }) {
+  const keep = useRef<HTMLButtonElement>(null);
+  useEffect(() => keep.current?.focus(), []);
+  return (
+    <div className="run-confirm-backdrop">
+      <div
+        className="run-confirm"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="run-confirm-q"
+        onKeyDown={(e) => {
+          if (e.key === "Escape") onKeep();
+        }}
+      >
+        <p id="run-confirm-q">{finishing ? COPY.run.finishQuestion : COPY.run.giveUpQuestion}</p>
+        <div className="run-confirm-buttons">
+          <button ref={keep} type="button" className="btn btn-big btn-go" onClick={onKeep}>
+            {COPY.run.keepIt}
+          </button>
+          <button type="button" className="btn btn-small" onClick={onConfirm}>
+            {finishing ? COPY.run.finishConfirm : COPY.run.giveUpConfirm}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 

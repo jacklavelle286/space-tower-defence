@@ -78,6 +78,14 @@ export const COPY = {
     defeat: "The aliens got through this time.",
     wavesCleared: (n: number) => `Waves cleared: ${n}`,
     saveAndExit: "Save and exit",
+    // D4 P6 [PROPOSAL] copy: Give up = ABANDON; Finish = FINISH_RUN once the campaign is complete (spine S3.2).
+    giveUp: "Give up…",
+    giveUpQuestion: "Give up this game? You keep your badges and your learning stars. You can't come back to this game.",
+    giveUpConfirm: "Give up",
+    finish: "Finish…",
+    finishQuestion: "Finish this game? Your Colony Hero badge stays.",
+    finishConfirm: "Finish",
+    keepIt: "Keep it",
     saving: "Saving…",
     home: "Home",
     learning: "Learning time", // [PROPOSAL] heading of the panel when the activity cannot be shown

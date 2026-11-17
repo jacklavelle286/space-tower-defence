@@ -146,6 +146,25 @@ describe("SyncedRun", () => {
     expect(run.savePrep(snap.credits - 1, snap.placements)).toBe(true);
     expect(queued.map((op) => op.type)).toEqual(["SUBMIT_ATTEMPT", "SAVE_PREP"]);
   });
+
+  it("endGame is ABANDON before the campaign is complete and FINISH_RUN after it (Phase 29)", async () => {
+    const { server } = await serverAtActivity();
+    const loaded = await loadRun(apiFor(server), RUN_ID, async () => testGameData());
+    if (loaded.kind !== "ready") throw new Error("not ready");
+    const queued: NewOp[] = [];
+    const run = new SyncedRun({ runId: RUN_ID, initial: loaded.run.state, enqueue: (op) => queued.push(op) });
+    expect(run.endGame()).toBe(true);
+    expect(queued.map((op) => op.type)).toEqual(["ABANDON"]);
+    expect(run.state.status).toBe("ABANDONED");
+    expect(run.endGame()).toBe(false); // already over: RUN_TERMINAL, nothing queued
+
+    const done = { ...loaded.run.state, phase: "COMPLETION_OFFER" as const, campaignCompleted: true, mode: "CAMPAIGN" as const };
+    const finished: NewOp[] = [];
+    const after = new SyncedRun({ runId: RUN_ID, initial: done, enqueue: (op) => finished.push(op) });
+    expect(after.endGame()).toBe(true);
+    expect(finished.map((op) => op.type)).toEqual(["FINISH_RUN"]);
+    expect(after.state.status).toBe("COMPLETED");
+  });
 });
 
 describe("AckTracker", () => {
