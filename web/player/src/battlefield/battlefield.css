@@ -411,6 +411,29 @@
   outline-color: #7ee0b5;
 }
 
+/* Phase 68 (owner report, 2026-11-17): on a pad that holds an astronaut, the ring and its dark halo covered the
+   astronaut until focus moved. There the focus is a ring round the pad's base, under the astronaut's feet. */
+.bf-pad-btn[data-occupied]:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.bf-pad-btn[data-occupied]:focus-visible::after {
+  content: "";
+  position: absolute;
+  left: -14%;
+  right: -14%;
+  bottom: -6%;
+  height: 46%;
+  border: 6px solid #ffd36e;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px rgb(42 30 61 / 70%);
+}
+
+.bf-pad-btn[data-occupied][data-armed]:focus-visible::after {
+  border-color: #7ee0b5;
+}
+
 .bf-gain {
   display: block;
   font-size: 15px;

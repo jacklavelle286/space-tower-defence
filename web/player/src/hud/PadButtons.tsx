@@ -78,6 +78,8 @@ export function PadButtons({ bridge, hud }: { bridge: GameBridge; hud: HudState 
             aria-label={padLabel(bridge.config, bridge.battle, id, bridge.isPadOpen(id))}
             aria-pressed={selected}
             data-armed={hud.armed !== null || undefined}
+            // A pad holding an astronaut gets a ring round its base, so the focus never hides who stands there (Phase 68).
+            data-occupied={bridge.battle?.towers.some((t) => t.padId === id) || undefined}
             style={{
               left: `${(tileToPx(pad.x) / CANVAS_WIDTH) * 100}%`,
               top: `${(tileToPx(pad.y) / CANVAS_HEIGHT) * 100}%`,
