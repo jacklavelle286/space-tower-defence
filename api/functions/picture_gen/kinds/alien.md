@@ -4,7 +4,8 @@ Kind: alien, an enemy in the tower-defence battles (alien). Seen walking from le
 - Anchor: bottom-centre (128,256).
 - Pose: three-quarter view, facing the viewer's right. Face as STYLE.md section 7 (big friendly eyes, small smile).
 - Group the parts with the ids in STYLE.md section 9 (body, face, eyes, mouth, antennae, ...), so frames can be made
-  by moving groups.
+  by moving groups. Antennae: `antenna-front` and `antenna-back`, each path starting at its root. Legs or feet, if
+  any: `leg-front` and `leg-back`, one group per leg.
 - Background: none. Real transparency; no ground line and no shadow (the game adds the shadow).
 - Outline: 8 (a big simple blob), inner lines 4, fine detail 3.
 - Aliens are silly and lovable, never scary: no teeth, claws, horns or angry eyebrows.
