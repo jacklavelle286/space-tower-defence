@@ -20,6 +20,8 @@ import type { SyncQueue } from "../sync/queue";
 import { SyncChip } from "../sync/SyncChip";
 import type { AckTracker } from "./ackTracker";
 import { ActivityPanel } from "./ActivityPanel";
+import { powerName } from "./buildRunState";
+import { MeteorOffer } from "./MeteorOffer";
 import type { PlayLease } from "./lease";
 import { loadRun, type LoadedRun } from "./loadRun";
 import { SyncedRun } from "./syncedRun";
@@ -399,6 +401,18 @@ function RunOverlays({
     [run],
   );
   const content = useMemo(() => (panelSlot === null ? null : loaded.content.get(panelSlot)), [loaded, panelSlot]);
+  // Phase 51: a meteor slot with no attempt yet opens with the offer; "Have a go" opens the activity itself.
+  const [goingFor, setGoingFor] = useState<string | null>(null);
+  const slot = panelSlot === null ? undefined : state.slots.find((s) => s.slotId === panelSlot);
+  const meteorPower = slot?.kind === "METEOR" ? slot.reward.powerId : undefined;
+  const held = meteorPower === undefined ? 0 : (state.snapshot?.powers[meteorPower] ?? 0);
+  const offering =
+    slot !== undefined && meteorPower !== undefined && slot.status === "UNRESOLVED" && slot.attempts.length === 0 && goingFor !== slot.slotId;
+  // P8: a meteor whose power is already full still counts, but the panel says no charge is added.
+  const activity =
+    content?.activity != null && meteorPower !== undefined && held >= state.powerChargeCap
+      ? { ...content.activity, reward: { ...content.activity.reward, powerFullAt: state.powerChargeCap } }
+      : (content?.activity ?? null);
   const ended = state.status !== "IN_PROGRESS";
   const panelOpen = panelSlot !== null && !ended;
   useEffect(() => onOverlay(panelOpen || ended), [onOverlay, panelOpen, ended]);
@@ -407,11 +421,23 @@ function RunOverlays({
     <>
       <Hud bridge={bridge} hud={hud} />
       <BattlefieldControls bridge={bridge} hud={hud} active={!ended && panelSlot === null && hud.runPhase !== "ACTIVITY"} />
-      {panelSlot !== null && !ended ? (
+      {panelSlot !== null && !ended && offering && meteorPower !== undefined ? (
+        <MeteorOffer
+          run={run}
+          powerId={meteorPower}
+          powerName={powerName(meteorPower)}
+          held={held}
+          cap={state.powerChargeCap}
+          tracker={services.tracker}
+          onHaveAGo={() => setGoingFor(panelSlot)}
+          onDone={() => setPanelSlot(null)}
+          onResync={() => void onResync()}
+        />
+      ) : panelSlot !== null && !ended ? (
         <ActivityPanel
           run={run}
           slotId={panelSlot}
-          activity={content?.activity ?? null}
+          activity={activity}
           clips={content?.clips ?? {}}
           player={services.clips}
           tracker={services.tracker}

@@ -264,6 +264,15 @@ describe("LearningPanel", () => {
     expect(screen.queryByText(/space credits/)).toBeNull();
   });
 
+  it("a power already at its cap: the success still counts, and the line says it stays full (P8, Phase 51)", async () => {
+    render(<Harness activity={{ ...ACTIVITY, reward: { credits: 0, powerName: "Frost Pulse", powerFullAt: 2 } }} />);
+    fireEvent.click(screen.getByRole("button", { name: /Play/ }));
+    fireEvent.click(option("sh"));
+    await act(async () => check());
+    expect(screen.getByText(COPY.rewardPowerFull("Frost Pulse", 2))).toBeTruthy();
+    expect(screen.queryByText(COPY.rewardPower("Frost Pulse"))).toBeNull();
+  });
+
   it("Check and Continue pair the word with a symbol (D6.1), hidden from screen readers", async () => {
     render(<Harness />);
     const checkButton = screen.getByRole("button", { name: COPY.check });

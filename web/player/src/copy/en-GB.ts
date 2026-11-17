@@ -128,6 +128,16 @@ export const COPY = {
     learning: "Learning time", // [PROPOSAL] heading of the panel when the activity cannot be shown
     voidedContinue: "Continue",
   },
+  meteor: {
+    // D4 P9 meteor offer [CONFIRMED] wording for heading and No thanks reply; P8 full-power line [PROPOSAL]
+    heading: "Meteor challenge!",
+    pitch: "Win a power for the boss.",
+    full: (name: string, cap: number) => `${name} is full (${cap} of ${cap}). Have a go anyway?`,
+    haveAGo: "Have a go",
+    noThanks: "No thanks",
+    declined: "That's fine — you can still beat the boss!",
+    ok: "OK",
+  },
   learning: PANEL_COPY,
   offline: "You need the internet for this.", // D7.3
   loading: "Loading…",

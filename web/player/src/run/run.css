@@ -98,3 +98,19 @@
 .run-screen .bf-canvas {
   height: 100%;
 }
+
+/* Phase 51: the meteor offer (D4 P9). */
+.meteor-power {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  font-size: 26px;
+}
+
+.meteor-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  justify-content: center;
+}

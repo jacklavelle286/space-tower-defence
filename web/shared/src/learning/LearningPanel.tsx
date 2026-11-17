@@ -288,7 +288,9 @@ export function LearningPanel({
     shownStatus !== "SUCCEEDED"
       ? null
       : activity.reward.powerName !== undefined
-        ? COPY.rewardPower(activity.reward.powerName)
+        ? activity.reward.powerFullAt !== undefined
+          ? COPY.rewardPowerFull(activity.reward.powerName, activity.reward.powerFullAt)
+          : COPY.rewardPower(activity.reward.powerName)
         : activity.reward.credits > 0
           ? COPY.rewardCredits(activity.reward.credits)
           : null;

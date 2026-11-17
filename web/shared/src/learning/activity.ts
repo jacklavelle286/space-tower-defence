@@ -163,7 +163,8 @@ export interface PanelActivityBase {
   readonly accepted: readonly string[];
   /** Phonics: the answer area waits for the sound, and Check asks for Play first (D6.2, D6.5). */
   readonly audioRequired: boolean;
-  readonly reward: { readonly credits: number; readonly powerName?: string };
+  /** powerFullAt: the power's cap, when the run already holds that many (P8: a success then adds no charge). */
+  readonly reward: { readonly credits: number; readonly powerName?: string; readonly powerFullAt?: number };
   readonly stimulus?: PanelStimulus;
   /** Two-step activities (C20.3): the first part's own question, from the payload's `partPrompt`. */
   readonly partPrompt?: string;
@@ -333,7 +334,8 @@ export interface ActivitySource {
   /** Fixed at run creation (C24.4 step 7): the option order for the choice types, the tile order for ARRANGE. */
   readonly presentation?: { readonly optionOrder?: readonly string[]; readonly tileOrder?: readonly string[] };
   readonly audioRequired: boolean;
-  readonly reward: { readonly credits: number; readonly powerName?: string };
+  /** powerFullAt: the power's cap, when the run already holds that many (P8: a success then adds no charge). */
+  readonly reward: { readonly credits: number; readonly powerName?: string; readonly powerFullAt?: number };
 }
 
 /** Turns an asset ID into the URL the browser loads, or null when this app has no such picture. */

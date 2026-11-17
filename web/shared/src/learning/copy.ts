@@ -21,6 +21,7 @@ export const PANEL_COPY = {
   correct: "You got it!", // D6.4
   rewardCredits: (n: number) => `+${n} space credits`, // D6.4 reward line
   rewardPower: (name: string) => `${name} is ready!`, // D6.4 reward line
+  rewardPowerFull: (name: string, cap: number) => `You got it! ${name} is already full, so it stays at ${cap}.`, // D6.4, P8
   failed: "Good try. No credits this time — you can keep playing.", // D6.4 third incorrect
   answerWas: "The answer was", // D6.4 "The answer was …" (the answer follows in the reading font)
   voided: "This one had a mistake, so we took it away. You still get your reward.", // D6.4 voided
