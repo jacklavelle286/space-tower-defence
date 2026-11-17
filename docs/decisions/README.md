@@ -50,7 +50,7 @@ The rules are in [J §J.6](../plan/J-execution-backlog.md#j6-decision-log-practi
 | [0032](0032-admin-level-designer-gate-m.md) | Admin level and planet designer (all three tiers) as new Gate M after J, before L; export first, runtime publish in LD6; two blocking bot checks; tester preview | Proposed |
 | [0033](0033-ruleset-r2-mechanics-2-roster.md) | Ruleset r2 with mechanics 2 holds the six-class roster; current.json stays on r1 until Phase 25 | Accepted |
 | [0034](0034-ruleset-r3-mechanics-3-aliens.md) | Ruleset r3 with mechanics 3 holds the alien catalogue (traits as data), carriers, splitters and caps (amended in Phase 27: and the five bosses; in Phase 28: and the meteor powers); current.json stays on r1 | Accepted |
-| [0035](0035-ac42-performance-target.md) | The AC-42 performance target, from the first measurement (busiest wave at 2x: 1%-low ≥ 55, average ≥ 58; synthetic scene: 1%-low ≥ 45) | Proposed |
+| [0035](0035-ac42-performance-target.md) | The AC-42 performance target, from the first measurement (busiest wave at 2x: 1%-low ≥ 55, average ≥ 58; synthetic scene: 1%-low ≥ 45) | Accepted |
 
 ## Next in line
 

@@ -1,5 +1,5 @@
 # 0035. The AC-42 performance target, from the first measurement
-Status: Proposed · Date: 2026-11-17
+Status: Accepted · Date: 2026-11-17
 
 Context: AC-42 asks for "smooth 60 fps with an explicitly measured minimum under the busiest authored wave"
 (`prompt.md:1032`). C14 leaves the number open until a measurement on the family's machine
