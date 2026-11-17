@@ -3,8 +3,9 @@
 Phase 15 added the profile routes (G §3): `GET /api/me`, `PUT` and `PATCH /api/me/profile`, `GET /api/planets`.
 Phase 16 adds runs and the session lease (G §4, §7): `POST /api/runs`, `GET /api/runs/{runId}`,
 `GET /api/runs/{runId}/pack`, `PUT` and `DELETE /api/session`. Phase 17 adds the ops batch (G §5):
-`POST /api/runs/{runId}/ops`, applied by shared/ops.py. The other catalogued routes still answer 501 NOT_IMPLEMENTED
-until their phase adds a handler.
+`POST /api/runs/{runId}/ops`, applied by shared/ops.py. Phase 29 adds `POST /api/runs/{runId}/endless` (G §6): the
+same pipeline for exactly one CHOOSE_ENDLESS (endless slot planning arrives with endless content, Phase 54). The other
+catalogued routes still answer 501 NOT_IMPLEMENTED until their phase adds a handler.
 
 The date of birth is write-only (spine S2): it enters in PUT/PATCH, is stored as PROFILE.dob, and is read back only to
 compute `age` and `ageBand`. No response is built from a stored item directly: every view names the fields it
@@ -50,7 +51,7 @@ from shared.data import (
 from shared.errors import ApiError, json_response
 from shared.game_data import GameDataReader, GameDataUnavailable, Planet, reader_from_env
 from shared.log import ApiLogger
-from shared.ops import OPS_MAX_BYTES, OpsBatch, check_envelope
+from shared.ops import ENDLESS_ENVELOPE, OPS_ENVELOPE, OPS_MAX_BYTES, OpsBatch, check_envelope
 from shared.profile import age_band, stored_age, today_in_london, validate_profile
 from shared.router import Request, Router
 from shared.rules.contracts import LIMITS
@@ -699,8 +700,18 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         run as it now stands. 200 whenever ops were processed, even with a REJECTED; 409 STALE_SESSION only when the
         first op failed the fence; 503 THROTTLED when an op's transaction was refused three times. 409 and 503 also
         carry `results` and `run` (G §5.5)."""
+        return _apply(request, check_envelope(json_object(request.event, max_bytes=OPS_MAX_BYTES), OPS_ENVELOPE))
+
+    # --- R12 POST /api/runs/{runId}/endless (G §6; Phase 29) ---------------------------------------------------------
+
+    def post_endless(request: Request) -> dict[str, Any]:
+        """CHOOSE_ENDLESS, online only: the R11 envelope with exactly one CHOOSE_ENDLESS op (anything else is 400),
+        then exactly R11's pipeline and answers, including ALREADY_APPLIED on a retried opId. Endless slot planning
+        (F §3.6) arrives with endless content (Phase 54); until then the run moves to BUILD for finalWave + 1."""
+        return _apply(request, check_envelope(json_object(request.event), ENDLESS_ENVELOPE))
+
+    def _apply(request: Request, envelope: dict[str, Any]) -> dict[str, Any]:
         run_id = _path_run_id(request)
-        envelope = check_envelope(json_object(request.event, max_bytes=OPS_MAX_BYTES))
         table = deps.game()
         pk = _pk(request)
         route = {"requestId": request.request_id, "routeKey": request.caller.route_key, "sub": request.caller.sub}
@@ -832,6 +843,7 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         "GET /api/runs/{runId}": get_run,
         "GET /api/runs/{runId}/pack": get_pack,
         "POST /api/runs/{runId}/ops": post_ops,
+        "POST /api/runs/{runId}/endless": post_endless,
         "PUT /api/session": put_session,
         "DELETE /api/session": delete_session,
     }

@@ -688,6 +688,7 @@ def test_the_lambda_router_has_exactly_this_phases_handlers() -> None:
         "GET /api/runs/{runId}",
         "GET /api/runs/{runId}/pack",
         "POST /api/runs/{runId}/ops",  # Phase 17
+        "POST /api/runs/{runId}/endless",  # Phase 29
         "PUT /api/session",
         "DELETE /api/session",
     }

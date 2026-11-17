@@ -9,7 +9,7 @@ with every `game` read consistent:
   (b) SESSION `sessionId` and `generation` equal the batch's      else STALE_SESSION, stop
   (c) run not terminal                                            else REJECTED RUN_TERMINAL
   (d) `expectedRevision == revision`                              else REJECTED STALE_REVISION
-  (e) the pinned bounds file loads (skipped for ABANDON)          else REJECTED CONTENT_VERSION_UNSUPPORTED
+  (e) the pinned bounds file loads (skipped for ABANDON, FINISH_RUN) else REJECTED CONTENT_VERSION_UNSUPPORTED
   (f) phase, wave, current slot } the rules reducer, shared/rules else REJECTED PHASE_MISMATCH
   (g) payload schema            } (the browser's decisions)       else REJECTED VALIDATION_FAILED
       plus the placements' values against the pinned bounds file (pads, classes, levels, targeting)
@@ -58,6 +58,9 @@ _NAMED_KEY_RULES = frozenset({"additionalProperties", "propertyNames"})
 # The RUN fields the reducer may change; every one is written by name (spine S9.5: named attributes only).
 _REDUCED_FIELDS = ("status", "stage", "phase", "wave", "highestCompletedWave", "snapshot")
 _IN_PROGRESS_ONLY = ("phase", "snapshot")  # removed when a run ends (spine S3.1, S4)
+# Outcomes that change the addressed SLOT item; a status-only change (VOIDED, DECLINED) appends no attempt.
+_SLOT_OUTCOMES = ("VOIDED", "DECLINED", "INCORRECT", "RESOLVED_SUCCEEDED", "RESOLVED_FAILED")
+_STATUS_ONLY = ("VOIDED", "DECLINED")
 
 
 def jitter_seconds(random: Callable[[], float]) -> float:
@@ -77,14 +80,16 @@ def _envelope_problem(problem: Mapping[str, str]) -> dict[str, str]:
     return {"field": field_path, "rule": rule}
 
 
-def check_envelope(body: Mapping[str, Any]) -> dict[str, Any]:
+OPS_ENVELOPE = "op-envelope.schema.json"
+ENDLESS_ENVELOPE = "endless-envelope.schema.json"
+
+
+def check_envelope(body: Mapping[str, Any], schema: str = OPS_ENVELOPE) -> dict[str, Any]:
     """The batch-level checks of G §5.3, after size and JSON: the envelope schema (op count, each op's own fields, an
-    unknown op `type`, which includes CHOOSE_ENDLESS and CREATE_RUN) -> 400 VALIDATION_FAILED; then
-    `protocolVersion` newer than this server -> 409 PROTOCOL_UNSUPPORTED. Payload problems are left for step (g), so
-    the ops before a bad one still count."""
-    problems = [
-        p for p in validate("op-envelope.schema.json", body, root="body") if not _PAYLOAD_PROBLEM.match(p["field"])
-    ]
+    op `type` the route does not take: CHOOSE_ENDLESS and CREATE_RUN in /ops, anything but one CHOOSE_ENDLESS in R12's
+    ENDLESS_ENVELOPE) -> 400 VALIDATION_FAILED; then `protocolVersion` newer than this server -> 409
+    PROTOCOL_UNSUPPORTED. Payload problems are left for step (g), so the ops before a bad one still count."""
+    problems = [p for p in validate(schema, body, root="body") if not _PAYLOAD_PROBLEM.match(p["field"])]
     if problems:
         unique: list[dict[str, str]] = []
         for problem in map(_envelope_problem, problems):
@@ -133,23 +138,25 @@ class _Reads:
     run: dict[str, Any]
     session: dict[str, Any] | None
     slots: dict[str, dict[str, Any]]  # slotId -> SLOT item, for the slots this op can touch that exist
-    addressed: str | None  # SUBMIT_ATTEMPT's slotId, when it is a well-formed slot ID
+    addressed: str | None  # SUBMIT_ATTEMPT's or DISMISS_SLOT's slotId, when it is a well-formed slot ID
 
 
 def _slot_ids(run: Mapping[str, Any], op: Mapping[str, Any]) -> tuple[str | None, list[str]]:
-    """The addressed slot (SUBMIT_ATTEMPT) and every slot the next-phase rule may look at after this op."""
+    """The addressed slot (SUBMIT_ATTEMPT, DISMISS_SLOT) and every slot the next-phase rule may read after this op."""
     wave = int(run.get("wave") or 0)
     wanted: list[str] = []
     addressed: str | None = None
-    if op["type"] == "SUBMIT_ATTEMPT":
+    if op["type"] in ("SUBMIT_ATTEMPT", "DISMISS_SLOT"):
         slot_id = op["payload"].get("slotId") if isinstance(op["payload"], Mapping) else None
         if isinstance(slot_id, str) and SLOT_ID.match(slot_id):
             addressed = slot_id
             wanted.append(slot_id)
         interval = wave - 1  # resolving the current slot looks at the same interval
+    elif op["type"] == "CHOOSE_ENDLESS":
+        interval = int(run.get("finalWave") or 0)  # the offer moves on to interval finalWave (normally N-<finalWave>)
     else:
         interval = wave  # COMPLETE_WAVE moves on to the interval of the wave just cleared
-    if op["type"] in ("SUBMIT_ATTEMPT", "COMPLETE_WAVE") and interval >= 1:
+    if op["type"] in ("SUBMIT_ATTEMPT", "DISMISS_SLOT", "COMPLETE_WAVE", "CHOOSE_ENDLESS") and interval >= 1:
         wanted += [slot_id_for("NORMAL", interval), slot_id_for("METEOR", interval)]
     return addressed, list(dict.fromkeys(wanted))
 
@@ -284,11 +291,11 @@ def run_update(
 
 def slot_update(new_slot: Mapping[str, Any], outcome: str, *, now: str) -> dict[str, Any]:
     """Update SLOT, only while it is UNRESOLVED (the reward's at-most-once marker, F §4.2): append the attempt and set
-    the status, or (VOIDED) set the status only."""
+    the status, or (VOIDED, DECLINED) set the status only."""
     names = {"#pk": "pk", "#status": "status"}
     values: dict[str, Any] = {":unresolved": "UNRESOLVED", ":status": new_slot["status"]}
     update = "SET #status = :status"
-    if outcome != "VOIDED":
+    if outcome not in _STATUS_ONLY:
         last = new_slot["attempts"][-1]
         names["#attempts"] = "attempts"
         values[":attempt"] = [{**last, "recordedAt": now}]
@@ -487,7 +494,7 @@ class OpsBatch:
         # (e) pins loadable; a run that cannot be interpreted may still be closed.
         bounds: Mapping[str, Any] | None = None
         pins = run.get("pins") if isinstance(run.get("pins"), Mapping) else {}
-        if op["type"] != "ABANDON":
+        if op["type"] not in ("ABANDON", "FINISH_RUN"):
             try:
                 bounds = self._bounds(str(pins.get("rulesetVersion")), str(pins.get("campaignVersion")))
             except (BoundsUnavailable, ValueError):
@@ -536,7 +543,7 @@ class OpsBatch:
                 **run_update(run, new_state, op_id=op_id, generation=envelope["generation"], now=now),
             ),
         ]
-        if outcome in ("VOIDED", "INCORRECT", "RESOLVED_SUCCEEDED", "RESOLVED_FAILED") and addressed_slot is not None:
+        if outcome in _SLOT_OUTCOMES and addressed_slot is not None:
             new_slot = next(s for s in new_state["slots"] if s["slotId"] == reads.addressed)
             form = slot_update(new_slot, outcome, now=now)
             actions.append(self.table.update_action(pk, slot_sk(run_id, str(reads.addressed)), **form))
