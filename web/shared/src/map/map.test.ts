@@ -3,9 +3,9 @@
 // seeded generator, in all four headings, so the hard rules have plenty to refuse.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { buildBounds, hardMapProblems, nextRandom, parsePlanet, parseRuleset } from "@scd/game-core";
+import { buildBounds, hardMapProblems, nextRandom, parsePlanet, parseRuleset, REPO_DECORATIONS } from "@scd/game-core";
 import { describe, expect, it } from "vitest";
-import { MAP_ART, routeTiles } from ".";
+import { DECORATIONS, MAP_ART, routeTiles } from ".";
 
 const GAME_DATA = join(import.meta.dirname, "..", "..", "..", "..", "game-data");
 const readJson = (path: string): unknown => JSON.parse(readFileSync(join(GAME_DATA, path), "utf8"));
@@ -57,11 +57,17 @@ describe("documents with no hard problem always draw", () => {
       }
       clean += 1;
       const planet = parsePlanet(doc, r1);
-      const tiles = routeTiles(planet.map.route);
+      const tiles = routeTiles(planet.maps["main"]?.route ?? []);
       expect(tiles[0]?.art).toBe(MAP_ART.portalEnd);
       expect(tiles.at(-1)?.art).toBe(MAP_ART.colonyEnd);
       expect(() => buildBounds(r1, planet)).not.toThrow();
     }
     expect(clean).toBeGreaterThan(100); // the generator makes enough clean maps for the property to mean something
+  });
+});
+
+describe("decorations", () => {
+  it("game-core's parser accepts exactly the decorations this module can draw", () => {
+    expect([...REPO_DECORATIONS].sort()).toEqual(Object.keys(DECORATIONS).sort());
   });
 });
