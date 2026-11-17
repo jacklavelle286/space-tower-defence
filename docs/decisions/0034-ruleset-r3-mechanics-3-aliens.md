@@ -1,0 +1,40 @@
+# 0034. Ruleset r3 with mechanics 3 holds the alien catalogue, traits as data, carriers and caps; current.json stays on r1
+Status: Proposed · Date: 2026-11-17
+
+Context: Phase 26 (M2-03) adds the ten aliens of [C §C6.1](../plan/C-game-and-learning-design.md#c61-catalogue) with their
+traits, carriers and splitters (C6.3) and the object caps (C6.4). r1 and r2 are published create-only, so the catalogue needs a
+new ruleset version ([game-data/README.md](../../game-data/README.md)). C15: a change to a *rule*, not a number, bumps `mechanics`.
+
+Decision: add `game-data/ruleset/r3.json`, **mechanics 3**: r2 unchanged plus every alien of `tools/sim/game_data.json`, number
+for number, with its `traits` object key for key (`armour`, `bubbles`, `flying`, `cluster`, `healer`, `children`) and
+`descendantOnly` (Slimelet). Mechanics 3 because each trait is a rule a mechanics 2 game-core would not apply (a Shellback with
+no armour, a Split Slime that never splits); a planet document's spawn group may also name a carrier's `cargo` (C6.3, waves 38,
+43, 47). Mechanics 1 and 2 refuse `traits` and `cargo`. Parse rules: a release list names only aliens that release nothing
+themselves (C6.3: no Crafts or Split Slimes in cargo, Slimelets never split); a ruleset with releases needs
+`maxDescendantDepth` ≥ 1; every healer shares one period (one clock); a wave never schedules a `descendantOnly` alien. The
+bounds file's `maxBounty` counts descendants and cargo (equal to the simulator's C8.2 column for all 45 non-boss waves).
+Simulation: traits are data read through `AlienStats`, no per-alien code. Releases per parent: the first on the tick after
+the defeat, each next one 15 ticks (0.25 s) after the previous came out; held at the defeat point while 60 aliens or 24
+descendants are alive; scheduled spawns wait at 48 alive, and a waiting one comes out at most one per 15 ticks; nothing is
+dropped; a wave is complete only with no release queued. `current.json` keeps naming r1 + luna-1-c1.
+
+Where C and the simulator differ, game-core follows C: (1) the simulator releases a parent's k-th descendant at defeat + k × 0.25 s,
+so the first two come out 14 ticks apart at 60 Hz; (2) a release the caps held comes out in the simulator together with every
+other one due from that parent, game-core keeps one gap per parent (C6.4 table); (3) the heal clock starts at wave start (C2.5),
+the simulator's when the first Patchling appears: they differ only if a Patchling spawns exactly on a 3 s multiple. The
+deferred-spawn gap (C6.4) is now applied for every mechanics number; no r1 or r2 wave can reach 48 aliens (luna-1-c1 schedules
+6 and 8), so no reachable outcome changes.
+
+Alternatives: edit r2 (published; the release refuses changed bytes); mechanics 2 for r3 (old clients would play the traits
+wrong); per-alien code switches (traits would not be data); the simulator's release times (the 0.25 s gap of C6.4 would not hold).
+
+Consequences: switching `current.json` to r3 needs a planet document whose waves use the new aliens (luna-1-c1 has Moon Blobs
+only), the bounds fixture regenerated (`--write-fixture`), and r3 published before any run can pin it. Bosses (Phase 27) add
+boss releases that may contain Split Slimes (generation 2) and boss phases: a rule change, so mechanics 4 in a new ruleset (or
+r3 amended, as ADR-0033 was, if r3 is not yet published). Release-timing difference (1) is reported for the simulator's owner;
+`tools/sim` is unchanged.
+
+Evidence: **[VERIFIED]** 2026-11-17: `web/game-core/src/data/sim-agreement.test.ts` (every r3 alien number and trait, the
+rounding rules, C8.2 bounty per wave); `web/game-core/src/sim/aliens.test.ts` (one test per trait, C6.3 releases, C6.4 caps,
+a stress wave of 240 aliens that reaches 60 alive and 24 descendants and never passes them, five whole waves where both models
+agree); `web/game-core/src/data/game-data.test.ts` (mechanics 3 parse rules); `node game-core/scripts/build-bounds.ts --check`.

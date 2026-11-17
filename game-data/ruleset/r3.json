@@ -1,0 +1,172 @@
+{
+  "$comment": "Ruleset r3, mechanics 3 (Phase 26, M2-03; spine S5.1, C6, C15): r2 unchanged (the six-class roster, colony, economy, sell rule, slow rules and caps) plus the whole alien catalogue of C6.1 with its traits as data. A trait is one of: armour (every hit loses this much, at least 1 lands), bubbles (layers that each absorb one whole hit), flying (a blast does half damage, rounded up), cluster (arrives as a tight group; each bubble is an ordinary alien: no simulation effect), healer (on a shared clock every other alien within radius tiles regains amount x the wave's hpMult) and children (released one at a time at the parent's route position when it is defeated, never when it leaks; C6.3). descendantOnly: never scheduled by a wave, only released. Every number is copied from tools/sim/game_data.json and checked against it by web/game-core/src/data/sim-agreement.test.ts. Not used for new runs until current.json names it (ADR-0034). Published create-only to /game-data/ruleset/r3.json: never edit a published version, add r4.",
+  "kind": "ruleset",
+  "version": "r3",
+  "mechanics": 3,
+  "simulation": {
+    "tickRateHz": 60
+  },
+  "colony": {
+    "maxHealth": 20,
+    "shieldCap": 10,
+    "shieldAbsoluteCap": 20,
+    "repairOnBossClear": 3,
+    "miraRepairCapPerWave": 1
+  },
+  "slow": {
+    "capPct": 50,
+    "refreshWithinSeconds": 0.15
+  },
+  "classes": {
+    "nova": {
+      "name": "Nova",
+      "role": "Laser Scout",
+      "unlockAfterWave": 0,
+      "deployCap": null,
+      "attack": "single",
+      "targeting": ["FRONT", "FAST"],
+      "defaultTargeting": "FRONT",
+      "targetingFromLevel": { "FAST": 1 },
+      "levels": [
+        { "level": 1, "cost": 50, "range": 2.5, "period": 1.0, "damage": 10 },
+        { "level": 2, "cost": 60, "range": 2.5, "period": 0.6, "damage": 10 },
+        { "level": 3, "cost": 150, "range": 3.0, "period": 0.6, "damage": 16 }
+      ]
+    },
+    "pip": {
+      "name": "Pip",
+      "role": "Frost Explorer",
+      "unlockAfterWave": 5,
+      "deployCap": 3,
+      "attack": "slow",
+      "targeting": ["FRONT", "FAST"],
+      "defaultTargeting": "FRONT",
+      "targetingFromLevel": { "FAST": 1 },
+      "levels": [
+        { "level": 1, "cost": 60, "range": 2.5, "period": 0.8, "damage": 5, "slowPct": 30, "slowDuration": 3.0, "slowRadius": 0.0 },
+        { "level": 2, "cost": 80, "range": 2.5, "period": 0.8, "damage": 6, "slowPct": 40, "slowDuration": 4.0, "slowRadius": 0.0 },
+        { "level": 3, "cost": 170, "range": 2.5, "period": 0.8, "damage": 7, "slowPct": 40, "slowDuration": 4.0, "slowRadius": 1.0 }
+      ]
+    },
+    "juno": {
+      "name": "Juno",
+      "role": "Comet Engineer",
+      "unlockAfterWave": 10,
+      "deployCap": 4,
+      "attack": "blast",
+      "targeting": ["CROWD", "FRONT"],
+      "defaultTargeting": "CROWD",
+      "targetingFromLevel": { "FRONT": 1 },
+      "levels": [
+        { "level": 1, "cost": 110, "range": 2.5, "period": 1.8, "damage": 16, "splashRadius": 1.0 },
+        { "level": 2, "cost": 130, "range": 2.5, "period": 1.8, "damage": 16, "splashRadius": 1.4 },
+        { "level": 3, "cost": 260, "range": 2.5, "period": 1.8, "damage": 26, "splashRadius": 1.4 }
+      ]
+    },
+    "orion": {
+      "name": "Orion",
+      "role": "Orbit Ranger",
+      "unlockAfterWave": 15,
+      "deployCap": 3,
+      "attack": "single",
+      "targeting": ["FRONT", "STRONG"],
+      "defaultTargeting": "FRONT",
+      "targetingFromLevel": { "STRONG": 3 },
+      "levels": [
+        { "level": 1, "cost": 170, "range": 4.5, "period": 2.4, "damage": 50 },
+        { "level": 2, "cost": 100, "range": 6.0, "period": 2.4, "damage": 50 },
+        { "level": 3, "cost": 330, "range": 6.0, "period": 2.4, "damage": 90 }
+      ]
+    },
+    "mira": {
+      "name": "Mira",
+      "role": "Shield Specialist",
+      "unlockAfterWave": 20,
+      "deployCap": 2,
+      "attack": "shield",
+      "targeting": [],
+      "defaultTargeting": "FRONT",
+      "targetingFromLevel": {},
+      "levels": [
+        { "level": 1, "cost": 160, "shieldPoints": 1, "period": 15.0, "repairOnWaveClear": 0 },
+        { "level": 2, "cost": 180, "shieldPoints": 2, "period": 15.0, "repairOnWaveClear": 0 },
+        { "level": 3, "cost": 280, "shieldPoints": 2, "period": 12.0, "repairOnWaveClear": 1 }
+      ]
+    },
+    "sol": {
+      "name": "Sol",
+      "role": "Beacon Commander",
+      "unlockAfterWave": 25,
+      "deployCap": 2,
+      "attack": "buff",
+      "targeting": [],
+      "defaultTargeting": "FRONT",
+      "targetingFromLevel": {},
+      "levels": [
+        { "level": 1, "cost": 150, "buffPct": 15, "radius": 4.5 },
+        { "level": 2, "cost": 200, "buffPct": 25, "radius": 4.5 },
+        { "level": 3, "cost": 300, "buffPct": 25, "radius": 6.0 }
+      ]
+    }
+  },
+  "aliens": {
+    "blob": { "name": "Moon Blob", "hp": 24, "speed": 1.0, "leak": 1, "bounty": 4, "traits": {} },
+    "mite": { "name": "Meteor Mite", "hp": 12, "speed": 2.0, "leak": 1, "bounty": 2, "traits": {} },
+    "shell": { "name": "Shellback", "hp": 60, "speed": 0.7, "leak": 2, "bounty": 5, "traits": { "armour": 4 } },
+    "swarm": { "name": "Bubble Swarm", "hp": 8, "speed": 1.3, "leak": 1, "bounty": 1, "traits": { "cluster": true } },
+    "flutter": { "name": "Orbit Flutter", "hp": 20, "speed": 1.6, "leak": 1, "bounty": 3, "traits": { "flying": true } },
+    "guard": { "name": "Bubble Guard", "hp": 34, "speed": 0.9, "leak": 2, "bounty": 5, "traits": { "bubbles": 4 } },
+    "patch": {
+      "name": "Patchling",
+      "hp": 26,
+      "speed": 1.0,
+      "leak": 1,
+      "bounty": 4,
+      "traits": { "healer": { "amount": 6, "radius": 1.5, "period": 3.0 } }
+    },
+    "slime": {
+      "name": "Split Slime",
+      "hp": 44,
+      "speed": 0.8,
+      "leak": 2,
+      "bounty": 3,
+      "traits": { "children": [{ "type": "slimelet", "count": 2 }] }
+    },
+    "slimelet": { "name": "Slimelet", "hp": 14, "speed": 1.2, "leak": 1, "bounty": 1, "descendantOnly": true, "traits": {} },
+    "craft": {
+      "name": "Alien Craft",
+      "hp": 120,
+      "speed": 0.6,
+      "leak": 4,
+      "bounty": 6,
+      "traits": { "children": [{ "type": "blob", "count": 4 }] }
+    }
+  },
+  "economy": {
+    "startingCredits": 150,
+    "waveClearBonus": 0,
+    "learningRewardByBlock": [
+      { "afterWaveFrom": 1, "afterWaveTo": 9, "credits": 30 },
+      { "afterWaveFrom": 10, "afterWaveTo": 19, "credits": 40 },
+      { "afterWaveFrom": 20, "afterWaveTo": 29, "credits": 50 },
+      { "afterWaveFrom": 30, "afterWaveTo": 39, "credits": 60 },
+      { "afterWaveFrom": 40, "afterWaveTo": 49, "credits": 75 }
+    ],
+    "endlessLearningReward": 75
+  },
+  "sell": {
+    "refundPct": 70,
+    "roundDownTo": 5
+  },
+  "caps": {
+    "maxActiveAliens": 60,
+    "scheduledSpawnSoftCap": 48,
+    "maxLiveDescendants": 24,
+    "descendantReleaseGap": 0.25,
+    "deferredSpawnGap": 0.25,
+    "maxDescendantDepth": 2
+  },
+  "powerRules": {
+    "inventoryCapPerPower": 2
+  }
+}
