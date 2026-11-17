@@ -77,3 +77,59 @@ export function devPowers(ruleset: Ruleset, spec: string): Snapshot["powers"] {
   }
   return powers;
 }
+
+// ---- Phase 34: the AC-42 performance scenarios (C14) --------------------------------------------------------------
+
+/** One wave of the simulator's campaign (tools/sim/game_data.json), as the ?simWave= option reads it. */
+export interface SimWave {
+  readonly wave: number;
+  readonly groups: AuthoredWave["groups"];
+  readonly hpMult: number;
+  readonly speedMult: number;
+}
+
+/**
+ * The ?simWave= dev waves: the simulator's authored campaign waves by number ("37", or "37,31"), renumbered after the
+ * planet's own so they are new waves of the local copy. C14 scenario (a) is wave 37 at 2x with a weak board: the most
+ * aliens on the field at once in any campaign scenario.
+ */
+export function simWaves(sim: readonly SimWave[], spec: string, firstWave: number): AuthoredWave[] {
+  return spec.split(",").map((part, i) => {
+    const n = Number.parseInt(part, 10);
+    const found = sim.find((w) => w.wave === n);
+    if (found === undefined) throw new Error(`?simWave=: the simulator has no wave "${part}" (1 to 50)`);
+    return { wave: firstWave + i, groups: found.groups, hpMult: found.hpMult, speedMult: found.speedMult };
+  });
+}
+
+/**
+ * The ?stress=1 wave, C14 scenario (b): 60 Moon Blobs close together and tough (hpMult 8), so the field holds the C6.4
+ * soft cap of 60 aliens while 16 level-3 astronauts (stressPlacements) fire into them and every effect pool fills.
+ */
+export function stressWave(wave: number): AuthoredWave {
+  return { wave, groups: [{ type: "blob", count: 60, at: 0, gap: 0.25 }], hpMult: 8, speedMult: 1 };
+}
+
+/**
+ * Sixteen level-3 astronauts, one per pad (every pad must be open), keeping each class's deploy cap: Juno 4, Orion 3,
+ * Pip 3, Sol 2, Mira 2 and Novas for the rest. Targeting is each class's default.
+ */
+export function stressPlacements(ruleset: Ruleset, padIds: readonly string[]): Snapshot["placements"] {
+  const order: [string, number][] = [
+    ["juno", 4],
+    ["orion", 3],
+    ["pip", 3],
+    ["sol", 2],
+    ["mira", 2],
+  ];
+  const classes: string[] = [];
+  for (const [id, count] of order) {
+    const cls = ruleset.classes[id];
+    if (cls === undefined) continue;
+    for (let i = 0; i < Math.min(count, cls.deployCap ?? count); i += 1) classes.push(id);
+  }
+  return padIds.map((padId, i) => {
+    const classId = classes[i] ?? "nova";
+    return { padId, classId, level: 3, targeting: ruleset.classes[classId]?.defaultTargeting ?? "FRONT" };
+  });
+}

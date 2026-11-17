@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { loadCurrent, loadGameDataVersions, type GameData } from "../game/gameData";
 import { LocalRun } from "../game/localRun";
 import { ActivityPlaceholder, PLACEHOLDER_ANSWER } from "./ActivityPlaceholder";
-import { devBossWaves, devPowers, devWave } from "./devWave";
+import { devBossWaves, devPowers, devWave, simWaves, stressPlacements, stressWave, type SimWave } from "./devWave";
 import { Battlefield, WAVE_SET_ID } from "./Battlefield";
 import { useGameBridge } from "./bridgeContext";
 import { EndScreen } from "./EndScreen";
@@ -12,6 +12,7 @@ import { PausedCard } from "./PausedCard";
 import { useAutoPlay, type AutoPlayMode } from "./useAutoPlay";
 import { useHud } from "./useBridge";
 import { BattlefieldControls } from "../hud/BattlefieldControls";
+import { FrameRecorder } from "../hud/FrameRecorder";
 import "../run/run.css";
 
 interface LocalOptions {
@@ -31,6 +32,12 @@ interface LocalOptions {
   readonly allClasses: boolean;
   /** Start with this many credits instead of the wave set's starting credits. */
   readonly credits: number | null;
+  /** Phase 34: play these simulator campaign waves first ("37", "37,31"), for the AC-42 measurement (C14 (a)). */
+  readonly simWave: string | null;
+  /** Phase 34: the synthetic scene, C14 (b): 60 tough aliens against 16 level-3 astronauts on every pad. */
+  readonly stress: boolean;
+  /** Phase 34: show the frame-time recorder (minimum, 1%-low and average frame rate per wave). */
+  readonly perf: boolean;
   /** A dev wave played first: "all" (every alien a wave may schedule) or "type:count,..." (e.g. "craft:2,slime:3"). */
   readonly aliens: string | null;
   /** Dev boss waves played first (after ?aliens='s): "all" (one wave per boss) or one boss ID (e.g. "boss3"). */
@@ -73,11 +80,14 @@ function localOptions(search: string): LocalOptions {
     autoPlay: params.get("auto") === "1" ? "play" : params.get("auto") === "lose" ? "lose" : null,
     speed: params.get("speed") === "2" ? 2 : 1,
     ruleset: params.get("ruleset"),
-    allClasses: params.get("roster") === "all",
+    allClasses: params.get("roster") === "all" || params.get("stress") === "1", // the stress board needs every class
     credits: Number.isInteger(credits) && credits >= 0 && credits <= 100_000 ? credits : null,
     aliens: params.get("aliens"),
     boss: params.get("boss"),
     powers: params.get("powers"),
+    simWave: params.get("simWave"),
+    stress: params.get("stress") === "1",
+    perf: params.get("perf") === "1",
   };
 }
 
@@ -102,6 +112,15 @@ async function localGameData(options: LocalOptions): Promise<GameData> {
   const next = () => Math.max(...waves.map((w) => w.wave), ...dev.map((w) => w.wave)) + 1;
   if (options.aliens !== null) dev.push(devWave(data.ruleset, options.aliens, next()));
   if (options.boss !== null) dev.push(...devBossWaves(data.ruleset, options.boss, next()));
+  if (options.simWave !== null) {
+    // The simulator's campaign (56 KB), loaded only when asked for and only in the local slice's chunk.
+    const sim = (await import("../../../../tools/sim/game_data.json")).default as unknown as { waves: SimWave[] };
+    dev.push(...simWaves(sim.waves, options.simWave, next()));
+  }
+  if (options.stress) {
+    dev.push(stressWave(next()));
+    waveSet = { ...waveSet, padsOpenAsForWave: 26 }; // every pad open for the 16 astronauts
+  }
   if (dev.length > 0) {
     waves = [...waves, ...dev];
     waveSet = { ...waveSet, waves: [...dev.map((w) => w.wave), ...waveSet.waves] };
@@ -122,6 +141,7 @@ function startingRun(data: GameData, options: LocalOptions): RunState {
       credits: options.credits ?? snapshot.credits,
       colony: { ...snapshot.colony, health: options.colonyHealth ?? snapshot.colony.health },
       powers: options.powers === null ? snapshot.powers : devPowers(data.ruleset, options.powers),
+      placements: options.stress ? stressPlacements(data.ruleset, config.pads.map((p) => p.id)) : snapshot.placements,
     },
   };
 }
@@ -162,7 +182,7 @@ export function LocalSlice() {
   else
     body = (
       <Battlefield key={game.n} data={data} waveSetId={WAVE_SET_ID} run={game.run} seed={options.seed} speed={options.speed}>
-        <Overlays run={game.run} autoPlay={options.autoPlay} onNewGame={newGame} />
+        <Overlays run={game.run} autoPlay={options.autoPlay} perf={options.perf} onNewGame={newGame} />
       </Battlefield>
     );
   return (
@@ -177,10 +197,12 @@ export function LocalSlice() {
 function Overlays({
   run,
   autoPlay,
+  perf,
   onNewGame,
 }: {
   run: LocalRun;
   autoPlay: AutoPlayMode | null;
+  perf: boolean;
   onNewGame: () => void;
 }) {
   const bridge = useGameBridge();
@@ -191,6 +213,7 @@ function Overlays({
     <>
       <Hud bridge={bridge} hud={hud} />
       <BattlefieldControls bridge={bridge} hud={hud} active={!ended && hud.runPhase !== "ACTIVITY"} />
+      {perf && <FrameRecorder hud={hud} />}
       {hud.runPhase === "ACTIVITY" && <ActivityPlaceholder run={run} afterWave={hud.wave - 1} />}
       {hud.paused && !ended && hud.battle === "IN_WAVE" && <PausedCard bridge={bridge} />}
       {ended && <EndScreen hud={hud} onAction={onNewGame} actionLabel="New game" />}

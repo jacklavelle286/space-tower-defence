@@ -9,7 +9,9 @@
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json",
     "test": "vitest run",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "build:perf": "vite build --mode perf --outDir dist-perf",
+    "preview:perf": "vite preview --outDir dist-perf"
   },
   "dependencies": {
     "@fontsource/unkempt": "5.3.0",

@@ -12,8 +12,10 @@ const reactRoot = createRoot(root);
 
 async function services(): Promise<Services> {
   // `npm run dev` has no config.json and its origin is not a registered callback URL, so development uses a fake
-  // sign-in and an in-memory API (src/dev/). The production build drops this branch and never contains that code.
-  if (import.meta.env.DEV) {
+  // sign-in and an in-memory API (src/dev/). So does the Phase 34 measurement build (`npm run build:perf`, mode
+  // "perf"): minified like production, with the local battlefield. The release build (mode "production") drops this
+  // branch and never contains that code.
+  if (import.meta.env.DEV || import.meta.env.MODE === "perf") {
     const { createDevServices } = await import("./dev/devServices");
     return createDevServices();
   }

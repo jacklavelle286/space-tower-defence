@@ -4,7 +4,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseRuleset } from "@scd/game-core";
 import { describe, expect, it } from "vitest";
-import { devBossWaves, devPowers, devWave } from "./devWave";
+import { devBossWaves, devPowers, devWave, simWaves, stressPlacements, stressWave } from "./devWave";
 
 const rulesetFile = (v: string): unknown => JSON.parse(readFileSync(join(import.meta.dirname, "..", "..", "..", "..", "game-data", "ruleset", `${v}.json`), "utf8"));
 const r3 = parseRuleset(rulesetFile("r3"));
@@ -80,5 +80,28 @@ describe("devPowers", () => {
     const r1 = parseRuleset(rulesetFile("r1"));
     expect(() => devPowers(r1, "all")).toThrow(/r1 has no meteor powers/);
     expect(() => devPowers(r1, "frost-pulse:1")).toThrow(/r1 has no power "frost-pulse"/);
+  });
+});
+
+describe("Phase 34 performance scenarios (C14)", () => {
+  const simFile = join(import.meta.dirname, "..", "..", "..", "..", "tools", "sim", "game_data.json");
+  const sim = JSON.parse(readFileSync(simFile, "utf8")) as { waves: { wave: number; groups: never[]; hpMult: number; speedMult: number }[] };
+
+  it("?simWave= copies the simulator's wave, renumbered", () => {
+    const [wave] = simWaves(sim.waves, "37", 3);
+    const original = sim.waves.find((w) => w.wave === 37);
+    expect(wave).toEqual({ wave: 3, groups: original?.groups, hpMult: original?.hpMult, speedMult: original?.speedMult });
+    expect(() => simWaves(sim.waves, "99", 3)).toThrow("no wave");
+  });
+
+  it("?stress=1: 60 aliens against 16 level-3 astronauts within every deploy cap", () => {
+    expect(stressWave(9).groups.reduce((n, g) => n + g.count, 0)).toBe(60);
+    const pads = Array.from({ length: 16 }, (_, i) => `p${String(i + 1).padStart(2, "0")}`);
+    const placements = stressPlacements(r3, pads);
+    expect(placements).toHaveLength(16);
+    expect(placements.every((p) => p.level === 3)).toBe(true);
+    const counts: Record<string, number> = {};
+    for (const p of placements) counts[p.classId] = (counts[p.classId] ?? 0) + 1;
+    for (const [id, n] of Object.entries(counts)) expect(n).toBeLessThanOrEqual(r3.classes[id]?.deployCap ?? 16);
   });
 });

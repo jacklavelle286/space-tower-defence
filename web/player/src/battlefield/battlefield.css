@@ -596,3 +596,17 @@
 .bf-shop-name {
   white-space: nowrap;
 }
+
+/* The Phase 34 frame recorder (/play/local?perf=1): a small panel at the top left of the board. */
+.bf-perf {
+  position: absolute;
+  top: 70px;
+  left: 8px;
+  z-index: 30;
+  max-width: 560px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: rgb(20 16 40 / 85%);
+  color: #fff4d6;
+  font: 13px/1.4 ui-monospace, monospace;
+}

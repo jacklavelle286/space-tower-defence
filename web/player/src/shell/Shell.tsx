@@ -19,9 +19,9 @@ import { Landing } from "./Landing";
 import { ProfileSetup } from "./ProfileSetup";
 import type { Services } from "./services";
 
-// The Phase 14 local slice (Phaser) loads only when its route is opened, and only exists in development builds:
-// production ships nothing playable until runs are saved (Phase 22).
-const LocalSlice = import.meta.env.DEV
+// The Phase 14 local slice (Phaser) loads only when its route is opened, and only exists in development builds and the
+// Phase 34 measurement build (mode "perf", never released): production ships only the real run screen.
+const LocalSlice = import.meta.env.DEV || import.meta.env.MODE === "perf"
   ? lazy(() => import("../battlefield/LocalSlice").then((m) => ({ default: m.LocalSlice })))
   : null;
 
