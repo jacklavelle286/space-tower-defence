@@ -519,51 +519,54 @@ class Publisher:
         )
 
     def _allocate(self, pk: str, sk: str, planet_id: str, source: str, live: bool, by: str) -> dict[str, Any]:
-        """<planetId>-a<n> from the counter and the claim in one transaction; a claim that got its version meanwhile
-        (another run of the same revision) wins, and that version is used."""
-        counter = self.d.table.get_item(COUNTER_PK, f"campaign#{planet_id}")
-        n = int(counter["next"]) if counter is not None else 1
-        version = f"{planet_id}-a{n}"
-        started = iso_z(self.d.now())
-        counter_cond = "#next = :n" if counter is not None else "attribute_not_exists(#pk)"
-        counter_values: dict[str, Any] = {":one": n + 1}
-        if counter is not None:
-            counter_values[":n"] = n
-        try:
-            self.d.table.transact_write(
-                [
-                    self.d.table.update_action(
-                        COUNTER_PK,
-                        f"campaign#{planet_id}",
-                        update="SET #next = :one",
-                        condition=counter_cond,
-                        names={"#next": "next", **({"#pk": "pk"} if counter is None else {})},
-                        values=counter_values,
-                    ),
-                    self.d.table.update_action(
-                        pk,
-                        sk,
-                        update="SET #v = :v, #src = :src, #live = :live, #started = :started, #by = :by",
-                        condition="attribute_not_exists(#v)",
-                        names={
-                            "#v": "campaignVersion",
-                            "#src": "sourceVersion",
-                            "#live": "live",
-                            "#started": "startedAt",
-                            "#by": "by",
-                        },
-                        values={":v": version, ":src": source, ":live": live, ":started": started, ":by": by},
-                    ),
-                ]
-            )
-        except ClientError as error:
-            if error.response.get("Error", {}).get("Code") != "TransactionCanceledException":
-                raise
-            claim = self.d.table.get_item(pk, sk)
-            if claim is not None and claim.get("campaignVersion"):
-                return claim
-            raise PublishRefused("BUSY", "another publish took the version number; try again") from None
-        return {"campaignVersion": version, "startedAt": started, "sourceVersion": source}
+        """<planetId>-a<n> from the counter and the claim in one transaction. A claim that got its version meanwhile
+        (another run of the same revision) wins, and that version is used; a counter another level moved meanwhile is
+        read again (CAS_ATTEMPTS times)."""
+        for _ in range(CAS_ATTEMPTS):
+            counter = self.d.table.get_item(COUNTER_PK, f"campaign#{planet_id}")
+            n = int(counter["next"]) if counter is not None else 1
+            version = f"{planet_id}-a{n}"
+            started = iso_z(self.d.now())
+            counter_cond = "#next = :n" if counter is not None else "attribute_not_exists(#pk)"
+            counter_values: dict[str, Any] = {":one": n + 1}
+            if counter is not None:
+                counter_values[":n"] = n
+            try:
+                self.d.table.transact_write(
+                    [
+                        self.d.table.update_action(
+                            COUNTER_PK,
+                            f"campaign#{planet_id}",
+                            update="SET #next = :one",
+                            condition=counter_cond,
+                            names={"#next": "next", **({"#pk": "pk"} if counter is None else {})},
+                            values=counter_values,
+                        ),
+                        self.d.table.update_action(
+                            pk,
+                            sk,
+                            update="SET #v = :v, #src = :src, #live = :live, #started = :started, #by = :by",
+                            condition="attribute_not_exists(#v)",
+                            names={
+                                "#v": "campaignVersion",
+                                "#src": "sourceVersion",
+                                "#live": "live",
+                                "#started": "startedAt",
+                                "#by": "by",
+                            },
+                            values={":v": version, ":src": source, ":live": live, ":started": started, ":by": by},
+                        ),
+                    ]
+                )
+            except ClientError as error:
+                if error.response.get("Error", {}).get("Code") != "TransactionCanceledException":
+                    raise
+                claim = self.d.table.get_item(pk, sk)
+                if claim is not None and claim.get("campaignVersion"):
+                    return claim
+                continue  # the counter moved: read it again
+            return {"campaignVersion": version, "startedAt": started, "sourceVersion": source}
+        raise PublishRefused("BUSY", "the version counter kept changing; try again")
 
     def _result(self, claim: Mapping[str, Any]) -> dict[str, Any]:
         out = {"ok": True, "campaignVersion": claim.get("campaignVersion"), "live": bool(claim.get("live"))}

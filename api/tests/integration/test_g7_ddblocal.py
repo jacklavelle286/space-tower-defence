@@ -134,7 +134,10 @@ class RepoS3:
     """Serves the repository's game-data files as the site bucket would."""
 
     def get_object(self, Bucket: str, Key: str) -> dict[str, Any]:  # boto3's argument names
-        return {"Body": _Body((REPO / Key).read_bytes())}
+        path = REPO / Key
+        if not path.is_file():  # as S3 answers a missing key (game-data/versions.json before any admin publish, LD6)
+            raise ClientError({"Error": {"Code": "NoSuchKey", "Message": Key}}, "GetObject")
+        return {"Body": _Body(path.read_bytes())}
 
 
 def _bounds(ruleset: str, campaign: str) -> dict[str, Any]:
