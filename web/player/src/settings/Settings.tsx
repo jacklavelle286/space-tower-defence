@@ -3,6 +3,7 @@
 // then sends confirm = type (spine S8.2). A reset needs a connection and an empty queue. The whole-profile reset may
 // discard unsent progress after saying so; afterwards the device's local database goes and Profile setup opens.
 // "Give up current game" is on Saved games (an ABANDON op, not a reset).
+import { trapTab } from "@scd/shared";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { PlayerApi, ResetType } from "../api/playerApi";
 import { COPY } from "../copy/en-GB";
@@ -92,7 +93,7 @@ export function Settings({
       ) : null}
       {chosen !== undefined ? (
         <div className="dialog-backdrop">
-          <div className="panel dialog" role="alertdialog" aria-modal="true" aria-labelledby="reset-heading">
+          <div className="panel dialog" role="alertdialog" aria-modal="true" aria-labelledby="reset-heading" onKeyDown={trapTab}>
             <h2 id="reset-heading">{chosen.button}</h2>
             <h3>{COPY.settings.changes}</h3>
             <p>{chosen.changes}</p>

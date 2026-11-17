@@ -7,6 +7,7 @@
 //   acknowledged it (durability in online-only mode, spine S4); the server's judgement is the one that counts: if it
 //   disagrees with the reducer, the run is reloaded from the cloud save.
 // - Play goes to the ClipPlayer only. Nothing about sound touches attempts (AC-22).
+import { trapTab } from "@scd/shared";
 import { useClip, type ClipPlayer, type ClipRef } from "@scd/shared/audio";
 import { LearningPanel, PANEL_COPY, type CheckResult, type PanelActivity, type PanelStatus } from "@scd/shared/learning";
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
@@ -123,7 +124,7 @@ function UnshowableActivity(props: ActivityPanelProps & { status: string; withdr
 
   return (
     <div className="lp-backdrop">
-      <section className="lp" role="dialog" aria-modal="true" aria-labelledby="lp-unshowable">
+      <section className="lp" role="dialog" aria-modal="true" aria-labelledby="lp-unshowable" onKeyDown={trapTab}>
         <h2 className="lp-heading" id="lp-unshowable" tabIndex={-1}>
           {COPY.run.learning}
         </h2>

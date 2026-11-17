@@ -1,4 +1,4 @@
-import { createApiClient, tokenSub, type ApiClient, type Me, type ProfileInput } from "@scd/shared";
+import { type ApiClient, createApiClient, type Me, type ProfileInput, tokenSub, trapTab } from "@scd/shared";
 import { ClipPlayer, htmlAudioOutput, idbClipStore, localDbName, memoryClipStore, openLocalDb } from "@scd/shared/audio";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router";
@@ -348,7 +348,7 @@ export function Shell({ services }: { services: Services }) {
       </Routes>
       {confirmSignOut ? (
         <div className="dialog-backdrop">
-          <div className="panel dialog" role="alertdialog" aria-modal="true" aria-labelledby="signout-warning">
+          <div className="panel dialog" role="alertdialog" aria-modal="true" aria-labelledby="signout-warning" onKeyDown={trapTab}>
             <p id="signout-warning">{COPY.signOut.pendingWarning}</p>
             <div className="dialog-buttons">
               {/* Focus starts on the safe choice (D1 rule 12). */}

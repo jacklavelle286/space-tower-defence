@@ -4,6 +4,7 @@
 // preparation with "That's fine — you can still beat the boss!". Once an attempt exists there is no offer and no No
 // thanks: the reducer refuses DISMISS_SLOT after an attempt anyway. When the power is already full (endless, P8) the
 // offer says so; a success then counts but adds no charge. The server grants the charge; the browser only asks.
+import { trapTab } from "@scd/shared";
 import { useEffect, useRef, useState } from "react";
 import { COPY } from "../copy/en-GB";
 import type { AckTracker } from "./ackTracker";
@@ -49,7 +50,7 @@ export function MeteorOffer({
 
   return (
     <div className="lp-backdrop">
-      <section className="lp meteor-offer" role="dialog" aria-modal="true" aria-labelledby="meteor-heading">
+      <section className="lp meteor-offer" role="dialog" aria-modal="true" aria-labelledby="meteor-heading" onKeyDown={trapTab}>
         <h2 className="lp-heading" id="meteor-heading">
           {COPY.meteor.heading}
         </h2>

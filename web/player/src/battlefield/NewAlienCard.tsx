@@ -3,6 +3,7 @@
 // two a 5-year-old follows (C6.1's traits, COPY.newAlien). "Got it!" (Enter or Space: it has the focus) goes on.
 // Bosses too. Reading it aloud needs an approved speech clip that is not tied to an activity slot: a follow-up
 // [PROPOSAL; docs/validation/phase-66-new-alien-card.md].
+import { trapTab } from "@scd/shared";
 import type { AlienStats } from "@scd/game-core";
 import type { ArtBinding } from "@scd/shared/manifest";
 import { frameUrl } from "@scd/shared/map";
@@ -44,7 +45,7 @@ export function NewAlienCard({ bridge, art, type }: { bridge: GameBridge; art: A
   const boss = alien.boss !== null;
   return (
     <div className="bf-overlay">
-      <div className="bf-card bf-new-alien" role="dialog" aria-modal="true" aria-labelledby="new-alien-name">
+      <div className="bf-card bf-new-alien" role="dialog" aria-modal="true" aria-labelledby="new-alien-name" onKeyDown={trapTab}>
         <p className="bf-new-alien-kicker">{boss ? COPY.newAlien.boss : COPY.newAlien.heading}</p>
         <img src={pictureOf(art, type)} alt="" width={160} height={160} />
         <h2 id="new-alien-name">{alien.name}</h2>

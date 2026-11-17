@@ -345,3 +345,30 @@ describe("LearningPanel", () => {
     expect(option("th").getAttribute("aria-checked")).toBe("true");
   });
 });
+
+describe("keyboard (Phase 68)", () => {
+  it("shows the keys line for the kind of answer", () => {
+    render(<Harness />);
+    expect(screen.getByText(COPY.keys.choiceNumbers)).toBeTruthy();
+  });
+
+  it("keeps Tab inside the panel: from the last control to the first, and Shift+Tab back", () => {
+    render(
+      <>
+        <button type="button">Behind the panel</button>
+        <Harness />
+      </>,
+    );
+    const dialog = screen.getByRole("dialog");
+    const controls = [...dialog.querySelectorAll<HTMLElement>('button:not([disabled]), [tabindex]:not([tabindex="-1"])')];
+    const first = controls[0];
+    const last = controls[controls.length - 1];
+    if (first === undefined || last === undefined) throw new Error("no controls");
+    last.focus();
+    fireEvent.keyDown(last, { key: "Tab" });
+    expect(document.activeElement).toBe(first);
+    fireEvent.keyDown(first, { key: "Tab", shiftKey: true });
+    expect(document.activeElement).toBe(last);
+    expect(document.activeElement?.textContent).not.toBe("Behind the panel");
+  });
+});

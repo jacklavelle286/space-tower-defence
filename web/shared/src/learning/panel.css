@@ -756,3 +756,10 @@
     grid-template-columns: repeat(3, 64px);
   }
 }
+
+/* Phase 68: the keys line under each answer area, for the grown-up helping. */
+.lp-keys {
+  margin: 8px 0 0;
+  font-size: 15px;
+  opacity: 0.75;
+}

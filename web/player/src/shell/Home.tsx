@@ -1,4 +1,4 @@
-import { libraryPictureUrl, type Me, type Planets, type WaveSetEntry } from "@scd/shared";
+import { libraryPictureUrl, type Me, type Planets, trapTab, type WaveSetEntry } from "@scd/shared";
 import { useEffect, useRef, useState } from "react";
 import { COPY } from "../copy/en-GB";
 import type { PlayerApi } from "../api/playerApi";
@@ -250,7 +250,7 @@ export function Home({
 
       {takeover !== null ? (
         <div className="dialog-backdrop">
-          <div className="panel dialog" role="alertdialog" aria-modal="true" aria-labelledby="takeover-question">
+          <div className="panel dialog" role="alertdialog" aria-modal="true" aria-labelledby="takeover-question" onKeyDown={trapTab}>
             <p id="takeover-question">{COPY.run.takeover(takeover.deviceLabel || "another computer")}</p>
             <p className="reason">{COPY.run.takeoverGrownUp}</p>
             <div className="dialog-buttons">

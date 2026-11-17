@@ -5,6 +5,7 @@
 // Keep going is CHOOSE_ENDLESS, online only and never queued (G §6): the account's queue is flushed first (so the op's
 // expectedRevision is current), then the op goes to R12 stamped with the lease, and the run is read again because the
 // server planned the first endless slots. Finish this game is FINISH_RUN, queued like any op.
+import { trapTab } from "@scd/shared";
 import { useState } from "react";
 import { COPY } from "../copy/en-GB";
 import { PROTOCOL_VERSION } from "../sync/protocol";
@@ -78,7 +79,7 @@ export function CompletionOffer({
 
   return (
     <div className="lp-backdrop">
-      <section className="lp completion" role="dialog" aria-modal="true" aria-labelledby="complete-heading">
+      <section className="lp completion" role="dialog" aria-modal="true" aria-labelledby="complete-heading" onKeyDown={trapTab}>
         <h2 className="lp-heading" id="complete-heading">
           {COPY.complete.heading}
         </h2>

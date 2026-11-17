@@ -1,6 +1,7 @@
 // The run screen at /play/:runId: the slice joined (Phase 22, M1-22). Entering a run online follows spine S3.7 /
 // G §7.1: claim the lease (unless New game just did), let the queue flush, read the cloud save, act on its phase.
 // Then the battlefield plays the run, the learning panel opens for the activity, and every op goes through the queue.
+import { trapTab } from "@scd/shared";
 import { currentSlotId } from "@scd/game-core";
 import type { ClipPlayer } from "@scd/shared/audio";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
@@ -126,7 +127,7 @@ export function RunScreen({ services }: { services: RunServices }) {
     case "takeover":
       return (
         <div className="dialog-backdrop">
-          <div className="panel dialog" role="alertdialog" aria-modal="true" aria-labelledby="run-takeover">
+          <div className="panel dialog" role="alertdialog" aria-modal="true" aria-labelledby="run-takeover" onKeyDown={trapTab}>
             <p id="run-takeover">{COPY.run.takeover(screen.deviceLabel || "another computer")}</p>
             <p className="reason">{COPY.run.takeoverGrownUp}</p>
             <div className="dialog-buttons">
@@ -381,6 +382,7 @@ function EndGameDialog({ finishing, onKeep, onConfirm }: { finishing: boolean; o
         aria-labelledby="run-confirm-q"
         onKeyDown={(e) => {
           if (e.key === "Escape") onKeep();
+          else trapTab(e); // Phase 68: Tab stays inside the dialog
         }}
       >
         <p id="run-confirm-q">{finishing ? COPY.run.finishQuestion : COPY.run.giveUpQuestion}</p>

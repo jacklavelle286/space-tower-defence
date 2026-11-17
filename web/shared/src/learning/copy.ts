@@ -68,6 +68,15 @@ export const PANEL_COPY = {
   removed: (text: string) => `${text} back with the tiles.`, // [PROPOSAL]
   liftedTile: (text: string) => `${text} picked up. Left and Right move it. Enter puts it down.`, // [PROPOSAL] D6.3 keys
   movedTile: (text: string, n: number) => `${text} now in space ${n}.`, // [PROPOSAL]
+  // Phase 68 (owner ask, 2026-11-17): the keys line under each answer area, short, for the grown-up helping [PROPOSAL].
+  keys: {
+    choice: "Keys: arrows choose, then Tab to Check and press Enter.",
+    choiceNumbers: "Keys: arrows or the number on a choice choose, then Tab to Check and press Enter.",
+    distribute: "Keys: Tab to a group, + or Enter puts one in, - takes one out.",
+    sort: "Keys: arrows pick one, Enter picks it up, arrows choose a group, Enter puts it down.",
+    arrange: "Keys: arrows pick a tile and Enter places it, or type the letters. Backspace takes the last one back.",
+    typed: "Keys: type the answer and press Enter.",
+  },
   // TYPED.
   keypadLabel: "Keypad", // [PROPOSAL]
   deleteKey: "Delete", // [PROPOSAL] the keypad's ⌫ key

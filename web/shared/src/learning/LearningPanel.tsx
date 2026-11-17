@@ -18,6 +18,7 @@
 //   attempts as they were when Check was pressed, so the result is never shown before it is saved.
 // - Nothing here uses up a try except `onCheck`: Play, a sound that fails, choosing, moving, typing, and Check on an
 //   incomplete answer never do (D6.2, AC-22).
+import { trapTab } from "../focusTrap";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ClipAvailability } from "../audio/useClip";
 import type { PlayState } from "../audio/clipPlayer";
@@ -129,6 +130,23 @@ function incompleteLine(step: PanelStep | undefined): string {
       return COPY.typeFirst;
     default:
       return COPY.chooseFirst;
+  }
+}
+
+/** The keys line under a step's answer area (Phase 68): what the keyboard does for this kind of answer. */
+export function keysLine(step: PanelStep): string {
+  switch (step.interactionType) {
+    case "MULTIPLE_CHOICE":
+    case "PICTURE_SELECT":
+      return COPY.keys.choiceNumbers;
+    case "NUMBER_SELECT":
+      return COPY.keys.choice;
+    case "OBJECT_MOVE":
+      return step.mode === "DISTRIBUTE" ? COPY.keys.distribute : COPY.keys.sort;
+    case "ARRANGE":
+      return COPY.keys.arrange;
+    case "TYPED":
+      return COPY.keys.typed;
   }
 }
 
@@ -395,6 +413,7 @@ export function LearningPanel({
         ) : null}
         {cue !== undefined ? <Cue cue={cue} /> : null}
         {area(step, index, labelledBy)}
+        <p className="lp-keys">{keysLine(step)}</p>
         {listTried ? (
           <p className="lp-tried-list lp-reading">
             {COPY.triedList(triedHere)}
@@ -411,6 +430,7 @@ export function LearningPanel({
         role="dialog"
         aria-modal="true"
         aria-labelledby={headingId}
+        onKeyDown={trapTab}
       >
         <h2
           className="lp-heading lp-reading"
