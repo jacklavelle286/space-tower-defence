@@ -23,6 +23,7 @@
 // Phase 31: with a shop card chosen, every open empty pad glows and the hovered (or keyboard-focused) one previews
 // that class's range; a Comet Burst being aimed shows its ring on the route, and a press on the canvas drops it on
 // the route point nearest the press (C10; the bridge pauses the battle while aiming, C2.1).
+// Gate M (LD2): a map's own backdrop and decorations (mapArt.ts), each skipped if its file fails to load.
 import { UNITS_PER_TILE, buffSourceAt, routePoint, type AlienState, type Battle, type BattleEvent } from "@scd/game-core";
 import { GameObjects, Scene, type Input } from "phaser";
 import {
@@ -50,6 +51,7 @@ import { nearestProgress } from "../hud/padNav";
 import { pressedOnCanvas } from "./pointer";
 import { Pool } from "./pool";
 import { CANVAS_HEIGHT, CANVAS_WIDTH, colonyArt, routeTiles, TILE_PX, tileToPx, unitsToPx } from "./layout";
+import { backdropKey, mapPicturesToLoad, placedDecorations } from "./mapArt";
 
 /** Animation speed for every looped and one-shot animation, frames per second (cosmetic). */
 const ANIM_FPS = 8;
@@ -175,6 +177,8 @@ export class BattleScene extends Scene {
   preload(): void {
     for (const [key, url] of allFrames()) this.load.image(key, url);
     if (this.#hasPowers) for (const [key, url] of powerFrames()) this.load.image(key, url);
+    // The map's own backdrop and decorations (Gate M, LD2). One that fails to load is skipped in create().
+    for (const { key, url } of mapPicturesToLoad(this.#bridge.config)) if (!this.textures.exists(key)) this.load.image(key, url);
   }
 
   create(): void {
@@ -184,9 +188,14 @@ export class BattleScene extends Scene {
     }
     const config = this.#bridge.config;
 
-    const backdrop = this.add.image(0, 0, frameKey(ART.backdrop, 1));
+    // The map's own backdrop when it has one and it loaded; otherwise the repo Moonbeam ground (Gate M, LD2).
+    const backdrop = this.add.image(0, 0, backdropKey(config, (key) => this.textures.exists(key)));
     place(backdrop, ART.backdrop);
     backdrop.setDepth(0);
+    for (const d of placedDecorations(config)) {
+      if (!this.textures.exists(d.key)) continue; // failed to load: skipped, never a broken battle
+      this.add.image(d.x, d.y, d.key).setOrigin(d.anchor[0], d.anchor[1]).setDisplaySize(d.size[0], d.size[1]).setDepth(d.depth);
+    }
 
     for (const tile of routeTiles(config.route.waypoints)) {
       const image = this.add.image(tileToPx(tile.x), tileToPx(tile.y), frameKey(tile.art, 1));
