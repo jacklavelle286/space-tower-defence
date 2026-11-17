@@ -57,6 +57,7 @@ describe("the repository's game-data/", () => {
       "ruleset/r4.json", // Phase 54: r3 + the endless generator (mechanics 4); current since Phase 56
       "campaign/luna-1-c1.json",
       "campaign/luna-1-c2.json", // Phase 50: the 50-wave campaign and the challenges; current since Phase 56
+      "asset-manifest/m1.json", // Gate M, LD8: the repo art; a run with no pin draws with it
       "bounds/r4__luna-1-c2.json", // only the current pair gets a bounds file; r1's stays published from earlier releases
       "current.json",
     ]);
@@ -176,6 +177,12 @@ describe("version strings", () => {
       rulesetVersion: "r1",
       campaignVersion: "luna-1-c1",
     });
+    expect(parseCurrent({ rulesetVersion: "r1", campaignVersion: "c1", assetManifestVersion: "m2" })).toEqual({
+      rulesetVersion: "r1",
+      campaignVersion: "c1",
+      assetManifestVersion: "m2",
+    }); // Gate M, LD8: optional; absent means m1
+    expect(() => parseCurrent({ rulesetVersion: "r1", campaignVersion: "c1", assetManifestVersion: "M 2" })).toThrow(GameDataError);
     expect(() => parseCurrent({ rulesetVersion: "r1" })).toThrow(/campaignVersion" is missing/);
     expect(() => parseCurrent({ rulesetVersion: "r1", campaignVersion: "c1", extra: 1 })).toThrow(/unknown key "extra"/);
     expect(() => parseCurrent({ rulesetVersion: "r1", campaignVersion: "C1" })).toThrow(GameDataError);

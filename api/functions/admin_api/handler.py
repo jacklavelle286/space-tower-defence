@@ -66,6 +66,7 @@ from typing import Any
 import boto3
 from botocore.exceptions import ClientError
 
+from shared.asset_manifest import manifest_pictures
 from shared.audio import AudioStore, head_clip, s3_client, stored_sha256
 from shared.auth import OPERATOR
 from shared.body import json_object, query_param
@@ -217,6 +218,8 @@ class Deps:
     sqs: Callable[[], Any] = _container_sqs
     cloudfront: Callable[[], Any] = _container_cloudfront
     publisher: Callable[[], PublisherClient] = _container_publisher
+    # Every published asset manifest (Gate M, LD8): R37 never deletes a picture one draws with.
+    manifests: Callable[[], list[dict[str, Any]]] = lambda: _container_game_data().asset_manifests()
 
 
 # --- Request helpers ------------------------------------------------------------------------------------------------
@@ -1138,7 +1141,15 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         "DELETE /api/admin/speech-definitions/{id}": delete_speech,
         **make_picture_handlers(
             table=table,
-            services=PictureServices(config=deps.pictures, s3=deps.s3, sqs=deps.sqs, cloudfront=deps.cloudfront),
+            services=PictureServices(
+                config=deps.pictures,
+                s3=deps.s3,
+                sqs=deps.sqs,
+                cloudfront=deps.cloudfront,
+                manifest_users=lambda picture_id: [
+                    f"manifest:{m['version']}" for m in deps.manifests() if picture_id in manifest_pictures(m)
+                ],
+            ),
             now=deps.now,
             transact=transact,
         ),

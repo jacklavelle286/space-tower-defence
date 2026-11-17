@@ -147,12 +147,20 @@ class Publisher:
             raise PublishRefused("NOT_FOUND", f"{what} is not JSON ({key})") from None
 
     def _current(self) -> tuple[dict[str, str], str]:
+        """current.json's pointers. assetManifestVersion (LD8) is optional and carried over whenever the publisher
+        writes the file, so moving the campaign never changes which art new runs draw with."""
         data, etag = self._json("current.json", "current.json")
         if not isinstance(data, dict) or not all(
             isinstance(data.get(k), str) for k in ("rulesetVersion", "campaignVersion")
         ):
             raise PublishRefused("NOT_FOUND", "current.json is malformed")
-        return {"rulesetVersion": data["rulesetVersion"], "campaignVersion": data["campaignVersion"]}, etag
+        pointers = {"rulesetVersion": data["rulesetVersion"], "campaignVersion": data["campaignVersion"]}
+        manifest = data.get("assetManifestVersion")
+        if manifest is not None:
+            if not isinstance(manifest, str) or not VERSION.match(manifest):
+                raise PublishRefused("NOT_FOUND", "current.json is malformed")
+            pointers["assetManifestVersion"] = manifest
+        return pointers, etag
 
     def _versions(self) -> tuple[Versions, str | None]:
         found = self.d.site.get(self.d.prefix + "versions.json")
@@ -491,9 +499,7 @@ class Publisher:
 
         self._update_versions(publish_previews)
         current, _ = self._current()
-        body = (
-            json.dumps({"rulesetVersion": current["rulesetVersion"], "campaignVersion": version}, indent=2) + "\n"
-        ).encode()
+        body = (json.dumps({**current, "campaignVersion": version}, indent=2) + "\n").encode()
         return self.d.site.replace(self.d.prefix + "current.json", body, etag, CACHE_NO_CACHE)
 
     def _mark(self, pk: str, sk: str, state: str, by: str, new: bool) -> None:

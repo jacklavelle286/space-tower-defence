@@ -1,0 +1,1965 @@
+{
+ "kind": "asset-manifest",
+ "schema": 1,
+ "version": "m1",
+ "assets": {
+  "alien-blob-walk": {
+   "frames": [
+    "/assets/common/alien-blob-walk-01.png",
+    "/assets/common/alien-blob-walk-02.png",
+    "/assets/common/alien-blob-walk-03.png",
+    "/assets/common/alien-blob-walk-04.png",
+    "/assets/common/alien-blob-walk-05.png",
+    "/assets/common/alien-blob-walk-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "alien-craft-hover": {
+   "frames": [
+    "/assets/common/alien-craft-hover-01.png",
+    "/assets/common/alien-craft-hover-02.png",
+    "/assets/common/alien-craft-hover-03.png",
+    "/assets/common/alien-craft-hover-04.png",
+    "/assets/common/alien-craft-hover-05.png",
+    "/assets/common/alien-craft-hover-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    256,
+    256
+   ]
+  },
+  "alien-craft-release": {
+   "frames": [
+    "/assets/common/alien-craft-release-01.png",
+    "/assets/common/alien-craft-release-02.png",
+    "/assets/common/alien-craft-release-03.png",
+    "/assets/common/alien-craft-release-04.png",
+    "/assets/common/alien-craft-release-05.png",
+    "/assets/common/alien-craft-release-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    256,
+    256
+   ]
+  },
+  "alien-flutter-fly": {
+   "frames": [
+    "/assets/common/alien-flutter-fly-01.png",
+    "/assets/common/alien-flutter-fly-02.png",
+    "/assets/common/alien-flutter-fly-03.png",
+    "/assets/common/alien-flutter-fly-04.png",
+    "/assets/common/alien-flutter-fly-05.png",
+    "/assets/common/alien-flutter-fly-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "alien-flutter-shadow": {
+   "frames": [
+    "/assets/common/alien-flutter-shadow.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    64,
+    48
+   ]
+  },
+  "alien-guard-layers-1": {
+   "frames": [
+    "/assets/common/alien-guard-layers-1.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "alien-guard-layers-2": {
+   "frames": [
+    "/assets/common/alien-guard-layers-2.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "alien-guard-layers-3": {
+   "frames": [
+    "/assets/common/alien-guard-layers-3.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "alien-guard-layers-4": {
+   "frames": [
+    "/assets/common/alien-guard-layers-4.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "alien-guard-pop": {
+   "frames": [
+    "/assets/common/alien-guard-pop-01.png",
+    "/assets/common/alien-guard-pop-02.png",
+    "/assets/common/alien-guard-pop-03.png",
+    "/assets/common/alien-guard-pop-04.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "alien-guard-walk": {
+   "frames": [
+    "/assets/common/alien-guard-walk-01.png",
+    "/assets/common/alien-guard-walk-02.png",
+    "/assets/common/alien-guard-walk-03.png",
+    "/assets/common/alien-guard-walk-04.png",
+    "/assets/common/alien-guard-walk-05.png",
+    "/assets/common/alien-guard-walk-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "alien-mite-walk": {
+   "frames": [
+    "/assets/common/alien-mite-walk-01.png",
+    "/assets/common/alien-mite-walk-02.png",
+    "/assets/common/alien-mite-walk-03.png",
+    "/assets/common/alien-mite-walk-04.png",
+    "/assets/common/alien-mite-walk-05.png",
+    "/assets/common/alien-mite-walk-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    64,
+    64
+   ]
+  },
+  "alien-patch-heal": {
+   "frames": [
+    "/assets/common/alien-patch-heal-01.png",
+    "/assets/common/alien-patch-heal-02.png",
+    "/assets/common/alien-patch-heal-03.png",
+    "/assets/common/alien-patch-heal-04.png",
+    "/assets/common/alien-patch-heal-05.png",
+    "/assets/common/alien-patch-heal-06.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    288,
+    288
+   ]
+  },
+  "alien-patch-walk": {
+   "frames": [
+    "/assets/common/alien-patch-walk-01.png",
+    "/assets/common/alien-patch-walk-02.png",
+    "/assets/common/alien-patch-walk-03.png",
+    "/assets/common/alien-patch-walk-04.png",
+    "/assets/common/alien-patch-walk-05.png",
+    "/assets/common/alien-patch-walk-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "alien-shell-walk": {
+   "frames": [
+    "/assets/common/alien-shell-walk-01.png",
+    "/assets/common/alien-shell-walk-02.png",
+    "/assets/common/alien-shell-walk-03.png",
+    "/assets/common/alien-shell-walk-04.png",
+    "/assets/common/alien-shell-walk-05.png",
+    "/assets/common/alien-shell-walk-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "alien-slime-split": {
+   "frames": [
+    "/assets/common/alien-slime-split-01.png",
+    "/assets/common/alien-slime-split-02.png",
+    "/assets/common/alien-slime-split-03.png",
+    "/assets/common/alien-slime-split-04.png",
+    "/assets/common/alien-slime-split-05.png",
+    "/assets/common/alien-slime-split-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "alien-slime-walk": {
+   "frames": [
+    "/assets/common/alien-slime-walk-01.png",
+    "/assets/common/alien-slime-walk-02.png",
+    "/assets/common/alien-slime-walk-03.png",
+    "/assets/common/alien-slime-walk-04.png",
+    "/assets/common/alien-slime-walk-05.png",
+    "/assets/common/alien-slime-walk-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "alien-slimelet-hop": {
+   "frames": [
+    "/assets/common/alien-slimelet-hop-01.png",
+    "/assets/common/alien-slimelet-hop-02.png",
+    "/assets/common/alien-slimelet-hop-03.png",
+    "/assets/common/alien-slimelet-hop-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    64,
+    64
+   ]
+  },
+  "alien-swarm-bob": {
+   "frames": [
+    "/assets/common/alien-swarm-bob-01.png",
+    "/assets/common/alien-swarm-bob-02.png",
+    "/assets/common/alien-swarm-bob-03.png",
+    "/assets/common/alien-swarm-bob-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    32,
+    32
+   ]
+  },
+  "boss-bubbla-bubble-full": {
+   "frames": [
+    "/assets/common/boss-bubbla-bubble-full.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "boss-bubbla-bubble-thin": {
+   "frames": [
+    "/assets/common/boss-bubbla-bubble-thin.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "boss-bubbla-walk": {
+   "frames": [
+    "/assets/common/boss-bubbla-walk-01.png",
+    "/assets/common/boss-bubbla-walk-02.png",
+    "/assets/common/boss-bubbla-walk-03.png",
+    "/assets/common/boss-bubbla-walk-04.png",
+    "/assets/common/boss-bubbla-walk-05.png",
+    "/assets/common/boss-bubbla-walk-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "boss-bubbla-wand": {
+   "frames": [
+    "/assets/common/boss-bubbla-wand-01.png",
+    "/assets/common/boss-bubbla-wand-02.png",
+    "/assets/common/boss-bubbla-wand-03.png",
+    "/assets/common/boss-bubbla-wand-04.png",
+    "/assets/common/boss-bubbla-wand-05.png",
+    "/assets/common/boss-bubbla-wand-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "boss-clank-cracked-walk": {
+   "frames": [
+    "/assets/common/boss-clank-cracked-walk-01.png",
+    "/assets/common/boss-clank-cracked-walk-02.png",
+    "/assets/common/boss-clank-cracked-walk-03.png",
+    "/assets/common/boss-clank-cracked-walk-04.png",
+    "/assets/common/boss-clank-cracked-walk-05.png",
+    "/assets/common/boss-clank-cracked-walk-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "boss-clank-full-walk": {
+   "frames": [
+    "/assets/common/boss-clank-full-walk-01.png",
+    "/assets/common/boss-clank-full-walk-02.png",
+    "/assets/common/boss-clank-full-walk-03.png",
+    "/assets/common/boss-clank-full-walk-04.png",
+    "/assets/common/boss-clank-full-walk-05.png",
+    "/assets/common/boss-clank-full-walk-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "boss-clank-off-walk": {
+   "frames": [
+    "/assets/common/boss-clank-off-walk-01.png",
+    "/assets/common/boss-clank-off-walk-02.png",
+    "/assets/common/boss-clank-off-walk-03.png",
+    "/assets/common/boss-clank-off-walk-04.png",
+    "/assets/common/boss-clank-off-walk-05.png",
+    "/assets/common/boss-clank-off-walk-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "boss-clank-platesfall": {
+   "frames": [
+    "/assets/common/boss-clank-platesfall-01.png",
+    "/assets/common/boss-clank-platesfall-02.png",
+    "/assets/common/boss-clank-platesfall-03.png",
+    "/assets/common/boss-clank-platesfall-04.png",
+    "/assets/common/boss-clank-platesfall-05.png",
+    "/assets/common/boss-clank-platesfall-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "boss-glorp-armoured-walk": {
+   "frames": [
+    "/assets/common/boss-glorp-armoured-walk-01.png",
+    "/assets/common/boss-glorp-armoured-walk-02.png",
+    "/assets/common/boss-glorp-armoured-walk-03.png",
+    "/assets/common/boss-glorp-armoured-walk-04.png",
+    "/assets/common/boss-glorp-armoured-walk-05.png",
+    "/assets/common/boss-glorp-armoured-walk-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "boss-glorp-bubbled-walk": {
+   "frames": [
+    "/assets/common/boss-glorp-bubbled-walk-01.png",
+    "/assets/common/boss-glorp-bubbled-walk-02.png",
+    "/assets/common/boss-glorp-bubbled-walk-03.png",
+    "/assets/common/boss-glorp-bubbled-walk-04.png",
+    "/assets/common/boss-glorp-bubbled-walk-05.png",
+    "/assets/common/boss-glorp-bubbled-walk-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "boss-glorp-cargo-walk": {
+   "frames": [
+    "/assets/common/boss-glorp-cargo-walk-01.png",
+    "/assets/common/boss-glorp-cargo-walk-02.png",
+    "/assets/common/boss-glorp-cargo-walk-03.png",
+    "/assets/common/boss-glorp-cargo-walk-04.png",
+    "/assets/common/boss-glorp-cargo-walk-05.png",
+    "/assets/common/boss-glorp-cargo-walk-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "boss-glorp-dash-walk": {
+   "frames": [
+    "/assets/common/boss-glorp-dash-walk-01.png",
+    "/assets/common/boss-glorp-dash-walk-02.png",
+    "/assets/common/boss-glorp-dash-walk-03.png",
+    "/assets/common/boss-glorp-dash-walk-04.png",
+    "/assets/common/boss-glorp-dash-walk-05.png",
+    "/assets/common/boss-glorp-dash-walk-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "boss-glorp-hatch": {
+   "frames": [
+    "/assets/common/boss-glorp-hatch-01.png",
+    "/assets/common/boss-glorp-hatch-02.png",
+    "/assets/common/boss-glorp-hatch-03.png",
+    "/assets/common/boss-glorp-hatch-04.png",
+    "/assets/common/boss-glorp-hatch-05.png",
+    "/assets/common/boss-glorp-hatch-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "boss-glorp-phase": {
+   "frames": [
+    "/assets/common/boss-glorp-phase-01.png",
+    "/assets/common/boss-glorp-phase-02.png",
+    "/assets/common/boss-glorp-phase-03.png",
+    "/assets/common/boss-glorp-phase-04.png",
+    "/assets/common/boss-glorp-phase-05.png",
+    "/assets/common/boss-glorp-phase-06.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "boss-mothership-bare-hover": {
+   "frames": [
+    "/assets/common/boss-mothership-bare-hover-01.png",
+    "/assets/common/boss-mothership-bare-hover-02.png",
+    "/assets/common/boss-mothership-bare-hover-03.png",
+    "/assets/common/boss-mothership-bare-hover-04.png",
+    "/assets/common/boss-mothership-bare-hover-05.png",
+    "/assets/common/boss-mothership-bare-hover-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "boss-mothership-door1": {
+   "frames": [
+    "/assets/common/boss-mothership-door1-01.png",
+    "/assets/common/boss-mothership-door1-02.png",
+    "/assets/common/boss-mothership-door1-03.png",
+    "/assets/common/boss-mothership-door1-04.png",
+    "/assets/common/boss-mothership-door1-05.png",
+    "/assets/common/boss-mothership-door1-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "boss-mothership-door12open-hover": {
+   "frames": [
+    "/assets/common/boss-mothership-door12open-hover-01.png",
+    "/assets/common/boss-mothership-door12open-hover-02.png",
+    "/assets/common/boss-mothership-door12open-hover-03.png",
+    "/assets/common/boss-mothership-door12open-hover-04.png",
+    "/assets/common/boss-mothership-door12open-hover-05.png",
+    "/assets/common/boss-mothership-door12open-hover-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "boss-mothership-door1open-hover": {
+   "frames": [
+    "/assets/common/boss-mothership-door1open-hover-01.png",
+    "/assets/common/boss-mothership-door1open-hover-02.png",
+    "/assets/common/boss-mothership-door1open-hover-03.png",
+    "/assets/common/boss-mothership-door1open-hover-04.png",
+    "/assets/common/boss-mothership-door1open-hover-05.png",
+    "/assets/common/boss-mothership-door1open-hover-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "boss-mothership-door2": {
+   "frames": [
+    "/assets/common/boss-mothership-door2-01.png",
+    "/assets/common/boss-mothership-door2-02.png",
+    "/assets/common/boss-mothership-door2-03.png",
+    "/assets/common/boss-mothership-door2-04.png",
+    "/assets/common/boss-mothership-door2-05.png",
+    "/assets/common/boss-mothership-door2-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "boss-mothership-door3": {
+   "frames": [
+    "/assets/common/boss-mothership-door3-01.png",
+    "/assets/common/boss-mothership-door3-02.png",
+    "/assets/common/boss-mothership-door3-03.png",
+    "/assets/common/boss-mothership-door3-04.png",
+    "/assets/common/boss-mothership-door3-05.png",
+    "/assets/common/boss-mothership-door3-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "boss-mothership-release": {
+   "frames": [
+    "/assets/common/boss-mothership-release-01.png",
+    "/assets/common/boss-mothership-release-02.png",
+    "/assets/common/boss-mothership-release-03.png",
+    "/assets/common/boss-mothership-release-04.png",
+    "/assets/common/boss-mothership-release-05.png",
+    "/assets/common/boss-mothership-release-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "boss-mothership-shut-hover": {
+   "frames": [
+    "/assets/common/boss-mothership-shut-hover-01.png",
+    "/assets/common/boss-mothership-shut-hover-02.png",
+    "/assets/common/boss-mothership-shut-hover-03.png",
+    "/assets/common/boss-mothership-shut-hover-04.png",
+    "/assets/common/boss-mothership-shut-hover-05.png",
+    "/assets/common/boss-mothership-shut-hover-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "boss-wobble-dash": {
+   "frames": [
+    "/assets/common/boss-wobble-dash-01.png",
+    "/assets/common/boss-wobble-dash-02.png",
+    "/assets/common/boss-wobble-dash-03.png",
+    "/assets/common/boss-wobble-dash-04.png",
+    "/assets/common/boss-wobble-dash-05.png",
+    "/assets/common/boss-wobble-dash-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "boss-wobble-phase": {
+   "frames": [
+    "/assets/common/boss-wobble-phase-01.png",
+    "/assets/common/boss-wobble-phase-02.png",
+    "/assets/common/boss-wobble-phase-03.png",
+    "/assets/common/boss-wobble-phase-04.png",
+    "/assets/common/boss-wobble-phase-05.png",
+    "/assets/common/boss-wobble-phase-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "boss-wobble-walk": {
+   "frames": [
+    "/assets/common/boss-wobble-walk-01.png",
+    "/assets/common/boss-wobble-walk-02.png",
+    "/assets/common/boss-wobble-walk-03.png",
+    "/assets/common/boss-wobble-walk-04.png",
+    "/assets/common/boss-wobble-walk-05.png",
+    "/assets/common/boss-wobble-walk-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "colony-healthy": {
+   "frames": [
+    "/assets/luna-1/colony-healthy.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "colony-very-worried": {
+   "frames": [
+    "/assets/luna-1/colony-very-worried.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "colony-worried": {
+   "frames": [
+    "/assets/luna-1/colony-worried.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "deco-antenna": {
+   "frames": [
+    "/assets/luna-1/deco-antenna.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "deco-crater-1": {
+   "frames": [
+    "/assets/luna-1/deco-crater-1.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "deco-crater-2": {
+   "frames": [
+    "/assets/luna-1/deco-crater-2.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "deco-crater-3": {
+   "frames": [
+    "/assets/luna-1/deco-crater-3.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "deco-flag-plain": {
+   "frames": [
+    "/assets/luna-1/deco-flag-plain.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    64,
+    64
+   ]
+  },
+  "deco-lamp-off": {
+   "frames": [
+    "/assets/luna-1/deco-lamp-off.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    64,
+    64
+   ]
+  },
+  "deco-lamp-on": {
+   "frames": [
+    "/assets/luna-1/deco-lamp-on.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    64,
+    64
+   ]
+  },
+  "deco-rock-1": {
+   "frames": [
+    "/assets/luna-1/deco-rock-1.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "deco-rock-2": {
+   "frames": [
+    "/assets/luna-1/deco-rock-2.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "deco-rock-3": {
+   "frames": [
+    "/assets/luna-1/deco-rock-3.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "fx-armour-clonk": {
+   "frames": [
+    "/assets/common/fx-armour-clonk-01.png",
+    "/assets/common/fx-armour-clonk-02.png",
+    "/assets/common/fx-armour-clonk-03.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    64,
+    64
+   ]
+  },
+  "fx-boss-arrive": {
+   "frames": [
+    "/assets/common/fx-boss-arrive-01.png",
+    "/assets/common/fx-boss-arrive-02.png",
+    "/assets/common/fx-boss-arrive-03.png",
+    "/assets/common/fx-boss-arrive-04.png",
+    "/assets/common/fx-boss-arrive-05.png",
+    "/assets/common/fx-boss-arrive-06.png",
+    "/assets/common/fx-boss-arrive-07.png",
+    "/assets/common/fx-boss-arrive-08.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "fx-boss-phase": {
+   "frames": [
+    "/assets/common/fx-boss-phase-01.png",
+    "/assets/common/fx-boss-phase-02.png",
+    "/assets/common/fx-boss-phase-03.png",
+    "/assets/common/fx-boss-phase-04.png",
+    "/assets/common/fx-boss-phase-05.png",
+    "/assets/common/fx-boss-phase-06.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "fx-colony-shield-boost": {
+   "frames": [
+    "/assets/common/fx-colony-shield-boost-01.png",
+    "/assets/common/fx-colony-shield-boost-02.png",
+    "/assets/common/fx-colony-shield-boost-03.png",
+    "/assets/common/fx-colony-shield-boost-04.png",
+    "/assets/common/fx-colony-shield-boost-05.png",
+    "/assets/common/fx-colony-shield-boost-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    384,
+    384
+   ]
+  },
+  "fx-comet-impact": {
+   "frames": [
+    "/assets/common/fx-comet-impact-01.png",
+    "/assets/common/fx-comet-impact-02.png",
+    "/assets/common/fx-comet-impact-03.png",
+    "/assets/common/fx-comet-impact-04.png",
+    "/assets/common/fx-comet-impact-05.png",
+    "/assets/common/fx-comet-impact-06.png",
+    "/assets/common/fx-comet-impact-07.png",
+    "/assets/common/fx-comet-impact-08.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    256,
+    256
+   ]
+  },
+  "fx-frost-pulse": {
+   "frames": [
+    "/assets/common/fx-frost-pulse-01.png",
+    "/assets/common/fx-frost-pulse-02.png",
+    "/assets/common/fx-frost-pulse-03.png",
+    "/assets/common/fx-frost-pulse-04.png",
+    "/assets/common/fx-frost-pulse-05.png",
+    "/assets/common/fx-frost-pulse-06.png",
+    "/assets/common/fx-frost-pulse-07.png",
+    "/assets/common/fx-frost-pulse-08.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    1920,
+    1056
+   ]
+  },
+  "fx-healed": {
+   "frames": [
+    "/assets/common/fx-healed-01.png",
+    "/assets/common/fx-healed-02.png",
+    "/assets/common/fx-healed-03.png",
+    "/assets/common/fx-healed-04.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    64,
+    64
+   ]
+  },
+  "fx-leak": {
+   "frames": [
+    "/assets/common/fx-leak-01.png",
+    "/assets/common/fx-leak-02.png",
+    "/assets/common/fx-leak-03.png",
+    "/assets/common/fx-leak-04.png",
+    "/assets/common/fx-leak-05.png",
+    "/assets/common/fx-leak-06.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "fx-nova-beam-l1": {
+   "frames": [
+    "/assets/common/fx-nova-beam-l1-01.png",
+    "/assets/common/fx-nova-beam-l1-02.png",
+    "/assets/common/fx-nova-beam-l1-03.png"
+   ],
+   "anchor": [
+    0,
+    0.5
+   ],
+   "size": [
+    64,
+    64
+   ]
+  },
+  "fx-nova-beam-l2": {
+   "frames": [
+    "/assets/common/fx-nova-beam-l2-01.png",
+    "/assets/common/fx-nova-beam-l2-02.png",
+    "/assets/common/fx-nova-beam-l2-03.png"
+   ],
+   "anchor": [
+    0,
+    0.5
+   ],
+   "size": [
+    64,
+    64
+   ]
+  },
+  "fx-nova-beam-l3": {
+   "frames": [
+    "/assets/common/fx-nova-beam-l3-01.png",
+    "/assets/common/fx-nova-beam-l3-02.png",
+    "/assets/common/fx-nova-beam-l3-03.png"
+   ],
+   "anchor": [
+    0,
+    0.5
+   ],
+   "size": [
+    64,
+    64
+   ]
+  },
+  "fx-place": {
+   "frames": [
+    "/assets/common/fx-place-01.png",
+    "/assets/common/fx-place-02.png",
+    "/assets/common/fx-place-03.png",
+    "/assets/common/fx-place-04.png",
+    "/assets/common/fx-place-05.png",
+    "/assets/common/fx-place-06.png"
+   ],
+   "anchor": [
+    0.5,
+    0.62
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "fx-pop-stars": {
+   "frames": [
+    "/assets/common/fx-pop-stars-01.png",
+    "/assets/common/fx-pop-stars-02.png",
+    "/assets/common/fx-pop-stars-03.png",
+    "/assets/common/fx-pop-stars-04.png",
+    "/assets/common/fx-pop-stars-05.png",
+    "/assets/common/fx-pop-stars-06.png",
+    "/assets/common/fx-pop-stars-07.png",
+    "/assets/common/fx-pop-stars-08.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "juno-l1-attack": {
+   "frames": [
+    "/assets/common/juno-l1-attack-01.png",
+    "/assets/common/juno-l1-attack-02.png",
+    "/assets/common/juno-l1-attack-03.png",
+    "/assets/common/juno-l1-attack-04.png",
+    "/assets/common/juno-l1-attack-05.png",
+    "/assets/common/juno-l1-attack-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "juno-l1-idle": {
+   "frames": [
+    "/assets/common/juno-l1-idle-01.png",
+    "/assets/common/juno-l1-idle-02.png",
+    "/assets/common/juno-l1-idle-03.png",
+    "/assets/common/juno-l1-idle-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "juno-l2-attack": {
+   "frames": [
+    "/assets/common/juno-l2-attack-01.png",
+    "/assets/common/juno-l2-attack-02.png",
+    "/assets/common/juno-l2-attack-03.png",
+    "/assets/common/juno-l2-attack-04.png",
+    "/assets/common/juno-l2-attack-05.png",
+    "/assets/common/juno-l2-attack-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "juno-l2-idle": {
+   "frames": [
+    "/assets/common/juno-l2-idle-01.png",
+    "/assets/common/juno-l2-idle-02.png",
+    "/assets/common/juno-l2-idle-03.png",
+    "/assets/common/juno-l2-idle-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "juno-l3-attack": {
+   "frames": [
+    "/assets/common/juno-l3-attack-01.png",
+    "/assets/common/juno-l3-attack-02.png",
+    "/assets/common/juno-l3-attack-03.png",
+    "/assets/common/juno-l3-attack-04.png",
+    "/assets/common/juno-l3-attack-05.png",
+    "/assets/common/juno-l3-attack-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "juno-l3-idle": {
+   "frames": [
+    "/assets/common/juno-l3-idle-01.png",
+    "/assets/common/juno-l3-idle-02.png",
+    "/assets/common/juno-l3-idle-03.png",
+    "/assets/common/juno-l3-idle-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "luna-backdrop": {
+   "frames": [
+    "/assets/luna-1/luna-backdrop.webp"
+   ],
+   "anchor": [
+    0,
+    0
+   ],
+   "size": [
+    1920,
+    1056
+   ]
+  },
+  "mira-l1-emit": {
+   "frames": [
+    "/assets/common/mira-l1-emit-01.png",
+    "/assets/common/mira-l1-emit-02.png",
+    "/assets/common/mira-l1-emit-03.png",
+    "/assets/common/mira-l1-emit-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "mira-l1-idle": {
+   "frames": [
+    "/assets/common/mira-l1-idle-01.png",
+    "/assets/common/mira-l1-idle-02.png",
+    "/assets/common/mira-l1-idle-03.png",
+    "/assets/common/mira-l1-idle-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "mira-l2-emit": {
+   "frames": [
+    "/assets/common/mira-l2-emit-01.png",
+    "/assets/common/mira-l2-emit-02.png",
+    "/assets/common/mira-l2-emit-03.png",
+    "/assets/common/mira-l2-emit-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "mira-l2-idle": {
+   "frames": [
+    "/assets/common/mira-l2-idle-01.png",
+    "/assets/common/mira-l2-idle-02.png",
+    "/assets/common/mira-l2-idle-03.png",
+    "/assets/common/mira-l2-idle-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "mira-l3-emit": {
+   "frames": [
+    "/assets/common/mira-l3-emit-01.png",
+    "/assets/common/mira-l3-emit-02.png",
+    "/assets/common/mira-l3-emit-03.png",
+    "/assets/common/mira-l3-emit-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "mira-l3-idle": {
+   "frames": [
+    "/assets/common/mira-l3-idle-01.png",
+    "/assets/common/mira-l3-idle-02.png",
+    "/assets/common/mira-l3-idle-03.png",
+    "/assets/common/mira-l3-idle-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "nova-l1-attack": {
+   "frames": [
+    "/assets/common/nova-l1-attack-01.png",
+    "/assets/common/nova-l1-attack-02.png",
+    "/assets/common/nova-l1-attack-03.png",
+    "/assets/common/nova-l1-attack-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "nova-l1-idle": {
+   "frames": [
+    "/assets/common/nova-l1-idle-01.png",
+    "/assets/common/nova-l1-idle-02.png",
+    "/assets/common/nova-l1-idle-03.png",
+    "/assets/common/nova-l1-idle-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "nova-l2-attack": {
+   "frames": [
+    "/assets/common/nova-l2-attack-01.png",
+    "/assets/common/nova-l2-attack-02.png",
+    "/assets/common/nova-l2-attack-03.png",
+    "/assets/common/nova-l2-attack-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "nova-l2-idle": {
+   "frames": [
+    "/assets/common/nova-l2-idle-01.png",
+    "/assets/common/nova-l2-idle-02.png",
+    "/assets/common/nova-l2-idle-03.png",
+    "/assets/common/nova-l2-idle-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "nova-l3-attack": {
+   "frames": [
+    "/assets/common/nova-l3-attack-01.png",
+    "/assets/common/nova-l3-attack-02.png",
+    "/assets/common/nova-l3-attack-03.png",
+    "/assets/common/nova-l3-attack-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "nova-l3-idle": {
+   "frames": [
+    "/assets/common/nova-l3-idle-01.png",
+    "/assets/common/nova-l3-idle-02.png",
+    "/assets/common/nova-l3-idle-03.png",
+    "/assets/common/nova-l3-idle-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "orion-l1-attack": {
+   "frames": [
+    "/assets/common/orion-l1-attack-01.png",
+    "/assets/common/orion-l1-attack-02.png",
+    "/assets/common/orion-l1-attack-03.png",
+    "/assets/common/orion-l1-attack-04.png",
+    "/assets/common/orion-l1-attack-05.png",
+    "/assets/common/orion-l1-attack-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "orion-l1-idle": {
+   "frames": [
+    "/assets/common/orion-l1-idle-01.png",
+    "/assets/common/orion-l1-idle-02.png",
+    "/assets/common/orion-l1-idle-03.png",
+    "/assets/common/orion-l1-idle-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "orion-l2-attack": {
+   "frames": [
+    "/assets/common/orion-l2-attack-01.png",
+    "/assets/common/orion-l2-attack-02.png",
+    "/assets/common/orion-l2-attack-03.png",
+    "/assets/common/orion-l2-attack-04.png",
+    "/assets/common/orion-l2-attack-05.png",
+    "/assets/common/orion-l2-attack-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "orion-l2-idle": {
+   "frames": [
+    "/assets/common/orion-l2-idle-01.png",
+    "/assets/common/orion-l2-idle-02.png",
+    "/assets/common/orion-l2-idle-03.png",
+    "/assets/common/orion-l2-idle-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "orion-l3-attack": {
+   "frames": [
+    "/assets/common/orion-l3-attack-01.png",
+    "/assets/common/orion-l3-attack-02.png",
+    "/assets/common/orion-l3-attack-03.png",
+    "/assets/common/orion-l3-attack-04.png",
+    "/assets/common/orion-l3-attack-05.png",
+    "/assets/common/orion-l3-attack-06.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "orion-l3-idle": {
+   "frames": [
+    "/assets/common/orion-l3-idle-01.png",
+    "/assets/common/orion-l3-idle-02.png",
+    "/assets/common/orion-l3-idle-03.png",
+    "/assets/common/orion-l3-idle-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "pad-closed": {
+   "frames": [
+    "/assets/luna-1/pad-closed.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "pad-empty": {
+   "frames": [
+    "/assets/luna-1/pad-empty.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "pad-hover": {
+   "frames": [
+    "/assets/luna-1/pad-hover.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "pad-selected": {
+   "frames": [
+    "/assets/luna-1/pad-selected.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "pip-l1-attack": {
+   "frames": [
+    "/assets/common/pip-l1-attack-01.png",
+    "/assets/common/pip-l1-attack-02.png",
+    "/assets/common/pip-l1-attack-03.png",
+    "/assets/common/pip-l1-attack-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "pip-l1-idle": {
+   "frames": [
+    "/assets/common/pip-l1-idle-01.png",
+    "/assets/common/pip-l1-idle-02.png",
+    "/assets/common/pip-l1-idle-03.png",
+    "/assets/common/pip-l1-idle-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "pip-l2-attack": {
+   "frames": [
+    "/assets/common/pip-l2-attack-01.png",
+    "/assets/common/pip-l2-attack-02.png",
+    "/assets/common/pip-l2-attack-03.png",
+    "/assets/common/pip-l2-attack-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "pip-l2-idle": {
+   "frames": [
+    "/assets/common/pip-l2-idle-01.png",
+    "/assets/common/pip-l2-idle-02.png",
+    "/assets/common/pip-l2-idle-03.png",
+    "/assets/common/pip-l2-idle-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "pip-l3-attack": {
+   "frames": [
+    "/assets/common/pip-l3-attack-01.png",
+    "/assets/common/pip-l3-attack-02.png",
+    "/assets/common/pip-l3-attack-03.png",
+    "/assets/common/pip-l3-attack-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "pip-l3-idle": {
+   "frames": [
+    "/assets/common/pip-l3-idle-01.png",
+    "/assets/common/pip-l3-idle-02.png",
+    "/assets/common/pip-l3-idle-03.png",
+    "/assets/common/pip-l3-idle-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    128
+   ]
+  },
+  "portal-idle": {
+   "frames": [
+    "/assets/luna-1/portal-idle-01.png",
+    "/assets/luna-1/portal-idle-02.png",
+    "/assets/luna-1/portal-idle-03.png",
+    "/assets/luna-1/portal-idle-04.png",
+    "/assets/luna-1/portal-idle-05.png",
+    "/assets/luna-1/portal-idle-06.png"
+   ],
+   "anchor": [
+    0.5,
+    0.62
+   ],
+   "size": [
+    256,
+    256
+   ]
+  },
+  "route-colony-end": {
+   "frames": [
+    "/assets/luna-1/route-colony-end.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    96,
+    96
+   ]
+  },
+  "route-corner-down-right": {
+   "frames": [
+    "/assets/luna-1/route-corner-down-right.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    96,
+    96
+   ]
+  },
+  "route-corner-right-down": {
+   "frames": [
+    "/assets/luna-1/route-corner-right-down.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    96,
+    96
+   ]
+  },
+  "route-corner-right-up": {
+   "frames": [
+    "/assets/luna-1/route-corner-right-up.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    96,
+    96
+   ]
+  },
+  "route-corner-up-right": {
+   "frames": [
+    "/assets/luna-1/route-corner-up-right.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    96,
+    96
+   ]
+  },
+  "route-portal-end": {
+   "frames": [
+    "/assets/luna-1/route-portal-end.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    96,
+    96
+   ]
+  },
+  "route-straight-h": {
+   "frames": [
+    "/assets/luna-1/route-straight-h.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    96,
+    96
+   ]
+  },
+  "route-straight-up": {
+   "frames": [
+    "/assets/luna-1/route-straight-up.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    96,
+    96
+   ]
+  },
+  "route-straight-v": {
+   "frames": [
+    "/assets/luna-1/route-straight-v.png"
+   ],
+   "anchor": [
+    0.5,
+    0.5
+   ],
+   "size": [
+    96,
+    96
+   ]
+  },
+  "sol-l1-idle": {
+   "frames": [
+    "/assets/common/sol-l1-idle-01.png",
+    "/assets/common/sol-l1-idle-02.png",
+    "/assets/common/sol-l1-idle-03.png",
+    "/assets/common/sol-l1-idle-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    192
+   ]
+  },
+  "sol-l1-pulse": {
+   "frames": [
+    "/assets/common/sol-l1-pulse-01.png",
+    "/assets/common/sol-l1-pulse-02.png",
+    "/assets/common/sol-l1-pulse-03.png",
+    "/assets/common/sol-l1-pulse-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    192
+   ]
+  },
+  "sol-l2-idle": {
+   "frames": [
+    "/assets/common/sol-l2-idle-01.png",
+    "/assets/common/sol-l2-idle-02.png",
+    "/assets/common/sol-l2-idle-03.png",
+    "/assets/common/sol-l2-idle-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    192
+   ]
+  },
+  "sol-l2-pulse": {
+   "frames": [
+    "/assets/common/sol-l2-pulse-01.png",
+    "/assets/common/sol-l2-pulse-02.png",
+    "/assets/common/sol-l2-pulse-03.png",
+    "/assets/common/sol-l2-pulse-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    192
+   ]
+  },
+  "sol-l3-idle": {
+   "frames": [
+    "/assets/common/sol-l3-idle-01.png",
+    "/assets/common/sol-l3-idle-02.png",
+    "/assets/common/sol-l3-idle-03.png",
+    "/assets/common/sol-l3-idle-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    192
+   ]
+  },
+  "sol-l3-pulse": {
+   "frames": [
+    "/assets/common/sol-l3-pulse-01.png",
+    "/assets/common/sol-l3-pulse-02.png",
+    "/assets/common/sol-l3-pulse-03.png",
+    "/assets/common/sol-l3-pulse-04.png"
+   ],
+   "anchor": [
+    0.5,
+    1
+   ],
+   "size": [
+    128,
+    192
+   ]
+  }
+ },
+ "artSets": {
+  "moon": {
+   "backdrop": "luna-backdrop",
+   "routeH": "route-straight-h",
+   "routeDown": "route-straight-v",
+   "routeUp": "route-straight-up",
+   "cornerRightDown": "route-corner-right-down",
+   "cornerDownRight": "route-corner-down-right",
+   "cornerRightUp": "route-corner-right-up",
+   "cornerUpRight": "route-corner-up-right",
+   "portalEnd": "route-portal-end",
+   "colonyEnd": "route-colony-end",
+   "portal": "portal-idle",
+   "padEmpty": "pad-empty",
+   "padHover": "pad-hover",
+   "padSelected": "pad-selected",
+   "padClosed": "pad-closed",
+   "colonyHealthy": "colony-healthy",
+   "colonyWorried": "colony-worried",
+   "colonyVeryWorried": "colony-very-worried"
+  }
+ }
+}

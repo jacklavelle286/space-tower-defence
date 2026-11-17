@@ -175,7 +175,7 @@ def test_create_writes_session_run_profile_check_and_slots_in_one_transaction(ap
             "ageBand": 5,
             "rulesetVersion": "r1",
             "campaignVersion": "luna-1-c1",
-            "assetManifestVersion": None,
+            "assetManifestVersion": "m1",  # Gate M, LD8: current.json names none, so m1
             "protocolVersion": 1,
         },
         "currentSlot": None,
@@ -369,6 +369,9 @@ class TwoPlanets:
 
     def versions(self) -> Any:
         return self.real.versions()
+
+    def current(self) -> dict[str, str]:
+        return self.real.current()
 
 
 def test_planet_locked_until_the_planet_before_reaches_wave_20(ddb: Any, player_event: dict) -> None:
@@ -638,7 +641,7 @@ def test_pack_is_built_from_the_allow_list(api: RunsApi, player_event: dict) -> 
     [entry] = pack["slots"]
     assert set(pack) == {"protocolVersion", "runId", "revision", "plannedThrough", "gameData", "slots", "packStatus",
                          "packHash"}  # fmt: skip
-    assert pack["gameData"] == {"rulesetVersion": "r1", "campaignVersion": "luna-1-c1", "assetManifestVersion": None}
+    assert pack["gameData"] == {"rulesetVersion": "r1", "campaignVersion": "luna-1-c1", "assetManifestVersion": "m1"}
     assert pack["packStatus"] == {"state": "COMPLETE", "missing": []}
     assert set(entry) == {
         "slotId", "kind", "subject", "topicId", "activityId", "activityVersion", "resolved", "presentation", "intro",
@@ -707,3 +710,18 @@ def test_no_session_id_answer_or_device_label_reaches_a_log_line(api: RunsApi, p
     for never in (MY_SESSION, "Kitchen laptop", '"b"', "5e88a7b0", SUB + "x"):
         assert never not in log
     assert all(line.get("droppedFields") is None for line in api.logger.lines())
+
+
+def test_a_new_run_pins_the_asset_manifest_current_json_names(ddb: Any, player_event: dict) -> None:
+    """Gate M, LD8: the art a run draws with is pinned at creation, from current.json (m1 when it names none)."""
+    import boto3
+    from runs_harness import BUCKET
+
+    api = RunsApi(ddb)
+    s3 = boto3.client("s3", region_name="eu-west-2")
+    pointer = {"rulesetVersion": "r1", "campaignVersion": "luna-1-c1", "assetManifestVersion": "m2"}
+    s3.put_object(Bucket=BUCKET, Key="game-data/current.json", Body=json.dumps(pointer).encode())
+    api.profile(player_event)
+    status, body = api.create(player_event)
+    assert status == 201, body
+    assert body["run"]["pins"]["assetManifestVersion"] == "m2"

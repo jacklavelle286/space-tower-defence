@@ -11,7 +11,8 @@
     "./learning/reading.css": "./src/learning/reading.css",
     "./learning/testing": "./src/learning/keyboardTesting.ts",
     "./audio/testing": "./src/audio/testing.ts",
-    "./map": "./src/map/index.ts"
+    "./map": "./src/map/index.ts",
+    "./manifest": "./src/manifest/index.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json",

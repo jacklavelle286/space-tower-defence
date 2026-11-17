@@ -2,7 +2,8 @@
 
 The release publishes the game-data files on the player site bucket under GAME_DATA_PREFIX (game-data/README.md):
 
-    <prefix>current.json                  {"rulesetVersion", "campaignVersion"}: the versions new runs use (overwritten)
+    <prefix>current.json                  {"rulesetVersion", "campaignVersion", "assetManifestVersion"?}: the versions
+                                          new runs use (the publisher moves it; an absent manifest version is m1)
     <prefix>campaign/<version>.json       one planet document (create-only, never changes)
     <prefix>versions.json                 states per (campaign version, wave set) from the game-data publisher
                                           (Gate M, LD6; shared/versions.py); absent until the first admin publish
@@ -29,6 +30,7 @@ from typing import Any
 import boto3
 from botocore.exceptions import ClientError
 
+from shared.asset_manifest import ManifestInvalid, parse_manifest
 from shared.bounds import KEY_ID, VERSION
 from shared.versions import Versions, VersionsUnavailable, parse_versions
 
@@ -38,6 +40,7 @@ DEFAULT_PREFIX = "game-data/"
 CURRENT_TTL_SECONDS = 60.0  # [ASSUMPTION] a release shows up within a minute; the files are tiny
 MAX_FILE_BYTES = 1024 * 1024
 MODES = frozenset({"CAMPAIGN", "CHALLENGE"})
+DEFAULT_MANIFEST_VERSION = "m1"  # Gate M, LD8: the asset manifest of the repo art (web/shared/src/manifest)
 
 
 class GameDataUnavailable(Exception):
@@ -142,6 +145,7 @@ class GameDataReader:
         self._versions: tuple[float, Versions] | None = None
         self._planets: dict[str, Planet] = {}
         self._documents: dict[str, dict[str, Any]] = {}
+        self._manifests: dict[str, dict[str, Any]] = {}
 
     def _client(self) -> Any:
         if self._s3 is None:
@@ -175,8 +179,10 @@ class GameDataReader:
         if not isinstance(data, dict):
             raise GameDataUnavailable("current.json is not an object")
         versions: dict[str, str] = {}
-        for name in ("rulesetVersion", "campaignVersion"):
+        for name in ("rulesetVersion", "campaignVersion", "assetManifestVersion"):
             value = data.get(name)
+            if name == "assetManifestVersion" and value is None:
+                continue  # optional (LD8): absent means m1
             if not isinstance(value, str) or not VERSION.match(value):
                 raise GameDataUnavailable(f"current.json: bad {name}")
             versions[name] = value
@@ -221,6 +227,30 @@ class GameDataReader:
             raise GameDataUnavailable(f"campaign {campaign_version}: not the document for this version")
         self._documents[campaign_version] = data
         return data
+
+    def asset_manifests(self) -> list[dict[str, Any]]:
+        """Every published asset manifest (Gate M, LD8), parsed; cached by version, since a published one never
+        changes. One that cannot be read or parsed raises GameDataUnavailable: the delete guard fails closed."""
+        if not self.bucket:
+            raise GameDataUnavailable(f"no bucket: set {BUCKET_ENV}")
+        prefix = f"{self.prefix}asset-manifest/"
+        try:
+            pages = self._client().get_paginator("list_objects_v2").paginate(Bucket=self.bucket, Prefix=prefix)
+            names = [entry["Key"][len(prefix) :] for page in pages for entry in page.get("Contents", [])]
+        except ClientError as exc:
+            raise GameDataUnavailable(f"s3://{self.bucket}/{prefix}: list failed") from exc
+        out = []
+        for name in sorted(names):
+            version = name.removesuffix(".json")
+            if not name.endswith(".json") or not VERSION.match(version):
+                continue
+            if version not in self._manifests:
+                try:
+                    self._manifests[version] = parse_manifest(self._get_json(prefix + name), version)
+                except ManifestInvalid as exc:
+                    raise GameDataUnavailable(f"asset manifest {version}: {exc}") from exc
+            out.append(self._manifests[version])
+        return out
 
     def campaign_versions(self) -> list[tuple[str, datetime]]:
         """Every published planet document's version and when it was written, newest first (admin-api's Versions

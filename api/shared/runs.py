@@ -80,6 +80,7 @@ def new_run_item(
     generation: int,
     plans: Sequence[SlotPlan],
     now: str,
+    asset_manifest_version: str | None = None,
 ) -> dict[str, Any]:
     """The RUN item CREATE_RUN puts (spine S3.2): IN_PROGRESS, AUTHORED, BUILD, wave 1, the wave set's start snapshot
     (the same numbers game-core's createRunState uses), revision 0."""
@@ -113,7 +114,9 @@ def new_run_item(
             "seed": seed,
             "rulesetVersion": ruleset_version,
             "campaignVersion": campaign_version,
-            "assetManifestVersion": None,  # no asset manifest is published yet [ASSUMPTION]: pinned once it exists
+            # Gate M, LD8: the art the run draws with, from current.json (absent there: m1). A run saved before LD8 has
+            # None, which the player reads as m1 too, so its art never changes under it.
+            "assetManifestVersion": asset_manifest_version,
             "protocolVersion": PROTOCOL_VERSION,
             "selection": {"algorithmVersion": ALGORITHM_VERSION, "bankReadAt": now, "packId": pack_id(plans)},
         },

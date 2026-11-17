@@ -84,6 +84,8 @@ class Admin:
         self.clock = Clock()
         # The game-data publisher (LD7): a test sets one (test_gamedata_admin.FakePublisher) before calling R48-R52.
         self.publisher: Any = None
+        # Published asset manifests (LD8) the picture delete guard reads; none unless a test adds one.
+        self.manifests: list[dict[str, Any]] = []
         self.router = admin.make_router(
             admin.Deps(
                 content=lambda: self.table,
@@ -94,6 +96,7 @@ class Admin:
                 game_data=game_data,
                 bounds=load_bounds_fixture,
                 publisher=lambda: self.publisher,
+                manifests=lambda: self.manifests,
             ),
             self.logger,
         )

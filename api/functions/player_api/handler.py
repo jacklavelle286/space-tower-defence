@@ -52,7 +52,7 @@ from shared.data import (
     table_from_env,
 )
 from shared.errors import ApiError, json_response
-from shared.game_data import GameDataReader, GameDataUnavailable, Planet, reader_from_env
+from shared.game_data import DEFAULT_MANIFEST_VERSION, GameDataReader, GameDataUnavailable, Planet, reader_from_env
 from shared.log import ApiLogger
 from shared.ops import ENDLESS_ENVELOPE, OPS_ENVELOPE, OPS_MAX_BYTES, OpsBatch, check_envelope
 from shared.profile import age_band, stored_age, today_in_london, validate_profile
@@ -567,6 +567,7 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
                 generation=generation,
                 plans=plans,
                 now=stamp,
+                asset_manifest_version=deps.game_data().current().get("assetManifestVersion", DEFAULT_MANIFEST_VERSION),
             )
             new_only = {"condition": "attribute_not_exists(#pk)", "names": {"#pk": "pk"}}
             # Action order is fixed: CancellationReasons come back in this order (F §12.3).

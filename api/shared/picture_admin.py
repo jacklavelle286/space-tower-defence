@@ -141,6 +141,8 @@ class PictureServices:
     s3: Callable[[], Any]
     sqs: Callable[[], Any]
     cloudfront: Callable[[], Any]
+    # Gate M, LD8: "manifest:<version>" for each published asset manifest that draws with the picture (held for good).
+    manifest_users: Callable[[str], list[str]] = lambda _picture_id: []
 
 
 def invalid(problems: list[dict[str, str]]) -> ApiError:
@@ -420,7 +422,8 @@ def make_picture_handlers(
         header = content.get_item(PIC_PK, picture_id)
         if header is None:
             raise ApiError("NOT_FOUND")
-        result: dict[str, Any] = {"picture": picture_view(header), "usedBy": picture_users(content, picture_id)}
+        users = picture_users(content, picture_id) + services.manifest_users(picture_id)
+        result: dict[str, Any] = {"picture": picture_view(header), "usedBy": users}
         if header.get("state") == "DRAFT":
             config = services.config()
             png = _get_object(services.s3(), config.bucket, store_key(picture_id), kind_spec(kind_of(header)).max_bytes)
@@ -536,7 +539,7 @@ def make_picture_handlers(
             state = header.get("state")
             refs = header.get(PUBLISH_REFS)
             if state == "APPROVED" and checked != (refs,):
-                users = picture_users(content, picture_id)
+                users = picture_users(content, picture_id) + services.manifest_users(picture_id)
                 if users:
                     raise invalid([problem(f"usedBy.{activity_id}", "picture_in_use") for activity_id in users])
                 checked = (refs,)

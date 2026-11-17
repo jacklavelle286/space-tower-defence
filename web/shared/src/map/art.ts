@@ -15,6 +15,8 @@ export interface ArtAsset {
   readonly frames: number;
   readonly anchor: readonly [number, number];
   readonly displaySize: readonly [number, number];
+  /** One URL per frame, when an asset manifest gives them (Gate M, LD8; shared/manifest). Absent: `path` with {nn}. */
+  readonly urls?: readonly string[];
 }
 
 export const COMMON_DIR = "/assets/common";
@@ -86,7 +88,7 @@ export function frameKey(asset: ArtAsset, n: number): string {
   return asset.frames === 1 ? asset.id : `${asset.id}-${String(n).padStart(2, "0")}`;
 }
 
-/** URL of frame `n` (1-based). */
+/** URL of frame `n` (1-based): the manifest's URL when it gave one, else the repo path. */
 export function frameUrl(asset: ArtAsset, n: number): string {
-  return asset.path.replace("{nn}", String(n).padStart(2, "0"));
+  return asset.urls?.[n - 1] ?? asset.path.replace("{nn}", String(n).padStart(2, "0"));
 }

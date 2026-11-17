@@ -464,6 +464,8 @@ export interface PlanetDocument {
 export interface CurrentPointers {
   rulesetVersion: string;
   campaignVersion: string;
+  /** The asset manifest new runs pin (Gate M, LD8); absent means m1, the repo art. */
+  assetManifestVersion?: string;
 }
 
 export interface WaveSetBounds {
@@ -624,11 +626,13 @@ export function boundsVersion(rulesetVersion: string, campaignVersion: string): 
 }
 
 export function parseCurrent(raw: unknown): CurrentPointers {
-  const o = obj(raw, "current.json", ["rulesetVersion", "campaignVersion"]);
-  return {
+  const o = obj(raw, "current.json", ["rulesetVersion", "campaignVersion"], ["assetManifestVersion"]);
+  const pointers: CurrentPointers = {
     rulesetVersion: checkVersion(o["rulesetVersion"], "current.json.rulesetVersion"),
     campaignVersion: checkVersion(o["campaignVersion"], "current.json.campaignVersion"),
   };
+  if (o["assetManifestVersion"] !== undefined) pointers.assetManifestVersion = checkVersion(o["assetManifestVersion"], "current.json.assetManifestVersion");
+  return pointers;
 }
 
 // ---- ruleset ----------------------------------------------------------------------------------------------------

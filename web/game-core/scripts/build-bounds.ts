@@ -41,7 +41,9 @@ export const GAME_DATA_DIR = join(REPO, "game-data");
 export const BOUNDS_FIXTURE_DIR = join(REPO, "contracts", "fixtures", "bounds");
 
 /** Entries game-data/ may hold. Anything else stops the build, so no file is silently left unpublished. */
-const ALLOWED_TOP = new Set(["ruleset", "campaign", "current.json", "README.md"]);
+const ALLOWED_TOP = new Set(["ruleset", "campaign", "asset-manifest", "current.json", "README.md"]);
+/** The manifest a run with no pin draws with (Gate M, LD8; web/shared/src/manifest). It must always be published. */
+const DEFAULT_MANIFEST = "m1";
 const KIND_DIRS = ["ruleset", "campaign"] as const;
 
 function readJson(path: string): unknown {
@@ -99,8 +101,26 @@ export function buildGameData(dir: string = GAME_DATA_DIR): GameDataBuild {
     }
   }
 
+  // Asset manifests (Gate M, LD8): copied as they are, after a shape check of the envelope. Their contents are checked by
+  // web/shared's parseManifest in the player's tests (manifestSeed.test.ts), which game-core cannot import.
+  const manifests = new Set<string>();
+  for (const name of jsonFiles(join(dir, "asset-manifest"))) {
+    const path = join(dir, "asset-manifest", name);
+    const raw = readJson(path) as { kind?: unknown; version?: unknown } | null;
+    const fileVersion = name.slice(0, -".json".length);
+    if (raw?.kind !== "asset-manifest" || raw.version !== fileVersion) {
+      throw new GameDataError(`${path}: not an asset manifest named for its version`);
+    }
+    manifests.add(fileVersion);
+    files.set(`asset-manifest/${name}`, readFileSync(path, "utf8"));
+  }
+  if (!manifests.has(DEFAULT_MANIFEST)) throw new GameDataError(`game-data/asset-manifest/${DEFAULT_MANIFEST}.json is missing (runs without a pin use it)`);
+
   const currentPath = join(dir, "current.json");
   const current = parseCurrent(readJson(currentPath));
+  if (current.assetManifestVersion !== undefined && !manifests.has(current.assetManifestVersion)) {
+    throw new GameDataError(`${currentPath}: asset manifest ${current.assetManifestVersion} is not in game-data/asset-manifest/`);
+  }
   const ruleset = rulesets.get(current.rulesetVersion);
   if (ruleset === undefined) throw new GameDataError(`${currentPath}: ruleset ${current.rulesetVersion} is not in game-data/ruleset/`);
   if (!planetsRaw.has(current.campaignVersion)) {

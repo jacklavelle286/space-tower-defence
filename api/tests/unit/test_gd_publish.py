@@ -175,6 +175,19 @@ def test_publish_live_publishes_the_sets_then_moves_current(env: Env) -> None:
     assert env.s3.head_object(Bucket=BUCKET, Key="game-data/current.json")["CacheControl"] == "no-cache"
 
 
+def test_moving_current_keeps_its_asset_manifest(env: Env) -> None:
+    env.put(
+        "current.json",
+        json.dumps({"rulesetVersion": "r4", "campaignVersion": LIVE, "assetManifestVersion": "m2"}).encode(),
+    )
+    env.publish(live=True)
+    assert env.get("current.json") == {
+        "rulesetVersion": "r4",
+        "campaignVersion": "luna-1-a1",
+        "assetManifestVersion": "m2",
+    }
+
+
 def test_versions_count_up_per_planet(env: Env) -> None:
     env.publish()
     env.level("zigzag-two")

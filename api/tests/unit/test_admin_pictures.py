@@ -110,6 +110,7 @@ class Pictures(Admin):
                 pictures=lambda: self.config,
                 sqs=lambda: self.sqs_client,
                 cloudfront=lambda: self.cloudfront,
+                manifests=lambda: self.manifests,
             ),
             self.logger,
         )
@@ -1322,3 +1323,17 @@ def test_a_drawing_that_could_not_start_gives_its_level_places_back(api: Picture
     assert start(api, 2, kind="background", levelId="zigzag")[0] == 503
     counter = api.table.get_item("PICCAP", "L#2026-11#zigzag")
     assert counter is not None and counter["n"] == 1
+
+
+# --- Published asset manifests hold their pictures (Gate M, LD8) ------------------------------------------------------
+
+
+def test_a_picture_a_published_asset_manifest_draws_with_cannot_be_deleted(api: Pictures) -> None:
+    picture_id = approved_picture(api)
+    url = f"/pictures/v1/{picture_id}.png"
+    api.manifests = [
+        {"version": "m2", "assets": {picture_id: {"frames": [url], "anchor": [0.5, 0.5], "size": [96, 96]}}}
+    ]
+    assert api.pcall(GET, id=picture_id)[1]["usedBy"] == ["manifest:m2"]
+    status, body = api.pcall(DELETE, id=picture_id)
+    assert status == 400 and body["error"]["details"] == [{"field": "usedBy.manifest:m2", "rule": "picture_in_use"}]
