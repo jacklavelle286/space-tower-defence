@@ -5,7 +5,8 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { DECORATIONS, frameUrl } from "@scd/shared/map";
-import { alienArt, allFrames, ART, bossArt, bossBubbleArt, bubbleLayersArt, hasAlienArt, POWER_ART, powerFrames } from "./assets";
+import { bindManifest, parseManifest } from "@scd/shared/manifest";
+import { alienArt, allFrames, ART, bossArt, bossBubbleArt, bubbleLayersArt, hasAlienArt, madeAlienArt, POWER_ART, powerFrames } from "./assets";
 
 const REPO = join(import.meta.dirname, "..", "..", "..", "..");
 const PUBLIC = join(REPO, "web", "player", "public");
@@ -58,7 +59,9 @@ describe("battlefield art", () => {
     expect(types.size).toBe(10);
     for (const type of types) expect(hasAlienArt(type), type).toBe(true);
     expect(alienArt("craft").defeat?.id).toBe("alien-craft-release");
-    expect(alienArt("not-yet-drawn").move.id).toBe("alien-blob-walk");
+    // A made alien (AM1) walks with its manifest asset, shaped like the Moon Blob's walk and falling back to its files.
+    const made = alienArt("zorp").move;
+    expect(made).toEqual({ ...ART.blobWalk, id: "alien-zorp-walk" });
   });
 
   it("every boss in every ruleset has art for each of its phases (Phase 27)", () => {
@@ -121,5 +124,26 @@ describe("battlefield art", () => {
     expect(powerFrames()).toHaveLength(22);
     const always = new Set(allFrames().map(([key]) => key));
     expect(powerFrames().filter(([key]) => always.has(key))).toEqual([]);
+  });
+});
+
+describe("a made alien (Gate M, AM1)", () => {
+  const m1 = JSON.parse(readFileSync(join(REPO, "game-data", "asset-manifest", "m1.json"), "utf8")) as { assets: Record<string, unknown> };
+  const frames = Array.from({ length: 6 }, (_, i) => `/pictures/v1/lib-${String(i + 1).repeat(32)}.png`);
+
+  it("walks with its manifest entry, and with the Moon Blob's files if a frame fails", () => {
+    const manifest = parseManifest({ ...m1, version: "m2", assets: { ...m1.assets, "alien-zorp-walk": { frames, anchor: [0.5, 1], size: [128, 128] } } });
+    const art = bindManifest(manifest);
+    const walk = art.asset(madeAlienArt("zorp"));
+    expect(walk.frames).toBe(6);
+    expect(frameUrl(walk, 1)).toBe(frames[0]);
+    expect(art.frames([madeAlienArt("zorp")])).toContainEqual(["alien-zorp-walk-06", frames[5]]);
+    expect(art.fallback("alien-zorp-walk-01")).toBe(frameUrl(ART.blobWalk, 1));
+  });
+
+  it("is a Moon Blob under a manifest without it (a run pinned before the alien was published)", () => {
+    const walk = bindManifest(parseManifest(m1)).asset(madeAlienArt("zorp"));
+    expect(walk.id).toBe("alien-zorp-walk");
+    expect(frameUrl(walk, 3)).toBe(frameUrl(ART.blobWalk, 3));
   });
 });

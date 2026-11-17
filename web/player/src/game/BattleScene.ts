@@ -43,6 +43,8 @@ import {
   bossBubbleArt,
   bubbleLayersArt,
   frameKey,
+  hasAlienArt,
+  madeAlienArt,
   type ArtAsset,
 } from "./assets";
 import type { GameBridge } from "./GameBridge";
@@ -177,6 +179,11 @@ export class BattleScene extends Scene {
     return this.#art.map(asset, this.#bridge.config.artSet); // the planet's art set (LD10); moon by default
   }
 
+  /** The walks of the ruleset's made aliens (Gate M, AM1): every alien type with no art of its own. */
+  get #madeAliens(): ArtAsset[] {
+    return Object.keys(this.#bridge.config.aliens).filter((type) => !hasAlienArt(type)).map(madeAlienArt);
+  }
+
   /** True when the ruleset has meteor powers (C10; mechanics 3): only then are their effects loaded and played. */
   get #hasPowers(): boolean {
     return Object.keys(this.#bridge.config.powers).length > 0;
@@ -192,18 +199,19 @@ export class BattleScene extends Scene {
       retried.add(file.key);
       this.load.image(file.key, repo);
     });
-    const repo = [...Object.values(ART), ...(this.#hasPowers ? Object.values(POWER_ART) : [])];
+    const repo = [...Object.values(ART), ...this.#madeAliens, ...(this.#hasPowers ? Object.values(POWER_ART) : [])];
     for (const [key, url] of this.#art.frames(repo, this.#bridge.config.artSet)) this.load.image(key, url);
     // The map's own backdrop and decorations (Gate M, LD2). One that fails to load is skipped in create().
     for (const { key, url } of mapPicturesToLoad(this.#bridge.config, this.#art)) if (!this.textures.exists(key)) this.load.image(key, url);
   }
 
   create(): void {
-    for (const repo of [...LOOPED, ...ONE_SHOT, ...(this.#hasPowers ? Object.values(POWER_ART) : [])]) {
+    const looped = [...LOOPED, ...this.#madeAliens];
+    for (const repo of [...looped, ...ONE_SHOT, ...(this.#hasPowers ? Object.values(POWER_ART) : [])]) {
       const asset = this.#b(repo);
       if (this.anims.exists(asset.id)) continue;
       const frames = Array.from({ length: asset.frames }, (_, i) => ({ key: frameKey(asset, i + 1) }));
-      this.anims.create({ key: asset.id, frames, frameRate: ANIM_FPS, repeat: LOOPED.includes(repo) ? -1 : 0 });
+      this.anims.create({ key: asset.id, frames, frameRate: ANIM_FPS, repeat: looped.includes(repo) ? -1 : 0 });
     }
     const config = this.#bridge.config;
 

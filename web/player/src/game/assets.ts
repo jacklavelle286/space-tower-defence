@@ -192,9 +192,18 @@ const ALIENS: Readonly<Record<string, AlienArt>> = {
 export const ALIEN_LOOPED: readonly ArtAsset[] = Object.values(ALIENS).map((a) => a.move);
 export const ALIEN_ONE_SHOT: readonly ArtAsset[] = Object.values(ALIENS).flatMap((a) => (a.defeat === null ? [] : [a.defeat]));
 
-/** The art for an alien type. A type with no art yet (a later ruleset's new alien) is drawn as a Moon Blob. */
+/**
+ * A made alien's walk (Gate M, AM1; ADR-0041): the manifest's `alien-<type>-walk`, the six frames the portal made from
+ * one drawing. Shaped like the Moon Blob's walk (anchor, size, frame count) and drawn from the Moon Blob's files when
+ * the run's manifest has no such entry or a frame fails to load (bindManifest's fallback).
+ */
+export function madeAlienArt(type: string): ArtAsset {
+  return { ...ART.blobWalk, id: `alien-${type}-walk` };
+}
+
+/** The art for an alien type: its own, or a made alien's walk from the manifest (a Moon Blob until that loads). */
 export function alienArt(type: string): AlienArt {
-  return ALIENS[type] ?? { move: ART.blobWalk, defeat: null };
+  return ALIENS[type] ?? { move: madeAlienArt(type), defeat: null };
 }
 
 /** True when `type` has its own art (assets.test.ts checks every alien in every ruleset). */
