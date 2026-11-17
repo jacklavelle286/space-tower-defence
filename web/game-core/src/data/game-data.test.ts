@@ -55,6 +55,7 @@ describe("the repository's game-data/", () => {
       "ruleset/r2.json",
       "ruleset/r3.json",
       "campaign/luna-1-c1.json",
+      "campaign/luna-1-c2.json", // Phase 50: the 50-wave campaign (needs r3; not current yet)
       "bounds/r1__luna-1-c1.json",
       "current.json",
     ]);

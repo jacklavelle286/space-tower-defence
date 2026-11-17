@@ -5,7 +5,7 @@
 ## How to re-run
 
 ```
-cd /tmp/claude-1000/-home-jack-Documents-Projects-space-tower-defence/21e4d7b3-740a-407a-9ce4-b4a3156f1b6c/scratchpad/sim
+cd tools/sim
 python3 make_data.py     # writes game_data.json from the authored tables
 python3 selftest.py      # invariants: caps, bounty accounting, sell/rebuy, determinism
 python3 run_matrix.py    # about two and a half minutes on 8 cores; writes results.json

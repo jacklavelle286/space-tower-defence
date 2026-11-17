@@ -9,7 +9,8 @@ import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { GAME_DATA_DIR } from "../../scripts/build-bounds";
-import { armouredDamage, buffedDamage, cometDamage, flyingBlastDamage, healAmount, sellRefund } from "../sim/config";
+import { armouredDamage, buffedDamage, cometDamage, compileBattleConfig, flyingBlastDamage, healAmount, sellRefund } from "../sim/config";
+import { initialRunState } from "../sim/run";
 import { alienBounty, buildBounds, meteorAward, parsePlanet, parseRuleset, TARGETING_MODES, waveBounty, type AuthoredWave } from "./game-data";
 
 const REPO = resolve(import.meta.dirname, "..", "..", "..", "..");
@@ -502,5 +503,62 @@ describe("bounds agree with the simulator's tables", () => {
   it("cumulative costs equal the C5.2 'Cumulative cost' column", () => {
     expect(buildBounds(ruleset, planet).classes["nova"]?.cumulativeCosts).toEqual([50, 110, 260]);
     expect(buildBounds(ruleset2, parsePlanet(planetRaw, ruleset2)).classes["orion"]?.cumulativeCosts).toEqual([170, 270, 600]);
+  });
+});
+
+describe("planet document luna-1-c2: the 50-wave campaign (Phase 50, M4-01; C8.2, C3.3, C13)", () => {
+  const raw: Loose = JSON.parse(readFileSync(join(GAME_DATA_DIR, "campaign", "luna-1-c2.json"), "utf8"));
+  const c2 = parsePlanet(raw, ruleset3);
+  const campaign = c2.waveSets["campaign"];
+
+  it("is the simulator's 50 waves, number for number, and keeps luna-1-c1's map and first-contact", () => {
+    const simWaves: Loose[] = sim.waves;
+    expect(c2.waves.map((w) => w.wave)).toEqual(simWaves.map((w) => w.wave));
+    for (const w of simWaves) {
+      const mine = c2.waves.find((x) => x.wave === w.wave);
+      expect(mine?.hpMult, `wave ${w.wave}`).toBe(w.hpMult);
+      expect(mine?.speedMult, `wave ${w.wave}`).toBe(w.speedMult);
+      expect(JSON.parse(JSON.stringify(mine?.groups)), `wave ${w.wave}`).toEqual(w.groups);
+    }
+    const c1: Loose = planetRaw;
+    expect(raw.map).toEqual(c1.map);
+    expect(raw.waveSets["first-contact"]).toEqual(c1.waveSets["first-contact"]);
+  });
+
+  it("the campaign: waves 1-50, meteors after 9/19/29/39/49, bosses only on 10/20/30/40/50, every class in unlock order", () => {
+    expect(campaign?.mode).toBe("CAMPAIGN");
+    expect(campaign?.waves).toEqual(Array.from({ length: 50 }, (_, i) => i + 1));
+    expect(campaign?.meteorAfter).toEqual([9, 19, 29, 39, 49]);
+    const bossWaves = c2.waves.filter((w) => w.groups.some((g) => Object.hasOwn(ruleset3.bosses, g.type))).map((w) => w.wave);
+    expect(bossWaves).toEqual([10, 20, 30, 40, 50]);
+    expect(campaign?.classes).toEqual(["nova", "pip", "juno", "orion", "mira", "sol"]);
+    expect(campaign?.classes.map((id) => ruleset3.classes[id]?.unlockAfterWave)).toEqual([0, 5, 10, 15, 20, 25]); // C5.9
+  });
+
+  it("G-15: the create-run transaction is 3 + (finalWave - 1) + len(meteorAfter) = 57 actions, within 100 (spine S5.1)", () => {
+    const bounds = buildBounds(ruleset3, c2);
+    expect(bounds.waveSets["campaign"]?.createRunActions).toBe(3 + (50 - 1) + 5);
+    expect(bounds.waveSets["campaign"]?.createRunActions).toBeLessThanOrEqual(100);
+    expect(bounds.waveSets["campaign"]?.maxBounty).toHaveLength(50);
+    expect(bounds.waveSets["campaign"]?.normalRewardByInterval).toHaveLength(49);
+  });
+
+  it("a new campaign run has 49 normal and 5 meteor slots; meteors award the powers in rotation (C9.2, C10)", () => {
+    const run = initialRunState(ruleset3, compileBattleConfig(ruleset3, c2, "campaign"), ["x"]);
+    expect(run.slots.filter((s) => s.kind === "NORMAL")).toHaveLength(49);
+    const meteors = run.slots.filter((s) => s.kind === "METEOR");
+    expect(meteors.map((s) => [s.slotId, s.reward.powerId, s.reward.credits])).toEqual([
+      ["M-009", "frost-pulse", 0],
+      ["M-019", "comet-burst", 0],
+      ["M-029", "colony-shield", 0],
+      ["M-039", "frost-pulse", 0],
+      ["M-049", "comet-burst", 0],
+    ]);
+    expect(run.slots.find((s) => s.slotId === "N-010")?.reward).toEqual({ credits: 40 }); // C9.2 block 10-19
+  });
+
+  it("pads open as C3.3 schedules them, the same pads as the simulator's map", () => {
+    const simPads: Loose[] = sim.map.pads;
+    expect(c2.map.pads.map((p) => [p.id, p.opensAfterWave])).toEqual(simPads.map((p) => [p.id.toLowerCase(), p.opensAfterWave]));
   });
 });
