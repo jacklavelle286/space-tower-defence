@@ -58,8 +58,10 @@ describe("documents with no hard problem always draw", () => {
       clean += 1;
       const planet = parsePlanet(doc, r1);
       const tiles = routeTiles(planet.maps["main"]?.route ?? []);
-      expect(tiles[0]?.art).toBe(MAP_ART.portalEnd);
-      expect(tiles.at(-1)?.art).toBe(MAP_ART.colonyEnd);
+      // LD11: the caps follow the route's first and last heading (any edge).
+      expect(tiles[0]?.art.id).toMatch(/^route-portal-end/u);
+      expect(tiles.at(-1)?.art.id).toMatch(/^route-colony-end/u);
+      if (route[0]?.[0] === 0 && route[1]?.[1] === route[0]?.[1]) expect(tiles[0]?.art).toBe(MAP_ART.portalEnd);
       expect(() => buildBounds(r1, planet)).not.toThrow();
     }
     expect(clean).toBeGreaterThan(100); // the generator makes enough clean maps for the property to mean something
