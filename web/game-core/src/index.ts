@@ -18,6 +18,7 @@ export * from "./rules";
 // The mechanics numbers this game-core can run (spine S5.1) live with the data parsers; the old
 // MECHANICS_VERSION = 0 placeholder from Phase 1 is replaced by SUPPORTED_MECHANICS.
 export {
+  alienBounty,
   ATTACK_KINDS,
   GameDataError,
   learningReward,
@@ -27,13 +28,17 @@ export {
   placementTargetings,
   SUPPORTED_MECHANICS,
   targetingAllowed,
+  type Alien,
+  type AlienTraits,
   type AstronautClass,
   type AttackKind,
   type AuthoredWave,
   type CurrentPointers,
   type Pad,
   type PlanetDocument,
+  type ReleaseSpec,
   type Ruleset,
+  type SpawnGroup,
   type WaveSet,
 } from "./data/game-data";
 

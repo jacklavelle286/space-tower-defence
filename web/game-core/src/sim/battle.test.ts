@@ -229,7 +229,7 @@ describe("one tick (C2.3, C2.4)", () => {
   });
 
   it("the soft cap holds spawns back while too many aliens are alive (C6.4)", () => {
-    const tight = { ...config, scheduledSpawnSoftCap: 2 };
+    const tight = { ...config, caps: { ...config.caps, scheduledSpawnSoftCap: 2 } };
     const battle = createBattle(tight, START, 1, SEED);
     startWave(battle);
     while (battle.tick < 1000) step(battle);
@@ -274,7 +274,21 @@ describe("same seed and inputs -> same post-wave snapshot (M1-21 Done when)", ()
       [870, 5, "defeated"],
       [1080, 6, "defeated"],
     ],
-    stats: { spawned: 6, defeated: 6, leaked: 0, bounty: 24, shots: 18, damage: 144, healthLost: 0 },
+    stats: {
+      spawned: 6,
+      released: 0,
+      defeated: 6,
+      leaked: 0,
+      bounty: 24,
+      shots: 18,
+      damage: 144,
+      healthLost: 0,
+      healed: 0,
+      deferredSpawns: 0,
+      heldReleases: 0,
+      peakAliens: 3,
+      peakDescendants: 0,
+    },
   };
 
   it("matches the recorded snapshot, tick count and per-alien outcomes", () => {

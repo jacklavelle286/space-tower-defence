@@ -1,16 +1,24 @@
 // The battle simulation for one wave (Phase 14, M1-21; C2 simulation rules, spine S4 and S10). Phase 24 (M2-01) added
 // the six-class roster and economy; Phase 25 (M2-02) the targeting modes (C5.3), Pip's slow (C5.4), Mira's shield and
-// repair (C5.5) and Sol's buff (C5.6).
+// repair (C5.5) and Sol's buff (C5.6); Phase 26 (M2-03) the alien traits (C6.1, C6.2), carriers and splitters (C6.3)
+// and the object caps (C6.4).
 //
 // A Battle is plain data: one wave, built from the run snapshot, advanced one fixed tick at a time by `step`. The
 // renderer reads it and draws; it never changes it. Everything is deterministic: integers only (C2.2), no clock, no
 // Math.random, and the order inside a tick is fixed (C2.3):
 //   1. queued player commands, in arrival order, each validated against the state at that moment (AC-09)
-//   2. scheduled spawns that are due (and not held back by the soft cap)
-//   3. support timers: Mira's shield pulses, in pad order (healers arrive in Phase 26)
-//   4. astronaut attacks, in pad order p01 -> p16 (C2.4: instant hits), with Sol's buff on the damage
+//   2. scheduled spawns that are due, then descendant releases that are due, both within the caps (C6.4)
+//   3. support timers: Mira's shield pulses, in pad order; then the healers' shared pulse (C6.1)
+//   4. astronaut attacks, in pad order p01 -> p16 (C2.4: instant hits), with Sol's buff on the damage; each hit goes
+//      through the alien's traits in the C2.2 order (flying, bubble layer, armour); a defeated carrier or splitter
+//      queues its descendants (C6.3)
 //   5. alien movement, in id order, at the slowed speed while a slow lasts; an alien reaching the end leaks at once
+//      (a carrier that leaks releases nothing)
 //   6. defeat check (colony health <= 0), then the wave-complete check (and Mira's repair on a cleared wave)
+//
+// Traits are data (ruleset mechanics 3, compiled into AlienStats): nothing here names an alien type. An alien's
+// armour, layers, flying, heal and children come from its AlienStats, so a new alien with existing traits needs only
+// new data.
 //
 // Every comparison that decides something (which alien to aim at, whether a slow replaces another, whose buff is
 // larger, whether a pulse is due) compares integers. Towers are kept in pad order and aliens in id order, and the
@@ -22,9 +30,10 @@
 // `step`, `startWave` and the command functions change the Battle they are given (it is the caller's private
 // object; copying every tick would only cost time). They read nothing else and return nothing hidden, so the same
 // Battle and the same calls always give the same result.
+import type { ReleaseSpec } from "../data/game-data";
 import type { Placement, Snapshot, Targeting } from "../rules";
-import type { BattleConfig, ClassStats, LevelStats, PadInfo, ShotStats } from "./config";
-import { buffedDamage, sellRefund, speedToUnitsPerTick, waveHealth } from "./config";
+import type { AlienStats, BattleConfig, ClassStats, LevelStats, PadInfo, ShotStats, WavePlan } from "./config";
+import { armouredDamage, buffedDamage, flyingBlastDamage, healAmount, sellRefund, speedToUnitsPerTick, waveHealth } from "./config";
 import { nextInt, waveSeed } from "./rng";
 import { routePoint, withinRange, type Point } from "./route";
 
@@ -86,29 +95,80 @@ export interface AlienState {
   slowTicksLeft: number;
   /** Cosmetic: walk-animation start frame, 0..ALIEN_LOOKS-1, from the wave's seeded generator. */
   readonly look: number;
+  /** Bubble layers left (C6.1 Bubble Guard): each absorbs one whole hit, then pops. Never grows. */
+  bubbles: number;
+  /** 0 for an alien the wave scheduled, 1 for a descendant (C6.3); never above the ruleset's maxDescendantDepth. */
+  readonly depth: number;
+  /** What it releases when defeated: the wave's cargo, or its type's children; empty for most aliens (C6.3). */
+  readonly cargo: readonly ReleaseSpec[];
+}
+
+/**
+ * One defeated parent's descendants waiting to come out (C6.3). They come out one at a time at `progress`, the
+ * parent's route progress when it was defeated: the first on the tick after the defeat, each next one a release gap
+ * after the previous. While the caps are reached (C6.4) the next one waits here; nothing is dropped.
+ */
+export interface PendingRelease {
+  readonly parentId: number;
+  readonly progress: number;
+  /** The descendants' generation: the parent's depth + 1. */
+  readonly depth: number;
+  /** Every descendant, in release order (the release list's entries in order, each repeated `count` times). */
+  readonly types: readonly string[];
+  /** How many of `types` have come out. */
+  released: number;
+  /** The tick on or after which the next one may come out. */
+  nextTick: number;
 }
 
 /**
  * `shot`: one per alien a shot damages (a blast gives one per alien inside it), with the damage dealt.
+ * `popped`: a hit a bubble layer absorbed instead (C6.1), with the layers left.
  * `shielded`: a Mira pulse that added points (one at the cap adds none and is not reported).
  * `repaired`: Mira's repair when the wave is cleared (C5.5), the health actually added.
+ * `healPulse`: one per live healer when the shared heal clock ticks (C6.1), where it stands, for the sparkle ring.
+ * `healed`: an alien a heal pulse reached, with the health actually added (0 never reported).
+ * `released`: a descendant came out of a defeated parent (C6.3).
  */
 export type BattleEvent =
   | { readonly kind: "shot"; readonly tick: number; readonly padId: string; readonly alienId: number; readonly damage: number }
+  | { readonly kind: "popped"; readonly tick: number; readonly padId: string; readonly alienId: number; readonly layersLeft: number }
   | { readonly kind: "shielded"; readonly tick: number; readonly padId: string; readonly points: number }
   | { readonly kind: "repaired"; readonly tick: number; readonly health: number }
-  | { readonly kind: "defeated"; readonly tick: number; readonly alienId: number; readonly bounty: number; readonly at: Point }
+  | { readonly kind: "healPulse"; readonly tick: number; readonly alienId: number; readonly at: Point }
+  | { readonly kind: "healed"; readonly tick: number; readonly alienId: number; readonly health: number }
+  | { readonly kind: "released"; readonly tick: number; readonly alienId: number; readonly parentId: number; readonly type: string }
+  | {
+      readonly kind: "defeated";
+      readonly tick: number;
+      readonly alienId: number;
+      readonly type: string;
+      readonly bounty: number;
+      readonly at: Point;
+    }
   | { readonly kind: "leaked"; readonly tick: number; readonly alienId: number; readonly damage: number }
   | { readonly kind: "rejected"; readonly tick: number; readonly command: Command; readonly reason: RejectReason };
 
 export interface BattleStats {
+  /** Every alien that entered the route: scheduled spawns and descendants. */
   spawned: number;
+  /** Descendants released (C6.3), included in `spawned`. */
+  released: number;
   defeated: number;
   leaked: number;
   bounty: number;
   shots: number;
   damage: number;
   healthLost: number;
+  /** Health given back by heal pulses (C6.1). */
+  healed: number;
+  /** Scheduled spawns that came out after their tick because of the soft cap or the deferred-spawn gap (C6.4). */
+  deferredSpawns: number;
+  /** Descendants that came out after they were due because a cap held them (C6.4). */
+  heldReleases: number;
+  /** The most aliens, and the most descendants, alive at once (C6.4, C14). */
+  peakAliens: number;
+  peakDescendants: number;
 }
 
 export interface Battle {
@@ -130,6 +190,10 @@ export interface Battle {
   nextAlienId: number;
   /** Index of the next scheduled spawn in config.waves[wave - 1].spawns. */
   spawnIndex: number;
+  /** The tick the last late (deferred) scheduled spawn came out, or null (C6.4 deferredSpawnGap). */
+  lastDeferredSpawnTick: number | null;
+  /** Descendants waiting to come out, in the order their parents were defeated (C6.3). */
+  releases: PendingRelease[];
   /** Commands waiting for the next tick (IN_WAVE only). */
   queue: Command[];
   /** Seeded generator state (rng.ts). */
@@ -182,10 +246,26 @@ export function createBattle(config: BattleConfig, snapshot: Snapshot, wave: num
     aliens: [],
     nextAlienId: 1,
     spawnIndex: 0,
+    lastDeferredSpawnTick: null,
+    releases: [],
     queue: [],
     rng: waveSeed(runSeed, wave),
     events: [],
-    stats: { spawned: 0, defeated: 0, leaked: 0, bounty: 0, shots: 0, damage: 0, healthLost: 0 },
+    stats: {
+      spawned: 0,
+      released: 0,
+      defeated: 0,
+      leaked: 0,
+      bounty: 0,
+      shots: 0,
+      damage: 0,
+      healthLost: 0,
+      healed: 0,
+      deferredSpawns: 0,
+      heldReleases: 0,
+      peakAliens: 0,
+      peakDescendants: 0,
+    },
   };
   for (const p of snapshot.placements) {
     const cls = config.classes[p.classId];
@@ -484,40 +564,168 @@ function repairOnClear(battle: Battle, tick: number): void {
   battle.events.push({ kind: "repaired", tick, health: healed });
 }
 
-function spawn(battle: Battle, type: string): void {
-  const plan = battle.config.waves[battle.wave - 1];
-  const stats = battle.config.aliens[type];
-  if (plan === undefined || stats === undefined) throw new Error(`battle: cannot spawn ${type}`);
+function alienStatsOf(config: BattleConfig, type: string): AlienStats {
+  const stats = config.aliens[type];
+  if (stats === undefined) throw new Error(`battle: unknown alien ${type}`);
+  return stats;
+}
+
+/**
+ * A new alien at route `progress` with the next id (C2.2: ids in spawn order, descendants included). Health and speed
+ * are scaled by the wave (C6.1); armour, layers and leak are not. `cargo` replaces the type's own children (C6.3).
+ */
+function spawn(battle: Battle, plan: WavePlan, type: string, progress: number, depth: number, cargo: readonly ReleaseSpec[] | null): AlienState {
+  const stats = alienStatsOf(battle.config, type);
   const look = nextInt(battle.rng, ALIEN_LOOKS);
   battle.rng = look.state;
   const hp = waveHealth(stats.hp, plan.hpMult);
-  battle.aliens.push({
+  const alien: AlienState = {
     id: battle.nextAlienId,
     type,
     hp,
     maxHp: hp,
-    progress: 0,
+    progress,
     speed: speedToUnitsPerTick(stats.speed * plan.speedMult),
     slowPct: 0,
     slowTicksLeft: 0,
     look: look.value,
-  });
+    bubbles: stats.bubbles,
+    depth,
+    cargo: cargo ?? stats.children,
+  };
+  battle.aliens.push(alien);
   battle.nextAlienId += 1;
   battle.stats.spawned += 1;
+  return alien;
 }
 
-/** Take `damage` off one alien (never below 0 health). Returns true if that defeated it, paying its bounty. */
-function hit(battle: Battle, tower: Tower, alien: AlienState, damage: number, at: Point): boolean {
-  const dealt = Math.min(damage, alien.hp);
+/**
+ * C2.3 step 2, scheduled spawns. They come out in schedule order on their tick, unless (C6.4):
+ *   - the soft cap: while scheduledSpawnSoftCap aliens are alive a due spawn waits, and nothing behind it passes it;
+ *   - the deferred gap: a spawn that had to wait comes out at most one per deferredSpawnGap, so a backlog trickles
+ *     in as room appears instead of arriving in one lump.
+ * A spawn is never dropped: it waits until it fits. The hard cap needs no check here, as the soft cap is below it.
+ */
+function spawnScheduled(battle: Battle, plan: WavePlan, tick: number): void {
+  const { caps } = battle.config;
+  for (;;) {
+    const next = plan.spawns[battle.spawnIndex];
+    if (next === undefined || next.tick > tick) return;
+    if (battle.aliens.length >= caps.scheduledSpawnSoftCap) return;
+    const late = tick > next.tick;
+    if (late && battle.lastDeferredSpawnTick !== null && tick - battle.lastDeferredSpawnTick < caps.deferredSpawnGapTicks) return;
+    spawn(battle, plan, next.type, 0, 0, next.cargo);
+    battle.spawnIndex += 1;
+    if (late) {
+      battle.lastDeferredSpawnTick = tick;
+      battle.stats.deferredSpawns += 1;
+    }
+  }
+}
+
+/** Descendants alive now (C6.4 counts them against maxLiveDescendants). */
+function liveDescendants(battle: Readonly<Battle>): number {
+  let n = 0;
+  for (const a of battle.aliens) if (a.depth > 0) n += 1;
+  return n;
+}
+
+/**
+ * C2.3 step 2, after the scheduled spawns: descendant releases that are due (C6.3), parents in the order they were
+ * defeated, at most one per parent per tick. While maxActiveAliens aliens or maxLiveDescendants descendants are alive,
+ * a due release waits at its parent's defeat point (C6.4). The caps are the same for every parent, so once one release
+ * waits, the rest wait too, and the earliest-defeated parent goes first when room appears. Nothing is dropped.
+ */
+function releaseDescendants(battle: Battle, plan: WavePlan, tick: number): void {
+  if (battle.releases.length === 0) return;
+  const { caps } = battle.config;
+  let descendants = liveDescendants(battle);
+  for (const pending of battle.releases) {
+    if (pending.nextTick > tick) continue;
+    if (battle.aliens.length >= caps.maxActiveAliens || descendants >= caps.maxLiveDescendants) break;
+    const type = pending.types[pending.released];
+    if (type === undefined) continue;
+    const child = spawn(battle, plan, type, pending.progress, pending.depth, null);
+    battle.events.push({ kind: "released", tick, alienId: child.id, parentId: pending.parentId, type });
+    battle.stats.released += 1;
+    if (tick > pending.nextTick) battle.stats.heldReleases += 1;
+    descendants += 1;
+    pending.released += 1;
+    pending.nextTick = tick + caps.descendantReleaseGapTicks;
+  }
+  battle.releases = battle.releases.filter((p) => p.released < p.types.length);
+}
+
+/**
+ * C2.3 step 3, the healers' shared clock (C6.1; C2.5: it starts at wave start). On every multiple of the period, each
+ * alien below its maximum health that stands within reach of at least one OTHER live healer regains that healer's
+ * amount x the wave's hpMult, never above its maximum. Near several healers it is healed once, by the first in id order
+ * (tools/sim/sim.py does the same). A healer may heal another healer, never itself.
+ */
+function healPulse(battle: Battle, plan: WavePlan, tick: number): void {
+  const period = battle.config.healPeriodTicks;
+  if (period === null || tick === 0 || tick % period !== 0) return;
+  const { config } = battle;
+  const healers = battle.aliens.flatMap((a) => {
+    const healer = alienStatsOf(config, a.type).healer;
+    return healer === null ? [] : [{ alien: a, healer, at: routePoint(config.route, a.progress) }];
+  });
+  if (healers.length === 0) return;
+  for (const h of healers) battle.events.push({ kind: "healPulse", tick, alienId: h.alien.id, at: h.at });
+  for (const alien of battle.aliens) {
+    if (alien.hp >= alien.maxHp) continue;
+    const p = routePoint(config.route, alien.progress);
+    const by = healers.find((h) => h.alien !== alien && withinRange(p, h.at.x, h.at.y, h.healer.radiusSq));
+    if (by === undefined) continue;
+    const added = Math.min(healAmount(by.healer.amount, plan.hpMult), alien.maxHp - alien.hp);
+    alien.hp += added;
+    battle.stats.healed += added;
+    battle.events.push({ kind: "healed", tick, alienId: alien.id, health: added });
+  }
+}
+
+/**
+ * A defeated alien: its bounty is paid once (C6.1), and a carrier or splitter queues its descendants at its route
+ * progress (C6.3). The first comes out on the next tick: releases run in step 2, before this tick's attacks.
+ */
+function defeat(battle: Battle, alien: AlienState, stats: AlienStats, at: Point): void {
+  battle.credits += stats.bounty;
+  battle.stats.defeated += 1;
+  battle.stats.bounty += stats.bounty;
+  battle.events.push({ kind: "defeated", tick: battle.tick, alienId: alien.id, type: alien.type, bounty: stats.bounty, at });
+  if (alien.cargo.length === 0) return;
+  const depth = alien.depth + 1;
+  // parseRuleset and parsePlanet refuse any release list that could go deeper (C6.3), so this never throws.
+  if (depth > battle.config.caps.maxDescendantDepth) throw new Error(`battle: alien ${alien.id} would release generation ${depth}`);
+  battle.releases.push({
+    parentId: alien.id,
+    progress: alien.progress,
+    depth,
+    types: alien.cargo.flatMap((r) => Array.from({ length: r.count }, () => r.type)),
+    released: 0,
+    nextTick: battle.tick + 1,
+  });
+}
+
+/**
+ * One hit on one alien, in the C2.2 order (base damage and Sol's buff are already in `damage`): a blast on a flying
+ * alien is halved, rounded up -> a bubble layer, if one is left, absorbs the whole hit and pops -> armour takes its
+ * share, at least 1 landing -> health (never below 0). Returns true if the hit defeated it.
+ */
+function hit(battle: Battle, tower: Tower, alien: AlienState, damage: number, at: Point, blast: boolean): boolean {
+  const stats = alienStatsOf(battle.config, alien.type);
+  const afterFlying = blast && stats.flying ? flyingBlastDamage(damage) : damage;
+  if (alien.bubbles > 0) {
+    alien.bubbles -= 1;
+    battle.events.push({ kind: "popped", tick: battle.tick, padId: tower.padId, alienId: alien.id, layersLeft: alien.bubbles });
+    return false;
+  }
+  const dealt = Math.min(armouredDamage(afterFlying, stats.armour), alien.hp);
   alien.hp -= dealt;
   battle.stats.damage += dealt;
   battle.events.push({ kind: "shot", tick: battle.tick, padId: tower.padId, alienId: alien.id, damage: dealt });
   if (alien.hp > 0) return false;
-  const bounty = battle.config.aliens[alien.type]?.bounty ?? 0;
-  battle.credits += bounty;
-  battle.stats.defeated += 1;
-  battle.stats.bounty += bounty;
-  battle.events.push({ kind: "defeated", tick: battle.tick, alienId: alien.id, bounty, at });
+  defeat(battle, alien, stats, at);
   return true;
 }
 
@@ -534,13 +742,11 @@ export function step(battle: Battle): void {
   battle.queue = [];
   for (const command of queued) record(battle, command, applyCommand(battle, command));
 
-  // 2. Spawns that are due. The soft cap holds spawns back (they stay due) while too many aliens are alive (C6.4).
-  for (;;) {
-    const next = plan.spawns[battle.spawnIndex];
-    if (next === undefined || next.tick > tick || battle.aliens.length >= config.scheduledSpawnSoftCap) break;
-    spawn(battle, next.type);
-    battle.spawnIndex += 1;
-  }
+  // 2. Scheduled spawns that are due, then descendant releases that are due, both within the caps (C6.4).
+  spawnScheduled(battle, plan, tick);
+  releaseDescendants(battle, plan, tick);
+  battle.stats.peakAliens = Math.max(battle.stats.peakAliens, battle.aliens.length);
+  battle.stats.peakDescendants = Math.max(battle.stats.peakDescendants, liveDescendants(battle));
 
   // 3. Support timers: each Mira whose pulse is due adds her points, in pad order, up to the shield cap (C5.5). The
   //    next pulse is a whole period after this one, so pulses keep their rhythm.
@@ -551,6 +757,8 @@ export function step(battle: Battle): void {
     const added = addShield(battle, shield.points, config.colony.shieldCap);
     if (added > 0) battle.events.push({ kind: "shielded", tick, padId: tower.padId, points: added });
   }
+  //    Then the healers' shared pulse (C6.1).
+  healPulse(battle, plan, tick);
 
   // 4. Attacks in pad order; hits land at once (C2.4). Support classes (no shot) never fire.
   if (battle.aliens.length > 0) {
@@ -584,21 +792,22 @@ export function step(battle: Battle): void {
       // A single shot hits its target. A blast (C5.2, Juno) hits every live alien whose point is within the splash
       // radius of the target's point, the target included, each for the full damage, in id order.
       if (shot.splashSq === 0) {
-        if (hit(battle, tower, target, damage, at)) anyDefeated = true;
+        if (hit(battle, tower, target, damage, at, false)) anyDefeated = true;
         continue;
       }
       for (const alien of battle.aliens) {
         if (alien.hp <= 0) continue;
         const p = alien === target ? at : routePoint(config.route, alien.progress);
         if (alien === target || withinRange(p, at.x, at.y, shot.splashSq)) {
-          if (hit(battle, tower, alien, damage, p)) anyDefeated = true;
+          if (hit(battle, tower, alien, damage, p, true)) anyDefeated = true;
         }
       }
     }
     if (anyDefeated) battle.aliens = battle.aliens.filter((a) => a.hp > 0);
   }
 
-  // 5. Movement in id order; leaks come off the shield first, then health (C4). A slowed alien moves
+  // 5. Movement in id order; leaks come off the shield first, then health (C4). A carrier or splitter that leaks
+  //    applies its own leak damage and releases nothing (C6.3): only defeat() queues releases. A slowed alien moves
   //    floor(speed x (100 - slow%) / 100) units this tick (under one unit, 1/60,000 of a tile, is dropped), and the
   //    tick counts off its slow.
   if (battle.aliens.length > 0) {
@@ -632,7 +841,8 @@ export function step(battle: Battle): void {
     battle.health = 0;
     battle.status = "DEFEATED";
     battle.queue = [];
-  } else if (battle.spawnIndex >= plan.spawns.length && battle.aliens.length === 0) {
+  } else if (battle.spawnIndex >= plan.spawns.length && battle.releases.length === 0 && battle.aliens.length === 0) {
+    // C6.3 (AC-10): complete only when the schedule is exhausted, no release is queued and no alien is active.
     battle.status = "CLEARED";
     battle.queue = [];
     repairOnClear(battle, tick);

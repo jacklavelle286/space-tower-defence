@@ -1,6 +1,7 @@
 // Game data (Phase 13, M1-23): the repository's game-data/ builds, the G-15 wave-set action limit refuses an oversized
 // wave set, version strings are path-safe, and the bounds fixture api/tests reads is the generated one. Phase 24
-// (M2-01): ruleset r2 and the mechanics 2 parse rules for the six-class roster.
+// (M2-01): ruleset r2 and the mechanics 2 parse rules for the six-class roster. Phase 26 (M2-03): ruleset r3 and the
+// mechanics 3 parse rules for the alien catalogue, traits, releases and cargo.
 import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -34,6 +35,7 @@ type JsonObject = Record<string, unknown>;
 const readJson = (path: string): JsonObject => JSON.parse(readFileSync(path, "utf8")) as JsonObject;
 const RULESET_RAW = readJson(join(GAME_DATA_DIR, "ruleset", "r1.json"));
 const RULESET2_RAW = readJson(join(GAME_DATA_DIR, "ruleset", "r2.json"));
+const RULESET3_RAW = readJson(join(GAME_DATA_DIR, "ruleset", "r3.json"));
 const PLANET_RAW = readJson(join(GAME_DATA_DIR, "campaign", "luna-1-c1.json"));
 const OVERSIZED_RAW = readJson(resolve(import.meta.dirname, "fixtures", "g15-oversized-planet.json"));
 const ruleset: Ruleset = parseRuleset(RULESET_RAW);
@@ -48,6 +50,7 @@ describe("the repository's game-data/", () => {
     expect([...build.files.keys()]).toEqual([
       "ruleset/r1.json",
       "ruleset/r2.json",
+      "ruleset/r3.json",
       "campaign/luna-1-c1.json",
       "bounds/r1__luna-1-c1.json",
       "current.json",
@@ -266,7 +269,7 @@ describe("ruleset r2 and mechanics 2 (Phase 24, M2-01; ADR-0033)", () => {
 
   it("is a new version beside r1 (r1 is published, so it is never edited), and current.json still names r1", () => {
     expect([r2.version, r2.mechanics]).toEqual(["r2", 2]);
-    expect(SUPPORTED_MECHANICS).toEqual([1, 2]);
+    expect(SUPPORTED_MECHANICS).toEqual([1, 2, 3]);
     expect(buildGameData().current.rulesetVersion).toBe("r1");
     expect(buildGameData().files.get("ruleset/r2.json")).toBe(readFileSync(join(GAME_DATA_DIR, "ruleset", "r2.json"), "utf8"));
   });
@@ -380,6 +383,99 @@ describe("ruleset r2 and mechanics 2 (Phase 24, M2-01; ADR-0033)", () => {
       sol: { unlockAfterWave: 25, deployCap: 2, targeting: ["FRONT"], levelCosts: [150, 200, 300], cumulativeCosts: [150, 350, 650] },
     }); // C5.1 unlocks and caps, C5.2 prices and the "Total cost to level 3" column, C5.8 caps
     expect(bounds.mechanics).toBe(2);
+  });
+});
+
+describe("ruleset r3 and mechanics 3 (Phase 26, M2-03; ADR-0034)", () => {
+  const r3 = parseRuleset(RULESET3_RAW);
+  const aliensOf = (raw: JsonObject): Record<string, JsonObject> => raw["aliens"] as Record<string, JsonObject>;
+  const traitsOf = (raw: JsonObject, id: string): JsonObject => (aliensOf(raw)[id] as JsonObject)["traits"] as JsonObject;
+  /** The planet document with wave 1's only group replaced by `group`. */
+  function planetWithGroup(group: JsonObject): JsonObject {
+    const doc = copy(PLANET_RAW);
+    ((doc["waves"] as JsonObject[])[0] as JsonObject)["groups"] = [group];
+    return doc;
+  }
+
+  it("is a new version beside r1 and r2 (both published, never edited), and current.json still names r1", () => {
+    expect([r3.version, r3.mechanics]).toEqual(["r3", 3]);
+    expect(buildGameData().current.rulesetVersion).toBe("r1");
+    expect(buildGameData().files.get("ruleset/r3.json")).toBe(readFileSync(join(GAME_DATA_DIR, "ruleset", "r3.json"), "utf8"));
+  });
+
+  it("the planet document parses against r3, and its bounds are r1's (Moon Blobs only)", () => {
+    const bounds = buildBounds(r3, parsePlanet(PLANET_RAW, r3));
+    expect(bounds.waveSets["first-contact"]?.maxBounty).toEqual([24, 32]);
+    expect(bounds.mechanics).toBe(3);
+  });
+
+  it("mechanics 2 refuses traits (its simulation would ignore them); mechanics 3 requires them", () => {
+    const traitsIn2 = copy(RULESET2_RAW);
+    (aliensOf(traitsIn2)["blob"] as JsonObject)["traits"] = { armour: 4 };
+    expect(() => parseRuleset(traitsIn2)).toThrow(/aliens.blob: unknown key "traits"/);
+    const onlyIn2 = copy(RULESET2_RAW);
+    (aliensOf(onlyIn2)["blob"] as JsonObject)["descendantOnly"] = true;
+    expect(() => parseRuleset(onlyIn2)).toThrow(/aliens.blob: unknown key "descendantOnly"/);
+    const missing = copy(RULESET3_RAW);
+    delete (aliensOf(missing)["blob"] as JsonObject)["traits"];
+    expect(() => parseRuleset(missing)).toThrow(/aliens.blob: "traits" is missing/);
+  });
+
+  it("refuses an unknown trait, a flag that is not true, and a non-integer armour", () => {
+    const unknown = copy(RULESET3_RAW);
+    traitsOf(unknown, "shell")["spikes"] = 2;
+    expect(() => parseRuleset(unknown)).toThrow(/shell.traits: unknown key "spikes"/);
+    const falseFlag = copy(RULESET3_RAW);
+    traitsOf(falseFlag, "flutter")["flying"] = false;
+    expect(() => parseRuleset(falseFlag)).toThrow(/flutter.traits.flying: must be true/);
+    const fraction = copy(RULESET3_RAW);
+    traitsOf(fraction, "shell")["armour"] = 4.5;
+    expect(() => parseRuleset(fraction)).toThrow(/shell.traits.armour: must be an integer/);
+  });
+
+  it("C6.3: a release names aliens that exist and release nothing themselves (no Crafts or Split Slimes in cargo)", () => {
+    const missing = copy(RULESET3_RAW);
+    traitsOf(missing, "craft")["children"] = [{ type: "ghost", count: 4 }];
+    expect(() => parseRuleset(missing)).toThrow(/craft.traits.children\[0\].type: alien "ghost" is not in this ruleset/);
+    const nested = copy(RULESET3_RAW);
+    traitsOf(nested, "craft")["children"] = [{ type: "slime", count: 2 }];
+    expect(() => parseRuleset(nested)).toThrow(/craft.traits.children\[0\].type: "slime" releases aliens itself/);
+    const splittingSlimelet = copy(RULESET3_RAW);
+    traitsOf(splittingSlimelet, "slimelet")["children"] = [{ type: "blob", count: 1 }];
+    expect(() => parseRuleset(splittingSlimelet)).toThrow(/slime.traits.children\[0\].type: "slimelet" releases aliens itself/);
+  });
+
+  it("C6.4: maxDescendantDepth 0 allows no carrier or splitter", () => {
+    const shallow = copy(RULESET3_RAW);
+    (shallow["caps"] as JsonObject)["maxDescendantDepth"] = 0;
+    expect(() => parseRuleset(shallow)).toThrow(/craft.traits.children: maxDescendantDepth 0 allows no descendants/);
+  });
+
+  it("every healer shares one clock (C6.1), so all healers have the same period", () => {
+    const two = copy(RULESET3_RAW);
+    traitsOf(two, "blob")["healer"] = { amount: 6, radius: 1.5, period: 2.0 };
+    expect(() => parseRuleset(two)).toThrow(/healer.period: every healer shares one clock/);
+    traitsOf(two, "blob")["healer"] = { amount: 3, radius: 1.0, period: 3.0 };
+    expect(parseRuleset(two).aliens["blob"]?.traits.healer).toEqual({ amount: 3, radius: 1, period: 3 });
+  });
+
+  it("a wave may name a carrier's cargo (C6.3), in mechanics 3 only, and the cargo follows the release rules", () => {
+    const cargo = [{ type: "mite", count: 6 }];
+    const craft = { type: "craft", count: 1, at: 0, gap: 0, cargo };
+    expect(parsePlanet(planetWithGroup(craft), r3).waves[0]?.groups[0]?.cargo).toEqual(cargo);
+    expect(() => parsePlanet(planetWithGroup(craft), parseRuleset(RULESET2_RAW))).toThrow(/groups\[0\]: unknown key "cargo"/);
+    expect(() => parsePlanet(planetWithGroup({ ...craft, type: "blob" }), r3)).toThrow(/"blob" releases nothing, so it has no cargo/);
+    expect(() => parsePlanet(planetWithGroup({ ...craft, cargo: [{ type: "craft", count: 1 }] }), r3)).toThrow(
+      /cargo\[0\].type: "craft" releases aliens itself/,
+    );
+    const bounds = buildBounds(r3, parsePlanet(planetWithGroup(craft), r3));
+    expect(bounds.waveSets["first-contact"]?.maxBounty[0]).toBe(6 + 6 * 2); // C6.3: parent and cargo are separate lines
+  });
+
+  it("a wave may not schedule a descendant-only alien (Slimelets only come out of Split Slimes)", () => {
+    expect(() => parsePlanet(planetWithGroup({ type: "slimelet", count: 2, at: 0, gap: 1 }), r3)).toThrow(
+      /"slimelet" is only ever released by another alien, never scheduled/,
+    );
   });
 });
 

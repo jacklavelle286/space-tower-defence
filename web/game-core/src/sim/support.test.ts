@@ -88,7 +88,7 @@ const at = (y: number): number => Math.round((4 + (y - 2)) * UNITS_PER_TILE);
 
 /** A Moon Blob (24 health, 1 tile/s = 1,000 units a tick) at height y, unslowed unless `more` says otherwise. */
 function alien(id: number, y: number, more: Partial<AlienState> = {}): AlienState {
-  return { id, type: "blob", hp: 24, maxHp: 24, progress: at(y), speed: 1000, slowPct: 0, slowTicksLeft: 0, look: 0, ...more };
+  return { id, type: "blob", hp: 24, maxHp: 24, progress: at(y), speed: 1000, slowPct: 0, slowTicksLeft: 0, look: 0, bubbles: 0, depth: 0, cargo: [], ...more };
 }
 
 function snapshot(placements: Placement[], health = 20, shield = 0): Snapshot {

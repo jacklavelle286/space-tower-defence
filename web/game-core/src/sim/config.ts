@@ -11,7 +11,11 @@
 //   shield  never fires; adds colony shield points every period, and repairs when a wave is cleared (Mira, C5.5)
 //   buff    never fires; raises the damage of attackers on nearby pads, strongest Sol only (Sol, C5.6)
 // Phase 25 (M2-02) completed the last three, which completes mechanics 2 (ADR-0033).
-import type { AttackKind, AuthoredWave, ClassLevel, PlanetDocument, Ruleset, Targeting, WaveSet } from "../data/game-data";
+//
+// Aliens (Phase 26, M2-03, mechanics 3): each alien's traits become AlienStats fields the simulation reads (armour,
+// bubble layers, flying, healer, children); no part of the simulation names an alien type. The caps of C6.4 are
+// compiled to whole ticks here, and so is the healers' shared clock.
+import type { AttackKind, AuthoredWave, ClassLevel, PlanetDocument, ReleaseSpec, Ruleset, Targeting, WaveSet } from "../data/game-data";
 import { STEPS_PER_SECOND } from "../clock";
 import { buildRoute, UNITS_PER_TILE, type Route } from "./route";
 
@@ -85,6 +89,16 @@ export interface ClassStats {
   readonly levels: readonly LevelStats[];
 }
 
+/** Patchling's heal (C6.1) in simulation units. The clock is BattleConfig.healPeriodTicks, shared by every healer. */
+export interface HealerStats {
+  /** Health before the wave's multiplier; healAmount() applies it. */
+  readonly amount: number;
+  /** Squared units, compared with the squared distance between the healer's point and the other alien's. */
+  readonly radiusSq: number;
+  /** In tiles, for drawing the ring from the same number. */
+  readonly radiusTiles: number;
+}
+
 export interface AlienStats {
   readonly id: string;
   readonly name: string;
@@ -93,6 +107,36 @@ export interface AlienStats {
   readonly speed: number;
   readonly leak: number;
   readonly bounty: number;
+  // Traits (C6.1, C6.2); a ruleset before mechanics 3 has none, so every alien gets the "no trait" values.
+  /** Damage every hit loses, at least 1 always landing (C2.2); 0 = no armour. */
+  readonly armour: number;
+  /** Bubble layers it starts with; each absorbs one whole hit (C6.1). 0 = none. */
+  readonly bubbles: number;
+  /** A blast does half damage to it, rounded up (C2.2). */
+  readonly flying: boolean;
+  /** Arrives as a tight group (C6.1). No simulation effect: the renderer may draw it as part of a cluster. */
+  readonly cluster: boolean;
+  readonly healer: HealerStats | null;
+  /** What it releases when defeated (C6.3), unless the wave names other cargo; empty for most aliens. */
+  readonly children: readonly ReleaseSpec[];
+  /** Never scheduled by a wave, only released (Slimelet). */
+  readonly descendantOnly: boolean;
+}
+
+/** The object caps of C6.4, durations in ticks. */
+export interface CapStats {
+  /** Hard cap: never more aliens alive at once, descendants included. */
+  readonly maxActiveAliens: number;
+  /** A scheduled spawn that is due waits while this many aliens are alive. */
+  readonly scheduledSpawnSoftCap: number;
+  /** A descendant release waits while this many descendants are alive. */
+  readonly maxLiveDescendants: number;
+  /** Between two descendants released by one parent. */
+  readonly descendantReleaseGapTicks: number;
+  /** Between two scheduled spawns that had to wait. */
+  readonly deferredSpawnGapTicks: number;
+  /** Generations below a scheduled alien (a descendant is generation 1). */
+  readonly maxDescendantDepth: number;
 }
 
 export interface PadInfo {
@@ -111,6 +155,8 @@ export interface PadInfo {
 export interface ScheduledSpawn {
   readonly tick: number;
   readonly type: string;
+  /** The group's cargo (C6.3), replacing the type's own children; null = the type's own. */
+  readonly cargo: readonly ReleaseSpec[] | null;
 }
 
 export interface WavePlan {
@@ -146,7 +192,10 @@ export interface BattleConfig {
   /** C5.4. capPct 0 in a mechanics 1 ruleset, which has no slow attack. */
   readonly slow: { readonly capPct: number; readonly refreshTicks: number };
   readonly sell: { readonly refundPct: number; readonly roundDownTo: number };
-  readonly scheduledSpawnSoftCap: number;
+  readonly caps: CapStats;
+  /** The healers' shared clock (C6.1, C2.5: it starts at wave start): a pulse on every multiple of this tick. Null
+   *  when no alien in the ruleset heals. */
+  readonly healPeriodTicks: number | null;
 }
 
 /** Seconds from the data to whole ticks (C2.1: ticks = round(seconds x 60)). */
@@ -164,6 +213,21 @@ export function waveHealth(baseHealth: number, hpMult: number): number {
   return Math.max(1, Math.floor(baseHealth * hpMult + 0.5));
 }
 
+/** Patchling heal (C2.2): floor(amount x hpMult + 0.5); the caller keeps it at or below the alien's maximum. */
+export function healAmount(amount: number, hpMult: number): number {
+  return Math.floor(amount * hpMult + 0.5);
+}
+
+/** Juno's blast on a flying alien (C2.2): ceil(damage / 2), in integers. */
+export function flyingBlastDamage(damage: number): number {
+  return Math.floor((damage + 1) / 2);
+}
+
+/** Armour (C2.2): max(1, damage - armour). No armour leaves the damage as it is. */
+export function armouredDamage(damage: number, armour: number): number {
+  return armour > 0 ? Math.max(1, damage - armour) : damage;
+}
+
 /** Sol buff on damage (C2.2, C5.6): floor((damage x (100 + buffPct) + 50) / 100), integers only. */
 export function buffedDamage(damage: number, buffPct: number): number {
   return Math.floor((damage * (100 + buffPct) + 50) / 100);
@@ -179,12 +243,17 @@ function wavePlan(position: number, wave: AuthoredWave): WavePlan {
   let order = 0;
   for (const group of wave.groups) {
     for (let k = 0; k < group.count; k += 1) {
-      spawns.push({ tick: secondsToTicks(group.at + k * group.gap), type: group.type, order });
+      spawns.push({ tick: secondsToTicks(group.at + k * group.gap), type: group.type, cargo: group.cargo ?? null, order });
       order += 1;
     }
   }
   spawns.sort((a, b) => a.tick - b.tick || a.order - b.order);
-  return { wave: position, spawns: spawns.map(({ tick, type }) => ({ tick, type })), hpMult: wave.hpMult, speedMult: wave.speedMult };
+  return {
+    wave: position,
+    spawns: spawns.map(({ tick, type, cargo }) => ({ tick, type, cargo })),
+    hpMult: wave.hpMult,
+    speedMult: wave.speedMult,
+  };
 }
 
 /** A distance in tiles as squared units, for comparing against squared distances (C2.2: no square roots). */
@@ -244,8 +313,26 @@ export function compileBattleConfig(ruleset: Ruleset, planet: PlanetDocument, wa
   }
 
   const aliens: Record<string, AlienStats> = {};
+  let healPeriodTicks: number | null = null;
   for (const [id, a] of Object.entries(ruleset.aliens)) {
-    aliens[id] = { id, name: a.name, hp: a.hp, speed: a.speed, leak: a.leak, bounty: a.bounty };
+    const { healer } = a.traits;
+    aliens[id] = {
+      id,
+      name: a.name,
+      hp: a.hp,
+      speed: a.speed,
+      leak: a.leak,
+      bounty: a.bounty,
+      armour: a.traits.armour ?? 0,
+      bubbles: a.traits.bubbles ?? 0,
+      flying: a.traits.flying === true,
+      cluster: a.traits.cluster === true,
+      healer: healer === undefined ? null : { amount: healer.amount, radiusSq: tilesSq(healer.radius), radiusTiles: healer.radius },
+      children: a.traits.children ?? [],
+      descendantOnly: a.descendantOnly,
+    };
+    // parseRuleset has checked that every healer has the same period (one shared clock).
+    if (healer !== undefined) healPeriodTicks = Math.max(1, secondsToTicks(healer.period));
   }
 
   const authored = new Map(planet.waves.map((w) => [w.wave, w]));
@@ -290,6 +377,14 @@ export function compileBattleConfig(ruleset: Ruleset, planet: PlanetDocument, wa
       refreshTicks: secondsToTicks(ruleset.slow?.refreshWithinSeconds ?? 0),
     },
     sell: ruleset.sell,
-    scheduledSpawnSoftCap: ruleset.caps.scheduledSpawnSoftCap,
+    caps: {
+      maxActiveAliens: ruleset.caps.maxActiveAliens,
+      scheduledSpawnSoftCap: ruleset.caps.scheduledSpawnSoftCap,
+      maxLiveDescendants: ruleset.caps.maxLiveDescendants,
+      descendantReleaseGapTicks: Math.max(1, secondsToTicks(ruleset.caps.descendantReleaseGap)),
+      deferredSpawnGapTicks: Math.max(1, secondsToTicks(ruleset.caps.deferredSpawnGap)),
+      maxDescendantDepth: ruleset.caps.maxDescendantDepth,
+    },
+    healPeriodTicks,
   };
 }

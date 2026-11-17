@@ -20,9 +20,15 @@
  *   with its own level fields; `targetingFromLevel` (Orion's STRONG from level 3, C5.3); support classes with no
  *   targeting modes. The simulation's support effects (slow, shield, buff) are completed in Phase 25 (M2-02), before
  *   any run can pin a mechanics 2 ruleset (ADR-0033); Phase 25 also added the ruleset's `slow` block (C5.4), required
- *   in mechanics 2 and refused in mechanics 1. CROWD is a blast class's mode only (it counts aliens in the blast).
+ *   in mechanics 2 and later and refused in mechanics 1. CROWD is a blast class's mode only (it counts aliens in the
+ *   blast).
+ * 3 (Phase 26, ruleset r3): the alien catalogue (C6.1) with traits as data, each a rule the simulation applies:
+ *   armour, bubble layers, flying, cluster, healer, and children (carriers and splitters, C6.3); `descendantOnly`
+ *   aliens; a planet document's spawn group may name a carrier's `cargo`; the caps of C6.4 in full (deferred spawns,
+ *   held descendant releases). Every alien has a `traits` object (possibly empty) in mechanics 3; mechanics 1 and 2
+ *   refuse it, because their simulation would ignore the traits (ADR-0034).
  */
-export const SUPPORTED_MECHANICS: readonly number[] = [1, 2];
+export const SUPPORTED_MECHANICS: readonly number[] = [1, 2, 3];
 
 /**
  * Version strings are path segments, and `__` joins two of them in a bounds file name (H.8.5). Copy of
@@ -52,7 +58,7 @@ const INT_MAX = 2147483647; // contracts/limits.json integerMax
  */
 export const ATTACK_KINDS = ["single", "slow", "blast", "shield", "buff"] as const;
 /** The attack kinds each mechanics number allows. */
-const ATTACKS_BY_MECHANICS: Readonly<Record<number, readonly AttackKind[]>> = { 1: ["single"], 2: ATTACK_KINDS };
+const ATTACKS_BY_MECHANICS: Readonly<Record<number, readonly AttackKind[]>> = { 1: ["single"], 2: ATTACK_KINDS, 3: ATTACK_KINDS };
 
 export type Targeting = (typeof TARGETING_MODES)[number];
 export type WaveSetMode = (typeof WAVE_SET_MODES)[number];
@@ -136,12 +142,48 @@ export interface SlowRules {
   refreshWithinSeconds: number;
 }
 
+/** Aliens a carrier or splitter releases when it is defeated (C6.3): `count` of `type`, in list order. */
+export interface ReleaseSpec {
+  type: string;
+  count: number;
+}
+
+/** Patchling's heal (C6.1): every other alien within `radius` tiles regains amount x hpMult every `period` seconds. */
+export interface HealerTrait {
+  amount: number;
+  radius: number;
+  period: number;
+}
+
+/**
+ * An alien's traits (C6.1, C6.2), mechanics 3. Each key that is present is a rule the simulation applies; an absent
+ * key means "no such trait". The shape is tools/sim/game_data.json's `traits`, key for key.
+ *   armour    every hit loses this much damage, but at least 1 always lands (C2.2)
+ *   bubbles   layers; each absorbs one whole hit of any size, then pops; layers never come back
+ *   flying    follows the same route; a blast (Juno) does half damage to it, rounded up (C2.2)
+ *   cluster   arrives as a tight group; each bubble is an ordinary alien (no simulation effect: the waves space them)
+ *   healer    see HealerTrait; the clock is shared by every healer, so all healers must have the same period
+ *   children  released when defeated, never when it leaks (C6.3)
+ */
+export interface AlienTraits {
+  armour?: number;
+  bubbles?: number;
+  flying?: true;
+  cluster?: true;
+  healer?: HealerTrait;
+  children?: ReleaseSpec[];
+}
+
 export interface Alien {
   name: string;
   hp: number;
   speed: number;
   leak: number;
   bounty: number;
+  /** Always {} before mechanics 3. */
+  traits: AlienTraits;
+  /** Only ever released by a carrier or splitter, never scheduled by a wave (Slimelet). Always false before mechanics 3. */
+  descendantOnly: boolean;
 }
 
 export interface RewardBlock {
@@ -196,6 +238,8 @@ export interface SpawnGroup {
   count: number;
   at: number;
   gap: number;
+  /** A carrier's cargo for this group, replacing its default children (C6.3: waves 38, 43, 47). Mechanics 3. */
+  cargo?: ReleaseSpec[];
 }
 
 export interface AuthoredWave {
@@ -488,16 +532,88 @@ function parseClass(raw: unknown, path: string, mechanics: number): AstronautCla
   } as AstronautClass;
 }
 
-function parseAlien(raw: unknown, path: string): Alien {
-  // Mechanics 1 has no traits (armour, bubbles, flying, healing, splitting, carrying): they arrive with a later number.
-  const o = obj(raw, path, ["name", "hp", "speed", "leak", "bounty"]);
+/** A release list (an alien's children, or a spawn group's cargo): 1 to 10 entries, each `count` of one alien type. */
+function parseReleases(raw: unknown, path: string): ReleaseSpec[] {
+  return arr(raw, path, 1, 10).map((r, i) => {
+    const o = obj(r, `${path}[${i}]`, ["type", "count"]);
+    return { type: str(o["type"], `${path}[${i}].type`, KEY_ID_PATTERN, 40), count: int(o["count"], `${path}[${i}].count`, 1, 50) };
+  });
+}
+
+/** `true` is the only value a flag trait may have: an alien without the trait leaves the key out. */
+function flag(value: unknown, path: string): true {
+  if (value !== true) fail(path, "must be true (leave the key out for an alien without this trait)");
+  return true;
+}
+
+function parseTraits(raw: unknown, path: string): AlienTraits {
+  const o = obj(raw, path, [], ["armour", "bubbles", "flying", "cluster", "healer", "children"]);
+  const traits: AlienTraits = {};
+  if (Object.hasOwn(o, "armour")) traits.armour = int(o["armour"], `${path}.armour`, 1, 1000);
+  if (Object.hasOwn(o, "bubbles")) traits.bubbles = int(o["bubbles"], `${path}.bubbles`, 1, 100);
+  if (Object.hasOwn(o, "flying")) traits.flying = flag(o["flying"], `${path}.flying`);
+  if (Object.hasOwn(o, "cluster")) traits.cluster = flag(o["cluster"], `${path}.cluster`);
+  if (Object.hasOwn(o, "healer")) {
+    const h = obj(o["healer"], `${path}.healer`, ["amount", "radius", "period"]);
+    traits.healer = {
+      amount: int(h["amount"], `${path}.healer.amount`, 1, 100000),
+      radius: num(h["radius"], `${path}.healer.radius`, false, 20),
+      period: num(h["period"], `${path}.healer.period`, false, 60),
+    };
+  }
+  if (Object.hasOwn(o, "children")) traits.children = parseReleases(o["children"], `${path}.children`);
+  return traits;
+}
+
+function parseAlien(raw: unknown, path: string, mechanics: number): Alien {
+  // Mechanics 1 and 2 have no traits: their simulation would ignore armour, bubbles, flying, healing and releases, so
+  // a ruleset that gave an alien traits under those numbers would be played wrongly. Mechanics 3 requires `traits`.
+  const keys = ["name", "hp", "speed", "leak", "bounty"];
+  const o = mechanics >= 3 ? obj(raw, path, [...keys, "traits"], ["descendantOnly"]) : obj(raw, path, keys);
   return {
     name: str(o["name"], `${path}.name`),
     hp: int(o["hp"], `${path}.hp`, 1, 1000000),
     speed: num(o["speed"], `${path}.speed`, false, 20),
     leak: int(o["leak"], `${path}.leak`, 1, 100),
     bounty: int(o["bounty"], `${path}.bounty`, 0, 100000),
+    traits: mechanics >= 3 ? parseTraits(o["traits"], `${path}.traits`) : {},
+    descendantOnly: Object.hasOwn(o, "descendantOnly") ? flag(o["descendantOnly"], `${path}.descendantOnly`) : false,
   };
+}
+
+/**
+ * Check one release list against the ruleset's aliens (C6.3): every type exists, and none of them releases anything
+ * itself ("cargo may not contain Crafts or Split Slimes; Slimelets never split"). So a release is one generation deep
+ * below the alien a wave schedules. Bosses, whose releases may contain Split Slimes (depth 2), arrive in Phase 27.
+ */
+export function checkReleases(releases: readonly ReleaseSpec[], aliens: Readonly<Record<string, Alien>>, path: string): void {
+  releases.forEach((r, i) => {
+    const alien = aliens[r.type];
+    if (alien === undefined) fail(`${path}[${i}].type`, `alien "${r.type}" is not in this ruleset`);
+    if (alien.traits.children !== undefined) {
+      fail(`${path}[${i}].type`, `"${r.type}" releases aliens itself; a release may not contain a carrier or splitter (C6.3)`);
+    }
+  });
+}
+
+/** The checks that need every alien at once: releases (C6.3), the depth cap (C6.4), one shared heal clock (C6.1). */
+function checkAlienCatalogue(aliens: Readonly<Record<string, Alien>>, caps: Ruleset["caps"]): void {
+  let period: number | null = null;
+  for (const [id, alien] of Object.entries(aliens)) {
+    const children = alien.traits.children;
+    if (children !== undefined) {
+      checkReleases(children, aliens, `ruleset.aliens.${id}.traits.children`);
+      // A descendant is generation 1; C6.4's maxDescendantDepth must allow it.
+      if (caps.maxDescendantDepth < 1) fail(`ruleset.aliens.${id}.traits.children`, "maxDescendantDepth 0 allows no descendants");
+    }
+    const healer = alien.traits.healer;
+    if (healer !== undefined) {
+      if (period !== null && healer.period !== period) {
+        fail(`ruleset.aliens.${id}.traits.healer.period`, `every healer shares one clock (C6.1), so must be ${period}`);
+      }
+      period = healer.period;
+    }
+  }
 }
 
 export function parseRuleset(raw: unknown): Ruleset {
@@ -586,6 +702,9 @@ export function parseRuleset(raw: unknown): Ruleset {
     fail("ruleset.slow", "is mechanics 2; mechanics 1 has no slow attack");
   }
 
+  const aliens = idMap(top["aliens"], "ruleset.aliens", (v, p) => parseAlien(v, p, mechanics));
+  checkAlienCatalogue(aliens, caps);
+
   return {
     kind: "ruleset",
     version,
@@ -594,7 +713,7 @@ export function parseRuleset(raw: unknown): Ruleset {
     colony,
     ...(slow === undefined ? {} : { slow }),
     classes: idMap(top["classes"], "ruleset.classes", (v, p) => parseClass(v, p, mechanics)),
-    aliens: idMap(top["aliens"], "ruleset.aliens", parseAlien),
+    aliens,
     economy: {
       startingCredits: int(e["startingCredits"], "ruleset.economy.startingCredits", 0, 100000),
       waveClearBonus: int(e["waveClearBonus"], "ruleset.economy.waveClearBonus", 0, 100000),
@@ -767,17 +886,26 @@ export function parsePlanet(raw: unknown, ruleset: Ruleset): PlanetDocument {
   const waves = arr(top["waves"], "planet.waves", 1).map((v, i) => {
     const p = `planet.waves[${i}]`;
     const w = obj(v, p, ["wave", "groups", "hpMult", "speedMult"]);
-    const groups = arr(w["groups"], `${p}.groups`, 1, 20).map((gv, j) => {
+    const groups = arr(w["groups"], `${p}.groups`, 1, 20).map((gv, j): SpawnGroup => {
       const gp = `${p}.groups[${j}]`;
-      const group = obj(gv, gp, ["type", "count", "at", "gap"]);
+      // A carrier's cargo (C6.3) is a mechanics 3 rule; an older ruleset's simulation would ignore it.
+      const group = obj(gv, gp, ["type", "count", "at", "gap"], ruleset.mechanics >= 3 ? ["cargo"] : []);
       const type = str(group["type"], `${gp}.type`, KEY_ID_PATTERN, 40);
-      if (!Object.hasOwn(ruleset.aliens, type)) fail(`${gp}.type`, `alien "${type}" is not in ruleset ${ruleset.version}`);
-      return {
+      const alien = ruleset.aliens[type];
+      if (alien === undefined) fail(`${gp}.type`, `alien "${type}" is not in ruleset ${ruleset.version}`);
+      if (alien.descendantOnly) fail(`${gp}.type`, `"${type}" is only ever released by another alien, never scheduled (C6.1)`);
+      const parsed: SpawnGroup = {
         type,
         count: int(group["count"], `${gp}.count`, 1, 200),
         at: num(group["at"], `${gp}.at`, true, 600),
         gap: num(group["gap"], `${gp}.gap`, true, 600),
       };
+      if (Object.hasOwn(group, "cargo")) {
+        if (alien.traits.children === undefined) fail(`${gp}.cargo`, `"${type}" releases nothing, so it has no cargo to name`);
+        parsed.cargo = parseReleases(group["cargo"], `${gp}.cargo`);
+        checkReleases(parsed.cargo, ruleset.aliens, `${gp}.cargo`);
+      }
+      return parsed;
     });
     return {
       wave: int(w["wave"], `${p}.wave`, 1, CAMPAIGN_WAVES),
@@ -806,10 +934,26 @@ export function parsePlanet(raw: unknown, ruleset: Ruleset): PlanetDocument {
 
 // ---- bounds file ------------------------------------------------------------------------------------------------
 
-/** Credits on offer in one authored wave if nothing leaks (C8.1). Mechanics 1 has no descendants or bosses. */
+/**
+ * Credits one alien of `type` is worth if it and everything it releases is defeated (C6.3: parent and offspring
+ * bounties are separate lines; a Craft pays 6 and each of its Moon Blobs 4). `releases` is a group's cargo, or the
+ * type's own children when the group names none. Bosses arrive in Phase 27.
+ */
+export function alienBounty(ruleset: Ruleset, type: string, releases?: readonly ReleaseSpec[]): number {
+  const alien = ruleset.aliens[type];
+  if (alien === undefined) return 0;
+  let total = alien.bounty;
+  for (const r of releases ?? alien.traits.children ?? []) total += r.count * alienBounty(ruleset, r.type);
+  return total;
+}
+
+/**
+ * Credits on offer in one authored wave if nothing leaks (C8.1), descendants included (the server bound maxBounty
+ * relies on C6.4: nothing is dropped, duplicated or re-priced, so this is a constant).
+ */
 export function waveBounty(ruleset: Ruleset, wave: AuthoredWave): number {
   let total = 0;
-  for (const group of wave.groups) total += group.count * (ruleset.aliens[group.type]?.bounty ?? 0);
+  for (const group of wave.groups) total += group.count * alienBounty(ruleset, group.type, group.cargo);
   return total;
 }
 

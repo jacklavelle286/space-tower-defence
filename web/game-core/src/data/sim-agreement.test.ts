@@ -1,5 +1,6 @@
-// Every number in game-data/ agrees with the balance simulator (tools/sim/game_data.json, the C17 evidence): both
-// rulesets, r1 (Nova only) and r2 (the six-class roster, Phase 24), and the planet document. Prices, cumulative costs
+// Every number in game-data/ agrees with the balance simulator (tools/sim/game_data.json, the C17 evidence): the
+// rulesets r1 (Nova only), r2 (the six-class roster, Phase 24) and r3 (the alien catalogue, Phase 26), and the planet
+// document. Prices, cumulative costs
 // and sell refunds equal the simulator's own C5.2 roster table, and the bounds file's maxBounty equals its "Total
 // bounty available" column (C8.2); both tables are tools/sim/tables.json, written by the Python model.
 // Where game-data/ renames something, the mapping is stated here: pad IDs are lower case (C3.2), and the
@@ -8,8 +9,8 @@ import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { GAME_DATA_DIR } from "../../scripts/build-bounds";
-import { buffedDamage, sellRefund } from "../sim/config";
-import { buildBounds, parsePlanet, parseRuleset, TARGETING_MODES } from "./game-data";
+import { armouredDamage, buffedDamage, flyingBlastDamage, healAmount, sellRefund } from "../sim/config";
+import { alienBounty, buildBounds, parsePlanet, parseRuleset, TARGETING_MODES, waveBounty, type AuthoredWave } from "./game-data";
 
 const REPO = resolve(import.meta.dirname, "..", "..", "..", "..");
 const SIM_DIR = join(REPO, "tools", "sim");
@@ -21,6 +22,7 @@ const sim: Loose = JSON.parse(readFileSync(join(SIM_DIR, "game_data.json"), "utf
 const simTables: Loose = JSON.parse(readFileSync(join(SIM_DIR, "tables.json"), "utf8"));
 const ruleset = parseRuleset(JSON.parse(readFileSync(join(GAME_DATA_DIR, "ruleset", "r1.json"), "utf8")));
 const ruleset2 = parseRuleset(JSON.parse(readFileSync(join(GAME_DATA_DIR, "ruleset", "r2.json"), "utf8")));
+const ruleset3 = parseRuleset(JSON.parse(readFileSync(join(GAME_DATA_DIR, "ruleset", "r3.json"), "utf8")));
 const planetRaw: unknown = JSON.parse(readFileSync(join(GAME_DATA_DIR, "campaign", "luna-1-c1.json"), "utf8"));
 const planet = parsePlanet(planetRaw, ruleset);
 
@@ -40,6 +42,7 @@ function simRosterTable(): Map<string, { cost: number; cumulative: number; refun
 describe.each([
   ["r1", ruleset],
   ["r2", ruleset2],
+  ["r3", ruleset3],
 ])("ruleset %s agrees with tools/sim/game_data.json", (_version, rs) => {
   it("simulation tick rate", () => {
     expect(rs.simulation.tickRateHz).toBe(sim.simulation.tickRateHz);
@@ -74,12 +77,22 @@ describe.each([
     }
   });
 
-  it("every alien present", () => {
+  it("every alien present, every number and trait (C6.1)", () => {
     for (const [id, alien] of Object.entries(rs.aliens)) {
       const s = sim.aliens[id];
       expect(s, `alien ${id} is in the simulator`).toBeDefined();
-      expect(alien).toEqual({ name: s.name, hp: s.hp, speed: s.speed, leak: s.leak, bounty: s.bounty });
-      expect(s.traits).toEqual({}); // no traits until Phase 26
+      // The simulator's traits object is copied key for key (armour, bubbles, flying, cluster, healer, children).
+      // Mechanics 1 and 2 have no traits: those rulesets hold only the Moon Blob, which has none in the simulator.
+      expect(alien, id).toEqual({
+        name: s.name,
+        hp: s.hp,
+        speed: s.speed,
+        leak: s.leak,
+        bounty: s.bounty,
+        traits: s.traits,
+        descendantOnly: s.descendantOnly ?? false,
+      });
+      if (rs.mechanics < 3) expect(s.traits).toEqual({});
     }
   });
 
@@ -130,6 +143,93 @@ describe("ruleset r2 is the whole roster (Phase 24, M2-01)", () => {
     const { targetingFromLevel: _t, ...nova2 } = ruleset2.classes["nova"] ?? {};
     const { targetingFromLevel: _t1, ...nova1 } = ruleset.classes["nova"] ?? {};
     expect(nova2).toEqual(nova1);
+  });
+});
+
+describe("ruleset r3 is the whole alien catalogue (Phase 26, M2-03)", () => {
+  it("has exactly the simulator's ten aliens (C6.1) and declares mechanics 3", () => {
+    expect(Object.keys(ruleset3.aliens)).toEqual(Object.keys(sim.aliens).sort());
+    expect(Object.keys(ruleset3.aliens)).toEqual(["blob", "craft", "flutter", "guard", "mite", "patch", "shell", "slime", "slimelet", "swarm"]);
+    expect(ruleset3.mechanics).toBe(3);
+  });
+
+  it("changes nothing r2 had except the aliens", () => {
+    const { aliens: a2, version: _v2, mechanics: _m2, ...rest2 } = ruleset2;
+    const { aliens: a3, version: _v3, mechanics: _m3, ...rest3 } = ruleset3;
+    expect(rest3).toEqual(rest2);
+    expect(a3["blob"]).toEqual(a2["blob"]);
+  });
+
+  it("the C6.1 trait numbers and the C6.4 caps, as C states them", () => {
+    const t = (id: string) => ruleset3.aliens[id]?.traits;
+    expect([t("shell")?.armour, t("guard")?.bubbles, t("flutter")?.flying, t("swarm")?.cluster]).toEqual([4, 4, true, true]);
+    expect(t("patch")?.healer).toEqual({ amount: 6, radius: 1.5, period: 3 });
+    expect([t("slime")?.children, t("craft")?.children]).toEqual([[{ type: "slimelet", count: 2 }], [{ type: "blob", count: 4 }]]);
+    expect(ruleset3.caps).toEqual({
+      maxActiveAliens: 60,
+      scheduledSpawnSoftCap: 48,
+      maxLiveDescendants: 24,
+      descendantReleaseGap: 0.25,
+      deferredSpawnGap: 0.25,
+      maxDescendantDepth: 2,
+    });
+  });
+
+  it("parent and offspring bounties are separate lines (C6.3): a Craft is worth 6 + 4 x 4, a Split Slime 3 + 2 x 1", () => {
+    expect(alienBounty(ruleset3, "craft")).toBe(22);
+    expect(alienBounty(ruleset3, "slime")).toBe(5);
+    expect(alienBounty(ruleset3, "craft", [{ type: "mite", count: 6 }])).toBe(6 + 6 * 2); // wave 38's cargo
+  });
+
+  it("every non-boss campaign wave's bounty, cargo included, equals the simulator's 'Total bounty available' (C8.2)", () => {
+    // The simulator's 45 non-boss waves as authored waves (the five boss waves wait for Phase 27). waveBounty is what
+    // the bounds file's maxBounty uses, so this also checks the server's bound for every alien, carrier and cargo.
+    const table: string = simTables.tables.waves;
+    const header = table.split("\n")[0]?.split("|").map((c) => c.trim()) ?? [];
+    const col = header.indexOf("Total bounty available");
+    const bounty = new Map(
+      table
+        .split("\n")
+        .filter((l) => /^\| \d+ \|/.test(l))
+        .map((l) => {
+          const cells = l.split("|").map((c) => c.trim());
+          return [Number(cells[1]), Number(cells[col])];
+        }),
+    );
+    const waves: Loose[] = sim.waves.filter((w: Loose) => w.boss === null);
+    expect(waves).toHaveLength(45);
+    expect(waves.some((w) => w.groups.some((g: Loose) => g.cargo !== undefined))).toBe(true);
+    for (const w of waves) {
+      const wave: AuthoredWave = { wave: w.wave, groups: w.groups, hpMult: w.hpMult, speedMult: w.speedMult };
+      expect(waveBounty(ruleset3, wave), `wave ${w.wave}`).toBe(bounty.get(w.wave));
+    }
+  });
+
+  it("the trait rounding rules are the simulator's (C2.2): flying blast, armour, Patchling heal", () => {
+    const simSource = readFileSync(join(SIM_DIR, "sim.py"), "utf8");
+    expect(sim.combatRules.rounding.junoBlastOnFlying).toBe("ceil(damage / 2)");
+    expect(sim.combatRules.rounding.armour).toBe("max(1, damage - armour)");
+    expect(sim.combatRules.rounding.patchlingHeal).toBe("floor(amount * hpMult + 0.5), never above maximum health");
+    // sim.py Game._hit and the heal pulse in Game.run_wave, as written there.
+    expect(simSource).toContain("dmg = (dmg + 1) // 2");
+    expect(simSource).toContain('amt = int(math.floor(h.healer["amount"] * wd["hpMult"] + 0.5))');
+    for (let d = 1; d <= 200; d += 1) {
+      expect(flyingBlastDamage(d)).toBe(Math.ceil(d / 2));
+      expect(armouredDamage(d, 4)).toBe(Math.max(1, d - 4));
+    }
+    // Every hpMult the simulator's campaign uses.
+    for (const w of sim.waves) expect(healAmount(6, w.hpMult)).toBe(Math.floor(6 * w.hpMult + 0.5));
+  });
+
+  it("the simulator's damage order is C2.2's: buff, flying, bubble layer, armour, health", () => {
+    expect(sim.combatRules.damageOrder).toEqual([
+      "base damage",
+      "Sol buff: floor((base*(100+pct)+50)/100)",
+      "flying: Juno blast halved, rounded up",
+      "bubble layer absorbs the whole hit",
+      "armour: max(1, damage - armour)",
+      "health",
+    ]);
   });
 });
 
