@@ -5,6 +5,8 @@
     R42 GET    /api/admin/levels/{id}            the header and the draft (the level file body and its revision)
     R43 PUT    /api/admin/levels/{id}/draft      save: {draftRevision, level}; a stale revision is 409 DRAFT_CONFLICT
     R44 DELETE /api/admin/levels/{id}            delete a level (in LD3 every level is a draft never published)
+    R45 POST   /api/admin/levels/{id}/testplay   record that the checks ran on a draft revision: {draftRevision,
+                                                 blocking, warnings} (LD5); refused (409) when the draft moved on
 
 Create is create-only: header, draft and audit item in one transaction; an ID already used is refused
 (`{field: "level.levelId", rule: "exists"}`). Save conditions the draft on the revision the editor loaded, the same
@@ -58,7 +60,7 @@ def _only(body: Mapping[str, Any], fields: set[str]) -> None:
 def make_level_handlers(
     *, table: Callable[[], DynamoTable], now: Callable[[], datetime], transact: Transact, page: Page
 ) -> dict[str, Handler]:
-    """The five level handlers, by route key."""
+    """The six level handlers, by route key."""
 
     def items(level_id: str) -> tuple[dict[str, Any], dict[str, Any]]:
         found = table().batch_get([(LEVEL_PK, level_id), (level_pk(level_id), DRAFT_SK)])
@@ -75,6 +77,7 @@ def make_level_handlers(
                 "level": plain(draft.get("level")),
                 "draftRevision": as_int(draft.get("draftRevision")),
                 "updatedAt": draft.get("updatedAt"),
+                "review": plain(draft.get("review") or {}),
             },
         }
 
@@ -179,7 +182,44 @@ def make_level_handlers(
             raise ApiError("NOT_FOUND")  # deleted meanwhile (a published level cannot exist before LD6)
         return json_response(200, {"levelId": level_id, "deleted": True})
 
+    def record_testplay(request: Request) -> dict[str, Any]:
+        """The editor ran the balance checks (LD5) on `draftRevision`: store the counts on the draft's review. The
+        publisher (LD6) requires a test play of the revision it publishes, and re-runs the blocking checks itself."""
+        level_id = _level_id(request)
+        request.log.update(levelId=level_id, action="testplay")
+        body = json_object(request.event)
+        _only(body, {"draftRevision", "blocking", "warnings"})
+        revision, blocking, warnings = (as_int(body[k]) for k in ("draftRevision", "blocking", "warnings"))
+        problems = [
+            problem(k, "type")
+            for k, v in (("draftRevision", revision), ("blocking", blocking), ("warnings", warnings))
+            if v is None or v < 0
+        ]
+        if problems:
+            raise _invalid(problems)
+        items(level_id)
+        review = {
+            "testPlayedDraftRevision": revision,
+            "blocking": blocking,
+            "warnings": warnings,
+            "at": iso_z(now()),
+            "by": request.caller.sub,
+        }
+        content = table()
+        action = content.update_action(
+            level_pk(level_id),
+            DRAFT_SK,
+            update="SET #review = :review",
+            names={"#review": "review", "#rev": "draftRevision"},
+            values={":review": review, ":r": revision},
+            condition="#rev = :r",
+        )
+        if transact(content, [action]) is not None:
+            raise ApiError("DRAFT_CONFLICT")
+        return json_response(200, view(level_id))
+
     return {
+        "POST /api/admin/levels/{id}/testplay": record_testplay,
         "GET /api/admin/levels": list_levels,
         "POST /api/admin/levels": create_level,
         "GET /api/admin/levels/{id}": get_level,

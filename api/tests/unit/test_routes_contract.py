@@ -13,15 +13,15 @@ SCOPE = {"player": "game/play", "operator": "ops/content"}
 MODULE = {"player-api": "player_api", "admin-api": "admin_api", "tts": "tts"}
 
 
-def test_forty_four_routes_in_catalogue_order() -> None:
-    """R1-R30 (G §2), R31-R32 (deletes, 2026-11-16), R33-R39 (pictures; Gate P), R40-R44 (levels; Gate M, LD3)."""
-    assert [route["id"] for route in ROUTES] == [f"R{n}" for n in range(1, 45)]
+def test_forty_five_routes_in_catalogue_order() -> None:
+    """R1-R30 (G §2), R31-R32 (deletes, 2026-11-16), R33-R39 (pictures; Gate P), R40-R45 (levels; Gate M, LD3-LD5)."""
+    assert [route["id"] for route in ROUTES] == [f"R{n}" for n in range(1, 46)]
     assert all(set(route) == FIELDS for route in ROUTES)
 
 
 def test_route_keys_are_unique_and_keep_the_api_prefix() -> None:
     keys = [f"{route['method']} {route['path']}" for route in ROUTES]
-    assert len(set(keys)) == 44
+    assert len(set(keys)) == 45
     for route in ROUTES:
         assert route["method"] in {"GET", "POST", "PUT", "PATCH", "DELETE"}
         assert route["path"].startswith("/api/")
@@ -42,7 +42,7 @@ def test_functions_per_g2() -> None:
     assert by_function == {
         "player-api": [f"R{n}" for n in range(1, 15)],
         "tts": ["R15", "R16"],
-        "admin-api": [f"R{n}" for n in range(17, 45)],
+        "admin-api": [f"R{n}" for n in range(17, 46)],
     }
 
 

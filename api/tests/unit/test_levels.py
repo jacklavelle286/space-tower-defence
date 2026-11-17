@@ -144,3 +144,22 @@ def test_shared_invalid_level_files_name_their_problem(name: str) -> None:
     case = SHAPES["invalid"][name]
     problems = level_problems(case["level"], case["level"]["levelId"])
     assert {"field": case["field"], "rule": case["rule"]} in problems
+
+
+def test_a_test_play_is_recorded_on_its_revision_only(api: Admin) -> None:
+    api.call("POST /api/admin/levels", {"level": level()})
+    status, view = api.call(
+        "POST /api/admin/levels/{id}/testplay", {"draftRevision": 0, "blocking": 0, "warnings": 2}, id="zigzag"
+    )
+    assert status == 200, view
+    review = view["draft"]["review"]
+    assert (review["testPlayedDraftRevision"], review["blocking"], review["warnings"]) == (0, 0, 2)
+    api.call("PUT /api/admin/levels/{id}/draft", {"draftRevision": 0, "level": level()}, id="zigzag")
+    status, body = api.call(
+        "POST /api/admin/levels/{id}/testplay", {"draftRevision": 0, "blocking": 0, "warnings": 0}, id="zigzag"
+    )
+    assert status == 409 and body["error"]["code"] == "DRAFT_CONFLICT"
+    status, body = api.call(
+        "POST /api/admin/levels/{id}/testplay", {"draftRevision": 1, "blocking": -1, "warnings": 0}, id="zigzag"
+    )
+    assert status == 400
