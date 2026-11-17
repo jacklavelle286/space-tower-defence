@@ -651,3 +651,22 @@
   color: #fff4d6;
   font: 13px/1.4 ui-monospace, monospace;
 }
+
+/* Phase 66: the new-alien card. */
+.bf-new-alien {
+  max-width: 420px;
+  text-align: center;
+}
+.bf-new-alien img {
+  display: block;
+  margin: 0 auto;
+}
+.bf-new-alien .bf-new-alien-kicker {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+.bf-new-alien p {
+  font-size: 20px;
+}

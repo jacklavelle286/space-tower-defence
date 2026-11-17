@@ -71,6 +71,8 @@ export interface HudState {
   readonly armed: string | null;
   /** The power being aimed (a Comet Burst's ring is on the route; the battle is paused), or null. */
   readonly aiming: string | null;
+  /** An alien type on the route for the first time in this run (Phase 66): the battle waits on its card. */
+  readonly announcing: string | null;
   /** One shop card per class of the wave set, in its order (D4 "Shop"). */
   readonly shop: readonly ShopCard[];
 }
@@ -144,6 +146,9 @@ export class GameBridge {
   #armed: string | null = null;
   #focusedPad: string | null = null;
   #aim: { powerId: string; target: number } | null = null;
+  /** Phase 66: the alien type whose card is showing, and every type this run has already met. */
+  #announce: string | null = null;
+  #met: Set<string> | null = null;
   /** Battle events for the scene's effects (stars, beams), taken by takeSceneEvents each frame. */
   #sceneEvents: BattleEvent[] = [];
   #sinceHud = HUD_INTERVAL_MS;
@@ -159,8 +164,12 @@ export class GameBridge {
   };
   readonly #unsubscribeRun: () => void;
 
-  constructor(config: BattleConfig, run: RunPort, seed: string) {
+  /** Whether a new alien type waits on its card (Phase 66); tests of other things turn it off. */
+  readonly #announces: boolean;
+
+  constructor(config: BattleConfig, run: RunPort, seed: string, options: { readonly announceNewAliens?: boolean } = {}) {
     this.config = config;
+    this.#announces = options.announceNewAliens ?? true;
     this.#run = run;
     this.#seed = seed;
     // A run change that lands in BUILD (the activity resolved) prepares the next wave.
@@ -259,6 +268,7 @@ export class GameBridge {
       powers: { ...(b?.powers ?? snap?.powers ?? {}) },
       armed: this.#armed,
       aiming: this.#aim?.powerId ?? null,
+      announcing: this.#announce,
       shop: this.#shop(),
     };
   }
@@ -326,8 +336,11 @@ export class GameBridge {
     const b = this.#battle;
     if (b !== null) {
       // Aiming a Comet Burst pauses the battle too (C2.1), without the Paused card: dropping or cancelling resumes.
-      this.#clock = runFrame(b, this.#clock, deltaMs, this.#speed, this.#paused || this.#aim !== null).clock;
+      // So does a new alien's card (Phase 66), until Continue.
+      const held = this.#paused || this.#aim !== null || this.#announce !== null;
+      this.#clock = runFrame(b, this.#clock, deltaMs, this.#speed, held).clock;
       this.#collect(b);
+      if (this.#announces && b.status === "IN_WAVE" && this.#announce === null) this.#lookForNewAliens(b);
       if (!this.#reported && (b.status === "CLEARED" || b.status === "DEFEATED")) this.#finishWave(b);
     }
     this.#sinceHud += Number.isFinite(deltaMs) && deltaMs > 0 ? deltaMs : 0;
@@ -387,6 +400,8 @@ export class GameBridge {
     if (b !== null && b.wave === run.wave && (b.status === "PREP" || b.status === "IN_WAVE")) return;
     this.#battle = createBattle(this.config, run.snapshot, run.wave, this.#seed);
     this.#aim = null; // a new wave never inherits an aiming ring
+    this.#announce = null;
+    this.#met = this.#metBefore(run.wave);
     this.#clock = { accumulator: 0 };
     this.#reported = false;
     this.#sceneEvents = [];
@@ -414,6 +429,45 @@ export class GameBridge {
 
   pause(): void {
     this.#paused = true;
+  }
+
+  /** Continue on a new alien's card: the battle goes on (and the next new type, if any, gets its card). */
+  dismissAnnouncement(): void {
+    if (this.#announce === null) return;
+    this.#announce = null;
+    this.#publish();
+  }
+
+  /**
+   * Every alien type the run met before wave `wave` (Phase 66): what the earlier waves scheduled and what those aliens
+   * release (C6.3). Worked out from the wave set, so a run resumed later announces only what is new to it.
+   */
+  #metBefore(wave: number): Set<string> {
+    const met = new Set<string>();
+    const add = (type: string) => {
+      if (met.has(type)) return;
+      met.add(type);
+      for (const child of this.config.aliens[type]?.children ?? []) add(child.type);
+    };
+    for (let w = 1; w < wave; w += 1) {
+      for (const s of planFor(this.config, w).spawns) {
+        add(s.type);
+        for (const c of s.cargo ?? []) add(c.type);
+      }
+    }
+    return met;
+  }
+
+  /** The first alien on the route of a type this run has not met: its card shows and the battle waits. */
+  #lookForNewAliens(b: Readonly<Battle>): void {
+    const met = (this.#met ??= this.#metBefore(b.wave));
+    for (const alien of b.aliens) {
+      if (met.has(alien.type)) continue;
+      met.add(alien.type);
+      this.#announce = alien.type;
+      this.#publish();
+      return;
+    }
   }
 
   resume(): void {

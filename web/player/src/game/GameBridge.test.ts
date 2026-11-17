@@ -20,7 +20,7 @@ function setUp(health?: number) {
   }
   let n = 0;
   const run = new LocalRun(start, () => `00000000-0000-4000-8000-${String((n += 1)).padStart(12, "0")}`, () => "2026-11-15T10:00:00Z");
-  const bridge = new GameBridge(config, run, "test-seed");
+  const bridge = new GameBridge(config, run, "test-seed", { announceNewAliens: false });
   const seen: { [K in keyof BridgeEvents]: BridgeEvents[K][] } = {
     hud: [],
     selectionChanged: [],
@@ -140,7 +140,7 @@ describe("GameBridge", () => {
     const everyClass = compileBattleConfig(r2, parsePlanet(raw, r2), "first-contact");
     const start = initialRunState(r2, everyClass, ["continue"]);
     if (start.snapshot === undefined) throw new Error("a new run has a snapshot");
-    const bridge = new GameBridge(everyClass, new LocalRun({ ...start, snapshot: { ...start.snapshot, credits: 430 } }), "test-seed");
+    const bridge = new GameBridge(everyClass, new LocalRun({ ...start, snapshot: { ...start.snapshot, credits: 430 } }), "test-seed", { announceNewAliens: false });
     bridge.place("p02", "mira");
     bridge.place("p04", "mira"); // Mira's cap is 2 (C5.8); 430 - 320 = 110 credits left
     bridge.selectPad("p05");
@@ -188,7 +188,7 @@ describe("GameBridge", () => {
     const snapshot = start.snapshot;
     if (snapshot === undefined) throw new Error("no snapshot");
     const run = new LocalRun({ ...start, snapshot: { ...snapshot, powers: { "colony-shield": 2 } } }, () => "00000000-0000-4000-8000-000000000001");
-    const bridge = new GameBridge(cfg, run, "test-seed");
+    const bridge = new GameBridge(cfg, run, "test-seed", { announceNewAliens: false });
     const rejected: string[] = [];
     bridge.on("commandRejected", (e) => rejected.push(e.reason));
     // oxlint-disable-next-line react/rules-of-hooks -- GameBridge.usePower is the spine's command name, not a hook
@@ -206,5 +206,26 @@ describe("GameBridge", () => {
     frames(bridge, 1000 / 60, 1);
     expect(rejected).toEqual(["NOT_NOW", "POWER_USED_THIS_WAVE"]);
     expect(bridge.hud().powers).toEqual({ "colony-shield": 1 });
+  });
+
+  it("a new alien type waits on its card, once per run, and only types the earlier waves did not bring (Phase 66)", () => {
+    const run = new LocalRun(initialRunState(ruleset, config, ["continue"]), () => "00000000-0000-4000-8000-000000000009");
+    const bridge = new GameBridge(config, run, "test-seed");
+    bridge.startWave();
+    let guard = 0;
+    while (bridge.hud().announcing === null && guard++ < 2000) bridge.frame(16);
+    expect(bridge.hud().announcing).toBe("blob"); // wave 1's Moon Blob, the run's first alien
+    const tick = bridge.battle?.tick ?? 0;
+    for (let i = 0; i < 30; i += 1) bridge.frame(16);
+    expect(bridge.battle?.tick).toBe(tick); // the battle waits on the card
+    bridge.dismissAnnouncement();
+    for (let i = 0; i < 30; i += 1) bridge.frame(16);
+    expect(bridge.battle?.tick).toBeGreaterThan(tick);
+    expect(bridge.hud().announcing).toBeNull(); // more Moon Blobs: no second card
+    // A run resumed at a later wave has met everything the waves before it brought.
+    const later = new GameBridge(config, new LocalRun({ ...initialRunState(ruleset, config, ["continue"]), wave: 2 }), "test-seed");
+    later.startWave();
+    for (let i = 0; i < 600; i += 1) later.frame(16);
+    expect(later.hud().announcing).toBeNull();
   });
 });

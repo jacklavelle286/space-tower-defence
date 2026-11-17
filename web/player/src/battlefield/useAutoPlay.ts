@@ -13,6 +13,10 @@ export type AutoPlayMode = "play" | "lose" | "watch";
 export function useAutoPlay(bridge: GameBridge, run: LocalRun, hud: HudState, mode: AutoPlayMode | null): void {
   useEffect(() => {
     if (mode === null || hud.runStatus !== "IN_PROGRESS") return;
+    if (hud.announcing !== null) {
+      bridge.dismissAnnouncement(); // a new alien's card (Phase 66): playing by itself, it reads on
+      return;
+    }
     if (hud.runPhase === "ACTIVITY" || (mode === "watch" && hud.runPhase === "METEOR")) {
       run.submitAttempt(PLACEHOLDER_ANSWER);
       return;

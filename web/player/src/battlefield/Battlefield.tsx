@@ -6,6 +6,7 @@ import { compileBattleConfig, type Speed } from "@scd/game-core";
 import { AUTO, Game, Scale } from "phaser";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { BridgeContext } from "./bridgeContext";
+import { NewAlienAnnouncements } from "./NewAlienCard";
 import { BattleScene } from "../game/BattleScene";
 import { GameBridge } from "../game/GameBridge";
 import type { GameData } from "../game/gameData";
@@ -74,7 +75,12 @@ export function Battlefield({ data, waveSetId, run, seed, speed, children, onBri
     <div className="bf">
       <div className="bf-stage">
         <div ref={container} className="bf-canvas" />
-        {bridge !== null && <BridgeContext.Provider value={bridge}>{children}</BridgeContext.Provider>}
+        {bridge !== null && (
+          <BridgeContext.Provider value={bridge}>
+            {children}
+            <NewAlienAnnouncements bridge={bridge} art={data.art} />
+          </BridgeContext.Provider>
+        )}
       </div>
     </div>
   );

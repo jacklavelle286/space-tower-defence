@@ -230,6 +230,23 @@ export const COPY = {
     declined: "That's fine — you can still beat the boss!",
     ok: "OK",
   },
+  newAlien: {
+    // Phase 66 (owner ask, 2026-11-17): the card when an alien type first comes in a run [PROPOSAL] wording, for ages
+    // 5 to 7: one short line per trait (C6.1), the plain ones by speed. Approved like other child-facing copy.
+    heading: "New alien!",
+    boss: "A boss is coming!",
+    continue: "Got it!",
+    fast: "It is very quick.",
+    slow: "It is slow but tough.",
+    plain: "It walks to the colony.",
+    armour: "Its hard shell stops small zaps. Big zaps work best.",
+    bubbles: "It hides inside bubbles. Pop them all!",
+    flying: "It flies over the path.",
+    cluster: "Lots of them come together.",
+    healer: "It makes its friends better. Zap it first!",
+    children: "Pop it and little ones come out.",
+    bossLine: "It is big and strong. It changes when it gets hurt.",
+  },
   learning: PANEL_COPY,
   offline: "You need the internet for this.", // D7.3
   loading: "Loading…",

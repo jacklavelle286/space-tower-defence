@@ -29,5 +29,5 @@ export function bridgeWith(credits: number, powers: Record<string, number> = {})
     { ...start, snapshot: { ...start.snapshot, credits, powers } },
     () => `00000000-0000-4000-8000-${String((n += 1)).padStart(12, "0")}`,
   );
-  return new GameBridge(config, run, "test-seed");
+  return new GameBridge(config, run, "test-seed", { announceNewAliens: false }); // the new-alien card (Phase 66) has its own tests
 }
