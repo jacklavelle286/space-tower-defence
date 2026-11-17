@@ -1,9 +1,9 @@
 """game-data-publish: the only writer of game-data/ besides the release (Gate M, LD6; ADR-0037). The work is in
 shared/gd_publish.py; this file wires it to AWS and dispatches the event's action.
 
-Invoked by admin-api only (LD7's routes): `publish` asynchronously (InvocationType Event, no retries: its outcome is
-kept on the PUB# item), the other actions synchronously. The answer is {"ok": true, ...} or
-{"ok": false, "error": {"code", "message", "details"?}}.
+Invoked by admin-api only (LD7's routes): `publish` and `publishAlien` (AM1) asynchronously (InvocationType Event, no
+retries: the outcome is kept on the PUB# item or the ALIEN item), the other actions synchronously. The answer is
+{"ok": true, ...} or {"ok": false, "error": {"code", "message", "details"?}}.
 
 Environment: CONTENT_TABLE_NAME, GAME_DATA_BUCKET, GAME_DATA_PREFIX, CHECK_FUNCTION_NAME (game-data-check, Node 24),
 FREEZE_PARAMETER (an SSM String parameter, "true" stops every write action; G-8 checks it at the freeze).
@@ -147,10 +147,14 @@ def dispatch(publisher: Publisher, event: Mapping[str, Any]) -> dict[str, Any]:
             return publisher.set_testers(event.get("testers"), by)
         if action == "releasePlanet":
             return publisher.release_planet(event.get("planetId"), by)
+        if action == "publishAlien":
+            return publisher.publish_alien(event.get("alienId"), by)
         raise PublishRefused("INVALID", "unknown action")
     except PublishRefused as refusal:
         if action == "publish":
             publisher.refuse(event.get("levelId"), event.get("draftRevision"), refusal)
+        if action == "publishAlien":
+            publisher.refuse_alien(event.get("alienId"), refusal)
         logger.line("WARNING", action=str(action), result="REFUSED", code=refusal.code)
         return {"ok": False, "error": refusal.body()}
     except Exception as error:
@@ -158,6 +162,8 @@ def dispatch(publisher: Publisher, event: Mapping[str, Any]) -> dict[str, Any]:
             publisher.refuse(
                 event.get("levelId"), event.get("draftRevision"), PublishRefused("INTERNAL", "the publish failed")
             )
+        if action == "publishAlien":
+            publisher.refuse_alien(event.get("alienId"), PublishRefused("INTERNAL", "the publish failed"))
         logger.line("ERROR", action=str(action), result="ERROR", errorType=type(error).__name__)
         raise
 

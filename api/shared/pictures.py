@@ -398,6 +398,10 @@ def picture_users(content: DynamoTable, picture_id: str) -> list[str]:
     for planet in content.query_prefix("PLANET", "", attributes=("sk", "icon", "backdrop")):
         if picture_id in (planet.get("icon"), planet.get("backdrop")):
             users.add(f"planet:{planet['sk']}")
+    # Gate M, AM1: a made alien's walk frames, draft or published (a published one is in a manifest too).
+    for alien in content.query_prefix("ALIEN", "", attributes=("sk", "art")):
+        if picture_id in (alien.get("art") or []):
+            users.add(f"alien:{alien['sk']}")
     return sorted(users)
 
 

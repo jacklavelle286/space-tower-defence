@@ -681,6 +681,7 @@ module "api" {
     "POST /api/admin/game-data/states"     = { rate_limit = 1, burst_limit = 3 }
     "PUT /api/admin/game-data/testers"     = { rate_limit = 1, burst_limit = 3 }
     "POST /api/admin/planets/{id}/release" = { rate_limit = 1, burst_limit = 2 } # LD10: appends to current.json
+    "POST /api/admin/aliens/{id}/publish"  = { rate_limit = 1, burst_limit = 2 } # AM1: a ruleset and manifest
   }
 }
 

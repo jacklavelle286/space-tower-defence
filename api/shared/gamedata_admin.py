@@ -2,9 +2,9 @@
 side of the game-data publisher. admin-api never writes game data itself: it reads what is published and asks the
 publisher (game-data-publish) to act.
 
-    R46 GET  /api/admin/game-data                 current.json, the live planet document (what levels are merged
-                                                  into and checked against), the testers, the published versions
-                                                  with their wave sets' states, and the publish history
+    R46 GET  /api/admin/game-data                 current.json, the live ruleset (AM1) and planet document (what
+                                                  levels are merged into and checked against), the testers, the
+                                                  published versions with their wave sets' states, and the history
     R47 GET  /api/admin/game-data/versions/{id}   one published planet document (the Versions panel compares two)
     R48 POST /api/admin/levels/{id}/validate      {draftRevision}: the publisher's checks without bots (synchronous)
     R49 POST /api/admin/levels/{id}/publish       {draftRevision, sourceVersion, live, ticks}: queue a publish (202);
@@ -151,7 +151,7 @@ def _path_value(request: Request) -> str:
     return value if isinstance(value, str) else ""
 
 
-def _stale(updated_at: Any, moment: datetime) -> bool:
+def stale(updated_at: Any, moment: datetime) -> bool:
     """Whether a QUEUED or RUNNING publish has outlived the publisher (so it never ran, or died)."""
     try:
         updated = datetime.strptime(str(updated_at), "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=moment.tzinfo)
@@ -263,10 +263,15 @@ def make_gamedata_handlers(
                     ],
                 }
             )
+        try:
+            ruleset = r.ruleset(str(current["rulesetVersion"]))
+        except GameDataUnavailable:
+            raise ApiError("CONTENT_UNAVAILABLE", details={"reason": "GAME_DATA_UNREADABLE"}) from None
         return json_response(
             200,
             {
                 "current": current,
+                "ruleset": ruleset,  # AM1: the editor checks levels against the live ruleset (made aliens are in it)
                 "live": live,  # the document levels of `base.planetId` are merged into (LD10: ?planet=)
                 "base": {"planetId": base_planet, "sourceVersion": base_version},
                 "testers": sorted(versions.testers),
@@ -345,7 +350,7 @@ def make_gamedata_handlers(
             state = claim.get("state")
             if state == "DONE":
                 return json_response(200, {"publish": claim_view(claim)})
-            if state in ("QUEUED", "RUNNING") and not _stale(claim.get("updatedAt"), moment):
+            if state in ("QUEUED", "RUNNING") and not stale(claim.get("updatedAt"), moment):
                 return json_response(202, {"publish": claim_view(claim)})  # already on its way: not queued twice
         stamp = iso_z(moment)
         fields = {"state": "QUEUED", "by": by, "updatedAt": stamp, "ticks": dict(ticks), "requestedLive": live}

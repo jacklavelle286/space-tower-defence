@@ -89,10 +89,11 @@ run "bucket_deny_and_writers" {
   assert {
     condition = (
       toset(flatten([for s in data.aws_iam_policy_document.game_data_publish.statement : s.actions if s.sid == "GameDataWrite"])) == toset(["s3:PutObject"]) &&
-      length([for r in flatten([for s in data.aws_iam_policy_document.game_data_publish.statement : s.resources if s.sid == "GameDataWrite"]) : r if strcontains(r, "ruleset")]) == 0 &&
-      length(flatten([for s in data.aws_iam_policy_document.game_data_publish.statement : s.resources if s.sid == "GameDataWrite"])) == 4
+      toset([for r in flatten([for s in data.aws_iam_policy_document.game_data_publish.statement : s.resources if s.sid == "GameDataWrite"]) : trimprefix(r, "arn:aws:s3:::player-spa-bucket/game-data/")]) == toset([
+        "campaign/*", "bounds/*", "ruleset/*", "asset-manifest/*", "current.json", "versions.json",
+      ])
     )
-    error_message = "the publisher may PutObject on campaign/, bounds/, current.json and versions.json only: never ruleset/, never a delete"
+    error_message = "the publisher may PutObject on campaign/, bounds/, ruleset/, asset-manifest/ (AM1), current.json and versions.json only: never a delete"
   }
 
   assert {

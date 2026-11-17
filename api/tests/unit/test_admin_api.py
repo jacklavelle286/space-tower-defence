@@ -112,6 +112,8 @@ class Admin:
         self.s3.put_object(Bucket=BUCKET, Key="game-data/current.json", Body=current)
         planet = (REPO / "game-data" / "campaign" / "luna-1-c1.json").read_bytes()
         self.s3.put_object(Bucket=BUCKET, Key="game-data/campaign/luna-1-c1.json", Body=planet)
+        ruleset = (REPO / "game-data" / "ruleset" / "r1.json").read_bytes()  # R46 and R57 read it (AM1)
+        self.s3.put_object(Bucket=BUCKET, Key="game-data/ruleset/r1.json", Body=ruleset)
         self.reader = GameDataReader(bucket=BUCKET, s3=self.s3)
 
     def call(self, route: str, body: Any = None, *, id: str | None = None, query: dict | None = None) -> tuple:
@@ -630,7 +632,7 @@ def test_every_admin_route_refuses_a_non_operator_before_any_read(
 def test_every_admin_route_is_behind_the_operator_authoriser() -> None:
     """A player token is refused at the gateway (401): the operator authoriser trusts only the operator pool's issuer
     and its admin client (infrastructure/main/main.tf), and routes.json puts every /api/admin route behind it."""
-    assert len(ADMIN_ROUTES) == 41  # R16 (tts), R17-R39, R40-R45 (levels, LD3-LD5), R46-R52 (LD7), R53-R56 (LD10)
+    assert len(ADMIN_ROUTES) == 46  # R16 (tts), R17-R39, R40-R45 (LD3-5), R46-R52 (LD7), R53-R56 (LD10), R57-R61 (AM1)
     assert all(
         r["authoriser"] == "operator" and r["scope"] == "ops/content"
         for r in ROUTES

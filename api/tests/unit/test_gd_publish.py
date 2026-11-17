@@ -47,9 +47,12 @@ class FakeCheck:
         self.calls: list[dict[str, Any]] = []
         self.ok = True
         self.pictures: dict[str, list[str]] = {"backdrops": [], "decorations": []}
+        self.unbuildable: set[str] = set()  # planet versions `rebuild` refuses (AM1)
 
     def __call__(self, payload: dict[str, Any]) -> dict[str, Any]:
         self.calls.append(payload)
+        if payload.get("mode") == "rebuild":
+            return self.rebuild(payload)
         version = payload["version"]
         doc = json.loads(LIVE_BYTES)
         doc["version"] = version
@@ -71,8 +74,23 @@ class FakeCheck:
             "waveSets": OWNED,
         }
 
+    def rebuild(self, payload: dict[str, Any]) -> dict[str, Any]:
+        """The document's bounds under the given ruleset: the fixture, stamped with both versions."""
+        rv, cv = payload["ruleset"]["version"], payload["planet"]["version"]
+        if cv in self.unbuildable:
+            problem = {"field": "planet", "rule": "parse", "severity": "hard", "message": "x"}
+            return {"ok": False, "problems": [problem], "boundsJson": None, "boundsVersion": None}
+        bounds = json.loads(BOUNDS_BYTES)
+        bounds["rulesetVersion"], bounds["campaignVersion"] = rv, cv
+        return {
+            "ok": True,
+            "problems": [],
+            "boundsJson": json.dumps(bounds, indent=2) + "\n",
+            "boundsVersion": f"{rv}__{cv}",
+        }
+
     def bot_runs(self) -> int:
-        return sum(1 for c in self.calls if c["runBots"])
+        return sum(1 for c in self.calls if c.get("runBots"))
 
 
 class Env:
@@ -348,11 +366,19 @@ def test_make_live_is_also_the_rollback(env: Env) -> None:
     assert [r["action"] for r in env.table.query_prefix("GDPUBLISH", "")].count("make-live") == 1
 
 
-def test_make_live_refuses_a_version_without_bounds_or_with_a_withdrawn_campaign(env: Env) -> None:
+def test_make_live_builds_missing_bounds_and_refuses_a_withdrawn_campaign(env: Env) -> None:
+    # AM1 (ADR-0041): a version with no bounds for the live ruleset (published before a ruleset change) gets them
+    # built; one that does not work with the ruleset is refused.
     env.put("campaign/luna-1-c1.json", (REPO / "game-data" / "campaign" / "luna-1-c1.json").read_bytes())
+    env.check.unbuildable.add("luna-1-c1")
     with pytest.raises(PublishRefused) as unbuilt:
         env.publisher.make_live("luna-1-c1", OPERATOR)
-    assert unbuilt.value.code == "NOT_BUILT"
+    assert unbuilt.value.code == "NOT_BUILT" and env.get("bounds/r4__luna-1-c1.json") is None
+    env.check.unbuildable.clear()
+    assert env.publisher.make_live("luna-1-c1", OPERATOR)["live"] is True
+    assert env.get("bounds/r4__luna-1-c1.json")["campaignVersion"] == "luna-1-c1"
+    assert env.current() == "luna-1-c1"
+    env.publisher.make_live(LIVE, OPERATOR)
     env.publish()
     env.publisher.set_state("luna-1-a1", "campaign", "invalid", OPERATOR)
     with pytest.raises(PublishRefused) as withdrawn:

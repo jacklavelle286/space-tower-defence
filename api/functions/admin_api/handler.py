@@ -66,6 +66,7 @@ from typing import Any
 import boto3
 from botocore.exceptions import ClientError
 
+from shared.alien_admin import make_alien_handlers
 from shared.asset_manifest import manifest_pictures
 from shared.audio import AudioStore, head_clip, s3_client, stored_sha256
 from shared.auth import OPERATOR
@@ -184,6 +185,11 @@ ROUTES: dict[str, str] = {
     "POST /api/admin/planets": OPERATOR,
     "PUT /api/admin/planets/{id}": OPERATOR,
     "POST /api/admin/planets/{id}/release": OPERATOR,
+    "GET /api/admin/aliens": OPERATOR,
+    "POST /api/admin/aliens": OPERATOR,
+    "PUT /api/admin/aliens/{id}": OPERATOR,
+    "DELETE /api/admin/aliens/{id}": OPERATOR,
+    "POST /api/admin/aliens/{id}/publish": OPERATOR,
 }
 
 DRAFT_MAX_BYTES: int = LIMITS["bodyMaxBytes"]["adminActivityDraft"]  # 64 KB for PUT .../draft (G §12)
@@ -1163,6 +1169,9 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
             table=table, now=deps.now, transact=transact, game_data=deps.game_data, publisher=deps.publisher
         ),
         **make_planet_handlers(
+            table=table, now=deps.now, transact=transact, game_data=deps.game_data, publisher=deps.publisher
+        ),
+        **make_alien_handlers(
             table=table, now=deps.now, transact=transact, game_data=deps.game_data, publisher=deps.publisher
         ),
     }

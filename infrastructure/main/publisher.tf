@@ -2,7 +2,7 @@
 #
 #   game-data-publish (Python)  reads the level draft, current.json and the source planet; refuses or writes the new
 #                               campaign and bounds files (create-only), versions.json and current.json (If-Match); the
-#                               V#, GDPUBLISH and AUDIT rows. Invoked by admin-api only (LD7's routes): publish
+#                               V#, GDPUBLISH and AUDIT rows. From AM1 also a made alien's ruleset and asset manifest. Invoked by admin-api only (LD7's routes): publish
 #                               asynchronously (no retries), the other actions synchronously.
 #   game-data-check (Node 24)   the JavaScript rules: merge, parse, planetProblems, the blocking bot checks, buildBounds.
 #                               No AWS access at all; invoked by game-data-publish only.
@@ -116,13 +116,16 @@ data "aws_iam_policy_document" "game_data_publish" {
   }
 
   # New versions (create-only in code: If-None-Match) and the two pointers (If-Match). No DeleteObject: published
-  # files are never removed. Never ruleset/: a new ruleset still comes only through a release.
+  # files are never removed. ruleset/ and asset-manifest/ from AM1 (ADR-0041): a made alien is a new ruleset and
+  # manifest version.
   statement {
     sid     = "GameDataWrite"
     actions = ["s3:PutObject"]
     resources = [
       "${module.player_site.bucket_arn}/${local.game_data_prefix}campaign/*",
       "${module.player_site.bucket_arn}/${local.game_data_prefix}bounds/*",
+      "${module.player_site.bucket_arn}/${local.game_data_prefix}ruleset/*",
+      "${module.player_site.bucket_arn}/${local.game_data_prefix}asset-manifest/*",
       "${module.player_site.bucket_arn}/${local.game_data_prefix}current.json",
       "${module.player_site.bucket_arn}/${local.game_data_prefix}versions.json",
     ]

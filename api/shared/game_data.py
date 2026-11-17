@@ -219,6 +219,7 @@ class GameDataReader:
         self._planets: dict[str, Planet] = {}
         self._documents: dict[str, dict[str, Any]] = {}
         self._manifests: dict[str, dict[str, Any]] = {}
+        self._rulesets: dict[str, dict[str, Any]] = {}
 
     def _client(self) -> Any:
         if self._s3 is None:
@@ -293,6 +294,21 @@ class GameDataReader:
         if not isinstance(data, dict) or data.get("version") != campaign_version:
             raise GameDataUnavailable(f"campaign {campaign_version}: not the document for this version")
         self._documents[campaign_version] = data
+        return data
+
+    def ruleset(self, version: str) -> dict[str, Any]:
+        """One ruleset file as published (cached: published versions never change). admin-api sends the live one to
+        the level designer, which checks levels against it (Gate M, AM1: made aliens are in it). Callers must not
+        change it."""
+        cached = self._rulesets.get(version)
+        if cached is not None:
+            return cached
+        if not isinstance(version, str) or not VERSION.match(version):
+            raise GameDataUnavailable("bad rulesetVersion")
+        data = self._get_json(f"{self.prefix}ruleset/{version}.json")
+        if not isinstance(data, dict) or data.get("version") != version or not isinstance(data.get("aliens"), dict):
+            raise GameDataUnavailable(f"ruleset {version}: not the ruleset for this version")
+        self._rulesets[version] = data
         return data
 
     def asset_manifests(self) -> list[dict[str, Any]]:

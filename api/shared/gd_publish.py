@@ -11,6 +11,11 @@ Actions (api/functions/game_data_publish/handler.py dispatches them):
     makeLive   {campaignVersion, by}                                  move current.json (also the rollback)
     setState   {campaignVersion, waveSetId, state, by}                preview | published | retired | invalid
     setTesters {testers, by}                                          the accounts that may play preview wave sets
+    releasePlanet {planetId, by}                                      LD10: append a planet to current.json
+    publishAlien {alienId, by}                                        AM1 (ADR-0041): a new ruleset and asset manifest
+                                                                     with a made alien, bounds for every playable
+                                                                     version, then both pointers; asynchronous, the
+                                                                     outcome kept on the ALIEN item's `publish`
 
 Publish, in order; each step can refuse, and nothing is written before step 8:
 
@@ -41,6 +46,8 @@ compare-and-set). Items:
     pk LEVEL#<levelId>  sk V#<startedAt>               campaignVersion, sha256, bounds, sourceVersion, draftRevision,
                                                        pictures, by (immutable)
     pk GDCOUNTER        sk campaign#<planetId>         next
+    pk GDCOUNTER        sk ruleset#<family>            next (AM1: <family>-a<n>, family the release ruleset, r4)
+    pk GDCOUNTER        sk manifest                    next (AM1: m<n>; m1 is the release's seed, so from 2)
     pk GDPUBLISH        sk <at>#<campaignVersion>      action (publish | make-live), campaignVersion, prev, live,
                                                        levelId?, diffSummary?, by (immutable)
 """
@@ -57,10 +64,24 @@ from typing import Any, Protocol
 
 from botocore.exceptions import ClientError
 
+from shared.aliens import (
+    ALIEN_ID,
+    ALIEN_PK,
+    FRAMES,
+    TEMPLATE_ASSET,
+    art_problems,
+    asset_id,
+    manifest_entry,
+    name_ok,
+    ruleset_entry,
+    ruleset_family,
+    stat_problems,
+)
+from shared.asset_manifest import ManifestInvalid, parse_manifest
 from shared.bounds import VERSION
 from shared.content import LIMITS, audit_item, audit_key, iso_z, plain
 from shared.data import DynamoTable
-from shared.game_data import CurrentInvalid, current_body, parse_current
+from shared.game_data import DEFAULT_MANIFEST_VERSION, CurrentInvalid, current_body, parse_current
 from shared.levels import DRAFT_SK, LEVEL_ID, LEVEL_PK, level_pk, level_problems
 from shared.pictures import PIC_PK, kind_of
 from shared.planets import (
@@ -136,6 +157,10 @@ def _sha256(body: bytes) -> str:
 
 def _claim_sk(revision: int) -> str:
     return f"PUB#{revision:010d}"
+
+
+def _json_bytes(value: Any) -> bytes:
+    return (json.dumps(value, indent=2) + "\n").encode()
 
 
 def _parse_time(text: str) -> datetime:
@@ -466,11 +491,7 @@ class Publisher:
             raise PublishRefused("NOT_RELEASED", f"planet {planet_id} is not released (Levels → Planets)")
         if live_now == campaign_version:
             return {"ok": True, "campaignVersion": campaign_version, "live": True}
-        bounds_key = f"bounds/{current['rulesetVersion']}__{campaign_version}.json"
-        if self.d.site.get(self.d.prefix + bounds_key) is None:
-            raise PublishRefused(
-                "NOT_BUILT", f"{campaign_version} has no bounds for ruleset {current['rulesetVersion']}"
-            )
+        self._ensure_bounds(campaign_version, str(current["rulesetVersion"]))
         versions, _ = self._versions()
         if versions.state(campaign_version, "campaign") in ("retired", "invalid") and "campaign" in doc.get(
             "waveSets", {}
@@ -541,10 +562,7 @@ class Publisher:
         versions, _ = self._versions()
         if versions.state(version, "campaign") in ("retired", "invalid"):
             raise PublishRefused("VERSION_WITHDRAWN", f"{version}'s campaign is retired or invalid")
-        bounds_found = self.d.site.get(f"{self.d.prefix}bounds/{current['rulesetVersion']}__{version}.json")
-        if bounds_found is None:
-            raise PublishRefused("NOT_BUILT", f"{version} has no bounds for ruleset {current['rulesetVersion']}")
-        bounds = json.loads(bounds_found[0])
+        bounds = json.loads(self._ensure_bounds(str(version), str(current["rulesetVersion"])))
         if bank := self.bank_problems(bounds, sorted(bounds.get("waveSets", {}))):
             raise PublishRefused(
                 "BANK_NOT_READY", "the question bank cannot fill this planet's wave sets", {"bank": bank}
@@ -600,6 +618,144 @@ class Publisher:
             "campaignVersion": str(version),
             "order": len(planets) - 1,
         }
+
+    def publish_alien(self, alien_id: str, by: str) -> dict[str, Any]:
+        """Publish a made alien (AM1, ADR-0041), in order; nothing is written before step 6:
+
+        1. freeze switch; the ALIEN item, still a draft (a published one answers as done: a repeat)
+        2. its name, stats and walk (six approved Alien pictures)                         INVALID_ALIEN, PICTURES
+        3. live current.json, ruleset and asset manifest; the ID is not already an alien or boss   ALIEN_EXISTS
+        4. versions from the counters: ruleset <family>-a<n>, manifest m<n>
+        5. bounds under the new ruleset for every playable planet version (game-data-check `rebuild`)  CHECKS_FAILED
+        6. ruleset, bounds and manifest files, create-only
+        7. current.json: rulesetVersion and assetManifestVersion together, If-Match            LIVE_MOVED
+        8. the ALIEN item PUBLISHED, GDPUBLISH and AUDIT rows
+
+        A refusal or a failure after step 4 leaves only unused versions behind (immutable files nothing names); the
+        next attempt takes new numbers, so an edit in between can never meet its own earlier bytes."""
+        if self.d.frozen():
+            raise PublishRefused("FROZEN", "publishing is switched off (game-data freeze)")
+        if not isinstance(alien_id, str) or not ALIEN_ID.match(alien_id):
+            raise PublishRefused("INVALID", "alienId is malformed")
+        found = self.d.table.get_item(ALIEN_PK, alien_id)
+        if found is None:
+            raise PublishRefused("NOT_FOUND", f"no alien {alien_id}")
+        item = plain(found)
+        if item.get("status") == "PUBLISHED":
+            return self._alien_result(item)
+        self._alien_state(alien_id, {"state": "RUNNING"})
+        problems = stat_problems(item) + art_problems(item.get("art"))
+        if not name_ok(item.get("name")):
+            problems.append({"field": "name", "rule": "length"})
+        if len(item.get("art") or []) != FRAMES:
+            problems.append({"field": "art", "rule": "frames"})
+        if problems:
+            raise PublishRefused("INVALID_ALIEN", "the alien is not finished", {"problems": problems})
+        if pictures := self._alien_picture_problems(list(item["art"])):
+            raise PublishRefused("PICTURES", "a walk frame cannot be published", {"pictures": pictures})
+
+        current, etag = self._current()
+        base_rv = str(current["rulesetVersion"])
+        ruleset, _ = self._json(f"ruleset/{base_rv}.json", "the live ruleset")
+        if alien_id in ruleset.get("aliens", {}) or alien_id in ruleset.get("bosses", {}):
+            raise PublishRefused("ALIEN_EXISTS", f"the game already has an alien or boss called {alien_id}")
+        base_mv = str(current.get("assetManifestVersion") or DEFAULT_MANIFEST_VERSION)
+        manifest_raw, _ = self._json(f"asset-manifest/{base_mv}.json", "the live asset manifest")
+        try:
+            manifest = parse_manifest(manifest_raw, base_mv)
+        except ManifestInvalid:
+            raise PublishRefused("NOT_FOUND", f"asset manifest {base_mv} is malformed") from None
+
+        family = ruleset_family(base_rv)
+        rv = self._next_version(f"ruleset#{family}", lambda n: f"{family}-a{n}", first=1)
+        mv = self._next_version("manifest", lambda n: f"m{n}", first=2)
+        new_ruleset = {
+            **ruleset,
+            "version": rv,
+            "aliens": {**ruleset["aliens"], alien_id: ruleset_entry(item, int(ruleset.get("mechanics", 1)))},
+        }
+        assets = dict(manifest_raw["assets"])
+        assets[asset_id(alien_id)] = manifest_entry(item, manifest["assets"].get(TEMPLATE_ASSET))
+        new_manifest = {**manifest_raw, "version": mv, "assets": assets}
+        try:
+            parse_manifest(new_manifest, mv)
+        except ManifestInvalid as error:
+            raise PublishRefused("CHECKS_FAILED", f"the new asset manifest is malformed: {error}") from None
+
+        bounds: dict[str, bytes] = {}
+        live = [str(p["campaignVersion"]) for p in current["planets"]]
+        for version in self._playable_versions(current):
+            doc, _ = self._json(f"campaign/{version}.json", f"campaign {version}")
+            out = self._rebuild(new_ruleset, doc)
+            if out["ok"]:
+                bounds[str(out["boundsVersion"])] = str(out["boundsJson"]).encode()
+            elif version in live:
+                raise PublishRefused(
+                    "CHECKS_FAILED", f"{version} does not work with the new ruleset", {"problems": out["problems"]}
+                )
+            else:
+                self.d.log(event="publish-alien-skip", campaignVersion=version)  # Make live builds it, or refuses
+
+        self.d.site.create(f"{self.d.prefix}ruleset/{rv}.json", _json_bytes(new_ruleset), CACHE_IMMUTABLE)
+        for name, body in sorted(bounds.items()):
+            self.d.site.create(f"{self.d.prefix}bounds/{name}.json", body, CACHE_IMMUTABLE)
+        self.d.site.create(f"{self.d.prefix}asset-manifest/{mv}.json", _json_bytes(new_manifest), CACHE_IMMUTABLE)
+        pointers = {**current, "rulesetVersion": rv, "assetManifestVersion": mv}
+        if not self.d.site.replace(
+            self.d.prefix + "current.json", _json_bytes(current_body(pointers)), etag, CACHE_NO_CACHE
+        ):
+            raise PublishRefused("LIVE_MOVED", "current.json changed meanwhile; publish the alien again")
+
+        moment = self.d.now()
+        stamp = iso_z(moment)
+        self.d.table.update_item(
+            ALIEN_PK,
+            alien_id,
+            update="SET #status = :p, #rv = :rv, #mv = :mv, #pubAt = :at, #at = :at, #pub = :pub",
+            names={
+                "#status": "status",
+                "#rv": "rulesetVersion",
+                "#mv": "assetManifestVersion",
+                "#pubAt": "publishedAt",
+                "#at": "updatedAt",
+                "#pub": "publish",
+            },
+            values={
+                ":p": "PUBLISHED",
+                ":rv": rv,
+                ":mv": mv,
+                ":at": stamp,
+                ":pub": {"state": "DONE", "updatedAt": stamp},
+            },
+        )
+        audit_pk, audit_sk = audit_key(moment, alien_id)
+        cond = {"condition": "attribute_not_exists(#pk)", "names": {"#pk": "pk"}}
+        self.d.table.transact_write(
+            [
+                self.d.table.put_action(
+                    {
+                        "pk": PUBLISH_PK,
+                        "sk": f"{stamp}#{rv}#alien",
+                        "action": "publish-alien",
+                        "alienId": alien_id,
+                        "rulesetVersion": rv,
+                        "assetManifestVersion": mv,
+                        "prev": base_rv,
+                        "live": True,
+                        "by": by,
+                    },
+                    **cond,
+                ),
+                self.d.table.put_action(
+                    audit_item(
+                        audit_pk, audit_sk, "gamedata.publish-alien", by, moment, rulesetVersion=rv, alienId=alien_id
+                    ),
+                    **cond,
+                ),
+            ]
+        )
+        self.d.log(event="publish-alien", alienId=alien_id, rulesetVersion=rv, assetManifestVersion=mv)
+        return {"ok": True, "alienId": alien_id, "rulesetVersion": rv, "assetManifestVersion": mv}
 
     def set_state(self, campaign_version: str, wave_set_id: str, state: str, by: str) -> dict[str, Any]:
         if self.d.frozen():
@@ -662,6 +818,116 @@ class Publisher:
             return Versions(testers=v.testers, states=states)
 
         self._update_versions(change)
+
+    def _rebuild(self, ruleset: Any, planet: Any) -> dict[str, Any]:
+        out = self.d.check({"mode": "rebuild", "ruleset": ruleset, "planet": planet})
+        if not isinstance(out, dict) or "ok" not in out:
+            raise RuntimeError("game-data-check gave no answer")
+        return out
+
+    def _ensure_bounds(self, version: str, ruleset_version: str) -> bytes:
+        """The bounds file for (ruleset, version), built now if a ruleset change came after the version was published
+        (AM1, ADR-0041); NOT_BUILT when the document does not work with that ruleset."""
+        key = f"{self.d.prefix}bounds/{ruleset_version}__{version}.json"
+        found = self.d.site.get(key)
+        if found is not None:
+            return found[0]
+        ruleset, _ = self._json(f"ruleset/{ruleset_version}.json", "the live ruleset")
+        doc, _ = self._json(f"campaign/{version}.json", f"campaign {version}")
+        out = self._rebuild(ruleset, doc)
+        if not out["ok"] or out.get("boundsJson") is None:
+            raise PublishRefused(
+                "NOT_BUILT", f"{version} has no bounds for ruleset {ruleset_version}", {"problems": out["problems"]}
+            )
+        body = str(out["boundsJson"]).encode()
+        self.d.site.create(key, body, CACHE_IMMUTABLE)
+        return body
+
+    def _playable_versions(self, current: Mapping[str, Any]) -> list[str]:
+        """Every planet version a new run may start on: each released planet's live version, each unreleased planet's
+        newest (testers), and every version with a preview or published wave set (testers, and Make live)."""
+        out = [str(p["campaignVersion"]) for p in current["planets"]]
+        for planet in self.d.table.query_prefix(PLANET_PK, "", attributes=("sk", "status", "latestVersion")):
+            if planet.get("status") != "RELEASED" and planet.get("latestVersion"):
+                out.append(str(planet["latestVersion"]))
+        versions, _ = self._versions()
+        for version, states in sorted(versions.states.items()):
+            if any(state in ("preview", "published") for state in states.values()):
+                out.append(version)
+        return list(dict.fromkeys(out))
+
+    def _next_version(self, counter: str, name: Callable[[int], str], first: int) -> str:
+        """The next number from a GDCOUNTER item (conditional, so two publishes never take the same one)."""
+        for _ in range(CAS_ATTEMPTS):
+            found = self.d.table.get_item(COUNTER_PK, counter)
+            n = int(found["next"]) if found is not None else first
+            values: dict[str, Any] = {":one": n + 1}
+            names = {"#next": "next"}
+            if found is not None:
+                values[":n"] = n
+                condition = "#next = :n"
+            else:
+                names["#pk"] = "pk"
+                condition = "attribute_not_exists(#pk)"
+            try:
+                self.d.table.transact_write(
+                    [
+                        self.d.table.update_action(
+                            COUNTER_PK,
+                            counter,
+                            update="SET #next = :one",
+                            condition=condition,
+                            names=names,
+                            values=values,
+                        )
+                    ]
+                )
+            except ClientError as error:
+                if error.response.get("Error", {}).get("Code") != "TransactionCanceledException":
+                    raise
+                continue
+            return name(n)
+        raise PublishRefused("BUSY", "the version counter kept changing; try again")
+
+    def _alien_picture_problems(self, art: Sequence[str]) -> list[dict[str, Any]]:
+        found = self.d.table.batch_get([(PIC_PK, pid) for pid in art])
+        problems: list[dict[str, Any]] = []
+        for pid in art:
+            header = found.get((PIC_PK, pid))
+            if header is None:
+                problems.append({"pictureId": pid, "rule": "missing"})
+            elif header.get("state") != "APPROVED":
+                problems.append({"pictureId": pid, "rule": "notApproved"})
+            elif kind_of(header) != "alien":
+                problems.append({"pictureId": pid, "rule": "wrongKind", "expected": "alien"})
+        return problems
+
+    def _alien_state(self, alien_id: str, fields: Mapping[str, Any]) -> None:
+        """The ALIEN item's `publish` (the portal polls R57 for it)."""
+        self.d.table.update_item(
+            ALIEN_PK,
+            alien_id,
+            update="SET #pub = :pub",
+            names={"#pub": "publish"},
+            values={":pub": {**fields, "updatedAt": iso_z(self.d.now())}},
+        )
+
+    def _alien_result(self, item: Mapping[str, Any]) -> dict[str, Any]:
+        return {
+            "ok": True,
+            "alienId": item.get("alienId"),
+            "rulesetVersion": item.get("rulesetVersion"),
+            "assetManifestVersion": item.get("assetManifestVersion"),
+        }
+
+    def refuse_alien(self, alien_id: Any, refusal: PublishRefused) -> None:
+        """Keep a refusal on the ALIEN item, for the portal (an unknown or published alien keeps nothing)."""
+        if not isinstance(alien_id, str) or not ALIEN_ID.match(alien_id):
+            return
+        found = self.d.table.get_item(ALIEN_PK, alien_id)
+        if found is None or found.get("status") == "PUBLISHED":
+            return
+        self._alien_state(alien_id, {"state": "REFUSED", "code": refusal.code, "details": refusal.body()})
 
     def _mark(self, pk: str, sk: str, state: str, by: str, new: bool) -> None:
         at = iso_z(self.d.now())
