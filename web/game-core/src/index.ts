@@ -52,3 +52,4 @@ export {
 } from "./data/game-data";
 
 export * from "./sim";
+export * from "./bot";

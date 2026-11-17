@@ -4,6 +4,6 @@
     // Node types only for the tests and scripts/ (the purity test and the generator read files from disk).
     "types": ["node"]
   },
-  "include": ["src", "scripts", "vitest.config.ts"],
+  "include": ["src", "scripts", "vitest.config.ts", "vitest.spike.config.ts"],
   "exclude": []
 }
