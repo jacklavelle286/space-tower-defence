@@ -56,6 +56,7 @@ The rules are in [J §J.6](../plan/J-execution-backlog.md#j6-decision-log-practi
 | [0038](0038-asset-manifest.md) | The asset manifest: art bound by catalogue ID with art sets for the map, m1 = the repo art, pinned per run, repo files as fallback | Proposed |
 | [0039](0039-several-planets-in-current-json.md) | current.json schema 2: released planets in unlock order, the top-level campaignVersion kept for older readers; readers first, LD10 the first writer | Proposed |
 | [0040](0040-planet-registry-and-release.md) | Planets made in the portal: a registry until release, levels per planet from its head (`<planetId>-new` first, campaign first), look in the planet document, append-only release | Proposed |
+| [0041](0041-aliens-made-in-the-portal.md) | Aliens made in the portal: drafts with stats inside limits and a six-frame walk made from one drawing; the publisher writes a new ruleset and asset manifest, bounds for every playable version, then both pointers (amends 0037) | Proposed |
 
 ## Next in line
 

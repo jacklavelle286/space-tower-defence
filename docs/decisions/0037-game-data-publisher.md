@@ -1,5 +1,6 @@
 # 0037. The game-data publisher: admin game data without a release
-Status: Proposed · Date: 2026-11-17
+Status: Proposed · Date: 2026-11-17 · Amended by [ADR-0041](0041-aliens-made-in-the-portal.md) (AM1: the publisher also
+writes `ruleset/` and `asset-manifest/`, for aliens made in the portal)
 
 Context: ADR-0032 makes the level designer publish from the admin portal (Gate M, LD6). Until now game data came only from a
 release ([spine S5.1](../plan/00-spine.md#s51-pins-and-game-data), [B D-T10](../plan/B-scope-and-decisions.md), ADR-0010), every

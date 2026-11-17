@@ -1,7 +1,7 @@
 # AM0: can one drawn frame make an acceptable walk? (Gate M)
 
 Spike for the alien maker (AM1; [scope-asset-kinds-and-makers.md §3.2](../plan/scope-asset-kinds-and-makers.md)).
-Date: 2026-11-17. **Owner verdict: pending** (fill in at the end).
+Date: 2026-11-17. **Owner verdict: good enough, with the two follow-ups in AM1** (2026-11-17).
 
 ## What was built
 
@@ -55,8 +55,11 @@ made frames to PNG (as the picture library already does for uploads and drawings
 
 ## Owner verdict
 
-- [ ] Good enough for the alien maker (with the two follow-ups above in AM1), or
+- [x] Good enough for the alien maker (with the two follow-ups above in AM1), or
 - [ ] Use the whole-sprite bob only (no part motion), or
 - [ ] Neither: AM1 must ask for each frame to be drawn (a drawing call per frame; cost and consistency risk)
 
-Notes:
+Notes: chosen by the owner in chat, 2026-11-17, with the portal route for publishing (ADR-0041). Both follow-ups are
+built in AM1: `leg-front`/`leg-back` step in turn (the Alien kind now asks for them), and `fitScale` shrinks a drawing
+about its base, row by row, until every pose stays 10 px inside the canvas (blob 100%, mite 97%, shell 84% in the
+admin's aliens-preview page).
