@@ -45,8 +45,10 @@ from shared.plausibility import plausibility_problems
 from shared.rules import reduce, validate
 from shared.rules.contracts import LIMITS
 from shared.rules.next_phase import slot_id_for
-from shared.runs import PROTOCOL_VERSION, TERMINAL, plain, resolved_of, run_sk, slot_sk
-from shared.selection.bank import version_key
+from shared.runs import PROTOCOL_VERSION, TERMINAL, new_slot_item, plain, resolved_of, run_sk, slot_prefix, slot_sk
+from shared.selection.bank import read_units, read_versions, version_key
+from shared.selection.endless import blocks_to_plan, build_block, choose_block, endless_specs
+from shared.selection.plan import instance_key
 from shared.session import SESSION_SK, generation_of, iso_z
 
 OPS_MAX_BYTES: int = LIMITS["bodyMaxBytes"]["ops"]
@@ -58,7 +60,7 @@ _PAYLOAD_PROBLEM = re.compile(r"^body\.ops\[\d+\]\.payload\.")
 _NAMED_KEY_RULES = frozenset({"additionalProperties", "propertyNames"})
 
 # The RUN fields the reducer may change; every one is written by name (spine S9.5: named attributes only).
-_REDUCED_FIELDS = ("status", "stage", "phase", "wave", "highestCompletedWave", "snapshot")
+_REDUCED_FIELDS = ("status", "stage", "phase", "wave", "highestCompletedWave", "plannedThrough", "snapshot")
 _IN_PROGRESS_ONLY = ("phase", "snapshot")  # removed when a run ends (spine S3.1, S4)
 # Outcomes that change the addressed SLOT item; a status-only change (VOIDED, DECLINED) appends no attempt.
 _SLOT_OUTCOMES = ("VOIDED", "DECLINED", "INCORRECT", "RESOLVED_SUCCEEDED", "RESOLVED_FAILED")
@@ -310,6 +312,19 @@ def slot_update(new_slot: Mapping[str, Any], outcome: str, *, now: str) -> dict[
     }
 
 
+def _planned_slot_state(item: Mapping[str, Any]) -> dict[str, Any]:
+    """A freshly planned slot as the reducer sees it: UNRESOLVED, no attempts (only its status matters until played)."""
+    return {
+        "slotId": item["slotId"],
+        "kind": item["kind"],
+        "status": "UNRESOLVED",
+        "attempts": [],
+        "accepted": [],
+        "withdrawn": False,
+        "reward": dict(item["reward"]),
+    }
+
+
 def summary_sk(slot: Mapping[str, Any]) -> str:
     subject, topic = slot.get("subject"), slot.get("topicId")
     if not all(isinstance(v, str) and KEY_ID.match(v) for v in (subject, topic)):
@@ -556,8 +571,30 @@ class OpsBatch:
             if problems:
                 return rejected("CHECKPOINT_OUT_OF_BOUNDS", problems)
 
+        # Endless (Phase 54, F §3.6): CHOOSE_ENDLESS, and an endless COMPLETE_WAVE that falls behind, plan the next
+        # blocks of slots, chosen now from the bank. They join the state so the next-phase rule sees them
+        # (CHOOSE_ENDLESS lands on N-<finalWave>); they are written in the same transaction, after the fixed ones.
+        planned: list[dict[str, Any]] = []
+        if (
+            bounds is not None
+            and reduced["state"]["status"] == "IN_PROGRESS"
+            and op["type"] in ("CHOOSE_ENDLESS", "COMPLETE_WAVE")
+        ):
+            ws_bounds = bounds["waveSets"].get(str(run.get("waveSetId")), {})
+            if op["type"] == "CHOOSE_ENDLESS" and "endless" not in ws_bounds:
+                return rejected("CONTENT_VERSION_UNSUPPORTED")  # no endless generator for this wave set
+            if reduced["state"]["stage"] == "ENDLESS" and "endless" in ws_bounds:
+                planned, through = self._plan_endless(pk, run_id, run, bounds, ws_bounds, int(reduced["state"]["wave"]))
+                if through is not None:
+                    state = {
+                        **state,
+                        "plannedThrough": through,
+                        "slots": [*state["slots"], *map(_planned_slot_state, planned)],
+                    }
+                    reduced = reduce(state, op)
+
         # (i) the G5 transaction. Action order is fixed (CancellationReasons come back in this order):
-        #     0 SESSION fence, 1 RUN, then SLOT, SUM# and PROFILE when the op needs them.
+        #     0 SESSION fence, 1 RUN, then SLOT, SUM# and PROFILE when the op needs them, then planned endless slots.
         new_state = reduced["state"]
         outcome = reduced.get("outcome")
         now = iso_z(self._now())
@@ -587,6 +624,9 @@ class OpsBatch:
             if profile_action is not None:
                 actions.append(profile_action)
 
+        for item in planned:
+            actions.append(self.table.put_action(item, condition="attribute_not_exists(#pk)", names={"#pk": "pk"}))
+
         result = {"opId": op_id, "result": "APPLIED", "appliedRevision": new_state["revision"]}
         if outcome is not None:
             result["outcome"] = outcome
@@ -603,6 +643,50 @@ class OpsBatch:
             log_code="VERSION_MISSING" if missing else "VOIDED" if outcome == "VOIDED" else None,
             slot_id=reads.addressed,
         )
+
+    def _plan_endless(
+        self,
+        pk: str,
+        run_id: str,
+        run: Mapping[str, Any],
+        bounds: Mapping[str, Any],
+        ws_bounds: Mapping[str, Any],
+        wave_after: int,
+    ) -> tuple[list[dict[str, Any]], int | None]:
+        """The slot items of the endless blocks due now (C24.6), and the new plannedThrough (None: nothing due)."""
+        blocks = blocks_to_plan(int(plain(run.get("plannedThrough")) or 0), wave_after)
+        if not blocks:
+            return [], None
+        pins = run.get("pins") if isinstance(run.get("pins"), Mapping) else {}
+        seed = str(pins.get("seed") or run_id)
+        content = self._content()
+        units = read_units(content, int(plain(pins.get("ageBand")) or 0))
+        existing = self.table.query_prefix(pk, slot_prefix(run_id), attributes=("activityId", "resolved"))
+        used = {str(s.get("activityId")) for s in existing}
+        taken = {
+            instance_key(str(s.get("activityId")), plain(s["resolved"]).get("params", {}))
+            for s in existing
+            if isinstance(s.get("resolved"), Mapping)
+        }
+        items: list[dict[str, Any]] = []
+        for first, last in blocks:
+            specs = endless_specs(
+                first,
+                last,
+                reward=int(ws_bounds["endless"]["learningReward"]),
+                meteors_before=len(ws_bounds["meteorAfter"]),
+                final_wave=int(ws_bounds["finalWave"]),
+                rotation=list(bounds.get("powerAwardRotation", [])),
+            )
+            label = f"endless:{first}"
+            picks = choose_block(specs, units, seed=seed, label=label, used_activities=used)
+            versions = read_versions(content, {(u.activity_id, u.version) for _, u in picks})
+            for plan in build_block(picks, versions, seed=seed, label=label, taken_instances=taken):
+                used.add(plan.unit.activity_id)
+                if plan.resolved is not None:
+                    taken.add(instance_key(plan.unit.activity_id, plan.resolved.get("params", {})))
+                items.append(new_slot_item(pk=pk, run_id=run_id, plan=plan))
+        return items, blocks[-1][1]
 
     def _profile_action(
         self, pk: str, run: Mapping[str, Any], new_state: Mapping[str, Any], now: str

@@ -157,7 +157,13 @@ def parse_bounds(data: Any, ruleset_version: str, campaign_version: str) -> dict
         where = f"bounds.waveSets.{set_id}"
         if not KEY_ID.match(set_id):
             raise BoundsUnavailable(f"{where}: not a key ID")
-        ws = _obj(entry, where, _WAVE_SET_KEYS)
+        ws = _obj(entry, where)
+        if not _WAVE_SET_KEYS <= set(ws) <= {*_WAVE_SET_KEYS, "endless"}:
+            raise BoundsUnavailable(f"{where} keys {sorted(ws)} are not {sorted(_WAVE_SET_KEYS)} (+ endless)")
+        if "endless" in ws:  # Phase 54: endless maxBounty from wave finalWave + 1, and the endless learning reward
+            endless = _obj(ws["endless"], f"{where}.endless", frozenset({"maxBounty", "learningReward"}))
+            _ints(endless["maxBounty"], f"{where}.endless.maxBounty")
+            _int(endless["learningReward"], f"{where}.endless.learningReward")
         if ws["mode"] not in ("CAMPAIGN", "CHALLENGE"):
             raise BoundsUnavailable(f"{where}.mode is {ws['mode']!r}")
         final_wave = _int(ws["finalWave"], f"{where}.finalWave", 1)

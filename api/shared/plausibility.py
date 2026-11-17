@@ -14,7 +14,7 @@ gain; they do not try to prove the wave was played.
 Pads: a CHALLENGE fixes its open pads (padsOpenAsForWave); a CAMPAIGN pad is open once its opensAfterWave is at most the
 highest completed wave (C3.3), or when the wave set opens it from the start. Classes: a CAMPAIGN class is unlocked once
 its unlockAfterWave is at most the highest completed wave (C5.9). Unknown pads, classes, levels and modes were refused
-by step (g). An endless COMPLETE_WAVE has no maxBounty yet and is refused until Phase 54 [ASSUMPTION: fail closed].
+by step (g). An endless COMPLETE_WAVE uses the wave set's endless.maxBounty (Phase 54); beyond it, refused.
 
 A problem is {"field", "rule"}; values are never copied (G §1.2).
 """
@@ -94,11 +94,17 @@ def plausibility_problems(
         if after > before:
             out.append({"field": "op.payload.credits", "rule": "value"})
         return out
-    max_bounty = bounds["waveSets"].get(run["waveSetId"], {}).get("maxBounty", [])
-    wave = payload["wave"]
-    if not 1 <= wave <= len(max_bounty):
+    wave_set = bounds["waveSets"].get(run["waveSetId"], {})
+    final_wave = wave_set.get("finalWave", 0)
+    table = (
+        wave_set.get("maxBounty", [])
+        if payload["wave"] <= final_wave
+        else wave_set.get("endless", {}).get("maxBounty", [])
+    )
+    index = payload["wave"] - 1 if payload["wave"] <= final_wave else payload["wave"] - final_wave - 1
+    if not 0 <= index < len(table):
         out.append({"field": "op.payload.wave", "rule": "maxBounty"})
-    elif after > before + max_bounty[wave - 1]:
+    elif after > before + table[index]:
         out.append({"field": "op.payload.credits", "rule": "value"})
     colony = payload["colony"]
     if colony["health"] <= 0 or colony["health"] > bounds["colony"]["maxHealth"]:

@@ -56,7 +56,23 @@ def to_offer(api: RunsApi, event: dict) -> None:
     assert run_item(api)["phase"] == "COMPLETION_OFFER"
 
 
+def endless_bounds(ruleset: str, campaign: str) -> dict:
+    """The fixture bounds with an endless table for first-contact (a two-wave CAMPAIGN in these tests): every endless
+    wave's bounty from wave 3 to 999, and the endless learning reward (Phase 54)."""
+    bounds = load_bounds_fixture(ruleset, campaign)
+    ws = {**bounds["waveSets"]["first-contact"], "endless": {"maxBounty": [500] * 997, "learningReward": 75}}
+    rotation = ["frost-pulse", "comet-burst", "colony-shield"]
+    return {**bounds, "powerAwardRotation": rotation, "waveSets": {**bounds["waveSets"], "first-contact": ws}}
+
+
+def test_choose_endless_needs_an_endless_table(api: RunsApi, player_event: dict) -> None:
+    to_offer(api, player_event)
+    status, body = choose_endless(api, player_event, 8, 6)  # the r1 bounds file has no endless table
+    assert status == 200 and results(body) == [("REJECTED", "CONTENT_VERSION_UNSUPPORTED")]
+
+
 def test_a_campaign_run_reaches_the_offer_then_chooses_endless_then_finishes(api: RunsApi, player_event: dict) -> None:
+    api.bounds = endless_bounds
     to_offer(api, player_event)
     status, body = send(api, player_event, [op(7, 6, "ABANDON")])
     assert status == 200 and results(body) == [("REJECTED", "PHASE_MISMATCH")]  # the campaign is complete
@@ -64,14 +80,23 @@ def test_a_campaign_run_reaches_the_offer_then_chooses_endless_then_finishes(api
     status, body = choose_endless(api, player_event, 8, 6)
     assert status == 200 and body["results"] == [{"opId": op_id(8), "result": "APPLIED", "appliedRevision": 7}]
     run = run_item(api)
-    # No endless slot is planned yet (Phase 54), so the next-phase rule for interval 2 falls through to BUILD.
-    assert (run["stage"], run["wave"], run["phase"], run["status"]) == ("ENDLESS", 3, "BUILD", "IN_PROGRESS")
+    # Two blocks planned (F §3.6): intervals 2-21, with whatever the small test bank can fill without a repeat.
+    assert (run["stage"], run["wave"], run["status"], run["plannedThrough"]) == ("ENDLESS", 3, "IN_PROGRESS", 21)
+    slots = api.items(f"SLOT#{RUN_A}#")
+    activities = [s["activityId"] for s in slots if s.get("resolved") is None]
+    assert len(activities) == len(set(activities))  # never a repeat in the run
+    endless = [s for s in slots if s["slotId"] not in ("N-001",)]
+    assert all(s["reward"] == {"credits": 75} for s in endless if s["kind"] == "NORMAL")
+    expected = "ACTIVITY" if any(s["slotId"] == "N-002" for s in slots) else "BUILD"  # an empty bank: straight to BUILD
+    assert run["phase"] == expected
     assert body["run"]["stage"] == "ENDLESS" and body["run"]["wave"] == 3
 
     status, body = choose_endless(api, player_event, 8, 6)  # a retried opId
     assert status == 200 and body["results"][0]["result"] == "ALREADY_APPLIED"
     assert body["results"][0]["appliedRevision"] == 7
 
+    if run["phase"] == "ACTIVITY":
+        return  # the finish path below needs BUILD; the next test plays the bank-exhausted case through to the end
     status, body = send(api, player_event, [start_wave(9, 7, wave=3), op(10, 8, "FINISH_RUN")])
     assert status == 200 and results(body) == [("APPLIED", None), ("REJECTED", "PHASE_MISMATCH")]  # never mid-wave
     status, body = send(
