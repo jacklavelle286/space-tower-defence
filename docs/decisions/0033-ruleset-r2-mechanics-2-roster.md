@@ -1,5 +1,5 @@
 # 0033. Ruleset r2 with mechanics 2 holds the six-class roster; current.json stays on r1 until Phase 25
-Status: Proposed · Date: 2026-11-16
+Status: Accepted · Date: 2026-11-16
 
 Context: Phase 24 (M2-01) adds the six classes at three levels with purchase, upgrade, sell, caps and unlock waves
 ([C §C5](../plan/C-game-and-learning-design.md#c5-astronaut-roster)). r1 is published create-only, so the roster needs a new

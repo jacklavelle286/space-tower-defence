@@ -1,5 +1,5 @@
 # 0034. Ruleset r3 with mechanics 3 holds the alien catalogue, traits as data, carriers and caps; current.json stays on r1
-Status: Proposed · Date: 2026-11-17
+Status: Accepted · Date: 2026-11-17
 
 Context: Phase 26 (M2-03) adds the ten aliens of [C §C6.1](../plan/C-game-and-learning-design.md#c61-catalogue) with their
 traits, carriers and splitters (C6.3) and the object caps (C6.4). r1 and r2 are published create-only, so the catalogue needs a
