@@ -2,13 +2,14 @@
 // the Alien kind (R39's sanitised SVG) becomes the six walk frames of art/STYLE.md §11 through the shared animator,
 // shrunk about its base when a pose would leave the canvas, each rendered to a 256 x 256 PNG through an <img> and a
 // canvas (never put into the page), as the picture library renders drawings. No extra drawing calls.
-import { animate, BASE, CANVAS, fitScale, movingParts, neutralise, WALK, type Box } from "@scd/shared/animator";
+import { animate, BASE, CANVAS, fitScale, movingParts, neutralise, WALK, type Row } from "@scd/shared/animator";
 import { browserTools } from "../../pictures/normalise";
 
 /** The browser parts; tests pass a fake. */
 export interface WalkTools {
-  /** The box of every pixel that is not see-through when the SVG is drawn on the 256 canvas, or null for none. */
-  outline(svg: string): Promise<Box | null>;
+  /** Each row's leftmost and rightmost pixel that is not see-through when the SVG is drawn on the 256 canvas
+   *  (rows with none left out), or [] for an empty drawing. */
+  outline(svg: string): Promise<readonly Row[]>;
   /** The SVG as a 256 x 256 PNG. */
   render(svg: string): Promise<Blob>;
 }
@@ -26,9 +27,9 @@ export class WalkError extends Error {}
 /** The six frames from one drawing. */
 export async function makeWalk(svg: string, tools: WalkTools = browserWalkTools): Promise<Walk> {
   const neutral = neutralise(svg);
-  const box = await tools.outline(neutral);
-  if (box === null) throw new WalkError("The drawing is empty.");
-  const fit = fitScale(box);
+  const rows = await tools.outline(neutral);
+  if (rows.length === 0) throw new WalkError("The drawing is empty.");
+  const fit = fitScale(rows);
   const frames: Blob[] = [];
   for (const frame of animate(neutral, WALK, BASE, fit)) frames.push(await tools.render(frame));
   const moving = movingParts(neutral);
@@ -64,20 +65,20 @@ export const browserWalkTools: WalkTools = {
     try {
       pixels = context.getImageData(0, 0, CANVAS, CANVAS).data;
     } catch {
-      return [0, 0, CANVAS, BASE[1]]; // a canvas the browser will not read: assume edge to edge, so it shrinks to fit
+      return [[0, 0, CANVAS], [BASE[1], 0, CANVAS]]; // a canvas the browser will not read: assume edge to edge
     }
-    let [left, top, right, bottom] = [CANVAS, CANVAS, -1, -1];
+    const rows: Row[] = [];
     for (let y = 0; y < CANVAS; y += 1) {
+      let [left, right] = [-1, -1];
       for (let x = 0; x < CANVAS; x += 1) {
         if ((pixels[(y * CANVAS + x) * 4 + 3] ?? 0) > 16) {
-          left = Math.min(left, x);
-          right = Math.max(right, x + 1);
-          top = Math.min(top, y);
-          bottom = Math.max(bottom, y + 1);
+          if (left < 0) left = x;
+          right = x + 1;
         }
       }
+      if (left >= 0) rows.push([y, left, right]);
     }
-    return right < 0 ? null : [left, top, right, bottom];
+    return rows;
   },
   async render(svg) {
     const context = await drawn(svg);

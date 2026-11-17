@@ -12,7 +12,7 @@ const SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256"><g id
 
 /** Renders each frame as a PNG whose bytes are its SVG, so each frame is its own picture. */
 const tools: WalkTools = {
-  outline: async () => [58, 100, 198, 250],
+  outline: async () => [[100, 58, 198], [250, 58, 198]],
   render: async (svg) => new Blob([svg], { type: "image/png" }),
 };
 

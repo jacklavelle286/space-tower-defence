@@ -63,6 +63,10 @@ describe("animate", () => {
         expect(250 + dy).toBeGreaterThanOrEqual(10 - 1e-9);
       }
     }
+    // Rows fit exactly: a drawing narrow at the top (antennae) leans further than its box's corner would allow.
+    const rows = [[40, 120, 136], [150, 40, 216], [250, 40, 216]] as const;
+    expect(fitScale(rows)).toBe(1);
+    expect(fitScale([40, 40, 216, 250])).toBeLessThan(1);
     const shrunk = frame(neutralise('<svg viewBox="0 0 256 256"><circle cx="128" cy="180" r="60"/></svg>'), WALK[0]!, [128, 250], 0.5);
     expect(numbers(attr(shrunk, "anim-pose")).slice(3, 5)).toEqual([0.5, 0.52]);
   });

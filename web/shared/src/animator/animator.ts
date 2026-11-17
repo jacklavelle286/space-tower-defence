@@ -112,24 +112,33 @@ export function movingParts(svg: string): { antennae: string[]; legs: string[]; 
 
 /** The outline box of a drawing on the canvas: [left, top, right, bottom], px. */
 export type Box = readonly [number, number, number, number];
+/** One row of a drawing's outline: [y, left, right], px (the admin measures every row from the rendered pixels). */
+export type Row = readonly [number, number, number];
+
+const rowsOf = (box: Box): Row[] => [
+  [box[1], box[0], box[2]],
+  [box[3], box[0], box[2]],
+];
 
 /**
  * The largest scale (at most 1) about the base at which every pose keeps the drawing `margin` px inside the canvas,
- * left, right and top. A pose maps a point p to base + skewX(scale(p - base)), so the box's corners are the extremes;
- * scaling the drawing about the base scales every offset alike.
+ * left, right and top. A pose maps a point p to base + skewX(scale(p - base)), so a row's two ends are its extremes;
+ * scaling the drawing about the base scales every offset alike. Given a box, its corners stand in for the rows (safe,
+ * but it can shrink more than needed: a corner the drawing does not fill still leans).
  */
-export function fitScale(box: Box, poses: readonly Pose[] = WALK, base: readonly [number, number] = BASE, margin = FIT_MARGIN): number {
+export function fitScale(outline: Box | readonly Row[], poses: readonly Pose[] = WALK, base: readonly [number, number] = BASE, margin = FIT_MARGIN): number {
+  const rows: readonly Row[] = typeof outline[0] === "number" ? rowsOf(outline as Box) : (outline as readonly Row[]);
   const [bx, by] = base;
   let fit = 1;
   for (const pose of poses) {
     const t = Math.tan((pose.skewX * Math.PI) / 180);
-    for (const x of [box[0], box[2]]) {
-      for (const y of [box[1], box[3]]) {
-        const dy = pose.scale[1] * (y - by);
+    for (const [y, left, right] of rows) {
+      const dy = pose.scale[1] * (y - by);
+      if (dy < 0) fit = Math.min(fit, (by - margin) / -dy);
+      for (const x of [left, right]) {
         const dx = pose.scale[0] * (x - bx) + t * dy;
         if (dx > 0) fit = Math.min(fit, (CANVAS - margin - bx) / dx);
         if (dx < 0) fit = Math.min(fit, (bx - margin) / -dx);
-        if (dy < 0) fit = Math.min(fit, (by - margin) / -dy);
       }
     }
   }
