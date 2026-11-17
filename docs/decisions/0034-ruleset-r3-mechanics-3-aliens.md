@@ -31,10 +31,24 @@ wrong); per-alien code switches (traits would not be data); the simulator's rele
 Consequences: switching `current.json` to r3 needs a planet document whose waves use the new aliens (luna-1-c1 has Moon Blobs
 only), the bounds fixture regenerated (`--write-fixture`), and r3 published before any run can pin it. Bosses (Phase 27) add
 boss releases that may contain Split Slimes (generation 2) and boss phases: a rule change, so mechanics 4 in a new ruleset (or
-r3 amended, as ADR-0033 was, if r3 is not yet published). Release-timing difference (1) is reported for the simulator's owner;
+r3 amended, as ADR-0033 was, if r3 is not yet published; Phase 27 did the latter, below). Release-timing difference (1) is reported for the simulator's owner;
 `tools/sim` is unchanged.
+
+Amended in Phase 27 (M2-04), before r3 was published: r3 gains `bosses`, the five bosses of
+[C §C7](../plan/C-game-and-learning-design.md#c7-bosses) number for number from `tools/sim/game_data.json` (initial playtest
+settings): absolute health and speed, `slowFactorPct` 50, `phases` (from 100%, strictly lower; armour, speed factor, on entering
+`selfBubbles` / `giveBubbles` / `release`), optional `onDefeatRelease`. A boss release may hold a Split Slime (depth 2); a wave
+schedules at most one boss. The phase is a pure function of health (`bossPhaseAt`, integers); every phase one hit reaches runs
+before the defeat check; a phase never ends; a boss wave cleared repairs 3. **Still mechanics 3**: no mechanics 3 game-core or
+r3 has been published, mechanics 1 and 2 refuse `bosses`, and a Phase 26 parser would refuse it as an unknown key. Simulator
+differences: release timing (1) applies to the Mothership's doors; 0.45 × 1.15 tiles/s (517.5 units a tick) rounds to 517, so
+Queen Bubbla's baseline wave ends one tick later. Both models agree the C17.4 "Nova only" board beats each boss
+(`python3 -B tools/sim/boss_baseline.py`; `web/game-core/src/sim/bosses.test.ts`).
 
 Evidence: **[VERIFIED]** 2026-11-17: `web/game-core/src/data/sim-agreement.test.ts` (every r3 alien number and trait, the
 rounding rules, C8.2 bounty per wave); `web/game-core/src/sim/aliens.test.ts` (one test per trait, C6.3 releases, C6.4 caps,
 a stress wave of 240 aliens that reaches 60 alive and 24 descendants and never passes them, five whole waves where both models
 agree); `web/game-core/src/data/game-data.test.ts` (mechanics 3 parse rules); `node game-core/scripts/build-bounds.ts --check`.
+Phase 27: `web/game-core/src/sim/bosses.test.ts` (each boss's phases and actions, slows and heals on bosses, leaks, no
+state across waves, determinism, the baseline defence per boss and four mixed-board boss waves agreeing with the simulator);
+every boss number and all 50 campaign waves' bounty in `sim-agreement.test.ts`; the boss parse rules in `game-data.test.ts`.
