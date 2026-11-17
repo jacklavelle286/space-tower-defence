@@ -12,6 +12,7 @@ export type {
   PlanetEntry,
   Planets,
   ProfileInput,
+  RunList,
   RunMode,
   RunSummary,
   WaveSetEntry,

@@ -50,6 +50,26 @@ export const COPY = {
     activeElsewhere: (device: string) => `You're playing on ${device} right now.`, // D4 P4
     signOut: "Sign out",
     practice: "Practice battle (development only)",
+    savedGames: "Saved games", // D4 P5
+  },
+  games: {
+    // D4 P5 Saved games [PROPOSAL] copy
+    heading: "Saved games",
+    playing: "Playing",
+    finished: "Finished",
+    noneOpen: "No games on the go.",
+    noneFinished: "No finished games yet.",
+    wave: (n: number) => `Wave ${n}`,
+    endlessWave: (n: number) => `Wave ${n} · endless`,
+    completed: "Completed!",
+    cleared: (n: number) => `Cleared ${n} ${n === 1 ? "wave" : "waves"}`,
+    gaveUp: (n: number) => `Gave up after wave ${n}`,
+    today: "Today",
+    yesterday: "Yesterday",
+    cannotOpen: "This game can't be opened right now.", // D7
+    more: "Show more",
+    back: "Home",
+    failed: "We couldn't load your games. Please check the internet and try again.",
   },
   signOut: {
     // J9 / E.7.4 [CONFIRMED] warning; online-only variant per F §7 (no local database yet, Phase 57) [PROPOSAL]

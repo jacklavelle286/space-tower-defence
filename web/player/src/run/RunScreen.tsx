@@ -4,7 +4,7 @@
 import { currentSlotId } from "@scd/game-core";
 import type { ClipPlayer } from "@scd/shared/audio";
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
-import { useParams } from "react-router";
+import { useParams, useSearchParams } from "react-router";
 import type { PlayerApi } from "../api/playerApi";
 import { Battlefield } from "../battlefield/Battlefield";
 import { useGameBridge } from "../battlefield/bridgeContext";
@@ -228,7 +228,9 @@ function ReadyRun({
     bridgeRef.current = bridge;
   }, []);
   const [leaving, setLeaving] = useState(false);
-  const [confirmEnd, setConfirmEnd] = useState(false);
+  // Saved games' Give up / Finish opens the game with its confirmation already showing (/play/:runId?end=1).
+  const [searchParams] = useSearchParams();
+  const [confirmEnd, setConfirmEnd] = useState(() => searchParams.get("end") === "1");
   // Whether the game was already paused when the dialog opened, so Keep it leaves it as it was.
   const pausedBefore = useRef(false);
   // While the learning panel (which has its own Save and exit, D6.1) or the end screen is up, the top bar's Save and

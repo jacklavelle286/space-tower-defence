@@ -503,3 +503,52 @@ body {
     grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
   }
 }
+
+/* P5 Saved games (Phase 32). */
+.games-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.games-tabs {
+  display: flex;
+  gap: 12px;
+  margin: 12px 0;
+}
+
+.games-tabs [aria-selected="true"] {
+  background: var(--yellow);
+}
+
+.games-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.games-row {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  font-size: 20px;
+}
+
+.games-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+@media (width < 760px) {
+  .games-row {
+    grid-template-columns: 1fr;
+  }
+}

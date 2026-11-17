@@ -59,6 +59,12 @@ export interface RunSummary {
   reason?: string;
 }
 
+/** R7 `GET /api/runs?state=open|done` (G §4, §8): one page, newest first; `nextCursor` is opaque, null on the last page. */
+export interface RunList {
+  items: RunSummary[];
+  nextCursor: string | null;
+}
+
 /** R1 `GET /api/me` (also the body of R3 and R4). The date of birth is never returned (spine S2). */
 export interface Me {
   nickname: string;

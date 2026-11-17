@@ -1,4 +1,4 @@
-import type { ApiClient, ApiResult, Me, OpsBatchBody, OpsResponse, Planets, ProfileInput } from "@scd/shared";
+import type { ApiClient, ApiResult, Me, OpsBatchBody, OpsResponse, Planets, ProfileInput, RunList } from "@scd/shared";
 import type { SpeechRequest, SpeechResponse } from "@scd/shared/audio";
 import type { CreateRunBody, SessionBody } from "../run/types";
 import type { SyncTransport } from "../sync/queue";
@@ -11,6 +11,8 @@ export interface PlayerApi extends SyncTransport {
   getMe(): Promise<ApiResult<Me>>;
   putProfile(input: ProfileInput): Promise<ApiResult<Me>>;
   getPlanets(): Promise<ApiResult<Planets>>;
+  /** R7: one page of the open or finished runs (Phase 32); pass the previous page's nextCursor for the next. */
+  getRuns(state: "open" | "done", cursor?: string): Promise<ApiResult<RunList>>;
   createRun(body: CreateRunBody): Promise<ApiResult<unknown>>;
   getRun(runId: string): Promise<ApiResult<unknown>>;
   getPack(runId: string): Promise<ApiResult<unknown>>;
@@ -25,6 +27,8 @@ export function createPlayerApi(client: ApiClient): PlayerApi {
     getMe: () => client.request<Me>("GET", "/me"),
     putProfile: (input) => client.request<Me>("PUT", "/me/profile", input),
     getPlanets: () => client.request<Planets>("GET", "/planets"),
+    getRuns: (state, cursor) =>
+      client.request<RunList>("GET", `/runs?state=${state}${cursor === undefined ? "" : `&cursor=${encodeURIComponent(cursor)}`}`),
     sendOps: (runId: string, body: OpsBatchBody) => client.request<OpsResponse>("POST", `${run(runId)}/ops`, body),
     createRun: (body) => client.request<unknown>("POST", "/runs", body),
     getRun: (runId) => client.request<unknown>("GET", run(runId)),

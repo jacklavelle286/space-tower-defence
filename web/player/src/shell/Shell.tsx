@@ -12,6 +12,7 @@ import { createRun } from "../run/newGame";
 import type { RunServices } from "../run/RunScreen";
 import { PROTOCOL_VERSION } from "../sync/protocol";
 import { SyncQueue } from "../sync/queue";
+import { SavedGames } from "./SavedGames";
 import { Home, type GameChoice } from "./Home";
 import { Landing } from "./Landing";
 import { ProfileSetup } from "./ProfileSetup";
@@ -272,8 +273,24 @@ export function Shell({ services }: { services: Services }) {
                     onSignOut={requestSignOut}
                     onSignInAgain={() => signIn("sign-in")}
                     onContinue={(runId) => navigate(`/play/${runId}`)}
+                    onSavedGames={() => navigate("/games")}
                     onNewGame={newGame}
                     practice={services.localPractice}
+                  />
+                ) : (
+                  <Navigate to="/setup" replace />
+                )
+              }
+            />
+            <Route
+              path="/games"
+              element={
+                me ? (
+                  <SavedGames
+                    api={s.api}
+                    onContinue={(runId) => navigate(`/play/${runId}`)}
+                    onEnd={(runId) => navigate(`/play/${runId}?end=1`)}
+                    onBack={() => navigate("/home")}
                   />
                 ) : (
                   <Navigate to="/setup" replace />
