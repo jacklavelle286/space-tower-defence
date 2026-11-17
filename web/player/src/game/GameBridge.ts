@@ -1,7 +1,9 @@
 // GameBridge: the one typed seam between React and the battlefield (spine S10, E.5.3; Phase 14, M1-21).
 //
 // Commands go in (React -> game): loadRun, startWave, pause, resume, setSpeed, place, upgrade, sell, setTargeting,
-// usePower (Phase 28: a meteor power, C10), selectPad. Events come out (game -> React), as past-tense facts: hud,
+// usePower (Phase 28: a meteor power, C10), selectPad; Phase 31 adds arm (a shop card chosen, then a pad), focusPad
+// (keyboard focus on a pad, for the range preview) and the Comet Burst aiming ring (startAim, moveAim, aimAt,
+// dropAim, cancelAim: C2.1, aiming pauses the battle, so it is untimed). Events come out (game -> React), as past-tense facts: hud,
 // selectionChanged, waveCleared, defeated, commandRejected.
 //
 // Who decides what:
@@ -17,6 +19,7 @@
 // The pause flag belongs to the simulation, not to Phaser: only an explicit resume() clears it (spine S10), so a
 // tab that comes back from the background stays paused until the child presses Resume.
 import {
+  UNITS_PER_TILE,
   battleSnapshot,
   checkCommand,
   createBattle,
@@ -62,7 +65,26 @@ export interface HudState {
   readonly highestCompletedWave: number;
   /** Meteor power charges held, by power ID (C10): the battle's while one exists, else the run snapshot's. */
   readonly powers: Readonly<Record<string, number>>;
+  /** The shop card chosen to place next (Phase 31, D4), or null. */
+  readonly armed: string | null;
+  /** The power being aimed (a Comet Burst's ring is on the route; the battle is paused), or null. */
+  readonly aiming: string | null;
+  /** One shop card per class of the wave set, in its order (D4 "Shop"). */
+  readonly shop: readonly ShopCard[];
 }
+
+/** A shop card (D4): its price, and why it cannot be placed now (game-core's rules, checked without a pad). */
+export interface ShopCard {
+  readonly classId: string;
+  readonly name: string;
+  readonly cost: number;
+  readonly unlockAfterWave: number;
+  /** "ok", or the reason no pad would take it: still locked, at its deploy cap, or not enough credits. */
+  readonly state: "ok" | "locked" | "cap" | "credits";
+}
+
+/** Half a tile per arrow press when moving the Comet Burst ring (D5.2). */
+export const AIM_STEP = UNITS_PER_TILE / 2;
 
 /** One class the pad panel can offer for an empty pad (Phase 24): its price, and why it cannot be bought now. */
 export interface PlaceOffer {
@@ -117,6 +139,9 @@ export class GameBridge {
   #speed: Speed = 1;
   #paused = false;
   #selectedPad: string | null = null;
+  #armed: string | null = null;
+  #focusedPad: string | null = null;
+  #aim: { powerId: string; target: number } | null = null;
   /** Battle events for the scene's effects (stars, beams), taken by takeSceneEvents each frame. */
   #sceneEvents: BattleEvent[] = [];
   #sinceHud = HUD_INTERVAL_MS;
@@ -174,6 +199,21 @@ export class GameBridge {
     return this.#selectedPad;
   }
 
+  /** The shop card chosen to place next, or null. */
+  get armed(): string | null {
+    return this.#armed;
+  }
+
+  /** The pad with keyboard focus (the scene previews the armed class's range there), or null. */
+  get focusedPad(): string | null {
+    return this.#focusedPad;
+  }
+
+  /** The Comet Burst being aimed: which power, and the route progress (units) the ring is on. */
+  get aim(): { readonly powerId: string; readonly target: number } | null {
+    return this.#aim;
+  }
+
   /** Shots, defeats and leaks since the last call, for cosmetic effects. */
   takeSceneEvents(): BattleEvent[] {
     const events = this.#sceneEvents;
@@ -208,7 +248,32 @@ export class GameBridge {
       paused: this.#paused,
       highestCompletedWave: run.highestCompletedWave,
       powers: { ...(b?.powers ?? snap?.powers ?? {}) },
+      armed: this.#armed,
+      aiming: this.#aim?.powerId ?? null,
+      shop: this.#shop(),
     };
+  }
+
+  /** The shop cards: the same rules game-core's checkCommand applies to a placement, without a pad (C5.8, C5.9). */
+  #shop(): ShopCard[] {
+    const b = this.#battle;
+    const wave = b?.wave ?? this.#run.state.wave;
+    const credits = b?.credits ?? this.#run.state.snapshot?.credits ?? 0;
+    return this.config.waveSet.classes.flatMap((classId) => {
+      const cls = this.config.classes[classId];
+      const cost = cls?.levels[0]?.cost;
+      if (cls === undefined || cost === undefined) return [];
+      const placed = b?.towers.filter((t) => t.classId === classId).length ?? 0;
+      const state: ShopCard["state"] =
+        this.config.waveSet.mode === "CAMPAIGN" && cls.unlockAfterWave > wave - 1
+          ? "locked"
+          : cls.deployCap !== null && placed >= cls.deployCap
+            ? "cap"
+            : credits < cost
+              ? "credits"
+              : "ok";
+      return [{ classId, name: cls.name, cost, unlockAfterWave: cls.unlockAfterWave, state }];
+    });
   }
 
   selection(): Selection | null {
@@ -250,7 +315,8 @@ export class GameBridge {
   frame(deltaMs: number): void {
     const b = this.#battle;
     if (b !== null) {
-      this.#clock = runFrame(b, this.#clock, deltaMs, this.#speed, this.#paused).clock;
+      // Aiming a Comet Burst pauses the battle too (C2.1), without the Paused card: dropping or cancelling resumes.
+      this.#clock = runFrame(b, this.#clock, deltaMs, this.#speed, this.#paused || this.#aim !== null).clock;
       this.#collect(b);
       if (!this.#reported && (b.status === "CLEARED" || b.status === "DEFEATED")) this.#finishWave(b);
     }
@@ -310,6 +376,7 @@ export class GameBridge {
     const b = this.#battle;
     if (b !== null && b.wave === run.wave && (b.status === "PREP" || b.status === "IN_WAVE")) return;
     this.#battle = createBattle(this.config, run.snapshot, run.wave, this.#seed);
+    this.#aim = null; // a new wave never inherits an aiming ring
     this.#clock = { accumulator: 0 };
     this.#reported = false;
     this.#sceneEvents = [];
@@ -372,8 +439,69 @@ export class GameBridge {
     this.#command(target === undefined ? { kind: "usePower", powerId } : { kind: "usePower", powerId, target });
   }
 
+  /**
+   * A pad pressed (pointer) or chosen (keyboard). With a shop card armed and the pad open and empty, the armed class is
+   * placed there (D4 "Placing"); otherwise the pad is selected (or deselected with null). Either way the card is
+   * put down: one card, one placement.
+   */
   selectPad(padId: string | null): void {
+    const armed = this.#armed;
+    this.#armed = null;
+    const b = this.#battle;
+    const pad = padId === null ? undefined : this.config.pads.find((p) => p.id === padId);
+    if (armed !== null && b !== null && pad !== undefined && pad.open && !b.towers.some((t) => t.padId === pad.id)) {
+      this.#selectedPad = null;
+      this.place(pad.id, armed);
+      return;
+    }
     this.#selectedPad = padId;
+  }
+
+  /** Choose a shop card (D4), or put it down with null. Choosing one clears the pad selection. */
+  arm(classId: string | null): void {
+    this.#armed = classId;
+    if (classId !== null) this.#selectedPad = null;
+  }
+
+  focusPad(padId: string | null): void {
+    this.#focusedPad = padId;
+  }
+
+  /**
+   * Start aiming a power that needs a target (Comet Burst): only during a wave; the ring starts on the front-most
+   * alien (C10), or the middle of the route when none is out. The battle pauses until dropAim or cancelAim.
+   */
+  startAim(powerId: string): void {
+    const b = this.#battle;
+    if (b === null || b.status !== "IN_WAVE") {
+      this.#emit("commandRejected", { command: { kind: "usePower", powerId }, reason: "NOT_NOW" });
+      return;
+    }
+    const front = b.aliens.length === 0 ? Math.floor(this.config.route.length / 2) : Math.max(...b.aliens.map((a) => a.progress));
+    this.#aim = { powerId, target: front };
+  }
+
+  /** Move the ring along the route by `steps` half tiles (negative: back towards the portal), kept on the route. */
+  moveAim(steps: number): void {
+    if (this.#aim !== null) this.aimAt(this.#aim.target + steps * AIM_STEP);
+  }
+
+  /** Put the ring at a route progress (a pointer press on the route), kept on the route. */
+  aimAt(progress: number): void {
+    if (this.#aim === null) return;
+    this.#aim = { ...this.#aim, target: Math.max(0, Math.min(this.config.route.length, Math.round(progress))) };
+  }
+
+  /** Drop the power where the ring is; game-core decides on the next tick whether the use is allowed. */
+  dropAim(): void {
+    const aim = this.#aim;
+    if (aim === null) return;
+    this.#aim = null;
+    this.usePower(aim.powerId, aim.target);
+  }
+
+  cancelAim(): void {
+    this.#aim = null;
   }
 
   #command(command: Command): void {

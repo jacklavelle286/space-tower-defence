@@ -20,7 +20,10 @@
 // game loads nothing new. Slowed aliens keep the frost tint they already had (state, not a timer).
 // Gate E review: Sol never fires, so each astronaut a Sol boosts gets a glow, a gold link line from that Sol (from
 // game-core's buffSourceAt, the simulation's own rule) and rising pluses. Only their motion uses the scene clock.
-import { buffSourceAt, routePoint, type AlienState, type Battle, type BattleEvent } from "@scd/game-core";
+// Phase 31: with a shop card chosen, every open empty pad glows and the hovered (or keyboard-focused) one previews
+// that class's range; a Comet Burst being aimed shows its ring on the route, and a press on the canvas drops it on
+// the route point nearest the press (C10; the bridge pauses the battle while aiming, C2.1).
+import { UNITS_PER_TILE, buffSourceAt, routePoint, type AlienState, type Battle, type BattleEvent } from "@scd/game-core";
 import { GameObjects, Scene, type Input } from "phaser";
 import {
   ALIEN_LOOPED,
@@ -43,6 +46,7 @@ import {
   type ArtAsset,
 } from "./assets";
 import type { GameBridge } from "./GameBridge";
+import { nearestProgress } from "../hud/padNav";
 import { pressedOnCanvas } from "./pointer";
 import { Pool } from "./pool";
 import { CANVAS_HEIGHT, CANVAS_WIDTH, colonyArt, routeTiles, TILE_PX, tileToPx, unitsToPx } from "./layout";
@@ -149,6 +153,8 @@ export class BattleScene extends Scene {
   #effectPool: Pool<GameObjects.Sprite> | null = null;
   #colony: GameObjects.Image | null = null;
   #range: GameObjects.Graphics | null = null;
+  /** The Comet Burst aiming ring (Phase 31). */
+  #aimRing: GameObjects.Graphics | null = null;
   /** Glows under the astronauts a Sol is boosting, so a Sol's work shows on the field (Sol never shoots). */
   #boost: GameObjects.Graphics | null = null;
   /** The pluses above boosted astronauts (drawn over the sprites). */
@@ -206,6 +212,7 @@ export class BattleScene extends Scene {
         // Phaser also listens on window and hit-tests presses that land on DOM overlays above the canvas (the
         // learning panel, the end screen, dialogs). Only a press on the canvas itself is a press on a pad.
         if (!pressedOnCanvas(pointer, this.game.canvas)) return;
+        if (this.#bridge.aim !== null) return; // aiming: the canvas press below drops the power instead
         this.#bridge.selectPad(this.#bridge.selectedPad === pad.id ? null : pad.id);
       });
       image.on("pointerover", () => (this.#hoverPad = pad.id));
@@ -214,6 +221,14 @@ export class BattleScene extends Scene {
     }
 
     this.#range = this.add.graphics().setDepth(5);
+    this.#aimRing = this.add.graphics().setDepth(26);
+    // While aiming a Comet Burst, a press anywhere on the canvas drops it on the nearest route point.
+    this.input.on("pointerdown", (pointer: Input.Pointer) => {
+      if (this.#bridge.aim === null || !pressedOnCanvas(pointer, this.game.canvas)) return;
+      const toUnits = (px: number) => ((px - TILE_PX / 2) * UNITS_PER_TILE) / TILE_PX;
+      this.#bridge.aimAt(nearestProgress(this.#bridge.config.route, toUnits(pointer.x), toUnits(pointer.y)));
+      this.#bridge.dropAim();
+    });
     this.#boost = this.add.graphics().setDepth(6);
     this.#boostFx = this.add.graphics().setDepth(30);
 
@@ -273,13 +288,36 @@ export class BattleScene extends Scene {
     for (const pad of this.#bridge.config.pads) {
       const image = this.#pads.get(pad.id);
       if (image === undefined) continue;
-      const art = !pad.open ? ART.padClosed : pad.id === selected ? ART.padSelected : pad.id === this.#hoverPad ? ART.padHover : ART.padEmpty;
+      // A chosen shop card makes every open empty pad glow: those are the pads that would take it (D4 "Placing").
+      const takes = this.#bridge.armed !== null && pad.open && !(battle?.towers.some((t) => t.padId === pad.id) ?? false);
+      const art = !pad.open
+        ? ART.padClosed
+        : pad.id === selected
+          ? ART.padSelected
+          : pad.id === this.#hoverPad || takes
+            ? ART.padHover
+            : ART.padEmpty;
       image.setTexture(frameKey(art, 1)).setDisplaySize(art.displaySize[0], art.displaySize[1]);
     }
     // The range preview uses the simulation's own range for the tower's level (C3.1: the preview is the truth).
     const range = this.#range;
     if (range === null) return;
     range.clear();
+    this.#drawAim();
+    // A chosen card previews its level-1 range on the pad under the pointer, or the pad with keyboard focus (D4).
+    const armed = this.#bridge.armed;
+    const previewAt = this.#hoverPad ?? this.#bridge.focusedPad;
+    const preview = this.#bridge.config.pads.find((p) => p.id === previewAt);
+    if (armed !== null && preview !== undefined && preview.open && !(battle?.towers.some((t) => t.padId === preview.id) ?? false)) {
+      const first = this.#bridge.config.classes[armed]?.levels[0];
+      const r = first?.shot?.rangeTiles ?? first?.buff?.radiusTiles;
+      if (r !== undefined) {
+        const colour = first?.shot ? 0xfff4d6 : BUFF_RING;
+        range.fillStyle(colour, 0.12).fillCircle(tileToPx(preview.x), tileToPx(preview.y), r * TILE_PX);
+        range.lineStyle(4, colour, 0.7).strokeCircle(tileToPx(preview.x), tileToPx(preview.y), r * TILE_PX);
+      }
+      return;
+    }
     const tower = battle?.towers.find((t) => t.padId === selected);
     const pad = this.#bridge.config.pads.find((p) => p.id === selected);
     if (tower === undefined || pad === undefined) return;
@@ -405,6 +443,23 @@ export class BattleScene extends Scene {
       over.fillStyle(INK, alpha).fillRect(cx - a - 3, cy - 6, (a + 3) * 2, 12).fillRect(cx - 6, cy - a - 3, 12, (a + 3) * 2);
       over.fillStyle(BUFF_RING, alpha).fillRect(cx - a, cy - 3, a * 2, 6).fillRect(cx - 3, cy - a, 6, a * 2);
     });
+  }
+
+  /** The Comet Burst ring while aiming: its true radius on the ground, squashed to 4:3 like the impact art. */
+  #drawAim(): void {
+    const ring = this.#aimRing;
+    if (ring === null) return;
+    ring.clear();
+    const aim = this.#bridge.aim;
+    if (aim === null) return;
+    const effect = this.#bridge.config.powers[aim.powerId]?.effect;
+    const radius = (effect?.kind === "burst" ? effect.radiusTiles : 1.5) * TILE_PX;
+    const at = routePoint(this.#bridge.config.route, aim.target);
+    const x = unitsToPx(at.x);
+    const y = unitsToPx(at.y);
+    ring.fillStyle(0xff9f43, 0.18).fillEllipse(x, y, radius * 2, radius * 1.5);
+    ring.lineStyle(6, 0xff9f43, 0.95).strokeEllipse(x, y, radius * 2, radius * 1.5);
+    ring.lineStyle(4, 0x2a1e3d, 0.9).lineBetween(x - 14, y, x + 14, y).lineBetween(x, y - 14, x, y + 14);
   }
 
   /** An alien's feet on the canvas, in pixels. */
