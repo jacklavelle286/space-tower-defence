@@ -5,7 +5,8 @@ import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { GAME_DATA_DIR } from "../../scripts/build-bounds";
 import { parsePlanet, parseRuleset, type PlanetDocument, type Ruleset } from "../data/game-data";
-import { planetProblems, PROBLEM_TEXT, problemMessage, type PlanetProblem, type ProblemRule, type Severity } from ".";
+import fixtures from "./fixtures-any-direction.json";
+import { ANY_DIRECTION_ROUTES, hardMapProblems, planetProblems, PROBLEM_TEXT, problemMessage, type PlanetProblem, type ProblemRule, type Severity } from ".";
 
 const readJson = (dir: string, name: string): unknown => JSON.parse(readFileSync(join(GAME_DATA_DIR, dir, `${name}.json`), "utf8"));
 const r1 = parseRuleset(readJson("ruleset", "r1"));
@@ -87,7 +88,8 @@ describe("one broken document per rule", () => {
 
   it("covers every rule", () => {
     // decorationPlacement needs a schema 2 document: src/data/schema2.test.ts.
-    const covered = new Set([...cases.map(([rule]) => rule), "padOrder", "arrowReach", "decorationPlacement"]);
+    // routeStart and routeEnd are the tier 3 rules (LD11), below.
+    const covered = new Set([...cases.map(([rule]) => rule), "padOrder", "arrowReach", "decorationPlacement", "routeStart", "routeEnd"]);
     expect([...covered].sort()).toEqual(Object.keys(PROBLEM_TEXT).sort());
   });
 
@@ -112,5 +114,43 @@ describe("parsePlanet refuses hard map problems", () => {
     ["a 21-column grid", { ...raw, map: { ...raw.map, grid: { cols: 21, rows: 11 } } }, /20 by 11/],
   ])("%s", (_name, bad, message) => {
     expect(() => parsePlanet(bad, r4)).toThrow(message);
+  });
+});
+
+describe("routes in any direction (LD11, behind ANY_DIRECTION_ROUTES)", () => {
+  const ROUTES = fixtures.routes as unknown as Record<string, [number, number][]>;
+  const map = (route: [number, number][]) => ({ grid: { cols: 20, rows: 11 }, route, pads: [] });
+  const hardRules = (route: [number, number][], anyDirection: boolean): ProblemRule[] => rules(hardMapProblems(map(route), "planet.map", anyDirection));
+
+  it("is off until the player release with the route art has shipped", () => {
+    expect(ANY_DIRECTION_ROUTES).toBe(false);
+  });
+
+  it.each(Object.entries(ROUTES))("%s is refused today and passes the tier 3 rules", (_name, route) => {
+    expect(hardRules(route, false).length).toBeGreaterThan(0);
+    expect(hardRules(route, true)).toEqual([]);
+  });
+
+  it("keeps Moonbeam valid under both rule sets", () => {
+    const route = main(LIVE).route as [number, number][];
+    expect(hardRules(route, false)).toEqual([]);
+    expect(hardRules(route, true)).toEqual([]);
+  });
+
+  it.each([
+    ["routeStart", [[3, 2], [3, 8], [19, 8]]],
+    ["routeStart", [[0, 2], [0, 8], [19, 8]]],
+    ["routeEnd", [[0, 2], [12, 2], [12, 6]]],
+    ["routeEnd", [[0, 2], [19, 2], [19, 6]]],
+    ["crossing", [[0, 5], [8, 5], [8, 2], [4, 2], [4, 9], [0, 9]]],
+  ] as [ProblemRule, [number, number][]][])("%s: %j", (rule, route) => {
+    expect(hardRules(route, true)).toContain(rule);
+  });
+
+  it("the parser takes them only when asked (development previews and tests)", () => {
+    const raw = readJson("campaign", "luna-1-c2") as { map: Record<string, unknown> };
+    const left = { ...raw, map: { ...raw.map, route: ROUTES["from-right"] } };
+    expect(() => parsePlanet(left, r4)).toThrow(/left edge/u);
+    expect(() => parsePlanet(left, r4, { anyDirection: true })).toThrow(/pad cannot sit on the route/u); // Moonbeam's pads
   });
 });

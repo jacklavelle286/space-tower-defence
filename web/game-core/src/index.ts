@@ -53,6 +53,7 @@ export {
   type CurrentPointers,
   type MapDecoration,
   type Pad,
+  type ParseOptions,
   type PlanetDocument,
   type PlanetMap,
   type Power,

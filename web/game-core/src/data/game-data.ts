@@ -12,7 +12,7 @@
 // This module imports only src/map/ and src/sim/route.ts (Gate M, LD1: the hard map rules), each with an explicit
 // .ts extension, so Node can run web/game-core/scripts/build-bounds.ts directly (type stripping) and it stays as pure
 // as the rest of game-core.
-import { hardMapProblems, problemMessage } from "../map/rules.ts";
+import { ANY_DIRECTION_ROUTES, hardMapProblems, problemMessage } from "../map/rules.ts";
 
 /**
  * The mechanics numbers this game-core can run (spine S5.1). Support is additive forever: never remove one.
@@ -1357,7 +1357,7 @@ function parseWaveSet(
 }
 
 /** One map: grid, route, pads and (schema 2) its name and art. Hard map rules run here (src/map/rules.ts). */
-function parseMap(raw: unknown, path: string, schema: 1 | 2): PlanetMap {
+function parseMap(raw: unknown, path: string, schema: 1 | 2, anyDirection: boolean): PlanetMap {
   const m = obj(raw, path, schema === 2 ? ["name", "grid", "route", "pads", "art"] : ["grid", "route", "pads"]);
   const g = obj(m["grid"], `${path}.grid`, ["cols", "rows"]);
   const cols = int(g["cols"], `${path}.grid.cols`, 1, 100);
@@ -1390,7 +1390,7 @@ function parseMap(raw: unknown, path: string, schema: 1 | 2): PlanetMap {
   if (!pads.some((p) => p.opensAfterWave === 0)) fail(`${path}.pads`, "at least one pad must be open from the start");
   // Gate M (LD1): the map rules the renderer and simulation need (tier 1 route art, grid, no crossing, no pad on the
   // route); the softer design rules are planetProblems' (src/map/rules.ts), checked by the editor and the publisher.
-  const mapProblem = hardMapProblems({ grid: { cols, rows }, route, pads }, path)[0];
+  const mapProblem = hardMapProblems({ grid: { cols, rows }, route, pads }, path, anyDirection)[0];
   if (mapProblem !== undefined) fail(mapProblem.field, problemMessage(mapProblem));
 
   let art: PlanetMap["art"] = { backdrop: null, decorations: [] };
@@ -1455,7 +1455,14 @@ function parseWaveBody(v: unknown, p: string, ruleset: Ruleset, keys: readonly s
  * optional `challengeWaves` and a `mapId` per wave set. Pad IDs are unique across the whole document, so the bounds
  * file's `pads` map stays flat.
  */
-export function parsePlanet(raw: unknown, ruleset: Ruleset): PlanetDocument {
+/** Parse options. `anyDirection`: the tier 3 route rules (LD11) whatever ANY_DIRECTION_ROUTES says, for tests and the
+ *  development previews of the new route art; nothing that reaches a child passes it. */
+export interface ParseOptions {
+  readonly anyDirection?: boolean;
+}
+
+export function parsePlanet(raw: unknown, ruleset: Ruleset, options: ParseOptions = {}): PlanetDocument {
+  const anyDirection = options.anyDirection ?? ANY_DIRECTION_ROUTES;
   const schema: 1 | 2 = typeof raw === "object" && raw !== null && Object.hasOwn(raw, "schema") ? 2 : 1;
   const top =
     schema === 2
@@ -1466,7 +1473,7 @@ export function parsePlanet(raw: unknown, ruleset: Ruleset): PlanetDocument {
   const version = checkVersion(top["version"], "planet.version");
 
   const maps =
-    schema === 2 ? idMap(top["maps"], "planet.maps", (v, p) => parseMap(v, p, 2)) : { [SCHEMA1_MAP_ID]: parseMap(top["map"], "planet.map", 1) };
+    schema === 2 ? idMap(top["maps"], "planet.maps", (v, p) => parseMap(v, p, 2, anyDirection)) : { [SCHEMA1_MAP_ID]: parseMap(top["map"], "planet.map", 1, anyDirection) };
   if (Object.keys(maps).length > MAX_MAPS) fail("planet.maps", `at most ${MAX_MAPS} maps`);
   unique(
     Object.values(maps).flatMap((m) => m.pads.map((p) => p.id)),

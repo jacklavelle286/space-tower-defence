@@ -10,11 +10,14 @@
 //
 // Hard rules are only those the renderer and simulation already need (tier 1 route art: start at x = 0 heading
 // right, end at x = 19 heading right, never heading left; 20 x 11 grid; no crossing; at most 16 waypoints; no pad on
-// the route), so no published document can start failing to load. "Bosses only on waves 10, 20, ... 50" (C7,
+// the route), so no published document can start failing to load. Tier 3 (LD11) has route art for every heading:
+// with ANY_DIRECTION_ROUTES a route starts on any edge heading into the map and ends on any edge heading off it. "Bosses only on waves 10, 20, ... 50" (C7,
 // AC-11) blocks publishing instead: the simulation plays a boss on any wave, and tests rely on that.
 // Thresholds are [PROPOSAL] from scope §5 unless the comment names a source.
 import type { PlanetDocument, PlanetMap, Ruleset } from "../data/game-data.ts";
-import { mapGeometry, routeCells, type RouteCell } from "./geometry.ts";
+import { routeEnds } from "./ends.ts";
+import { mapGeometry, routeCells, type Heading, type RouteCell } from "./geometry.ts";
+import { GRID_COLS, GRID_ROWS } from "./grid.ts";
 import { padReach } from "./coverage.ts";
 import { padOrder, padsUnreachableByArrows } from "./order.ts";
 
@@ -37,6 +40,8 @@ export const PROBLEM_TEXT = {
   endEdge: "The route must end on the right edge (x = 19).",
   endHeading: "The route must reach the colony heading right.",
   leftHeading: "The route never heads left: there is no route art for it yet.",
+  routeStart: "The route must start on an edge of the map, heading into it.",
+  routeEnd: "The route must end on an edge of the map, heading off it.",
   crossing: "The route passes through this cell twice.",
   padOnRoute: "A pad cannot sit on the route.",
   bossWave: "A boss only comes on waves 10, 20, 30, 40 and 50.",
@@ -66,9 +71,26 @@ export const PROBLEM_TEXT = {
 
 export type ProblemRule = keyof typeof PROBLEM_TEXT;
 
-export const GRID_COLS = 20;
-export const GRID_ROWS = 11;
+export { GRID_COLS, GRID_ROWS };
 export const MAX_WAYPOINTS = 16;
+/**
+ * Gate M, LD11: routes that start and end on any edge and turn either way. Off until the player release that carries
+ * the route art for them has shipped (scope-level-designer.md §3.3: a page loaded before that release could not draw
+ * such a map), then switched on in its own commit. The parser, the publisher's checks and the editor's route tool all
+ * read it.
+ */
+export const ANY_DIRECTION_ROUTES = false;
+
+/** Whether a cell on the grid is on the edge a route heading `heading` enters from. */
+export function entersFrom(x: number, y: number, heading: Heading): boolean {
+  return (heading === "right" && x === 0) || (heading === "left" && x === GRID_COLS - 1) || (heading === "down" && y === 0) || (heading === "up" && y === GRID_ROWS - 1);
+}
+
+/** Whether a cell is on the edge a route heading `heading` leaves by. */
+export function leavesBy(x: number, y: number, heading: Heading): boolean {
+  return (heading === "right" && x === GRID_COLS - 1) || (heading === "left" && x === 0) || (heading === "down" && y === GRID_ROWS - 1) || (heading === "up" && y === 0);
+}
+
 /** C3.3 [PROPOSAL]: pads open with the class unlocks. */
 export const PAD_OPEN_WAVES: readonly number[] = [0, 5, 10, 15, 20, 25];
 
@@ -83,8 +105,9 @@ function cheb(ax: number, ay: number, bx: number, by: number): number {
   return Math.max(Math.abs(ax - bx), Math.abs(ay - by));
 }
 
-/** The rules parsePlanet enforces on a map (after its structural checks); `P` is the map's path in the document. */
-export function hardMapProblems(map: MapInput, P = "planet.map"): PlanetProblem[] {
+/** The rules parsePlanet enforces on a map (after its structural checks); `P` is the map's path in the document.
+ *  `anyDirection` is ANY_DIRECTION_ROUTES unless a test or preview asks for the tier 3 rules (LD11). */
+export function hardMapProblems(map: MapInput, P = "planet.map", anyDirection = ANY_DIRECTION_ROUTES): PlanetProblem[] {
   const out: PlanetProblem[] = [];
   const hard = (field: string, rule: ProblemRule, at?: readonly [number, number]): void => {
     out.push(at === undefined ? { field, rule, severity: "hard" } : { field, rule, severity: "hard", at });
@@ -95,15 +118,20 @@ export function hardMapProblems(map: MapInput, P = "planet.map"): PlanetProblem[
   const first = route[0];
   const last = route[route.length - 1];
   const cells = routeCells(route);
-  if (first !== undefined && first[0] !== 0) hard(`${P}.route[0]`, "startEdge", first);
-  if (last !== undefined && last[0] !== GRID_COLS - 1) hard(`${P}.route[${route.length - 1}]`, "endEdge", last);
-  if (cells[0] !== undefined && cells[0].heading !== "right") hard(`${P}.route[1]`, "startHeading", [cells[0].x, cells[0].y]);
   const end = cells[cells.length - 1];
-  if (end !== undefined && end.heading !== "right") hard(`${P}.route[${route.length - 1}]`, "endHeading", [end.x, end.y]);
-  for (let i = 0; i + 1 < route.length; i += 1) {
-    const [ax] = route[i] ?? [0, 0];
-    const [bx] = route[i + 1] ?? [0, 0];
-    if (bx < ax) hard(`${P}.route[${i + 1}]`, "leftHeading", route[i + 1]);
+  if (anyDirection) {
+    if (cells[0] !== undefined && !entersFrom(cells[0].x, cells[0].y, cells[0].heading)) hard(`${P}.route[0]`, "routeStart", [cells[0].x, cells[0].y]);
+    if (end !== undefined && !leavesBy(end.x, end.y, end.heading)) hard(`${P}.route[${route.length - 1}]`, "routeEnd", [end.x, end.y]);
+  } else {
+    if (first !== undefined && first[0] !== 0) hard(`${P}.route[0]`, "startEdge", first);
+    if (last !== undefined && last[0] !== GRID_COLS - 1) hard(`${P}.route[${route.length - 1}]`, "endEdge", last);
+    if (cells[0] !== undefined && cells[0].heading !== "right") hard(`${P}.route[1]`, "startHeading", [cells[0].x, cells[0].y]);
+    if (end !== undefined && end.heading !== "right") hard(`${P}.route[${route.length - 1}]`, "endHeading", [end.x, end.y]);
+    for (let i = 0; i + 1 < route.length; i += 1) {
+      const [ax] = route[i] ?? [0, 0];
+      const [bx] = route[i + 1] ?? [0, 0];
+      if (bx < ax) hard(`${P}.route[${i + 1}]`, "leftHeading", route[i + 1]);
+    }
   }
   const seen = new Set<string>();
   for (const c of cells) {
@@ -141,15 +169,10 @@ function drawable(route: readonly (readonly [number, number])[]): boolean {
   return true;
 }
 
-/** The cells the portal and colony pictures cover (centres inside the sprite; BattleScene.ts portal and colony). */
-function footprints(cells: readonly RouteCell[]): { portal: [number, number][]; colony: [number, number][] } {
-  const start = cells[0];
-  const end = cells[cells.length - 1];
-  const portal: [number, number][] = [];
-  const colony: [number, number][] = [];
-  if (start !== undefined) for (let dx = -1; dx <= 0; dx += 1) for (let dy = -1; dy <= 1; dy += 1) portal.push([start.x + dx, start.y + dy]);
-  if (end !== undefined) for (let dx = -2; dx <= 0; dx += 1) for (let dy = -1; dy <= 0; dy += 1) colony.push([end.x + dx, end.y + dy]);
-  return { portal, colony };
+/** The cells the portal and colony pictures cover (ends.ts, where the battlefield draws them). */
+function footprints(cells: readonly RouteCell[]): { portal: (readonly [number, number])[]; colony: (readonly [number, number])[] } {
+  const ends = routeEnds(cells.map((c) => [c.x, c.y] as const));
+  return { portal: [...(ends?.portalCells ?? [])], colony: [...(ends?.colonyCells ?? [])] };
 }
 
 function routeProblems(map: MapInput, P: string, cells: readonly RouteCell[], out: PlanetProblem[]): void {
@@ -183,7 +206,7 @@ function routeProblems(map: MapInput, P: string, cells: readonly RouteCell[], ou
   const { portal, colony } = footprints(cells);
   const firstSegment = cells[0]?.segment ?? 0;
   const lastSegment = cells[cells.length - 1]?.segment ?? 0;
-  const covered = (fp: [number, number][], own: number): void => {
+  const covered = (fp: readonly (readonly [number, number])[], own: number): void => {
     for (const [x, y] of fp) {
       const pad = map.pads.findIndex((p) => p.x === x && p.y === y);
       if (pad !== -1) out.push({ field: `${P}.pads[${pad}]`, rule: "footprint", severity: "block", at: [x, y] });

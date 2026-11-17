@@ -1,0 +1,9 @@
+{
+  "$comment": "Gate M, LD11: four routes, one per entry edge, that between them use every straight, all eight corners and all eight caps of the route art. Read by src/map/ends.test.ts and rules.test.ts, and by web/player's routes-preview.html for the screenshots.",
+  "routes": {
+    "from-left": [[0, 8], [5, 8], [5, 2], [10, 2], [10, 7], [15, 7], [15, 0]],
+    "from-top": [[3, 0], [3, 8], [9, 8], [9, 3], [16, 3], [16, 8], [19, 8]],
+    "from-right": [[19, 2], [13, 2], [13, 8], [7, 8], [7, 3], [2, 3], [2, 10]],
+    "from-bottom": [[16, 10], [16, 4], [10, 4], [10, 8], [4, 8], [4, 2], [0, 2]]
+  }
+}
