@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { FakeAdminApi } from "../testing/fakeApi";
 import type { CheckWorker, WorkerRequest } from "./checkRun";
 import { LevelEditor } from "./LevelEditor";
-import { CURRENT_RULESET, mergedLevel, newLevel } from "./levelFile";
+import { currentRuleset, mergedLevel, newLevel } from "./levelFile";
 
 function inlineWorker(): CheckWorker {
   const worker: CheckWorker = {
@@ -16,7 +16,7 @@ function inlineWorker(): CheckWorker {
     postMessage(message: WorkerRequest) {
       setTimeout(() => {
         const planet = mergedLevel(message.level, message.base);
-        for (const job of message.jobs) worker.onmessage?.({ data: { type: "result", result: runJob(CURRENT_RULESET, planet, job) } } as MessageEvent);
+        for (const job of message.jobs) worker.onmessage?.({ data: { type: "result", result: runJob(currentRuleset(), planet, job) } } as MessageEvent);
       }, 0);
     },
   };

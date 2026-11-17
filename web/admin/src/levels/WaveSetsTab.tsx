@@ -2,7 +2,7 @@ import { LIMITS } from "@scd/shared";
 import { TILE_PX } from "@scd/shared/map";
 import { useState } from "react";
 import type { LevelFile, LevelWaveSet } from "../api";
-import { CURRENT_RULESET, liveBase, problemText, type LevelProblem } from "./levelFile";
+import { currentRuleset, liveBase, problemText, type LevelProblem } from "./levelFile";
 
 // The Wave sets tab (Gate M, LD4; scope-level-designer.md §3.1 step 9). The campaign card (a campaign level) has a
 // fixed shape (50 waves, meteors after 9, 19, 29, 39, 49): only its credits and colony health are yours to set.
@@ -17,7 +17,7 @@ type Props = {
 };
 
 const R = LIMITS.levelDesigner;
-const CLASSES = Object.entries(CURRENT_RULESET.classes).map(([id, c]) => ({ id, name: c.name, defaultTargeting: c.defaultTargeting }));
+const classes = () => Object.entries(currentRuleset().classes).map(([id, c]) => ({ id, name: c.name, defaultTargeting: c.defaultTargeting }));
 const OPEN_AS_FOR = [1, 6, 11, 16, 21, 26];
 
 const clamp = (v: number, lo: number, hi: number): number => (Number.isFinite(v) ? Math.max(lo, Math.min(hi, Math.round(v))) : lo);
@@ -36,7 +36,7 @@ function MiniMap({ level, set }: { level: LevelFile; set: LevelWaveSet }) {
             <circle cx={p.x * TILE_PX + 48} cy={p.y * TILE_PX + 48} r={36} className={preset !== undefined ? "mini-preset" : open(p.opensAfterWave) ? "mini-open" : "mini-closed"} />
             {preset !== undefined && (
               <text x={p.x * TILE_PX + 48} y={p.y * TILE_PX + 60} className="mini-label">
-                {CURRENT_RULESET.classes[preset.classId]?.name.slice(0, 2)}
+                {currentRuleset().classes[preset.classId]?.name.slice(0, 2)}
                 {preset.level}
               </text>
             )}
@@ -109,12 +109,12 @@ function ChallengeCard({ id, set, level, problems, onChange, onRemove }: { id: s
       </label>
       <fieldset>
         <legend>Astronauts offered</legend>
-        {CLASSES.map((c) => (
+        {classes().map((c) => (
           <label key={c.id} className="inline">
             <input
               type="checkbox"
               checked={set.classes.includes(c.id)}
-              onChange={(e) => onChange({ ...set, classes: e.target.checked ? CLASSES.map((x) => x.id).filter((x) => x === c.id || set.classes.includes(x)) : set.classes.filter((x) => x !== c.id) })}
+              onChange={(e) => onChange({ ...set, classes: e.target.checked ? classes().map((x) => x.id).filter((x) => x === c.id || set.classes.includes(x)) : set.classes.filter((x) => x !== c.id) })}
             />{" "}
             {c.name}
           </label>
@@ -135,7 +135,7 @@ function ChallengeCard({ id, set, level, problems, onChange, onRemove }: { id: s
         <ul>
           {set.presetPlacements.map((p) => (
             <li key={p.padId}>
-              Pad {padNumber(p.padId)}: {CURRENT_RULESET.classes[p.classId]?.name} level {p.level}{" "}
+              Pad {padNumber(p.padId)}: {currentRuleset().classes[p.classId]?.name} level {p.level}{" "}
               <button type="button" aria-label={`Remove the preset on pad ${padNumber(p.padId)}`} onClick={() => onChange({ ...set, presetPlacements: set.presetPlacements.filter((x) => x !== p) })}>
                 Remove
               </button>
@@ -156,7 +156,7 @@ function ChallengeCard({ id, set, level, problems, onChange, onRemove }: { id: s
         <label>
           Astronaut{" "}
           <select value={preset.classId} onChange={(e) => setPreset({ ...preset, classId: e.target.value })}>
-            {CLASSES.filter((c) => set.classes.includes(c.id)).map((c) => (
+            {classes().filter((c) => set.classes.includes(c.id)).map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
               </option>
@@ -175,7 +175,7 @@ function ChallengeCard({ id, set, level, problems, onChange, onRemove }: { id: s
           type="button"
           disabled={preset.padId === ""}
           onClick={() => {
-            const cls = CLASSES.find((c) => c.id === preset.classId);
+            const cls = classes().find((c) => c.id === preset.classId);
             onChange({ ...set, presetPlacements: [...set.presetPlacements, { padId: preset.padId, classId: preset.classId, level: preset.level, targeting: cls?.defaultTargeting ?? "FRONT" }] });
             setPreset({ ...preset, padId: "" });
           }}

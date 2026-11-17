@@ -111,3 +111,26 @@ describe("the base of a planet with nothing published (LD10)", () => {
     }
   });
 });
+
+describe("the live ruleset (AM1: a made alien is a new ruleset)", () => {
+  it("R46's ruleset is used for every check from then on, so a wave can name a made alien", async () => {
+    const { currentRuleset, levelProblems: problemsOf, newLevel: make, REPO_RULESET, resetLiveBase } = await import("./levelFile");
+    const { loadLiveBase } = await import("./liveBase");
+    const { FakeAdminApi } = await import("../testing/fakeApi");
+    const ruleset = (await import("../../../../game-data/ruleset/r4.json")).default as unknown as { aliens: Record<string, unknown> };
+    const fake = new FakeAdminApi();
+    fake.gameData = { ...fake.gameData, ruleset: { ...ruleset, version: "r4-a1", aliens: { ...ruleset.aliens, zorp: { name: "Zorp", hp: 30, speed: 1.1, leak: 1, bounty: 4, traits: {} } } } };
+    const level = make("zorp-rush", "Zorp Rush", "u-bends");
+    level.challengeWaves = { "zorp-wave": { groups: [{ type: "zorp", count: 3, at: 0, gap: 1 }], hpMult: 1, speedMult: 1 } } as typeof level.challengeWaves;
+    try {
+      expect(problemsOf(level).some((p) => p.field.includes("zorp-wave"))).toBe(true); // the build's ruleset has no Zorp
+      await loadLiveBase(fake.api);
+      expect(currentRuleset().version).toBe("r4-a1");
+      expect(currentRuleset().aliens["zorp"]?.name).toBe("Zorp");
+      expect(problemsOf(level).filter((p) => p.field.includes("zorp-wave")).map((p) => [p.field, p.rule])).toEqual([]);
+    } finally {
+      resetLiveBase();
+    }
+    expect(currentRuleset()).toBe(REPO_RULESET);
+  });
+});

@@ -34,11 +34,30 @@ export const LEVEL_ID = /^[a-z0-9-]{1,36}$/u;
 export const NAME_MAX = 60;
 export const OPENS_AFTER = [0, 5, 10, 15, 20, 25] as const;
 
-// The ruleset new games use: the design rules read its bosses and colony health (wave sets, from LD4).
+// The ruleset new games use: the design rules read its aliens, bosses and colony health (wave sets, from LD4). From
+// AM1 a made alien publishes a new ruleset without a release, so the editor uses the live one R46 sends
+// (`setLiveRuleset`, loadLiveBase); the copy this build was made with is the start and the tests'.
 const RULESETS = import.meta.glob<{ default: unknown }>("../../../../game-data/ruleset/*.json", { eager: true });
-export const CURRENT_RULESET: Ruleset = parseRuleset(
-  Object.entries(RULESETS).find(([path]) => path.endsWith(`/${currentJson.rulesetVersion}.json`))?.[1].default,
-);
+const REPO_RULESET_RAW: unknown = Object.entries(RULESETS).find(([path]) => path.endsWith(`/${currentJson.rulesetVersion}.json`))?.[1].default;
+export const REPO_RULESET: Ruleset = parseRuleset(REPO_RULESET_RAW);
+
+let ruleset: { readonly raw: unknown; readonly parsed: Ruleset } = { raw: REPO_RULESET_RAW, parsed: REPO_RULESET };
+
+/** The ruleset levels are checked against now: the live one once R46 has sent it. */
+export function currentRuleset(): Ruleset {
+  return ruleset.parsed;
+}
+
+/** The ruleset as R46 sent it (the balance-check workers parse it themselves). */
+export function currentRulesetRaw(): unknown {
+  return ruleset.raw;
+}
+
+/** Use `raw` (R46's live ruleset) for every check from now on. Throws when it does not parse. */
+export function setLiveRuleset(raw: unknown): Ruleset {
+  ruleset = { raw, parsed: parseRuleset(raw) };
+  return ruleset.parsed;
+}
 
 /**
  * The planet document a level is merged into and checked against: the live one (current.json). From LD7 the editor
@@ -55,7 +74,7 @@ export interface LiveBase {
 const CAMPAIGNS = import.meta.glob<{ default: unknown }>("../../../../game-data/campaign/*.json", { eager: true });
 const REPO_RAW: unknown = Object.entries(CAMPAIGNS).find(([path]) => path.endsWith(`/${currentJson.campaignVersion}.json`))?.[1].default ?? moonbeam;
 /** The repository's live planet (current.json as this build has it). */
-export const REPO_BASE: LiveBase = { version: currentJson.campaignVersion, raw: REPO_RAW, planet: parsePlanet(REPO_RAW, CURRENT_RULESET) };
+export const REPO_BASE: LiveBase = { version: currentJson.campaignVersion, raw: REPO_RAW, planet: parsePlanet(REPO_RAW, REPO_RULESET) };
 
 let base: LiveBase = REPO_BASE;
 /** Whether `base` came from admin-api (the true live version) rather than this build's copy. */
@@ -74,7 +93,7 @@ export function liveBaseLoaded(): boolean {
 /** Use `raw` (the document R46 sent, parsed with this build's ruleset) as the live planet. Throws when it does not parse.
  *  A new planet's empty starting document (LD10: no waves yet, which the parser refuses) is taken as it is. */
 export function setLiveBase(version: string, raw: unknown): LiveBase {
-  base = { version, raw, planet: isEmptyPlanet(raw) ? (raw as PlanetDocument) : parsePlanet(raw, CURRENT_RULESET) };
+  base = { version, raw, planet: isEmptyPlanet(raw) ? (raw as PlanetDocument) : parsePlanet(raw, currentRuleset()) };
   fromServer = true;
   return base;
 }
@@ -90,6 +109,7 @@ function isEmptyPlanet(raw: unknown): boolean {
 /** Back to the repository's copy (tests). */
 export function resetLiveBase(): void {
   base = REPO_BASE;
+  ruleset = { raw: REPO_RULESET_RAW, parsed: REPO_RULESET };
   fromServer = false;
 }
 
@@ -238,7 +258,7 @@ function impactProblems(level: LevelFile): LevelProblem[] {
     const field = `planet.waves[${i}]`;
     const sets = users.get(w.wave);
     if (sets !== undefined) out.push({ field, rule: "impact", severity: "warn", message: `Wave ${w.wave} changed: the challenges ${sets.join(", ")} play it too.` });
-    const boss = w.groups.some((g) => isBoss(CURRENT_RULESET, g.type));
+    const boss = w.groups.some((g) => isBoss(currentRuleset(), g.type));
     if ((w.wave >= 41 && w.wave <= 49) || boss) out.push({ field, rule: "impact", severity: "warn", message: `Wave ${w.wave} changed: endless waves are built from it (C11).` });
   });
   return out;
@@ -253,7 +273,7 @@ function parseProblem(error: unknown): LevelProblem {
 
 /** The level merged into a planet document (the live one unless given) and parsed (throws when it does not parse). */
 export function mergedLevel(level: LevelFile, raw: unknown = liveBase().raw): PlanetDocument {
-  return parsePlanet(mergeLevel(raw, level, "draft"), CURRENT_RULESET);
+  return parsePlanet(mergeLevel(raw, level, "draft"), currentRuleset());
 }
 
 /**
@@ -262,7 +282,7 @@ export function mergedLevel(level: LevelFile, raw: unknown = liveBase().raw): Pl
  * Pads must be in route order on a new map.
  */
 export function levelProblems(level: LevelFile, raw: unknown = liveBase().raw): LevelProblem[] {
-  const map: LevelProblem[] = planetProblems(levelAsPlanet(level), CURRENT_RULESET, { strictPadOrder: true });
+  const map: LevelProblem[] = planetProblems(levelAsPlanet(level), currentRuleset(), { strictPadOrder: true });
   if (hardMapProblems(level.map).length > 0) return map;
   if (Object.keys(level.waveSets).length === 0 && Object.keys(level.challengeWaves).length === 0) return map;
   let merged: PlanetDocument;
@@ -271,7 +291,7 @@ export function levelProblems(level: LevelFile, raw: unknown = liveBase().raw): 
   } catch (error) {
     return [...map, parseProblem(error)];
   }
-  const own = planetProblems(merged, CURRENT_RULESET, { strictPadOrder: true }).filter(
+  const own = planetProblems(merged, currentRuleset(), { strictPadOrder: true }).filter(
     (p) => levelOwnsField(level, p.field) && !p.field.startsWith(`planet.maps.${level.levelId}`),
   );
   return [...map, ...own, ...impactProblems(level)];

@@ -11,12 +11,14 @@ import {
   type WaveSetReport,
 } from "@scd/game-core";
 import type { LevelFile } from "../api";
-import { CURRENT_RULESET, liveBase, mergedLevel } from "./levelFile";
+import { currentRuleset, currentRulesetRaw, liveBase, mergedLevel } from "./levelFile";
 
 export type WorkerRequest = {
   readonly level: LevelFile;
   /** The live planet document the level is merged into (a worker has none of the page's state). */
   readonly base: unknown;
+  /** The live ruleset as R46 sent it (AM1: made aliens are in it). */
+  readonly ruleset: unknown;
   readonly jobs: readonly CheckJob[];
 };
 export type WorkerReply =
@@ -98,10 +100,10 @@ export function runChecks(
             (a, b) =>
               (order.get(keyOf(a.job)) ?? 0) - (order.get(keyOf(b.job)) ?? 0),
           );
-          resolve(judgeChecks(planet, CURRENT_RULESET, sorted));
+          resolve(judgeChecks(planet, currentRuleset(), sorted));
         }
       };
-      worker.postMessage({ level, base, jobs: part });
+      worker.postMessage({ level, base, ruleset: currentRulesetRaw(), jobs: part });
     }
   });
   return {

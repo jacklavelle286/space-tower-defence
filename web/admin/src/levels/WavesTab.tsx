@@ -2,7 +2,7 @@ import { CURVES, fillIn, introduceAlien, isBoss, scaleCounts, typesBy, vary, wav
 import { LIMITS } from "@scd/shared";
 import { useState } from "react";
 import type { LevelFile, LevelGroup, LevelWave, LevelWaveBody } from "../api";
-import { CURRENT_RULESET, liveBase, problemText, type LevelProblem } from "./levelFile";
+import { currentRuleset, liveBase, problemText, type LevelProblem } from "./levelFile";
 
 // The Waves tab (Gate M, LD4; scope-level-designer.md §3.1 step 8 and §3.1a). A campaign level edits the 50 campaign
 // waves: mark a few as keyframes, Fill in rebuilds the waves between them along a curve, a wave set by hand is kept;
@@ -18,10 +18,12 @@ type Props = {
 };
 
 const R = LIMITS.levelDesigner;
-const ALIENS = Object.entries(CURRENT_RULESET.aliens)
-  .filter(([, a]) => !a.descendantOnly)
-  .map(([id, a]) => ({ id, name: a.name }));
-const BOSSES = Object.entries(CURRENT_RULESET.bosses).map(([id, b]) => ({ id, name: b.name }));
+// Read on each render: the live ruleset (AM1: with the made aliens) arrives after the page loads.
+const aliens = () =>
+  Object.entries(currentRuleset().aliens)
+    .filter(([, a]) => !a.descendantOnly)
+    .map(([id, a]) => ({ id, name: a.name }));
+const bosses = () => Object.entries(currentRuleset().bosses).map(([id, b]) => ({ id, name: b.name }));
 
 function routeLength(level: LevelFile): number {
   let n = 0;
@@ -56,9 +58,9 @@ function WaveEditor({
   onChange: (body: LevelWaveBody) => void;
   extra?: React.ReactNode;
 }) {
-  const stats = waveStats(CURRENT_RULESET, body as WaveBody, routeTiles);
+  const stats = waveStats(currentRuleset(), body as WaveBody, routeTiles);
   const setGroup = (j: number, patch: Partial<LevelGroup>) => onChange({ ...body, groups: body.groups.map((g, k) => (k === j ? { ...g, ...patch } : g)) });
-  const types = bossAllowed ? [...ALIENS, ...BOSSES] : ALIENS;
+  const types = bossAllowed ? [...aliens(), ...bosses()] : aliens();
   return (
     <fieldset className="wave-row">
       <legend>{label}</legend>
@@ -91,7 +93,7 @@ function WaveEditor({
                   type="number"
                   aria-label={`${label}, group ${j + 1}, count`}
                   min={R.groupCount.min}
-                  max={isBoss(CURRENT_RULESET, g.type) ? 1 : R.groupCount.max}
+                  max={isBoss(currentRuleset(), g.type) ? 1 : R.groupCount.max}
                   value={g.count}
                   onChange={(e) => setGroup(j, { count: Math.round(num(e.target.value, R.groupCount.min, R.groupCount.max, g.count)) })}
                 />
@@ -174,7 +176,7 @@ export function WavesTab({ level, problems, onEdit }: Props) {
                 ))}
               </select>
             </label>
-            <button type="button" disabled={keyframes.length < 2} onClick={() => setWaves(fillIn(CURRENT_RULESET, waves as AuthoredWave[], keyframes, { curve, overrides }))}>
+            <button type="button" disabled={keyframes.length < 2} onClick={() => setWaves(fillIn(currentRuleset(), waves as AuthoredWave[], keyframes, { curve, overrides }))}>
               Fill in between keyframes
             </button>
             <span className="muted">
@@ -185,7 +187,7 @@ export function WavesTab({ level, problems, onEdit }: Props) {
               <input type="number" aria-label="To wave" min={1} max={50} value={range.to} onChange={(e) => setRange({ ...range, to: num(e.target.value, 1, 50, 50) })} /> by{" "}
               <input type="number" aria-label="Percent" min={-50} max={100} value={range.pct} onChange={(e) => setRange({ ...range, pct: num(e.target.value, -50, 100, 10) })} /> %
             </label>
-            <button type="button" onClick={() => setWaves(scaleCounts(CURRENT_RULESET, waves as AuthoredWave[], range.from, range.to, range.pct))}>
+            <button type="button" onClick={() => setWaves(scaleCounts(currentRuleset(), waves as AuthoredWave[], range.from, range.to, range.pct))}>
               Scale
             </button>
           </div>
@@ -213,7 +215,7 @@ export function WavesTab({ level, problems, onEdit }: Props) {
                         type="button"
                         onClick={() => {
                           const seed = (roll?.seed ?? w.wave * 1000) + 1;
-                          setRolls({ ...rolls, [w.wave]: { seed, body: vary(CURRENT_RULESET, w as WaveBody, seed, { pool: typesBy(CURRENT_RULESET, waves as AuthoredWave[], w.wave) }) as LevelWaveBody } });
+                          setRolls({ ...rolls, [w.wave]: { seed, body: vary(currentRuleset(), w as WaveBody, seed, { pool: typesBy(currentRuleset(), waves as AuthoredWave[], w.wave) }) as LevelWaveBody } });
                         }}
                       >
                         Vary
@@ -222,7 +224,7 @@ export function WavesTab({ level, problems, onEdit }: Props) {
                         Introduce{" "}
                         <select aria-label={`Wave ${w.wave}, introduce an alien on its own`} value="" onChange={(e) => e.target.value !== "" && replace({ ...w, groups: introduceAlien(e.target.value) })}>
                           <option value="">…</option>
-                          {ALIENS.map((a) => (
+                          {aliens().map((a) => (
                             <option key={a.id} value={a.id}>
                               {a.name}
                             </option>
@@ -235,7 +237,7 @@ export function WavesTab({ level, problems, onEdit }: Props) {
                 {roll !== undefined && (
                   <div className="vary-preview" role="group" aria-label={`Wave ${w.wave}, varied (seed ${roll.seed})`}>
                     <p>
-                      Varied with seed {roll.seed}: {roll.body.groups.map((g) => `${g.count} × ${CURRENT_RULESET.aliens[g.type]?.name ?? CURRENT_RULESET.bosses[g.type]?.name ?? g.type}`).join(", ")}
+                      Varied with seed {roll.seed}: {roll.body.groups.map((g) => `${g.count} × ${currentRuleset().aliens[g.type]?.name ?? currentRuleset().bosses[g.type]?.name ?? g.type}`).join(", ")}
                     </p>
                     <button
                       type="button"
