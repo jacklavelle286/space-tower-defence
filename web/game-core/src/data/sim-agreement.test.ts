@@ -11,7 +11,7 @@ import { describe, expect, it } from "vitest";
 import { GAME_DATA_DIR } from "../../scripts/build-bounds";
 import { armouredDamage, buffedDamage, cometDamage, compileBattleConfig, flyingBlastDamage, healAmount, sellRefund } from "../sim/config";
 import { initialRunState } from "../sim/run";
-import { alienBounty, buildBounds, meteorAward, parsePlanet, parseRuleset, TARGETING_MODES, waveBounty, type AuthoredWave } from "./game-data";
+import { alienBounty, buildBounds, endlessWave, meteorAward, parsePlanet, parseRuleset, TARGETING_MODES, waveBounty, type AuthoredWave } from "./game-data";
 
 const REPO = resolve(import.meta.dirname, "..", "..", "..", "..");
 const SIM_DIR = join(REPO, "tools", "sim");
@@ -582,5 +582,66 @@ describe("planet document luna-1-c2: the 50-wave campaign (Phase 50, M4-01; C8.2
   it("pads open as C3.3 schedules them, the same pads as the simulator's map", () => {
     const simPads: Loose[] = sim.map.pads;
     expect(c2.map.pads.map((p) => [p.id, p.opensAfterWave])).toEqual(simPads.map((p) => [p.id.toLowerCase(), p.opensAfterWave]));
+  });
+});
+
+describe("ruleset r4: the endless generator (Phase 54, M4-05; C11)", () => {
+  const ruleset4 = parseRuleset(JSON.parse(readFileSync(join(GAME_DATA_DIR, "ruleset", "r4.json"), "utf8")));
+  const c2 = parsePlanet(JSON.parse(readFileSync(join(GAME_DATA_DIR, "campaign", "luna-1-c2.json"), "utf8")), ruleset4);
+  const authored = new Map(c2.waves.map((w) => [w.wave, w]));
+  const rules = ruleset4.endless;
+  if (rules === undefined) throw new Error("r4 has no endless block");
+  const wave = (n: number) => endlessWave(rules, ruleset4.bosses, authored, n);
+
+  it("is r3 unchanged plus the simulator's endless numbers, at mechanics 4", () => {
+    expect(ruleset4.mechanics).toBe(4);
+    const r3raw: Loose = JSON.parse(readFileSync(join(GAME_DATA_DIR, "ruleset", "r3.json"), "utf8"));
+    const r4raw: Loose = JSON.parse(readFileSync(join(GAME_DATA_DIR, "ruleset", "r4.json"), "utf8"));
+    for (const key of Object.keys(r3raw).filter((k) => !["$comment", "version", "mechanics"].includes(k))) {
+      expect(r4raw[key], key).toEqual(r3raw[key]);
+    }
+    const e: Loose = sim.endless;
+    expect(rules.templateForOffset).toEqual(e.templateForOffset);
+    expect(rules.bossCycle).toEqual(e.bossCycle);
+    expect(rules.bossEscortTemplates).toEqual(e.bossEscortTemplates);
+    expect([rules.hpMult.base, rules.hpMult.perWave, rules.hpMult.cap]).toEqual([e.hpMult.base, e.hpMult.perWave, e.hpMult.cap]);
+    expect([rules.speedMult.base, rules.speedMult.perWave, rules.speedMult.cap]).toEqual([e.speedMult.base, e.speedMult.perWave, e.speedMult.cap]);
+    expect([rules.countMult.base, rules.countMult.perCycle, rules.countMult.cap]).toEqual([e.countMult.base, e.countMult.perCycle, e.countMult.cap]);
+    expect([rules.bossHp.base, rules.bossHp.perBoss, rules.bossHp.cap, rules.bossBounty, rules.maxScheduledSpawnsPerWave]).toEqual([
+      e.bossHp.base,
+      e.bossHp.perBoss,
+      e.bossHp.cap,
+      e.bossBounty,
+      e.maxScheduledSpawnsPerWave,
+    ]);
+  });
+
+  it("every sample wave of the simulator's C11 table: multipliers, scheduled spawns, boss health, bounty available", () => {
+    const table: string = simTables.tables.endless_samples;
+    const rows = table.split("\n").filter((l) => /^\| \d+ \|/.test(l));
+    expect(rows.length).toBeGreaterThanOrEqual(14);
+    for (const row of rows) {
+      const cells = row.split("|").map((c) => c.trim());
+      const n = Number(cells[1]);
+      const w = wave(n);
+      const label = `wave ${n}`;
+      expect(w.hpMult, label).toBe(Number(cells[3]?.replace("x", "")));
+      expect(w.speedMult, label).toBe(Number(cells[4]?.replace("x", "")));
+      expect(w.groups.reduce((t, g) => t + g.count, 0), label).toBe(Number(cells[6]));
+      expect(w.bossHp, label).toBe(cells[7] === "-" ? null : Number(cells[7]));
+      expect(waveBounty(ruleset4, w), label).toBe(Number(cells[8]));
+    }
+  });
+
+  it("bounded and periodic: never more than 110 scheduled spawns, and from wave 120 wave n equals wave n + 50", () => {
+    for (let n = 51; n <= 999; n += 1) {
+      expect(wave(n).groups.reduce((t, g) => t + g.count, 0), `wave ${n}`).toBeLessThanOrEqual(110);
+    }
+    for (const n of [120, 157, 333, 949]) {
+      const a = wave(n);
+      const b = wave(n + 50);
+      expect([b.groups, b.hpMult, b.speedMult, b.bossHp], `wave ${n}`).toEqual([a.groups, a.hpMult, a.speedMult, a.bossHp]);
+    }
+    expect(() => wave(50)).toThrow("not an endless wave");
   });
 });

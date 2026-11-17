@@ -6,7 +6,8 @@
     "C3.3 (pads open after a wave)",
     "C5.9 (class unlocks)",
     "C5.3 (targeting from a level)",
-    "C10 (shield trimmed to shieldCap when a wave is cleared)"
+    "C10 (shield trimmed to shieldCap when a wave is cleared)",
+    "C11 (endless maxBounty, Phase 54)"
   ],
   "bounds": {
     "kind": "bounds",
@@ -116,6 +117,35 @@
         "normalRewardByInterval": [
           30
         ]
+      },
+      "long": {
+        "mode": "CAMPAIGN",
+        "finalWave": 3,
+        "meteorAfter": [],
+        "startCredits": 150,
+        "colonyHealth": 20,
+        "classes": [
+          "nova",
+          "orion"
+        ],
+        "padsOpenAsForWave": 1,
+        "createRunActions": 5,
+        "maxBounty": [
+          24,
+          32,
+          40
+        ],
+        "normalRewardByInterval": [
+          30,
+          30
+        ],
+        "endless": {
+          "maxBounty": [
+            50,
+            60
+          ],
+          "learningReward": 75
+        }
       }
     }
   },
@@ -1228,6 +1258,154 @@
         }
       },
       "problems": []
+    },
+    {
+      "name": "endless-wave-within-its-bound",
+      "run": {
+        "waveSetId": "long",
+        "highestCompletedWave": 3,
+        "snapshot": {
+          "credits": 100,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {
+            "frost-pulse": 1
+          }
+        }
+      },
+      "op": {
+        "type": "COMPLETE_WAVE",
+        "payload": {
+          "wave": 4,
+          "credits": 150,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {}
+        }
+      },
+      "problems": []
+    },
+    {
+      "name": "endless-wave-one-over-its-bound",
+      "run": {
+        "waveSetId": "long",
+        "highestCompletedWave": 4,
+        "snapshot": {
+          "credits": 100,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {
+            "frost-pulse": 1
+          }
+        }
+      },
+      "op": {
+        "type": "COMPLETE_WAVE",
+        "payload": {
+          "wave": 5,
+          "credits": 161,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {}
+        }
+      },
+      "problems": [
+        {
+          "field": "op.payload.credits",
+          "rule": "value"
+        }
+      ]
+    },
+    {
+      "name": "endless-wave-beyond-the-table",
+      "run": {
+        "waveSetId": "long",
+        "highestCompletedWave": 5,
+        "snapshot": {
+          "credits": 100,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {
+            "frost-pulse": 1
+          }
+        }
+      },
+      "op": {
+        "type": "COMPLETE_WAVE",
+        "payload": {
+          "wave": 6,
+          "credits": 100,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {}
+        }
+      },
+      "problems": [
+        {
+          "field": "op.payload.wave",
+          "rule": "maxBounty"
+        }
+      ]
     }
   ]
 }

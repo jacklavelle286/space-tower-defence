@@ -69,6 +69,7 @@ import {
   flyingBlastDamage,
   healAmount,
   padOpen,
+  planFor,
   sellRefund,
   speedToUnitsPerTick,
   waveHealth,
@@ -314,7 +315,7 @@ function insertTower(battle: Battle, tower: Tower): void {
  * player mistake).
  */
 export function createBattle(config: BattleConfig, snapshot: Snapshot, wave: number, runSeed: string): Battle {
-  if (!Number.isInteger(wave) || wave < 1 || wave > config.waves.length) throw new Error(`battle: no wave ${wave} in the wave set`);
+  planFor(config, wave); // throws for a wave the set (or its endless continuation) does not have
   const battle: Battle = {
     config,
     wave,
@@ -717,7 +718,8 @@ function spawn(battle: Battle, plan: WavePlan, type: string, progress: number, d
   const stats = alienStatsOf(battle.config, type);
   const look = nextInt(battle.rng, ALIEN_LOOKS);
   battle.rng = look.state;
-  const hp = stats.boss === null ? waveHealth(stats.hp, plan.hpMult) : stats.hp;
+  // An endless boss has its own health (C11.1); an authored boss keeps its absolute health.
+  const hp = stats.boss === null ? waveHealth(stats.hp, plan.hpMult) : (plan.bossHp ?? stats.hp);
   const alien: AlienState = {
     id: battle.nextAlienId,
     type,
@@ -848,10 +850,12 @@ function queueRelease(battle: Battle, parent: AlienState, releases: readonly Rel
  * at its route progress (C6.3; a boss's onDefeatRelease, C7).
  */
 function defeat(battle: Battle, alien: AlienState, stats: AlienStats, at: Point): void {
-  battle.credits += stats.bounty;
+  // An endless boss pays the endless boss bounty (C11.2); everything else its catalogue bounty.
+  const bounty = stats.boss === null ? stats.bounty : (planFor(battle.config, battle.wave).bossBounty ?? stats.bounty);
+  battle.credits += bounty;
   battle.stats.defeated += 1;
-  battle.stats.bounty += stats.bounty;
-  battle.events.push({ kind: "defeated", tick: battle.tick, alienId: alien.id, type: alien.type, bounty: stats.bounty, at });
+  battle.stats.bounty += bounty;
+  battle.events.push({ kind: "defeated", tick: battle.tick, alienId: alien.id, type: alien.type, bounty, at });
   queueRelease(battle, alien, alien.cargo);
 }
 
@@ -991,7 +995,7 @@ function endWave(battle: Battle, status: "CLEARED" | "DEFEATED"): void {
 export function step(battle: Battle): void {
   if (battle.status !== "IN_WAVE") return;
   const { config } = battle;
-  const plan = config.waves[battle.wave - 1];
+  const plan = planFor(config, battle.wave);
   if (plan === undefined) throw new Error(`battle: no plan for wave ${battle.wave}`);
   const tick = battle.tick;
 

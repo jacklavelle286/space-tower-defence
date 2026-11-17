@@ -16,8 +16,8 @@
 // unlocked once its unlockAfterWave is at most the highest completed wave (C5.9); a CHALLENGE lists its classes.
 // Unknown pads, classes, levels and modes are not checked here: the payload step refused them already (G section 5.2).
 //
-// An endless COMPLETE_WAVE (a wave past the authored set) has no maxBounty yet, so it is refused until endless
-// content brings its bound (Phase 54) [ASSUMPTION: fail closed].
+// An endless COMPLETE_WAVE (a wave past the authored set) uses the wave set's endless.maxBounty (Phase 54, C11); a
+// wave beyond it, or a wave set without one, is refused [fail closed].
 //
 // A problem is {field, rule}, values never copied (G section 1.2), in a fixed order: each placement in order (unique,
 // padClosed, classLocked, targetingLevel), deploy caps by class ID, then value (or maxBounty), health, shield, and
@@ -94,7 +94,9 @@ export function plausibilityProblems(bounds: Bounds, run: PlausibilityRun, op: O
     if (after > before) out.push({ field: "op.payload.credits", rule: "value" });
     return out;
   }
-  const bounty = bounds.waveSets[run.waveSetId]?.maxBounty[op.payload.wave - 1];
+  const set = bounds.waveSets[run.waveSetId];
+  const w = op.payload.wave;
+  const bounty = set === undefined ? undefined : w <= set.finalWave ? set.maxBounty[w - 1] : set.endless?.maxBounty[w - set.finalWave - 1];
   if (bounty === undefined) out.push({ field: "op.payload.wave", rule: "maxBounty" });
   else if (after > before + bounty) out.push({ field: "op.payload.credits", rule: "value" });
   const { health, shield } = op.payload.colony;

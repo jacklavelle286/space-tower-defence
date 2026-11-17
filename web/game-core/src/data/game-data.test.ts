@@ -54,6 +54,7 @@ describe("the repository's game-data/", () => {
       "ruleset/r1.json",
       "ruleset/r2.json",
       "ruleset/r3.json",
+      "ruleset/r4.json", // Phase 54: r3 + the endless generator (mechanics 4; not current yet)
       "campaign/luna-1-c1.json",
       "campaign/luna-1-c2.json", // Phase 50: the 50-wave campaign (needs r3; not current yet)
       "bounds/r1__luna-1-c1.json",
@@ -273,7 +274,7 @@ describe("ruleset r2 and mechanics 2 (Phase 24, M2-01; ADR-0033)", () => {
 
   it("is a new version beside r1 (r1 is published, so it is never edited), and current.json still names r1", () => {
     expect([r2.version, r2.mechanics]).toEqual(["r2", 2]);
-    expect(SUPPORTED_MECHANICS).toEqual([1, 2, 3]);
+    expect(SUPPORTED_MECHANICS).toEqual([1, 2, 3, 4]); // mechanics 4: the endless generator (Phase 54)
     expect(buildGameData().current.rulesetVersion).toBe("r1");
     expect(buildGameData().files.get("ruleset/r2.json")).toBe(readFileSync(join(GAME_DATA_DIR, "ruleset", "r2.json"), "utf8"));
   });

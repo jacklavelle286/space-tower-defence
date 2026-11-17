@@ -35,7 +35,7 @@
  *   `powerRules` (uses per wave, the shared lockout, the meteor award rotation). Mechanics 1 and 2 refuse `powers`: their
  *   simulation has no usePower command (ADR-0034, amended again).
  */
-export const SUPPORTED_MECHANICS: readonly number[] = [1, 2, 3];
+export const SUPPORTED_MECHANICS: readonly number[] = [1, 2, 3, 4];
 
 /**
  * Version strings are path segments, and `__` joins two of them in a bounds file name (H.8.5). Copy of
@@ -54,6 +54,8 @@ export const WAVE_SET_MODES = ["CAMPAIGN", "CHALLENGE"] as const;
 /** The campaign wave set's fixed shape (spine S3.1, C8, G-2). */
 export const CAMPAIGN_WAVE_SET_ID = "campaign";
 export const CAMPAIGN_WAVES = 50;
+/** Spine S3.2: COMPLETE_WAVE at wave 999 completes an endless run (the same number as sim/config's ENDLESS_FINAL_WAVE). */
+export const ENDLESS_LAST_WAVE = 999;
 export const CAMPAIGN_METEOR_AFTER: readonly number[] = [9, 19, 29, 39, 49];
 
 const INT_MAX = 2147483647; // contracts/limits.json integerMax
@@ -65,7 +67,7 @@ const INT_MAX = 2147483647; // contracts/limits.json integerMax
  */
 export const ATTACK_KINDS = ["single", "slow", "blast", "shield", "buff"] as const;
 /** The attack kinds each mechanics number allows. */
-const ATTACKS_BY_MECHANICS: Readonly<Record<number, readonly AttackKind[]>> = { 1: ["single"], 2: ATTACK_KINDS, 3: ATTACK_KINDS };
+const ATTACKS_BY_MECHANICS: Readonly<Record<number, readonly AttackKind[]>> = { 1: ["single"], 2: ATTACK_KINDS, 3: ATTACK_KINDS, 4: ATTACK_KINDS };
 
 export type Targeting = (typeof TARGETING_MODES)[number];
 export type WaveSetMode = (typeof WAVE_SET_MODES)[number];
@@ -315,6 +317,8 @@ export interface Ruleset {
   };
   /** Mechanics 3 and later (C10, Phase 28); {} when the ruleset has none (always before mechanics 3). */
   powers: Record<string, Power>;
+  /** Mechanics 4 and later (C11, Phase 54): the endless generator's numbers; absent before. */
+  endless?: EndlessRules;
   powerRules: PowerRules;
 }
 
@@ -344,6 +348,28 @@ export interface AuthoredWave {
   groups: SpawnGroup[];
   hpMult: number;
   speedMult: number;
+}
+
+/** C11.1: endless wave n >= 51 is a pure function of n, built from these numbers (mechanics 4, Phase 54). */
+export interface EndlessRules {
+  startsAtWave: number;
+  /** Offsets 1-9 of each ten-wave cycle reuse these authored campaign waves' groups. */
+  templateForOffset: Record<string, number>;
+  /** Offset 10 (waves 60, 70, ...) is a boss wave: these bosses in order, each with its campaign escort wave. */
+  bossCycle: string[];
+  bossEscortTemplates: Record<string, number>;
+  hpMult: { base: number; perWave: number; cap: number };
+  speedMult: { base: number; perWave: number; cap: number };
+  countMult: { base: number; perCycle: number; cap: number };
+  maxScheduledSpawnsPerWave: number;
+  bossHp: { base: number; perBoss: number; cap: number };
+  bossBounty: number;
+}
+
+/** An endless wave: an authored-shaped wave plus the endless boss's own health and bounty (null without a boss). */
+export interface EndlessWave extends AuthoredWave {
+  bossHp: number | null;
+  bossBounty: number | null;
 }
 
 export interface PresetPlacement {
@@ -399,6 +425,12 @@ export interface WaveSetBounds {
   maxBounty: number[];
   /** normalRewardByInterval[i] = credits for a successful normal activity after position i + 1 (C9.2, C13). */
   normalRewardByInterval: number[];
+  /**
+   * Endless (Phase 54, C11): only for a CAMPAIGN wave set of a ruleset with the generator, so earlier files keep their
+   * bytes. maxBounty[i] = credits on offer in endless wave 51 + i (to wave 999); learningReward = an endless normal
+   * activity's credits (C11.2).
+   */
+  endless?: { maxBounty: number[]; learningReward: number };
 }
 
 export interface Bounds {
@@ -869,7 +901,7 @@ export function parseRuleset(raw: unknown): Ruleset {
     raw,
     "ruleset",
     ["kind", "version", "mechanics", "simulation", "colony", "classes", "aliens", "economy", "sell", "caps", "powerRules"],
-    ["$comment", "slow", "bosses", "powers"],
+    ["$comment", "slow", "bosses", "powers", "endless"],
   );
   if (top["kind"] !== "ruleset") fail("ruleset.kind", 'must be "ruleset"');
   const version = checkVersion(top["version"], "ruleset.version");
@@ -966,6 +998,13 @@ export function parseRuleset(raw: unknown): Ruleset {
   }
   const powerRules = parsePowerRules(top["powerRules"], powers);
 
+  // C11 (Phase 54): the endless generator is a rule a mechanics 3 game-core does not have, so it needs mechanics 4.
+  let endless: EndlessRules | undefined;
+  if (Object.hasOwn(top, "endless")) {
+    if (mechanics < 4) fail("ruleset.endless", "is mechanics 4; earlier mechanics have no endless generator");
+    endless = parseEndless(top["endless"], bosses);
+  }
+
   return {
     kind: "ruleset",
     version,
@@ -989,7 +1028,96 @@ export function parseRuleset(raw: unknown): Ruleset {
     caps,
     powers,
     powerRules,
+    ...(endless === undefined ? {} : { endless }),
   };
+}
+
+function parseEndless(raw: unknown, bosses: Readonly<Record<string, Boss>>): EndlessRules {
+  const p = "ruleset.endless";
+  const o = obj(raw, p, [
+    "startsAtWave",
+    "templateForOffset",
+    "bossCycle",
+    "bossEscortTemplates",
+    "hpMult",
+    "speedMult",
+    "countMult",
+    "maxScheduledSpawnsPerWave",
+    "bossHp",
+    "bossBounty",
+  ]);
+  const startsAtWave = int(o["startsAtWave"], `${p}.startsAtWave`, 2, CAMPAIGN_WAVES + 1);
+  if (startsAtWave !== CAMPAIGN_WAVES + 1) fail(`${p}.startsAtWave`, `must be ${CAMPAIGN_WAVES + 1}: endless follows the ${CAMPAIGN_WAVES}-wave campaign`);
+  const offsets = obj(o["templateForOffset"], `${p}.templateForOffset`, ["1", "2", "3", "4", "5", "6", "7", "8", "9"]);
+  const templateForOffset: Record<string, number> = {};
+  for (const [k, v] of Object.entries(offsets)) templateForOffset[k] = int(v, `${p}.templateForOffset.${k}`, 1, CAMPAIGN_WAVES);
+  const bossCycle = arr(o["bossCycle"], `${p}.bossCycle`, 1, 20).map((b, i) => {
+    const id = str(b, `${p}.bossCycle[${i}]`, KEY_ID_PATTERN, 40);
+    if (!Object.hasOwn(bosses, id)) fail(`${p}.bossCycle[${i}]`, `boss "${id}" is not in this ruleset`);
+    return id;
+  });
+  const escortsRaw = obj(o["bossEscortTemplates"], `${p}.bossEscortTemplates`, [...new Set(bossCycle)]);
+  const bossEscortTemplates: Record<string, number> = {};
+  for (const [k, v] of Object.entries(escortsRaw)) bossEscortTemplates[k] = int(v, `${p}.bossEscortTemplates.${k}`, 1, CAMPAIGN_WAVES);
+  const growth = (key: "hpMult" | "speedMult") => {
+    const g = obj(o[key], `${p}.${key}`, ["base", "perWave", "cap"]);
+    return { base: num(g["base"], `${p}.${key}.base`, false, 100), perWave: num(g["perWave"], `${p}.${key}.perWave`, true, 10), cap: num(g["cap"], `${p}.${key}.cap`, false, 100) };
+  };
+  const cm = obj(o["countMult"], `${p}.countMult`, ["base", "perCycle", "cap"]);
+  const bh = obj(o["bossHp"], `${p}.bossHp`, ["base", "perBoss", "cap"]);
+  return {
+    startsAtWave,
+    templateForOffset,
+    bossCycle,
+    bossEscortTemplates,
+    hpMult: growth("hpMult"),
+    speedMult: growth("speedMult"),
+    countMult: { base: num(cm["base"], `${p}.countMult.base`, false, 10), perCycle: num(cm["perCycle"], `${p}.countMult.perCycle`, true, 10), cap: num(cm["cap"], `${p}.countMult.cap`, false, 10) },
+    maxScheduledSpawnsPerWave: int(o["maxScheduledSpawnsPerWave"], `${p}.maxScheduledSpawnsPerWave`, 1, 1000),
+    bossHp: { base: int(bh["base"], `${p}.bossHp.base`, 1, 1_000_000), perBoss: int(bh["perBoss"], `${p}.bossHp.perBoss`, 0, 1_000_000), cap: int(bh["cap"], `${p}.bossHp.cap`, 1, 1_000_000) },
+    bossBounty: int(o["bossBounty"], `${p}.bossBounty`, 0, 100000),
+  };
+}
+
+/** Python's round(x, 3) for the values C11 produces (no exact half-way ties occur at the third decimal). */
+function round3(x: number): number {
+  return Math.round(x * 1000) / 1000;
+}
+
+/**
+ * Endless wave `n` (n >= 51), a pure function of n (C11.1; tools/sim Game.wave_def, step for step): the health and
+ * speed multipliers grow per wave to their caps (rounded to 3 decimals), offsets 1-9 of each ten-wave cycle reuse an
+ * authored wave's groups with the count multiplier (ceil; bosses never multiplied), offset 10 is the next boss of the
+ * cycle with its escort wave and its own health; if the scheduled spawns exceed the per-wave bound, every non-boss group
+ * is scaled down (floor, at least 1). `authored` maps a campaign wave number to its authored wave.
+ */
+export function endlessWave(rules: EndlessRules, bosses: Readonly<Record<string, Boss>>, authored: ReadonlyMap<number, AuthoredWave>, n: number): EndlessWave {
+  if (!Number.isInteger(n) || n < rules.startsAtWave) throw new RangeError(`endlessWave: wave ${n} is not an endless wave`);
+  const k = n - 50;
+  const hp = Math.min(rules.hpMult.cap, rules.hpMult.base + rules.hpMult.perWave * k);
+  const sp = Math.min(rules.speedMult.cap, rules.speedMult.base + rules.speedMult.perWave * k);
+  const cycle = Math.floor((n - 51) / 10);
+  const cm = Math.min(rules.countMult.cap, rules.countMult.base + rules.countMult.perCycle * cycle);
+  const offset = ((n - 51) % 10) + 1;
+  let template: AuthoredWave | undefined;
+  let bossHp: number | null = null;
+  if (offset === 10) {
+    const kb = Math.floor((n - 50) / 10);
+    const boss = rules.bossCycle[(kb - 1) % rules.bossCycle.length] ?? "";
+    template = authored.get(rules.bossEscortTemplates[boss] ?? 0);
+    bossHp = Math.min(rules.bossHp.cap, rules.bossHp.base + rules.bossHp.perBoss * kb);
+  } else {
+    template = authored.get(rules.templateForOffset[String(offset)] ?? 0);
+  }
+  if (template === undefined) throw new Error(`endlessWave: wave ${n}'s template is not an authored wave`);
+  const bossGroup = (type: string) => Object.hasOwn(bosses, type);
+  const groups = template.groups.map((g) => ({ ...g, count: bossGroup(g.type) ? g.count : Math.ceil(g.count * cm - 1e-9) }));
+  const total = groups.reduce((t, g) => t + g.count, 0);
+  if (total > rules.maxScheduledSpawnsPerWave) {
+    const scale = rules.maxScheduledSpawnsPerWave / total;
+    for (const g of groups) if (!bossGroup(g.type)) g.count = Math.max(1, Math.floor(g.count * scale));
+  }
+  return { wave: n, groups, hpMult: round3(hp), speedMult: round3(sp), bossHp, bossBounty: bossHp === null ? null : rules.bossBounty };
 }
 
 // ---- planet document --------------------------------------------------------------------------------------------
@@ -1226,10 +1354,10 @@ export function parsePlanet(raw: unknown, ruleset: Ruleset): PlanetDocument {
  * defeat release: phase actions always run before the defeat check, so a boss wave's bounty is a constant
  * (tools/sim/sim.py Game._type_bounty).
  */
-export function alienBounty(ruleset: Ruleset, type: string, releases?: readonly ReleaseSpec[]): number {
+export function alienBounty(ruleset: Ruleset, type: string, releases?: readonly ReleaseSpec[], bossBounty?: number | null): number {
   const boss = ruleset.bosses[type];
   if (boss !== undefined) {
-    let total = boss.bounty;
+    let total = bossBounty ?? boss.bounty; // an endless boss pays the endless boss bounty (C11.2)
     const all = [...boss.phases.flatMap((p) => p.onEnter?.release ?? []), ...(boss.onDefeatRelease ?? [])];
     for (const r of all) total += r.count * alienBounty(ruleset, r.type);
     return total;
@@ -1245,15 +1373,17 @@ export function alienBounty(ruleset: Ruleset, type: string, releases?: readonly 
  * Credits on offer in one authored wave if nothing leaks (C8.1), descendants included (the server bound maxBounty
  * relies on C6.4: nothing is dropped, duplicated or re-priced, so this is a constant).
  */
-export function waveBounty(ruleset: Ruleset, wave: AuthoredWave): number {
+export function waveBounty(ruleset: Ruleset, wave: AuthoredWave | EndlessWave): number {
+  const bossBounty = "bossBounty" in wave ? wave.bossBounty : null;
   let total = 0;
-  for (const group of wave.groups) total += group.count * alienBounty(ruleset, group.type, group.cargo);
+  for (const group of wave.groups) total += group.count * alienBounty(ruleset, group.type, group.cargo, bossBounty);
   return total;
 }
 
 /** The numbers-only bounds file for one (ruleset, planet) pair (spine S5.1, S6; C15). Deterministic key order. */
 export function buildBounds(ruleset: Ruleset, planet: PlanetDocument): Bounds {
   const authored = new Map(planet.waves.map((w) => [w.wave, w]));
+  const endless = ruleset.endless;
   const classes: Bounds["classes"] = {};
   for (const [id, cls] of Object.entries(ruleset.classes)) {
     let running = 0;
@@ -1294,6 +1424,16 @@ export function buildBounds(ruleset: Ruleset, planet: PlanetDocument): Bounds {
         return waveBounty(ruleset, wave);
       }),
       normalRewardByInterval: Array.from({ length: finalWave - 1 }, (_, i) => learningReward(ruleset, i + 1)),
+      ...(endless !== undefined && set.mode === "CAMPAIGN"
+        ? {
+            endless: {
+              maxBounty: Array.from({ length: ENDLESS_LAST_WAVE - endless.startsAtWave + 1 }, (_, i) =>
+                waveBounty(ruleset, endlessWave(endless, ruleset.bosses, authored, endless.startsAtWave + i)),
+              ),
+              learningReward: ruleset.economy.endlessLearningReward,
+            },
+          }
+        : {}),
     };
   }
   return {

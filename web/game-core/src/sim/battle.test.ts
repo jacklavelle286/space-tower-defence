@@ -20,6 +20,7 @@ import {
   giveCommand,
   initialRunState,
   padOpen,
+  planFor,
   runFrame,
   sellRefund,
   startWave,
@@ -166,6 +167,25 @@ describe("commands (C2.3 step 1, AC-07, AC-09)", () => {
     if (pad === undefined) throw new Error("no p01");
     expect([padOpen(c2, pad, 20), padOpen(c2, pad, 21)]).toEqual([false, true]);
     expect(padOpen(config, pad, 50)).toBe(false); // first-contact is a CHALLENGE: its pads never change
+  });
+
+  it("endless (Phase 54, C11): a campaign of a mechanics 4 ruleset plays past wave 50 up to 999; the boss has its own health and bounty", () => {
+    const r4 = parseRuleset(readJson("ruleset/r4.json"));
+    const c2 = parsePlanet(readJson("campaign/luna-1-c2.json"), r4);
+    const campaign = compileBattleConfig(r4, c2, "campaign");
+    expect(planFor(campaign, 51).spawns.length).toBe(56); // C11 table: wave 51 schedules 56
+    const boss = planFor(campaign, 60);
+    expect([boss.hasBoss, boss.bossHp, boss.bossBounty]).toEqual([true, 5000, 100]);
+    expect(() => createBattle(campaign, START, 1000, SEED)).toThrow("no wave 1000");
+    expect(createBattle(campaign, START, 999, SEED).wave).toBe(999);
+    expect(() => planFor(compileBattleConfig(r4, c2, "blob-parade"), 6)).toThrow("no wave 6"); // a challenge has no endless
+    expect(() => planFor(compileBattleConfig(parseRuleset(readJson("ruleset/r3.json")), c2, "campaign"), 51)).toThrow("no wave 51");
+    // King Wobble arrives at 5000 health, not his campaign 1500 (spawned on the first tick he is due).
+    const battle = createBattle(campaign, START, 60, SEED);
+    startWave(battle);
+    const due = boss.spawns.find((sp) => sp.type === "boss1")?.tick ?? 0;
+    while (battle.tick <= due) step(battle);
+    expect(battle.aliens.find((a) => a.type === "boss1")?.maxHp).toBe(5000);
   });
 
   it("two purchases queued in one tick with credits for one: exactly one applies, credits never go negative", () => {

@@ -1,0 +1,700 @@
+{
+  "$comment": "Ruleset r4, mechanics 4 (Phase 54, M4-05; spine S5.1, C11, C15): r3 unchanged (the six classes, the ten aliens with their traits, the five bosses, the three meteor powers and their rules, colony, economy, sell rule, caps) plus `endless`, the C11 generator: endless wave n >= 51 is a pure function of n. Offsets 1-9 of each ten-wave cycle reuse the groups of authored waves 41-49 (templateForOffset); offset 10 (waves 60, 70, ...) is the next boss of bossCycle with its campaign escort wave and its own health (bossHp: base + perBoss x k for the k-th endless boss, capped). Health and speed multipliers grow per wave to their caps; the count multiplier grows per ten-wave cycle to its cap (ceil; never on a boss); a wave never schedules more than maxScheduledSpawnsPerWave (every non-boss group scaled down). An endless boss pays bossBounty. Mechanics 4 because the generator is a rule a mechanics 3 game-core does not have. Every number is copied from tools/sim/game_data.json and checked by web/game-core/src/data/sim-agreement.test.ts. Not used for new runs until current.json names it. Published create-only to /game-data/ruleset/r4.json: never edit a published version, add r5.",
+  "kind": "ruleset",
+  "version": "r4",
+  "mechanics": 4,
+  "simulation": {
+    "tickRateHz": 60
+  },
+  "colony": {
+    "maxHealth": 20,
+    "shieldCap": 10,
+    "shieldAbsoluteCap": 20,
+    "repairOnBossClear": 3,
+    "miraRepairCapPerWave": 1
+  },
+  "slow": {
+    "capPct": 50,
+    "refreshWithinSeconds": 0.15
+  },
+  "classes": {
+    "nova": {
+      "name": "Nova",
+      "role": "Laser Scout",
+      "unlockAfterWave": 0,
+      "deployCap": null,
+      "attack": "single",
+      "targeting": [
+        "FRONT",
+        "FAST"
+      ],
+      "defaultTargeting": "FRONT",
+      "targetingFromLevel": {
+        "FAST": 1
+      },
+      "levels": [
+        {
+          "level": 1,
+          "cost": 50,
+          "range": 2.5,
+          "period": 1.0,
+          "damage": 10
+        },
+        {
+          "level": 2,
+          "cost": 60,
+          "range": 2.5,
+          "period": 0.6,
+          "damage": 10
+        },
+        {
+          "level": 3,
+          "cost": 150,
+          "range": 3.0,
+          "period": 0.6,
+          "damage": 16
+        }
+      ]
+    },
+    "pip": {
+      "name": "Pip",
+      "role": "Frost Explorer",
+      "unlockAfterWave": 5,
+      "deployCap": 3,
+      "attack": "slow",
+      "targeting": [
+        "FRONT",
+        "FAST"
+      ],
+      "defaultTargeting": "FRONT",
+      "targetingFromLevel": {
+        "FAST": 1
+      },
+      "levels": [
+        {
+          "level": 1,
+          "cost": 60,
+          "range": 2.5,
+          "period": 0.8,
+          "damage": 5,
+          "slowPct": 30,
+          "slowDuration": 3.0,
+          "slowRadius": 0.0
+        },
+        {
+          "level": 2,
+          "cost": 80,
+          "range": 2.5,
+          "period": 0.8,
+          "damage": 6,
+          "slowPct": 40,
+          "slowDuration": 4.0,
+          "slowRadius": 0.0
+        },
+        {
+          "level": 3,
+          "cost": 170,
+          "range": 2.5,
+          "period": 0.8,
+          "damage": 7,
+          "slowPct": 40,
+          "slowDuration": 4.0,
+          "slowRadius": 1.0
+        }
+      ]
+    },
+    "juno": {
+      "name": "Juno",
+      "role": "Comet Engineer",
+      "unlockAfterWave": 10,
+      "deployCap": 4,
+      "attack": "blast",
+      "targeting": [
+        "CROWD",
+        "FRONT"
+      ],
+      "defaultTargeting": "CROWD",
+      "targetingFromLevel": {
+        "FRONT": 1
+      },
+      "levels": [
+        {
+          "level": 1,
+          "cost": 110,
+          "range": 2.5,
+          "period": 1.8,
+          "damage": 16,
+          "splashRadius": 1.0
+        },
+        {
+          "level": 2,
+          "cost": 130,
+          "range": 2.5,
+          "period": 1.8,
+          "damage": 16,
+          "splashRadius": 1.4
+        },
+        {
+          "level": 3,
+          "cost": 260,
+          "range": 2.5,
+          "period": 1.8,
+          "damage": 26,
+          "splashRadius": 1.4
+        }
+      ]
+    },
+    "orion": {
+      "name": "Orion",
+      "role": "Orbit Ranger",
+      "unlockAfterWave": 15,
+      "deployCap": 3,
+      "attack": "single",
+      "targeting": [
+        "FRONT",
+        "STRONG"
+      ],
+      "defaultTargeting": "FRONT",
+      "targetingFromLevel": {
+        "STRONG": 3
+      },
+      "levels": [
+        {
+          "level": 1,
+          "cost": 170,
+          "range": 4.5,
+          "period": 2.4,
+          "damage": 50
+        },
+        {
+          "level": 2,
+          "cost": 100,
+          "range": 6.0,
+          "period": 2.4,
+          "damage": 50
+        },
+        {
+          "level": 3,
+          "cost": 330,
+          "range": 6.0,
+          "period": 2.4,
+          "damage": 90
+        }
+      ]
+    },
+    "mira": {
+      "name": "Mira",
+      "role": "Shield Specialist",
+      "unlockAfterWave": 20,
+      "deployCap": 2,
+      "attack": "shield",
+      "targeting": [],
+      "defaultTargeting": "FRONT",
+      "targetingFromLevel": {},
+      "levels": [
+        {
+          "level": 1,
+          "cost": 160,
+          "shieldPoints": 1,
+          "period": 15.0,
+          "repairOnWaveClear": 0
+        },
+        {
+          "level": 2,
+          "cost": 180,
+          "shieldPoints": 2,
+          "period": 15.0,
+          "repairOnWaveClear": 0
+        },
+        {
+          "level": 3,
+          "cost": 280,
+          "shieldPoints": 2,
+          "period": 12.0,
+          "repairOnWaveClear": 1
+        }
+      ]
+    },
+    "sol": {
+      "name": "Sol",
+      "role": "Beacon Commander",
+      "unlockAfterWave": 25,
+      "deployCap": 2,
+      "attack": "buff",
+      "targeting": [],
+      "defaultTargeting": "FRONT",
+      "targetingFromLevel": {},
+      "levels": [
+        {
+          "level": 1,
+          "cost": 150,
+          "buffPct": 15,
+          "radius": 4.5
+        },
+        {
+          "level": 2,
+          "cost": 200,
+          "buffPct": 25,
+          "radius": 4.5
+        },
+        {
+          "level": 3,
+          "cost": 300,
+          "buffPct": 25,
+          "radius": 6.0
+        }
+      ]
+    }
+  },
+  "aliens": {
+    "blob": {
+      "name": "Moon Blob",
+      "hp": 24,
+      "speed": 1.0,
+      "leak": 1,
+      "bounty": 4,
+      "traits": {}
+    },
+    "mite": {
+      "name": "Meteor Mite",
+      "hp": 12,
+      "speed": 2.0,
+      "leak": 1,
+      "bounty": 2,
+      "traits": {}
+    },
+    "shell": {
+      "name": "Shellback",
+      "hp": 60,
+      "speed": 0.7,
+      "leak": 2,
+      "bounty": 5,
+      "traits": {
+        "armour": 4
+      }
+    },
+    "swarm": {
+      "name": "Bubble Swarm",
+      "hp": 8,
+      "speed": 1.3,
+      "leak": 1,
+      "bounty": 1,
+      "traits": {
+        "cluster": true
+      }
+    },
+    "flutter": {
+      "name": "Orbit Flutter",
+      "hp": 20,
+      "speed": 1.6,
+      "leak": 1,
+      "bounty": 3,
+      "traits": {
+        "flying": true
+      }
+    },
+    "guard": {
+      "name": "Bubble Guard",
+      "hp": 34,
+      "speed": 0.9,
+      "leak": 2,
+      "bounty": 5,
+      "traits": {
+        "bubbles": 4
+      }
+    },
+    "patch": {
+      "name": "Patchling",
+      "hp": 26,
+      "speed": 1.0,
+      "leak": 1,
+      "bounty": 4,
+      "traits": {
+        "healer": {
+          "amount": 6,
+          "radius": 1.5,
+          "period": 3.0
+        }
+      }
+    },
+    "slime": {
+      "name": "Split Slime",
+      "hp": 44,
+      "speed": 0.8,
+      "leak": 2,
+      "bounty": 3,
+      "traits": {
+        "children": [
+          {
+            "type": "slimelet",
+            "count": 2
+          }
+        ]
+      }
+    },
+    "slimelet": {
+      "name": "Slimelet",
+      "hp": 14,
+      "speed": 1.2,
+      "leak": 1,
+      "bounty": 1,
+      "descendantOnly": true,
+      "traits": {}
+    },
+    "craft": {
+      "name": "Alien Craft",
+      "hp": 120,
+      "speed": 0.6,
+      "leak": 4,
+      "bounty": 6,
+      "traits": {
+        "children": [
+          {
+            "type": "blob",
+            "count": 4
+          }
+        ]
+      }
+    }
+  },
+  "bosses": {
+    "boss1": {
+      "name": "King Wobble",
+      "hp": 450,
+      "speed": 0.5,
+      "leak": 8,
+      "bounty": 50,
+      "slowFactorPct": 50,
+      "phases": [
+        {
+          "fromPct": 100,
+          "name": "Royal stroll",
+          "speedFactor": 1.0,
+          "armour": 0
+        },
+        {
+          "fromPct": 50,
+          "name": "Wobble dash",
+          "speedFactor": 1.3,
+          "armour": 0
+        }
+      ]
+    },
+    "boss2": {
+      "name": "Captain Clank",
+      "hp": 1000,
+      "speed": 0.45,
+      "leak": 10,
+      "bounty": 75,
+      "slowFactorPct": 50,
+      "phases": [
+        {
+          "fromPct": 100,
+          "name": "Full plate",
+          "speedFactor": 1.0,
+          "armour": 5
+        },
+        {
+          "fromPct": 60,
+          "name": "Cracked shell",
+          "speedFactor": 1.15,
+          "armour": 2
+        },
+        {
+          "fromPct": 25,
+          "name": "Shell off",
+          "speedFactor": 1.4,
+          "armour": 0
+        }
+      ]
+    },
+    "boss3": {
+      "name": "Queen Bubbla",
+      "hp": 2200,
+      "speed": 0.45,
+      "leak": 12,
+      "bounty": 100,
+      "slowFactorPct": 50,
+      "phases": [
+        {
+          "fromPct": 100,
+          "name": "First bubble",
+          "speedFactor": 1.0,
+          "armour": 0,
+          "onEnter": {
+            "selfBubbles": 8
+          }
+        },
+        {
+          "fromPct": 66,
+          "name": "Bubble gift",
+          "speedFactor": 1.0,
+          "armour": 0,
+          "onEnter": {
+            "selfBubbles": 8,
+            "giveBubbles": {
+              "layers": 1,
+              "radius": 2.0
+            }
+          }
+        },
+        {
+          "fromPct": 33,
+          "name": "Bubble storm",
+          "speedFactor": 1.15,
+          "armour": 0,
+          "onEnter": {
+            "selfBubbles": 8,
+            "giveBubbles": {
+              "layers": 1,
+              "radius": 2.0
+            }
+          }
+        }
+      ]
+    },
+    "boss4": {
+      "name": "The Mothership",
+      "hp": 2300,
+      "speed": 0.4,
+      "leak": 14,
+      "bounty": 125,
+      "slowFactorPct": 50,
+      "phases": [
+        {
+          "fromPct": 100,
+          "name": "Doors shut",
+          "speedFactor": 1.0,
+          "armour": 2
+        },
+        {
+          "fromPct": 75,
+          "name": "Door one",
+          "speedFactor": 1.0,
+          "armour": 2,
+          "onEnter": {
+            "release": [
+              {
+                "type": "mite",
+                "count": 4
+              }
+            ]
+          }
+        },
+        {
+          "fromPct": 50,
+          "name": "Door two",
+          "speedFactor": 1.0,
+          "armour": 2,
+          "onEnter": {
+            "release": [
+              {
+                "type": "flutter",
+                "count": 4
+              }
+            ]
+          }
+        },
+        {
+          "fromPct": 25,
+          "name": "Door three",
+          "speedFactor": 1.2,
+          "armour": 0,
+          "onEnter": {
+            "release": [
+              {
+                "type": "shell",
+                "count": 2
+              }
+            ]
+          }
+        }
+      ],
+      "onDefeatRelease": [
+        {
+          "type": "blob",
+          "count": 4
+        }
+      ]
+    },
+    "boss5": {
+      "name": "The Great Glorp",
+      "hp": 3600,
+      "speed": 0.4,
+      "leak": 20,
+      "bounty": 150,
+      "slowFactorPct": 50,
+      "phases": [
+        {
+          "fromPct": 100,
+          "name": "Armoured",
+          "speedFactor": 1.0,
+          "armour": 4
+        },
+        {
+          "fromPct": 70,
+          "name": "Bubbled",
+          "speedFactor": 1.0,
+          "armour": 0,
+          "onEnter": {
+            "selfBubbles": 10,
+            "release": [
+              {
+                "type": "swarm",
+                "count": 6
+              }
+            ]
+          }
+        },
+        {
+          "fromPct": 40,
+          "name": "Cargo",
+          "speedFactor": 1.1,
+          "armour": 0,
+          "onEnter": {
+            "release": [
+              {
+                "type": "slime",
+                "count": 2
+              },
+              {
+                "type": "mite",
+                "count": 4
+              }
+            ]
+          }
+        },
+        {
+          "fromPct": 15,
+          "name": "Wobble dash",
+          "speedFactor": 1.35,
+          "armour": 0
+        }
+      ]
+    }
+  },
+  "economy": {
+    "startingCredits": 150,
+    "waveClearBonus": 0,
+    "learningRewardByBlock": [
+      {
+        "afterWaveFrom": 1,
+        "afterWaveTo": 9,
+        "credits": 30
+      },
+      {
+        "afterWaveFrom": 10,
+        "afterWaveTo": 19,
+        "credits": 40
+      },
+      {
+        "afterWaveFrom": 20,
+        "afterWaveTo": 29,
+        "credits": 50
+      },
+      {
+        "afterWaveFrom": 30,
+        "afterWaveTo": 39,
+        "credits": 60
+      },
+      {
+        "afterWaveFrom": 40,
+        "afterWaveTo": 49,
+        "credits": 75
+      }
+    ],
+    "endlessLearningReward": 75
+  },
+  "sell": {
+    "refundPct": 70,
+    "roundDownTo": 5
+  },
+  "caps": {
+    "maxActiveAliens": 60,
+    "scheduledSpawnSoftCap": 48,
+    "maxLiveDescendants": 24,
+    "descendantReleaseGap": 0.25,
+    "deferredSpawnGap": 0.25,
+    "maxDescendantDepth": 2
+  },
+  "powers": {
+    "frost-pulse": {
+      "name": "Frost Pulse",
+      "effect": "slow",
+      "slowPct": 50,
+      "duration": 6.0
+    },
+    "comet-burst": {
+      "name": "Comet Burst",
+      "effect": "burst",
+      "radius": 1.5,
+      "pctMaxHp": 50,
+      "bossPctMaxHp": 10
+    },
+    "colony-shield": {
+      "name": "Colony Shield",
+      "effect": "shield",
+      "shieldPoints": 10
+    }
+  },
+  "powerRules": {
+    "inventoryCapPerPower": 2,
+    "perWaveUseLimitPerPower": 1,
+    "sharedLockoutSeconds": 3.0,
+    "awardRotation": [
+      "frost-pulse",
+      "comet-burst",
+      "colony-shield"
+    ]
+  },
+  "endless": {
+    "startsAtWave": 51,
+    "templateForOffset": {
+      "1": 41,
+      "2": 42,
+      "3": 43,
+      "4": 44,
+      "5": 45,
+      "6": 46,
+      "7": 47,
+      "8": 48,
+      "9": 49
+    },
+    "bossCycle": [
+      "boss1",
+      "boss2",
+      "boss3",
+      "boss4",
+      "boss5"
+    ],
+    "bossEscortTemplates": {
+      "boss1": 10,
+      "boss2": 20,
+      "boss3": 30,
+      "boss4": 40,
+      "boss5": 50
+    },
+    "hpMult": {
+      "base": 7.0,
+      "perWave": 0.1,
+      "cap": 14.0
+    },
+    "speedMult": {
+      "base": 1.25,
+      "perWave": 0.005,
+      "cap": 1.4
+    },
+    "countMult": {
+      "base": 1.0,
+      "perCycle": 0.05,
+      "cap": 1.25
+    },
+    "maxScheduledSpawnsPerWave": 110,
+    "bossHp": {
+      "base": 4000,
+      "perBoss": 1000,
+      "cap": 10000
+    },
+    "bossBounty": 100
+  }
+}
