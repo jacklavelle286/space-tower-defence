@@ -210,6 +210,7 @@ def make_gamedata_handlers(
             listed = r.campaign_versions()[:VERSIONS_LIMIT]
         except GameDataUnavailable:
             raise ApiError("CONTENT_UNAVAILABLE", details={"reason": "GAME_DATA_UNREADABLE"}) from None
+        live_versions = {p["campaignVersion"] for p in current["planets"]}
         history = sorted(table().query_prefix(PUBLISH_PK, ""), key=lambda i: str(i["sk"]), reverse=True)
         published_by = {}
         for item in reversed(history):  # oldest first, so the publish (not a later make-live) names the version
@@ -227,7 +228,7 @@ def make_gamedata_handlers(
                     "campaignVersion": version,
                     "planetId": planet.planet_id,
                     "writtenAt": iso_z(written),
-                    "live": version == current["campaignVersion"],
+                    "live": version in live_versions,  # LD9: each released planet has its own live version
                     "source": "portal" if made is not None else "release",
                     **({"levelId": made.get("levelId"), "by": made.get("by")} if made is not None else {}),
                     "waveSets": [

@@ -100,7 +100,11 @@ def test_the_versions_panel_lists_versions_states_testers_and_history(api: Admin
     a_published_version(api)
     status, body = api.call("GET /api/admin/game-data")
     assert status == 200, body
-    assert body["current"] == {"rulesetVersion": "r1", "campaignVersion": "luna-1-c1"}
+    assert body["current"] == {
+        "rulesetVersion": "r1",
+        "campaignVersion": "luna-1-c1",
+        "planets": [{"planetId": None, "campaignVersion": "luna-1-c1"}],  # schema 1: its document names the planet
+    }
     assert body["live"]["version"] == "luna-1-c1"  # what the designer merges levels into
     assert body["testers"] == [TESTER]
     rows = {row["campaignVersion"]: row for row in body["versions"]}

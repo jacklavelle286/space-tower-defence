@@ -61,7 +61,7 @@ describe("the repository's game-data/", () => {
       "bounds/r4__luna-1-c2.json", // only the current pair gets a bounds file; r1's stays published from earlier releases
       "current.json",
     ]);
-    expect(build.current).toEqual({ rulesetVersion: "r4", campaignVersion: "luna-1-c2" }); // Phase 56: the campaign is live
+    expect(build.current).toMatchObject({ rulesetVersion: "r4", campaignVersion: "luna-1-c2" }); // Phase 56: the campaign is live
   });
 
   it("copies ruleset and planet files byte for byte (they are published create-only)", () => {
@@ -176,16 +176,25 @@ describe("version strings", () => {
     expect(parseCurrent({ rulesetVersion: "r1", campaignVersion: "luna-1-c1" })).toEqual({
       rulesetVersion: "r1",
       campaignVersion: "luna-1-c1",
+      planets: [{ planetId: null, campaignVersion: "luna-1-c1" }],
     });
-    expect(parseCurrent({ rulesetVersion: "r1", campaignVersion: "c1", assetManifestVersion: "m2" })).toEqual({
-      rulesetVersion: "r1",
-      campaignVersion: "c1",
-      assetManifestVersion: "m2",
-    }); // Gate M, LD8: optional; absent means m1
+    expect(parseCurrent({ rulesetVersion: "r1", campaignVersion: "c1", assetManifestVersion: "m2" }).assetManifestVersion).toBe("m2"); // LD8
     expect(() => parseCurrent({ rulesetVersion: "r1", campaignVersion: "c1", assetManifestVersion: "M 2" })).toThrow(GameDataError);
     expect(() => parseCurrent({ rulesetVersion: "r1" })).toThrow(/campaignVersion" is missing/);
     expect(() => parseCurrent({ rulesetVersion: "r1", campaignVersion: "c1", extra: 1 })).toThrow(/unknown key "extra"/);
     expect(() => parseCurrent({ rulesetVersion: "r1", campaignVersion: "C1" })).toThrow(GameDataError);
+  });
+
+  // Gate M, LD9: schema 1 and 2, the cases api/tests reads too.
+  const CURRENT_CASES = JSON.parse(readFileSync(join(GAME_DATA_DIR, "..", "contracts", "fixtures", "current", "cases.json"), "utf8")) as {
+    valid: { name: string; current: unknown; expected: unknown }[];
+    invalid: { name: string; current: unknown; field: string }[];
+  };
+  it.each(CURRENT_CASES.valid.map((c) => [c.name, c.current, c.expected]))("current.json %s", (_, raw, expected) => {
+    expect(parseCurrent(raw)).toEqual(expected);
+  });
+  it.each(CURRENT_CASES.invalid.map((c) => [c.name, c.current, c.field]))("refuses current.json: %s", (_, raw, field) => {
+    expect(() => parseCurrent(raw)).toThrow(new RegExp(`^${String(field).replaceAll(".", "\\.").replaceAll("[", "\\[")}`, "u"));
   });
 });
 
@@ -669,6 +678,27 @@ describe("the game-data build refuses", () => {
     dirs.push(dir);
     return dir;
   }
+
+  it("schema 2 (Gate M, LD9): one bounds file per released planet, each listed as the planet it is", () => {
+    const dir = scratch();
+    const mars = { ...readJson(join(GAME_DATA_DIR, "campaign", "luna-1-c2.json")), version: "mars-1-c1", planetId: "mars-1", name: "Red Dust" };
+    writeFileSync(join(dir, "campaign", "mars-1-c1.json"), JSON.stringify(mars));
+    const two = (marsId: string) => ({
+      schema: 2,
+      rulesetVersion: "r4",
+      campaignVersion: "luna-1-c2",
+      planets: [
+        { planetId: "luna-1", campaignVersion: "luna-1-c2" },
+        { planetId: marsId, campaignVersion: "mars-1-c1" },
+      ],
+    });
+    writeFileSync(join(dir, "current.json"), JSON.stringify(two("mars-1")));
+    const build = buildGameData(dir);
+    expect([...build.files.keys()].filter((k) => k.startsWith("bounds/"))).toEqual(["bounds/r4__luna-1-c2.json", "bounds/r4__mars-1-c1.json"]);
+    expect(build.boundsPath).toBe("bounds/r4__luna-1-c2.json");
+    writeFileSync(join(dir, "current.json"), JSON.stringify(two("venus-1")));
+    expect(() => buildGameData(dir)).toThrow(/mars-1-c1 is planet mars-1, listed as venus-1/);
+  });
 
   it("a file whose version differs from its name", () => {
     const dir = scratch();

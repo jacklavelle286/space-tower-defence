@@ -461,11 +461,21 @@ export interface PlanetDocument {
   waveSets: Record<string, WaveSet>;
 }
 
+/** A released planet and the campaign version new games on it use (Gate M, LD9). `planetId` is null in a schema 1
+ *  current.json, which names one campaign and leaves its planet to the document. */
+export interface ReleasedPlanet {
+  planetId: string | null;
+  campaignVersion: string;
+}
+
 export interface CurrentPointers {
   rulesetVersion: string;
+  /** The first planet's campaign version (schema 1's only one; kept at the top of schema 2 for older clients). */
   campaignVersion: string;
   /** The asset manifest new runs pin (Gate M, LD8); absent means m1, the repo art. */
   assetManifestVersion?: string;
+  /** The released planets in unlock order (Gate M, LD9): one for schema 1. */
+  planets: ReleasedPlanet[];
 }
 
 export interface WaveSetBounds {
@@ -625,13 +635,36 @@ export function boundsVersion(rulesetVersion: string, campaignVersion: string): 
   return `${checkVersion(rulesetVersion, "rulesetVersion")}__${checkVersion(campaignVersion, "campaignVersion")}`;
 }
 
+/**
+ * current.json (spine S5.1). Schema 1 (no `schema`): one planet's campaign. Schema 2 (Gate M, LD9; expand and
+ * contract): `planets` in unlock order, with the top-level `campaignVersion` kept equal to planets[0]'s, so a reader
+ * that only knows schema 1's keys still finds the first planet. Readers before LD9 refuse unknown keys, so schema 2 is
+ * written only once every client has this parser (the LD10 publisher).
+ */
 export function parseCurrent(raw: unknown): CurrentPointers {
-  const o = obj(raw, "current.json", ["rulesetVersion", "campaignVersion"], ["assetManifestVersion"]);
+  const two = typeof raw === "object" && raw !== null && !Array.isArray(raw) && Object.hasOwn(raw, "schema");
+  const o = two
+    ? obj(raw, "current.json", ["schema", "rulesetVersion", "campaignVersion", "planets"], ["assetManifestVersion"])
+    : obj(raw, "current.json", ["rulesetVersion", "campaignVersion"], ["assetManifestVersion"]);
+  const campaignVersion = checkVersion(o["campaignVersion"], "current.json.campaignVersion");
   const pointers: CurrentPointers = {
     rulesetVersion: checkVersion(o["rulesetVersion"], "current.json.rulesetVersion"),
-    campaignVersion: checkVersion(o["campaignVersion"], "current.json.campaignVersion"),
+    campaignVersion,
+    planets: [{ planetId: null, campaignVersion }],
   };
   if (o["assetManifestVersion"] !== undefined) pointers.assetManifestVersion = checkVersion(o["assetManifestVersion"], "current.json.assetManifestVersion");
+  if (!two) return pointers;
+  if (o["schema"] !== 2) fail("current.json.schema", "must be 2 when present");
+  const seen = new Set<string>();
+  pointers.planets = arr(o["planets"], "current.json.planets", 1, 20).map((entry, i) => {
+    const at = `current.json.planets[${i}]`;
+    const e = obj(entry, at, ["planetId", "campaignVersion"]);
+    const planetId = str(e["planetId"], `${at}.planetId`, KEY_ID_PATTERN, 40);
+    if (seen.has(planetId)) fail(`${at}.planetId`, `${planetId} is listed twice`);
+    seen.add(planetId);
+    return { planetId, campaignVersion: checkVersion(e["campaignVersion"], `${at}.campaignVersion`) };
+  });
+  if (pointers.planets[0]?.campaignVersion !== campaignVersion) fail("current.json.campaignVersion", "must equal planets[0].campaignVersion");
   return pointers;
 }
 

@@ -60,6 +60,7 @@ from botocore.exceptions import ClientError
 from shared.bounds import VERSION
 from shared.content import LIMITS, audit_item, audit_key, iso_z, plain
 from shared.data import DynamoTable
+from shared.game_data import CurrentInvalid, current_body, parse_current
 from shared.levels import DRAFT_SK, LEVEL_ID, LEVEL_PK, level_pk, level_problems
 from shared.pictures import PIC_PK, kind_of
 from shared.selection.bank import HEADER_PK, units_for_band
@@ -146,21 +147,26 @@ class Publisher:
         except ValueError:
             raise PublishRefused("NOT_FOUND", f"{what} is not JSON ({key})") from None
 
-    def _current(self) -> tuple[dict[str, str], str]:
-        """current.json's pointers. assetManifestVersion (LD8) is optional and carried over whenever the publisher
-        writes the file, so moving the campaign never changes which art new runs draw with."""
+    def _current(self) -> tuple[dict[str, Any], str]:
+        """current.json's pointers (game_data.parse_current: schema 1 or 2, Gate M LD9). Whatever the publisher writes
+        back keeps every other planet, the ruleset and the asset manifest (LD8) as they are."""
         data, etag = self._json("current.json", "current.json")
-        if not isinstance(data, dict) or not all(
-            isinstance(data.get(k), str) for k in ("rulesetVersion", "campaignVersion")
-        ):
-            raise PublishRefused("NOT_FOUND", "current.json is malformed")
-        pointers = {"rulesetVersion": data["rulesetVersion"], "campaignVersion": data["campaignVersion"]}
-        manifest = data.get("assetManifestVersion")
-        if manifest is not None:
-            if not isinstance(manifest, str) or not VERSION.match(manifest):
-                raise PublishRefused("NOT_FOUND", "current.json is malformed")
-            pointers["assetManifestVersion"] = manifest
-        return pointers, etag
+        try:
+            return parse_current(data), etag
+        except CurrentInvalid:
+            raise PublishRefused("NOT_FOUND", "current.json is malformed") from None
+
+    def _live_of(self, pointers: Mapping[str, Any], planet_id: str) -> str | None:
+        """The campaign version new games on `planet_id` use, or None when the planet is not released. Schema 1 names
+        no planet: its one campaign document says which it is."""
+        for listed in pointers["planets"]:
+            if listed["planetId"] == planet_id:
+                return str(listed["campaignVersion"])
+            if listed["planetId"] is None:
+                doc, _ = self._json(f"campaign/{listed['campaignVersion']}.json", "the live planet document")
+                if doc.get("planetId") == planet_id:
+                    return str(listed["campaignVersion"])
+        return None
 
     def _versions(self) -> tuple[Versions, str | None]:
         found = self.d.site.get(self.d.prefix + "versions.json")
@@ -278,7 +284,8 @@ class Publisher:
             return self._result(claim)
         if claim is not None and claim.get("campaignVersion"):
             source_version = str(claim["sourceVersion"])  # a replay: finish what the first run started
-        elif current["campaignVersion"] != source_version:
+        elif source_version not in {p["campaignVersion"] for p in current["planets"]}:
+            # The source must be a planet's live version (a version belongs to one planet, LD9).
             raise PublishRefused(
                 "STALE_SOURCE",
                 "the live game data changed after this draft was checked; update from live and check again",
@@ -329,10 +336,10 @@ class Publisher:
         self.d.site.create(f"{self.d.prefix}campaign/{version}.json", planet_bytes, CACHE_IMMUTABLE)
         self.d.site.create(f"{self.d.prefix}bounds/{out['boundsVersion']}.json", bounds_bytes, CACHE_IMMUTABLE)
 
-        went_live = current["campaignVersion"] == version
+        went_live = version in {p["campaignVersion"] for p in current["planets"]}
         refusal: str | None = None
         if live and not went_live:
-            went_live = self._go_live(version, current_etag)
+            went_live = self._go_live(version, current_etag, planet_id)
             refusal = None if went_live else "LIVE_MOVED"
 
         moment = _parse_time(started)
@@ -359,7 +366,7 @@ class Publisher:
                     "sk": f"{started}#{version}",
                     "action": "publish",
                     "campaignVersion": version,
-                    "prev": current["campaignVersion"],
+                    "prev": source_version,  # the planet's live version when the publish began
                     "live": went_live,
                     "levelId": level_id,
                     "diffSummary": {"waveSets": sorted(owned), "maps": [level_id]},
@@ -403,9 +410,13 @@ class Publisher:
         if not isinstance(campaign_version, str) or not VERSION.match(campaign_version):
             raise PublishRefused("INVALID", "campaignVersion is malformed")
         current, etag = self._current()
-        if current["campaignVersion"] == campaign_version:
-            return {"ok": True, "campaignVersion": campaign_version, "live": True}
         doc, _ = self._json(f"campaign/{campaign_version}.json", f"campaign {campaign_version}")
+        planet_id = str(doc.get("planetId"))
+        live_now = self._live_of(current, planet_id)
+        if live_now is None:
+            raise PublishRefused("NOT_RELEASED", f"planet {planet_id} is not released (Levels → Planets)")
+        if live_now == campaign_version:
+            return {"ok": True, "campaignVersion": campaign_version, "live": True}
         bounds_key = f"bounds/{current['rulesetVersion']}__{campaign_version}.json"
         if self.d.site.get(self.d.prefix + bounds_key) is None:
             raise PublishRefused(
@@ -416,7 +427,7 @@ class Publisher:
             "waveSets", {}
         ):
             raise PublishRefused("VERSION_WITHDRAWN", f"{campaign_version}'s campaign is retired or invalid")
-        if not self._go_live(campaign_version, etag):
+        if not self._go_live(campaign_version, etag, planet_id):
             raise PublishRefused("LIVE_MOVED", "current.json changed meanwhile; look again and retry")
         moment = self.d.now()
         audit_pk, audit_sk = audit_key(moment, campaign_version)
@@ -429,7 +440,7 @@ class Publisher:
                         "sk": f"{iso_z(moment)}#{campaign_version}",
                         "action": "make-live",
                         "campaignVersion": campaign_version,
-                        "prev": current["campaignVersion"],
+                        "prev": live_now,
                         "live": True,
                         "by": by,
                     },
@@ -443,13 +454,13 @@ class Publisher:
                         by,
                         moment,
                         campaignVersion=campaign_version,
-                        prev=current["campaignVersion"],
+                        prev=live_now,
                     ),
                     **cond,
                 ),
             ]
         )
-        return {"ok": True, "campaignVersion": campaign_version, "live": True, "prev": current["campaignVersion"]}
+        return {"ok": True, "campaignVersion": campaign_version, "live": True, "prev": live_now}
 
     def set_state(self, campaign_version: str, wave_set_id: str, state: str, by: str) -> dict[str, Any]:
         if self.d.frozen():
@@ -485,9 +496,9 @@ class Publisher:
 
     # --- helpers ---------------------------------------------------------------------------------------------------
 
-    def _go_live(self, version: str, etag: str) -> bool:
-        """The version's preview sets become published, then current.json moves (If-Match). Published first, so
-        current.json never names a version children cannot start."""
+    def _go_live(self, version: str, etag: str, planet_id: str) -> bool:
+        """The version's preview sets become published, then current.json moves (If-Match): only `planet_id`'s entry
+        changes (LD9). Published first, so current.json never names a version children cannot start."""
 
         def publish_previews(v: Versions) -> Versions:
             states = {k: dict(s) for k, s in v.states.items()}
@@ -499,7 +510,13 @@ class Publisher:
 
         self._update_versions(publish_previews)
         current, _ = self._current()
-        body = (json.dumps({**current, "campaignVersion": version}, indent=2) + "\n").encode()
+        live = self._live_of(current, planet_id)
+        if live is None:
+            raise PublishRefused("NOT_RELEASED", f"planet {planet_id} is not released (Levels → Planets)")
+        planets = [
+            {**p, "campaignVersion": version} if p["campaignVersion"] == live else dict(p) for p in current["planets"]
+        ]
+        body = (json.dumps(current_body({**current, "planets": planets}), indent=2) + "\n").encode()
         return self.d.site.replace(self.d.prefix + "current.json", body, etag, CACHE_NO_CACHE)
 
     def _mark(self, pk: str, sk: str, state: str, by: str, new: bool) -> None:

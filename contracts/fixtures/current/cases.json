@@ -1,0 +1,213 @@
+{
+ "$comment": "current.json shapes (Gate M, LD9; scope-level-designer.md 3.2): schema 1 (no `schema`; one planet, whose id the reader learns from its document) and schema 2 (`planets`, in unlock order, with the top-level campaignVersion kept equal to planets[0] for clients from before LD9). game-core parseCurrent and api/shared/game_data.py parse_current read the same cases; `expected` is the normalised form (planetId null when schema 1 does not name it), `field` the start of the error.",
+ "valid": [
+  {
+   "name": "schema 1",
+   "current": {
+    "rulesetVersion": "r4",
+    "campaignVersion": "luna-1-c2"
+   },
+   "expected": {
+    "rulesetVersion": "r4",
+    "campaignVersion": "luna-1-c2",
+    "planets": [
+     {
+      "planetId": null,
+      "campaignVersion": "luna-1-c2"
+     }
+    ]
+   }
+  },
+  {
+   "name": "schema 1 with an asset manifest",
+   "current": {
+    "rulesetVersion": "r4",
+    "campaignVersion": "luna-1-c2",
+    "assetManifestVersion": "m1"
+   },
+   "expected": {
+    "rulesetVersion": "r4",
+    "campaignVersion": "luna-1-c2",
+    "assetManifestVersion": "m1",
+    "planets": [
+     {
+      "planetId": null,
+      "campaignVersion": "luna-1-c2"
+     }
+    ]
+   }
+  },
+  {
+   "name": "schema 2, two planets",
+   "current": {
+    "schema": 2,
+    "rulesetVersion": "r4",
+    "assetManifestVersion": "m1",
+    "planets": [
+     {
+      "planetId": "luna-1",
+      "campaignVersion": "luna-1-a4"
+     },
+     {
+      "planetId": "mars-1",
+      "campaignVersion": "mars-1-a1"
+     }
+    ],
+    "campaignVersion": "luna-1-a4"
+   },
+   "expected": {
+    "rulesetVersion": "r4",
+    "campaignVersion": "luna-1-a4",
+    "assetManifestVersion": "m1",
+    "planets": [
+     {
+      "planetId": "luna-1",
+      "campaignVersion": "luna-1-a4"
+     },
+     {
+      "planetId": "mars-1",
+      "campaignVersion": "mars-1-a1"
+     }
+    ]
+   }
+  }
+ ],
+ "invalid": [
+  {
+   "name": "schema 2 without planets",
+   "current": {
+    "schema": 2,
+    "rulesetVersion": "r4",
+    "assetManifestVersion": "m1",
+    "campaignVersion": "luna-1-a4"
+   },
+   "field": "current.json"
+  },
+  {
+   "name": "planets without schema 2",
+   "current": {
+    "rulesetVersion": "r4",
+    "campaignVersion": "luna-1-c2",
+    "planets": [
+     {
+      "planetId": "luna-1",
+      "campaignVersion": "luna-1-a4"
+     },
+     {
+      "planetId": "mars-1",
+      "campaignVersion": "mars-1-a1"
+     }
+    ]
+   },
+   "field": "current.json"
+  },
+  {
+   "name": "schema 3",
+   "current": {
+    "schema": 3,
+    "rulesetVersion": "r4",
+    "assetManifestVersion": "m1",
+    "planets": [
+     {
+      "planetId": "luna-1",
+      "campaignVersion": "luna-1-a4"
+     },
+     {
+      "planetId": "mars-1",
+      "campaignVersion": "mars-1-a1"
+     }
+    ],
+    "campaignVersion": "luna-1-a4"
+   },
+   "field": "current.json.schema"
+  },
+  {
+   "name": "no planets listed",
+   "current": {
+    "schema": 2,
+    "rulesetVersion": "r4",
+    "assetManifestVersion": "m1",
+    "planets": [],
+    "campaignVersion": "luna-1-a4"
+   },
+   "field": "current.json.planets"
+  },
+  {
+   "name": "the same planet twice",
+   "current": {
+    "schema": 2,
+    "rulesetVersion": "r4",
+    "assetManifestVersion": "m1",
+    "planets": [
+     {
+      "planetId": "luna-1",
+      "campaignVersion": "luna-1-a4"
+     },
+     {
+      "planetId": "luna-1",
+      "campaignVersion": "luna-1-a4"
+     }
+    ],
+    "campaignVersion": "luna-1-a4"
+   },
+   "field": "current.json.planets"
+  },
+  {
+   "name": "top-level campaignVersion not the first planet's",
+   "current": {
+    "schema": 2,
+    "rulesetVersion": "r4",
+    "assetManifestVersion": "m1",
+    "planets": [
+     {
+      "planetId": "luna-1",
+      "campaignVersion": "luna-1-a4"
+     },
+     {
+      "planetId": "mars-1",
+      "campaignVersion": "mars-1-a1"
+     }
+    ],
+    "campaignVersion": "mars-1-a1"
+   },
+   "field": "current.json.campaignVersion"
+  },
+  {
+   "name": "a malformed planet entry",
+   "current": {
+    "schema": 2,
+    "rulesetVersion": "r4",
+    "assetManifestVersion": "m1",
+    "planets": [
+     {
+      "planetId": "luna-1",
+      "campaignVersion": "luna-1-a4"
+     },
+     {
+      "planetId": "Mars",
+      "campaignVersion": "mars-1-a1"
+     }
+    ],
+    "campaignVersion": "luna-1-a4"
+   },
+   "field": "current.json.planets"
+  },
+  {
+   "name": "an unknown key in a planet entry",
+   "current": {
+    "schema": 2,
+    "rulesetVersion": "r4",
+    "assetManifestVersion": "m1",
+    "planets": [
+     {
+      "planetId": "luna-1",
+      "campaignVersion": "luna-1-a4",
+      "name": "Moon"
+     }
+    ],
+    "campaignVersion": "luna-1-a4"
+   },
+   "field": "current.json.planets"
+  }
+ ]
+}

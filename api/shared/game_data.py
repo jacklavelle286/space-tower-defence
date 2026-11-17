@@ -40,6 +40,7 @@ DEFAULT_PREFIX = "game-data/"
 CURRENT_TTL_SECONDS = 60.0  # [ASSUMPTION] a release shows up within a minute; the files are tiny
 MAX_FILE_BYTES = 1024 * 1024
 MODES = frozenset({"CAMPAIGN", "CHALLENGE"})
+MAX_PLANETS = 20  # current.json schema 2 (game-core parseCurrent's limit too)
 DEFAULT_MANIFEST_VERSION = "m1"  # Gate M, LD8: the asset manifest of the repo art (web/shared/src/manifest)
 
 
@@ -126,6 +127,71 @@ def _parse_planet(data: Any, version: str) -> Planet:
     return Planet(planet_id=planet_id, name=name, campaign_version=version, wave_sets=tuple(parsed))
 
 
+class CurrentInvalid(ValueError):
+    """current.json does not have the shape; the message starts with where (current.json.planets...)."""
+
+
+def parse_current(data: Any) -> dict[str, Any]:
+    """current.json, schema 1 or 2 (Gate M, LD9; game-core parseCurrent reads the same shared fixtures,
+    contracts/fixtures/current/cases.json). Schema 1 names one campaign (planetId None: its document says which);
+    schema 2 lists `planets` in unlock order and keeps the top-level campaignVersion equal to planets[0]'s for readers
+    from before LD9."""
+    if not isinstance(data, dict):
+        raise CurrentInvalid("current.json: must be an object")
+    two = "schema" in data
+    required = {"rulesetVersion", "campaignVersion"} | ({"schema", "planets"} if two else set())
+    allowed = required | {"assetManifestVersion"}
+    for key in sorted(required):
+        if key not in data:
+            raise CurrentInvalid(f'current.json: "{key}" is missing')
+    for key in data:
+        if key not in allowed:
+            raise CurrentInvalid(f'current.json: unknown key "{key}"')
+    out: dict[str, Any] = {}
+    for name in ("rulesetVersion", "campaignVersion", "assetManifestVersion"):
+        value = data.get(name)
+        if value is None and name == "assetManifestVersion":
+            continue  # optional (LD8): absent means m1
+        if not isinstance(value, str) or not VERSION.match(value):
+            raise CurrentInvalid(f"current.json.{name}: is malformed")
+        out[name] = value
+    out["planets"] = [{"planetId": None, "campaignVersion": out["campaignVersion"]}]
+    if not two:
+        return out
+    if data["schema"] != 2 or isinstance(data["schema"], bool):
+        raise CurrentInvalid("current.json.schema: must be 2 when present")
+    listed = data["planets"]
+    if not isinstance(listed, list) or not 1 <= len(listed) <= MAX_PLANETS:
+        raise CurrentInvalid(f"current.json.planets: must list 1 to {MAX_PLANETS} planets")
+    planets, seen = [], set()
+    for i, entry in enumerate(listed):
+        at = f"current.json.planets[{i}]"
+        if not isinstance(entry, dict) or set(entry) != {"planetId", "campaignVersion"}:
+            raise CurrentInvalid(f"{at}: must be exactly planetId and campaignVersion")
+        planet_id, version = entry["planetId"], entry["campaignVersion"]
+        if not isinstance(planet_id, str) or not KEY_ID.match(planet_id) or planet_id in seen:
+            raise CurrentInvalid(f"{at}.planetId: malformed or listed twice")
+        if not isinstance(version, str) or not VERSION.match(version):
+            raise CurrentInvalid(f"{at}.campaignVersion: is malformed")
+        seen.add(planet_id)
+        planets.append({"planetId": planet_id, "campaignVersion": version})
+    if planets[0]["campaignVersion"] != out["campaignVersion"]:
+        raise CurrentInvalid("current.json.campaignVersion: must equal planets[0].campaignVersion")
+    out["planets"] = planets
+    return out
+
+
+def current_body(pointers: dict[str, Any]) -> dict[str, Any]:
+    """The current.json to write for normalised pointers: schema 1 while every planet is the one schema 1 can name
+    (so readers from before LD9 keep working), schema 2 once a planet is named."""
+    head = {"rulesetVersion": pointers["rulesetVersion"], "campaignVersion": pointers["planets"][0]["campaignVersion"]}
+    if pointers.get("assetManifestVersion") is not None:
+        head["assetManifestVersion"] = pointers["assetManifestVersion"]
+    if len(pointers["planets"]) == 1 and pointers["planets"][0]["planetId"] is None:
+        return head
+    return {"schema": 2, **head, "planets": [dict(p) for p in pointers["planets"]]}
+
+
 class GameDataReader:
     """Reads and caches the released game data from one bucket and prefix. Tests pass an s3 client and a clock."""
 
@@ -141,7 +207,7 @@ class GameDataReader:
         self.prefix = prefix
         self._s3 = s3
         self._clock = clock
-        self._current: tuple[float, dict[str, str]] | None = None
+        self._current: tuple[float, dict[str, Any]] | None = None
         self._versions: tuple[float, Versions] | None = None
         self._planets: dict[str, Planet] = {}
         self._documents: dict[str, dict[str, Any]] = {}
@@ -170,24 +236,18 @@ class GameDataReader:
         except ValueError as exc:
             raise GameDataUnavailable(f"s3://{self.bucket}/{key} is not JSON") from exc
 
-    def current(self) -> dict[str, str]:
-        """{"rulesetVersion", "campaignVersion"} from current.json (cached for CURRENT_TTL_SECONDS)."""
+    def current(self) -> dict[str, Any]:
+        """current.json, normalised by parse_current (cached for CURRENT_TTL_SECONDS): rulesetVersion,
+        campaignVersion (the first planet's), assetManifestVersion when named, and planets in unlock order."""
         now = self._clock()
         if self._current is not None and now - self._current[0] < CURRENT_TTL_SECONDS:
             return self._current[1]
-        data = self._get_json(f"{self.prefix}current.json")
-        if not isinstance(data, dict):
-            raise GameDataUnavailable("current.json is not an object")
-        versions: dict[str, str] = {}
-        for name in ("rulesetVersion", "campaignVersion", "assetManifestVersion"):
-            value = data.get(name)
-            if name == "assetManifestVersion" and value is None:
-                continue  # optional (LD8): absent means m1
-            if not isinstance(value, str) or not VERSION.match(value):
-                raise GameDataUnavailable(f"current.json: bad {name}")
-            versions[name] = value
-        self._current = (now, versions)
-        return versions
+        try:
+            pointers = parse_current(self._get_json(f"{self.prefix}current.json"))
+        except CurrentInvalid as exc:
+            raise GameDataUnavailable(str(exc)) from exc
+        self._current = (now, pointers)
+        return pointers
 
     def versions(self) -> Versions:
         """The publisher's states (cached for CURRENT_TTL_SECONDS, like current.json). No file: no states, so every
@@ -275,8 +335,15 @@ class GameDataReader:
         return sorted(out, key=lambda v: (v[1], v[0]), reverse=True)
 
     def released_planets(self) -> list[Planet]:
-        """The planets new runs can use, in order (one today: the campaignVersion in current.json)."""
-        return [self.planet(self.current()["campaignVersion"])]
+        """The planets new runs can use, in unlock order (Gate M, LD9: every planet current.json lists). A listed
+        planet whose document is another planet's is unavailable, never shown under the wrong name."""
+        planets = []
+        for listed in self.current()["planets"]:
+            planet = self.planet(listed["campaignVersion"])
+            if listed["planetId"] is not None and listed["planetId"] != planet.planet_id:
+                raise GameDataUnavailable(f"current.json lists {planet.campaign_version} as {listed['planetId']}")
+            planets.append(planet)
+        return planets
 
 
 def reader_from_env() -> GameDataReader:

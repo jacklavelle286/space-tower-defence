@@ -528,6 +528,7 @@ def test_planets_lists_the_released_planet_for_the_age_band(api: Api, player_eve
             {
                 "planetId": "luna-1",
                 "name": "Moonbeam Colony",
+                "campaignVersion": "luna-1-c1",  # Gate M, LD9
                 "unlocked": True,
                 "waveSets": [
                     {"waveSetId": "first-contact", "mode": "CHALLENGE", "name": "First Contact", "finalWave": 2,

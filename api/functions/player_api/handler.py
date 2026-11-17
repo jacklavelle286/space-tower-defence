@@ -945,7 +945,13 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
                     if versions.state(other.campaign_version, ws.wave_set_id) == "preview"
                 ]
             planets.append(
-                {"planetId": planet.planet_id, "name": planet.name, "unlocked": unlocked, "waveSets": wave_sets}
+                {
+                    "planetId": planet.planet_id,
+                    "name": planet.name,
+                    "campaignVersion": planet.campaign_version,  # LD9: each released planet has its own
+                    "unlocked": unlocked,
+                    "waveSets": wave_sets,
+                }
             )
         return json_response(200, {"ageBand": band, "planets": planets})
 

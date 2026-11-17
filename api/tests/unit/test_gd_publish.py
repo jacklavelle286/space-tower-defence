@@ -430,3 +430,55 @@ def test_an_unknown_action_or_missing_operator_is_refused(env: Env) -> None:
         publish_handler.dispatch(env.publisher, {"action": "makeLive", "campaignVersion": LIVE})["error"]["code"]
         == "INVALID"
     )
+
+
+# --- Several planets in current.json (Gate M, LD9) --------------------------------------------------------------------
+
+
+def two_planets(env: Env) -> None:
+    """current.json schema 2: luna-1 (the live document) and mars-1 (a copy of it under another planet)."""
+    mars = json.loads(LIVE_BYTES)
+    mars.update(version="mars-1-c1", planetId="mars-1", name="Red Dust")
+    env.put("campaign/mars-1-c1.json", json.dumps(mars).encode())
+    env.put(
+        "current.json",
+        json.dumps(
+            {
+                "schema": 2,
+                "rulesetVersion": "r4",
+                "campaignVersion": LIVE,
+                "planets": [
+                    {"planetId": "luna-1", "campaignVersion": LIVE},
+                    {"planetId": "mars-1", "campaignVersion": "mars-1-c1"},
+                ],
+            }
+        ).encode(),
+    )
+
+
+def test_a_live_publish_moves_only_its_planet(env: Env) -> None:
+    two_planets(env)
+    env.publish(live=True)
+    assert env.get("current.json") == {
+        "schema": 2,
+        "rulesetVersion": "r4",
+        "campaignVersion": "luna-1-a1",
+        "planets": [
+            {"planetId": "luna-1", "campaignVersion": "luna-1-a1"},
+            {"planetId": "mars-1", "campaignVersion": "mars-1-c1"},  # untouched
+        ],
+    }
+
+
+def test_schema_1_stays_schema_1(env: Env) -> None:
+    env.publish(live=True)
+    assert env.get("current.json") == {"rulesetVersion": "r4", "campaignVersion": "luna-1-a1"}
+
+
+def test_make_live_refuses_a_planet_that_is_not_released(env: Env) -> None:
+    venus = json.loads(LIVE_BYTES)
+    venus.update(version="venus-1-c1", planetId="venus-1")
+    env.put("campaign/venus-1-c1.json", json.dumps(venus).encode())
+    with pytest.raises(PublishRefused) as refused:
+        env.publisher.make_live("venus-1-c1", "op")
+    assert refused.value.code == "NOT_RELEASED"

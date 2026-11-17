@@ -123,15 +123,23 @@ export function buildGameData(dir: string = GAME_DATA_DIR): GameDataBuild {
   }
   const ruleset = rulesets.get(current.rulesetVersion);
   if (ruleset === undefined) throw new GameDataError(`${currentPath}: ruleset ${current.rulesetVersion} is not in game-data/ruleset/`);
-  if (!planetsRaw.has(current.campaignVersion)) {
-    throw new GameDataError(`${currentPath}: campaign ${current.campaignVersion} is not in game-data/campaign/`);
+  for (const listed of current.planets) {
+    if (!planetsRaw.has(listed.campaignVersion)) {
+      throw new GameDataError(`${currentPath}: campaign ${listed.campaignVersion} is not in game-data/campaign/`);
+    }
   }
 
-  // Each planet document must parse against some ruleset; the current one against the current ruleset.
-  let currentPlanet: PlanetDocument | undefined;
+  // Each planet document must parse against some ruleset; every listed one (Gate M, LD9: one per released planet)
+  // against the current ruleset, and as the planet current.json says it is.
+  const listedPlanets = new Map<string, PlanetDocument>();
   for (const [version, raw] of planetsRaw) {
-    if (version === current.campaignVersion) {
-      currentPlanet = parsePlanet(raw, ruleset);
+    const listed = current.planets.find((p) => p.campaignVersion === version);
+    if (listed !== undefined) {
+      const planet = parsePlanet(raw, ruleset);
+      if (listed.planetId !== null && listed.planetId !== planet.planetId) {
+        throw new GameDataError(`${currentPath}: ${version} is planet ${planet.planetId}, listed as ${listed.planetId}`);
+      }
+      listedPlanets.set(version, planet);
       continue;
     }
     const problems: string[] = [];
@@ -146,10 +154,16 @@ export function buildGameData(dir: string = GAME_DATA_DIR): GameDataBuild {
     });
     if (!fits) throw new GameDataError(`campaign ${version} parses against no ruleset: ${problems.join("; ")}`);
   }
-  if (currentPlanet === undefined) throw new GameDataError("unreachable: the current planet was not parsed");
 
-  const boundsPath = `bounds/${boundsVersion(current.rulesetVersion, current.campaignVersion)}.json`;
-  files.set(boundsPath, boundsJson(buildBounds(ruleset, currentPlanet)));
+  // One bounds file per listed pair; boundsPath is the first planet's (the api/tests fixture).
+  const boundsPaths = current.planets.map((listed) => {
+    const planet = listedPlanets.get(listed.campaignVersion);
+    if (planet === undefined) throw new GameDataError("unreachable: a listed planet was not parsed");
+    const path = `bounds/${boundsVersion(current.rulesetVersion, listed.campaignVersion)}.json`;
+    files.set(path, boundsJson(buildBounds(ruleset, planet)));
+    return path;
+  });
+  const boundsPath = boundsPaths[0] ?? "";
   files.set("current.json", readFileSync(currentPath, "utf8"));
   return { files, current, boundsPath };
 }
