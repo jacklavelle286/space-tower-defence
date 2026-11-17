@@ -1,0 +1,10 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    // The handler runs on Lambda's Node 24 but needs nothing from Node: no Node types in the source.
+    "lib": ["ES2023"],
+    "types": []
+  },
+  "include": ["src"],
+  "exclude": ["src/**/*.test.ts"]
+}

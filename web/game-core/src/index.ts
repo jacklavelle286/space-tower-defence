@@ -20,6 +20,8 @@ export * from "./rules";
 export {
   alienBounty,
   ATTACK_KINDS,
+  boundsJson,
+  boundsVersion,
   buildBounds,
   GameDataError,
   isBoss,

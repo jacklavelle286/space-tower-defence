@@ -1,0 +1,18 @@
+{
+  "name": "@scd/game-data-check",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "The game-data check Lambda (Gate M, LD6): merge, rules, blocking bot checks and bounds for the publisher. No AWS.",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json",
+    "test": "vitest run",
+    "build": "node scripts/build.ts"
+  },
+  "dependencies": {
+    "@scd/game-core": "0.0.0"
+  },
+  "devDependencies": {
+    "rolldown": "1.2.19"
+  }
+}
