@@ -169,4 +169,42 @@ describe("GameBridge", () => {
     frames(bridge, 1000 / 60, 1);
     expect(bridge.battle?.tick).toBe(tick + 1);
   });
+
+  it("usePower (Phase 28): game-core decides; the live r1 has no powers, so every use comes back as commandRejected", () => {
+    const { bridge, seen } = setUp();
+    bridge.place("p02", "nova");
+    bridge.startWave();
+    // oxlint-disable-next-line react/rules-of-hooks -- GameBridge.usePower is the spine's command name, not a hook
+    bridge.usePower("frost-pulse");
+    frames(bridge, 1000 / 60, 1);
+    expect(seen.commandRejected.map((e) => e.reason)).toEqual(["UNKNOWN_POWER"]);
+    expect(bridge.hud().powers).toEqual({});
+  });
+
+  it("usePower on an r3 battle: the charge is spent on the next tick, the HUD shows the count, a second use is refused", () => {
+    const r3 = parseRuleset(readJson("ruleset/r3.json"));
+    const cfg = compileBattleConfig(r3, parsePlanet(readJson("campaign/luna-1-c1.json"), r3), "first-contact");
+    const start = initialRunState(r3, cfg, ["continue"]);
+    const snapshot = start.snapshot;
+    if (snapshot === undefined) throw new Error("no snapshot");
+    const run = new LocalRun({ ...start, snapshot: { ...snapshot, powers: { "colony-shield": 2 } } }, () => "00000000-0000-4000-8000-000000000001");
+    const bridge = new GameBridge(cfg, run, "test-seed");
+    const rejected: string[] = [];
+    bridge.on("commandRejected", (e) => rejected.push(e.reason));
+    // oxlint-disable-next-line react/rules-of-hooks -- GameBridge.usePower is the spine's command name, not a hook
+    bridge.usePower("colony-shield"); // in preparation: not now
+    bridge.place("p02", "nova");
+    bridge.startWave();
+    // oxlint-disable-next-line react/rules-of-hooks -- as above
+    bridge.usePower("colony-shield");
+    expect(bridge.hud()).toMatchObject({ shield: 0, powers: { "colony-shield": 2 } }); // queued, not yet applied
+    frames(bridge, 1000 / 60, 1);
+    expect(bridge.hud()).toMatchObject({ shield: 10, powers: { "colony-shield": 1 } });
+    expect(bridge.takeSceneEvents().filter((e) => e.kind === "power").map((e) => (e.kind === "power" ? e.effect : null))).toEqual(["shield"]);
+    // oxlint-disable-next-line react/rules-of-hooks -- as above
+    bridge.usePower("colony-shield");
+    frames(bridge, 1000 / 60, 1);
+    expect(rejected).toEqual(["NOT_NOW", "POWER_USED_THIS_WAVE"]);
+    expect(bridge.hud().powers).toEqual({ "colony-shield": 1 });
+  });
 });

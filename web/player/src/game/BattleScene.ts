@@ -14,6 +14,10 @@
 // movement loop, and the one-shot that plays on the boss as the phase begins (plates falling, a door opening, a wand
 // wave) comes first; the scene reads the phase from the boss's AlienState, so it is state, not a timer. A boss's
 // bubble layers show as a big bubble; it arrives with a ground ring and each phase starts with a flash.
+//
+// Phase 28: a meteor power's `power` event plays its effect (a frost wash over the field, a comet ring where the burst
+// landed, the dome flaring over the colony). The effects are loaded only when the ruleset has powers, so the live r1
+// game loads nothing new. Slowed aliens keep the frost tint they already had (state, not a timer).
 import { routePoint, type AlienState, type Battle, type BattleEvent } from "@scd/game-core";
 import { GameObjects, Scene, type Input } from "phaser";
 import {
@@ -23,6 +27,8 @@ import {
   allFrames,
   ART,
   ASTRONAUT_LOOPED,
+  POWER_ART,
+  powerFrames,
   ASTRONAUT_ONE_SHOT,
   astronautArt,
   beamArt,
@@ -37,7 +43,7 @@ import {
 import type { GameBridge } from "./GameBridge";
 import { pressedOnCanvas } from "./pointer";
 import { Pool } from "./pool";
-import { colonyArt, routeTiles, TILE_PX, tileToPx, unitsToPx } from "./layout";
+import { CANVAS_HEIGHT, CANVAS_WIDTH, colonyArt, routeTiles, TILE_PX, tileToPx, unitsToPx } from "./layout";
 
 /** Animation speed for every looped and one-shot animation, frames per second (cosmetic). */
 const ANIM_FPS = 8;
@@ -135,12 +141,18 @@ export class BattleScene extends Scene {
     this.#bridge = bridge;
   }
 
+  /** True when the ruleset has meteor powers (C10; mechanics 3): only then are their effects loaded and played. */
+  get #hasPowers(): boolean {
+    return Object.keys(this.#bridge.config.powers).length > 0;
+  }
+
   preload(): void {
     for (const [key, url] of allFrames()) this.load.image(key, url);
+    if (this.#hasPowers) for (const [key, url] of powerFrames()) this.load.image(key, url);
   }
 
   create(): void {
-    for (const asset of [...LOOPED, ...ONE_SHOT]) {
+    for (const asset of [...LOOPED, ...ONE_SHOT, ...(this.#hasPowers ? Object.values(POWER_ART) : [])]) {
       const frames = Array.from({ length: asset.frames }, (_, i) => ({ key: frameKey(asset, i + 1) }));
       this.anims.create({ key: asset.id, frames, frameRate: ANIM_FPS, repeat: LOOPED.includes(asset) ? -1 : 0 });
     }
@@ -436,6 +448,22 @@ export class BattleScene extends Scene {
         this.#playOnce(ART.bossPhaseFlash, x, y, 21, [BOSS_PX, BOSS_PX]);
         const burst = bossArt(event.type)?.phases[event.phase]?.burst ?? null;
         if (burst !== null) this.#playOnce(burst, x, y, 21, [BOSS_PX, BOSS_PX]);
+        break;
+      }
+      case "power": {
+        if (!this.#hasPowers) break;
+        if (event.effect === "slow") {
+          // The frost wash covers the whole canvas (its art is canvas-sized), above the aliens.
+          this.#playOnce(POWER_ART.slow, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, 22);
+        } else if (event.effect === "burst" && event.at !== null) {
+          // The impact ring lies on the ground, the burst's radius each way (1.5 tiles: 288 px across), squashed to 4:3.
+          const effect = this.#bridge.config.powers[event.powerId]?.effect;
+          const across = effect?.kind === "burst" ? effect.radiusTiles * 2 * TILE_PX : TILE_PX * 3;
+          this.#playOnce(POWER_ART.burst, unitsToPx(event.at.x), unitsToPx(event.at.y) + ALIEN_FEET_DY - 8, 21, [across, (across * 3) / 4]);
+        } else if (event.effect === "shield") {
+          const colony = this.#colony;
+          if (colony !== null) this.#playOnce(POWER_ART.shield, colony.x, colony.y, 21, [COLONY_PX, COLONY_PX]);
+        }
         break;
       }
       case "leaked": {

@@ -3,7 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { loadCurrent, loadGameDataVersions, type GameData } from "../game/gameData";
 import { LocalRun } from "../game/localRun";
 import { ActivityPlaceholder, PLACEHOLDER_ANSWER } from "./ActivityPlaceholder";
-import { devBossWaves, devWave } from "./devWave";
+import { devBossWaves, devPowers, devWave } from "./devWave";
+import { DevPowers } from "./DevPowers";
 import { Battlefield, WAVE_SET_ID } from "./Battlefield";
 import { useGameBridge } from "./bridgeContext";
 import { EndScreen } from "./EndScreen";
@@ -34,6 +35,8 @@ interface LocalOptions {
   readonly aliens: string | null;
   /** Dev boss waves played first (after ?aliens='s): "all" (one wave per boss) or one boss ID (e.g. "boss3"). */
   readonly boss: string | null;
+  /** Test charges of the meteor powers: "all" or "power:count,..." (e.g. "frost-pulse:2,comet-burst:1"). */
+  readonly powers: string | null;
 }
 
 /**
@@ -54,6 +57,11 @@ interface LocalOptions {
  * (and Moon Blobs around her) before the wave set's own waves; ?boss=all plays one such wave per boss, King Wobble
  * (boss1) to the Great Glorp (boss5). Bosses are in ruleset r3, so for example
  * /play/local?ruleset=r3&roster=all&credits=5000&boss=boss3.
+ *
+ * Phase 28 adds ?powers= for trying the meteor powers of C10: the run starts with test charges ("all": two of each,
+ * the cap; or a list such as ?powers=frost-pulse:2,comet-burst:2,colony-shield:1), and a dev strip under the HUD uses
+ * them, by click or with keys 1 (Frost Pulse), 2 (Comet Burst, on the front-most alien) and 3 (Colony Shield) during a
+ * wave. Powers are in ruleset r3, so for example /play/local?ruleset=r3&roster=all&credits=5000&boss=boss5&powers=all.
  */
 function localOptions(search: string): LocalOptions {
   const params = new URLSearchParams(search);
@@ -69,6 +77,7 @@ function localOptions(search: string): LocalOptions {
     credits: Number.isInteger(credits) && credits >= 0 && credits <= 100_000 ? credits : null,
     aliens: params.get("aliens"),
     boss: params.get("boss"),
+    powers: params.get("powers"),
   };
 }
 
@@ -112,6 +121,7 @@ function startingRun(data: GameData, options: LocalOptions): RunState {
       ...snapshot,
       credits: options.credits ?? snapshot.credits,
       colony: { ...snapshot.colony, health: options.colonyHealth ?? snapshot.colony.health },
+      powers: options.powers === null ? snapshot.powers : devPowers(data.ruleset, options.powers),
     },
   };
 }
@@ -152,7 +162,7 @@ export function LocalSlice() {
   else
     body = (
       <Battlefield key={game.n} data={data} waveSetId={WAVE_SET_ID} run={game.run} seed={options.seed} speed={options.speed}>
-        <Overlays run={game.run} autoPlay={options.autoPlay} onNewGame={newGame} />
+        <Overlays run={game.run} autoPlay={options.autoPlay} devPowers={options.powers !== null} onNewGame={newGame} />
       </Battlefield>
     );
   return (
@@ -163,7 +173,17 @@ export function LocalSlice() {
   );
 }
 
-function Overlays({ run, autoPlay, onNewGame }: { run: LocalRun; autoPlay: AutoPlayMode | null; onNewGame: () => void }) {
+function Overlays({
+  run,
+  autoPlay,
+  devPowers: showDevPowers,
+  onNewGame,
+}: {
+  run: LocalRun;
+  autoPlay: AutoPlayMode | null;
+  devPowers: boolean;
+  onNewGame: () => void;
+}) {
   const bridge = useGameBridge();
   const hud = useHud(bridge);
   useAutoPlay(bridge, run, hud, autoPlay);
@@ -171,6 +191,7 @@ function Overlays({ run, autoPlay, onNewGame }: { run: LocalRun; autoPlay: AutoP
   return (
     <>
       <Hud bridge={bridge} hud={hud} />
+      {showDevPowers && !ended && <DevPowers bridge={bridge} hud={hud} />}
       {!ended && hud.runPhase !== "ACTIVITY" && <PadPanel bridge={bridge} credits={hud.credits} />}
       {hud.runPhase === "ACTIVITY" && <ActivityPlaceholder run={run} afterWave={hud.wave - 1} />}
       {hud.paused && !ended && hud.battle === "IN_WAVE" && <PausedCard bridge={bridge} />}

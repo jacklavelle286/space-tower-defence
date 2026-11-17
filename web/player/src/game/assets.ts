@@ -328,6 +328,25 @@ export function bubbleLayersArt(layers: number): ArtAsset | null {
   return layers <= 0 ? null : (all[Math.min(layers, all.length) - 1] ?? null);
 }
 
+/**
+ * The meteor powers' effects (Phase 28, C10), kept apart from ART: the scene loads them only when the ruleset has
+ * powers (powerFrames), so a game on a ruleset without them (the live r1) downloads nothing more. Keyed by the
+ * power's effect, as the simulation's `power` event names it.
+ *   slow    Frost Pulse: a frosty full-canvas overlay (the slowed aliens' frost tint comes from the battle state)
+ *   burst   Comet Burst: an impact ring, 1.5 tiles across the route point it landed on
+ *   shield  Colony Shield: the dome flaring over the colony
+ */
+export const POWER_ART = {
+  slow: anim("fx-frost-pulse", C, 8, CENTRE, [1920, 1056]),
+  burst: anim("fx-comet-impact", C, 8, CENTRE, [256, 256]),
+  shield: anim("fx-colony-shield-boost", C, 6, FEET, [384, 384]),
+} as const satisfies Record<"slow" | "burst" | "shield", ArtAsset>;
+
+/** The [textureKey, url] pairs of the power effects, for a ruleset with powers. */
+export function powerFrames(): [string, string][] {
+  return Object.values(POWER_ART).flatMap((asset) => Array.from({ length: asset.frames }, (_, i): [string, string] => [frameKey(asset, i + 1), frameUrl(asset, i + 1)]));
+}
+
 /** Nova's beam, drawn from her gadget to the alien she hit. Other classes' shot effects are not drawn yet. */
 export function beamArt(level: number): ArtAsset {
   return level === 3 ? ART.novaBeam3 : level === 2 ? ART.novaBeam2 : ART.novaBeam1;

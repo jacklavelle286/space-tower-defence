@@ -1,11 +1,13 @@
-// The ?aliens= dev wave (Phase 26) and the ?boss= dev waves (Phase 27) of the local battlefield.
+// The ?aliens= dev wave (Phase 26), the ?boss= dev waves (Phase 27) and the ?powers= dev charges (Phase 28) of the
+// local battlefield.
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseRuleset } from "@scd/game-core";
 import { describe, expect, it } from "vitest";
-import { devBossWaves, devWave } from "./devWave";
+import { devBossWaves, devPowers, devWave } from "./devWave";
 
-const r3 = parseRuleset(JSON.parse(readFileSync(join(import.meta.dirname, "..", "..", "..", "..", "game-data", "ruleset", "r3.json"), "utf8")));
+const rulesetFile = (v: string): unknown => JSON.parse(readFileSync(join(import.meta.dirname, "..", "..", "..", "..", "game-data", "ruleset", `${v}.json`), "utf8"));
+const r3 = parseRuleset(rulesetFile("r3"));
 
 describe("devWave", () => {
   it("all: two of every alien a wave may schedule, one group each, 3 s apart (Slimelets come out of Split Slimes)", () => {
@@ -56,5 +58,27 @@ describe("devBossWaves", () => {
     expect(() => devBossWaves(r3, "boss9", 3)).toThrow(/no boss "boss9"/);
     const r1 = parseRuleset(JSON.parse(readFileSync(join(import.meta.dirname, "..", "..", "..", "..", "game-data", "ruleset", "r1.json"), "utf8")));
     expect(() => devBossWaves(r1, "all", 3)).toThrow(/ruleset r1 has no bosses/);
+  });
+});
+
+describe("devPowers", () => {
+  it("a list: power:count, count 1 when left out", () => {
+    expect(devPowers(r3, "frost-pulse:2,comet-burst:1,colony-shield")).toEqual({ "frost-pulse": 2, "comet-burst": 1, "colony-shield": 1 });
+  });
+
+  it("all: every power at the cap (2 each)", () => {
+    expect(devPowers(r3, "all")).toEqual({ "colony-shield": 2, "comet-burst": 2, "frost-pulse": 2 });
+  });
+
+  it("more than the cap gives the cap: the charges go through game-core's grant, the one place the cap lives", () => {
+    expect(devPowers(r3, "frost-pulse:5")).toEqual({ "frost-pulse": 2 });
+  });
+
+  it("refuses an unknown power, a bad count, and a ruleset with no powers (r1, the live game)", () => {
+    expect(() => devPowers(r3, "laser:1")).toThrow(/no power "laser"/);
+    expect(() => devPowers(r3, "frost-pulse:0")).toThrow(/must be 1 to 9/);
+    const r1 = parseRuleset(rulesetFile("r1"));
+    expect(() => devPowers(r1, "all")).toThrow(/r1 has no meteor powers/);
+    expect(() => devPowers(r1, "frost-pulse:1")).toThrow(/r1 has no power "frost-pulse"/);
   });
 });

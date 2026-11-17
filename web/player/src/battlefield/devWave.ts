@@ -1,8 +1,9 @@
 // The local battlefield's dev waves (development builds only): /play/local?aliens=... (Phase 26) plays one extra wave
 // made here, so every alien of the ruleset can be watched without waiting for the campaign wave it first appears in;
 // /play/local?boss=... (Phase 27) plays a boss wave, or one for each boss. They are never game data: they exist only
-// in the copy of the planet document LocalSlice builds.
-import type { AuthoredWave, Ruleset } from "@scd/game-core";
+// in the copy of the planet document LocalSlice builds. /play/local?powers=... (Phase 28) starts the local run with
+// test charges of the meteor powers (devPowers, below), which in the real game only the server's meteor grant gives.
+import { grantPowerCharge, type AuthoredWave, type Ruleset, type Snapshot } from "@scd/game-core";
 
 /**
  * The ?aliens= dev wave: one group per alien type, 3 s apart, its aliens 0.6 s apart, at the health and speed the data
@@ -50,4 +51,29 @@ export function devBossWaves(ruleset: Ruleset, spec: string, firstWave: number):
       speedMult: 1,
     };
   });
+}
+
+/**
+ * The ?powers= dev charges (Phase 28): "all" (every power of the ruleset, as many as the cap allows) or a list of
+ * power IDs with counts, e.g. "frost-pulse:2,comet-burst:2,colony-shield:1" (count 1 when left out). Each charge is
+ * added with game-core's grantPowerCharge, the one place the inventory cap is enforced (C10), so asking for more than
+ * the cap gives the cap. The real game never does this: charges come only from the server's meteor grant.
+ */
+export function devPowers(ruleset: Ruleset, spec: string): Snapshot["powers"] {
+  const cap = ruleset.powerRules.inventoryCapPerPower;
+  const entries: [string, number][] =
+    spec === "all"
+      ? Object.keys(ruleset.powers).map((id) => [id, cap])
+      : spec.split(",").map((part) => {
+          const [id = "", n = "1"] = part.split(":");
+          return [id, Number.parseInt(n, 10)];
+        });
+  if (entries.length === 0) throw new Error(`?powers=: ruleset ${ruleset.version} has no meteor powers (try ?ruleset=r3)`);
+  let powers: Snapshot["powers"] = {};
+  for (const [id, count] of entries) {
+    if (!Object.hasOwn(ruleset.powers, id)) throw new Error(`?powers=: ruleset ${ruleset.version} has no power "${id}" (try ?ruleset=r3)`);
+    if (!Number.isInteger(count) || count < 1 || count > 9) throw new Error(`?powers=: count for "${id}" must be 1 to 9`);
+    for (let i = 0; i < count; i += 1) powers = grantPowerCharge(powers, id, cap);
+  }
+  return powers;
 }

@@ -1,8 +1,8 @@
 // GameBridge: the one typed seam between React and the battlefield (spine S10, E.5.3; Phase 14, M1-21).
 //
 // Commands go in (React -> game): loadRun, startWave, pause, resume, setSpeed, place, upgrade, sell, setTargeting,
-// selectPad. Events come out (game -> React), as past-tense facts: hud, selectionChanged, waveCleared, defeated,
-// commandRejected. usePower arrives with powers (M2).
+// usePower (Phase 28: a meteor power, C10), selectPad. Events come out (game -> React), as past-tense facts: hud,
+// selectionChanged, waveCleared, defeated, commandRejected.
 //
 // Who decides what:
 // - game-core decides everything about the battle (Battle, step, the commands' rules) and the run (the reducer,
@@ -60,6 +60,8 @@ export interface HudState {
   readonly speed: Speed;
   readonly paused: boolean;
   readonly highestCompletedWave: number;
+  /** Meteor power charges held, by power ID (C10): the battle's while one exists, else the run snapshot's. */
+  readonly powers: Readonly<Record<string, number>>;
 }
 
 /** One class the pad panel can offer for an empty pad (Phase 24): its price, and why it cannot be bought now. */
@@ -205,6 +207,7 @@ export class GameBridge {
       speed: this.#speed,
       paused: this.#paused,
       highestCompletedWave: run.highestCompletedWave,
+      powers: { ...(b?.powers ?? snap?.powers ?? {}) },
     };
   }
 
@@ -358,6 +361,15 @@ export class GameBridge {
 
   setTargeting(padId: string, targeting: Targeting): void {
     this.#command({ kind: "setTargeting", padId, targeting });
+  }
+
+  /**
+   * Use a meteor power (C10). It waits for the next tick like every command, and game-core decides: a use with no
+   * charge, twice in a wave, inside the lockout or outside a wave comes back as commandRejected with the reason.
+   * `target` is where a Comet Burst lands, as route progress in units (the aiming ring's point on the route).
+   */
+  usePower(powerId: string, target?: number): void {
+    this.#command(target === undefined ? { kind: "usePower", powerId } : { kind: "usePower", powerId, target });
   }
 
   selectPad(padId: string | null): void {

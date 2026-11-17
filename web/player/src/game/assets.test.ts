@@ -4,7 +4,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { alienArt, allFrames, ART, bossArt, bossBubbleArt, bubbleLayersArt, hasAlienArt } from "./assets";
+import { alienArt, allFrames, ART, bossArt, bossBubbleArt, bubbleLayersArt, hasAlienArt, POWER_ART, powerFrames } from "./assets";
 
 const REPO = join(import.meta.dirname, "..", "..", "..", "..");
 const PUBLIC = join(REPO, "web", "player", "public");
@@ -85,5 +85,23 @@ describe("battlefield art", () => {
     const missing = allFrames().filter(([, url]) => !existsSync(join(PUBLIC, url)));
     expect(missing).toEqual([]);
     expect(allFrames().length).toBeGreaterThan(60);
+  });
+
+  it.each(Object.values(POWER_ART).map((a) => [a.id, a]))("power effect %s matches its catalogue entry (Phase 28)", (id, asset) => {
+    const entry = byId.get(id);
+    expect(entry, `catalogue has no ${id}`).toBeDefined();
+    expect({
+      path: `/${entry?.appPath?.replace(/^web\/player\/public\//, "")}`,
+      frames: entry?.frames,
+      anchor: entry?.anchor,
+      displaySize: entry?.displaySize,
+    }).toEqual({ path: asset.path, frames: asset.frames, anchor: [...asset.anchor], displaySize: [...asset.displaySize] });
+  });
+
+  it("the power effects' frames are files in public/, and are not in the frames every game preloads", () => {
+    expect(powerFrames().filter(([, url]) => !existsSync(join(PUBLIC, url)))).toEqual([]);
+    expect(powerFrames()).toHaveLength(22);
+    const always = new Set(allFrames().map(([key]) => key));
+    expect(powerFrames().filter(([key]) => always.has(key))).toEqual([]);
   });
 });
