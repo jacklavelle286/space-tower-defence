@@ -8,8 +8,8 @@ import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { GAME_DATA_DIR } from "../../scripts/build-bounds";
-import { sellRefund } from "../sim/config";
-import { buildBounds, parsePlanet, parseRuleset } from "./game-data";
+import { buffedDamage, sellRefund } from "../sim/config";
+import { buildBounds, parsePlanet, parseRuleset, TARGETING_MODES } from "./game-data";
 
 const REPO = resolve(import.meta.dirname, "..", "..", "..", "..");
 const SIM_DIR = join(REPO, "tools", "sim");
@@ -121,13 +121,77 @@ describe("ruleset r2 is the whole roster (Phase 24, M2-01)", () => {
     expect(ruleset2.mechanics).toBe(2);
   });
 
-  it("changes nothing r1 had except the classes", () => {
+  it("changes nothing r1 had except the classes, and adds the slow rules (Phase 25)", () => {
     const { classes: _c1, version: _v1, mechanics: _m1, ...rest1 } = ruleset;
-    const { classes: _c2, version: _v2, mechanics: _m2, ...rest2 } = ruleset2;
+    const { classes: _c2, version: _v2, mechanics: _m2, slow, ...rest2 } = ruleset2;
+    expect(slow).toBeDefined();
+    expect(ruleset.slow).toBeUndefined();
     expect(rest2).toEqual(rest1);
     const { targetingFromLevel: _t, ...nova2 } = ruleset2.classes["nova"] ?? {};
     const { targetingFromLevel: _t1, ...nova1 } = ruleset.classes["nova"] ?? {};
     expect(nova2).toEqual(nova1);
+  });
+});
+
+describe("the Phase 25 rules (C5.3 - C5.6) agree with the simulator", () => {
+  const simSource = readFileSync(join(SIM_DIR, "sim.py"), "utf8");
+
+  it("the targeting modes are the spine's enum, FRONT | FAST | CROWD | STRONG (P5)", () => {
+    expect(Object.keys(sim.combatRules.targetingModes)).toEqual([...TARGETING_MODES]);
+  });
+
+  it("r2's slow cap is the simulator's combatRules.slow.capPct (C5.4)", () => {
+    expect(ruleset2.slow?.capPct).toBe(sim.combatRules.slow.capPct);
+    expect(ruleset2.slow?.capPct).toBe(50);
+  });
+
+  it("r2's refreshWithinSeconds is the threshold in the simulator's Pip preference (sim.py Game._pick)", () => {
+    // The simulator keeps this number in code, not in game_data.json: `a.slowrem <= 0.15` in its "fresh" filter.
+    const match = /fresh = \[a for a in c if a\.slowrem <= ([0-9.]+) or /.exec(simSource);
+    expect(match, "sim.py's Pip preference has moved; find the threshold again").not.toBeNull();
+    expect(ruleset2.slow?.refreshWithinSeconds).toBe(Number(match?.[1]));
+  });
+
+  it("the stacking rules differ only where no slow in the game can reach (C5.4 vs combatRules.slow.stacking)", () => {
+    // C5.4: an equal or stronger slow replaces the current one and keeps the longer of the two remaining times.
+    // The simulator: a stronger one takes its own duration. They differ only if a stronger slow lasts less than a
+    // weaker one has left, so it is enough that every stronger slow lasts at least as long as every weaker one in
+    // full: Pip's levels and the Frost Pulse power, capped, at full strength and at a boss's half strength.
+    expect(sim.combatRules.slow.stacking).toMatch(/stronger slow replaces it \(strength and duration\)/);
+    const cap = ruleset2.slow?.capPct ?? 0;
+    const pip = ruleset2.classes["pip"];
+    const sources = [
+      ...(pip?.attack === "slow" ? pip.levels.map((l) => [l.slowPct, l.slowDuration] as const) : []),
+      [sim.powers.frost_pulse.slowPct, sim.powers.frost_pulse.duration] as const,
+    ];
+    expect(sources).toHaveLength(4);
+    for (const factor of [1, sim.combatRules.slow.bossSlowFactor]) {
+      for (const [pctA, durA] of sources) {
+        for (const [pctB, durB] of sources) {
+          if (Math.min(pctB * factor, cap) > Math.min(pctA * factor, cap)) expect(durB, `${pctB}% vs ${pctA}%`).toBeGreaterThanOrEqual(durA);
+        }
+      }
+    }
+  });
+
+  it("Sol's rounding is the simulator's: floor((damage x (100 + buffPct) + 50) / 100) for every attacker and Sol level", () => {
+    expect(sim.combatRules.rounding.solBuff).toBe("floor((damage * (100 + buffPct) + 50) / 100)");
+    const sol = ruleset2.classes["sol"];
+    const pcts = sol?.attack === "buff" ? sol.levels.map((l) => l.buffPct) : [];
+    expect(pcts).toEqual([15, 25, 25]);
+    for (const cls of Object.values(ruleset2.classes)) {
+      for (const l of cls.levels) {
+        // sim.py Game._fire: dmg = (lv["damage"] * (100 + tw.buff) + 50) // 100
+        if ("damage" in l) for (const pct of pcts) expect(buffedDamage(l.damage, pct)).toBe(Math.floor((l.damage * (100 + pct) + 50) / 100));
+      }
+    }
+    expect(simSource).toContain('dmg = (lv["damage"] * (100 + tw.buff) + 50) // 100');
+  });
+
+  it("the simulator's buff and Pip rules say what C5.6 and C5.3 say", () => {
+    expect(sim.combatRules.buff).toMatch(/single largest buffPct/);
+    expect(sim.combatRules.buff).toMatch(/Sol never buffs Sol, Mira or itself/);
+    expect(sim.combatRules.pipTargetRule).toMatch(/prefers aliens that are not currently slowed/);
   });
 });
 

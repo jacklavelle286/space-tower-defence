@@ -424,11 +424,14 @@ describe("what each class does when it fires (C5.2), as far as Phase 24 goes", (
   // Pad p04 is at (6, 5). The route runs down x = 4 from (4, 2) to (4, 8): route progress 4 + (y - 2) tiles there.
   const at = (y: number): number => Math.round((4 + (y - 2)) * UNITS_PER_TILE);
   function alien(id: number, y: number): AlienState {
-    return { id, type: "blob", hp: 24, maxHp: 24, progress: at(y), speed: 1000, look: 0 };
+    return { id, type: "blob", hp: 24, maxHp: 24, progress: at(y), speed: 1000, slowPct: 0, slowTicksLeft: 0, look: 0 };
   }
-  /** One tick with these aliens on the route and one astronaut on p04; returns each alien's health afterwards. */
-  function oneTick(classId: string, level: number, ys: readonly number[]): number[] {
-    const targeting = challenge.classes[classId]?.defaultTargeting ?? "FRONT";
+  /**
+   * One tick with these aliens on the route and one astronaut on p04, aiming with `mode` (default: the class's default
+   * mode); returns each alien's health afterwards.
+   */
+  function oneTick(classId: string, level: number, ys: readonly number[], mode?: Targeting): number[] {
+    const targeting = mode ?? challenge.classes[classId]?.defaultTargeting ?? "FRONT";
     const battle = battleWith(0, [{ padId: "p04", classId, level, targeting }]);
     startWave(battle);
     battle.spawnIndex = challenge.waves[0]?.spawns.length ?? 0; // no scheduled spawns: only the aliens below
@@ -439,13 +442,14 @@ describe("what each class does when it fires (C5.2), as far as Phase 24 goes", (
   }
 
   it("Juno's blast hits the target and every alien within the splash radius, inclusive (1 tile at level 1, 1.4 at 2)", () => {
-    // Target: the alien furthest along, at y = 6 (in range: sqrt(2^2 + 1^2) = 2.24 tiles). Others 1.0 and 1.4 tiles behind.
-    expect(oneTick("juno", 1, [6, 5, 4.6])).toEqual([24 - 16, 24 - 16, 24]);
-    expect(oneTick("juno", 2, [6, 5, 4.6])).toEqual([24 - 16, 24 - 16, 24 - 16]);
-    expect(oneTick("juno", 3, [6, 5, 4.5])).toEqual([24 - 24, 24 - 24, 24]); // 26 damage defeats both; 1.5 tiles is outside
+    // Aiming FRONT, the target is the alien furthest along, at y = 6 (in range: sqrt(2^2 + 1^2) = 2.24 tiles). Others
+    // 1.0 and 1.4 tiles behind. (Juno's default CROWD would aim at the middle one: support.test.ts.)
+    expect(oneTick("juno", 1, [6, 5, 4.6], "FRONT")).toEqual([24 - 16, 24 - 16, 24]);
+    expect(oneTick("juno", 2, [6, 5, 4.6], "FRONT")).toEqual([24 - 16, 24 - 16, 24 - 16]);
+    expect(oneTick("juno", 3, [6, 5, 4.5], "FRONT")).toEqual([24 - 24, 24 - 24, 24]); // 26 damage defeats both; 1.5 tiles is outside
   });
 
-  it("Nova, Orion and Pip hit one alien only; Pip's damage lands (its slow arrives in Phase 25)", () => {
+  it("Nova, Orion and Pip hit one alien only (Pip's slow: support.test.ts)", () => {
     expect(oneTick("nova", 1, [6, 5.5])).toEqual([24 - 10, 24]);
     expect(oneTick("orion", 1, [6, 5.5])).toEqual([0, 24]); // 50 damage
     expect(oneTick("pip", 1, [6, 5.5])).toEqual([24 - 5, 24]);

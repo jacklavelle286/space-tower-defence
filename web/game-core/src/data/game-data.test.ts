@@ -325,6 +325,27 @@ describe("ruleset r2 and mechanics 2 (Phase 24, M2-01; ADR-0033)", () => {
     expect(() => parseRuleset(lateDefault)).toThrow(/juno.targetingFromLevel: the default mode must be available from level 1/);
   });
 
+  it("CROWD belongs to a blast class only: it counts the aliens inside the blast (C5.3, Phase 25)", () => {
+    const crowdNova = copy(RULESET2_RAW);
+    classOf(crowdNova, "nova")["targeting"] = ["FRONT", "CROWD"];
+    classOf(crowdNova, "nova")["targetingFromLevel"] = {};
+    expect(() => parseRuleset(crowdNova)).toThrow(/nova.targeting: CROWD needs a blast attack/);
+  });
+
+  it("the slow block (C5.4, Phase 25): required in mechanics 2, refused in mechanics 1, cap below 100", () => {
+    expect(r2.slow).toEqual({ capPct: 50, refreshWithinSeconds: 0.15 });
+    expect(ruleset.slow).toBeUndefined();
+    const missing = copy(RULESET2_RAW);
+    delete missing["slow"];
+    expect(() => parseRuleset(missing)).toThrow(/ruleset.slow: must be an object/);
+    const inR1 = copy(RULESET_RAW);
+    inR1["slow"] = { capPct: 50, refreshWithinSeconds: 0.15 };
+    expect(() => parseRuleset(inR1)).toThrow(/ruleset.slow: is mechanics 2; mechanics 1 has no slow attack/);
+    const stopped = copy(RULESET2_RAW);
+    stopped["slow"] = { capPct: 100, refreshWithinSeconds: 0.15 };
+    expect(() => parseRuleset(stopped)).toThrow(/ruleset.slow.capPct: must be between 1 and 99/);
+  });
+
   it("which modes a placement may store, by level (C5.3: Orion's STRONG from level 3)", () => {
     const orion = r2.classes["orion"];
     const mira = r2.classes["mira"];

@@ -19,7 +19,8 @@
  * 2 (Phase 24, ruleset r2): the six-class roster (C5.1). Five attack kinds (single, slow, blast, shield, buff), each
  *   with its own level fields; `targetingFromLevel` (Orion's STRONG from level 3, C5.3); support classes with no
  *   targeting modes. The simulation's support effects (slow, shield, buff) are completed in Phase 25 (M2-02), before
- *   any run can pin a mechanics 2 ruleset (ADR-0033).
+ *   any run can pin a mechanics 2 ruleset (ADR-0033); Phase 25 also added the ruleset's `slow` block (C5.4), required
+ *   in mechanics 2 and refused in mechanics 1. CROWD is a blast class's mode only (it counts aliens in the blast).
  */
 export const SUPPORTED_MECHANICS: readonly number[] = [1, 2];
 
@@ -125,6 +126,16 @@ export type AstronautClass = ClassCommon &
     | { attack: "buff"; levels: BuffLevel[] }
   );
 
+/**
+ * How slows combine (C5.4). capPct: no effect or combination reduces speed by more than this (50: no alien can ever be
+ * stopped). refreshWithinSeconds: a slow class prefers aliens that are not slowed, and counts an alien whose slow ends
+ * within this many seconds as not slowed, so its frost is renewed just before it lapses (tools/sim/sim.py Game._pick).
+ */
+export interface SlowRules {
+  capPct: number;
+  refreshWithinSeconds: number;
+}
+
 export interface Alien {
   name: string;
   hp: number;
@@ -151,6 +162,8 @@ export interface Ruleset {
     repairOnBossClear: number;
     miraRepairCapPerWave: number;
   };
+  /** Mechanics 2 and later (C5.4); absent in mechanics 1, which has no slow attack. */
+  slow?: SlowRules;
   classes: Record<string, AstronautClass>;
   aliens: Record<string, Alien>;
   economy: {
@@ -445,6 +458,8 @@ function parseClass(raw: unknown, path: string, mechanics: number): AstronautCla
   const defaultTargeting = oneOf(o["defaultTargeting"], `${path}.defaultTargeting`, TARGETING_MODES);
   if (aims && !targeting.includes(defaultTargeting)) fail(`${path}.defaultTargeting`, "must be one of the class's targeting modes");
   if (!aims && defaultTargeting !== "FRONT") fail(`${path}.defaultTargeting`, 'must be "FRONT" for a class that does not aim');
+  // C5.3 CROWD counts the aliens inside the blast radius around a candidate, so only a class with a blast has it.
+  if (targeting.includes("CROWD") && attack !== "blast") fail(`${path}.targeting`, "CROWD needs a blast attack");
 
   const targetingFromLevel: Partial<Record<Targeting, number>> = {};
   if (mechanics >= 2) {
@@ -486,11 +501,12 @@ function parseAlien(raw: unknown, path: string): Alien {
 }
 
 export function parseRuleset(raw: unknown): Ruleset {
+  // "slow" is checked against the mechanics number below: required from mechanics 2, refused in mechanics 1.
   const top = obj(
     raw,
     "ruleset",
     ["kind", "version", "mechanics", "simulation", "colony", "classes", "aliens", "economy", "sell", "caps", "powerRules"],
-    ["$comment"],
+    ["$comment", "slow"],
   );
   if (top["kind"] !== "ruleset") fail("ruleset.kind", 'must be "ruleset"');
   const version = checkVersion(top["version"], "ruleset.version");
@@ -558,12 +574,25 @@ export function parseRuleset(raw: unknown): Ruleset {
   }
   const pr = obj(top["powerRules"], "ruleset.powerRules", ["inventoryCapPerPower"]);
 
+  // C5.4. The cap is below 100 so that no alien can ever be stopped.
+  let slow: SlowRules | undefined;
+  if (mechanics >= 2) {
+    const sl = obj(top["slow"], "ruleset.slow", ["capPct", "refreshWithinSeconds"]);
+    slow = {
+      capPct: int(sl["capPct"], "ruleset.slow.capPct", 1, 99),
+      refreshWithinSeconds: num(sl["refreshWithinSeconds"], "ruleset.slow.refreshWithinSeconds", true, 60),
+    };
+  } else if (Object.hasOwn(top, "slow")) {
+    fail("ruleset.slow", "is mechanics 2; mechanics 1 has no slow attack");
+  }
+
   return {
     kind: "ruleset",
     version,
     mechanics,
     simulation: { tickRateHz: 60 },
     colony,
+    ...(slow === undefined ? {} : { slow }),
     classes: idMap(top["classes"], "ruleset.classes", (v, p) => parseClass(v, p, mechanics)),
     aliens: idMap(top["aliens"], "ruleset.aliens", parseAlien),
     economy: {

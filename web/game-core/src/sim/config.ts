@@ -7,11 +7,11 @@
 // What the simulation does with each attack kind (C5.2):
 //   single  one target, full damage (Nova, Orion)
 //   blast   every alien within the splash radius of the target, full damage each (Juno)
-//   slow    one target, full damage; the slow itself (C5.4) is applied from Phase 25 (M2-02)
-//   shield  never fires; the shield pulses (C5.5) arrive in Phase 25
-//   buff    never fires; the damage bonus (C5.6) arrives in Phase 25
-// So mechanics 2 is complete only after Phase 25, and current.json stays on r1 until then (ADR-0033).
-import type { AttackKind, AuthoredWave, PlanetDocument, Ruleset, Targeting, WaveSet } from "../data/game-data";
+//   slow    one target, full damage, and a slow on the target, or at level 3 on every alien near it (Pip, C5.4)
+//   shield  never fires; adds colony shield points every period, and repairs when a wave is cleared (Mira, C5.5)
+//   buff    never fires; raises the damage of attackers on nearby pads, strongest Sol only (Sol, C5.6)
+// Phase 25 (M2-02) completed the last three, which completes mechanics 2 (ADR-0033).
+import type { AttackKind, AuthoredWave, ClassLevel, PlanetDocument, Ruleset, Targeting, WaveSet } from "../data/game-data";
 import { STEPS_PER_SECOND } from "../clock";
 import { buildRoute, UNITS_PER_TILE, type Route } from "./route";
 
@@ -25,6 +25,35 @@ export interface ShotStats {
   readonly damage: number;
   /** Blast radius squared around the target, in squared units; 0 for a single-target shot. */
   readonly splashSq: number;
+  /** Pip's slow (C5.4), or null for a shot that does not slow. */
+  readonly slow: SlowStats | null;
+}
+
+/** The slow one shot applies (C5.2, C5.4). */
+export interface SlowStats {
+  /** Speed reduction in percent, before the ruleset's cap. */
+  readonly pct: number;
+  readonly ticks: number;
+  /** 0: the target only. Above 0: every live alien within this radius (squared units) of the target, target included. */
+  readonly radiusSq: number;
+}
+
+/** Mira's pulses and repair (C5.2, C5.5). */
+export interface ShieldStats {
+  /** Shield points each pulse adds (never above the colony's shieldCap). */
+  readonly points: number;
+  readonly periodTicks: number;
+  /** Health repaired when a wave is cleared; all Miras together repair at most colony.miraRepairCapPerWave. */
+  readonly repairOnWaveClear: number;
+}
+
+/** Sol's damage bonus (C5.2, C5.6). */
+export interface BuffStats {
+  readonly pct: number;
+  /** Squared units, compared with the squared distance between pad centres. */
+  readonly radiusSq: number;
+  /** In tiles, for drawing the ring from the same number. */
+  readonly radiusTiles: number;
 }
 
 export interface LevelStats {
@@ -35,6 +64,10 @@ export interface LevelStats {
   readonly invested: number;
   /** null for a support class (Mira, Sol): it never fires. */
   readonly shot: ShotStats | null;
+  /** Mira only. */
+  readonly shield: ShieldStats | null;
+  /** Sol only. */
+  readonly buff: BuffStats | null;
 }
 
 export interface ClassStats {
@@ -101,7 +134,17 @@ export interface BattleConfig {
   readonly aliens: Readonly<Record<string, AlienStats>>;
   /** The wave set's waves, by 1-based position in the set (position 1 = waves[0]). */
   readonly waves: readonly WavePlan[];
-  readonly colony: { readonly maxHealth: number; readonly shieldCap: number };
+  readonly colony: {
+    readonly maxHealth: number;
+    /** What Mira's pulses may fill the shield to (C4, C5.5); the snapshot is trimmed to it when the wave ends. */
+    readonly shieldCap: number;
+    /** The most the shield may ever hold, even from the Colony Shield power (C4, C10). */
+    readonly shieldAbsoluteCap: number;
+    /** All Miras together repair at most this much health per cleared wave (C5.5). */
+    readonly miraRepairCapPerWave: number;
+  };
+  /** C5.4. capPct 0 in a mechanics 1 ruleset, which has no slow attack. */
+  readonly slow: { readonly capPct: number; readonly refreshTicks: number };
   readonly sell: { readonly refundPct: number; readonly roundDownTo: number };
   readonly scheduledSpawnSoftCap: number;
 }
@@ -119,6 +162,11 @@ export function speedToUnitsPerTick(tilesPerSecond: number): number {
 /** Alien health in a wave (C2.2): max(1, floor(baseHealth x hpMult + 0.5)). */
 export function waveHealth(baseHealth: number, hpMult: number): number {
   return Math.max(1, Math.floor(baseHealth * hpMult + 0.5));
+}
+
+/** Sol buff on damage (C2.2, C5.6): floor((damage x (100 + buffPct) + 50) / 100), integers only. */
+export function buffedDamage(damage: number, buffPct: number): number {
+  return Math.floor((damage * (100 + buffPct) + 50) / 100);
 }
 
 /** Sell refund (C2.2, C5.7): floor(floor(invested x 70 / 100) / 5) x 5. */
@@ -145,6 +193,28 @@ function tilesSq(tiles: number): number {
   return units * units;
 }
 
+/** One level's numbers in simulation units; `invested` is everything paid up to and including this level. */
+function levelStats(l: ClassLevel, invested: number): LevelStats {
+  let shot: ShotStats | null = null;
+  let shield: ShieldStats | null = null;
+  let buff: BuffStats | null = null;
+  if ("damage" in l) {
+    shot = {
+      rangeSq: tilesSq(l.range),
+      rangeTiles: l.range,
+      periodTicks: secondsToTicks(l.period),
+      damage: l.damage,
+      splashSq: "splashRadius" in l ? tilesSq(l.splashRadius) : 0,
+      slow: "slowPct" in l ? { pct: l.slowPct, ticks: secondsToTicks(l.slowDuration), radiusSq: tilesSq(l.slowRadius) } : null,
+    };
+  } else if ("shieldPoints" in l) {
+    shield = { points: l.shieldPoints, periodTicks: secondsToTicks(l.period), repairOnWaveClear: l.repairOnWaveClear };
+  } else {
+    buff = { pct: l.buffPct, radiusSq: tilesSq(l.radius), radiusTiles: l.radius };
+  }
+  return { level: l.level, cost: l.cost, invested, shot, shield, buff };
+}
+
 /** Compile the numbers for one run on `waveSetId`. Throws on data the simulation cannot run. */
 export function compileBattleConfig(ruleset: Ruleset, planet: PlanetDocument, waveSetId: string): BattleConfig {
   if (ruleset.simulation.tickRateHz !== STEPS_PER_SECOND) {
@@ -156,19 +226,9 @@ export function compileBattleConfig(ruleset: Ruleset, planet: PlanetDocument, wa
   const classes: Record<string, ClassStats> = {};
   for (const [id, c] of Object.entries(ruleset.classes)) {
     let invested = 0;
-    const levels = c.levels.map((l): LevelStats => {
+    const levels = c.levels.map((l: ClassLevel): LevelStats => {
       invested += l.cost;
-      let shot: ShotStats | null = null;
-      if ("damage" in l) {
-        shot = {
-          rangeSq: tilesSq(l.range),
-          rangeTiles: l.range,
-          periodTicks: secondsToTicks(l.period),
-          damage: l.damage,
-          splashSq: "splashRadius" in l ? tilesSq(l.splashRadius) : 0,
-        };
-      }
-      return { level: l.level, cost: l.cost, invested, shot };
+      return levelStats(l, invested);
     });
     classes[id] = {
       id,
@@ -219,7 +279,16 @@ export function compileBattleConfig(ruleset: Ruleset, planet: PlanetDocument, wa
     classes,
     aliens,
     waves,
-    colony: { maxHealth: ruleset.colony.maxHealth, shieldCap: ruleset.colony.shieldCap },
+    colony: {
+      maxHealth: ruleset.colony.maxHealth,
+      shieldCap: ruleset.colony.shieldCap,
+      shieldAbsoluteCap: ruleset.colony.shieldAbsoluteCap,
+      miraRepairCapPerWave: ruleset.colony.miraRepairCapPerWave,
+    },
+    slow: {
+      capPct: ruleset.slow?.capPct ?? 0,
+      refreshTicks: secondsToTicks(ruleset.slow?.refreshWithinSeconds ?? 0),
+    },
     sell: ruleset.sell,
     scheduledSpawnSoftCap: ruleset.caps.scheduledSpawnSoftCap,
   };
