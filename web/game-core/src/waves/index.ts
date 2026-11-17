@@ -1,4 +1,4 @@
-// Wave design tools (Gate M, LD4): stats, keyframes and fill-in, Vary, table helpers.
+// Wave design tools (Gate M, LD4): stats, keyframes and fill-in, Vary, table helpers; LD13: difficulty curves.
 export {
   copyWave,
   CURVES,
@@ -14,3 +14,19 @@ export {
   type VaryOptions,
   type WaveStats,
 } from "./model";
+export {
+  BOSS_MARGIN_DIP,
+  DURATION_BANDS,
+  durationProblem,
+  fitHpMult,
+  interpolate,
+  MARGIN_ANCHORS,
+  MARGIN_PRESETS,
+  marginTarget,
+  round005,
+  TOUGHNESS_ANCHORS,
+  toughnessAt,
+  type Anchor,
+  type DurationProblem,
+  type MarginPreset,
+} from "./curves";

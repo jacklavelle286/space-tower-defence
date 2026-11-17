@@ -1,6 +1,7 @@
 // Test players for the level designer (Gate M, LD0; C17.1): the simulator's policies on the game's own simulation,
 // and the balance checks built on them (LD5).
 export { deriveBlueprint, MOONBEAM_BLUEPRINT, type Blueprint } from "./board";
+export { marginOf, measureWaves, type WaveMeasure } from "./margin";
 export { competentPolicy, minimalPolicy, naivePolicy, nonePolicy, presetsOnlyPolicy, type CompetentOptions, type NaiveOptions } from "./policies";
 export {
   fightWave,
