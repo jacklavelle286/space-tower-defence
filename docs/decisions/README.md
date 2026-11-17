@@ -54,6 +54,7 @@ The rules are in [J §J.6](../plan/J-execution-backlog.md#j6-decision-log-practi
 | [0036](0036-ruleset-r4-campaign-live.md) | Ruleset r4 adds the endless generator (mechanics 4); new games play r4 + luna-1-c2; badges are server code | Accepted |
 | [0037](0037-game-data-publisher.md) | The game-data publisher: a Python writer and a Node checker; only it and the release write game-data/; current.json is the publisher's; per wave set states | Proposed |
 | [0038](0038-asset-manifest.md) | The asset manifest: art bound by catalogue ID with art sets for the map, m1 = the repo art, pinned per run, repo files as fallback | Proposed |
+| [0039](0039-several-planets-in-current-json.md) | current.json schema 2: released planets in unlock order, the top-level campaignVersion kept for older readers; readers first, LD10 the first writer | Proposed |
 
 ## Next in line
 
