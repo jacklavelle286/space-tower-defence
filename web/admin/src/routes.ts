@@ -1,5 +1,5 @@
 // The admin's pages and their addresses. Hash routes (`#activities`, `#activities/ph-0102`, `#new-activity`,
-// `#speech/phoneme-sh`, `#bank`, `#pictures/draw`, `#levels/zigzag`): the site is static files behind CloudFront, so a hash needs no server rewrite, and
+// `#speech/phoneme-sh`, `#bank`, `#pictures/draw`, `#levels/zigzag`, `#versions`): the site is static files behind CloudFront, so a hash needs no server rewrite, and
 // each page has a link that can go into review notes. Back and Forward work because the app follows `hashchange`.
 
 export type Route =
@@ -10,7 +10,8 @@ export type Route =
   | { readonly page: "bank" }
   | { readonly page: "pictures"; readonly tab: PictureTab }
   | { readonly page: "levels" }
-  | { readonly page: "level"; readonly id: string };
+  | { readonly page: "level"; readonly id: string }
+  | { readonly page: "versions" };
 
 /** The Pictures page's tabs (Phases 42a and 42b). */
 export const PICTURE_TABS = ["upload", "draw", "library"] as const;
@@ -33,6 +34,8 @@ export function parseRoute(hash: string): Route {
       return { page: "new" };
     case "levels":
       return goodId === null ? { page: "levels" } : { page: "level", id: goodId };
+    case "versions":
+      return { page: "versions" };
     case "activities":
       return goodId === null ? { page: "activities" } : { page: "activity", id: goodId };
     default:
@@ -58,6 +61,8 @@ export function hrefOf(route: Route): string {
       return "#levels";
     case "level":
       return `#levels/${route.id}`;
+    case "versions":
+      return "#versions";
   }
 }
 
@@ -66,7 +71,7 @@ export type Section = "activities" | "speech" | "pictures" | "levels" | "bank";
 
 export function sectionOf(route: Route): Section {
   if (route.page === "activity" || route.page === "new") return "activities";
-  return route.page === "level" ? "levels" : route.page;
+  return route.page === "level" || route.page === "versions" ? "levels" : route.page;
 }
 
 export const SECTIONS: readonly { readonly section: Section; readonly label: string; readonly href: string }[] = [

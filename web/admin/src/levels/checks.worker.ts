@@ -11,7 +11,7 @@ const post = (reply: WorkerReply): void =>
 
 self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   try {
-    const planet = mergedLevel(event.data.level);
+    const planet = mergedLevel(event.data.level, event.data.base);
     for (const job of event.data.jobs)
       post({ type: "result", result: runJob(CURRENT_RULESET, planet, job) });
   } catch (error) {

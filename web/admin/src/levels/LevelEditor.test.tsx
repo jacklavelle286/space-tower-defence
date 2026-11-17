@@ -4,9 +4,10 @@
 // someone else beat shows the conflict screen.
 import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { ApiError } from "../api";
 import { FakeAdminApi } from "../testing/fakeApi";
 import { LevelEditor } from "./LevelEditor";
-import { newLevel } from "./levelFile";
+import { newLevel, REPO_BASE, resetLiveBase } from "./levelFile";
 
 let fake: FakeAdminApi;
 
@@ -15,7 +16,10 @@ beforeEach(async () => {
   window.sessionStorage.clear();
   await fake.api.createLevel(newLevel("lvl", "My level", "blank"));
 });
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  resetLiveBase();
+});
 
 async function open() {
   render(<LevelEditor api={fake.api} levelId="lvl" />);
@@ -30,6 +34,20 @@ const times = (el: Element, key: string, n: number) => {
 };
 
 describe("LevelEditor", () => {
+  it("checks against the live version from admin-api, and a failed load turns publishing off (LD7)", async () => {
+    await open();
+    await screen.findByText(new RegExp(`checked against ${REPO_BASE.version}$`, "u"));
+    expect(fake.callsNamed("getGameData")).toHaveLength(1);
+    cleanup();
+    resetLiveBase();
+    fake.gameDataError = new ApiError(503, "THROTTLED");
+    await open();
+    expect((await screen.findByRole("alert")).textContent).toMatch(/could not be loaded/u);
+    act(() => screen.getByRole("tab", { name: "Publish" }).click());
+    expect(screen.getByText(/The live game data could not be loaded, so publishing is off/u)).toBeTruthy();
+    expect((screen.getByRole("button", { name: "Publish" }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
   it("draws a route and places pads with the keyboard only, then saves with Ctrl+S", async () => {
     const canvas = await open();
     // The cursor starts at (0, 5). Route: start, then right to the edge.

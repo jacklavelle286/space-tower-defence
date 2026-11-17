@@ -15,7 +15,7 @@ function inlineWorker(): CheckWorker {
     terminate() {},
     postMessage(message: WorkerRequest) {
       setTimeout(() => {
-        const planet = mergedLevel(message.level);
+        const planet = mergedLevel(message.level, message.base);
         for (const job of message.jobs) worker.onmessage?.({ data: { type: "result", result: runJob(CURRENT_RULESET, planet, job) } } as MessageEvent);
       }, 0);
     },

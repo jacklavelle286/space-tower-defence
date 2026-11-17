@@ -17,6 +17,7 @@ describe("hash routes", () => {
     ["#pictures/nonsense", { page: "pictures", tab: "upload" }],
     ["#levels", { page: "levels" }],
     ["#levels/zigzag", { page: "level", id: "zigzag" }],
+    ["#versions", { page: "versions" }],
     ["#nonsense", { page: "activities" }],
   ])("%s", (hash, route) => {
     expect(parseRoute(hash)).toEqual(route);
@@ -41,6 +42,7 @@ describe("hash routes", () => {
       { page: "pictures", tab: "library" },
       { page: "levels" },
       { page: "level", id: "zigzag" },
+      { page: "versions" },
     ];
     for (const route of routes) expect(parseRoute(hrefOf(route))).toEqual(route);
   });

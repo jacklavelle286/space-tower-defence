@@ -104,6 +104,10 @@ export function describeError(error: unknown): string {
       return "That picture is too big to send. Try a simpler picture.";
     case "PICTURE_CAP_REACHED":
       return "No more drawing for now: the limit is reached.";
+    case "LEVEL_PUBLISHED":
+      return "This level has been published, so it can't be deleted. Retire its wave sets instead.";
+    case "PUBLISH_REFUSED":
+      return `Not published: ${typeof error.info["message"] === "string" ? error.info["message"] : "the publisher refused"}.`;
     case "NETWORK":
       return "No connection. Check the internet and try again.";
     default:
@@ -616,12 +620,34 @@ export function adminApi(request: Request) {
     /** R43: save the draft; 409 DRAFT_CONFLICT when someone saved since `draftRevision`. */
     saveLevel: (levelId: string, body: { draftRevision: number; level: LevelFile }) =>
       request("PUT", `/admin/levels/${id(levelId)}/draft`, body) as Promise<LevelView>,
-    /** R45: record that the balance checks ran on `draftRevision`; 409 DRAFT_CONFLICT when the draft moved on. */
-    recordTestplay: (levelId: string, body: { draftRevision: number; blocking: number; warnings: number }) =>
-      request("POST", `/admin/levels/${id(levelId)}/testplay`, body) as Promise<LevelView>,
-    /** R44: delete a level that was never published. */
+    /** R45: record that the balance checks ran on `draftRevision`, merged into the live `sourceVersion`; 409
+     * DRAFT_CONFLICT when the draft moved on. */
+    recordTestplay: (
+      levelId: string,
+      body: { draftRevision: number; sourceVersion: string; blocking: number; warnings: number },
+    ) => request("POST", `/admin/levels/${id(levelId)}/testplay`, body) as Promise<LevelView>,
+    /** R44: delete a level that was never published (409 LEVEL_PUBLISHED otherwise). */
     deleteLevel: (levelId: string) =>
       request("DELETE", `/admin/levels/${id(levelId)}`) as Promise<{ levelId: string; deleted: true }>,
+    /** R46: the live game data, versions, testers and publish history (Gate M, LD7). */
+    getGameData: () => request("GET", "/admin/game-data") as Promise<GameData>,
+    /** R47: one published planet document. */
+    getVersion: (campaignVersion: string) =>
+      request("GET", `/admin/game-data/versions/${id(campaignVersion)}`) as Promise<{ campaignVersion: string; document: unknown }>,
+    /** R48: the publisher's checks on a draft revision, without the balance checks. */
+    validateLevel: (levelId: string, draftRevision: number) =>
+      request("POST", `/admin/levels/${id(levelId)}/validate`, { draftRevision }) as Promise<LevelValidation>,
+    /** R49: queue a publish (202); poll getLevel for `publish`. 409 PUBLISH_REFUSED NOT_TEST_PLAYED without a test play. */
+    publishLevel: (levelId: string, body: PublishRequest) =>
+      request("POST", `/admin/levels/${id(levelId)}/publish`, body) as Promise<{ publish: LevelPublish }>,
+    /** R50: Make live, which is also the rollback. */
+    makeLive: (campaignVersion: string) =>
+      request("POST", "/admin/game-data/live", { campaignVersion }) as Promise<{ campaignVersion: string; live: true; prev?: string }>,
+    /** R51: a wave set's state in one version. */
+    setWaveSetState: (body: { campaignVersion: string; waveSetId: string; state: "published" | "retired" | "invalid" }) =>
+      request("POST", "/admin/game-data/states", body) as Promise<unknown>,
+    /** R52: the accounts (tester codes) that may play preview wave sets. */
+    setTesters: (testers: string[]) => request("PUT", "/admin/game-data/testers", { testers }) as Promise<unknown>,
   };
 }
 
@@ -667,14 +693,85 @@ export type LevelWaveSet = {
   presetPlacements: { padId: string; classId: string; level: number; targeting: "FRONT" | "FAST" | "CROWD" | "STRONG" }[];
 };
 
-export type LevelSummary = { levelId: string; name: string; status: "DRAFT"; updatedAt: string };
+export type LevelSummary = { levelId: string; name: string; status: "DRAFT" | "PUBLISHED"; updatedAt: string };
 
-/** The last balance check run on the draft (R45, LD5): the publisher (LD6) wants one on the revision it publishes. */
-export type LevelReview = { testPlayedDraftRevision?: number; blocking?: number; warnings?: number; at?: string };
+/** The last balance check run on the draft (R45, LD5): publish (R49, LD7) wants one on the revision it publishes,
+ * against the live version it publishes onto. */
+export type LevelReview = {
+  testPlayedDraftRevision?: number;
+  sourceVersion?: string;
+  blocking?: number;
+  warnings?: number;
+  at?: string;
+};
+
+/** A publisher refusal (409 PUBLISH_REFUSED details, or a refused publish's `refusal`). */
+export type PublishRefusal = { code: string; message: string; details?: unknown };
+
+/** The level's latest publish (its PUB# item, LD6-LD7). */
+export type LevelPublish = {
+  draftRevision: number;
+  state: "QUEUED" | "RUNNING" | "DONE" | "REFUSED";
+  updatedAt?: string;
+  campaignVersion?: string;
+  sourceVersion?: string;
+  live?: boolean;
+  liveRefused?: string;
+  refusal?: PublishRefusal;
+};
+
+/** A version this level published (V# item). */
+export type LevelVersion = { campaignVersion: string; publishedAt: string; draftRevision: number; sourceVersion: string; by: string };
 
 export type LevelView = {
   header: LevelSummary;
   draft: { level: LevelFile; draftRevision: number; updatedAt: string; review?: LevelReview };
+  publish?: LevelPublish | null;
+  versions?: LevelVersion[];
+};
+
+/** R48's answer: game-core's problems on the merged planet, and picture problems. */
+export type LevelValidation = {
+  sourceVersion: string;
+  draftRevision: number;
+  problems: { field: string; rule: string; severity: "hard" | "warn" }[];
+  pictures: { pictureId: string; rule: string }[];
+};
+
+/** Scope step 12's hand ticks: what only a person can judge before Publish. */
+export const HAND_TICKS = [
+  ["routeReadsClearly", "The route reads clearly from start to colony."],
+  ["backdropHasNoPath", "The backdrop has no painted path that could look like a second route."],
+  ["nothingLooksLikeGamePieces", "Nothing in the backdrop or decorations looks like an alien, a pad or a path."],
+  ["warningsRead", "I have read every warning and am happy with each."],
+] as const;
+export type HandTick = (typeof HAND_TICKS)[number][0];
+
+export type PublishRequest = {
+  draftRevision: number;
+  sourceVersion: string;
+  live: boolean;
+  ticks: Record<HandTick, boolean>;
+};
+
+export type WaveSetState = "published" | "preview" | "retired" | "invalid";
+
+/** R46: what is published, newest version first. */
+export type GameData = {
+  current: { rulesetVersion: string; campaignVersion: string };
+  live: unknown;
+  testers: string[];
+  versions: {
+    campaignVersion: string;
+    planetId: string;
+    writtenAt: string;
+    live: boolean;
+    source: "portal" | "release";
+    levelId?: string;
+    by?: string;
+    waveSets: { waveSetId: string; name: string; mode: "CAMPAIGN" | "CHALLENGE"; state: WaveSetState }[];
+  }[];
+  history: { at: string; action: "publish" | "make-live"; campaignVersion: string; prev?: string; live?: boolean; levelId?: string; by?: string }[];
 };
 
 export type AdminApi = ReturnType<typeof adminApi>;

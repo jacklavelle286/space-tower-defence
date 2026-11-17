@@ -11,10 +11,12 @@ import {
   type WaveSetReport,
 } from "@scd/game-core";
 import type { LevelFile } from "../api";
-import { CURRENT_RULESET, mergedLevel } from "./levelFile";
+import { CURRENT_RULESET, liveBase, mergedLevel } from "./levelFile";
 
 export type WorkerRequest = {
   readonly level: LevelFile;
+  /** The live planet document the level is merged into (a worker has none of the page's state). */
+  readonly base: unknown;
   readonly jobs: readonly CheckJob[];
 };
 export type WorkerReply =
@@ -59,7 +61,8 @@ export function runChecks(
   makeWorker: () => CheckWorker = browserWorker,
   size = poolSize(),
 ): CheckRun {
-  const planet: PlanetDocument = mergedLevel(level);
+  const base = liveBase().raw;
+  const planet: PlanetDocument = mergedLevel(level, base);
   const jobs = planChecks(planet, ownedWaveSets(level));
   const workers: CheckWorker[] = [];
   let cancelled = false;
@@ -98,7 +101,7 @@ export function runChecks(
           resolve(judgeChecks(planet, CURRENT_RULESET, sorted));
         }
       };
-      worker.postMessage({ level, jobs: part });
+      worker.postMessage({ level, base, jobs: part });
     }
   });
   return {

@@ -2,7 +2,7 @@ import { CURVES, fillIn, introduceAlien, isBoss, scaleCounts, typesBy, vary, wav
 import { LIMITS } from "@scd/shared";
 import { useState } from "react";
 import type { LevelFile, LevelGroup, LevelWave, LevelWaveBody } from "../api";
-import { CURRENT_RULESET, LIVE_PLANET, problemText, type LevelProblem } from "./levelFile";
+import { CURRENT_RULESET, liveBase, problemText, type LevelProblem } from "./levelFile";
 
 // The Waves tab (Gate M, LD4; scope-level-designer.md §3.1 step 8 and §3.1a). A campaign level edits the 50 campaign
 // waves: mark a few as keyframes, Fill in rebuilds the waves between them along a curve, a wave set by hand is kept;
@@ -159,7 +159,7 @@ export function WavesTab({ level, problems, onEdit }: Props) {
     <div className="waves-tab">
       {waves.length === 0 ? (
         <p>
-          This level does not own the campaign: its challenges can use the live campaign's waves by number (1 to {LIVE_PLANET.waves.length}) and their own
+          This level does not own the campaign: its challenges can use the live campaign's waves by number (1 to {liveBase().planet.waves.length}) and their own
           challenge waves below.
         </p>
       ) : (

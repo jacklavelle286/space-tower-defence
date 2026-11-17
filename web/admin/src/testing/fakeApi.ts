@@ -3,10 +3,17 @@
 // Validation answers with `problems`, which a test sets: the real checks are admin-api's, and the shared fixtures
 // (contracts/fixtures/activities/) prove the editor's drafts pass them. Every call is recorded. Example IDs only.
 import { isPictureKind, pictureKindOf, pictureKindSpec, type PictureKindId } from "@scd/shared";
+import currentJson from "../../../../game-data/current.json";
+import { REPO_BASE } from "../levels/levelFile";
 import {
+  type GameData,
   type LevelFile,
+  type LevelPublish,
   type LevelReview,
+  type LevelValidation,
+  type LevelVersion,
   type LevelView,
+  type PublishRequest,
   ApiError,
   type ActivitySummary,
   type ActivityView,
@@ -353,7 +360,12 @@ export class FakeAdminApi {
     listLevels: async () => {
       this.record("listLevels");
       return {
-        items: [...this.levels.values()].map(({ level, updatedAt }) => ({ levelId: level.levelId, name: level.name, status: "DRAFT" as const, updatedAt })),
+        items: [...this.levels.values()].map(({ level, updatedAt, versions }) => ({
+          levelId: level.levelId,
+          name: level.name,
+          status: (versions?.length ?? 0) > 0 ? ("PUBLISHED" as const) : ("DRAFT" as const),
+          updatedAt,
+        })),
       };
     },
     createLevel: async (level: LevelFile) => {
@@ -374,30 +386,115 @@ export class FakeAdminApi {
       this.levels.set(levelId, { level: clone(body.level), draftRevision: stored.draftRevision + 1, updatedAt: "2026-11-17T10:05:00Z" });
       return this.levelView(levelId);
     },
-    recordTestplay: async (levelId: string, body: { draftRevision: number; blocking: number; warnings: number }) => {
+    recordTestplay: async (levelId: string, body: { draftRevision: number; sourceVersion: string; blocking: number; warnings: number }) => {
       this.record("recordTestplay", levelId, body);
       const stored = this.levels.get(levelId);
       if (stored === undefined) throw new ApiError(404, "NOT_FOUND");
       if (stored.draftRevision !== body.draftRevision) throw new ApiError(409, "DRAFT_CONFLICT");
-      stored.review = { testPlayedDraftRevision: body.draftRevision, blocking: body.blocking, warnings: body.warnings, at: "2026-11-17T11:00:00Z" };
+      stored.review = {
+        testPlayedDraftRevision: body.draftRevision,
+        sourceVersion: body.sourceVersion,
+        blocking: body.blocking,
+        warnings: body.warnings,
+        at: "2026-11-17T11:00:00Z",
+      };
       return this.levelView(levelId);
     },
     deleteLevel: async (levelId: string) => {
       this.record("deleteLevel", levelId);
-      if (!this.levels.delete(levelId)) throw new ApiError(404, "NOT_FOUND");
+      const stored = this.levels.get(levelId);
+      if (stored === undefined) throw new ApiError(404, "NOT_FOUND");
+      if ((stored.versions?.length ?? 0) > 0) throw new ApiError(409, "LEVEL_PUBLISHED");
+      this.levels.delete(levelId);
       return { levelId, deleted: true as const };
+    },
+    getGameData: async () => {
+      this.record("getGameData");
+      if (this.gameDataError !== null) throw this.gameDataError;
+      return clone(this.gameData);
+    },
+    getVersion: async (campaignVersion: string) => {
+      this.record("getVersion", campaignVersion);
+      const document = campaignVersion === this.gameData.current.campaignVersion ? this.gameData.live : this.documents.get(campaignVersion);
+      if (document === undefined) throw new ApiError(404, "NOT_FOUND");
+      return { campaignVersion, document: clone(document) };
+    },
+    validateLevel: async (levelId: string, draftRevision: number) => {
+      this.record("validateLevel", levelId, draftRevision);
+      if (this.validation instanceof ApiError) throw this.validation;
+      return { sourceVersion: this.gameData.current.campaignVersion, draftRevision, problems: [], pictures: [], ...clone(this.validation) };
+    },
+    publishLevel: async (levelId: string, body: PublishRequest) => {
+      this.record("publishLevel", levelId, body);
+      const stored = this.levels.get(levelId);
+      if (stored === undefined) throw new ApiError(404, "NOT_FOUND");
+      if (stored.draftRevision !== body.draftRevision) throw new ApiError(409, "DRAFT_CONFLICT");
+      const review = stored.review;
+      if (review?.testPlayedDraftRevision !== body.draftRevision || review.sourceVersion !== body.sourceVersion || review.blocking !== 0) {
+        throw new ApiError(409, "PUBLISH_REFUSED", [], { code: "NOT_TEST_PLAYED", message: "run the checks first" });
+      }
+      stored.publish = { draftRevision: body.draftRevision, state: "QUEUED", updatedAt: "2026-11-17T12:00:00Z" };
+      return { publish: clone(stored.publish) };
+    },
+    makeLive: async (campaignVersion: string) => {
+      this.record("makeLive", campaignVersion);
+      const prev = this.gameData.current.campaignVersion;
+      this.gameData.current.campaignVersion = campaignVersion;
+      for (const v of this.gameData.versions) v.live = v.campaignVersion === campaignVersion;
+      return { campaignVersion, live: true as const, prev };
+    },
+    setWaveSetState: async (body: { campaignVersion: string; waveSetId: string; state: "published" | "retired" | "invalid" }) => {
+      this.record("setWaveSetState", body);
+      const set = this.gameData.versions.find((v) => v.campaignVersion === body.campaignVersion)?.waveSets.find((w) => w.waveSetId === body.waveSetId);
+      if (set === undefined) throw new ApiError(409, "PUBLISH_REFUSED", [], { code: "NOT_FOUND", message: "no such wave set" });
+      set.state = body.state;
+      return { ok: true };
+    },
+    setTesters: async (testers: string[]) => {
+      this.record("setTesters", testers);
+      this.gameData.testers = [...testers];
+      return { ok: true };
     },
   };
 
+  /** R46's answer: the repository's live version, as a release leaves it (a test may add versions and history). */
+  gameData: GameData = {
+    current: { rulesetVersion: currentJson.rulesetVersion, campaignVersion: REPO_BASE.version },
+    live: clone(REPO_BASE.raw),
+    testers: [],
+    versions: [
+      {
+        campaignVersion: REPO_BASE.version,
+        planetId: REPO_BASE.planet.planetId,
+        writtenAt: "2026-11-17T09:00:00Z",
+        live: true,
+        source: "release",
+        waveSets: Object.entries(REPO_BASE.planet.waveSets).map(([waveSetId, ws]) => ({ waveSetId, name: ws.name, mode: ws.mode, state: "published" as const })),
+      },
+    ],
+    history: [],
+  };
+  /** R47's documents for versions other than the live one. */
+  readonly documents = new Map<string, unknown>();
+  /** Set to make R46 fail. */
+  gameDataError: ApiError | null = null;
+  /** R48's answer (merged over a clean one), or an error to throw. */
+  validation: Partial<LevelValidation> | ApiError = {};
+
   /** Level drafts (Gate M, LD3), by level ID. */
-  readonly levels = new Map<string, { level: LevelFile; draftRevision: number; updatedAt: string; review?: LevelReview }>();
+  readonly levels = new Map<
+    string,
+    { level: LevelFile; draftRevision: number; updatedAt: string; review?: LevelReview; publish?: LevelPublish; versions?: LevelVersion[] }
+  >();
 
   private levelView(levelId: string): LevelView {
     const stored = this.levels.get(levelId);
     if (stored === undefined) throw new ApiError(404, "NOT_FOUND");
     return {
-      header: { levelId, name: stored.level.name, status: "DRAFT", updatedAt: stored.updatedAt },
+      header: { levelId, name: stored.level.name, status: (stored.versions?.length ?? 0) > 0 ? "PUBLISHED" : "DRAFT", updatedAt: stored.updatedAt },
       draft: { level: clone(stored.level), draftRevision: stored.draftRevision, updatedAt: stored.updatedAt, ...(stored.review === undefined ? {} : { review: clone(stored.review) }) },
+      publish: stored.publish === undefined ? null : clone(stored.publish),
+      versions: clone(stored.versions ?? []),
     };
   }
 

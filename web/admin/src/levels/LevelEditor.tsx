@@ -28,7 +28,10 @@ import {
   describeError,
   type AdminApi,
   type LevelFile,
+  type LevelPublish,
   type LevelReview,
+  type LevelVersion,
+  type LevelView,
   type PictureSummary,
 } from "../api";
 import { hrefOf } from "../routes";
@@ -44,10 +47,14 @@ import {
 import {
   levelFileDownload,
   levelProblems,
+  liveBase,
+  liveBaseLoaded,
   OPENS_AFTER,
   problemText,
   type LevelProblem,
 } from "./levelFile";
+import { loadLiveBase } from "./liveBase";
+import { PublishTab } from "./publish/PublishTab";
 import "./levels.css";
 import type { CheckWorker } from "./checkRun";
 import { TestTab } from "./TestTab";
@@ -182,17 +189,36 @@ function useSecondTabWarning(levelId: string): boolean {
   return other;
 }
 
+type Loaded = {
+  level: LevelFile;
+  draftRevision: number;
+  review?: LevelReview;
+  publish: LevelPublish | null;
+  versions: LevelVersion[];
+};
+
+/** The saved draft and its publishing, from R42's view. */
+function fromView(view: LevelView): Loaded {
+  return {
+    level: view.draft.level,
+    draftRevision: view.draft.draftRevision,
+    ...(view.draft.review === undefined ? {} : { review: view.draft.review }),
+    publish: view.publish ?? null,
+    versions: view.versions ?? [],
+  };
+}
+
 export function LevelEditor({ api, levelId, makeWorker }: Props) {
-  const [loaded, setLoaded] = useState<{
-    level: LevelFile;
-    draftRevision: number;
-    review?: LevelReview;
-  } | null>(null);
+  const [loaded, setLoaded] = useState<Loaded | null>(null);
+  // The live version levels are merged into (R46, LD7); null until loaded. A failure leaves this build's copy in use
+  // for the rules, and publishing off.
+  const [baseVersion, setBaseVersion] = useState<string | null>(liveBaseLoaded() ? liveBase().version : null);
+  const [baseError, setBaseError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [conflict, setConflict] = useState(false);
   const [busy, setBusy] = useState(false);
   const [showCoverage, setShowCoverage] = useState(false);
-  const [tab, setTab] = useState<"map" | "waves" | "sets" | "test">("map");
+  const [tab, setTab] = useState<"map" | "waves" | "sets" | "test" | "publish">("map");
   const [pictures, setPictures] = useState<{
     backgrounds: PictureSummary[];
     decorations: PictureSummary[];
@@ -205,13 +231,7 @@ export function LevelEditor({ api, levelId, makeWorker }: Props) {
     api.getLevel(levelId).then(
       (view) => {
         const kept = unsavedFor(levelId, view.draft.draftRevision);
-        setLoaded({
-          level: view.draft.level,
-          draftRevision: view.draft.draftRevision,
-          ...(view.draft.review === undefined
-            ? {}
-            : { review: view.draft.review }),
-        });
+        setLoaded(fromView(view));
         setConflict(false);
         dispatch({ type: "replace", level: kept ?? view.draft.level });
         setMessage(kept === null ? null : "Your unsaved changes were kept.");
@@ -220,6 +240,17 @@ export function LevelEditor({ api, levelId, makeWorker }: Props) {
     );
   }, [api, levelId]);
   useEffect(load, [load]);
+
+  const loadBase = useCallback(() => {
+    loadLiveBase(api).then(
+      ({ base }) => {
+        setBaseVersion(base.version);
+        setBaseError(null);
+      },
+      (error: unknown) => setBaseError(describeError(error)),
+    );
+  }, [api]);
+  useEffect(loadBase, [loadBase]);
 
   useEffect(() => {
     void Promise.all([
@@ -252,9 +283,11 @@ export function LevelEditor({ api, levelId, makeWorker }: Props) {
     return () => window.removeEventListener("beforeunload", warn);
   }, [dirty]);
 
+  // The rules read the live planet: a newly loaded one (baseVersion changes, so this renders again) gives new problems.
+  const liveRaw = liveBase().raw;
   const problems = useMemo(
-    () => (level === null ? [] : levelProblems(level)),
-    [level],
+    () => (level === null ? [] : levelProblems(level, liveRaw)),
+    [level, liveRaw],
   );
   const cover = useMemo(
     () =>
@@ -275,13 +308,7 @@ export function LevelEditor({ api, levelId, makeWorker }: Props) {
           level,
         });
         forgetUnsaved(levelId);
-        setLoaded({
-          level: view.draft.level,
-          draftRevision: view.draft.draftRevision,
-          ...(view.draft.review === undefined
-            ? {}
-            : { review: view.draft.review }),
-        });
+        setLoaded(fromView(view));
         setConflict(false);
         setMessage("Saved.");
       } catch (error) {
@@ -293,6 +320,14 @@ export function LevelEditor({ api, levelId, makeWorker }: Props) {
       }
     },
     [api, busy, level, levelId, loaded],
+  );
+
+  const onPublishView = useCallback(
+    (view: LevelView, wentLive: boolean) => {
+      setLoaded(fromView(view));
+      if (wentLive) loadBase(); // this level's version is now the live planet
+    },
+    [loadBase],
   );
 
   const keepMine = async () => {
@@ -388,7 +423,21 @@ export function LevelEditor({ api, levelId, makeWorker }: Props) {
     <section className="level-editor">
       <p>
         <a href={hrefOf({ page: "levels" })}>Levels</a> / {level.name}
+        <span className="muted">
+          {" "}
+          · checked against {baseVersion ?? liveBase().version}
+          {baseVersion === null && baseError === null ? " (loading the live version…)" : ""}
+        </span>
       </p>
+      {baseError !== null && (
+        <p className="warning" role="alert">
+          The live game data could not be loaded ({baseError}), so the rules use this build's copy (
+          {liveBase().version}) and publishing is off.{" "}
+          <button type="button" onClick={loadBase}>
+            Try again
+          </button>
+        </p>
+      )}
       {otherTab && (
         <p className="warning" role="alert">
           This level is open in another tab too. Saving in both makes one of
@@ -472,6 +521,7 @@ export function LevelEditor({ api, levelId, makeWorker }: Props) {
             ["waves", "Waves"],
             ["sets", "Wave sets"],
             ["test", "Test"],
+            ["publish", "Publish"],
           ] as const
         ).map(([id, label]) => (
           <button
@@ -520,16 +570,26 @@ export function LevelEditor({ api, levelId, makeWorker }: Props) {
               onRecord={async (counts) => {
                 const view = await api.recordTestplay(levelId, {
                   draftRevision: loaded.draftRevision,
+                  sourceVersion: liveBase().version,
                   ...counts,
                 });
-                setLoaded({
-                  level: view.draft.level,
-                  draftRevision: view.draft.draftRevision,
-                  ...(view.draft.review === undefined
-                    ? {}
-                    : { review: view.draft.review }),
-                });
+                setLoaded(fromView(view));
               }}
+            />
+          )}
+          {tab === "publish" && loaded !== null && (
+            <PublishTab
+              api={api}
+              levelId={levelId}
+              level={loaded.level}
+              draftRevision={loaded.draftRevision}
+              review={loaded.review}
+              dirty={dirty}
+              blocked={problems.some((p) => p.severity !== "warn")}
+              baseVersion={baseError === null ? baseVersion : null}
+              publish={loaded.publish}
+              versions={loaded.versions}
+              onView={onPublishView}
             />
           )}
         </div>

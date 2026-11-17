@@ -2,7 +2,7 @@ import { LIMITS } from "@scd/shared";
 import { TILE_PX } from "@scd/shared/map";
 import { useState } from "react";
 import type { LevelFile, LevelWaveSet } from "../api";
-import { CURRENT_RULESET, LIVE_PLANET, problemText, type LevelProblem } from "./levelFile";
+import { CURRENT_RULESET, liveBase, problemText, type LevelProblem } from "./levelFile";
 
 // The Wave sets tab (Gate M, LD4; scope-level-designer.md §3.1 step 9). The campaign card (a campaign level) has a
 // fixed shape (50 waves, meteors after 9, 19, 29, 39, 49): only its credits and colony health are yours to set.
@@ -50,7 +50,7 @@ function MiniMap({ level, set }: { level: LevelFile; set: LevelWaveSet }) {
 function ChallengeCard({ id, set, level, problems, onChange, onRemove }: { id: string; set: LevelWaveSet; level: LevelFile; problems: readonly LevelProblem[]; onChange: (set: LevelWaveSet) => void; onRemove: () => void }) {
   const [adding, setAdding] = useState("1");
   const [preset, setPreset] = useState({ padId: "", classId: set.classes[0] ?? "nova", level: 1 });
-  const refs = [...LIVE_PLANET.waves.map((w) => String(w.wave)), ...Object.keys(level.challengeWaves)];
+  const refs = [...liveBase().planet.waves.map((w) => String(w.wave)), ...Object.keys(level.challengeWaves)];
   const openPads = level.map.pads.filter((p) => p.opensAfterWave < set.padsOpenAsForWave && !set.presetPlacements.some((x) => x.padId === p.id));
   const move = (i: number, by: number) => {
     const waves = [...set.waves];

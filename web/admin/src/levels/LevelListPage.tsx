@@ -4,10 +4,11 @@ import { ConfirmDialog, useFocusReturn } from "../ConfirmDialog";
 import { clearFlash, peekFlash, setFlash } from "../flash";
 import { hrefOf } from "../routes";
 import { LEVEL_ID, NAME_MAX, newLevel, readLevelFile, TEMPLATES } from "./levelFile";
+import { loadLiveBase } from "./liveBase";
 
 // Admin → Levels (Gate M, LD3; scope-level-designer.md §3.1 steps 1-2): the level drafts, New level from a template,
-// Upload level file (a file downloaded from the editor, or kept in the repo), and Delete. Every level is a draft until
-// the publisher exists (LD6).
+// Upload level file (a file downloaded from the editor, or kept in the repo), and Delete. A level that was ever published
+// cannot be deleted (saved games may be on its versions): its wave sets are retired in Versions instead (LD7).
 
 type Props = { readonly api: AdminApi; readonly navigate?: (hash: string) => void };
 
@@ -49,6 +50,11 @@ export function LevelListPage({ api, navigate = (hash) => window.location.assign
     );
   };
   useEffect(load, [api]);
+  // "Copy Moonbeam map and campaign" copies the live campaign: load the live version (LD7). On failure the template
+  // uses this build's copy; the editor says so and keeps publishing off.
+  useEffect(() => {
+    loadLiveBase(api).catch(() => undefined);
+  }, [api]);
 
   const id = idTouched ? levelId : slugOf(name);
   const idOk = LEVEL_ID.test(id);
@@ -94,6 +100,9 @@ export function LevelListPage({ api, navigate = (hash) => window.location.assign
   return (
     <section className="levels">
       <h2>Levels</h2>
+      <p>
+        <a href={hrefOf({ page: "versions" })}>Versions</a>: what is live, rollback, retire, testers.
+      </p>
       <div role="status">
         {flash !== null && <p className="flash">{flash}</p>}
         {message !== null && <p className="error">{message}</p>}
@@ -182,18 +191,20 @@ export function LevelListPage({ api, navigate = (hash) => window.location.assign
                   <a href={hrefOf({ page: "level", id: item.levelId })}>{item.name}</a>
                 </td>
                 <td>{item.levelId}</td>
-                <td>{item.status === "DRAFT" ? "Draft" : item.status}</td>
+                <td>{item.status === "DRAFT" ? "Draft" : "Published"}</td>
                 <td>{item.updatedAt.slice(0, 16).replace("T", " ")}</td>
                 <td>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      deleteTrigger.current = e.currentTarget;
-                      setDeleting(item.levelId);
-                    }}
-                  >
-                    Delete
-                  </button>
+                  {item.status === "DRAFT" && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        deleteTrigger.current = e.currentTarget;
+                        setDeleting(item.levelId);
+                      }}
+                    >
+                      Delete
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

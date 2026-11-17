@@ -40,12 +40,49 @@ export const CURRENT_RULESET: Ruleset = parseRuleset(
   Object.entries(RULESETS).find(([path]) => path.endsWith(`/${currentJson.rulesetVersion}.json`))?.[1].default,
 );
 
-// The planet the level is merged into: the one new games use (current.json), as the repo has it.
+/**
+ * The planet document a level is merged into and checked against: the live one (current.json). From LD7 the editor
+ * loads it from admin-api (R46, `loadLiveBase`), because a publish in the portal moves the live version without a
+ * release. Until then (and in tests) it is the repository's current.json version, which this build was made with.
+ * `version` is what a test play records and a publish names as its source (STALE_SOURCE when live has moved on).
+ */
+export interface LiveBase {
+  readonly version: string;
+  readonly raw: unknown;
+  readonly planet: PlanetDocument;
+}
+
 const CAMPAIGNS = import.meta.glob<{ default: unknown }>("../../../../game-data/campaign/*.json", { eager: true });
-/** The live planet document as JSON (what a level is merged into). */
-export const LIVE_PLANET_RAW: unknown = Object.entries(CAMPAIGNS).find(([path]) => path.endsWith(`/${currentJson.campaignVersion}.json`))?.[1].default ?? moonbeam;
-/** The live planet document, parsed. */
-export const LIVE_PLANET: PlanetDocument = parsePlanet(LIVE_PLANET_RAW, CURRENT_RULESET);
+const REPO_RAW: unknown = Object.entries(CAMPAIGNS).find(([path]) => path.endsWith(`/${currentJson.campaignVersion}.json`))?.[1].default ?? moonbeam;
+/** The repository's live planet (current.json as this build has it). */
+export const REPO_BASE: LiveBase = { version: currentJson.campaignVersion, raw: REPO_RAW, planet: parsePlanet(REPO_RAW, CURRENT_RULESET) };
+
+let base: LiveBase = REPO_BASE;
+/** Whether `base` came from admin-api (the true live version) rather than this build's copy. */
+let fromServer = false;
+
+/** The planet levels are merged into now. */
+export function liveBase(): LiveBase {
+  return base;
+}
+
+/** Whether the live base was loaded from admin-api in this page (the Test and Publish tabs need it). */
+export function liveBaseLoaded(): boolean {
+  return fromServer;
+}
+
+/** Use `raw` (the document R46 sent, parsed with this build's ruleset) as the live planet. Throws when it does not parse. */
+export function setLiveBase(version: string, raw: unknown): LiveBase {
+  base = { version, raw, planet: parsePlanet(raw, CURRENT_RULESET) };
+  fromServer = true;
+  return base;
+}
+
+/** Back to the repository's copy (tests). */
+export function resetLiveBase(): void {
+  base = REPO_BASE;
+  fromServer = false;
+}
 
 /** "<levelId>-p01": pad IDs are unique across the planet because they carry the level's ID. */
 export function padId(levelId: string, n: number): string {
@@ -126,8 +163,9 @@ export function newLevel(levelId: string, name: string, templateId: string): Lev
   map.pads = (t?.pads ?? []).map((cell, i) => ({ id: padId(levelId, i + 1), x: cell[0], y: cell[1], opensAfterWave: cell[2] ?? 0 }));
   const level: LevelFile = { kind: "level", schema: 1, levelId, name, map, challengeWaves: {}, waveSets: {} };
   if (t?.campaign === true) {
-    const campaign = LIVE_PLANET.waveSets["campaign"] as unknown as LevelWaveSet;
-    level.waves = structuredClone(LIVE_PLANET.waves as unknown as LevelWave[]);
+    const live = liveBase().planet;
+    const campaign = live.waveSets["campaign"] as unknown as LevelWaveSet;
+    level.waves = structuredClone(live.waves as unknown as LevelWave[]);
     level.waveSets = { campaign: { ...structuredClone(campaign), mapId: levelId, presetPlacements: [] } };
   }
   return numberPadsInRouteOrder(level);
@@ -176,9 +214,10 @@ export function problemText(p: LevelProblem): string {
 /** Waves a campaign level changes that other things read (scope §5): live challenges, and endless (41-49, bosses). */
 function impactProblems(level: LevelFile): LevelProblem[] {
   if (level.waves === undefined || level.waves.length === 0) return [];
-  const live = new Map(LIVE_PLANET.waves.map((w) => [w.wave, JSON.stringify(w)]));
+  const planet = liveBase().planet;
+  const live = new Map(planet.waves.map((w) => [w.wave, JSON.stringify(w)]));
   const users = new Map<number, string[]>();
-  for (const [id, ws] of Object.entries(LIVE_PLANET.waveSets)) {
+  for (const [id, ws] of Object.entries(planet.waveSets)) {
     if (ws.mode !== "CHALLENGE") continue;
     for (const ref of ws.waves) if (typeof ref === "number") users.set(ref, [...(users.get(ref) ?? []), id]);
   }
@@ -201,9 +240,9 @@ function parseProblem(error: unknown): LevelProblem {
   return { field: cut === -1 ? "planet" : text.slice(0, cut), rule: "parse", severity: "hard", message: cut === -1 ? text : text.slice(cut + 2) };
 }
 
-/** The level merged into the live planet document and parsed (throws when it does not parse). */
-export function mergedLevel(level: LevelFile): PlanetDocument {
-  return parsePlanet(mergeLevel(LIVE_PLANET_RAW, level, "draft"), CURRENT_RULESET);
+/** The level merged into a planet document (the live one unless given) and parsed (throws when it does not parse). */
+export function mergedLevel(level: LevelFile, raw: unknown = liveBase().raw): PlanetDocument {
+  return parsePlanet(mergeLevel(raw, level, "draft"), CURRENT_RULESET);
 }
 
 /**
@@ -211,13 +250,13 @@ export function mergedLevel(level: LevelFile): PlanetDocument {
  * the level merged into the live planet document, parsed, and its own waves and wave sets checked by the same rules.
  * Pads must be in route order on a new map.
  */
-export function levelProblems(level: LevelFile): LevelProblem[] {
+export function levelProblems(level: LevelFile, raw: unknown = liveBase().raw): LevelProblem[] {
   const map: LevelProblem[] = planetProblems(levelAsPlanet(level), CURRENT_RULESET, { strictPadOrder: true });
   if (hardMapProblems(level.map).length > 0) return map;
   if (Object.keys(level.waveSets).length === 0 && Object.keys(level.challengeWaves).length === 0) return map;
   let merged: PlanetDocument;
   try {
-    merged = parsePlanet(mergeLevel(LIVE_PLANET_RAW, level, "draft"), CURRENT_RULESET);
+    merged = mergedLevel(level, raw);
   } catch (error) {
     return [...map, parseProblem(error)];
   }
