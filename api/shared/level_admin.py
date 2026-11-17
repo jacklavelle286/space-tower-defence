@@ -30,6 +30,7 @@ from shared.data import DynamoTable
 from shared.errors import ApiError, json_response
 from shared.gamedata_admin import level_publishing
 from shared.levels import DRAFT_SK, LEVEL_ID, LEVEL_PK, level_pk, level_problems, level_summary, new_level_items
+from shared.pictures import PICCAP_PK, cap_keys, level_cap_key
 from shared.router import Request
 from shared.rules.contracts import LIMITS
 
@@ -89,9 +90,15 @@ def make_level_handlers(
         }
 
     def list_levels(request: Request) -> dict[str, Any]:
-        return json_response(
-            200, page([level_summary(h) for h in table().query_prefix(LEVEL_PK, "")], "levelId", request)
-        )
+        """Summaries, each with this London month's drawing places used for the level (LD7; R38 with levelId)."""
+        content = table()
+        summaries = [level_summary(h) for h in content.query_prefix(LEVEL_PK, "")]
+        _, month = cap_keys(now())
+        keys = [(PICCAP_PK, level_cap_key(month, str(s["levelId"]))) for s in summaries]
+        counts = content.batch_get(keys) if keys else {}
+        for summary, key in zip(summaries, keys, strict=True):
+            summary["drawingsThisMonth"] = int(counts.get(key, {}).get("n", 0))
+        return json_response(200, page(summaries, "levelId", request))
 
     def create_level(request: Request) -> dict[str, Any]:
         body = json_object(request.event, max_bytes=LEVEL_MAX_BYTES)

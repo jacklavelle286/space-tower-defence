@@ -179,6 +179,7 @@ export function LevelListPage({ api, navigate = (hash) => window.location.assign
               <th scope="col">ID</th>
               <th scope="col">Status</th>
               <th scope="col">Updated</th>
+              <th scope="col">Drawings this month</th>
               <th scope="col">
                 <span className="visually-hidden">Actions</span>
               </th>
@@ -193,6 +194,7 @@ export function LevelListPage({ api, navigate = (hash) => window.location.assign
                 <td>{item.levelId}</td>
                 <td>{item.status === "DRAFT" ? "Draft" : "Published"}</td>
                 <td>{item.updatedAt.slice(0, 16).replace("T", " ")}</td>
+                <td>{item.drawingsThisMonth ?? 0}</td>
                 <td>
                   {item.status === "DRAFT" && (
                     <button

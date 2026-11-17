@@ -1297,3 +1297,26 @@ def test_a_background_that_could_not_start_gets_all_three_places_back(api: Pictu
     assert api.counters() == (1, 1)
     job = api.table.get_item("PICJOB", job_id(2))
     assert job is not None and (job["state"], job["error"], job["capWeight"]) == ("FAILED", "could_not_start", 3)
+
+
+# --- Drawing spend per level (Gate M, LD7) ----------------------------------------------------------------------------
+
+
+def test_a_drawing_for_a_level_counts_its_places_for_that_level_this_month(api: Pictures) -> None:
+    assert start(api, 1, levelId="zigzag")[0] == 202
+    assert start(api, 2, kind="background", levelId="zigzag")[0] == 202
+    assert start(api, 3)[0] == 202  # for no level
+    counter = api.table.get_item("PICCAP", "L#2026-11#zigzag")
+    assert counter is not None and counter["n"] == 4  # a background takes three places
+    job = api.table.get_item("PICJOB", job_id(1))
+    assert job is not None and (job["levelId"], job["capLevel"]) == ("zigzag", "L#2026-11#zigzag")
+    status, body = start(api, 4, levelId="Zig Zag")
+    assert status == 400 and {"field": "levelId", "rule": "pattern"} in body["error"]["details"]
+
+
+def test_a_drawing_that_could_not_start_gives_its_level_places_back(api: Pictures) -> None:
+    assert start(api, 1, levelId="zigzag")[0] == 202
+    api.sqs_client = BrokenSqs()
+    assert start(api, 2, kind="background", levelId="zigzag")[0] == 503
+    counter = api.table.get_item("PICCAP", "L#2026-11#zigzag")
+    assert counter is not None and counter["n"] == 1

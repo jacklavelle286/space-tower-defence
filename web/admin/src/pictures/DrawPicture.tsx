@@ -38,6 +38,8 @@ type Spec = {
   readonly kind: PictureKindId;
   readonly previousJobId?: string;
   readonly change?: string;
+  /** The level the drawing is for (Gate M, LD7): its places show as that level's spend on the Levels page. */
+  readonly levelId?: string;
   readonly start: boolean;
   /** When the job started (ms since the epoch): the card's clock counts from here. */
   readonly startedAt: number;
@@ -76,6 +78,15 @@ export function DrawPicture({ api, usage, openJobs, onUsage, onChanged, tools = 
   });
   const [description, setDescription] = useState("");
   const [kind, setKind] = useState<PictureKindId | "">("");
+  const [forLevel, setForLevel] = useState("");
+  const [levels, setLevels] = useState<{ levelId: string; name: string }[]>([]);
+  useEffect(() => {
+    api.listLevels().then(
+      (page) => setLevels(page.items.map(({ levelId, name }) => ({ levelId, name }))),
+      () => setLevels([]), // drawing still works; the choice is only for the Levels page's counts
+    );
+  }, [api]);
+  const levelKind = kind === "background" || kind === "decoration";
   const descriptionId = useId();
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const headings = useRef(new Map<string, HTMLHeadingElement>());
@@ -98,20 +109,21 @@ export function DrawPicture({ api, usage, openJobs, onUsage, onChanged, tools = 
   const tidy = tidyText(description);
   const good = descriptionOk(tidy, DESCRIPTION_MIN, DESCRIPTION_MAX) && kind !== "";
 
-  const start = (text: string, drawAs: PictureKindId, previous?: { jobId: string; change?: string }): Spec => ({
+  const start = (text: string, drawAs: PictureKindId, previous?: { jobId: string; change?: string }, levelId?: string): Spec => ({
     key: nextKey(),
     jobId: newJobId(),
     description: text,
     kind: drawAs,
     ...(previous !== undefined ? { previousJobId: previous.jobId } : {}),
     ...(previous?.change !== undefined ? { change: previous.change } : {}),
+    ...(levelId !== undefined && levelId !== "" ? { levelId } : {}),
     start: true,
     startedAt: Date.now(),
   });
 
   function draw() {
     if (!good || off || reached !== null || noRoom !== null) return; // good includes a chosen kind
-    setCards((all) => [start(tidy, kind), ...all]);
+    setCards((all) => [start(tidy, kind, undefined, levelKind ? forLevel : undefined), ...all]);
     setDescription("");
   }
 
@@ -144,6 +156,22 @@ export function DrawPicture({ api, usage, openJobs, onUsage, onChanged, tools = 
           {weight > 1 && ` This kind counts as ${weight} drawings in the daily and monthly limits.`}
         </small>
       </p>
+      {levelKind && levels.length > 0 && (
+        <p className="field">
+          <label htmlFor={`${descriptionId}-level`}>For which level? (optional)</label>
+          <select id={`${descriptionId}-level`} value={forLevel} onChange={(e) => setForLevel(e.target.value)} aria-describedby={`${descriptionId}-level-hint`}>
+            <option value="">No level</option>
+            {levels.map((l) => (
+              <option key={l.levelId} value={l.levelId}>
+                {l.name}
+              </option>
+            ))}
+          </select>
+          <small id={`${descriptionId}-level-hint`} className="muted">
+            The Levels page shows how many drawings each level used this month.
+          </small>
+        </p>
+      )}
       <p className="field">
         <label htmlFor={descriptionId}>Describe the picture</label>
         <textarea
@@ -180,7 +208,9 @@ export function DrawPicture({ api, usage, openJobs, onUsage, onChanged, tools = 
               else headings.current.set(spec.key, el);
             }}
             onDiscard={() => discard(spec)}
-            onRetry={(change) => replace(spec, start(spec.description, spec.kind, change === undefined ? undefined : { jobId: spec.jobId, change }))}
+            onRetry={(change) =>
+              replace(spec, start(spec.description, spec.kind, change === undefined ? undefined : { jobId: spec.jobId, change }, spec.levelId))
+            }
           />
         ))}
       </div>
@@ -218,6 +248,7 @@ function jobBody(spec: Spec): NewPictureJob {
     kind: spec.kind,
     ...(spec.previousJobId !== undefined ? { previousJobId: spec.previousJobId } : {}),
     ...(spec.change !== undefined ? { change: spec.change } : {}),
+    ...(spec.levelId !== undefined ? { levelId: spec.levelId } : {}),
   };
 }
 

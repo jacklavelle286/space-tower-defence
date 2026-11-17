@@ -78,6 +78,7 @@ from shared.body import json_object, query_param, raw_body
 from shared.content import audit_item, audit_key, iso_z, problem
 from shared.data import DynamoTable
 from shared.errors import ApiError, json_response
+from shared.levels import LEVEL_ID
 from shared.pictures import (
     CHANGE_MAX,
     DEFAULT_KIND,
@@ -104,6 +105,7 @@ from shared.pictures import (
     job_key,
     kind_of,
     kind_spec,
+    level_cap_key,
     new_picture_header,
     picture_users,
     picture_view,
@@ -597,7 +599,9 @@ def make_picture_handlers(
     def start_job(request: Request) -> dict[str, Any]:
         body = json_object(request.event)
         _only_fields(
-            body, {"jobId", "description", "kind", "previousJobId", "change"}, {"jobId", "description", "kind"}
+            body,
+            {"jobId", "description", "kind", "previousJobId", "change", "levelId"},
+            {"jobId", "description", "kind"},
         )
         problems = []
         job_id = body["jobId"]
@@ -619,6 +623,9 @@ def make_picture_handlers(
             problems.append(problem("change", "length"))
         if change is not None and previous is None:
             problems.append(problem("change", "needs_previous_job"))
+        level_id = body.get("levelId")  # Gate M, LD7: the level this drawing is for, so its spend shows per level
+        if level_id is not None and not (isinstance(level_id, str) and LEVEL_ID.fullmatch(level_id)):
+            problems.append(problem("levelId", "pattern"))
         if problems:
             raise invalid(problems)
         request.log["jobId"] = job_id
@@ -678,6 +685,9 @@ def make_picture_handlers(
             job["change"] = change
         if weight != 1:
             job["capWeight"] = weight  # what a refund gives back; left out at 1, so other jobs are stored as before
+        if level_id is not None:
+            job["levelId"] = level_id
+            job["capLevel"] = level_cap_key(month, level_id)
         audit_pk, audit_sk = audit_key(moment, f"{job_id}#job-start")
         actions = [
             _cap_action(content, day, config.daily_cap, weight),
@@ -689,6 +699,17 @@ def make_picture_handlers(
                 names={"#pk": "pk"},
             ),
         ]
+        if level_id is not None:  # a count, not a cap: last, so the cancellation reasons above keep their places
+            actions.append(
+                content.update_action(
+                    PICCAP_PK,
+                    job["capLevel"],
+                    update="ADD #n :weight",
+                    names={"#n": "n"},
+                    values={":weight": weight},
+                    condition=None,  # a count with no cap: ADD creates it or adds to it
+                )
+            )
         failed = transact(content, actions)
         if failed is not None:
             if failed[2] == "ConditionalCheckFailed":  # the same jobId started a moment ago: a retry
@@ -779,7 +800,8 @@ def make_picture_handlers(
                     values={":minus": -weight, ":weight": weight},
                     condition="#n >= :weight",
                 )
-                for counter in ("capDay", "capMonth")
+                for counter in ("capDay", "capMonth", "capLevel")
+                if job.get(counter) is not None
             ),
         ]
         transact(content, actions)

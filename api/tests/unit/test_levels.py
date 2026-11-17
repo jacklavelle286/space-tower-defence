@@ -169,3 +169,14 @@ def test_a_test_play_is_recorded_on_its_revision_only(api: Admin) -> None:
         "POST /api/admin/levels/{id}/testplay", {**played, "draftRevision": 1, "sourceVersion": "Luna"}, id="zigzag"
     )
     assert status == 400 and body["error"]["details"] == [{"field": "sourceVersion", "rule": "pattern"}]
+
+
+def test_the_level_list_shows_this_months_drawings_for_each_level(api: Admin) -> None:
+    api.call("POST /api/admin/levels", {"level": level()})
+    api.call("POST /api/admin/levels", {"level": level("other")})
+    counter = api.table.update_action(
+        "PICCAP", "L#2026-11#zigzag", update="ADD #n :w", names={"#n": "n"}, values={":w": 4}, condition=None
+    )
+    api.table.transact_write([counter])
+    _, listed = api.call("GET /api/admin/levels")
+    assert {i["levelId"]: i["drawingsThisMonth"] for i in listed["items"]} == {"other": 0, "zigzag": 4}

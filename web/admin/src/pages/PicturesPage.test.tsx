@@ -205,6 +205,20 @@ describe("Draw", () => {
     ]);
   });
 
+  it("a background or decoration can be drawn for a level, which the job carries (Gate M, LD7)", async () => {
+    const { newLevel } = await import("../levels/levelFile");
+    await fake.api.createLevel(newLevel("zigzag", "Zigzag", "zigzag"));
+    await openPage("draw");
+    expect(screen.queryByLabelText("For which level? (optional)")).toBeNull(); // not for an activity picture
+    fireEvent.change(screen.getByLabelText("What kind of picture?"), { target: { value: "background" } });
+    fireEvent.change(await screen.findByLabelText("For which level? (optional)"), { target: { value: "zigzag" } });
+    describeDrawing("a quiet crater field", "background");
+    await screen.findByRole("article", { name: "Drawing: a quiet crater field" });
+    expect(fake.callsNamed("startPictureJob").map((c) => c.args[0])).toEqual([
+      { jobId: jobId(1), description: "a quiet crater field", kind: "background", levelId: "zigzag" },
+    ]);
+  });
+
   it("Try again with a change starts a new job from this drawing; Discard closes the card", async () => {
     fake.nextJobScripts.push([{ state: "READY", svg: SVG }], [{ state: "READY", svg: SVG }]);
     await openPage("draw");

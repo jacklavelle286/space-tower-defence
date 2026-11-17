@@ -443,7 +443,8 @@ export type PictureDeletion = { pictureId: string; deleted: true; invalidated?: 
 /** R38's body. `jobId` is a UUIDv4 made here: the idempotency key, so a resend never counts twice. `kind` is required
  * (400 `required` or `unknown_kind` before any cap is counted); a redraw must keep the earlier job's kind
  * (`kind_mismatch`). */
-export type NewPictureJob = { jobId: string; description: string; kind: PictureKindId; previousJobId?: string; change?: string };
+/** R38's body. `levelId` (Gate M, LD7): the level the drawing is for, counted on the Levels page. */
+export type NewPictureJob = { jobId: string; description: string; kind: PictureKindId; previousJobId?: string; change?: string; levelId?: string };
 /** R38's 202 answer. */
 export type PictureJobStarted = { jobId: string; state?: string; kind?: PictureKindId } & PictureUsage;
 
@@ -693,7 +694,14 @@ export type LevelWaveSet = {
   presetPlacements: { padId: string; classId: string; level: number; targeting: "FRONT" | "FAST" | "CROWD" | "STRONG" }[];
 };
 
-export type LevelSummary = { levelId: string; name: string; status: "DRAFT" | "PUBLISHED"; updatedAt: string };
+export type LevelSummary = {
+  levelId: string;
+  name: string;
+  status: "DRAFT" | "PUBLISHED";
+  updatedAt: string;
+  /** Drawing places used for this level this London month (R38 with levelId; a background takes 3). */
+  drawingsThisMonth?: number;
+};
 
 /** The last balance check run on the draft (R45, LD5): publish (R49, LD7) wants one on the revision it publishes,
  * against the live version it publishes onto. */

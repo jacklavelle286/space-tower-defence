@@ -255,6 +255,12 @@ def cap_keys(moment: datetime) -> tuple[str, str]:
     return f"D#{local:%Y-%m-%d}", f"M#{local:%Y-%m}"
 
 
+def level_cap_key(month_key: str, level_id: str) -> str:
+    """The per-level drawing count for a month (Gate M, LD7): "L#<yyyy-mm>#<levelId>" beside the month counter
+    "M#<yyyy-mm>". A count of places used, shown on the Levels page; never a cap."""
+    return f"L#{month_key.removeprefix('M#')}#{level_id}"
+
+
 def resets_at(moment: datetime, period: str) -> datetime:
     """The UTC moment the day or month counter for `moment` stops applying: the next London midnight, or the first
     London midnight of the next month."""
