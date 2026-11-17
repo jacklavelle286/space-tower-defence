@@ -190,3 +190,15 @@ def test_the_current_pairs_fixture_parses() -> None:
     path = REPO / "contracts" / "fixtures" / "bounds" / f"{ruleset}__{campaign}.json"
     bounds = parse_bounds(json.loads(path.read_text()), ruleset, campaign)
     assert set(bounds["waveSets"]) >= {"first-contact"}
+
+
+def test_a_wave_sets_own_pads_are_accepted_and_checked() -> None:
+    """Gate M LD2: a schema 2 planet's bounds file names each wave set's map's pads; they must be pads of the file."""
+    data = json.loads(FIXTURE.read_text())
+    assert "pads" not in _set(data)  # schema 1 files keep their published bytes
+    _set(data)["pads"] = ["p01", "p02"]
+    assert parse_bounds(copy.deepcopy(data), RULESET, CAMPAIGN)["waveSets"]["first-contact"]["pads"] == ["p01", "p02"]
+    for bad in ([], ["p99"], "p01", [1]):
+        _set(data)["pads"] = bad
+        with pytest.raises(BoundsUnavailable, match="pads must name pads"):
+            parse_bounds(copy.deepcopy(data), RULESET, CAMPAIGN)

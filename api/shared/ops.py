@@ -236,17 +236,19 @@ def run_state(
 
 
 def pinned_value_problems(op: Mapping[str, Any], bounds: Mapping[str, Any], wave_set_id: str) -> list[dict[str, str]]:
-    """Placement values the schema cannot know: the pad is on this planet, the class is in this wave set, the level
-    exists for the class, the targeting mode is one the class has (G §5.2 common field rules). Uniqueness, unlock
-    waves, caps and credit values are plausibility bounds (step (h), Phase 30)."""
+    """Placement values the schema cannot know: the pad is on this wave set's map, the class is in this wave set, the
+    level exists for the class, the targeting mode is one the class has (G §5.2 common field rules). Uniqueness,
+    unlock waves, caps and credit values are plausibility bounds (step (h), Phase 30)."""
     placements = op["payload"].get("placements") if op["type"] in ("SAVE_PREP", "START_WAVE", "COMPLETE_WAVE") else None
     if not isinstance(placements, list):
         return []
     wave_set = bounds["waveSets"][wave_set_id]
+    # A schema 2 planet has several maps: a placement must be on a pad of this wave set's map (Gate M, LD2).
+    pads = wave_set.get("pads", bounds["pads"])
     problems: list[dict[str, str]] = []
     for index, placement in enumerate(placements):
         where = f"op.payload.placements[{index}]"
-        if placement["padId"] not in bounds["pads"]:
+        if placement["padId"] not in pads:
             problems.append({"field": f"{where}.padId", "rule": "enum"})
         class_id = placement["classId"]
         cls = bounds["classes"].get(class_id) if class_id in wave_set["classes"] else None

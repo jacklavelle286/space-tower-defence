@@ -660,3 +660,23 @@ def test_the_ops_path_uses_only_get_item_and_transactions(api: RunsApi, player_e
     and the transaction's actions on `game`, not BatchGetItem (E.6.4)."""
     send(api, player_event, [*TO_ACTIVITY, attempt(4, 3, "b")])
     assert set(api.ddb.names()) == {"get_item", "transact_write_items"}
+
+
+def test_a_placement_must_be_on_a_pad_of_the_wave_sets_map() -> None:
+    """Gate M LD2: with per-set pads (schema 2), a pad of another map is refused at step (g), like an unknown pad."""
+    from shared.ops import pinned_value_problems
+
+    bounds = {
+        "pads": {"p01": {"opensAfterWave": 0}, "z01": {"opensAfterWave": 0}},
+        "classes": {"nova": {"levelCosts": [50, 60, 150], "targeting": ["FRONT", "FAST"]}},
+        "waveSets": {"zig": {"classes": ["nova"], "pads": ["z01"]}, "old": {"classes": ["nova"]}},
+    }
+
+    def op(pad: str) -> dict:
+        placement = {"padId": pad, "classId": "nova", "level": 1, "targeting": "FRONT"}
+        return {"type": "SAVE_PREP", "payload": {"placements": [placement]}}
+
+    assert pinned_value_problems(op("z01"), bounds, "zig") == []
+    refused = [{"field": "op.payload.placements[0].padId", "rule": "enum"}]
+    assert pinned_value_problems(op("p01"), bounds, "zig") == refused
+    assert pinned_value_problems(op("p01"), bounds, "old") == []  # no per-set pads: any pad of the planet

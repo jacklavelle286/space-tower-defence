@@ -158,8 +158,13 @@ def parse_bounds(data: Any, ruleset_version: str, campaign_version: str) -> dict
         if not KEY_ID.match(set_id):
             raise BoundsUnavailable(f"{where}: not a key ID")
         ws = _obj(entry, where)
-        if not _WAVE_SET_KEYS <= set(ws) <= {*_WAVE_SET_KEYS, "endless"}:
-            raise BoundsUnavailable(f"{where} keys {sorted(ws)} are not {sorted(_WAVE_SET_KEYS)} (+ endless)")
+        if not _WAVE_SET_KEYS <= set(ws) <= {*_WAVE_SET_KEYS, "endless", "pads"}:
+            raise BoundsUnavailable(f"{where} keys {sorted(ws)} are not {sorted(_WAVE_SET_KEYS)} (+ endless, pads)")
+        if "pads" in ws:  # Gate M LD2, schema 2 planets: the set's own map's pads, each a pad of this file
+            set_pads = ws["pads"]
+            known = isinstance(set_pads, list) and all(isinstance(p, str) and p in pads for p in set_pads)
+            if not known or not set_pads:
+                raise BoundsUnavailable(f"{where}.pads must name pads in this file")
         if "endless" in ws:  # Phase 54: endless maxBounty from wave finalWave + 1, and the endless learning reward
             endless = _obj(ws["endless"], f"{where}.endless", frozenset({"maxBounty", "learningReward"}))
             _ints(endless["maxBounty"], f"{where}.endless.maxBounty")
