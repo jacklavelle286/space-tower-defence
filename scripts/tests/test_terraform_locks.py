@@ -1,8 +1,8 @@
 """The modules that run `terraform test` carry a committed lock that pins the root's hashicorp/aws build.
 
-CI and the release checks job init infrastructure/modules/{backup,monitoring,static_site} with `-lockfile=readonly`, so the
-provider those mock-provider tests run against is the same build, with the same hashes, as the root plans with. If the
-root's provider is upgraded, copy its aws block into each module lock (this test names the files that differ).
+CI and the release checks job init infrastructure/modules/{backup,monitoring,static_site} with `-lockfile=readonly`, so
+the provider those mock-provider tests run against is the same build, with the same hashes, as the root plans with. If
+the root's provider is upgraded, copy its aws block into each module lock (this test names the files that differ).
 """
 
 from __future__ import annotations
