@@ -99,9 +99,12 @@ class Admin:
         )
 
     def release_game_data(self) -> None:
-        """The repository's released game data (game-data/current.json: luna-1-c1, wave set first-contact)."""
-        for path in ("current.json", "campaign/luna-1-c1.json"):
-            self.s3.put_object(Bucket=BUCKET, Key=f"game-data/{path}", Body=(REPO / "game-data" / path).read_bytes())
+        """The Milestone 1 released game data (r1 + luna-1-c1, wave set first-contact): a fixed pointer, not the
+        repository's current.json, which follows the live game."""
+        current = json.dumps({"rulesetVersion": "r1", "campaignVersion": "luna-1-c1"}).encode()
+        self.s3.put_object(Bucket=BUCKET, Key="game-data/current.json", Body=current)
+        planet = (REPO / "game-data" / "campaign" / "luna-1-c1.json").read_bytes()
+        self.s3.put_object(Bucket=BUCKET, Key="game-data/campaign/luna-1-c1.json", Body=planet)
         self.reader = GameDataReader(bucket=BUCKET, s3=self.s3)
 
     def call(self, route: str, body: Any = None, *, id: str | None = None, query: dict | None = None) -> tuple:

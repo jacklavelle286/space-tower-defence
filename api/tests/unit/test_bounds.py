@@ -33,7 +33,9 @@ from shared.rules import LIMITS
 
 BUCKET = "test-player-site"
 CURRENT = json.loads((REPO / "game-data" / "current.json").read_text())
-RULESET, CAMPAIGN = CURRENT["rulesetVersion"], CURRENT["campaignVersion"]
+# The parser's cases are written against the Milestone 1 pair's fixture (Nova only, first-contact); the live pair's
+# fixture is checked separately (test_the_current_pairs_fixture_parses).
+RULESET, CAMPAIGN = "r1", "luna-1-c1"
 FIXTURE: Path = REPO / "contracts" / "fixtures" / "bounds" / f"{RULESET}__{CAMPAIGN}.json"
 
 
@@ -180,3 +182,11 @@ def test_a_power_award_rotation_is_accepted_and_checked() -> None:
     for bad in (["Frost Pulse"], "frost-pulse", [1]):
         with pytest.raises(BoundsUnavailable, match="powerAwardRotation"):
             parse_bounds({**data, "powerAwardRotation": bad}, RULESET, CAMPAIGN)
+
+
+def test_the_current_pairs_fixture_parses() -> None:
+    """The bounds fixture of the pair current.json names (since Phase 56: r4 + luna-1-c2, the campaign with endless)."""
+    ruleset, campaign = CURRENT["rulesetVersion"], CURRENT["campaignVersion"]
+    path = REPO / "contracts" / "fixtures" / "bounds" / f"{ruleset}__{campaign}.json"
+    bounds = parse_bounds(json.loads(path.read_text()), ruleset, campaign)
+    assert set(bounds["waveSets"]) >= {"first-contact"}

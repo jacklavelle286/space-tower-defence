@@ -17,7 +17,9 @@ Rules:
 - Versions match `^[a-z0-9.-]{1,40}$`, and each file's `version` field equals its file name.
 - A change to a *rule* (not a number) needs a new `mechanics` number, and `game-core` must support it first
   (`SUPPORTED_MECHANICS` in `web/game-core/src/data/game-data.ts`).
-- Rulesets so far: `r1` (mechanics 1, Phase 13: Nova only) is the one `current.json` names; `r2` (mechanics 2, Phase 24:
+- **Since Phase 56 `current.json` names `r4` + `luna-1-c2`**: new games are the 50-wave campaign (with endless after
+  it) or one of the four quick challenges; games already started keep the versions they pinned (r1 + luna-1-c1).
+- Rulesets so far: `r1` (mechanics 1, Phase 13: Nova only) was the first `current.json` named; `r2` (mechanics 2, Phase 24:
   the six-class roster, plus the slow rules Phase 25 added) is not used for new runs until the Phase 25 gate
   ([ADR-0033](../docs/decisions/0033-ruleset-r2-mechanics-2-roster.md)). Try it locally at
   `/play/local?ruleset=r2&roster=all&credits=2000` (`npm run dev -w player`). `r3` (mechanics 3, Phase 26: r2 plus the
@@ -28,10 +30,9 @@ Rules:
   `/play/local?ruleset=r3&roster=all&credits=5000&boss=boss3` (or `boss=all` for one wave per boss). Phase 28 added the
   three meteor powers of C10 to r3 (`powers`, and the use rules in `powerRules`; still mechanics 3, ADR-0034 amended again).
   Try them at `/play/local?ruleset=r3&roster=all&credits=5000&boss=boss1&powers=all`: keys 1, 2 and 3 during a wave.
-- Planet documents so far: `luna-1-c1` (Phase 13: the Moonbeam map and the two-wave `first-contact` CHALLENGE) is the one
-  `current.json` names; `luna-1-c2` (Phase 50) adds the 50-wave `campaign` (CAMPAIGN, meteors after 9/19/29/39/49,
-  bosses on 10/20/30/40/50, pads opening as waves are cleared) and needs r3. Not used for new runs until `current.json`
-  names it (with r3) later in Gate J. Play it at
+- Planet documents so far: `luna-1-c1` (Phase 13: the Moonbeam map and the two-wave `first-contact` CHALLENGE) was the first one
+  `current.json` named; `luna-1-c2` (Phase 50) adds the 50-wave `campaign` (CAMPAIGN, meteors after 9/19/29/39/49,
+  bosses on 10/20/30/40/50, pads opening as waves are cleared) and needs r3. Current since Phase 56, with r4. Play it at
   `/play/local?ruleset=r3&planet=luna-1-c2&set=campaign&credits=1000` (the learning and meteor panels are placeholders
   there).
 - Numbers come from the balance simulator (`tools/sim/game_data.json`). `web/game-core/src/data/sim-agreement.test.ts`

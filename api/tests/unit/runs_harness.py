@@ -130,8 +130,15 @@ class RunsApi:
             ddb.put_item(TableName=CONTENT_TABLE, Item={k: _ddb(v) for k, v in item.items()})
         s3 = boto3.client("s3", region_name="eu-west-2")
         s3.create_bucket(Bucket=BUCKET, CreateBucketConfiguration={"LocationConstraint": "eu-west-2"})
-        for path in ("current.json", "campaign/luna-1-c1.json"):
-            s3.put_object(Bucket=BUCKET, Key=f"game-data/{path}", Body=(REPO / "game-data" / path).read_bytes())
+        # The harness's own pointer, not the repository's current.json: these tests describe the Milestone 1 pair
+        # (r1 + luna-1-c1, its bounds fixture and bank) whatever the live game points at.
+        current = json.dumps({"rulesetVersion": "r1", "campaignVersion": "luna-1-c1"}).encode()
+        s3.put_object(Bucket=BUCKET, Key="game-data/current.json", Body=current)
+        s3.put_object(
+            Bucket=BUCKET,
+            Key="game-data/campaign/luna-1-c1.json",
+            Body=(REPO / "game-data" / "campaign" / "luna-1-c1.json").read_bytes(),
+        )
         self.reader = game_data or GameDataReader(bucket=BUCKET, s3=s3)
         self.clock = clock or Clock("2026-11-20T10:00:00Z")
         self.logger = CapturedLogger()

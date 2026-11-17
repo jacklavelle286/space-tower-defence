@@ -67,8 +67,11 @@ class Api:
     def __init__(self, ddb: Any, clock: Clock, bounds_pairs: set[tuple[str, str]]) -> None:
         s3 = boto3.client("s3", region_name="eu-west-2")
         s3.create_bucket(Bucket=BUCKET, CreateBucketConfiguration={"LocationConstraint": "eu-west-2"})
-        for path in ("current.json", "campaign/luna-1-c1.json"):
-            s3.put_object(Bucket=BUCKET, Key=f"game-data/{path}", Body=(REPO / "game-data" / path).read_bytes())
+        # A fixed pointer (the Milestone 1 pair), not the repository's current.json, which follows the live game.
+        current = json.dumps({"rulesetVersion": "r1", "campaignVersion": "luna-1-c1"}).encode()
+        s3.put_object(Bucket=BUCKET, Key="game-data/current.json", Body=current)
+        planet = (REPO / "game-data" / "campaign" / "luna-1-c1.json").read_bytes()
+        s3.put_object(Bucket=BUCKET, Key="game-data/campaign/luna-1-c1.json", Body=planet)
         self.s3 = s3
         self.ddb = RecordingDdb(ddb)
         self.table = DynamoTable(self.ddb, TABLE)

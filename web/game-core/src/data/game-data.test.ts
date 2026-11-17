@@ -54,13 +54,13 @@ describe("the repository's game-data/", () => {
       "ruleset/r1.json",
       "ruleset/r2.json",
       "ruleset/r3.json",
-      "ruleset/r4.json", // Phase 54: r3 + the endless generator (mechanics 4; not current yet)
+      "ruleset/r4.json", // Phase 54: r3 + the endless generator (mechanics 4); current since Phase 56
       "campaign/luna-1-c1.json",
-      "campaign/luna-1-c2.json", // Phase 50: the 50-wave campaign (needs r3; not current yet)
-      "bounds/r1__luna-1-c1.json",
+      "campaign/luna-1-c2.json", // Phase 50: the 50-wave campaign and the challenges; current since Phase 56
+      "bounds/r4__luna-1-c2.json", // only the current pair gets a bounds file; r1's stays published from earlier releases
       "current.json",
     ]);
-    expect(build.current).toEqual({ rulesetVersion: "r1", campaignVersion: "luna-1-c1" });
+    expect(build.current).toEqual({ rulesetVersion: "r4", campaignVersion: "luna-1-c2" }); // Phase 56: the campaign is live
   });
 
   it("copies ruleset and planet files byte for byte (they are published create-only)", () => {
@@ -272,10 +272,10 @@ describe("ruleset r2 and mechanics 2 (Phase 24, M2-01; ADR-0033)", () => {
   const r2 = parseRuleset(RULESET2_RAW);
   const classOf = (raw: JsonObject, id: string): JsonObject => (raw["classes"] as Record<string, JsonObject>)[id] as JsonObject;
 
-  it("is a new version beside r1 (r1 is published, so it is never edited), and current.json still names r1", () => {
+  it("is a new version beside r1 (r1 is published, so it is never edited); current.json names r4 since Phase 56", () => {
     expect([r2.version, r2.mechanics]).toEqual(["r2", 2]);
     expect(SUPPORTED_MECHANICS).toEqual([1, 2, 3, 4]); // mechanics 4: the endless generator (Phase 54)
-    expect(buildGameData().current.rulesetVersion).toBe("r1");
+    expect(buildGameData().current.rulesetVersion).toBe("r4");
     expect(buildGameData().files.get("ruleset/r2.json")).toBe(readFileSync(join(GAME_DATA_DIR, "ruleset", "r2.json"), "utf8"));
   });
 
@@ -409,9 +409,9 @@ describe("ruleset r3 and mechanics 3 (Phase 26, M2-03; ADR-0034)", () => {
     return doc;
   }
 
-  it("is a new version beside r1 and r2 (both published, never edited), and current.json still names r1", () => {
+  it("is a new version beside r1 and r2 (both published, never edited); current.json names r4 since Phase 56", () => {
     expect([r3.version, r3.mechanics]).toEqual(["r3", 3]);
-    expect(buildGameData().current.rulesetVersion).toBe("r1");
+    expect(buildGameData().current.rulesetVersion).toBe("r4");
     expect(buildGameData().files.get("ruleset/r3.json")).toBe(readFileSync(join(GAME_DATA_DIR, "ruleset", "r3.json"), "utf8"));
   });
 

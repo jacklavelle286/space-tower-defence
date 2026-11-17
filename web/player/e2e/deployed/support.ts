@@ -192,9 +192,15 @@ export function runIdOf(page: Page): string {
   return match[1];
 }
 
-/** Home → New game → the run screen. Answers the takeover question with "Play here" (it can only be this account). */
+/**
+ * Home → New game → the run screen. Answers the takeover question with "Play here" (it can only be this account).
+ * Since Phase 56 Home lists the campaign and the quick challenges (P7): these journeys start First Contact, the
+ * two-wave set they were written for; with a single wave set Home still has its one New game button.
+ */
 export async function newGame(page: Page): Promise<string> {
-  await page.getByRole("button", { name: "New game" }).click();
+  const single = page.getByRole("button", { name: "New game" });
+  if (await single.isVisible().catch(() => false)) await single.click();
+  else await page.locator(".setup-row", { hasText: "First Contact" }).getByRole("button", { name: "Start" }).click();
   const playHere = page.getByRole("button", { name: "Play here" });
   await expect(async () => {
     if (await playHere.isVisible()) await playHere.click();
