@@ -127,6 +127,7 @@ from shared.data import (
 )
 from shared.errors import ApiError, json_response
 from shared.game_data import GameDataReader, GameDataUnavailable, reader_from_env
+from shared.level_admin import make_level_handlers
 from shared.log import ApiLogger
 from shared.picture_admin import PictureServices, make_picture_handlers
 from shared.pictures import PictureConfig
@@ -162,6 +163,11 @@ ROUTES: dict[str, str] = {
     "DELETE /api/admin/pictures/{id}": OPERATOR,
     "POST /api/admin/picture-jobs": OPERATOR,
     "GET /api/admin/picture-jobs/{jobId}": OPERATOR,
+    "GET /api/admin/levels": OPERATOR,
+    "POST /api/admin/levels": OPERATOR,
+    "GET /api/admin/levels/{id}": OPERATOR,
+    "PUT /api/admin/levels/{id}/draft": OPERATOR,
+    "DELETE /api/admin/levels/{id}": OPERATOR,
 }
 
 DRAFT_MAX_BYTES: int = LIMITS["bodyMaxBytes"]["adminActivityDraft"]  # 64 KB for PUT .../draft (G §12)
@@ -1120,6 +1126,7 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
             now=deps.now,
             transact=transact,
         ),
+        **make_level_handlers(table=table, now=deps.now, transact=transact, page=page),
     }
     return Router(routes=ROUTES, handlers=handlers, logger=logger)
 

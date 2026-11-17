@@ -1,5 +1,5 @@
 {
-  "$comment": "Machine-readable copy of the route catalogue in docs/plan/G-api-contracts.md section 2 (R1-R30), plus R31 (DELETE an activity; owner decision 2026-11-16), R32 (DELETE a speech definition; owner ask 2026-11-16), and R33-R39 (library pictures and drawing with Claude; Gate P, Phases 42a and 42b, ADR-0031). Route key = method + ' ' + path; paths keep the /api prefix (ADR-0001). Read by the api unit tests (each function's allow-list must equal its rows), the plan gate G-12 and the release smoke test. scope is the value of the Terraform variable player_route_scope / operator_route_scope.",
+  "$comment": "Machine-readable copy of the route catalogue in docs/plan/G-api-contracts.md section 2 (R1-R30), plus R31 (DELETE an activity; owner decision 2026-11-16), R32 (DELETE a speech definition; owner ask 2026-11-16), and R33-R39 (library pictures and drawing with Claude; Gate P, Phases 42a and 42b, ADR-0031), and R40-R44 (level drafts for the level designer; Gate M, LD3, ADR-0032). Route key = method + ' ' + path; paths keep the /api prefix (ADR-0001). Read by the api unit tests (each function's allow-list must equal its rows), the plan gate G-12 and the release smoke test. scope is the value of the Terraform variable player_route_scope / operator_route_scope.",
   "version": 1,
   "routes": [
     {
@@ -310,6 +310,46 @@
       "id": "R39",
       "method": "GET",
       "path": "/api/admin/picture-jobs/{jobId}",
+      "function": "admin-api",
+      "authoriser": "operator",
+      "scope": "ops/content"
+    },
+    {
+      "id": "R40",
+      "method": "GET",
+      "path": "/api/admin/levels",
+      "function": "admin-api",
+      "authoriser": "operator",
+      "scope": "ops/content"
+    },
+    {
+      "id": "R41",
+      "method": "POST",
+      "path": "/api/admin/levels",
+      "function": "admin-api",
+      "authoriser": "operator",
+      "scope": "ops/content"
+    },
+    {
+      "id": "R42",
+      "method": "GET",
+      "path": "/api/admin/levels/{id}",
+      "function": "admin-api",
+      "authoriser": "operator",
+      "scope": "ops/content"
+    },
+    {
+      "id": "R43",
+      "method": "PUT",
+      "path": "/api/admin/levels/{id}/draft",
+      "function": "admin-api",
+      "authoriser": "operator",
+      "scope": "ops/content"
+    },
+    {
+      "id": "R44",
+      "method": "DELETE",
+      "path": "/api/admin/levels/{id}",
       "function": "admin-api",
       "authoriser": "operator",
       "scope": "ops/content"

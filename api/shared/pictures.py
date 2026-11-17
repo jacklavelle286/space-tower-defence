@@ -364,7 +364,8 @@ def library_asset_ids(value: Any) -> set[str]:
 
 def picture_users(content: DynamoTable, picture_id: str) -> list[str]:
     """The IDs of the activities whose draft or any version (withdrawn and retired ones included) uses `picture_id`
-    (R37), read as `speech_users` reads speech references: the activity header partition (one Query), every draft by
+    (R37), and the level drafts that use it as "level:<levelId>" (Gate M, LD3), read as `speech_users` reads speech
+    references: the activity header partition (one Query), every draft by
     BatchGetItem, and the versions of activities that were ever published. A version passed publish, so every picture
     it uses is in its `visualAssetReferences`; a draft is walked whole (see `library_asset_ids`)."""
     from shared.content import ACT_PK, DRAFT_SK, VERSION_PREFIX, activity_pk  # import here: content imports this
@@ -386,4 +387,19 @@ def picture_users(content: DynamoTable, picture_id: str) -> list[str]:
         )
         if any(picture_id in library_asset_ids(v.get("visualAssetReferences")) for v in versions):
             users.add(activity_id)
+    users.update(f"level:{level_id}" for level_id in level_picture_users(content, picture_id))
     return sorted(users)
+
+
+def level_picture_users(content: DynamoTable, picture_id: str) -> list[str]:
+    """The IDs of the level drafts (Gate M, LD3) whose map uses `picture_id` as its backdrop or a decoration: the level
+    header partition (one Query) and every draft by BatchGetItem. Published level versions join in LD6."""
+    from shared.levels import DRAFT_SK, LEVEL_PK, level_pk  # import here: levels imports content, content this
+
+    ids = sorted(str(h["sk"]) for h in content.query_prefix(LEVEL_PK, "", attributes=("sk",)))
+    drafts = content.batch_get([(level_pk(level_id), DRAFT_SK) for level_id in ids])
+    return [
+        level_id
+        for level_id in ids
+        if picture_id in library_asset_ids((drafts.get((level_pk(level_id), DRAFT_SK)) or {}).get("level"))
+    ]
