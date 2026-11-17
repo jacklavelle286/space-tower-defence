@@ -15,7 +15,7 @@ sys.path.insert(0, str(SCRIPTS))
 
 import lambda_artifacts  # noqa: E402
 
-KEYS = ("player-api", "admin-api", "tts", "cognito-presignup", "picture-gen")
+KEYS = ("player-api", "admin-api", "tts", "cognito-presignup", "picture-gen", "game-data-publish", "game-data-check")
 
 
 def zip_bytes(key: str) -> bytes:
@@ -145,7 +145,7 @@ def test_verify_build_catches_a_manifest_that_differs_from_the_build_step(manife
 
 def test_verify_build_refuses_an_extra_zip(manifest: Path, zips: Path) -> None:
     (zips / "extra.zip").write_bytes(b"x")
-    with pytest.raises(lambda_artifacts.ArtifactError, match="5 zips"):
+    with pytest.raises(lambda_artifacts.ArtifactError, match="7 zips"):
         lambda_artifacts.verify_build(manifest, zips, expected_json())
 
 
@@ -164,7 +164,8 @@ def test_lambda_keys_match_the_build_and_terraform() -> None:
 
     repo = SCRIPTS.parent
     assert sorted(lambda_artifacts.LAMBDA_KEYS) == sorted(KEYS)
-    assert sorted(build_lambdas.lambda_key(f) for f in build_lambdas.FUNCTIONS) == sorted(KEYS)
+    built = [build_lambdas.lambda_key(f) for f in build_lambdas.FUNCTIONS] + [build_lambdas.NODE_FUNCTION]
+    assert sorted(built) == sorted(KEYS)
     variables = (repo / "infrastructure" / "main" / "variables.tf").read_text()
     check = re.search(r"toset\(keys\(var\.lambda_artifacts\)\) == toset\(\[([^\]]*)\]\)", variables)
     assert check, "the lambda_artifacts key validation is missing from variables.tf"

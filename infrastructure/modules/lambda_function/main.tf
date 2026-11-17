@@ -1,5 +1,6 @@
-# One Python Lambda function with its log group and its own role (plan H.4.4, E.6.4). Called five times (picture-gen from
-# Phase 42b, ADR-0031).
+# One Lambda function with its log group and its own role (plan H.4.4, E.6.4). Called seven times (picture-gen from
+# Phase 42b, ADR-0031; game-data-check and game-data-publish from Gate M LD6, ADR-0037). Python 3.14 unless the caller
+# sets runtime and handler (game-data-check: Node 24).
 # The code is a content-addressed zip in the artefacts bucket: the release build uploads lambda/<key>/<sha256>.zip and
 # Terraform points the function at it (H.9.1), so the plan shows exactly which functions get new bytes.
 # Tags come from the provider's default_tags.
@@ -72,9 +73,9 @@ resource "aws_lambda_function" "this" {
   description   = var.description
   role          = aws_iam_role.this.arn
 
-  runtime       = "python3.14"
+  runtime       = var.runtime
   architectures = ["arm64"]
-  handler       = "handler.handler"
+  handler       = var.handler
   memory_size   = var.memory_size
   timeout       = var.timeout
 

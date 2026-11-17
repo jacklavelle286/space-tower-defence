@@ -126,3 +126,25 @@ variable "duration_alarm_ratio" {
     error_message = "duration_alarm_ratio must be between 0 and 1."
   }
 }
+
+variable "runtime" {
+  description = "Lambda runtime. python3.14 for every function but game-data-check (Gate M, LD6), which is nodejs24.x."
+  type        = string
+  default     = "python3.14"
+
+  validation {
+    condition     = contains(["python3.14", "nodejs24.x"], var.runtime)
+    error_message = "runtime must be python3.14 or nodejs24.x."
+  }
+}
+
+variable "handler" {
+  description = "Entry point: handler.handler (Python, handler.py) by default; index.handler for the Node bundle (index.mjs)."
+  type        = string
+  default     = "handler.handler"
+
+  validation {
+    condition     = contains(["handler.handler", "index.handler"], var.handler)
+    error_message = "handler must be handler.handler or index.handler."
+  }
+}

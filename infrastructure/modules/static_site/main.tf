@@ -66,7 +66,7 @@ resource "aws_s3_bucket_versioning" "this" {
 locals {
   bucket_policy = jsonencode({
     Version = "2012-10-17"
-    Statement = [
+    Statement = concat([
       # TLS only, for every principal.
       {
         Sid       = "DenyInsecureTransport"
@@ -97,7 +97,7 @@ locals {
         Resource  = aws_s3_bucket.this.arn
         Condition = { StringEquals = { "AWS:SourceArn" = aws_cloudfront_distribution.this.arn } }
       },
-    ]
+    ], var.extra_policy_statements)
   })
 }
 

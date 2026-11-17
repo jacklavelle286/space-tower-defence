@@ -8,7 +8,8 @@ name: release
 # Up to and including 3 nothing in production changes: the only writes are create-only uploads to the artefacts bucket
 # (static archives, Lambda zips, the build manifest, the saved plan). Production changes only after the approval.
 #
-# Lambda code (Phase 8, H.9.1): the build job makes five reproducible zips (picture-gen from Phase 42b); upload stores each at
+# Lambda code (Phase 8, H.9.1): the build job makes seven reproducible zips (picture-gen from Phase 42b; game-data-publish and
+# the Node game-data-check from Gate M LD6, the Node one after the web build); upload stores each at
 # lambda/<key>/<sha256>.zip; the plan job turns the manifest's Lambda section into release.tfvars.json
 # (lambda_artifacts, scripts/lambda_artifacts.py) and plans with it. The manifest is the only source of those keys, and
 # Terraform is the only thing that points a function at new code.
@@ -27,7 +28,8 @@ name: release
 # manifest from the archived one (same static archives and Lambda zips, each checked by SHA-256 in S3), the plan uses
 # current main Terraform with that release's Lambda keys, and apply.yml then publishes that archived build with a
 # config.json naming this new release. Only releases from Phase 8 on (manifest schemaVersion 2) can be reused, and from
-# Phase 42b on only releases that have all five Lambda zips (current Terraform needs picture-gen's key).
+# Phase 42b on only releases that have all five Lambda zips, and from Gate M LD6 only releases with all seven (current
+# Terraform needs the publisher's two keys).
 #
 # Rules this file keeps (H.7.1): workflow_dispatch only; inputs and other untrusted values reach shell only through
 # env: (W-9); only the jobs that assume the CI role have id-token: write and declare an environment (W-3; the called
@@ -312,7 +314,7 @@ jobs:
       - name: Simulator self-test
         run: python -B tools/sim/selftest.py
 
-  # 2a. build: the five Lambda zips, both apps (environment-free), G-6 scan, static archives and the build manifest.
+  # 2a. build: the seven Lambda zips, both apps (environment-free), G-6 scan, static archives and the build manifest.
   # Deliberately NO id-token and NO environment: npm ci and the build run third-party code, and that code must
   # never be able to request an OIDC token for the CI role. The outputs travel to 2b as a short-lived GitHub
   # artefact (public static content, Lambda zips and a manifest; W-4 bans only the saved plan as a GitHub artefact),
@@ -330,7 +332,7 @@ jobs:
     outputs:
       player_sha256: ${{ steps.archives.outputs.player_sha256 }}
       admin_sha256: ${{ steps.archives.outputs.admin_sha256 }}
-      lambda_sha256: ${{ steps.lambdas.outputs.sha256 }}
+      lambda_sha256: ${{ steps.node_lambda.outputs.sha256 }}
       manifest_sha256: ${{ steps.local_manifest.outputs.sha256 }}
     env:
       SHA: ${{ needs.config.outputs.sha }}
@@ -357,12 +359,12 @@ jobs:
         run: |
           # build_lambdas.py downloads the pinned arm64 cp314 wheels from PyPI (--only-binary: no package code runs at
           # install; picture-gen's from its hash-pinned lock with --require-hashes, backlog B-4) and writes player-api,
-          # admin-api, tts, cognito-presignup and picture-gen .zip, byte-identical for the same commit.
+          # admin-api, tts, cognito-presignup, picture-gen and game-data-publish .zip, byte-identical for the same commit.
           python scripts/build_lambdas.py --out "$OUT/lambda"
           # {"<key>": "<sha256 hex>", ...}, fixed here before Node is installed.
           hashes=$(cd "$OUT/lambda" && sha256sum -- *.zip | jq -cRn '[inputs
             | capture("^(?<h>[0-9a-f]{64})  (?<k>[a-z0-9-]+)[.]zip$") | {key: .k, value: .h}] | from_entries')
-          [[ "$(jq 'length' <<< "$hashes")" == 5 ]] || { echo "::error::expected five Lambda zips, got $hashes"; exit 1; }
+          [[ "$(jq 'length' <<< "$hashes")" == 6 ]] || { echo "::error::expected six Python Lambda zips, got $hashes"; exit 1; }
           echo "sha256=$hashes" >> "$GITHUB_OUTPUT"
           jq -r 'to_entries[] | "\(.key): lambda/\(.key)/\(.value).zip"' <<< "$hashes"
 
@@ -378,6 +380,23 @@ jobs:
         run: |
           npm ci --ignore-scripts
           npm run build
+
+      - name: game-data-check zip (Node 24; the bundle npm run build just wrote)
+        id: node_lambda
+        env:
+          PYTHON_HASHES: ${{ steps.lambdas.outputs.sha256 }}
+        run: |
+          # Gate M, LD6: the publisher's JavaScript half, web/game-data-check/dist/index.mjs (rolldown, game-core inlined,
+          # no packages). Zipped after the web build; the six Python zips were hashed before any npm code ran, and must
+          # still have those hashes.
+          python scripts/build_lambdas.py --node-only --out "$OUT/lambda"
+          hashes=$(cd "$OUT/lambda" && sha256sum -- *.zip | jq -cRn '[inputs
+            | capture("^(?<h>[0-9a-f]{64})  (?<k>[a-z0-9-]+)[.]zip$") | {key: .k, value: .h}] | from_entries')
+          [[ "$(jq 'length' <<< "$hashes")" == 7 ]] || { echo "::error::expected seven Lambda zips, got $hashes"; exit 1; }
+          [[ "$(jq -c 'del(."game-data-check")' <<< "$hashes")" == "$(jq -c '.' <<< "$PYTHON_HASHES")" ]] \
+            || { echo "::error::a Python Lambda zip changed after npm ran"; exit 1; }
+          echo "sha256=$hashes" >> "$GITHUB_OUTPUT"
+          jq -r '"game-data-check: lambda/game-data-check/\(."game-data-check").zip"' <<< "$hashes"
 
       - name: Game data into the player build (checked; bounds generated, never hand-edited)
         working-directory: web
@@ -419,7 +438,9 @@ jobs:
             --lambda admin-api "$OUT/lambda/admin-api.zip" \
             --lambda tts "$OUT/lambda/tts.zip" \
             --lambda cognito-presignup "$OUT/lambda/cognito-presignup.zip" \
-            --lambda picture-gen "$OUT/lambda/picture-gen.zip"
+            --lambda picture-gen "$OUT/lambda/picture-gen.zip" \
+            --lambda game-data-publish "$OUT/lambda/game-data-publish.zip" \
+            --lambda game-data-check "$OUT/lambda/game-data-check.zip"
 
       - name: Manifest hash
         id: local_manifest
@@ -493,7 +514,8 @@ jobs:
           check "$OUT/player.tar.gz" "$PLAYER_SHA256"
           check "$OUT/admin.tar.gz" "$ADMIN_SHA256"
           check "$OUT/manifest.json" "$BUILD_MANIFEST_SHA256"
-          # The five zips: their bytes, the manifest's lambdas section and the hashes fixed before npm ran all agree.
+          # The seven zips: their bytes, the manifest's lambdas section and the build job's hashes all agree (the six
+          # Python ones were fixed before npm ran).
           python scripts/lambda_artifacts.py verify-build --manifest "$OUT/manifest.json" --zips "$OUT/lambda" \
             --expected "$LAMBDA_SHA256"
 
@@ -523,7 +545,7 @@ jobs:
             --release-id "$RELEASE_ID" --git-sha "$SHA" --ref "$INPUT_REF" --run-id "$GITHUB_RUN_ID" \
             --actor "$GITHUB_ACTOR" --started-at "$STARTED_AT" --out "$OUT/manifest.json"
           # Every archive and Lambda zip the release names must still exist, with the bytes it recorded.
-          # (reuse refuses a manifest without the five Lambda zips: releases before Phase 42b cannot be reused.)
+          # (reuse refuses a manifest without the seven Lambda zips: releases before LD6 cannot be reused.)
           { jq -r '.static | to_entries[] | "\(.value.archiveKey) \(.value.sha256)"' "$OUT/manifest.json"
             python scripts/lambda_artifacts.py objects --manifest "$OUT/manifest.json"; } |
             while read -r key hex; do

@@ -52,6 +52,7 @@ The rules are in [J §J.6](../plan/J-execution-backlog.md#j6-decision-log-practi
 | [0034](0034-ruleset-r3-mechanics-3-aliens.md) | Ruleset r3 with mechanics 3 holds the alien catalogue (traits as data), carriers, splitters and caps (amended in Phase 27: and the five bosses; in Phase 28: and the meteor powers); current.json stays on r1 | Accepted |
 | [0035](0035-ac42-performance-target.md) | The AC-42 performance target, from the first measurement (busiest wave at 2x: 1%-low ≥ 55, average ≥ 58; synthetic scene: 1%-low ≥ 45) | Accepted |
 | [0036](0036-ruleset-r4-campaign-live.md) | Ruleset r4 adds the endless generator (mechanics 4); new games play r4 + luna-1-c2; badges are server code | Accepted |
+| [0037](0037-game-data-publisher.md) | The game-data publisher: a Python writer and a Node checker; only it and the release write game-data/; current.json is the publisher's; per wave set states | Proposed |
 
 ## Next in line
 

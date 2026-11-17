@@ -15,7 +15,7 @@ locals {
 
   # Function names are <project>-<env>-<region>-<key> (spine S1.1); keys match var.lambda_artifacts.
   lambda_names = {
-    for key in ["player-api", "admin-api", "tts", "cognito-presignup", "picture-gen"] :
+    for key in ["player-api", "admin-api", "tts", "cognito-presignup", "picture-gen", "game-data-publish", "game-data-check"] :
     key => "${var.project}-${var.environment}-${var.region}-${key}"
   }
 

@@ -50,6 +50,14 @@ jobs:
       - name: Build
         run: npm run build
 
+      # Gate M, LD6: the game-data-check bundle (a Lambda's code) must be byte-identical when rebuilt, and zip.
+      - name: game-data-check bundle twice, same bytes; its Lambda zip
+        run: |
+          sha256sum game-data-check/dist/index.mjs > "$RUNNER_TEMP/gdc-1.sha256"
+          npm run build --workspace @scd/game-data-check
+          sha256sum game-data-check/dist/index.mjs | diff "$RUNNER_TEMP/gdc-1.sha256" -
+          python3 ../scripts/build_lambdas.py --node-only --out "$RUNNER_TEMP/node-zip"
+
       - name: G-15 game data, into the player build as the release does
         run: |
           node game-core/scripts/build-bounds.ts --check

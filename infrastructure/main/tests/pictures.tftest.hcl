@@ -38,6 +38,8 @@ variables {
     "tts"               = { s3_key = "lambda/tts/${join("", [for i in range(64) : "c"])}.zip", sha256_b64 = "zMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMw=" }
     "cognito-presignup" = { s3_key = "lambda/cognito-presignup/${join("", [for i in range(64) : "d"])}.zip", sha256_b64 = "3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d3d0=" }
     "picture-gen"       = { s3_key = "lambda/picture-gen/${join("", [for i in range(64) : "e"])}.zip", sha256_b64 = "7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u7u4=" }
+    "game-data-publish" = { s3_key = "lambda/game-data-publish/${join("", [for i in range(64) : "f"])}.zip", sha256_b64 = "//////////////////////////////////////////8=" }
+    "game-data-check"   = { s3_key = "lambda/game-data-check/${join("", [for i in range(64) : "0"])}.zip", sha256_b64 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=" }
   }
 }
 
@@ -201,8 +203,8 @@ run "function_settings_and_caps" {
   command = plan
 
   assert {
-    condition     = length(output.lambda_function_names) == 5 && contains(keys(output.lambda_function_names), "picture-gen")
-    error_message = "picture-gen is the fifth function (the apply workflow checks each one's code against the manifest)"
+    condition     = length(output.lambda_function_names) == 7 && contains(keys(output.lambda_function_names), "picture-gen")
+    error_message = "picture-gen is one of the seven functions (the apply workflow checks each one's code against the manifest)"
   }
 
   assert {

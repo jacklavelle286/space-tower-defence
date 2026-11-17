@@ -43,14 +43,20 @@ change for it:
     interpreter path;
   - compression is deflate at a fixed level.
 
-Output: build/<lambda key>.zip (player-api, admin-api, tts, cognito-presignup, picture-gen), and one
-"<sha256>  <path>" line each.
+Output: build/<lambda key>.zip (player-api, admin-api, tts, cognito-presignup, picture-gen, game-data-publish), and
+one "<sha256>  <path>" line each.
+
+game-data-check (Gate M, LD6) is the one Node 24 function: `--node-only` zips web/game-data-check/dist/index.mjs (the
+bundle `npm run build` writes; rolldown, game-core inlined, no packages) as index.mjs, with the same fixed timestamps
+and permissions. The release runs it after the web build, so the Python zips above are hashed before any npm code
+runs.
 
 Usage:
   python3 scripts/build_lambdas.py                  # full build (needs PyPI)
   python3 scripts/build_lambdas.py --skip-deps      # code only, for offline checks
   python3 scripts/build_lambdas.py --out other/dir
   python3 scripts/build_lambdas.py --lock picture_gen   # regenerate api/requirements-picture-gen.txt (needs PyPI)
+  python3 scripts/build_lambdas.py --node-only        # game-data-check.zip from web/game-data-check/dist (built)
 
 Standard library only; runs on Python 3.12 and 3.14 (needs pip for the dependency step).
 """
@@ -69,7 +75,9 @@ from collections.abc import Iterable, Mapping
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-FUNCTIONS = ("player_api", "admin_api", "tts", "cognito_presignup", "picture_gen")
+FUNCTIONS = ("player_api", "admin_api", "tts", "cognito_presignup", "picture_gen", "game_data_publish")
+NODE_FUNCTION = "game-data-check"  # Gate M, LD6: the Node 24 half of the publisher
+NODE_BUNDLE = REPO / "web" / "game-data-check" / "dist" / "index.mjs"
 FIXED_TIME = (1980, 1, 1, 0, 0, 0)
 UNIX = 3
 COMPRESS_LEVEL = 9
@@ -310,6 +318,14 @@ def build(
     return hashes
 
 
+def build_node(out: Path, bundle: Path = NODE_BUNDLE) -> dict[str, str]:
+    """game-data-check.zip: the one bundled module as index.mjs (handler `index.handler`)."""
+    if not bundle.is_file():
+        raise BuildError(f"{bundle} is missing: run `npm run build --workspace @scd/game-data-check` in web/ first")
+    destination = out / f"{NODE_FUNCTION}.zip"
+    return {str(destination): write_zip({"index.mjs": bundle}, destination)}
+
+
 def install_all(api: Path, staging: Path) -> dict[str, Path]:
     """Install the shared requirements once and each lock into its own directory; return function -> directory."""
     shared = staging / "deps"
@@ -374,6 +390,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--out", type=Path, default=REPO / "build", help="output directory (default: build/)")
     parser.add_argument("--skip-deps", action="store_true", help="leave out runtime dependencies (offline check)")
     parser.add_argument("--lock", metavar="FUNCTION", help="regenerate FUNCTION's hash-pinned lock, then stop")
+    parser.add_argument("--node-only", action="store_true", help=f"only {NODE_FUNCTION}.zip, from the built bundle")
     args = parser.parse_args(argv)
 
     api = REPO / "api"
@@ -383,8 +400,11 @@ def main(argv: list[str] | None = None) -> int:
                 lock = write_lock(api, args.lock, Path(staging))
                 print(f"wrote {lock.relative_to(REPO)}")
                 return 0
-            deps = None if args.skip_deps else install_all(api, Path(staging))
-            hashes = build(api, args.out, deps)
+            if args.node_only:
+                hashes = build_node(args.out)
+            else:
+                deps = None if args.skip_deps else install_all(api, Path(staging))
+                hashes = build(api, args.out, deps)
     except (BuildError, subprocess.CalledProcessError) as error:
         print(f"build_lambdas: {error}", file=sys.stderr)
         return 1

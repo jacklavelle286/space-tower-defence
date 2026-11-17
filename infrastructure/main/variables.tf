@@ -146,8 +146,8 @@ variable "lambda_artifacts" {
   }))
 
   validation {
-    condition     = toset(keys(var.lambda_artifacts)) == toset(["player-api", "admin-api", "tts", "cognito-presignup", "picture-gen"])
-    error_message = "lambda_artifacts must have exactly the keys player-api, admin-api, tts, cognito-presignup and picture-gen."
+    condition     = toset(keys(var.lambda_artifacts)) == toset(["player-api", "admin-api", "tts", "cognito-presignup", "picture-gen", "game-data-publish", "game-data-check"])
+    error_message = "lambda_artifacts must have exactly the keys player-api, admin-api, tts, cognito-presignup, picture-gen, game-data-publish and game-data-check."
   }
 
   validation {
@@ -317,4 +317,10 @@ variable "terraform_version" {
   description = "Pipeline only: Terraform CLI version installed by the workflows. Unused here."
   type        = string
   default     = null
+}
+
+variable "game_data_publish_frozen" {
+  description = "Gate M, LD6: true stops the game-data publisher's writes (the SSM switch it reads on every action). The freeze release (Phase 74) sets it; G-8 checks it."
+  type        = bool
+  default     = false
 }

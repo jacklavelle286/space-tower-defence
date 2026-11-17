@@ -34,10 +34,18 @@ import sys
 from pathlib import Path
 from typing import Any
 
-# The five functions (plan H.4.4; picture-gen from Phase 42b, ADR-0031); scripts/build_lambdas.py writes
-# build/<key>.zip for each. A release from before Phase 42b has four and cannot be reused (artefacts_from) by current
-# Terraform, which needs all five.
-LAMBDA_KEYS = ("admin-api", "cognito-presignup", "picture-gen", "player-api", "tts")
+# The seven functions (plan H.4.4; picture-gen from Phase 42b, ADR-0031; game-data-check and game-data-publish from
+# Gate M LD6, ADR-0037); scripts/build_lambdas.py writes build/<key>.zip for each. A release from before LD6 has five
+# and cannot be reused (artefacts_from) by current Terraform, which needs all seven.
+LAMBDA_KEYS = (
+    "admin-api",
+    "cognito-presignup",
+    "game-data-check",
+    "game-data-publish",
+    "picture-gen",
+    "player-api",
+    "tts",
+)
 SHA256_HEX = re.compile(r"^[0-9a-f]{64}$")
 
 

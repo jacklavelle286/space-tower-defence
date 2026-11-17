@@ -88,3 +88,9 @@ variable "extra_s3_origin" {
     error_message = "extra_s3_origin needs a regional S3 host name (<bucket>.s3.<region>.amazonaws.com), a /<segment>/* path pattern other than /api/*, and an origin_id other than api."
   }
 }
+
+variable "extra_policy_statements" {
+  description = "More bucket policy statements, appended after the module's own (the player site's game-data Deny, Gate M LD6). Each is an object as jsonencode writes it: Sid, Effect, Principal, Action, Resource, Condition. [] (the default): none, so the policy is unchanged."
+  type        = any
+  default     = []
+}

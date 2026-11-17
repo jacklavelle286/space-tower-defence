@@ -98,6 +98,8 @@ output "lambda_function_names" {
     "tts"               = module.tts.function_name
     "cognito-presignup" = module.cognito_presignup.function_name
     "picture-gen"       = module.picture_gen.function_name
+    "game-data-publish" = module.game_data_publish.function_name
+    "game-data-check"   = module.game_data_check.function_name
   }
 }
 

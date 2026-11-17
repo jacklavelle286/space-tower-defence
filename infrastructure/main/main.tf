@@ -134,6 +134,8 @@ module "player_site" {
   api_origin_request_policy_id = data.aws_cloudfront_origin_request_policy.all_viewer_except_host_header.id
 
   extra_s3_origin = local.pictures_origin # approved pictures at /pictures/* (Phase 42a, pictures.tf)
+
+  extra_policy_statements = local.game_data_bucket_statements # game-data/* writes: publisher and release only (LD6)
 }
 
 module "admin_site" {
@@ -321,6 +323,13 @@ data "aws_iam_policy_document" "admin_api" {
     }
   }
 
+  # Gate M, LD6: the level routes (LD7) hand publishing to game-data-publish, the only writer of game-data/.
+  statement {
+    sid       = "InvokeGameDataPublisher"
+    actions   = ["lambda:InvokeFunction"]
+    resources = ["arn:aws:lambda:${var.region}:${var.aws_account_id}:function:${local.lambda_names["game-data-publish"]}"]
+  }
+
   # Pictures (Phase 42a). The master copy of every picture, draft or approved, under store/ (R34 upload, R35 read,
   # R37 delete). The bucket policy denies these writes to every other principal.
   statement {
@@ -412,6 +421,8 @@ module "admin_api" {
     PICTURE_DAILY_CAP        = tostring(var.picture_daily_cap)
     PICTURE_MONTHLY_CAP      = tostring(var.picture_monthly_cap)
     PICTURE_JOB_PREFIX       = local.picture_job_prefix # the same prefix picture-gen writes under (R39 reads it)
+
+    PUBLISHER_FUNCTION_NAME = local.lambda_names["game-data-publish"] # Gate M, LD6: LD7's routes invoke it
   }
 }
 

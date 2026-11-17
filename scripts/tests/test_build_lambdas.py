@@ -97,7 +97,8 @@ def test_real_functions_build_twice_to_the_same_hashes(tmp_path: Path) -> None:
     second = build_lambdas.build(copy, tmp_path / "out2", deps=None)
 
     assert sorted(Path(p).name for p in first) == [
-        "admin-api.zip", "cognito-presignup.zip", "picture-gen.zip", "player-api.zip", "tts.zip",
+        "admin-api.zip", "cognito-presignup.zip", "game-data-publish.zip", "picture-gen.zip", "player-api.zip",
+        "tts.zip",
     ]  # fmt: skip
     assert {Path(p).name: h for p, h in first.items()} == {Path(p).name: h for p, h in second.items()}
     with zipfile.ZipFile(tmp_path / "out1" / "player-api.zip") as archive:
@@ -223,7 +224,7 @@ HASH = "--hash=sha256:" + "a" * 64
 
 def test_adding_picture_gen_leaves_the_other_zips_byte_identical(tmp_path: Path) -> None:
     others = [f for f in build_lambdas.FUNCTIONS if f != "picture_gen"]
-    assert len(others) == 4
+    assert len(others) == 5
     alone = build_lambdas.build(REPO / "api", tmp_path / "alone", deps=None, functions=others)
     together = build_lambdas.build(REPO / "api", tmp_path / "all", deps=None)
     alone_by_name = {Path(p).name: h for p, h in alone.items()}
@@ -355,3 +356,19 @@ def test_lock_rendering_round_trips(tmp_path: Path) -> None:
     (wheels / "anthropic-2.8.0.tar.gz").write_bytes(b"sdist")
     with pytest.raises(build_lambdas.BuildError, match="not a wheel"):
         build_lambdas.wheel_pins(wheels)
+
+
+def test_the_node_function_is_its_bundle_alone_and_reproducible(tmp_path: Path) -> None:
+    """game-data-check (Gate M, LD6): index.mjs at the zip's root, fixed time and mode; same bundle, same bytes."""
+    bundle = tmp_path / "index.mjs"
+    bundle.write_text("export async function handler(e) { return e; }\n")
+    first = build_lambdas.build_node(tmp_path / "a", bundle)
+    os.utime(bundle, (1_234_567_890, 1_234_567_890))
+    second = build_lambdas.build_node(tmp_path / "b", bundle)
+    assert [Path(p).name for p in first] == ["game-data-check.zip"]
+    assert list(first.values()) == list(second.values())
+    with zipfile.ZipFile(tmp_path / "a" / "game-data-check.zip") as archive:
+        (info,) = archive.infolist()
+    assert info.filename == "index.mjs" and info.date_time == build_lambdas.FIXED_TIME
+    with pytest.raises(build_lambdas.BuildError, match="npm run build"):
+        build_lambdas.build_node(tmp_path / "c", tmp_path / "missing.mjs")
