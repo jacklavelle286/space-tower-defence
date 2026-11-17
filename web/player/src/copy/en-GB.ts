@@ -52,6 +52,46 @@ export const COPY = {
     practice: "Practice battle (development only)",
     savedGames: "Saved games", // D4 P5
     myProgress: "My progress", // D4 P12
+    settings: "Settings", // D4 P13
+  },
+  settings: {
+    // D4 P13 Settings and resets [PROPOSAL] copy: written for the grown-up
+    heading: "Settings",
+    back: "Home",
+    resetsHeading: "Start again",
+    changes: "What changes",
+    stays: "What stays",
+    typeWord: (word: string) => `Type ${word} to confirm`,
+    cancel: "Keep everything",
+    wait: "Wait until everything is saved to the cloud.",
+    offline: "You need the internet for this.",
+    done: "Done.",
+    failed: "That didn't finish. Please try again.",
+    offlineDevice: "A device that was offline may still add its saved progress when it reconnects.",
+    pendingLost: "Some progress on this laptop hasn't saved yet and will be lost.",
+    resets: [
+      {
+        type: "CAMPAIGN_PROGRESS",
+        button: "Clear planets and badges",
+        word: "badges",
+        changes: "This clears your best waves and badges.",
+        stays: "Your saved games stay, and you can earn badges again.",
+      },
+      {
+        type: "LEARNING_HISTORY",
+        button: "Clear learning stars",
+        word: "stars",
+        changes: "This clears your Maths, Phonics and Spelling stars.",
+        stays: "Everything else stays.",
+      },
+      {
+        type: "WHOLE_PROFILE",
+        button: "Start my profile again",
+        word: "delete",
+        changes: "This deletes all your games, badges, stars, name and picture. You can't undo this.",
+        stays: "Your username and password stay.",
+      },
+    ] as const,
   },
   runSetup: {
     // D4 P7 run setup (Phase 53); challenge names come from the wave set, "about" lines are C13's [PROPOSAL]

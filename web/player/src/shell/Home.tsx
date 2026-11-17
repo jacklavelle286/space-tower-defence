@@ -72,6 +72,7 @@ export function Home({
   onContinue,
   onSavedGames,
   onMyProgress,
+  onSettings,
   onNewGame,
   practice = false,
 }: {
@@ -85,6 +86,8 @@ export function Home({
   onSavedGames?: () => void;
   /** Opens P12 My progress (Phase 43). */
   onMyProgress?: () => void;
+  /** Opens P13 Settings (Phase 55). */
+  onSettings?: () => void;
   /** Creates the run; on `ok` the caller has already moved to the run screen. */
   onNewGame: (choice: GameChoice, options: { runId?: string; takeover?: boolean }) => Promise<CreateOutcome>;
   practice?: boolean;
@@ -198,6 +201,11 @@ export function Home({
         {onMyProgress !== undefined ? (
           <button type="button" className="btn btn-small" onClick={onMyProgress}>
             {COPY.home.myProgress}
+          </button>
+        ) : null}
+        {onSettings !== undefined ? (
+          <button type="button" className="btn btn-small" onClick={onSettings}>
+            {COPY.home.settings}
           </button>
         ) : null}
         {!online ? <p className="reason">{COPY.offline}</p> : null}

@@ -7,10 +7,14 @@ import type { SyncTransport } from "../sync/queue";
  * The player routes the app uses (G R1, R3, R6, R8-R11, R13-R15). Every call goes through the ownerSub-checking
  * client. Run bodies come back unparsed (`unknown`): the run screen checks their shape (run/types.ts).
  */
+export type ResetType = "CAMPAIGN_PROGRESS" | "LEARNING_HISTORY" | "WHOLE_PROFILE";
+
 export interface PlayerApi extends SyncTransport {
   getMe(): Promise<ApiResult<Me>>;
   putProfile(input: ProfileInput): Promise<ApiResult<Me>>;
   getPlanets(): Promise<ApiResult<Planets>>;
+  /** R5: one of the three account resets; `confirm` must equal `type` (Phase 55). */
+  postReset(body: { type: ResetType; confirm: ResetType }): Promise<ApiResult<{ type: ResetType; completedAt: string }>>;
   /** R2: learning summaries, planets and badges (Phase 43). */
   getProgress(): Promise<ApiResult<Progress>>;
   /** R7: one page of the open or finished runs (Phase 32); pass the previous page's nextCursor for the next. */
@@ -31,6 +35,7 @@ export function createPlayerApi(client: ApiClient): PlayerApi {
     getMe: () => client.request<Me>("GET", "/me"),
     putProfile: (input) => client.request<Me>("PUT", "/me/profile", input),
     getPlanets: () => client.request<Planets>("GET", "/planets"),
+    postReset: (body) => client.request<{ type: ResetType; completedAt: string }>("POST", "/me/resets", body),
     getProgress: () => client.request<Progress>("GET", "/me/progress"),
     getRuns: (state, cursor) =>
       client.request<RunList>("GET", `/runs?state=${state}${cursor === undefined ? "" : `&cursor=${encodeURIComponent(cursor)}`}`),

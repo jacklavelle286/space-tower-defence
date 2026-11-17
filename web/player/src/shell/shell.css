@@ -638,3 +638,10 @@ body {
   display: block;
   font-size: 16px;
 }
+
+/* P13 Settings (Phase 55). */
+.settings-resets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}

@@ -1,8 +1,8 @@
 import { createApiClient, tokenSub, type ApiClient, type Me, type ProfileInput } from "@scd/shared";
-import { ClipPlayer, htmlAudioOutput, idbClipStore, memoryClipStore, openLocalDb } from "@scd/shared/audio";
+import { ClipPlayer, htmlAudioOutput, idbClipStore, localDbName, memoryClipStore, openLocalDb } from "@scd/shared/audio";
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, Route, Routes, useLocation, useNavigate } from "react-router";
-import { createPlayerApi, type PlayerApi } from "../api/playerApi";
+import { createPlayerApi, type PlayerApi, type ResetType } from "../api/playerApi";
 import { startIdentityGuard, type IdentityGuard, type LostReason } from "../auth/identityGuard";
 import { COPY } from "../copy/en-GB";
 import { loadCurrent, loadGameDataVersions } from "../game/gameData";
@@ -13,6 +13,7 @@ import type { RunServices } from "../run/RunScreen";
 import { PROTOCOL_VERSION } from "../sync/protocol";
 import { SyncQueue } from "../sync/queue";
 import { MyProgress } from "../progress/MyProgress";
+import { Settings } from "../settings/Settings";
 import { SavedGames } from "./SavedGames";
 import { Home, type GameChoice } from "./Home";
 import { Landing } from "./Landing";
@@ -185,6 +186,23 @@ export function Shell({ services }: { services: Services }) {
     [navigate],
   );
 
+  /** After a reset (Phase 55): read the profile again, or, after WHOLE_PROFILE, drop the device's database and restart. */
+  const afterReset = useCallback(async (type: ResetType) => {
+    const s = session.current;
+    if (s === null) return;
+    if (type === "WHOLE_PROFILE") {
+      try {
+        globalThis.indexedDB?.deleteDatabase(localDbName(s.ownerSub)); // completes once this page's connection closes
+      } catch {
+        // No IndexedDB here: nothing to delete.
+      }
+      window.location.assign("/");
+      return;
+    }
+    const result = await s.api.getMe();
+    if (result.kind === "ok") setState({ kind: "ready", session: s, me: result.body });
+  }, []);
+
   /** Back to Home from a run, with the run list read again (the Continue card). */
   const leaveRun = useCallback(async () => {
     const s = session.current;
@@ -276,9 +294,20 @@ export function Shell({ services }: { services: Services }) {
                     onContinue={(runId) => navigate(`/play/${runId}`)}
                     onSavedGames={() => navigate("/games")}
                     onMyProgress={() => navigate("/progress")}
+                    onSettings={() => navigate("/settings")}
                     onNewGame={newGame}
                     practice={services.localPractice}
                   />
+                ) : (
+                  <Navigate to="/setup" replace />
+                )
+              }
+            />
+            <Route
+              path="/settings"
+              element={
+                me ? (
+                  <Settings api={s.api} queue={s.queue} onBack={() => navigate("/home")} onReset={(type) => void afterReset(type)} />
                 ) : (
                   <Navigate to="/setup" replace />
                 )
