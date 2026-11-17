@@ -116,6 +116,34 @@ export const ART = {
   slimeletHop: anim("alien-slimelet-hop", C, 4, FEET, [64, 64]),
   craftHover: anim("alien-craft-hover", C, 6, FEET, [256, 256]),
   craftRelease: anim("alien-craft-release", C, 6, FEET, [256, 256]),
+  // Bosses (Phase 27): a movement loop per phase, the one-shot that plays as each phase begins, and the effects.
+  wobbleWalk: anim("boss-wobble-walk", C, 6, FEET, [384, 384]),
+  wobbleDash: anim("boss-wobble-dash", C, 6, FEET, [384, 384]),
+  wobblePhase: anim("boss-wobble-phase", C, 6, FEET, [384, 384]),
+  clankFull: anim("boss-clank-full-walk", C, 6, FEET, [384, 384]),
+  clankCracked: anim("boss-clank-cracked-walk", C, 6, FEET, [384, 384]),
+  clankOff: anim("boss-clank-off-walk", C, 6, FEET, [384, 384]),
+  clankPlatesFall: anim("boss-clank-platesfall", C, 6, FEET, [384, 384]),
+  bubblaWalk: anim("boss-bubbla-walk", C, 6, FEET, [384, 384]),
+  bubblaWand: anim("boss-bubbla-wand", C, 6, FEET, [384, 384]),
+  bossBubbleFull: still("boss-bubbla-bubble-full", C, CENTRE, [384, 384]),
+  bossBubbleThin: still("boss-bubbla-bubble-thin", C, CENTRE, [384, 384]),
+  mothershipShut: anim("boss-mothership-shut-hover", C, 6, FEET, [384, 384]),
+  mothershipDoor1Open: anim("boss-mothership-door1open-hover", C, 6, FEET, [384, 384]),
+  mothershipDoor12Open: anim("boss-mothership-door12open-hover", C, 6, FEET, [384, 384]),
+  mothershipBare: anim("boss-mothership-bare-hover", C, 6, FEET, [384, 384]),
+  mothershipDoor1: anim("boss-mothership-door1", C, 6, FEET, [384, 384]),
+  mothershipDoor2: anim("boss-mothership-door2", C, 6, FEET, [384, 384]),
+  mothershipDoor3: anim("boss-mothership-door3", C, 6, FEET, [384, 384]),
+  mothershipRelease: anim("boss-mothership-release", C, 6, FEET, [384, 384]),
+  glorpArmoured: anim("boss-glorp-armoured-walk", C, 6, FEET, [384, 384]),
+  glorpBubbled: anim("boss-glorp-bubbled-walk", C, 6, FEET, [384, 384]),
+  glorpCargo: anim("boss-glorp-cargo-walk", C, 6, FEET, [384, 384]),
+  glorpDash: anim("boss-glorp-dash-walk", C, 6, FEET, [384, 384]),
+  glorpPhase: anim("boss-glorp-phase", C, 6, CENTRE, [384, 384]),
+  glorpHatch: anim("boss-glorp-hatch", C, 6, FEET, [384, 384]),
+  bossArrive: anim("fx-boss-arrive", C, 8, CENTRE, [384, 384]),
+  bossPhaseFlash: anim("fx-boss-phase", C, 6, CENTRE, [384, 384]),
   armourClonk: anim("fx-armour-clonk", C, 3, CENTRE, [64, 64]),
   healed: anim("fx-healed", C, 4, CENTRE, [64, 64]),
   popStars: anim("fx-pop-stars", C, 8, CENTRE, [128, 128]),
@@ -223,6 +251,75 @@ export function alienArt(type: string): AlienArt {
 /** True when `type` has its own art (assets.test.ts checks every alien in every ruleset). */
 export function hasAlienArt(type: string): boolean {
   return Object.hasOwn(ALIENS, type);
+}
+
+/**
+ * How each boss of C7 is drawn, by the ruleset's boss ID. `phases[i]` is phase i's art: the loop it moves with, the
+ * one-shot that plays on the boss itself as the phase begins (`enter`), and a burst drawn over it (`burst`, the Great
+ * Glorp's phase change). Both are null for the first phase, which the boss arrives in. The art is the phase cue C7
+ * asks for ("readable from shape and motion, not from a number"): Clank's plates fall, the Mothership's doors open one
+ * by one, Wobble and the Glorp turn pink and steam for their dash.
+ */
+export interface BossPhaseArt {
+  readonly move: ArtAsset;
+  readonly enter: ArtAsset | null;
+  readonly burst: ArtAsset | null;
+}
+
+export interface BossArt {
+  readonly phases: readonly BossPhaseArt[];
+  /** Played instead of the boss's walk when it is defeated, under the star burst (the Mothership's last door). */
+  readonly defeat: ArtAsset | null;
+}
+
+const phase = (move: ArtAsset, enter: ArtAsset | null = null, burst: ArtAsset | null = null): BossPhaseArt => ({ move, enter, burst });
+
+const BOSSES: Readonly<Record<string, BossArt>> = {
+  boss1: { phases: [phase(ART.wobbleWalk), phase(ART.wobbleDash, ART.wobblePhase)], defeat: null },
+  boss2: {
+    phases: [phase(ART.clankFull), phase(ART.clankCracked, ART.clankPlatesFall), phase(ART.clankOff, ART.clankPlatesFall)],
+    defeat: null,
+  },
+  // Her layers are drawn by the bubble overlay (bossBubbleArt); the wand wave is the gift.
+  boss3: { phases: [phase(ART.bubblaWalk), phase(ART.bubblaWalk, ART.bubblaWand), phase(ART.bubblaWalk, ART.bubblaWand)], defeat: null },
+  boss4: {
+    phases: [
+      phase(ART.mothershipShut),
+      phase(ART.mothershipDoor1Open, ART.mothershipDoor1),
+      phase(ART.mothershipDoor12Open, ART.mothershipDoor2),
+      phase(ART.mothershipBare, ART.mothershipDoor3),
+    ],
+    defeat: ART.mothershipRelease,
+  },
+  // The Bubbled phase's ten layers are drawn by the bubble overlay too.
+  boss5: {
+    phases: [
+      phase(ART.glorpArmoured),
+      phase(ART.glorpBubbled, null, ART.glorpPhase),
+      phase(ART.glorpCargo, ART.glorpHatch),
+      phase(ART.glorpDash, null, ART.glorpPhase),
+    ],
+    defeat: null,
+  },
+};
+
+/** Every boss phase's movement loop, and the one-shots, for the scene to register. */
+export const BOSS_LOOPED: readonly ArtAsset[] = [...new Set(Object.values(BOSSES).flatMap((b) => b.phases.map((p) => p.move)))];
+export const BOSS_ONE_SHOT: readonly ArtAsset[] = [
+  ...new Set(
+    Object.values(BOSSES).flatMap((b) => [...b.phases.flatMap((p) => [p.enter, p.burst]), b.defeat].filter((a): a is ArtAsset => a !== null)),
+  ),
+];
+
+/** The art for a boss, or null when `type` is not a boss with art (an ordinary alien). */
+export function bossArt(type: string): BossArt | null {
+  return BOSSES[type] ?? null;
+}
+
+/** A boss's bubble (C7 Queen Bubbla, the Great Glorp's Bubbled phase): full while it has 5 or more layers, thin from 4
+ *  down to 1, none at 0. */
+export function bossBubbleArt(layers: number): ArtAsset | null {
+  return layers <= 0 ? null : layers >= 5 ? ART.bossBubbleFull : ART.bossBubbleThin;
 }
 
 /** The bubble overlay for a Bubble Guard with `layers` layers left (1 to 4), or null for none. */

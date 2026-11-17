@@ -9,6 +9,11 @@
 // Phase 26: every alien of C6.1 is drawn with its own art, and the traits show (a Flutter's shadow, a Bubble Guard's
 // remaining layers, a Patchling's heal ring, a Shellback's clonk, a Craft's doors opening). Alien sprites and one-shot
 // effects come from pools (pool.ts): created once, hidden when done, and reused for the next alien or effect.
+//
+// Phase 27: the five bosses of C7 are drawn with their own art from the same alien pool. Each boss phase has its own
+// movement loop, and the one-shot that plays on the boss as the phase begins (plates falling, a door opening, a wand
+// wave) comes first; the scene reads the phase from the boss's AlienState, so it is state, not a timer. A boss's
+// bubble layers show as a big bubble; it arrives with a ground ring and each phase starts with a flash.
 import { routePoint, type AlienState, type Battle, type BattleEvent } from "@scd/game-core";
 import { GameObjects, Scene, type Input } from "phaser";
 import {
@@ -21,6 +26,10 @@ import {
   ASTRONAUT_ONE_SHOT,
   astronautArt,
   beamArt,
+  BOSS_LOOPED,
+  BOSS_ONE_SHOT,
+  bossArt,
+  bossBubbleArt,
   bubbleLayersArt,
   frameKey,
   type ArtAsset,
@@ -57,11 +66,23 @@ const LAYERS_DY = -48;
 const ON_ALIEN_DY = -40;
 /** One-shot effects alive at once (C14 budgets 240 particles and 32 + 16 effects; one sprite here is one effect). */
 const EFFECT_LIMIT = 64;
+/**
+ * Bosses are drawn smaller than their 384 px catalogue size (as the colony is): 288 px, three tiles, so a boss on the
+ * route does not hide the pads two tiles away. Cosmetic only.
+ */
+const BOSS_PX = 288;
+/** The centre of a boss's bubble, relative to its feet (art fit). */
+const BOSS_BUBBLE_DY = -130;
+/** The arrival ring lies on the ground (its art note: "squash to 4:3"). */
+const BOSS_RING: readonly [number, number] = [BOSS_PX, (BOSS_PX * 3) / 4];
 
-const LOOPED: readonly ArtAsset[] = [ART.portal, ...ALIEN_LOOPED, ...ASTRONAUT_LOOPED, ART.novaBeam1, ART.novaBeam2, ART.novaBeam3];
+const LOOPED: readonly ArtAsset[] = [ART.portal, ...ALIEN_LOOPED, ...BOSS_LOOPED, ...ASTRONAUT_LOOPED, ART.novaBeam1, ART.novaBeam2, ART.novaBeam3];
 const ONE_SHOT: readonly ArtAsset[] = [
   ...ASTRONAUT_ONE_SHOT,
   ...ALIEN_ONE_SHOT,
+  ...BOSS_ONE_SHOT,
+  ART.bossArrive,
+  ART.bossPhaseFlash,
   ART.popStars,
   ART.leak,
   ART.place,
@@ -76,8 +97,10 @@ interface AlienView {
   readonly body: GameObjects.Sprite;
   /** A flying alien's shadow on the path below it (C6.1 Orbit Flutter). */
   readonly shadow: GameObjects.Image;
-  /** A Bubble Guard's remaining layers (C6.1). */
+  /** A Bubble Guard's remaining layers (C6.1), or a boss's bubble (C7). */
   readonly layers: GameObjects.Image;
+  /** For a boss, the phase whose art is showing; -1 for an ordinary alien (and while the view is in the pool). */
+  phase: number;
 }
 
 interface TowerView {
@@ -165,11 +188,13 @@ export class BattleScene extends Scene {
         body: this.add.sprite(0, 0, frameKey(ART.blobWalk, 1)).setVisible(false),
         shadow: this.add.image(0, 0, frameKey(ART.flutterShadow, 1)).setVisible(false),
         layers: this.add.image(0, 0, frameKey(ART.guardLayers4, 1)).setVisible(false),
+        phase: -1,
       }),
       (view) => {
         view.body.stop().clearTint().setVisible(false);
         view.shadow.setVisible(false);
         view.layers.setVisible(false);
+        view.phase = -1;
       },
     );
     this.#effectPool = new Pool<GameObjects.Sprite>(
@@ -307,6 +332,18 @@ export class BattleScene extends Scene {
 
   /** Set a pooled view up for a newly arrived alien: its own art, its walk started at its seeded frame. */
   #setUpAlien(view: AlienView, alien: Readonly<AlienState>): void {
+    const boss = bossArt(alien.type);
+    if (boss !== null) {
+      // A boss arrives in its first phase (C7), with a ring on the ground where it appears.
+      const move = boss.phases[alien.phase]?.move ?? ART.wobbleWalk;
+      view.body.setTexture(frameKey(move, 1));
+      place(view.body, move);
+      view.body.setDisplaySize(BOSS_PX, BOSS_PX).setVisible(true).play(move.id);
+      view.phase = alien.phase;
+      const { x, y } = this.#feet(alien);
+      this.#playOnce(ART.bossArrive, x, y, 8, BOSS_RING);
+      return;
+    }
     const art = alienArt(alien.type).move;
     view.body.setTexture(frameKey(art, 1));
     place(view.body, art);
@@ -334,12 +371,28 @@ export class BattleScene extends Scene {
       if (alien.slowTicksLeft > 0) view.body.setTint(FROST_TINT);
       else view.body.clearTint();
       if (view.shadow.visible) view.shadow.setPosition(x, y + SHADOW_DY).setDepth(depth - 0.0005);
-      // The layers it has left: the overlay shrinks a ring at each pop and goes when the last one pops.
-      const layers = bubbleLayersArt(alien.bubbles);
+      const boss = bossArt(alien.type);
+      if (boss !== null && view.phase !== alien.phase) {
+        // A new phase (C7): its cue plays on the boss, then its new movement loop. If one hit crossed two thresholds,
+        // the deepest phase's cue is the one shown.
+        view.phase = alien.phase;
+        const art = boss.phases[alien.phase];
+        if (art !== undefined) {
+          if (art.enter === null) view.body.play(art.move.id);
+          else view.body.play(art.enter.id).chain(art.move.id);
+        }
+      }
+      // The layers it has left: the overlay shrinks a ring at each pop and goes when the last one pops. A boss's
+      // layers are one big bubble around it, and an alien Queen Bubbla gave a layer gets the Bubble Guard's ring.
+      const layers = boss === null ? bubbleLayersArt(alien.bubbles) : bossBubbleArt(alien.bubbles);
       view.layers.setVisible(layers !== null);
       if (layers !== null) {
-        view.layers.setTexture(frameKey(layers, 1)).setPosition(x, y + LAYERS_DY).setDepth(depth + 0.0005);
+        view.layers
+          .setTexture(frameKey(layers, 1))
+          .setPosition(x, y + (boss === null ? LAYERS_DY : BOSS_BUBBLE_DY))
+          .setDepth(depth + 0.0005);
         place(view.layers, layers);
+        if (boss !== null) view.layers.setDisplaySize(BOSS_PX, BOSS_PX);
       }
     }
     for (const [id, view] of this.#aliens) {
@@ -362,10 +415,27 @@ export class BattleScene extends Scene {
       case "defeated": {
         const x = unitsToPx(event.at.x);
         const y = unitsToPx(event.at.y) + ALIEN_FEET_DY;
+        const boss = bossArt(event.type);
+        if (boss !== null) {
+          // A boss pops into a large star burst (C7); the Mothership's last door opens under it first.
+          if (boss.defeat !== null) this.#playOnce(boss.defeat, x, y, 19, [BOSS_PX, BOSS_PX]);
+          this.#playOnce(ART.popStars, x, y - BOSS_PX / 2, 20, [BOSS_PX, BOSS_PX]);
+          break;
+        }
         // A Split Slime splits and a Craft opens its doors as its descendants are queued (C6.3), then the stars.
         const defeat = alienArt(event.type).defeat;
         if (defeat !== null) this.#playOnce(defeat, x, y, 19);
         this.#playOnce(ART.popStars, x, y - 40, 20);
+        break;
+      }
+      case "bossPhase": {
+        // A flash as the phase begins (C7), and the phase's burst if it has one (the Great Glorp's); the phase's cue
+        // on the boss itself plays from #drawAliens.
+        const x = unitsToPx(event.at.x);
+        const y = unitsToPx(event.at.y) + ALIEN_FEET_DY - BOSS_PX / 2;
+        this.#playOnce(ART.bossPhaseFlash, x, y, 21, [BOSS_PX, BOSS_PX]);
+        const burst = bossArt(event.type)?.phases[event.phase]?.burst ?? null;
+        if (burst !== null) this.#playOnce(burst, x, y, 21, [BOSS_PX, BOSS_PX]);
         break;
       }
       case "leaked": {
@@ -374,9 +444,12 @@ export class BattleScene extends Scene {
         break;
       }
       case "shot": {
-        // C6.1 Shellback: "hits make a 'clonk' spark". Read from the trait, so any armoured alien clonks.
+        // C6.1 Shellback: "hits make a 'clonk' spark". Read from the trait, so any armoured alien clonks; a boss
+        // clonks while its phase has armour (Captain Clank's plates, C7).
         const alien = living(event.alienId);
-        if (alien === undefined || (this.#bridge.config.aliens[alien.type]?.armour ?? 0) === 0) break;
+        const stats = alien === undefined ? undefined : this.#bridge.config.aliens[alien.type];
+        const armour = stats?.boss?.phases[alien?.phase ?? 0]?.armour ?? stats?.armour ?? 0;
+        if (alien === undefined || armour === 0) break;
         const { x, y } = this.#feet(alien);
         this.#playOnce(ART.armourClonk, x, y + ON_ALIEN_DY, 20);
         break;
@@ -405,13 +478,15 @@ export class BattleScene extends Scene {
     }
   }
 
-  /** Play a one-shot effect with a pooled sprite, which goes back to the pool when the animation ends. */
-  #playOnce(asset: ArtAsset, x: number, y: number, depth: number): void {
+  /** Play a one-shot effect with a pooled sprite, which goes back to the pool when the animation ends. `size`
+   *  overrides the catalogue display size (a boss's effects are drawn at the boss's size). */
+  #playOnce(asset: ArtAsset, x: number, y: number, depth: number, size?: readonly [number, number]): void {
     const pool = this.#effectPool;
     if (pool === null) return;
     const sprite = pool.acquire();
     sprite.setTexture(frameKey(asset, 1)).setPosition(x, y).setVisible(true);
     place(sprite, asset);
+    if (size !== undefined) sprite.setDisplaySize(size[0], size[1]);
     sprite.setDepth(depth).play(asset.id);
     sprite.once("animationcomplete", () => pool.release(sprite));
   }

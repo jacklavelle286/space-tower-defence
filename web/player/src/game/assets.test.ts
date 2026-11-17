@@ -4,7 +4,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { alienArt, allFrames, ART, bubbleLayersArt, hasAlienArt } from "./assets";
+import { alienArt, allFrames, ART, bossArt, bossBubbleArt, bubbleLayersArt, hasAlienArt } from "./assets";
 
 const REPO = join(import.meta.dirname, "..", "..", "..", "..");
 const PUBLIC = join(REPO, "web", "player", "public");
@@ -41,6 +41,34 @@ describe("battlefield art", () => {
     for (const type of types) expect(hasAlienArt(type), type).toBe(true);
     expect(alienArt("craft").defeat?.id).toBe("alien-craft-release");
     expect(alienArt("not-yet-drawn").move.id).toBe("alien-blob-walk");
+  });
+
+  it("every boss in every ruleset has art for each of its phases (Phase 27)", () => {
+    const rulesets = readdirSync(join(REPO, "game-data", "ruleset")).map(
+      (f) => JSON.parse(readFileSync(join(REPO, "game-data", "ruleset", f), "utf8")) as { bosses?: Record<string, { phases: unknown[] }> },
+    );
+    const bosses = rulesets.flatMap((r) => Object.entries(r.bosses ?? {}));
+    expect(bosses.map(([id]) => id).sort()).toEqual(["boss1", "boss2", "boss3", "boss4", "boss5"]);
+    for (const [id, boss] of bosses) {
+      const art = bossArt(id);
+      expect(art?.phases, id).toHaveLength(boss.phases.length);
+      expect([art?.phases[0]?.enter, art?.phases[0]?.burst], `${id} arrives in its first phase`).toEqual([null, null]);
+      // C7: every phase change is readable from shape and motion.
+      expect(art?.phases.slice(1).every((p) => p.enter !== null || p.burst !== null), `${id}: every later phase has a cue`).toBe(true);
+    }
+    expect(bossArt("boss4")?.defeat?.id).toBe("boss-mothership-release");
+    expect(bossArt("blob")).toBeNull();
+  });
+
+  it("a boss's bubble is full from 5 layers, thin from 4 to 1, gone at 0", () => {
+    expect([0, 1, 4, 5, 8, 10].map((n) => bossBubbleArt(n)?.id ?? null)).toEqual([
+      null,
+      "boss-bubbla-bubble-thin",
+      "boss-bubbla-bubble-thin",
+      "boss-bubbla-bubble-full",
+      "boss-bubbla-bubble-full",
+      "boss-bubbla-bubble-full",
+    ]);
   });
 
   it("a Bubble Guard's overlay shows the layers it has left", () => {

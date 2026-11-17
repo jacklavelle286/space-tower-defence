@@ -1,6 +1,7 @@
-// The local battlefield's dev wave (Phase 26, development builds only): /play/local?aliens=... plays one extra wave
-// made here, so every alien of the ruleset can be watched without waiting for the campaign wave it first appears in.
-// It is never game data: it exists only in the copy of the planet document LocalSlice builds.
+// The local battlefield's dev waves (development builds only): /play/local?aliens=... (Phase 26) plays one extra wave
+// made here, so every alien of the ruleset can be watched without waiting for the campaign wave it first appears in;
+// /play/local?boss=... (Phase 27) plays a boss wave, or one for each boss. They are never game data: they exist only
+// in the copy of the planet document LocalSlice builds.
 import type { AuthoredWave, Ruleset } from "@scd/game-core";
 
 /**
@@ -25,4 +26,28 @@ export function devWave(ruleset: Ruleset, spec: string, wave: number): AuthoredW
     if (!Number.isInteger(count) || count < 1 || count > 20) throw new Error(`?aliens=: count for "${id}" must be 1 to 20`);
   }
   return { wave, groups: entries.map(([type, count], i) => ({ type, count, at: i * 3, gap: 0.6 })), hpMult: 1, speedMult: 1 };
+}
+
+/**
+ * The ?boss= dev waves: one wave per boss ("all": every boss in the ruleset, in ID order; or one boss ID such as
+ * "boss3"). Each is four Moon Blobs, the boss 3 s in, then four more Moon Blobs walking just behind it, so Queen
+ * Bubbla's gift has aliens to land on. hpMult 1: the boss has its own absolute health anyway (C7), and the blobs stay
+ * easy. A wave holds one boss, as parsePlanet requires of real waves (C7).
+ */
+export function devBossWaves(ruleset: Ruleset, spec: string, firstWave: number): AuthoredWave[] {
+  const ids = spec === "all" ? Object.keys(ruleset.bosses) : [spec];
+  if (ids.length === 0) throw new Error(`?boss=: ruleset ${ruleset.version} has no bosses (try ?ruleset=r3)`);
+  return ids.map((id, i) => {
+    if (!Object.hasOwn(ruleset.bosses, id)) throw new Error(`?boss=: ruleset ${ruleset.version} has no boss "${id}" (try ?ruleset=r3)`);
+    return {
+      wave: firstWave + i,
+      groups: [
+        { type: "blob", count: 4, at: 0, gap: 1.5 },
+        { type: id, count: 1, at: 3, gap: 0 },
+        { type: "blob", count: 4, at: 6, gap: 1.5 },
+      ],
+      hpMult: 1,
+      speedMult: 1,
+    };
+  });
 }
