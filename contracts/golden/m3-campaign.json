@@ -1,0 +1,46 @@
+{
+ "kind": "golden",
+ "id": "m3-campaign",
+ "mechanics": 3,
+ "ruleset": "r3",
+ "planet": "luna-1-c2",
+ "waveSet": "campaign",
+ "rows": [
+  {
+   "wave": 3,
+   "cleared": true,
+   "healthEnd": 20,
+   "leaked": 0,
+   "ticks": 1336,
+   "bounty": 16,
+   "credits": 2
+  },
+  {
+   "wave": 10,
+   "cleared": true,
+   "healthEnd": 20,
+   "leaked": 0,
+   "ticks": 2194,
+   "bounty": 82,
+   "credits": 87
+  },
+  {
+   "wave": 22,
+   "cleared": true,
+   "healthEnd": 20,
+   "leaked": 0,
+   "ticks": 1840,
+   "bounty": 60,
+   "credits": 63
+  },
+  {
+   "wave": 30,
+   "cleared": true,
+   "healthEnd": 20,
+   "leaked": 0,
+   "ticks": 3511,
+   "bounty": 126,
+   "credits": 111
+  }
+ ]
+}

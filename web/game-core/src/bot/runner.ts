@@ -131,10 +131,12 @@ export function fightWave(battle: Battle, policy: Policy | null): WaveRow {
 
 /** The snapshot after interval `interval` (the wave just cleared): its learning reward and meteor charge, paid when
  *  the learning "succeeds" (learnSucceeds). */
-function afterInterval(ruleset: Ruleset, config: BattleConfig, snapshot: Snapshot, interval: number, learn: number, meteors: boolean): Snapshot {
+export function betweenWaves(ruleset: Ruleset, config: BattleConfig, snapshot: Snapshot, interval: number, learn: number, meteors: boolean): Snapshot {
   let credits = snapshot.credits;
   const powers = { ...snapshot.powers };
-  if (learnSucceeds(learn, interval)) credits += learningReward(ruleset, interval);
+  // Past the authored waves (endless, C11) a normal slot pays the endless reward (C9.2; economy.endlessLearningReward).
+  const reward = interval >= config.waves.length ? ruleset.economy.endlessLearningReward : learningReward(ruleset, interval);
+  if (learnSucceeds(learn, interval)) credits += reward;
   const j = config.waveSet.meteorAfter.indexOf(interval) + 1;
   if (meteors && j > 0 && learnSucceeds(learn, interval + 1000)) {
     const powerId = meteorAward(ruleset, j);
@@ -151,7 +153,7 @@ function afterInterval(ruleset: Ruleset, config: BattleConfig, snapshot: Snapsho
 export function playUpTo(ruleset: Ruleset, config: BattleConfig, policy: Policy, wave: number, options: BotRunOptions): { snapshot: Snapshot; defeatedAt: number | null } {
   let snapshot = startingSnapshot(config);
   for (let w = 1; w < Math.min(wave, config.waves.length + 1); w += 1) {
-    if (w > 1) snapshot = afterInterval(ruleset, config, snapshot, w - 1, options.learn, options.meteors ?? true);
+    if (w > 1) snapshot = betweenWaves(ruleset, config, snapshot, w - 1, options.learn, options.meteors ?? true);
     const battle = createBattle(config, snapshot, w, options.runSeed ?? "bot");
     policy.prep(battle);
     const row = fightWave(battle, policy);
@@ -159,7 +161,7 @@ export function playUpTo(ruleset: Ruleset, config: BattleConfig, policy: Policy,
     if (!row.cleared) return { snapshot: battleSnapshot(battle), defeatedAt: w };
     snapshot = battleSnapshot(battle);
   }
-  if (wave > 1) snapshot = afterInterval(ruleset, config, snapshot, wave - 1, options.learn, options.meteors ?? true);
+  if (wave > 1) snapshot = betweenWaves(ruleset, config, snapshot, wave - 1, options.learn, options.meteors ?? true);
   return { snapshot, defeatedAt: null };
 }
 
@@ -174,7 +176,7 @@ export function playWaveSet(ruleset: Ruleset, config: BattleConfig, policy: Poli
   let defeatedAt: number | null = null;
   let health = snapshot.colony.health;
   for (let wave = 1; wave <= last; wave += 1) {
-    if (wave > 1) snapshot = afterInterval(ruleset, config, snapshot, wave - 1, learn, meteors);
+    if (wave > 1) snapshot = betweenWaves(ruleset, config, snapshot, wave - 1, learn, meteors);
     const battle = createBattle(config, snapshot, wave, options.runSeed ?? "bot");
     policy.prep(battle);
     const row = fightWave(battle, policy);

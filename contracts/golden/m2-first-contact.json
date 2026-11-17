@@ -1,0 +1,28 @@
+{
+ "kind": "golden",
+ "id": "m2-first-contact",
+ "mechanics": 2,
+ "ruleset": "r2",
+ "planet": "luna-1-c1",
+ "waveSet": "first-contact",
+ "rows": [
+  {
+   "wave": 1,
+   "cleared": true,
+   "healthEnd": 20,
+   "leaked": 0,
+   "ticks": 1081,
+   "bounty": 24,
+   "credits": 24
+  },
+  {
+   "wave": 2,
+   "cleared": true,
+   "healthEnd": 20,
+   "leaked": 0,
+   "ticks": 1171,
+   "bounty": 32,
+   "credits": 6
+  }
+ ]
+}

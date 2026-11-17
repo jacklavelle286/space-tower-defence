@@ -1,0 +1,64 @@
+{
+ "kind": "golden",
+ "id": "m4-campaign-and-endless",
+ "mechanics": 4,
+ "ruleset": "r4",
+ "planet": "luna-1-c2",
+ "waveSet": "campaign",
+ "rows": [
+  {
+   "wave": 12,
+   "cleared": true,
+   "healthEnd": 20,
+   "leaked": 0,
+   "ticks": 1388,
+   "bounty": 21,
+   "credits": 20
+  },
+  {
+   "wave": 27,
+   "cleared": true,
+   "healthEnd": 20,
+   "leaked": 0,
+   "ticks": 2336,
+   "bounty": 44,
+   "credits": 83
+  },
+  {
+   "wave": 40,
+   "cleared": true,
+   "healthEnd": 20,
+   "leaked": 0,
+   "ticks": 3843,
+   "bounty": 195,
+   "credits": 68
+  },
+  {
+   "wave": 50,
+   "cleared": true,
+   "healthEnd": 20,
+   "leaked": 0,
+   "ticks": 3751,
+   "bounty": 220,
+   "credits": 182
+  },
+  {
+   "wave": 55,
+   "cleared": true,
+   "healthEnd": 20,
+   "leaked": 0,
+   "ticks": 3517,
+   "bounty": 131,
+   "credits": 1158
+  },
+  {
+   "wave": 60,
+   "cleared": true,
+   "healthEnd": 20,
+   "leaked": 0,
+   "ticks": 3112,
+   "bounty": 132,
+   "credits": 2248
+  }
+ ]
+}

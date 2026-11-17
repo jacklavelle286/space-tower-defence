@@ -4,6 +4,7 @@ export { deriveBlueprint, MOONBEAM_BLUEPRINT, type Blueprint } from "./board";
 export { marginOf, measureWaves, type WaveMeasure } from "./margin";
 export { competentPolicy, minimalPolicy, naivePolicy, nonePolicy, presetsOnlyPolicy, type CompetentOptions, type NaiveOptions } from "./policies";
 export {
+  betweenWaves,
   fightWave,
   learnSucceeds,
   MAX_WAVE_TICKS,
