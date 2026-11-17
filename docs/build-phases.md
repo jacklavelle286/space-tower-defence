@@ -2469,7 +2469,7 @@ that lets only it do so.
 | Field | Detail |
 |---|---|
 | Scope | Scope-asset-kinds §3.2 |
-| In scope | Sliders inside bounds; Draw with Claude, Alien kind; walk-cycle preview; a new ruleset version adding `aliens.<id>` (mechanics 1, no traits); art in the manifest; balance re-run for every wave set using it; approval with the kind checklist |
+| In scope | Sliders inside bounds; Draw with Claude, Alien kind; walk-cycle preview; a new ruleset version adding `aliens.<id>` (mechanics 1, no traits); art in the manifest; balance re-run for every wave set using it; approval with the kind checklist; a made alien's announcement card text (name and "what it does"), checked like other child-facing text, if Phase 66's announcement exists by then |
 | Out of scope | Bosses; traits; tower maker (deferred past launch) |
 | Files | `web/admin/src/levels/aliens/`, `api/functions/publisher/`, `web/game-core/src/data/` |
 | Depends on | AM0 |
@@ -2853,7 +2853,7 @@ logo), the UI font choice, and the rest of D10.9 (remaining age 6–7 noun pictu
 | Field | Detail |
 |---|---|
 | J tasks | M6-01c |
-| In scope | Every D10.8–D10.10 row, including the remaining age 6–7 noun pictures and the demonstration card art (D10.9), drawn in-repo in the same style; favicon and app icons; the UI font (a free, child-friendly face with a single-storey "a"; which one is your call at this gate) |
+| In scope | Every D10.8–D10.10 row, including the remaining age 6–7 noun pictures and the demonstration card art (D10.9), drawn in-repo in the same style; favicon and app icons; the UI font (a free, child-friendly face with a single-storey "a"; which one is your call at this gate); **new-alien announcement** (owner ask, 2026-11-17): when an alien type appears for the first time in a run, the battle pauses and a card shows its picture, name and what it does (from the C6.1 trait, in words a 5-year-old follows), read aloud, with Continue (keyboard and mouse) [PROPOSAL: once per type per run; bosses too; text and speech approved like other child-facing copy] |
 | Out of scope | Speech (Polly clips are content) |
 | Files | as Phase 65, plus the sound files and their provenance note in the manifest (paths settled in Phase 64) |
 | Depends on | Phase 64 |
