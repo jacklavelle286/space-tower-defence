@@ -410,11 +410,19 @@ export interface Bounds {
   powerInventoryCap: number;
   sell: { refundPct: number; roundDownTo: number };
   /** targeting: the modes a placement of this class may store (spine S6 rule 4, "targeting valid"; placementTargetings:
-   *  only FRONT for a class that does not aim). Levels at which a mode opens (targetingFromLevel) are not carried yet:
-   *  the per-op bounds checks that would need them arrive with M2-07. */
+   *  only FRONT for a class that does not aim). targetingFromLevel (Phase 30, M2-07): the level a mode opens at, only
+   *  for modes above level 1 and only when the class has one (Orion's STRONG from level 3), so a bounds file of a
+   *  ruleset without such modes (r1) keeps its published bytes. */
   classes: Record<
     string,
-    { unlockAfterWave: number; deployCap: number | null; targeting: Targeting[]; levelCosts: number[]; cumulativeCosts: number[] }
+    {
+      unlockAfterWave: number;
+      deployCap: number | null;
+      targeting: Targeting[];
+      levelCosts: number[];
+      cumulativeCosts: number[];
+      targetingFromLevel?: Partial<Record<Targeting, number>>;
+    }
   >;
   pads: Record<string, { opensAfterWave: number }>;
   waveSets: Record<string, WaveSetBounds>;
@@ -1244,12 +1252,18 @@ export function buildBounds(ruleset: Ruleset, planet: PlanetDocument): Bounds {
   for (const [id, cls] of Object.entries(ruleset.classes)) {
     let running = 0;
     const levelCosts = cls.levels.map((l) => l.cost);
+    const gated = Object.fromEntries(
+      placementTargetings(cls)
+        .map((mode) => [mode, cls.targetingFromLevel[mode] ?? 1] as const)
+        .filter(([, level]) => level > 1),
+    );
     classes[id] = {
       unlockAfterWave: cls.unlockAfterWave,
       deployCap: cls.deployCap,
       targeting: placementTargetings(cls),
       levelCosts,
       cumulativeCosts: levelCosts.map((cost) => (running += cost)),
+      ...(Object.keys(gated).length > 0 ? { targetingFromLevel: gated } : {}),
     };
   }
   const pads: Bounds["pads"] = {};

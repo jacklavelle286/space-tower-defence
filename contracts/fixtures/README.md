@@ -9,6 +9,8 @@ never copied from an implementation's output. Each file names the plan sections 
 | Path | What | Read by |
 |---|---|---|
 | `ops/*.json` | op sequences: a starting run state, ops, and the expected result after each | `web/game-core/src/rules/reducer.test.ts` |
+| `ops/matrix-*.json` | Phase 29: every cell of [F §3.5](../../docs/plan/F-state-and-data.md#35-full-phase--op-matrix)'s phase × op matrix, refusals included; a coverage test in each language fails on a missing cell | `reducer.test.ts`, `api/tests/unit/test_rules_fixtures.py` |
+| `plausibility/vectors.json` | Phase 30: a synthetic bounds file, then (stored run, op) → the expected plausibility problems in order ([spine S6](../../docs/plan/00-spine.md#s6-plausibility-bounds-proposal-per-op-against-the-stored-snapshot)) | `web/game-core/src/rules/plausibility.test.ts`, `api/tests/unit/test_plausibility.py` |
 | `next-phase.json` | `(slots, interval) → ACTIVITY \| METEOR \| BUILD`, and slot ID formatting | `web/game-core/src/rules/next-phase.test.ts` |
 | `clipkey/vectors.json` | synthesis input → canonical JSON → clip key and object key (Phase 18, [ADR-0014](../../docs/decisions/0014-listening-bake-off.md)). The keys are computed, so the test re-derives each one with plain `json` + `hashlib`, independently of the spike code | `spikes/polly-listening/test_canonical.py`; `api/shared/clipkey.py`'s test from Phase 19 |
 | `answers/vectors.json` | raw input → canonical answer or refusal (MULTIPLE_CHOICE so far), and answer shape vectors | `web/shared/src/learning/canonical.test.ts` |
@@ -31,6 +33,8 @@ never copied from an implementation's output. Each file names the plan sections 
   ]
 }
 ```
+
+The release runs every file here through both implementations as gate G-3 (`.github/workflows/release.yml`, Phase 30).
 
 A runner keeps an *expected state*, starting from `start`. For each step:
 

@@ -381,10 +381,17 @@ describe("ruleset r2 and mechanics 2 (Phase 24, M2-01; ADR-0033)", () => {
       juno: { unlockAfterWave: 10, deployCap: 4, targeting: ["CROWD", "FRONT"], levelCosts: [110, 130, 260], cumulativeCosts: [110, 240, 500] },
       mira: { unlockAfterWave: 20, deployCap: 2, targeting: ["FRONT"], levelCosts: [160, 180, 280], cumulativeCosts: [160, 340, 620] },
       nova: { unlockAfterWave: 0, deployCap: null, targeting: ["FRONT", "FAST"], levelCosts: [50, 60, 150], cumulativeCosts: [50, 110, 260] },
-      orion: { unlockAfterWave: 15, deployCap: 3, targeting: ["FRONT", "STRONG"], levelCosts: [170, 100, 330], cumulativeCosts: [170, 270, 600] },
+      orion: {
+        unlockAfterWave: 15,
+        deployCap: 3,
+        targeting: ["FRONT", "STRONG"],
+        levelCosts: [170, 100, 330],
+        cumulativeCosts: [170, 270, 600],
+        targetingFromLevel: { STRONG: 3 }, // C5.3: Orion's STRONG from level 3 (Phase 30); no other mode opens above 1
+      },
       pip: { unlockAfterWave: 5, deployCap: 3, targeting: ["FRONT", "FAST"], levelCosts: [60, 80, 170], cumulativeCosts: [60, 140, 310] },
       sol: { unlockAfterWave: 25, deployCap: 2, targeting: ["FRONT"], levelCosts: [150, 200, 300], cumulativeCosts: [150, 350, 650] },
-    }); // C5.1 unlocks and caps, C5.2 prices and the "Total cost to level 3" column, C5.8 caps
+    }); // C5.1 unlocks and caps, C5.2 prices and the "Total cost to level 3" column, C5.8 caps, C5.3 level-gated modes
     expect(bounds.mechanics).toBe(2);
   });
 });

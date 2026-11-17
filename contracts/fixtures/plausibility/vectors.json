@@ -1,0 +1,1233 @@
+{
+  "description": "Plausibility bound vectors (spine S6, F 6.1; Phase 30): a synthetic bounds file, then (stored run, op) -> the expected problems in order. Written from the spine, never from an implementation's output. Read by web/game-core/src/rules/plausibility.test.ts and api/tests/unit/test_plausibility.py.",
+  "sources": [
+    "spine S6",
+    "F 6.1",
+    "C3.3 (pads open after a wave)",
+    "C5.9 (class unlocks)",
+    "C5.3 (targeting from a level)",
+    "C10 (shield trimmed to shieldCap when a wave is cleared)"
+  ],
+  "bounds": {
+    "kind": "bounds",
+    "rulesetVersion": "test",
+    "campaignVersion": "test",
+    "mechanics": 3,
+    "colony": {
+      "maxHealth": 20,
+      "shieldCap": 10
+    },
+    "powerInventoryCap": 2,
+    "sell": {
+      "refundPct": 70,
+      "roundDownTo": 5
+    },
+    "classes": {
+      "nova": {
+        "unlockAfterWave": 0,
+        "deployCap": null,
+        "targeting": [
+          "FRONT",
+          "FAST"
+        ],
+        "levelCosts": [
+          50,
+          60,
+          150
+        ],
+        "cumulativeCosts": [
+          50,
+          110,
+          260
+        ]
+      },
+      "orion": {
+        "unlockAfterWave": 15,
+        "deployCap": 1,
+        "targeting": [
+          "FRONT",
+          "STRONG"
+        ],
+        "levelCosts": [
+          170,
+          100,
+          330
+        ],
+        "cumulativeCosts": [
+          170,
+          270,
+          600
+        ],
+        "targetingFromLevel": {
+          "STRONG": 3
+        }
+      }
+    },
+    "pads": {
+      "p01": {
+        "opensAfterWave": 0
+      },
+      "p02": {
+        "opensAfterWave": 0
+      },
+      "p03": {
+        "opensAfterWave": 5
+      }
+    },
+    "waveSets": {
+      "campaign": {
+        "mode": "CAMPAIGN",
+        "finalWave": 3,
+        "meteorAfter": [],
+        "startCredits": 150,
+        "colonyHealth": 20,
+        "classes": [
+          "nova",
+          "orion"
+        ],
+        "padsOpenAsForWave": 1,
+        "createRunActions": 5,
+        "maxBounty": [
+          24,
+          32,
+          40
+        ],
+        "normalRewardByInterval": [
+          30,
+          30
+        ]
+      },
+      "trial": {
+        "mode": "CHALLENGE",
+        "finalWave": 2,
+        "meteorAfter": [],
+        "startCredits": 500,
+        "colonyHealth": 20,
+        "classes": [
+          "nova",
+          "orion"
+        ],
+        "padsOpenAsForWave": 1,
+        "createRunActions": 4,
+        "maxBounty": [
+          24,
+          32
+        ],
+        "normalRewardByInterval": [
+          30
+        ]
+      }
+    }
+  },
+  "vectors": [
+    {
+      "name": "save-prep-same-value",
+      "run": {
+        "waveSetId": "campaign",
+        "highestCompletedWave": 1,
+        "snapshot": {
+          "credits": 100,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {
+            "frost-pulse": 1
+          }
+        }
+      },
+      "op": {
+        "type": "SAVE_PREP",
+        "payload": {
+          "credits": 50,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            },
+            {
+              "padId": "p02",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ]
+        }
+      },
+      "problems": []
+    },
+    {
+      "name": "save-prep-sell-loses-value",
+      "run": {
+        "waveSetId": "campaign",
+        "highestCompletedWave": 1,
+        "snapshot": {
+          "credits": 100,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {
+            "frost-pulse": 1
+          }
+        }
+      },
+      "op": {
+        "type": "SAVE_PREP",
+        "payload": {
+          "credits": 135,
+          "placements": []
+        }
+      },
+      "problems": []
+    },
+    {
+      "name": "save-prep-one-credit-more",
+      "run": {
+        "waveSetId": "campaign",
+        "highestCompletedWave": 1,
+        "snapshot": {
+          "credits": 100,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {
+            "frost-pulse": 1
+          }
+        }
+      },
+      "op": {
+        "type": "SAVE_PREP",
+        "payload": {
+          "credits": 101,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ]
+        }
+      },
+      "problems": [
+        {
+          "field": "op.payload.credits",
+          "rule": "value"
+        }
+      ]
+    },
+    {
+      "name": "start-wave-upgrade-same-value",
+      "run": {
+        "waveSetId": "campaign",
+        "highestCompletedWave": 1,
+        "snapshot": {
+          "credits": 100,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {
+            "frost-pulse": 1
+          }
+        }
+      },
+      "op": {
+        "type": "START_WAVE",
+        "payload": {
+          "wave": 2,
+          "credits": 40,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 2,
+              "targeting": "FRONT"
+            }
+          ]
+        }
+      },
+      "problems": []
+    },
+    {
+      "name": "complete-wave-exactly-max-bounty",
+      "run": {
+        "waveSetId": "campaign",
+        "highestCompletedWave": 1,
+        "snapshot": {
+          "credits": 100,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {
+            "frost-pulse": 1
+          }
+        }
+      },
+      "op": {
+        "type": "COMPLETE_WAVE",
+        "payload": {
+          "wave": 2,
+          "credits": 132,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {}
+        }
+      },
+      "problems": []
+    },
+    {
+      "name": "complete-wave-forged-extra-credits",
+      "run": {
+        "waveSetId": "campaign",
+        "highestCompletedWave": 1,
+        "snapshot": {
+          "credits": 100,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {
+            "frost-pulse": 1
+          }
+        }
+      },
+      "op": {
+        "type": "COMPLETE_WAVE",
+        "payload": {
+          "wave": 2,
+          "credits": 133,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {}
+        }
+      },
+      "problems": [
+        {
+          "field": "op.payload.credits",
+          "rule": "value"
+        }
+      ]
+    },
+    {
+      "name": "complete-wave-endless-has-no-bound-yet",
+      "run": {
+        "waveSetId": "campaign",
+        "highestCompletedWave": 3,
+        "snapshot": {
+          "credits": 100,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {
+            "frost-pulse": 1
+          }
+        }
+      },
+      "op": {
+        "type": "COMPLETE_WAVE",
+        "payload": {
+          "wave": 4,
+          "credits": 100,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {}
+        }
+      },
+      "problems": [
+        {
+          "field": "op.payload.wave",
+          "rule": "maxBounty"
+        }
+      ]
+    },
+    {
+      "name": "complete-wave-health-zero",
+      "run": {
+        "waveSetId": "campaign",
+        "highestCompletedWave": 1,
+        "snapshot": {
+          "credits": 100,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {
+            "frost-pulse": 1
+          }
+        }
+      },
+      "op": {
+        "type": "COMPLETE_WAVE",
+        "payload": {
+          "wave": 2,
+          "credits": 100,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 0,
+            "shield": 0
+          },
+          "powers": {}
+        }
+      },
+      "problems": [
+        {
+          "field": "op.payload.colony.health",
+          "rule": "health"
+        }
+      ]
+    },
+    {
+      "name": "complete-wave-health-above-max",
+      "run": {
+        "waveSetId": "campaign",
+        "highestCompletedWave": 1,
+        "snapshot": {
+          "credits": 100,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {
+            "frost-pulse": 1
+          }
+        }
+      },
+      "op": {
+        "type": "COMPLETE_WAVE",
+        "payload": {
+          "wave": 2,
+          "credits": 100,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 21,
+            "shield": 0
+          },
+          "powers": {}
+        }
+      },
+      "problems": [
+        {
+          "field": "op.payload.colony.health",
+          "rule": "health"
+        }
+      ]
+    },
+    {
+      "name": "complete-wave-shield-above-cap",
+      "run": {
+        "waveSetId": "campaign",
+        "highestCompletedWave": 1,
+        "snapshot": {
+          "credits": 100,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {
+            "frost-pulse": 1
+          }
+        }
+      },
+      "op": {
+        "type": "COMPLETE_WAVE",
+        "payload": {
+          "wave": 2,
+          "credits": 100,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 11
+          },
+          "powers": {}
+        }
+      },
+      "problems": [
+        {
+          "field": "op.payload.colony.shield",
+          "rule": "shield"
+        }
+      ]
+    },
+    {
+      "name": "complete-wave-shield-at-cap",
+      "run": {
+        "waveSetId": "campaign",
+        "highestCompletedWave": 1,
+        "snapshot": {
+          "credits": 100,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {
+            "frost-pulse": 1
+          }
+        }
+      },
+      "op": {
+        "type": "COMPLETE_WAVE",
+        "payload": {
+          "wave": 2,
+          "credits": 100,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 10
+          },
+          "powers": {}
+        }
+      },
+      "problems": []
+    },
+    {
+      "name": "complete-wave-power-used",
+      "run": {
+        "waveSetId": "campaign",
+        "highestCompletedWave": 1,
+        "snapshot": {
+          "credits": 100,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {
+            "frost-pulse": 1
+          }
+        }
+      },
+      "op": {
+        "type": "COMPLETE_WAVE",
+        "payload": {
+          "wave": 2,
+          "credits": 100,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {
+            "frost-pulse": 0
+          }
+        }
+      },
+      "problems": []
+    },
+    {
+      "name": "complete-wave-power-gained",
+      "run": {
+        "waveSetId": "campaign",
+        "highestCompletedWave": 1,
+        "snapshot": {
+          "credits": 100,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {
+            "frost-pulse": 1
+          }
+        }
+      },
+      "op": {
+        "type": "COMPLETE_WAVE",
+        "payload": {
+          "wave": 2,
+          "credits": 100,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {
+            "comet-burst": 1,
+            "frost-pulse": 2
+          }
+        }
+      },
+      "problems": [
+        {
+          "field": "op.payload.powers.comet-burst",
+          "rule": "power"
+        },
+        {
+          "field": "op.payload.powers.frost-pulse",
+          "rule": "power"
+        }
+      ]
+    },
+    {
+      "name": "duplicate-pad",
+      "run": {
+        "waveSetId": "campaign",
+        "highestCompletedWave": 1,
+        "snapshot": {
+          "credits": 100,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {
+            "frost-pulse": 1
+          }
+        }
+      },
+      "op": {
+        "type": "SAVE_PREP",
+        "payload": {
+          "credits": 0,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            },
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ]
+        }
+      },
+      "problems": [
+        {
+          "field": "op.payload.placements[1].padId",
+          "rule": "unique"
+        }
+      ]
+    },
+    {
+      "name": "campaign-pad-not-open-yet",
+      "run": {
+        "waveSetId": "campaign",
+        "highestCompletedWave": 4,
+        "snapshot": {
+          "credits": 100,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {
+            "frost-pulse": 1
+          }
+        }
+      },
+      "op": {
+        "type": "SAVE_PREP",
+        "payload": {
+          "credits": 50,
+          "placements": [
+            {
+              "padId": "p03",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ]
+        }
+      },
+      "problems": [
+        {
+          "field": "op.payload.placements[0].padId",
+          "rule": "padClosed"
+        }
+      ]
+    },
+    {
+      "name": "campaign-pad-open-after-its-wave",
+      "run": {
+        "waveSetId": "campaign",
+        "highestCompletedWave": 5,
+        "snapshot": {
+          "credits": 100,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {
+            "frost-pulse": 1
+          }
+        }
+      },
+      "op": {
+        "type": "SAVE_PREP",
+        "payload": {
+          "credits": 50,
+          "placements": [
+            {
+              "padId": "p03",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ]
+        }
+      },
+      "problems": []
+    },
+    {
+      "name": "challenge-pads-are-fixed",
+      "run": {
+        "waveSetId": "trial",
+        "highestCompletedWave": 10,
+        "snapshot": {
+          "credits": 100,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {
+            "frost-pulse": 1
+          }
+        }
+      },
+      "op": {
+        "type": "SAVE_PREP",
+        "payload": {
+          "credits": 50,
+          "placements": [
+            {
+              "padId": "p03",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ]
+        }
+      },
+      "problems": [
+        {
+          "field": "op.payload.placements[0].padId",
+          "rule": "padClosed"
+        }
+      ]
+    },
+    {
+      "name": "campaign-class-locked",
+      "run": {
+        "waveSetId": "campaign",
+        "highestCompletedWave": 14,
+        "snapshot": {
+          "credits": 1000,
+          "placements": [],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {}
+        }
+      },
+      "op": {
+        "type": "SAVE_PREP",
+        "payload": {
+          "credits": 830,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "orion",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ]
+        }
+      },
+      "problems": [
+        {
+          "field": "op.payload.placements[0].classId",
+          "rule": "classLocked"
+        }
+      ]
+    },
+    {
+      "name": "campaign-class-unlocked-after-its-wave",
+      "run": {
+        "waveSetId": "campaign",
+        "highestCompletedWave": 15,
+        "snapshot": {
+          "credits": 1000,
+          "placements": [],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {}
+        }
+      },
+      "op": {
+        "type": "SAVE_PREP",
+        "payload": {
+          "credits": 830,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "orion",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ]
+        }
+      },
+      "problems": []
+    },
+    {
+      "name": "challenge-classes-are-listed",
+      "run": {
+        "waveSetId": "trial",
+        "highestCompletedWave": 0,
+        "snapshot": {
+          "credits": 1000,
+          "placements": [],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {}
+        }
+      },
+      "op": {
+        "type": "SAVE_PREP",
+        "payload": {
+          "credits": 830,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "orion",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ]
+        }
+      },
+      "problems": []
+    },
+    {
+      "name": "targeting-mode-below-its-level",
+      "run": {
+        "waveSetId": "campaign",
+        "highestCompletedWave": 15,
+        "snapshot": {
+          "credits": 1000,
+          "placements": [],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {}
+        }
+      },
+      "op": {
+        "type": "SAVE_PREP",
+        "payload": {
+          "credits": 730,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "orion",
+              "level": 2,
+              "targeting": "STRONG"
+            }
+          ]
+        }
+      },
+      "problems": [
+        {
+          "field": "op.payload.placements[0].targeting",
+          "rule": "targetingLevel"
+        }
+      ]
+    },
+    {
+      "name": "targeting-mode-at-its-level",
+      "run": {
+        "waveSetId": "campaign",
+        "highestCompletedWave": 15,
+        "snapshot": {
+          "credits": 1000,
+          "placements": [],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {}
+        }
+      },
+      "op": {
+        "type": "SAVE_PREP",
+        "payload": {
+          "credits": 400,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "orion",
+              "level": 3,
+              "targeting": "STRONG"
+            }
+          ]
+        }
+      },
+      "problems": []
+    },
+    {
+      "name": "deploy-cap",
+      "run": {
+        "waveSetId": "campaign",
+        "highestCompletedWave": 15,
+        "snapshot": {
+          "credits": 1000,
+          "placements": [],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {}
+        }
+      },
+      "op": {
+        "type": "SAVE_PREP",
+        "payload": {
+          "credits": 660,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "orion",
+              "level": 1,
+              "targeting": "FRONT"
+            },
+            {
+              "padId": "p02",
+              "classId": "orion",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ]
+        }
+      },
+      "problems": [
+        {
+          "field": "op.payload.placements",
+          "rule": "deployCap"
+        }
+      ]
+    },
+    {
+      "name": "problems-in-fixed-order",
+      "run": {
+        "waveSetId": "campaign",
+        "highestCompletedWave": 4,
+        "snapshot": {
+          "credits": 1000,
+          "placements": [],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {}
+        }
+      },
+      "op": {
+        "type": "START_WAVE",
+        "payload": {
+          "wave": 5,
+          "credits": 1000,
+          "placements": [
+            {
+              "padId": "p03",
+              "classId": "orion",
+              "level": 1,
+              "targeting": "FRONT"
+            },
+            {
+              "padId": "p03",
+              "classId": "orion",
+              "level": 2,
+              "targeting": "STRONG"
+            }
+          ]
+        }
+      },
+      "problems": [
+        {
+          "field": "op.payload.placements[0].padId",
+          "rule": "padClosed"
+        },
+        {
+          "field": "op.payload.placements[0].classId",
+          "rule": "classLocked"
+        },
+        {
+          "field": "op.payload.placements[1].padId",
+          "rule": "unique"
+        },
+        {
+          "field": "op.payload.placements[1].padId",
+          "rule": "padClosed"
+        },
+        {
+          "field": "op.payload.placements[1].classId",
+          "rule": "classLocked"
+        },
+        {
+          "field": "op.payload.placements[1].targeting",
+          "rule": "targetingLevel"
+        },
+        {
+          "field": "op.payload.placements",
+          "rule": "deployCap"
+        },
+        {
+          "field": "op.payload.credits",
+          "rule": "value"
+        }
+      ]
+    },
+    {
+      "name": "not-a-checkpoint-op",
+      "run": {
+        "waveSetId": "campaign",
+        "highestCompletedWave": 1,
+        "snapshot": {
+          "credits": 100,
+          "placements": [
+            {
+              "padId": "p01",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {
+            "frost-pulse": 1
+          }
+        }
+      },
+      "op": {
+        "type": "DEFEAT",
+        "payload": {
+          "wave": 2
+        }
+      },
+      "problems": []
+    }
+  ]
+}

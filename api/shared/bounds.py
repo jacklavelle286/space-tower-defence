@@ -112,9 +112,10 @@ def parse_bounds(data: Any, ruleset_version: str, campaign_version: str) -> dict
         where = f"bounds.classes.{class_id}"
         if not KEY_ID.match(class_id):
             raise BoundsUnavailable(f"{where}: not a key ID")
-        cls = _obj(
-            entry, where, frozenset({"unlockAfterWave", "deployCap", "targeting", "levelCosts", "cumulativeCosts"})
-        )
+        cls = _obj(entry, where)
+        required = {"unlockAfterWave", "deployCap", "targeting", "levelCosts", "cumulativeCosts"}
+        if not required <= set(cls) <= {*required, "targetingFromLevel"}:
+            raise BoundsUnavailable(f"{where} keys {sorted(cls)} are not {sorted(required)} (+ targetingFromLevel)")
         _int(cls["unlockAfterWave"], f"{where}.unlockAfterWave")
         if cls["deployCap"] is not None:
             _int(cls["deployCap"], f"{where}.deployCap", 1)
@@ -126,6 +127,12 @@ def parse_bounds(data: Any, ruleset_version: str, campaign_version: str) -> dict
             or len(set(targeting)) != len(targeting)
         ):
             raise BoundsUnavailable(f"{where}.targeting must be a non-empty list of distinct targeting modes")
+        # Phase 30: the level each level-gated mode opens at (only modes above level 1; absent when there are none).
+        gated = _obj(cls.get("targetingFromLevel", {}), f"{where}.targetingFromLevel")
+        for mode, level in gated.items():
+            if mode not in targeting:
+                raise BoundsUnavailable(f"{where}.targetingFromLevel: {mode!r} is not one of the class's modes")
+            _int(level, f"{where}.targetingFromLevel.{mode}", 2)
         costs = _ints(cls["levelCosts"], f"{where}.levelCosts", 1)
         running = [sum(costs[: i + 1]) for i in range(len(costs))]
         if not costs or _ints(cls["cumulativeCosts"], f"{where}.cumulativeCosts", 1) != running:
