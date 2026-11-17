@@ -12,7 +12,7 @@ const config = compileBattleConfig(ruleset, planet, "first-contact");
 const summary = (id: string) => {
   const cls = config.classes[id];
   if (cls === undefined) throw new Error(id);
-  return classSummary(cls);
+  return classSummary(cls, config.classes);
 };
 
 describe("classSummary (the shop card's hover summary, from the ruleset's numbers)", () => {
@@ -23,6 +23,11 @@ describe("classSummary (the shop card's hover summary, from the ruleset's number
       facts: ["Reach: 2.5 squares", "Shoots every 1 second", "Damage: 10"],
       upgrades: ["Level 2: faster shots", "Level 3: more reach, more damage"],
       quote: "Ready for launch!",
+      ratings: [
+        { label: "Power", stars: 2 },
+        { label: "Reach", stars: 3 },
+        { label: "Speed", stars: 3 },
+      ],
     });
   });
 
@@ -31,6 +36,10 @@ describe("classSummary (the shop card's hover summary, from the ruleset's number
     expect(sol.line).toBe("Helps nearby astronauts hit harder. Does not shoot.");
     expect(sol.facts).toEqual(["Boost: +15% damage", "Reach: 4.5 squares", "Up to 2 on the map"]);
     expect(sol.upgrades).toEqual(["Level 2: bigger boost", "Level 3: reaches further"]);
+    expect(sol.ratings).toEqual([
+      { label: "Help", stars: 3 },
+      { label: "Reach", stars: 4 },
+    ]);
   });
 
   it("covers every class's attack kind", () => {
@@ -40,5 +49,16 @@ describe("classSummary (the shop card's hover summary, from the ruleset's number
     expect(summary("orion").line).toBe("Hits one alien hard, from far away.");
     expect(summary("mira").facts).toEqual(["Adds 1 shield every 15 seconds", "Up to 2 on the map"]);
     expect(summary("mira").upgrades).toEqual(["Level 2: bigger shield", "Level 3: shields more often, repairs the colony"]);
+  });
+
+  it("rates every class 1 to 5 stars against the best level of any class", () => {
+    const line = (id: string) =>
+      summary(id)
+        .ratings.map((r) => `${r.label} ${r.stars}`)
+        .join(", ");
+    expect(line("pip")).toBe("Power 1, Reach 3, Speed 4");
+    expect(line("juno")).toBe("Power 3, Reach 3, Speed 2");
+    expect(line("orion")).toBe("Power 3, Reach 4, Speed 2");
+    expect(line("mira")).toBe("Help 2");
   });
 });

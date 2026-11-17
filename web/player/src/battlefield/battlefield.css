@@ -197,6 +197,36 @@
   padding-left: 20px;
 }
 
+.bf-tip-stars {
+  margin: 6px 0;
+}
+
+.bf-tip-stars div {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bf-tip-stars dt {
+  width: 56px;
+  font-weight: 700;
+}
+
+.bf-tip-stars dd {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: 1px;
+}
+
+.bf-star-on {
+  color: #f0a500;
+  -webkit-text-stroke: 1px #2a1e3d;
+}
+
+.bf-star-off {
+  color: #e6dcc3;
+}
+
 .bf-tip-upgrades {
   font-weight: 600;
 }

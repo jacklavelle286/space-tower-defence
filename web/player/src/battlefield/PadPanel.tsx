@@ -5,7 +5,7 @@
 // the Phase 31 HUD; this is the Phase 24 minimum to place the new classes on the local battlefield. Each card shows
 // a summary of the class (classSummary.ts) on hover and on keyboard focus, read out as the button's description.
 import type { GameBridge } from "../game/GameBridge";
-import { classSummary } from "./classSummary";
+import { classSummary, MAX_STARS } from "./classSummary";
 import { useSelection } from "./useBridge";
 
 export function PadPanel({ bridge, credits }: { bridge: GameBridge; credits: number }) {
@@ -21,7 +21,7 @@ export function PadPanel({ bridge, credits }: { bridge: GameBridge; credits: num
         // A locked class shows its silhouette card and when it unlocks (D4, C5.9).
         const locked = offer.refusal === "CLASS_LOCKED";
         const cls = bridge.config.classes[offer.classId];
-        const summary = cls === undefined ? null : classSummary(cls);
+        const summary = cls === undefined ? null : classSummary(cls, bridge.config.classes);
         const tipId = `bf-tip-${offer.classId}`;
         return (
           <div key={offer.classId} className="bf-offer">
@@ -44,6 +44,19 @@ export function PadPanel({ bridge, credits }: { bridge: GameBridge; credits: num
               <div className="bf-tip" id={tipId} role="tooltip">
                 <strong>{summary.title}</strong>
                 <p>{summary.line}</p>
+                <dl className="bf-tip-stars">
+                  {summary.ratings.map((r) => (
+                    <div key={r.label}>
+                      <dt>{r.label}</dt>
+                      <dd aria-label={`${r.stars} of ${MAX_STARS} stars`}>
+                        <span aria-hidden="true">
+                          <span className="bf-star-on">{"★".repeat(r.stars)}</span>
+                          <span className="bf-star-off">{"★".repeat(MAX_STARS - r.stars)}</span>
+                        </span>
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
                 <ul>
                   {summary.facts.map((f) => (
                     <li key={f}>{f}</li>
