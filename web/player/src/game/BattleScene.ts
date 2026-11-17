@@ -18,7 +18,7 @@
 // Phase 28: a meteor power's `power` event plays its effect (a frost wash over the field, a comet ring where the burst
 // landed, the dome flaring over the colony). The effects are loaded only when the ruleset has powers, so the live r1
 // game loads nothing new. Slowed aliens keep the frost tint they already had (state, not a timer).
-import { routePoint, type AlienState, type Battle, type BattleEvent } from "@scd/game-core";
+import { buffPctAt, routePoint, type AlienState, type Battle, type BattleEvent } from "@scd/game-core";
 import { GameObjects, Scene, type Input } from "phaser";
 import {
   ALIEN_LOOPED,
@@ -65,6 +65,9 @@ const COLONY_DY = 74;
 const FROST_TINT = 0x9fd8ff;
 /** Sol's buff ring in the pad preview (C5.6), a different colour from an attacker's range circle. */
 const BUFF_RING = 0xffc857;
+/** The glow under an astronaut while a Sol boosts it (C5.6), read from the battle each frame (state, not a timer). */
+const BOOST_GLOW_RX = 40;
+const BOOST_GLOW_RY = 14;
 /** Where a flying alien's shadow sits, and the centre of a Bubble Guard's layers, relative to its feet (art fit). */
 const SHADOW_DY = -4;
 const LAYERS_DY = -48;
@@ -133,6 +136,8 @@ export class BattleScene extends Scene {
   #effectPool: Pool<GameObjects.Sprite> | null = null;
   #colony: GameObjects.Image | null = null;
   #range: GameObjects.Graphics | null = null;
+  /** Glows under the astronauts a Sol is boosting, so a Sol's work shows on the field (Sol never shoots). */
+  #boost: GameObjects.Graphics | null = null;
   /** Pads that already had an astronaut when this wave's battle was made (no "placed" sparkle for those). */
   #restored = new Set<string>();
 
@@ -194,6 +199,7 @@ export class BattleScene extends Scene {
     }
 
     this.#range = this.add.graphics().setDepth(5);
+    this.#boost = this.add.graphics().setDepth(6);
 
     this.#alienPool = new Pool<AlienView>(
       () => ({
@@ -261,7 +267,7 @@ export class BattleScene extends Scene {
     const tower = battle?.towers.find((t) => t.padId === selected);
     const pad = this.#bridge.config.pads.find((p) => p.id === selected);
     if (tower === undefined || pad === undefined) return;
-    // An attacker shows its range; Sol shows the ring her buff reaches (pad centres inside it, C5.6); Mira has none.
+    // An attacker shows its range; Sol shows the ring its buff reaches (pad centres inside it, C5.6); Mira has none.
     const level = this.#bridge.config.classes[tower.classId]?.levels[tower.level - 1];
     const radius = level?.shot?.rangeTiles ?? level?.buff?.radiusTiles;
     if (radius === undefined) return;
@@ -272,6 +278,10 @@ export class BattleScene extends Scene {
 
   #drawTowers(battle: Readonly<Battle>): void {
     const present = new Set<string>();
+    // Sol never fires (C5.6): Sol raises the damage of attackers whose pad the ring reaches. buffPctAt is the
+    // simulation's own answer, so a glow appears exactly where the bonus applies.
+    const boost = this.#boost;
+    boost?.clear();
     for (const tower of battle.towers) {
       present.add(tower.padId);
       const pad = this.#bridge.config.pads.find((p) => p.id === tower.padId);
@@ -279,6 +289,10 @@ export class BattleScene extends Scene {
       const x = tileToPx(pad.x);
       const y = tileToPx(pad.y) + ASTRONAUT_FEET_DY;
       const art = astronautArt(tower.classId, tower.level);
+      if (boost !== null && buffPctAt(battle, tower.padId) > 0) {
+        boost.fillStyle(BUFF_RING, 0.45).fillEllipse(x, y, BOOST_GLOW_RX * 2, BOOST_GLOW_RY * 2);
+        boost.lineStyle(3, BUFF_RING, 0.9).strokeEllipse(x, y, BOOST_GLOW_RX * 2, BOOST_GLOW_RY * 2);
+      }
       let view = this.#towers.get(tower.padId);
       // A sale and a purchase on the same pad within one frame (or one tick) leave a different class there.
       if (view !== undefined && view.classId !== tower.classId) {
