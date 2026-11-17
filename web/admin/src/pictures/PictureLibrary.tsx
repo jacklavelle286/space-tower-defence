@@ -233,7 +233,10 @@ function PictureDetails({
                     <span key={id}>
                       {i > 0 && ", "}
                       {id.startsWith("level:") ? (
-                        <a href={hrefOf({ page: "level", id: id.slice("level:".length) })}>level {id.slice("level:".length)}</a>
+                        // "level:<id>" is a draft; "level:<id>@<version>" a published version (LD6), which keeps it for good.
+                        <a href={hrefOf({ page: "level", id: (id.slice("level:".length).split("@")[0] ?? "") })}>
+                          level {id.slice("level:".length).replace("@", ", published as ")}
+                        </a>
                       ) : (
                         <a href={hrefOf({ page: "activity", id })}>{id}</a>
                       )}

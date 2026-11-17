@@ -392,14 +392,21 @@ def picture_users(content: DynamoTable, picture_id: str) -> list[str]:
 
 
 def level_picture_users(content: DynamoTable, picture_id: str) -> list[str]:
-    """The IDs of the level drafts (Gate M, LD3) whose map uses `picture_id` as its backdrop or a decoration: the level
-    header partition (one Query) and every draft by BatchGetItem. Published level versions join in LD6."""
+    """Who uses `picture_id` as a map backdrop or decoration: each level draft (Gate M, LD3) by its level ID, and each
+    published level version (LD6, the V# items' `pictures`) as <levelId>@<campaignVersion>. A published version holds
+    its pictures for good: saved runs stay pinned to it. The level header partition (one Query), every draft by
+    BatchGetItem, and one Query per level for its versions."""
     from shared.levels import DRAFT_SK, LEVEL_PK, level_pk  # import here: levels imports content, content this
 
     ids = sorted(str(h["sk"]) for h in content.query_prefix(LEVEL_PK, "", attributes=("sk",)))
     drafts = content.batch_get([(level_pk(level_id), DRAFT_SK) for level_id in ids])
-    return [
+    users = [
         level_id
         for level_id in ids
         if picture_id in library_asset_ids((drafts.get((level_pk(level_id), DRAFT_SK)) or {}).get("level"))
     ]
+    for level_id in ids:
+        for version in content.query_prefix(level_pk(level_id), "V#", attributes=("campaignVersion", "pictures")):
+            if picture_id in (version.get("pictures") or []):
+                users.append(f"{level_id}@{version.get('campaignVersion')}")
+    return users

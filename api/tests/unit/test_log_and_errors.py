@@ -95,7 +95,9 @@ PICTURE_FIELDS = {
 def test_allow_list_is_g15_plus_error_type_and_the_picture_fields() -> None:
     """Gate P adds identifiers, counts and token numbers only: no field can carry a description or an SVG."""
     # "pruned": the G9 prune's count of removed runs (Phase 32), an int.
-    assert ALLOWED_FIELDS - {"errorType", "pruned"} - PICTURE_FIELDS == {
+    # Gate M, LD6: the publisher's identifiers and outcome (a level, a version, a wave set, a state, live yes or no).
+    publisher = {"levelId", "campaignVersion", "waveSetId", "state", "live"}
+    assert ALLOWED_FIELDS - {"errorType", "pruned"} - PICTURE_FIELDS - publisher == {
         "requestId",
         "routeKey",
         "status",

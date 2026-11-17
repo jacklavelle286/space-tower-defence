@@ -69,6 +69,12 @@ ALLOWED_FIELDS: frozenset[str] = frozenset(
         "upstreamError",
         "kind",  # picture-gen (Gate P2): the job's picture kind, one of picture.kinds in contracts/limits.json
         "provider",  # picture-gen: who drew it, openai or bedrock (PICTURE_PROVIDER; owner decision 2026-11-16)
+        # game-data-publish (Gate M, LD6): which level and version an action touched, and how it ended
+        "levelId",
+        "campaignVersion",
+        "waveSetId",
+        "state",
+        "live",
     }
 )
 

@@ -204,7 +204,7 @@ export const LIMITS = {
     "createRunMaxActions": 100
   },
   "levelDesigner": {
-    "$comment": "Friendly ranges for the level designer's inputs (Gate M, LD4; scope-level-designer.md 3.1 step 9) [PROPOSAL]. Narrower than game-core's parser accepts, so a slip cannot make a wave set no child could play. The publisher (LD6) holds drafts to them too.",
+    "$comment": "Friendly ranges for the level designer's inputs (Gate M, LD4; scope-level-designer.md 3.1 step 9) [PROPOSAL]. Narrower than game-core's parser accepts, so a slip cannot make a wave set no child could play. The publisher (LD6) holds drafts to them too. backdropMaxBytes (LD6): the largest Background picture a published map may use as its backdrop, since the player loads it as is (WebP conversion deferred, ADR-0037).",
     "startCredits": {
       "min": 50,
       "max": 2000
@@ -235,7 +235,8 @@ export const LIMITS = {
     },
     "groupsPerWave": {
       "max": 12
-    }
+    },
+    "backdropMaxBytes": 1048576
   },
   "ids": {
     "uuid": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$",
