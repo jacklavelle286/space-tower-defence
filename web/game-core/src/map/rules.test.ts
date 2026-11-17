@@ -18,11 +18,16 @@ const doc = (change: (d: PlanetDocument) => void): PlanetDocument => {
   change(d);
   return d;
 };
-const withRoute = (route: Route): PlanetDocument => doc((d) => (d.map.route = route));
+const main = (d: PlanetDocument): PlanetDocument["maps"][string] => {
+  const m = d.maps["main"];
+  if (m === undefined) throw new Error("no main map");
+  return m;
+};
+const withRoute = (route: Route): PlanetDocument => doc((d) => (main(d).route = route));
 const rules = (problems: readonly PlanetProblem[], severity?: Severity): ProblemRule[] =>
   problems.filter((p) => severity === undefined || p.severity === severity).map((p) => p.rule);
-const pad = (d: PlanetDocument, id: string): PlanetDocument["map"]["pads"][number] => {
-  const p = d.map.pads.find((x) => x.id === id);
+const pad = (d: PlanetDocument, id: string): PlanetDocument["maps"][string]["pads"][number] => {
+  const p = main(d).pads.find((x) => x.id === id);
   if (p === undefined) throw new Error(id);
   return p;
 };
@@ -41,7 +46,7 @@ describe("published planets", () => {
 
 describe("one broken document per rule", () => {
   const cases: [ProblemRule, Severity, PlanetDocument][] = [
-    ["gridSize", "hard", doc((d) => (d.map.grid = { cols: 21, rows: 11 }))],
+    ["gridSize", "hard", doc((d) => (main(d).grid = { cols: 21, rows: 11 }))],
     ["waypoints", "hard", withRoute([[0, 1], [1, 1], [1, 2], [2, 2], [2, 1], [3, 1], [3, 2], [4, 2], [4, 1], [5, 1], [5, 2], [6, 2], [6, 1], [7, 1], [7, 2], [8, 2], [19, 2]])],
     ["startEdge", "hard", withRoute([[1, 2], [19, 2]])],
     ["startHeading", "hard", withRoute([[0, 2], [0, 5], [19, 5]])],
@@ -59,13 +64,13 @@ describe("one broken document per rule", () => {
     ["stretchesClose", "warn", withRoute([[0, 2], [4, 2], [4, 8], [6, 8], [6, 3], [19, 3]])],
     ["footprint", "block", doc((d) => Object.assign(pad(d, "p02"), { x: 0, y: 3 }))],
     ["fewBendPads", "warn", withRoute([[0, 2], [10, 2], [10, 8], [19, 8]])],
-    ["padCount", "block", doc((d) => (d.map.pads = d.map.pads.slice(0, 11)))],
+    ["padCount", "block", doc((d) => (main(d).pads = main(d).pads.slice(0, 11)))],
     ["padsTooClose", "block", doc((d) => Object.assign(pad(d, "p01"), { x: 3, y: 5 }))],
     ["padFar", "block", doc((d) => Object.assign(pad(d, "p06"), { x: 1, y: 6 }))],
     ["fewStartPads", "warn", doc((d) => ["p02", "p04", "p05"].forEach((id) => (pad(d, id).opensAfterWave = 5)))],
     ["startPadReach", "warn", doc((d) => (pad(d, "p01").opensAfterWave = 0))],
     ["opensAfterWave", "block", doc((d) => (pad(d, "p03").opensAfterWave = 7))],
-    ["unlockOpensNothing", "warn", doc((d) => d.map.pads.forEach((p) => p.opensAfterWave === 25 && (p.opensAfterWave = 20)))],
+    ["unlockOpensNothing", "warn", doc((d) => main(d).pads.forEach((p) => p.opensAfterWave === 25 && (p.opensAfterWave = 20)))],
     ["challengeLength", "block", doc((d) => d.waveSets["blob-parade"] && (d.waveSets["blob-parade"].waves = [1]))],
     ["campaignHealth", "block", doc((d) => d.waveSets["campaign"] && (d.waveSets["campaign"].colonyHealth = 15))],
     ["challengeHealth", "block", doc((d) => d.waveSets["blob-parade"] && (d.waveSets["blob-parade"].colonyHealth = 9))],
@@ -81,7 +86,8 @@ describe("one broken document per rule", () => {
   });
 
   it("covers every rule", () => {
-    const covered = new Set([...cases.map(([rule]) => rule), "padOrder", "arrowReach"]);
+    // decorationPlacement needs a schema 2 document: src/data/schema2.test.ts.
+    const covered = new Set([...cases.map(([rule]) => rule), "padOrder", "arrowReach", "decorationPlacement"]);
     expect([...covered].sort()).toEqual(Object.keys(PROBLEM_TEXT).sort());
   });
 

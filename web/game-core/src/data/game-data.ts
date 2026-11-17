@@ -60,6 +60,26 @@ export const CAMPAIGN_WAVES = 50;
 /** Spine S3.2: COMPLETE_WAVE at wave 999 completes an endless run (the same number as sim/config's ENDLESS_FINAL_WAVE). */
 export const ENDLESS_LAST_WAVE = 999;
 export const CAMPAIGN_METEOR_AFTER: readonly number[] = [9, 19, 29, 39, 49];
+/** Schema 2 (Gate M, LD2): the ID a schema 1 document's one map gets when parsed [ASSUMPTION]. */
+export const SCHEMA1_MAP_ID = "main";
+/** Schema 2 limits (scope-level-designer.md §3.1): maps per document, decorations per map. */
+export const MAX_MAPS = 4;
+export const MAX_DECORATIONS = 24;
+/** An approved library picture's ID (web/shared/src/pictures.ts LIBRARY_PICTURE_ID). */
+export const LIBRARY_PICTURE_PATTERN = /^lib-[0-9a-f]{32}$/;
+/** The repo decorations a map may place: the keys of @scd/shared/map DECORATIONS (shared's map test checks the copy). */
+export const REPO_DECORATIONS: readonly string[] = [
+  "deco-antenna",
+  "deco-crater-1",
+  "deco-crater-2",
+  "deco-crater-3",
+  "deco-flag-plain",
+  "deco-lamp-off",
+  "deco-lamp-on",
+  "deco-rock-1",
+  "deco-rock-2",
+  "deco-rock-3",
+];
 
 const INT_MAX = 2147483647; // contracts/limits.json integerMax
 
@@ -346,12 +366,23 @@ export function isBoss(ruleset: Pick<Ruleset, "bosses">, type: string): boolean 
   return Object.hasOwn(ruleset.bosses, type);
 }
 
-export interface AuthoredWave {
-  wave: number;
+/** What every wave is: its spawn groups and multipliers. */
+export interface WaveBody {
   groups: SpawnGroup[];
   hpMult: number;
   speedMult: number;
 }
+
+/** A numbered wave (1-50): the campaign's waves, which challenges may reuse (C8, C13). */
+export interface AuthoredWave extends WaveBody {
+  wave: number;
+}
+
+/** A challenge-only wave (schema 2, Gate M LD2): a string ID, only in CHALLENGE wave sets (C13 amendment, ADR-0032). */
+export type ChallengeWave = WaveBody;
+
+/** A wave set's reference to a wave: a campaign wave number, or (schema 2, CHALLENGE only) a challenge wave ID. */
+export type WaveRef = number | string;
 
 /** C11.1: endless wave n >= 51 is a pure function of n, built from these numbers (mechanics 4, Phase 54). */
 export interface EndlessRules {
@@ -385,8 +416,10 @@ export interface PresetPlacement {
 export interface WaveSet {
   mode: WaveSetMode;
   name: string;
-  /** References to authored waves (`AuthoredWave.wave`), in play order. finalWave = waves.length. */
-  waves: number[];
+  /** The map it is played on (schema 2); a schema 1 document's one map is SCHEMA1_MAP_ID. */
+  mapId: string;
+  /** References to waves, in play order: campaign wave numbers, or challenge wave IDs. finalWave = waves.length. */
+  waves: WaveRef[];
   meteorAfter: number[];
   startCredits: number;
   colonyHealth: number;
@@ -395,17 +428,36 @@ export interface WaveSet {
   presetPlacements: PresetPlacement[];
 }
 
+/** A decoration placed on a map: a repo decoration (REPO_DECORATIONS) or an approved library picture. */
+export interface MapDecoration {
+  art: string;
+  x: number;
+  y: number;
+}
+
+export interface PlanetMap {
+  name: string;
+  grid: { cols: number; rows: number };
+  route: [number, number][];
+  pads: Pad[];
+  /** Per-map pictures (schema 2): `backdrop` null = the repo Moonbeam ground, else an approved Background picture. */
+  art: { backdrop: string | null; decorations: MapDecoration[] };
+}
+
+/**
+ * A planet document (spine S5.1, C15). Schema 1 (no `schema` key) has one `map`; schema 2 (Gate M, LD2;
+ * scope-level-designer.md §3.1) has up to MAX_MAPS `maps`, per-map art, challenge-only waves and a `mapId` per wave
+ * set. Both parse to this shape: a schema 1 map is `maps[SCHEMA1_MAP_ID]` with no art.
+ */
 export interface PlanetDocument {
   kind: "campaign";
+  schema: 1 | 2;
   version: string;
   planetId: string;
   name: string;
-  map: {
-    grid: { cols: number; rows: number };
-    route: [number, number][];
-    pads: Pad[];
-  };
+  maps: Record<string, PlanetMap>;
   waves: AuthoredWave[];
+  challengeWaves: Record<string, ChallengeWave>;
   waveSets: Record<string, WaveSet>;
 }
 
@@ -434,6 +486,11 @@ export interface WaveSetBounds {
    * activity's credits (C11.2).
    */
   endless?: { maxBounty: number[]; learningReward: number };
+  /**
+   * The pads of the set's map (schema 2 documents only, so earlier files keep their bytes): player-api refuses a
+   * placement on a pad of another map (Gate M, LD2).
+   */
+  pads?: string[];
 }
 
 export interface Bounds {
@@ -465,6 +522,7 @@ export interface Bounds {
       targetingFromLevel?: Partial<Record<Targeting, number>>;
     }
   >;
+  /** Every pad on the planet, across all its maps (pad IDs are unique in a document). */
   pads: Record<string, { opensAfterWave: number }>;
   waveSets: Record<string, WaveSetBounds>;
 }
@@ -1156,23 +1214,27 @@ function parseWaveSet(
   id: string,
   ruleset: Ruleset,
   authored: ReadonlyMap<number, AuthoredWave>,
-  pads: readonly Pad[],
+  challengeWaves: Readonly<Record<string, ChallengeWave>>,
+  maps: Readonly<Record<string, PlanetMap>>,
+  schema: 1 | 2,
 ): WaveSet {
-  const o = obj(raw, path, [
-    "mode",
-    "name",
-    "waves",
-    "meteorAfter",
-    "startCredits",
-    "colonyHealth",
-    "classes",
-    "padsOpenAsForWave",
-    "presetPlacements",
-  ]);
+  const keys = ["mode", "name", "waves", "meteorAfter", "startCredits", "colonyHealth", "classes", "padsOpenAsForWave", "presetPlacements"];
+  const o = obj(raw, path, schema === 2 ? [...keys, "mapId"] : keys);
   const mode = oneOf(o["mode"], `${path}.mode`, WAVE_SET_MODES);
-  const waves = arr(o["waves"], `${path}.waves`, 1).map((w, i) => {
-    const n = int(w, `${path}.waves[${i}]`, 1);
-    if (!authored.has(n)) fail(`${path}.waves[${i}]`, `authored wave ${n} is not in this planet document's waves`);
+  const mapId = schema === 2 ? str(o["mapId"], `${path}.mapId`, KEY_ID_PATTERN, 40) : SCHEMA1_MAP_ID;
+  const map = maps[mapId];
+  if (map === undefined) fail(`${path}.mapId`, `map "${mapId}" is not in this planet document's maps`);
+  const { pads } = map;
+  const waves = arr(o["waves"], `${path}.waves`, 1).map((w, i): WaveRef => {
+    const at = `${path}.waves[${i}]`;
+    if (typeof w === "string" && schema === 2) {
+      // A challenge-only wave (C13 amendment, ADR-0032): never in the campaign, whose waves are numbered.
+      if (mode !== "CHALLENGE") fail(at, "only a CHALLENGE wave set may use a challenge wave");
+      if (!Object.hasOwn(challengeWaves, w)) fail(at, `challenge wave "${w}" is not in this planet document's challengeWaves`);
+      return w;
+    }
+    const n = int(w, at, 1);
+    if (!authored.has(n)) fail(at, `authored wave ${n} is not in this planet document's waves`);
     return n;
   });
   const finalWave = waves.length;
@@ -1238,6 +1300,7 @@ function parseWaveSet(
   return {
     mode,
     name: str(o["name"], `${path}.name`, undefined, 60),
+    mapId,
     waves,
     meteorAfter,
     startCredits: int(o["startCredits"], `${path}.startCredits`, 0, 100000),
@@ -1248,29 +1311,25 @@ function parseWaveSet(
   };
 }
 
-/** Parse a planet document against the ruleset it will be played with (alien types and classes must exist there). */
-export function parsePlanet(raw: unknown, ruleset: Ruleset): PlanetDocument {
-  const top = obj(raw, "planet", ["kind", "version", "planetId", "name", "map", "waves", "waveSets"], ["$comment"]);
-  if (top["kind"] !== "campaign") fail("planet.kind", 'must be "campaign"');
-  const version = checkVersion(top["version"], "planet.version");
-
-  const m = obj(top["map"], "planet.map", ["grid", "route", "pads"]);
-  const g = obj(m["grid"], "planet.map.grid", ["cols", "rows"]);
-  const cols = int(g["cols"], "planet.map.grid.cols", 1, 100);
-  const rows = int(g["rows"], "planet.map.grid.rows", 1, 100);
+/** One map: grid, route, pads and (schema 2) its name and art. Hard map rules run here (src/map/rules.ts). */
+function parseMap(raw: unknown, path: string, schema: 1 | 2): PlanetMap {
+  const m = obj(raw, path, schema === 2 ? ["name", "grid", "route", "pads", "art"] : ["grid", "route", "pads"]);
+  const g = obj(m["grid"], `${path}.grid`, ["cols", "rows"]);
+  const cols = int(g["cols"], `${path}.grid.cols`, 1, 100);
+  const rows = int(g["rows"], `${path}.grid.rows`, 1, 100);
   const point = (v: unknown, p: string): [number, number] => {
     const xy = arr(v, p, 2, 2);
     return [int(xy[0], `${p}[0]`, 0, cols - 1), int(xy[1], `${p}[1]`, 0, rows - 1)];
   };
-  const route = arr(m["route"], "planet.map.route", 2).map((v, i) => point(v, `planet.map.route[${i}]`));
+  const route = arr(m["route"], `${path}.route`, 2).map((v, i) => point(v, `${path}.route[${i}]`));
   for (let i = 1; i < route.length; i += 1) {
     const [ax, ay] = route[i - 1] ?? [0, 0];
     const [bx, by] = route[i] ?? [0, 0];
     // C2.2: horizontal and vertical segments only, so range checks need no trigonometry.
-    if ((ax === bx) === (ay === by)) fail(`planet.map.route[${i}]`, "each segment must be horizontal or vertical and not empty");
+    if ((ax === bx) === (ay === by)) fail(`${path}.route[${i}]`, "each segment must be horizontal or vertical and not empty");
   }
-  const pads = arr(m["pads"], "planet.map.pads", 1, 32).map((v, i) => {
-    const p = `planet.map.pads[${i}]`;
+  const pads = arr(m["pads"], `${path}.pads`, 1, 32).map((v, i) => {
+    const p = `${path}.pads[${i}]`;
     const pad = obj(v, p, ["id", "x", "y", "opensAfterWave"]);
     return {
       id: str(pad["id"], `${p}.id`, KEY_ID_PATTERN, 40),
@@ -1280,76 +1339,143 @@ export function parsePlanet(raw: unknown, ruleset: Ruleset): PlanetDocument {
     };
   });
   unique(
-    pads.map((p) => p.id),
-    "planet.map.pads",
-  );
-  unique(
     pads.map((p) => `${p.x},${p.y}`),
-    "planet.map.pads (tiles)",
+    `${path}.pads (tiles)`,
   );
-  if (!pads.some((p) => p.opensAfterWave === 0)) fail("planet.map.pads", "at least one pad must be open from the start");
+  if (!pads.some((p) => p.opensAfterWave === 0)) fail(`${path}.pads`, "at least one pad must be open from the start");
   // Gate M (LD1): the map rules the renderer and simulation need (tier 1 route art, grid, no crossing, no pad on the
   // route); the softer design rules are planetProblems' (src/map/rules.ts), checked by the editor and the publisher.
-  const mapProblem = hardMapProblems({ grid: { cols, rows }, route, pads })[0];
+  const mapProblem = hardMapProblems({ grid: { cols, rows }, route, pads }, path)[0];
   if (mapProblem !== undefined) fail(mapProblem.field, problemMessage(mapProblem));
+
+  let art: PlanetMap["art"] = { backdrop: null, decorations: [] };
+  if (schema === 2) {
+    const a = obj(m["art"], `${path}.art`, ["backdrop", "decorations"]);
+    const backdrop = a["backdrop"] === null ? null : str(a["backdrop"], `${path}.art.backdrop`, LIBRARY_PICTURE_PATTERN, 40);
+    const decorations = arr(a["decorations"], `${path}.art.decorations`, 0, MAX_DECORATIONS).map((v, i) => {
+      const p = `${path}.art.decorations[${i}]`;
+      const d = obj(v, p, ["art", "x", "y"]);
+      const id = str(d["art"], `${p}.art`, KEY_ID_PATTERN, 40);
+      if (!REPO_DECORATIONS.includes(id) && !LIBRARY_PICTURE_PATTERN.test(id)) fail(`${p}.art`, `"${id}" is neither a repo decoration nor a library picture`);
+      return { art: id, x: int(d["x"], `${p}.x`, 0, cols - 1), y: int(d["y"], `${p}.y`, 0, rows - 1) };
+    });
+    unique(
+      decorations.map((d) => `${d.x},${d.y}`),
+      `${path}.art.decorations (tiles)`,
+    );
+    art = { backdrop, decorations };
+  }
+  return { name: schema === 2 ? str(m["name"], `${path}.name`, undefined, 60) : "", grid: { cols, rows }, route, pads, art };
+}
+
+function parseWaveBody(v: unknown, p: string, ruleset: Ruleset, keys: readonly string[]): WaveBody & Obj {
+  const w = obj(v, p, [...keys, "groups", "hpMult", "speedMult"]);
+  let bossGroups = 0;
+  const groups = arr(w["groups"], `${p}.groups`, 1, 20).map((gv, j): SpawnGroup => {
+    const gp = `${p}.groups[${j}]`;
+    // A carrier's cargo (C6.3) is a mechanics 3 rule; an older ruleset's simulation would ignore it.
+    const group = obj(gv, gp, ["type", "count", "at", "gap"], ruleset.mechanics >= 3 ? ["cargo"] : []);
+    const type = str(group["type"], `${gp}.type`, KEY_ID_PATTERN, 40);
+    const count = int(group["count"], `${gp}.count`, 1, 200);
+    if (isBoss(ruleset, type)) {
+      // C7: a boss wave has one boss. Its releases are its phases' and its defeat's, never a wave's cargo.
+      bossGroups += 1;
+      if (count !== 1 || bossGroups > 1) fail(`${gp}`, `a wave schedules at most one boss, once ("${type}")`);
+      if (Object.hasOwn(group, "cargo")) fail(`${gp}.cargo`, `"${type}" is a boss: its releases are in the ruleset`);
+    } else {
+      const alien = ruleset.aliens[type];
+      if (alien === undefined) fail(`${gp}.type`, `alien "${type}" is not in ruleset ${ruleset.version}`);
+      if (alien.descendantOnly) fail(`${gp}.type`, `"${type}" is only ever released by another alien, never scheduled (C6.1)`);
+    }
+    const parsed: SpawnGroup = {
+      type,
+      count,
+      at: num(group["at"], `${gp}.at`, true, 600),
+      gap: num(group["gap"], `${gp}.gap`, true, 600),
+    };
+    if (Object.hasOwn(group, "cargo")) {
+      const alien = ruleset.aliens[type];
+      if (alien?.traits.children === undefined) fail(`${gp}.cargo`, `"${type}" releases nothing, so it has no cargo to name`);
+      parsed.cargo = parseReleases(group["cargo"], `${gp}.cargo`);
+      checkReleases(parsed.cargo, ruleset.aliens, `${gp}.cargo`);
+    }
+    return parsed;
+  });
+  return { ...w, groups, hpMult: num(w["hpMult"], `${p}.hpMult`, false, 100), speedMult: num(w["speedMult"], `${p}.speedMult`, false, 10) };
+}
+
+/**
+ * Parse a planet document against the ruleset it will be played with (alien types and classes must exist there).
+ * Schema 1 has no `schema` key and one `map`; schema 2 (Gate M, LD2) says `"schema": 2` and has `maps`,
+ * optional `challengeWaves` and a `mapId` per wave set. Pad IDs are unique across the whole document, so the bounds
+ * file's `pads` map stays flat.
+ */
+export function parsePlanet(raw: unknown, ruleset: Ruleset): PlanetDocument {
+  const schema: 1 | 2 = typeof raw === "object" && raw !== null && Object.hasOwn(raw, "schema") ? 2 : 1;
+  const top =
+    schema === 2
+      ? obj(raw, "planet", ["kind", "schema", "version", "planetId", "name", "maps", "waves", "waveSets"], ["$comment", "challengeWaves"])
+      : obj(raw, "planet", ["kind", "version", "planetId", "name", "map", "waves", "waveSets"], ["$comment"]);
+  if (top["kind"] !== "campaign") fail("planet.kind", 'must be "campaign"');
+  if (schema === 2 && top["schema"] !== 2) fail("planet.schema", "must be 2 (a schema 1 document has no schema key)");
+  const version = checkVersion(top["version"], "planet.version");
+
+  const maps =
+    schema === 2 ? idMap(top["maps"], "planet.maps", (v, p) => parseMap(v, p, 2)) : { [SCHEMA1_MAP_ID]: parseMap(top["map"], "planet.map", 1) };
+  if (Object.keys(maps).length > MAX_MAPS) fail("planet.maps", `at most ${MAX_MAPS} maps`);
+  unique(
+    Object.values(maps).flatMap((m) => m.pads.map((p) => p.id)),
+    schema === 2 ? "planet.maps (pad IDs)" : "planet.map.pads",
+  );
 
   const waves = arr(top["waves"], "planet.waves", 1).map((v, i) => {
     const p = `planet.waves[${i}]`;
-    const w = obj(v, p, ["wave", "groups", "hpMult", "speedMult"]);
-    let bossGroups = 0;
-    const groups = arr(w["groups"], `${p}.groups`, 1, 20).map((gv, j): SpawnGroup => {
-      const gp = `${p}.groups[${j}]`;
-      // A carrier's cargo (C6.3) is a mechanics 3 rule; an older ruleset's simulation would ignore it.
-      const group = obj(gv, gp, ["type", "count", "at", "gap"], ruleset.mechanics >= 3 ? ["cargo"] : []);
-      const type = str(group["type"], `${gp}.type`, KEY_ID_PATTERN, 40);
-      const count = int(group["count"], `${gp}.count`, 1, 200);
-      if (isBoss(ruleset, type)) {
-        // C7: a boss wave has one boss. Its releases are its phases' and its defeat's, never a wave's cargo.
-        bossGroups += 1;
-        if (count !== 1 || bossGroups > 1) fail(`${gp}`, `a wave schedules at most one boss, once ("${type}")`);
-        if (Object.hasOwn(group, "cargo")) fail(`${gp}.cargo`, `"${type}" is a boss: its releases are in the ruleset`);
-      } else {
-        const alien = ruleset.aliens[type];
-        if (alien === undefined) fail(`${gp}.type`, `alien "${type}" is not in ruleset ${ruleset.version}`);
-        if (alien.descendantOnly) fail(`${gp}.type`, `"${type}" is only ever released by another alien, never scheduled (C6.1)`);
-      }
-      const parsed: SpawnGroup = {
-        type,
-        count,
-        at: num(group["at"], `${gp}.at`, true, 600),
-        gap: num(group["gap"], `${gp}.gap`, true, 600),
-      };
-      if (Object.hasOwn(group, "cargo")) {
-        const alien = ruleset.aliens[type];
-        if (alien?.traits.children === undefined) fail(`${gp}.cargo`, `"${type}" releases nothing, so it has no cargo to name`);
-        parsed.cargo = parseReleases(group["cargo"], `${gp}.cargo`);
-        checkReleases(parsed.cargo, ruleset.aliens, `${gp}.cargo`);
-      }
-      return parsed;
-    });
-    return {
-      wave: int(w["wave"], `${p}.wave`, 1, CAMPAIGN_WAVES),
-      groups,
-      hpMult: num(w["hpMult"], `${p}.hpMult`, false, 100),
-      speedMult: num(w["speedMult"], `${p}.speedMult`, false, 10),
-    };
+    const w = parseWaveBody(v, p, ruleset, ["wave"]);
+    return { wave: int(w["wave"], `${p}.wave`, 1, CAMPAIGN_WAVES), groups: w.groups, hpMult: w.hpMult, speedMult: w.speedMult };
   });
   for (let i = 1; i < waves.length; i += 1) {
     if ((waves[i]?.wave ?? 0) <= (waves[i - 1]?.wave ?? 0)) fail("planet.waves", "must be in increasing wave order, each once");
   }
   const authored = new Map(waves.map((w) => [w.wave, w]));
+  const challengeWaves: Record<string, ChallengeWave> =
+    schema === 2 && Object.hasOwn(top, "challengeWaves")
+      ? idMap(
+          top["challengeWaves"],
+          "planet.challengeWaves",
+          (v, p) => {
+            const w = parseWaveBody(v, p, ruleset, []);
+            return { groups: w.groups, hpMult: w.hpMult, speedMult: w.speedMult };
+          },
+          0,
+        )
+      : {};
 
   return {
     kind: "campaign",
+    schema,
     version,
     planetId: str(top["planetId"], "planet.planetId", KEY_ID_PATTERN, 40),
     name: str(top["name"], "planet.name", undefined, 60),
-    map: { grid: { cols, rows }, route, pads },
+    maps,
     waves,
+    challengeWaves,
     waveSets: idMap(top["waveSets"], "planet.waveSets", (v, p) =>
-      parseWaveSet(v, p, p.slice("planet.waveSets.".length), ruleset, authored, pads),
+      parseWaveSet(v, p, p.slice("planet.waveSets.".length), ruleset, authored, challengeWaves, maps, schema),
     ),
   };
+}
+
+/** The map a wave set is played on. */
+export function waveSetMap(planet: PlanetDocument, waveSetId: string): PlanetMap {
+  const set = planet.waveSets[waveSetId];
+  const map = set === undefined ? undefined : planet.maps[set.mapId];
+  if (map === undefined) throw new GameDataError(`planet ${planet.version}: no map for wave set ${waveSetId}`);
+  return map;
+}
+
+/** The wave a wave set's reference names: a campaign wave by number or a challenge wave by ID. */
+export function waveFor(planet: Pick<PlanetDocument, "waves" | "challengeWaves">, ref: WaveRef): WaveBody | undefined {
+  return typeof ref === "number" ? planet.waves.find((w) => w.wave === ref) : planet.challengeWaves[ref];
 }
 
 // ---- bounds file ------------------------------------------------------------------------------------------------
@@ -1380,7 +1506,7 @@ export function alienBounty(ruleset: Ruleset, type: string, releases?: readonly 
  * Credits on offer in one authored wave if nothing leaks (C8.1), descendants included (the server bound maxBounty
  * relies on C6.4: nothing is dropped, duplicated or re-priced, so this is a constant).
  */
-export function waveBounty(ruleset: Ruleset, wave: AuthoredWave | EndlessWave): number {
+export function waveBounty(ruleset: Ruleset, wave: WaveBody | EndlessWave): number {
   const bossBounty = "bossBounty" in wave ? wave.bossBounty : null;
   let total = 0;
   for (const group of wave.groups) total += group.count * alienBounty(ruleset, group.type, group.cargo, bossBounty);
@@ -1410,7 +1536,9 @@ export function buildBounds(ruleset: Ruleset, planet: PlanetDocument): Bounds {
     };
   }
   const pads: Bounds["pads"] = {};
-  for (const pad of [...planet.map.pads].sort((a, b) => (a.id < b.id ? -1 : 1))) {
+  for (const pad of Object.values(planet.maps)
+    .flatMap((m) => m.pads)
+    .sort((a, b) => (a.id < b.id ? -1 : 1))) {
     pads[pad.id] = { opensAfterWave: pad.opensAfterWave };
   }
   const waveSets: Bounds["waveSets"] = {};
@@ -1426,8 +1554,8 @@ export function buildBounds(ruleset: Ruleset, planet: PlanetDocument): Bounds {
       padsOpenAsForWave: set.padsOpenAsForWave,
       createRunActions: createRunActions(finalWave, set.meteorAfter.length),
       maxBounty: set.waves.map((n) => {
-        const wave = authored.get(n);
-        if (wave === undefined) throw new GameDataError(`wave set ${id}: authored wave ${n} is missing`);
+        const wave = waveFor(planet, n);
+        if (wave === undefined) throw new GameDataError(`wave set ${id}: wave ${n} is missing`);
         return waveBounty(ruleset, wave);
       }),
       normalRewardByInterval: Array.from({ length: finalWave - 1 }, (_, i) => learningReward(ruleset, i + 1)),
@@ -1441,6 +1569,8 @@ export function buildBounds(ruleset: Ruleset, planet: PlanetDocument): Bounds {
             },
           }
         : {}),
+      // Schema 2 only, so schema 1 files keep their published bytes (Gate M, LD2).
+      ...(planet.schema === 2 ? { pads: (planet.maps[set.mapId]?.pads ?? []).map((p) => p.id).sort() } : {}),
     };
   }
   return {

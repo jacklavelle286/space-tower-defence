@@ -445,12 +445,12 @@ describe("the Phase 25 rules (C5.3 - C5.6) agree with the simulator", () => {
 describe("planet luna-1-c1 agrees with tools/sim/game_data.json", () => {
   it("planet, grid and route", () => {
     expect(planet.planetId).toBe(sim.map.planetId);
-    expect(planet.map.grid).toEqual({ cols: sim.map.grid.cols, rows: sim.map.grid.rows });
-    expect(planet.map.route).toEqual(sim.map.route);
+    expect(planet.maps["main"]?.grid).toEqual({ cols: sim.map.grid.cols, rows: sim.map.grid.rows });
+    expect(planet.maps["main"]?.route).toEqual(sim.map.route);
   });
 
   it("pads (IDs lower case, C3.2)", () => {
-    expect(planet.map.pads).toEqual(
+    expect(planet.maps["main"]?.pads).toEqual(
       sim.map.pads.map((p: Loose) => ({ id: p.id.toLowerCase(), x: p.x, y: p.y, opensAfterWave: p.opensAfterWave })),
     );
   });
@@ -495,7 +495,7 @@ describe("bounds agree with the simulator's tables", () => {
     const bounty = simBountyByWave();
     const bounds = buildBounds(ruleset, planet);
     for (const [id, set] of Object.entries(planet.waveSets)) {
-      expect(bounds.waveSets[id]?.maxBounty, id).toEqual(set.waves.map((w) => bounty.get(w)));
+      expect(bounds.waveSets[id]?.maxBounty, id).toEqual(set.waves.map((w) => bounty.get(Number(w))));
     }
     expect(bounds.waveSets["first-contact"]?.maxBounty).toEqual([24, 32]); // C8.2 rows 1 and 2
   });
@@ -581,7 +581,7 @@ describe("planet document luna-1-c2: the 50-wave campaign (Phase 50, M4-01; C8.2
 
   it("pads open as C3.3 schedules them, the same pads as the simulator's map", () => {
     const simPads: Loose[] = sim.map.pads;
-    expect(c2.map.pads.map((p) => [p.id, p.opensAfterWave])).toEqual(simPads.map((p) => [p.id.toLowerCase(), p.opensAfterWave]));
+    expect(c2.maps["main"]?.pads.map((p) => [p.id, p.opensAfterWave])).toEqual(simPads.map((p) => [p.id.toLowerCase(), p.opensAfterWave]));
   });
 });
 

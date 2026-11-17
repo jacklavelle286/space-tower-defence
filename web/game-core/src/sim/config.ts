@@ -23,8 +23,8 @@
 // Meteor powers (Phase 28, M2-05, C10): each power is compiled into a PowerStats holding its effect in simulation
 // units (slow ticks, burst radius squared); the simulation reads the effect, never the power's ID. The use rules (uses
 // per wave, the shared lockout in ticks) are compiled once here too.
-import { endlessWave, type EndlessRules, type EndlessWave } from "../data/game-data";
-import type { AttackKind, AuthoredWave, Boss, ClassLevel, PlanetDocument, Power, ReleaseSpec, Ruleset, Targeting, WaveSet } from "../data/game-data";
+import { endlessWave, waveFor, waveSetMap, type EndlessRules, type EndlessWave } from "../data/game-data";
+import type { AttackKind, AuthoredWave, Boss, ClassLevel, MapDecoration, PlanetDocument, Power, ReleaseSpec, Ruleset, Targeting, WaveBody, WaveSet } from "../data/game-data";
 import { STEPS_PER_SECOND } from "../clock";
 import { buildRoute, UNITS_PER_TILE, type Route } from "./route";
 
@@ -262,6 +262,9 @@ export interface BattleConfig {
   readonly waveSet: WaveSet;
   readonly route: Route;
   readonly grid: { readonly cols: number; readonly rows: number };
+  /** The map's pictures (schema 2): a Background picture ID or null (the repo ground), and its decorations. Drawing
+   *  only; the simulation never reads it. */
+  readonly art: { readonly backdrop: string | null; readonly decorations: readonly MapDecoration[] };
   /** In attack order: the planet document's pad order, p01 to p16 (C2.3 step 4). */
   readonly pads: readonly PadInfo[];
   readonly classes: Readonly<Record<string, ClassStats>>;
@@ -384,7 +387,7 @@ export function planFor(config: BattleConfig, wave: number): WavePlan {
   return plan;
 }
 
-function wavePlan(position: number, wave: AuthoredWave | EndlessWave, bosses: Readonly<Record<string, Boss>>): WavePlan {
+function wavePlan(position: number, wave: WaveBody | EndlessWave, bosses: Readonly<Record<string, Boss>>): WavePlan {
   const spawns: (ScheduledSpawn & { order: number })[] = [];
   let order = 0;
   for (const group of wave.groups) {
@@ -545,15 +548,17 @@ export function compileBattleConfig(ruleset: Ruleset, planet: PlanetDocument, wa
 
   const authored = new Map(planet.waves.map((w) => [w.wave, w]));
   const waves = waveSet.waves.map((n, i) => {
-    const w = authored.get(n);
-    if (w === undefined) throw new Error(`wave set ${waveSetId}: authored wave ${n} is missing`);
+    const w = waveFor(planet, n);
+    if (w === undefined) throw new Error(`wave set ${waveSetId}: wave ${n} is missing`);
     for (const g of w.groups) {
       if (aliens[g.type] === undefined) throw new Error(`wave ${n}: alien "${g.type}" is not in ruleset ${ruleset.version}`);
     }
     return wavePlan(i + 1, w, ruleset.bosses);
   });
 
-  const pads = planet.map.pads.map((p) => ({
+  // The wave set's own map (schema 2, Gate M LD2): its route, its pads, its pictures.
+  const map = waveSetMap(planet, waveSetId);
+  const pads = map.pads.map((p) => ({
     id: p.id,
     x: p.x,
     y: p.y,
@@ -568,8 +573,9 @@ export function compileBattleConfig(ruleset: Ruleset, planet: PlanetDocument, wa
     campaignVersion: planet.version,
     waveSetId,
     waveSet,
-    route: buildRoute(planet.map.route),
-    grid: planet.map.grid,
+    route: buildRoute(map.route),
+    grid: map.grid,
+    art: map.art,
     pads,
     classes,
     aliens,

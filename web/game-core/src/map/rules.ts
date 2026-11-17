@@ -13,7 +13,7 @@
 // the route), so no published document can start failing to load. "Bosses only on waves 10, 20, ... 50" (C7,
 // AC-11) blocks publishing instead: the simulation plays a boss on any wave, and tests rely on that.
 // Thresholds are [PROPOSAL] from scope §5 unless the comment names a source.
-import type { PlanetDocument, Ruleset } from "../data/game-data.ts";
+import type { PlanetDocument, PlanetMap, Ruleset } from "../data/game-data.ts";
 import { mapGeometry, routeCells, type RouteCell } from "./geometry.ts";
 import { padReach } from "./coverage.ts";
 import { padOrder, padsUnreachableByArrows } from "./order.ts";
@@ -61,6 +61,7 @@ export const PROBLEM_TEXT = {
   noNova: "A challenge without Nova needs preset astronauts, or no one can defend at the start.",
   speedMult: "Campaign aliens faster than 1.25 times are hard to follow.",
   newAlienIntro: "A new alien should first come on its own, before it is mixed with others (prompt.md).",
+  decorationPlacement: "Decorations stay off the route, the cells beside it, the pads and the portal and colony.",
 } as const;
 
 export type ProblemRule = keyof typeof PROBLEM_TEXT;
@@ -77,14 +78,13 @@ interface MapInput {
   readonly pads: readonly { readonly id: string; readonly x: number; readonly y: number; readonly opensAfterWave: number }[];
 }
 
-const P = "planet.map";
 
 function cheb(ax: number, ay: number, bx: number, by: number): number {
   return Math.max(Math.abs(ax - bx), Math.abs(ay - by));
 }
 
-/** The rules parsePlanet enforces on a map (after its structural checks). */
-export function hardMapProblems(map: MapInput): PlanetProblem[] {
+/** The rules parsePlanet enforces on a map (after its structural checks); `P` is the map's path in the document. */
+export function hardMapProblems(map: MapInput, P = "planet.map"): PlanetProblem[] {
   const out: PlanetProblem[] = [];
   const hard = (field: string, rule: ProblemRule, at?: readonly [number, number]): void => {
     out.push(at === undefined ? { field, rule, severity: "hard" } : { field, rule, severity: "hard", at });
@@ -117,17 +117,16 @@ export function hardMapProblems(map: MapInput): PlanetProblem[] {
   return out;
 }
 
-/** C7, AC-11: a boss only on waves 10, 20, ... 50 (a publishing block, not a load error). */
-export function bossWaveProblems(
-  waves: readonly { readonly wave: number; readonly groups: readonly { readonly type: string }[] }[],
-  bosses: Readonly<Record<string, unknown>>,
-): PlanetProblem[] {
+/** C7, AC-11: a boss only on waves 10, 20, ... 50, never in a challenge-only wave (a publishing block, not a load error). */
+export function bossWaveProblems(doc: Pick<PlanetDocument, "waves" | "challengeWaves">, bosses: Readonly<Record<string, unknown>>): PlanetProblem[] {
   const out: PlanetProblem[] = [];
-  waves.forEach((w, i) => {
-    if (w.wave % 10 !== 0 && w.groups.some((g) => Object.hasOwn(bosses, g.type))) {
-      out.push({ field: `planet.waves[${i}]`, rule: "bossWave", severity: "block" });
-    }
+  const hasBoss = (groups: readonly { readonly type: string }[]): boolean => groups.some((g) => Object.hasOwn(bosses, g.type));
+  doc.waves.forEach((w, i) => {
+    if (w.wave % 10 !== 0 && hasBoss(w.groups)) out.push({ field: `planet.waves[${i}]`, rule: "bossWave", severity: "block" });
   });
+  for (const [id, w] of Object.entries(doc.challengeWaves)) {
+    if (hasBoss(w.groups)) out.push({ field: `planet.challengeWaves.${id}`, rule: "bossWave", severity: "block" });
+  }
   return out;
 }
 
@@ -153,7 +152,7 @@ function footprints(cells: readonly RouteCell[]): { portal: [number, number][]; 
   return { portal, colony };
 }
 
-function routeProblems(map: MapInput, cells: readonly RouteCell[], out: PlanetProblem[]): void {
+function routeProblems(map: MapInput, P: string, cells: readonly RouteCell[], out: PlanetProblem[]): void {
   const length = Math.max(0, cells.length - 1);
   if (length < 30 || length > 50) out.push({ field: `${P}.route`, rule: "routeLength", severity: "block" });
   else if (length < 36 || length > 44) out.push({ field: `${P}.route`, rule: "routeLength", severity: "warn" });
@@ -195,8 +194,23 @@ function routeProblems(map: MapInput, cells: readonly RouteCell[], out: PlanetPr
   covered(colony, lastSegment);
 }
 
-function padProblems(doc: PlanetDocument, cells: readonly RouteCell[], strictPadOrder: boolean, out: PlanetProblem[]): void {
-  const { pads } = doc.map;
+/** Decorations off the route, its neighbouring cells, pads and the portal and colony pictures (D §D10.2). */
+function decorationProblems(map: PlanetMap, P: string, cells: readonly RouteCell[], out: PlanetProblem[]): void {
+  const route = new Set(cells.map((c) => `${c.x},${c.y}`));
+  const near = new Set<string>();
+  for (const c of cells) for (const [dx, dy] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]] as const) near.add(`${c.x + dx},${c.y + dy}`);
+  const { portal, colony } = footprints(cells);
+  const covered = new Set([...portal, ...colony].map(([x, y]) => `${x},${y}`));
+  map.art.decorations.forEach((d, i) => {
+    const key = `${d.x},${d.y}`;
+    if (route.has(key) || near.has(key) || covered.has(key) || map.pads.some((p) => p.x === d.x && p.y === d.y)) {
+      out.push({ field: `${P}.art.decorations[${i}]`, rule: "decorationPlacement", severity: "block", at: [d.x, d.y] });
+    }
+  });
+}
+
+function padProblems(map: PlanetMap, P: string, hasCampaign: boolean, cells: readonly RouteCell[], strictPadOrder: boolean, out: PlanetProblem[]): void {
+  const { pads } = map;
   if (pads.length < 12 || pads.length > 16) out.push({ field: `${P}.pads`, rule: "padCount", severity: "block" });
   pads.forEach((p, i) => {
     const at: [number, number] = [p.x, p.y];
@@ -205,8 +219,8 @@ function padProblems(doc: PlanetDocument, cells: readonly RouteCell[], strictPad
     if (near > 2) out.push({ field: `${P}.pads[${i}]`, rule: "padFar", severity: "block", at });
     if (!PAD_OPEN_WAVES.includes(p.opensAfterWave)) out.push({ field: `${P}.pads[${i}].opensAfterWave`, rule: "opensAfterWave", severity: "block", at });
   });
-  if (!drawable(doc.map.route)) return; // a hard route problem already says why
-  const geometry = mapGeometry(doc.map);
+  if (!drawable(map.route)) return; // a hard route problem already says why
+  const geometry = mapGeometry(map);
   const reach = padReach(geometry, 2.5);
   const start = pads.filter((p) => p.opensAfterWave === 0);
   if (start.length > 0 && start.length < 6) out.push({ field: `${P}.pads`, rule: "fewStartPads", severity: "warn" });
@@ -216,7 +230,7 @@ function padProblems(doc: PlanetDocument, cells: readonly RouteCell[], strictPad
     }
   });
   if ([...reach.values()].filter((r) => r.stretches >= 3).length < 2) out.push({ field: `${P}.pads`, rule: "fewBendPads", severity: "warn" });
-  if (Object.values(doc.waveSets).some((ws) => ws.mode === "CAMPAIGN")) {
+  if (hasCampaign) {
     for (const w of PAD_OPEN_WAVES.slice(1)) {
       if (!pads.some((p) => p.opensAfterWave === w)) out.push({ field: `${P}.pads`, rule: "unlockOpensNothing", severity: "warn" });
     }
@@ -251,6 +265,7 @@ function waveProblems(doc: PlanetDocument, bosses: Readonly<Record<string, unkno
   const index = new Map(doc.waves.map((w, i) => [w.wave, i]));
   const met = new Set<string>();
   for (const n of campaign.waves) {
+    if (typeof n !== "number") continue;
     const i = index.get(n);
     const w = i === undefined ? undefined : doc.waves[i];
     if (w === undefined) continue;
@@ -274,14 +289,21 @@ export interface PlanetRuleOptions {
   readonly strictPadOrder?: boolean;
 }
 
-/** Every design-rule problem in `doc` (scope §5 H and P rules), hard ones first, then in document order per rule. */
+/** Every design-rule problem in `doc` (scope §5 H and P rules): per map, then boss waves, wave sets and waves. */
 export function planetProblems(doc: PlanetDocument, ruleset: Ruleset, options: PlanetRuleOptions = {}): PlanetProblem[] {
-  const hard = hardMapProblems(doc.map);
-  const out: PlanetProblem[] = [...hard, ...bossWaveProblems(doc.waves, ruleset.bosses)];
-  const cells = routeCells(doc.map.route);
-  // The softer route rules need a drawable route; with a hard route problem they would only repeat it.
-  if (!hard.some((p) => p.field.startsWith(`${P}.route`) || p.field === `${P}.grid`)) routeProblems(doc.map, cells, out);
-  padProblems(doc, cells, options.strictPadOrder ?? false, out);
+  const out: PlanetProblem[] = [];
+  for (const [mapId, map] of Object.entries(doc.maps)) {
+    const P = doc.schema === 2 ? `planet.maps.${mapId}` : "planet.map";
+    const hard = hardMapProblems(map, P);
+    out.push(...hard);
+    const cells = routeCells(map.route);
+    // The softer route rules need a drawable route; with a hard route problem they would only repeat it.
+    if (!hard.some((p) => p.field.startsWith(`${P}.route`) || p.field === `${P}.grid`)) routeProblems(map, P, cells, out);
+    const hasCampaign = Object.values(doc.waveSets).some((ws) => ws.mode === "CAMPAIGN" && ws.mapId === mapId);
+    padProblems(map, P, hasCampaign, cells, options.strictPadOrder ?? false, out);
+    decorationProblems(map, P, cells, out);
+  }
+  out.push(...bossWaveProblems(doc, ruleset.bosses));
   waveSetProblems(doc, ruleset, out);
   waveProblems(doc, ruleset.bosses, out);
   return out;
