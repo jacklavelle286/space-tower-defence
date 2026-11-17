@@ -14,12 +14,16 @@ export function Settings({
   queue,
   onBack,
   onReset,
+  testerCode,
 }: {
   api: Pick<PlayerApi, "postReset">;
   queue: Pick<SyncQueue, "getSnapshot" | "subscribe">;
   onBack: () => void;
   /** Called after a reset has finished (the shell refreshes the profile, or starts again after WHOLE_PROFILE). */
   onReset: (type: ResetType) => void;
+  /** The account's ID (its Cognito sub: opaque, not personal data), which the level designer lists as a tester to
+   *  share preview levels with this account (Gate M, LD7). */
+  testerCode?: string;
 }) {
   const online = useOnline();
   const pending = useSyncExternalStore(queue.subscribe, () => queue.getSnapshot().pending);
@@ -77,6 +81,15 @@ export function Settings({
         </div>
         {message !== null ? <p role="status">{message}</p> : null}
       </section>
+      {testerCode !== undefined ? (
+        <section className="panel" aria-labelledby="tester-heading">
+          <h2 id="tester-heading">{COPY.settings.testerHeading}</h2>
+          <p className="reason">{COPY.settings.testerHint}</p>
+          <p>
+            {COPY.settings.testerCode}: <code className="tester-code">{testerCode}</code>
+          </p>
+        </section>
+      ) : null}
       {chosen !== undefined ? (
         <div className="dialog-backdrop">
           <div className="panel dialog" role="alertdialog" aria-modal="true" aria-labelledby="reset-heading">

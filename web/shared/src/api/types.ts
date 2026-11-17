@@ -109,6 +109,10 @@ export interface WaveSetEntry {
   finalWave: number;
   available: boolean;
   reason?: string;
+  /** Gate M, LD7: a tester's preview wave set. Set only when current.json does not name the version (start it there). */
+  campaignVersion?: string;
+  /** Gate M, LD7: shown only to tester accounts. */
+  preview?: boolean;
 }
 
 export interface PlanetEntry {

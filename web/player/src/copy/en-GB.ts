@@ -43,6 +43,7 @@ export const COPY = {
     newGame: "New game",
     starting: "Starting…", // [PROPOSAL]
     noWaveSet: "There is no game you can start yet.", // [PROPOSAL]
+    preview: "Test level", // Gate M, LD7 [PROPOSAL]: a preview only tester accounts see
     planetsHeading: "Planets",
     comingLater: "Coming later",
     ageOutOfRange: "We don't have activities for your age yet.", // D7.3 AGE_OUT_OF_RANGE
@@ -58,6 +59,10 @@ export const COPY = {
     // D4 P13 Settings and resets [PROPOSAL] copy: written for the grown-up
     heading: "Settings",
     back: "Home",
+    // Gate M, LD7 [PROPOSAL]: the account's ID, which the grown-up who makes levels adds to the testers
+    testerHeading: "Testing new levels",
+    testerHint: "To play new levels before anyone else, give this tester code to the grown-up who makes them.",
+    testerCode: "Tester code",
     resetsHeading: "Start again",
     changes: "What changes",
     stays: "What stays",
@@ -165,6 +170,7 @@ export const COPY = {
     stale: "This game was continued somewhere else.", // D7.3 DIVERGED after STALE_SESSION (options come in Phase 60)
     limit: "You have 5 games on the go. Finish or give up one first.", // D7.3 RUN_LIMIT_REACHED
     planetLocked: "This planet isn't open yet.", // D7.3 CONTENT_UNAVAILABLE PLANET_LOCKED
+    previewClosed: "This test level has finished. Please choose another game.", // Gate M, LD7 [PROPOSAL]
     upgrade: "Reload to update the game", // D7.1 UPGRADE_REQUIRED
     ended: "This game has finished.", // [PROPOSAL] RUN_TERMINAL: the final screen, not an error (D7.3)
     complete: "Challenge complete!",

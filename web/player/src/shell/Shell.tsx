@@ -307,7 +307,13 @@ export function Shell({ services }: { services: Services }) {
               path="/settings"
               element={
                 me ? (
-                  <Settings api={s.api} queue={s.queue} onBack={() => navigate("/home")} onReset={(type) => void afterReset(type)} />
+                  <Settings
+                    api={s.api}
+                    queue={s.queue}
+                    onBack={() => navigate("/home")}
+                    onReset={(type) => void afterReset(type)}
+                    testerCode={s.ownerSub}
+                  />
                 ) : (
                   <Navigate to="/setup" replace />
                 )

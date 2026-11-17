@@ -47,7 +47,8 @@ function reason(result: ApiResult<unknown>): string {
 
 export async function createRun(
   deps: CreateDeps,
-  choice: { planetId: string; waveSetId: string },
+  /** `campaignVersion`: a tester's preview version (Gate M, LD7), used instead of current.json's. */
+  choice: { planetId: string; waveSetId: string; campaignVersion?: string },
   options: { runId?: string; takeover?: boolean } = {},
 ): Promise<CreateOutcome> {
   const newId = deps.newId ?? (() => crypto.randomUUID());
@@ -67,7 +68,7 @@ export async function createRun(
         planetId: choice.planetId,
         waveSetId: choice.waveSetId,
         rulesetVersion: current.rulesetVersion,
-        campaignVersion: current.campaignVersion,
+        campaignVersion: choice.campaignVersion ?? current.campaignVersion,
         sessionId: deps.lease.sessionId,
         deviceLabel: deps.lease.deviceLabel,
         ...(options.takeover ? { takeover: true } : {}),
@@ -84,6 +85,8 @@ export async function createRun(
     }
     switch (code(result)) {
       case "CONTENT_VERSION_UNSUPPORTED":
+        // A preview the publisher has since made live, retired or closed: current.json cannot help (LD7).
+        if (choice.campaignVersion !== undefined) return { kind: "unavailable", reason: "PREVIEW_CLOSED" };
         if (round === 1) return { kind: "upgrade" };
         try {
           current = await deps.loadCurrent();

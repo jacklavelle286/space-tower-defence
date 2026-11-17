@@ -645,3 +645,18 @@ body {
   flex-wrap: wrap;
   gap: 12px;
 }
+
+/* Gate M, LD7: a preview level that only tester accounts see, and the tester code in Settings. */
+.preview-tag {
+  display: inline-block;
+  padding: 0 0.4em;
+  border-radius: 0.4em;
+  background: var(--yellow);
+  color: var(--night);
+  font-size: 0.85em;
+}
+
+.tester-code {
+  user-select: all;
+  word-break: break-all;
+}

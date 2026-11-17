@@ -369,6 +369,15 @@ describe("createRun (New game)", () => {
     expect(t.sent[0]?.runId).not.toBe(t.sent[1]?.runId);
   });
 
+  it("a tester's preview starts on its own version, and a closed preview is not an upgrade (Gate M, LD7)", async () => {
+    const refusal: ApiResult<unknown> = { kind: "error", status: 409, code: "CONTENT_VERSION_UNSUPPORTED", body: null };
+    const t = deps([refusal]);
+    const outcome = await createRun(t.deps as never, { ...choice, campaignVersion: "luna-1-a3" });
+    expect(t.sent[0]).toMatchObject({ rulesetVersion: "r1", campaignVersion: "luna-1-a3" });
+    expect(outcome).toEqual({ kind: "unavailable", reason: "PREVIEW_CLOSED" });
+    expect(t.sent).toHaveLength(1);
+  });
+
   it("TAKEOVER_CONFIRM_REQUIRED keeps the runId for the repeat with takeover: true", async () => {
     const t = deps([
       { kind: "error", status: 409, code: "TAKEOVER_CONFIRM_REQUIRED", body: { error: { code: "TAKEOVER_CONFIRM_REQUIRED", details: { deviceLabel: "Edge on Windows" } } } },

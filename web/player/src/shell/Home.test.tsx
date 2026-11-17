@@ -72,6 +72,17 @@ describe("Home run setup (Phase 53)", () => {
     expect(onNewGame).toHaveBeenCalledWith({ planetId: "luna-1", waveSetId: "blob-parade" }, expect.anything());
   });
 
+  it("a tester's preview is marked and starts on its version; the big New game never picks one (Gate M, LD7)", async () => {
+    const preview = { ...set("campaign", "CAMPAIGN", "Big Adventure", 50), campaignVersion: "luna-1-a3", preview: true };
+    const planets: Planets = { ageBand: 6, planets: [{ ...ONE.planets[0]!, waveSets: [...ONE.planets[0]!.waveSets, preview] }] };
+    const onNewGame = renderHome(planets);
+    await screen.findByRole("heading", { name: "New game: Moonbeam Colony" });
+    expect(screen.getAllByText("Test level").length).toBeGreaterThan(0);
+    const starts = screen.getAllByRole("button", { name: "Start" });
+    await act(async () => starts[0]?.click()); // the campaign comes first: the preview
+    expect(onNewGame).toHaveBeenCalledWith({ planetId: "luna-1", waveSetId: "campaign", campaignVersion: "luna-1-a3" }, expect.anything());
+  });
+
   it("with one wave set (the live game today): the single New game button, as before", async () => {
     renderHome(ONE);
     expect(await screen.findByRole("button", { name: "New game" })).toBeTruthy();

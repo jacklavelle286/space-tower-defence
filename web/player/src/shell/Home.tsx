@@ -17,12 +17,19 @@ function reasonLine(reason: string | undefined): string | null {
 export interface GameChoice {
   planetId: string;
   waveSetId: string;
+  /** A tester's preview version (Gate M, LD7); absent for the version current.json names. */
+  campaignVersion?: string;
+}
+
+/** A choice's key: the same wave set can be offered live and as a preview of a newer version. */
+export function choiceKey(c: GameChoice): string {
+  return `${c.planetId}/${c.waveSetId}${c.campaignVersion !== undefined ? `@${c.campaignVersion}` : ""}`;
 }
 
 function firstChoice(planets: Planets | null): GameChoice | null {
   for (const planet of planets?.planets ?? []) {
     if (!planet.unlocked) continue;
-    const ws = planet.waveSets.find((w) => w.available);
+    const ws = planet.waveSets.find((w) => w.available && w.preview !== true);
     if (ws) return { planetId: planet.planetId, waveSetId: ws.waveSetId };
   }
   return null;
@@ -34,7 +41,11 @@ export function allChoices(planets: Planets | null): { planetName: string; choic
   for (const planet of planets?.planets ?? []) {
     if (!planet.unlocked) continue;
     const sets = [...planet.waveSets].sort((a, b) => (a.mode === b.mode ? 0 : a.mode === "CAMPAIGN" ? -1 : 1));
-    for (const set of sets) out.push({ planetName: planet.name, choice: { planetId: planet.planetId, waveSetId: set.waveSetId }, set });
+    for (const set of sets) {
+      const choice: GameChoice = { planetId: planet.planetId, waveSetId: set.waveSetId };
+      if (set.campaignVersion !== undefined) choice.campaignVersion = set.campaignVersion;
+      out.push({ planetName: planet.name, choice, set });
+    }
   }
   return out;
 }
@@ -49,7 +60,9 @@ function problemLine(outcome: CreateOutcome): string {
     case "unavailable":
       return outcome.reason === "PLANET_LOCKED"
         ? COPY.run.planetLocked
-        : outcome.reason === "BANK_NOT_READY"
+        : outcome.reason === "PREVIEW_CLOSED"
+          ? COPY.run.previewClosed
+          : outcome.reason === "BANK_NOT_READY"
           ? COPY.home.bankNotReady
           : COPY.home.ageOutOfRange;
     case "upgrade":
@@ -117,7 +130,7 @@ export function Home({
     setBusy(true);
     setProblem(null);
     setTakeover(null);
-    const key = `${chosen.planetId}/${chosen.waveSetId}`;
+    const key = choiceKey(chosen);
     const runId = options.runId ?? (pending.current?.key === key ? pending.current.runId : undefined);
     const outcome = await onNewGame(chosen, runId !== undefined ? { ...options, runId } : options);
     pending.current = outcome.kind === "failed" && outcome.retryRunId !== undefined ? { runId: outcome.retryRunId, key } : null;
@@ -160,11 +173,12 @@ export function Home({
           <h2 id="setup-heading">{COPY.runSetup.heading(allChoices(planets)[0]?.planetName ?? "")}</h2>
           <ul>
             {allChoices(planets).map(({ choice: c, set }, i, list) => (
-              <li key={`${c.planetId}/${c.waveSetId}`}>
+              <li key={choiceKey(c)}>
                 {set.mode === "CHALLENGE" && list[i - 1]?.set.mode !== "CHALLENGE" ? <h3>{COPY.runSetup.challenges}</h3> : null}
                 <div className="setup-row">
                   <span className="setup-name">
                     <strong>{set.name}</strong>{" "}
+                    {set.preview === true ? <span className="preview-tag">{COPY.home.preview}</span> : null}{" "}
                     {set.mode === "CAMPAIGN" ? COPY.runSetup.campaignLength(set.finalWave) : COPY.runSetup.waves(set.finalWave)}
                     {COPY.runSetup.about[c.waveSetId] !== undefined ? <span className="setup-about">{COPY.runSetup.about[c.waveSetId]}</span> : null}
                   </span>
@@ -250,8 +264,9 @@ export function Home({
                   <h3>{planet.name}</h3>
                   <ul className="wave-sets">
                     {planet.waveSets.map((ws) => (
-                      <li key={ws.waveSetId}>
+                      <li key={`${ws.waveSetId}@${ws.campaignVersion ?? ""}`}>
                         {ws.name}
+                        {ws.preview === true ? <span className="preview-tag"> {COPY.home.preview}</span> : null}
                         {ws.available ? null : <span className="reason"> {reasonLine(ws.reason)}</span>}
                       </li>
                     ))}

@@ -7,11 +7,11 @@ import { Settings } from "./Settings";
 
 afterEach(cleanup);
 
-function setUp(pending = 0) {
+function setUp(pending = 0, testerCode?: string) {
   const postReset = vi.fn(async (body: { type: string }) => ({ kind: "ok" as const, status: 200, body: { type: body.type, completedAt: "x" } }));
   const onReset = vi.fn();
   const queue = { getSnapshot: () => ({ pending }), subscribe: () => () => {} } as never;
-  render(<Settings api={{ postReset } as never} queue={queue} onBack={() => {}} onReset={onReset} />);
+  render(<Settings api={{ postReset } as never} queue={queue} onBack={() => {}} onReset={onReset} {...(testerCode !== undefined ? { testerCode } : {})} />);
   return { postReset, onReset };
 }
 
@@ -30,6 +30,12 @@ describe("Settings resets (Phase 55)", () => {
     expect(postReset).toHaveBeenCalledWith({ type: "CAMPAIGN_PROGRESS", confirm: "CAMPAIGN_PROGRESS" });
     expect(onReset).toHaveBeenCalledWith("CAMPAIGN_PROGRESS");
     expect(screen.getByRole("status").textContent).toBe("Done.");
+  });
+
+  it("shows the tester code the level designer adds to its testers (Gate M, LD7)", () => {
+    setUp(0, "a6c2b2b4-7051-70ef-b1e8-739ac38dd0cb");
+    expect(screen.getByRole("heading", { name: "Testing new levels" })).toBeTruthy();
+    expect(screen.getByText("a6c2b2b4-7051-70ef-b1e8-739ac38dd0cb")).toBeTruthy();
   });
 
   it("a partial reset waits until everything is saved; the whole profile warns and may go ahead", () => {
