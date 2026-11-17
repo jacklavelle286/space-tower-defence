@@ -282,6 +282,7 @@ describe("same seed and inputs -> same post-wave snapshot (M1-21 Done when)", ()
       bounty: 24,
       shots: 18,
       damage: 144,
+      powerDamage: 0,
       healthLost: 0,
       healed: 0,
       deferredSpawns: 0,

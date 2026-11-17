@@ -12,12 +12,25 @@ export interface FrameResult {
   readonly ticks: number;
 }
 
-export function runFrame(battle: Battle, clock: ClockState, deltaMs: number, speed: Speed, paused: boolean): FrameResult {
+/**
+ * Run the ticks one frame's time pays for. `beforeTick`, if given, is called before each tick with the battle as it
+ * stands: a replay or a test uses it to give commands on exact ticks (C2.2: "same commands on the same ticks, same
+ * result"), whatever the frame rate. The game itself gives commands between frames and does not pass it.
+ */
+export function runFrame(
+  battle: Battle,
+  clock: ClockState,
+  deltaMs: number,
+  speed: Speed,
+  paused: boolean,
+  beforeTick?: (battle: Battle) => void,
+): FrameResult {
   // Outside a running wave the clock does not bank time: preparation and the screens after a wave run no ticks.
   if (battle.status !== "IN_WAVE") return { clock: { accumulator: 0 }, ticks: 0 };
   const frame = advanceClock(clock, deltaMs, speed, paused);
   let ticks = 0;
   while (ticks < frame.steps && battle.status === "IN_WAVE") {
+    beforeTick?.(battle);
     step(battle);
     ticks += 1;
   }

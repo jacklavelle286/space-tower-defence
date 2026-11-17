@@ -337,7 +337,8 @@ describe("C5.5 Mira's shield: pulses, the cap of 10, the absolute cap of 20", ()
       runTo(battle, 2399);
       expect(battle.shield).toBe(start);
       step(battle); // tick 2,399: the blob's 2,400th move reaches the end; it leaks (1 point off the shield), wave cleared
-      expect([battle.status, battle.shield, battleSnapshot(battle).colony.shield]).toEqual(["CLEARED", start - 1, 10]);
+      // Phase 28: the wave's end trims the battle's own shield as well as the snapshot (sim.py run_wave does the same).
+      expect([battle.status, battle.shield, battleSnapshot(battle).colony.shield]).toEqual(["CLEARED", 10, 10]);
     }
   });
 

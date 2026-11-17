@@ -2,7 +2,7 @@
 // wave set, version strings are path-safe, and the bounds fixture api/tests reads is the generated one. Phase 24
 // (M2-01): ruleset r2 and the mechanics 2 parse rules for the six-class roster. Phase 26 (M2-03): ruleset r3 and the
 // mechanics 3 parse rules for the alien catalogue, traits, releases and cargo. Phase 27 (M2-04): the bosses in r3 and
-// their parse rules.
+// their parse rules. Phase 28 (M2-05): the meteor powers in r3 and their parse rules.
 import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -18,10 +18,12 @@ import {
   KEY_ID_PATTERN,
   LEVELS_PER_CLASS,
   MAX_TRANSACTION_ACTIONS,
+  meteorAward,
   parseCurrent,
   parsePlanet,
   parseRuleset,
   placementTargetings,
+  POWER_EFFECTS,
   SUPPORTED_MECHANICS,
   targetingAllowed,
   TARGETING_MODES,
@@ -559,6 +561,84 @@ describe("bosses in ruleset r3 (Phase 27, M2-04; C7; ADR-0034 amended)", () => {
       { type: "mite", count: 6, at: 40, gap: 1 },
     ];
     expect(buildBounds(r3, parsePlanet(planetWithGroups(wave40), r3)).waveSets["first-contact"]?.maxBounty[0]).toBe(195);
+  });
+});
+
+describe("meteor powers in ruleset r3 (Phase 28, M2-05; C10; ADR-0034 amended)", () => {
+  const r3 = parseRuleset(RULESET3_RAW);
+  const powersOf = (raw: JsonObject): Record<string, JsonObject> => raw["powers"] as Record<string, JsonObject>;
+  const rulesOf = (raw: JsonObject): JsonObject => raw["powerRules"] as JsonObject;
+
+  it("r3 holds the three powers of C10 under mechanics 3; r1 and r2 have none and only the inventory cap", () => {
+    expect(Object.keys(r3.powers)).toEqual(["colony-shield", "comet-burst", "frost-pulse"]);
+    expect(Object.values(r3.powers).map((p) => p.effect).sort()).toEqual([...POWER_EFFECTS].sort());
+    for (const raw of [RULESET_RAW, RULESET2_RAW]) {
+      expect(parseRuleset(raw).powers).toEqual({});
+      expect(parseRuleset(raw).powerRules).toEqual({ inventoryCapPerPower: 2 });
+    }
+  });
+
+  it("mechanics 1 and 2 refuse powers (their game-core has no usePower); mechanics 3 may leave them out, with their rules", () => {
+    const in2 = copy(RULESET2_RAW);
+    in2["powers"] = copy(RULESET3_RAW["powers"]);
+    expect(() => parseRuleset(in2)).toThrow(/ruleset.powers: is mechanics 3; mechanics 1 and 2 have no meteor powers/);
+    const none = copy(RULESET3_RAW);
+    delete none["powers"];
+    expect(() => parseRuleset(none)).toThrow(/ruleset.powerRules: unknown key "perWaveUseLimitPerPower"/);
+    none["powerRules"] = { inventoryCapPerPower: 2 };
+    expect(parseRuleset(none).powers).toEqual({});
+  });
+
+  it("with powers, every use rule is required: uses per wave, the shared lockout, the award rotation", () => {
+    for (const key of ["perWaveUseLimitPerPower", "sharedLockoutSeconds", "awardRotation"]) {
+      const missing = copy(RULESET3_RAW);
+      delete rulesOf(missing)[key];
+      expect(() => parseRuleset(missing), key).toThrow(new RegExp(`ruleset.powerRules: "${key}" is missing`));
+    }
+    const zero = copy(RULESET3_RAW);
+    rulesOf(zero)["perWaveUseLimitPerPower"] = 0;
+    expect(() => parseRuleset(zero)).toThrow(/perWaveUseLimitPerPower: must be between 1 and 100/);
+  });
+
+  it("the award rotation names only this ruleset's powers", () => {
+    const stray = copy(RULESET3_RAW);
+    rulesOf(stray)["awardRotation"] = ["frost-pulse", "laser-storm"];
+    expect(() => parseRuleset(stray)).toThrow(/awardRotation\[1\]: "laser-storm" is not one of this ruleset's powers/);
+    const empty = copy(RULESET3_RAW);
+    rulesOf(empty)["awardRotation"] = [];
+    expect(() => parseRuleset(empty)).toThrow(/awardRotation: must have 1 to 10 items/);
+  });
+
+  it("each effect has exactly its own fields; an unknown effect is refused; IDs are key IDs (hyphens, as the contracts)", () => {
+    const wrongFields = copy(RULESET3_RAW);
+    (powersOf(wrongFields)["frost-pulse"] as JsonObject)["radius"] = 1.5;
+    expect(() => parseRuleset(wrongFields)).toThrow(/powers.frost-pulse: unknown key "radius"/);
+    const missing = copy(RULESET3_RAW);
+    delete (powersOf(missing)["comet-burst"] as JsonObject)["bossPctMaxHp"];
+    expect(() => parseRuleset(missing)).toThrow(/powers.comet-burst: "bossPctMaxHp" is missing/);
+    const unknown = copy(RULESET3_RAW);
+    (powersOf(unknown)["colony-shield"] as JsonObject)["effect"] = "heal";
+    expect(() => parseRuleset(unknown)).toThrow(/powers.colony-shield.effect: must be one of slow, burst, shield/);
+    const underscore = copy(RULESET3_RAW);
+    powersOf(underscore)["frost_pulse"] = copy(powersOf(underscore)["frost-pulse"] as JsonObject);
+    expect(() => parseRuleset(underscore)).toThrow(/powers.frost_pulse: ID does not match/);
+    const fraction = copy(RULESET3_RAW);
+    (powersOf(fraction)["comet-burst"] as JsonObject)["pctMaxHp"] = 50.5;
+    expect(() => parseRuleset(fraction)).toThrow(/comet-burst.pctMaxHp: must be an integer/);
+  });
+
+  it("meteorAward follows the rotation round and round (C10: M-059, the sixth meteor, is Colony Shield)", () => {
+    expect([1, 2, 3, 4, 5, 6, 7].map((k) => meteorAward(r3, k))).toEqual([
+      "frost-pulse",
+      "comet-burst",
+      "colony-shield",
+      "frost-pulse",
+      "comet-burst",
+      "colony-shield",
+      "frost-pulse",
+    ]);
+    expect(() => meteorAward(r3, 0)).toThrow(RangeError);
+    expect(meteorAward(parseRuleset(RULESET_RAW), 1)).toBeNull();
   });
 });
 

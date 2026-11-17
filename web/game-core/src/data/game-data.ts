@@ -29,7 +29,11 @@
  *   refuse it, because their simulation would ignore the traits (ADR-0034). Phase 27 (M2-04) added the bosses of C7
  *   to mechanics 3, before any ruleset with mechanics 3 was published: an optional `bosses` object, each boss with its
  *   phases (armour, speed, bubble layers for itself and its neighbours, releases) and its defeat release; a wave may
- *   schedule one boss. Mechanics 1 and 2 refuse `bosses` for the same reason (ADR-0034, amended).
+ *   schedule one boss. Mechanics 1 and 2 refuse `bosses` for the same reason (ADR-0034, amended). Phase 28 (M2-05)
+ *   added the meteor powers of C10 to mechanics 3, again before any ruleset with mechanics 3 was published: an optional
+ *   `powers` object (each power's effect: slow, burst or shield, with its numbers) and, with it, the use rules in
+ *   `powerRules` (uses per wave, the shared lockout, the meteor award rotation). Mechanics 1 and 2 refuse `powers`: their
+ *   simulation has no usePower command (ADR-0034, amended again).
  */
 export const SUPPORTED_MECHANICS: readonly number[] = [1, 2, 3];
 
@@ -236,6 +240,40 @@ export interface Boss {
   onDefeatRelease?: ReleaseSpec[];
 }
 
+/**
+ * What a meteor power does when used (C10). The simulation reads the effect, never the power's ID:
+ *   slow    every alien on the field is slowed by slowPct for duration seconds, under the normal slow rules (C5.4:
+ *           the cap, one slow at a time, and a boss at its slowFactorPct, C7) - Frost Pulse
+ *   burst   every alien within radius tiles of a chosen point on the route loses pctMaxHp % of its maximum health
+ *           (a boss bossPctMaxHp %), rounded up, removed directly from health: armour and bubble layers do not
+ *           apply, and a flying alien is hit like any other (C2.2 halves only Juno's blast) - Comet Burst
+ *   shield  shieldPoints are added to the colony shield at once, up to shieldAbsoluteCap; anything above shieldCap is
+ *           trimmed when the wave ends (C4, C2.5) - Colony Shield
+ */
+export const POWER_EFFECTS = ["slow", "burst", "shield"] as const;
+export type PowerEffect = (typeof POWER_EFFECTS)[number];
+
+export type Power = { name: string } & (
+  | { effect: "slow"; slowPct: number; duration: number }
+  | { effect: "burst"; radius: number; pctMaxHp: number; bossPctMaxHp: number }
+  | { effect: "shield"; shieldPoints: number }
+);
+
+/**
+ * C10's rules for powers. Every ruleset has the inventory cap (the reducer's grant enforces it, spine S3.2); the other
+ * three come with `powers` (mechanics 3) and are absent without them.
+ */
+export interface PowerRules {
+  /** The most charges of one power a run may hold. */
+  inventoryCapPerPower: number;
+  /** Each power may be used at most this many times in one wave. */
+  perWaveUseLimitPerPower?: number;
+  /** After any power is used, no power may be used for this many seconds of wave time. */
+  sharedLockoutSeconds?: number;
+  /** The power each meteor challenge awards, in turn, round and round (C10: Frost Pulse, Comet Burst, Colony Shield). */
+  awardRotation?: string[];
+}
+
 export interface RewardBlock {
   afterWaveFrom: number;
   afterWaveTo: number;
@@ -275,7 +313,9 @@ export interface Ruleset {
     deferredSpawnGap: number;
     maxDescendantDepth: number;
   };
-  powerRules: { inventoryCapPerPower: number };
+  /** Mechanics 3 and later (C10, Phase 28); {} when the ruleset has none (always before mechanics 3). */
+  powers: Record<string, Power>;
+  powerRules: PowerRules;
 }
 
 export interface Pad {
@@ -754,14 +794,68 @@ function checkAlienCatalogue(aliens: Readonly<Record<string, Alien>>, caps: Rule
   }
 }
 
+/** One meteor power (C10): its name, its effect and that effect's numbers, nothing else. */
+function parsePower(raw: unknown, path: string): Power {
+  const kind = obj(raw, path, ["name", "effect"], ["slowPct", "duration", "radius", "pctMaxHp", "bossPctMaxHp", "shieldPoints"]);
+  const name = str(kind["name"], `${path}.name`);
+  const effect = oneOf(kind["effect"], `${path}.effect`, POWER_EFFECTS);
+  switch (effect) {
+    case "slow": {
+      const o = obj(raw, path, ["name", "effect", "slowPct", "duration"]);
+      return {
+        name,
+        effect,
+        slowPct: int(o["slowPct"], `${path}.slowPct`, 1, 100),
+        duration: num(o["duration"], `${path}.duration`, false, 60),
+      };
+    }
+    case "burst": {
+      const o = obj(raw, path, ["name", "effect", "radius", "pctMaxHp", "bossPctMaxHp"]);
+      return {
+        name,
+        effect,
+        radius: num(o["radius"], `${path}.radius`, false, 20),
+        pctMaxHp: int(o["pctMaxHp"], `${path}.pctMaxHp`, 1, 100),
+        bossPctMaxHp: int(o["bossPctMaxHp"], `${path}.bossPctMaxHp`, 0, 100),
+      };
+    }
+    case "shield": {
+      const o = obj(raw, path, ["name", "effect", "shieldPoints"]);
+      return { name, effect, shieldPoints: int(o["shieldPoints"], `${path}.shieldPoints`, 1, 1000) };
+    }
+  }
+}
+
+/**
+ * powerRules (C10). The inventory cap is in every ruleset. The use rules and the award rotation belong to the powers:
+ * required when the ruleset has `powers`, refused when it has none (a rule about nothing would be a misspelling).
+ */
+function parsePowerRules(raw: unknown, powers: Readonly<Record<string, Power>>): PowerRules {
+  const p = "ruleset.powerRules";
+  const extra = ["perWaveUseLimitPerPower", "sharedLockoutSeconds", "awardRotation"];
+  const hasPowers = Object.keys(powers).length > 0;
+  const o = hasPowers ? obj(raw, p, ["inventoryCapPerPower", ...extra]) : obj(raw, p, ["inventoryCapPerPower"]);
+  const rules: PowerRules = { inventoryCapPerPower: int(o["inventoryCapPerPower"], `${p}.inventoryCapPerPower`, 0, 100) };
+  if (!hasPowers) return rules;
+  rules.perWaveUseLimitPerPower = int(o["perWaveUseLimitPerPower"], `${p}.perWaveUseLimitPerPower`, 1, 100);
+  rules.sharedLockoutSeconds = num(o["sharedLockoutSeconds"], `${p}.sharedLockoutSeconds`, true, 60);
+  rules.awardRotation = arr(o["awardRotation"], `${p}.awardRotation`, 1, 10).map((id, i) => {
+    const path = `${p}.awardRotation[${i}]`;
+    const powerId = str(id, path, KEY_ID_PATTERN, 40);
+    if (!Object.hasOwn(powers, powerId)) fail(path, `"${powerId}" is not one of this ruleset's powers`);
+    return powerId;
+  });
+  return rules;
+}
+
 export function parseRuleset(raw: unknown): Ruleset {
   // "slow" is checked against the mechanics number below: required from mechanics 2, refused in mechanics 1; and
-  // "bosses": allowed from mechanics 3, refused before.
+  // "bosses" and "powers": allowed from mechanics 3, refused before.
   const top = obj(
     raw,
     "ruleset",
     ["kind", "version", "mechanics", "simulation", "colony", "classes", "aliens", "economy", "sell", "caps", "powerRules"],
-    ["$comment", "slow", "bosses"],
+    ["$comment", "slow", "bosses", "powers"],
   );
   if (top["kind"] !== "ruleset") fail("ruleset.kind", 'must be "ruleset"');
   const version = checkVersion(top["version"], "ruleset.version");
@@ -827,8 +921,6 @@ export function parseRuleset(raw: unknown): Ruleset {
   if (caps.scheduledSpawnSoftCap > caps.maxActiveAliens) {
     fail("ruleset.caps.scheduledSpawnSoftCap", "must not exceed maxActiveAliens");
   }
-  const pr = obj(top["powerRules"], "ruleset.powerRules", ["inventoryCapPerPower"]);
-
   // C5.4. The cap is below 100 so that no alien can ever be stopped.
   let slow: SlowRules | undefined;
   if (mechanics >= 2) {
@@ -852,6 +944,14 @@ export function parseRuleset(raw: unknown): Ruleset {
     checkBosses(bosses, aliens, caps);
   }
 
+  // C10. A mechanics 1 or 2 game-core has no usePower command, so a run could hold charges it can never spend: refused.
+  let powers: Record<string, Power> = {};
+  if (Object.hasOwn(top, "powers")) {
+    if (mechanics < 3) fail("ruleset.powers", "is mechanics 3; mechanics 1 and 2 have no meteor powers");
+    powers = idMap(top["powers"], "ruleset.powers", parsePower);
+  }
+  const powerRules = parsePowerRules(top["powerRules"], powers);
+
   return {
     kind: "ruleset",
     version,
@@ -873,7 +973,8 @@ export function parseRuleset(raw: unknown): Ruleset {
       roundDownTo: int(s["roundDownTo"], "ruleset.sell.roundDownTo", 1, 1000),
     },
     caps,
-    powerRules: { inventoryCapPerPower: int(pr["inventoryCapPerPower"], "ruleset.powerRules.inventoryCapPerPower", 0, 100) },
+    powers,
+    powerRules,
   };
 }
 
@@ -890,6 +991,18 @@ export function learningReward(ruleset: Ruleset, interval: number): number {
   const block = ruleset.economy.learningRewardByBlock.find((b) => interval >= b.afterWaveFrom && interval <= b.afterWaveTo);
   if (block === undefined) throw new GameDataError(`ruleset ${ruleset.version}: no learning reward block covers interval ${interval}`);
   return block.credits;
+}
+
+/**
+ * The power the k-th meteor challenge of a run awards (k = 1 for the first, after wave 9; C10 "fixed rotation by meteor
+ * challenge"): the ruleset's awardRotation, round and round, so the sixth (endless M-059) is the third again. One
+ * charge per success (the contract's reward holds one powerId). Null for a ruleset with no powers.
+ */
+export function meteorAward(ruleset: Pick<Ruleset, "powerRules">, k: number): string | null {
+  const rotation = ruleset.powerRules.awardRotation;
+  if (rotation === undefined || rotation.length === 0) return null;
+  if (!Number.isInteger(k) || k < 1) throw new RangeError(`meteorAward: k must be 1 or more, got ${k}`);
+  return rotation[(k - 1) % rotation.length] ?? null;
 }
 
 function parseWaveSet(

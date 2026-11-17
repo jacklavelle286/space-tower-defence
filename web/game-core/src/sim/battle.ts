@@ -1,12 +1,14 @@
 // The battle simulation for one wave (Phase 14, M1-21; C2 simulation rules, spine S4 and S10). Phase 24 (M2-01) added
 // the six-class roster and economy; Phase 25 (M2-02) the targeting modes (C5.3), Pip's slow (C5.4), Mira's shield and
 // repair (C5.5) and Sol's buff (C5.6); Phase 26 (M2-03) the alien traits (C6.1, C6.2), carriers and splitters (C6.3)
-// and the object caps (C6.4); Phase 27 (M2-04) the bosses and their phases (C7).
+// and the object caps (C6.4); Phase 27 (M2-04) the bosses and their phases (C7); Phase 28 (M2-05) the meteor powers
+// (C10).
 //
 // A Battle is plain data: one wave, built from the run snapshot, advanced one fixed tick at a time by `step`. The
 // renderer reads it and draws; it never changes it. Everything is deterministic: integers only (C2.2), no clock, no
 // Math.random, and the order inside a tick is fixed (C2.3):
-//   1. queued player commands, in arrival order, each validated against the state at that moment (AC-09)
+//   1. queued player commands, in arrival order, each validated against the state at that moment (AC-09); a meteor
+//      power used here takes effect at once (C10), and aliens it defeats are gone before step 2
 //   2. scheduled spawns that are due, then descendant releases that are due, both within the caps (C6.4)
 //   3. support timers: Mira's shield pulses, in pad order; then the healers' shared pulse (C6.1)
 //   4. astronaut attacks, in pad order p01 -> p16 (C2.4: instant hits), with Sol's buff on the damage; each hit goes
@@ -35,17 +37,35 @@
 // its AlienState, its pending releases on this Battle, and the next wave's Battle starts with neither. The compiled
 // BattleConfig is shared between waves and is only ever read.
 //
+// Meteor powers (C10) follow the same rule. Charges are counts in the snapshot (`powers`): a use takes one, and
+// nothing in a battle ever adds one (only the server's meteor grant does, through the rules reducer, which is also the
+// one place the inventory cap is enforced). The per-wave limits (each power once a wave, the shared lockout after any
+// power) are kept on the Battle and cleared when the wave ends; a Frost Pulse's slow belongs to the aliens it slowed;
+// a Colony Shield above shieldCap is trimmed when the wave is cleared. So, again, nothing but counts crosses a wave.
+//
 // `step`, `startWave` and the command functions change the Battle they are given (it is the caller's private
 // object; copying every tick would only cost time). They read nothing else and return nothing hidden, so the same
 // Battle and the same calls always give the same result.
 import type { ReleaseSpec } from "../data/game-data";
 import type { Placement, Snapshot, Targeting } from "../rules";
-import type { AlienStats, BattleConfig, BossPhaseStats, BossStats, ClassStats, LevelStats, PadInfo, ShotStats, WavePlan } from "./config";
+import type {
+  AlienStats,
+  BattleConfig,
+  BossPhaseStats,
+  BossStats,
+  ClassStats,
+  LevelStats,
+  PadInfo,
+  PowerEffectStats,
+  ShotStats,
+  WavePlan,
+} from "./config";
 import {
   armouredDamage,
   bossPhaseAt,
   bossSlowPct,
   buffedDamage,
+  cometDamage,
   flyingBlastDamage,
   healAmount,
   sellRefund,
@@ -64,7 +84,12 @@ export type Command =
   | { readonly kind: "place"; readonly padId: string; readonly classId: string }
   | { readonly kind: "upgrade"; readonly padId: string }
   | { readonly kind: "sell"; readonly padId: string }
-  | { readonly kind: "setTargeting"; readonly padId: string; readonly targeting: Targeting };
+  | { readonly kind: "setTargeting"; readonly padId: string; readonly targeting: Targeting }
+  /**
+   * Use one charge of a meteor power (C10). `target` is where a Comet Burst lands: a route progress in units (the
+   * aiming ring snaps to the route, so it is always a point on it); powers without a target leave it out.
+   */
+  | { readonly kind: "usePower"; readonly powerId: string; readonly target?: number };
 
 export type RejectReason =
   | "NOT_NOW"
@@ -79,7 +104,17 @@ export type RejectReason =
   | "DEPLOY_CAP"
   | "NOT_ENOUGH_CREDITS"
   | "MAX_LEVEL"
-  | "TARGETING_UNAVAILABLE";
+  | "TARGETING_UNAVAILABLE"
+  /** The ruleset has no such power (before mechanics 3, none at all). */
+  | "UNKNOWN_POWER"
+  /** No charge of this power is held (C10: charges come only from the server's meteor grant). */
+  | "NO_CHARGE"
+  /** This power has already been used as often as a wave allows (C10: once). */
+  | "POWER_USED_THIS_WAVE"
+  /** Another power was used less than the shared lockout ago (C10: 3 s). */
+  | "POWER_LOCKED"
+  /** A Comet Burst without a point on the route to land on. */
+  | "BAD_TARGET";
 
 export type CommandResult = { readonly ok: true } | { readonly ok: false; readonly reason: RejectReason };
 
@@ -153,6 +188,9 @@ export interface PendingRelease {
  * `released`: a descendant came out of a defeated parent (C6.3), or of a boss entering a phase (C7).
  * `bossPhase`: a boss entered phase `phase` (C7), where it stood; one event per phase when one hit crosses several.
  * `bubbleGift`: a boss phase raised a nearby alien's bubble layers (C7 "gives 1 bubble layer"), to `layers`.
+ * `power`: a meteor power was used (C10), with its effect; `at` is where a Comet Burst landed (null for the others),
+ *   and `shield` the points a Colony Shield added (0 for the others).
+ * `burst`: an alien a Comet Burst hit, with the health it lost.
  */
 export type BattleEvent =
   | { readonly kind: "shot"; readonly tick: number; readonly padId: string; readonly alienId: number; readonly damage: number }
@@ -164,6 +202,15 @@ export type BattleEvent =
   | { readonly kind: "released"; readonly tick: number; readonly alienId: number; readonly parentId: number; readonly type: string }
   | { readonly kind: "bossPhase"; readonly tick: number; readonly alienId: number; readonly type: string; readonly phase: number; readonly at: Point }
   | { readonly kind: "bubbleGift"; readonly tick: number; readonly bossId: number; readonly alienId: number; readonly layers: number }
+  | {
+      readonly kind: "power";
+      readonly tick: number;
+      readonly powerId: string;
+      readonly effect: PowerEffectStats["kind"];
+      readonly at: Point | null;
+      readonly shield: number;
+    }
+  | { readonly kind: "burst"; readonly tick: number; readonly alienId: number; readonly damage: number }
   | {
       readonly kind: "defeated";
       readonly tick: number;
@@ -184,7 +231,10 @@ export interface BattleStats {
   leaked: number;
   bounty: number;
   shots: number;
+  /** Health removed by astronauts' shots (what tools/sim/sim.py counts as damage). */
   damage: number;
+  /** Health removed by Comet Bursts (C10), counted apart from the shots'. */
+  powerDamage: number;
   healthLost: number;
   /** Health given back by heal pulses (C6.1). */
   healed: number;
@@ -207,8 +257,13 @@ export interface Battle {
   credits: number;
   health: number;
   shield: number;
-  /** Carried through unchanged: mechanics 1 has no powers to use. */
-  readonly powers: Readonly<Record<string, number>>;
+  /** Charges held, by power ID (C10), from the snapshot. A use takes one; nothing in a battle adds one. */
+  powers: Record<string, number>;
+  /** How many times each power has been used in this wave (C10: each at most usesPerWave times). Cleared at wave end. */
+  powerUses: Record<string, number>;
+  /** The first tick on which a power may be used again (C10's shared lockout after any power); 0 = now. Cleared at
+   *  wave end. */
+  powerReadyTick: number;
   /** Kept in pad order. */
   towers: Tower[];
   /** Kept in id (spawn) order. */
@@ -268,6 +323,8 @@ export function createBattle(config: BattleConfig, snapshot: Snapshot, wave: num
     health: snapshot.colony.health,
     shield: snapshot.colony.shield,
     powers: { ...snapshot.powers },
+    powerUses: {},
+    powerReadyTick: 0,
     towers: [],
     aliens: [],
     nextAlienId: 1,
@@ -285,6 +342,7 @@ export function createBattle(config: BattleConfig, snapshot: Snapshot, wave: num
       bounty: 0,
       shots: 0,
       damage: 0,
+      powerDamage: 0,
       healthLost: 0,
       healed: 0,
       deferredSpawns: 0,
@@ -322,6 +380,7 @@ export function classAvailability(config: BattleConfig, classId: string, wave: n
  * check first, so a preview (the pad panel's prices and greyed-out cards) can never disagree with the rules.
  */
 export function checkCommand(battle: Readonly<Battle>, command: Command): CommandResult {
+  if (command.kind === "usePower") return checkPower(battle, command);
   const { config } = battle;
   const pad: PadInfo | undefined = config.pads.find((p) => p.id === command.padId);
   if (pad === undefined) return { ok: false, reason: "UNKNOWN_PAD" };
@@ -363,6 +422,29 @@ export function checkCommand(battle: Readonly<Battle>, command: Command): Comman
 }
 
 /**
+ * Whether a meteor power may be used now (C10), in this order: the ruleset has it; a wave is running (no ticks run in
+ * preparation, so a power there would do nothing or only fill the shield before the wave); a charge is held; this
+ * power has uses left in this wave; the shared lockout since the last power has passed; a Comet Burst has a point on
+ * the route. The charge count is the snapshot's: checked here, never raised here.
+ */
+function checkPower(battle: Readonly<Battle>, command: Extract<Command, { kind: "usePower" }>): CommandResult {
+  const { config } = battle;
+  const power = config.powers[command.powerId];
+  if (power === undefined) return { ok: false, reason: "UNKNOWN_POWER" };
+  if (battle.status !== "IN_WAVE") return { ok: false, reason: "NOT_NOW" };
+  if ((battle.powers[command.powerId] ?? 0) < 1) return { ok: false, reason: "NO_CHARGE" };
+  if ((battle.powerUses[command.powerId] ?? 0) >= config.powerRules.usesPerWave) return { ok: false, reason: "POWER_USED_THIS_WAVE" };
+  if (battle.tick < battle.powerReadyTick) return { ok: false, reason: "POWER_LOCKED" };
+  if (power.effect.kind === "burst") {
+    const target = command.target;
+    if (target === undefined || !Number.isInteger(target) || target < 0 || target > config.route.length) {
+      return { ok: false, reason: "BAD_TARGET" };
+    }
+  }
+  return { ok: true };
+}
+
+/**
  * Check and apply one command against the state at this moment (C2.3 step 1). Credits only ever fall by a price the
  * check has just seen they cover, so they never go negative (AC-09). Prices and refunds come from the ruleset
  * through the compiled config; nothing here knows a class's numbers.
@@ -370,6 +452,10 @@ export function checkCommand(battle: Readonly<Battle>, command: Command): Comman
 function applyCommand(battle: Battle, command: Command): CommandResult {
   const result = checkCommand(battle, command);
   if (!result.ok) return result;
+  if (command.kind === "usePower") {
+    usePower(battle, command);
+    return result;
+  }
   const { config } = battle;
   const tower = battle.towers.find((t) => t.padId === command.padId);
   switch (command.kind) {
@@ -421,9 +507,10 @@ function record(battle: Battle, command: Command, result: CommandResult): Comman
 }
 
 /**
- * Give a player command. In preparation it applies at once (no ticks run while preparing, C2.1). During the wave it
- * is queued and applied at the start of the next tick (C2.3 step 1); the result is then `{ok: true}` meaning
- * "queued", and a refusal arrives later as a `rejected` event. After the wave ends every command is refused.
+ * Give a player command. In preparation it applies at once (no ticks run while preparing, C2.1), except a meteor
+ * power, which is refused then (NOT_NOW: powers act only during a wave). During the wave it is queued and applied at
+ * the start of the next tick (C2.3 step 1); the result is then `{ok: true}` meaning "queued", and a refusal arrives
+ * later as a `rejected` event. After the wave ends every command is refused.
  */
 export function giveCommand(battle: Battle, command: Command): CommandResult {
   if (battle.status === "PREP") return record(battle, command, applyCommand(battle, command));
@@ -575,7 +662,8 @@ export function buffPctAt(battle: Readonly<Battle>, padId: string): number {
 /**
  * Add shield points, never above `limit` (and never above the absolute cap, C4). A shield already at or above the
  * limit is left as it is: a pulse never takes points away. Returns the points added. Mira's pulses use the colony's
- * shieldCap (C5.5); the Colony Shield power (Phase 28) will use shieldAbsoluteCap.
+ * shieldCap (C5.5); the Colony Shield power uses shieldAbsoluteCap (C10), so only it can lift the shield above
+ * shieldCap, and the excess is trimmed when the wave is cleared.
  */
 function addShield(battle: Battle, points: number, limit: number): number {
   const ceiling = Math.min(limit, battle.config.colony.shieldAbsoluteCap);
@@ -816,6 +904,77 @@ function hit(battle: Battle, tower: Tower, alien: AlienState, damage: number, at
   return true;
 }
 
+// ---- meteor powers (C10) ------------------------------------------------------------------------------------------
+
+/**
+ * A Comet Burst on one alien (C10, C2.2): `damage` (ceil of the share of its maximum health) comes straight off its
+ * health. Armour does not apply and a bubble layer neither absorbs it nor pops, and a flying alien takes it in full
+ * (C2.2 halves only Juno's blast). A boss enters every phase its health has now reached, then the defeat check, exactly
+ * as for a shot (C7); a defeated alien pays its normal bounty and releases what it carries (C6.3).
+ */
+function burstHit(battle: Battle, alien: AlienState, damage: number): void {
+  const stats = alienStatsOf(battle.config, alien.type);
+  const at = routePoint(battle.config.route, alien.progress);
+  const dealt = Math.min(damage, alien.hp);
+  alien.hp -= dealt;
+  battle.stats.powerDamage += dealt;
+  battle.events.push({ kind: "burst", tick: battle.tick, alienId: alien.id, damage: dealt });
+  if (stats.boss !== null) advanceBossPhase(battle, alien, stats.boss, at);
+  if (alien.hp <= 0) defeat(battle, alien, stats, at);
+}
+
+/**
+ * Use a power checkPower has just allowed (C2.3 step 1): take one charge, count the use for this wave, start the
+ * shared lockout, then the effect, which reads only the power's compiled effect (never its ID):
+ *   slow    every live alien, in id order, gets the slow under the C5.4 rules (applySlow: capped, half on a boss,
+ *           one slow at a time, a weaker one ignored, the longer time kept)
+ *   burst   every live alien whose point is within the radius of the target point, in id order (burstHit)
+ *   shield  the points, up to shieldAbsoluteCap (addShield)
+ */
+function usePower(battle: Battle, command: Extract<Command, { kind: "usePower" }>): void {
+  const { config } = battle;
+  const power = config.powers[command.powerId];
+  if (power === undefined) return; // unreachable: checkPower refused it
+  battle.powers[power.id] = (battle.powers[power.id] ?? 0) - 1;
+  battle.powerUses[power.id] = (battle.powerUses[power.id] ?? 0) + 1;
+  battle.powerReadyTick = battle.tick + config.powerRules.lockoutTicks;
+  const effect = power.effect;
+  switch (effect.kind) {
+    case "slow": {
+      battle.events.push({ kind: "power", tick: battle.tick, powerId: power.id, effect: effect.kind, at: null, shield: 0 });
+      for (const alien of battle.aliens) if (alien.hp > 0) applySlow(battle, alien, effect.pct, effect.ticks);
+      break;
+    }
+    case "burst": {
+      const at = routePoint(config.route, command.target ?? 0);
+      battle.events.push({ kind: "power", tick: battle.tick, powerId: power.id, effect: effect.kind, at, shield: 0 });
+      for (const alien of battle.aliens) {
+        if (alien.hp <= 0 || !withinRange(routePoint(config.route, alien.progress), at.x, at.y, effect.radiusSq)) continue;
+        burstHit(battle, alien, cometDamage(alien.maxHp, bossOf(battle, alien) === null ? effect.pct : effect.bossPct));
+      }
+      break;
+    }
+    case "shield": {
+      const added = addShield(battle, effect.points, config.colony.shieldAbsoluteCap);
+      battle.events.push({ kind: "power", tick: battle.tick, powerId: power.id, effect: effect.kind, at: null, shield: added });
+      break;
+    }
+  }
+}
+
+/**
+ * The wave is over (C2.5, spine S4): the queue is dropped and the per-wave power limits are cleared, so no use count
+ * or lockout survives the wave even on this Battle. A cleared wave also trims the shield to shieldCap (C4, C10: what
+ * a Colony Shield added above it lasts only for the wave).
+ */
+function endWave(battle: Battle, status: "CLEARED" | "DEFEATED"): void {
+  battle.status = status;
+  battle.queue = [];
+  battle.powerUses = {};
+  battle.powerReadyTick = 0;
+  if (status === "CLEARED") battle.shield = Math.min(battle.shield, battle.config.colony.shieldCap);
+}
+
 /** Advance one fixed tick (1/60 s). Does nothing unless the wave is running. */
 export function step(battle: Battle): void {
   if (battle.status !== "IN_WAVE") return;
@@ -824,10 +983,11 @@ export function step(battle: Battle): void {
   if (plan === undefined) throw new Error(`battle: no plan for wave ${battle.wave}`);
   const tick = battle.tick;
 
-  // 1. Commands, in arrival order.
+  // 1. Commands, in arrival order. A Comet Burst may defeat aliens here; they leave the route before the spawns.
   const queued = battle.queue;
   battle.queue = [];
   for (const command of queued) record(battle, command, applyCommand(battle, command));
+  if (battle.aliens.some((a) => a.hp <= 0)) battle.aliens = battle.aliens.filter((a) => a.hp > 0);
 
   // 2. Scheduled spawns that are due, then descendant releases that are due, both within the caps (C6.4).
   spawnScheduled(battle, plan, tick);
@@ -927,12 +1087,10 @@ export function step(battle: Battle): void {
   battle.tick = tick + 1;
   if (battle.health <= 0) {
     battle.health = 0;
-    battle.status = "DEFEATED";
-    battle.queue = [];
+    endWave(battle, "DEFEATED");
   } else if (battle.spawnIndex >= plan.spawns.length && battle.releases.length === 0 && battle.aliens.length === 0) {
     // C6.3 (AC-10): complete only when the schedule is exhausted, no release is queued and no alien is active.
-    battle.status = "CLEARED";
-    battle.queue = [];
+    endWave(battle, "CLEARED");
     repairOnClear(battle, plan, tick);
   }
 }
@@ -951,7 +1109,8 @@ export function placementsOf(battle: Battle): Placement[] {
 
 /**
  * The run snapshot this battle stands for (spine S4): in preparation the build state, after a cleared wave the
- * post-wave snapshot for COMPLETE_WAVE. The shield is trimmed to its cap when the wave ends (C4, C2.5).
+ * post-wave snapshot for COMPLETE_WAVE, with the charges left after this wave's uses. The shield is trimmed to its cap
+ * when the wave ends (C4, C2.5); the snapshot is never above it.
  * Throws for a defeated battle: a defeated run has no snapshot.
  */
 export function battleSnapshot(battle: Battle): Snapshot {

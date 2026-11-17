@@ -1,6 +1,6 @@
 // Every number in game-data/ agrees with the balance simulator (tools/sim/game_data.json, the C17 evidence): the
-// rulesets r1 (Nova only), r2 (the six-class roster, Phase 24) and r3 (the alien catalogue, Phase 26, and the bosses,
-// Phase 27), and the planet document. Prices, cumulative costs
+// rulesets r1 (Nova only), r2 (the six-class roster, Phase 24) and r3 (the alien catalogue, Phase 26, the bosses,
+// Phase 27, and the meteor powers, Phase 28), and the planet document. Prices, cumulative costs
 // and sell refunds equal the simulator's own C5.2 roster table, and the bounds file's maxBounty equals its "Total
 // bounty available" column (C8.2); both tables are tools/sim/tables.json, written by the Python model.
 // Where game-data/ renames something, the mapping is stated here: pad IDs are lower case (C3.2), and the
@@ -9,8 +9,8 @@ import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { GAME_DATA_DIR } from "../../scripts/build-bounds";
-import { armouredDamage, buffedDamage, flyingBlastDamage, healAmount, sellRefund } from "../sim/config";
-import { alienBounty, buildBounds, parsePlanet, parseRuleset, TARGETING_MODES, waveBounty, type AuthoredWave } from "./game-data";
+import { armouredDamage, buffedDamage, cometDamage, flyingBlastDamage, healAmount, sellRefund } from "../sim/config";
+import { alienBounty, buildBounds, meteorAward, parsePlanet, parseRuleset, TARGETING_MODES, waveBounty, type AuthoredWave } from "./game-data";
 
 const REPO = resolve(import.meta.dirname, "..", "..", "..", "..");
 const SIM_DIR = join(REPO, "tools", "sim");
@@ -153,12 +153,16 @@ describe("ruleset r3 is the whole alien catalogue (Phase 26, M2-03)", () => {
     expect(ruleset3.mechanics).toBe(3);
   });
 
-  it("changes nothing r2 had except the aliens (and adds the bosses, Phase 27)", () => {
-    const { aliens: a2, version: _v2, mechanics: _m2, bosses: b2, ...rest2 } = ruleset2;
-    const { aliens: a3, version: _v3, mechanics: _m3, bosses: _b3, ...rest3 } = ruleset3;
+  it("changes nothing r2 had except the aliens (and adds the bosses, Phase 27, and the powers and their rules, Phase 28)", () => {
+    const { aliens: a2, version: _v2, mechanics: _m2, bosses: b2, powers: p2, powerRules: pr2, ...rest2 } = ruleset2;
+    const { aliens: a3, version: _v3, mechanics: _m3, bosses: _b3, powers: _p3, powerRules: pr3, ...rest3 } = ruleset3;
     expect(b2).toEqual({});
+    expect(p2).toEqual({});
     expect(rest3).toEqual(rest2);
     expect(a3["blob"]).toEqual(a2["blob"]);
+    // r2's one power rule, the inventory cap, is unchanged; r3 adds the rules that come with the powers.
+    expect(pr2).toEqual({ inventoryCapPerPower: 2 });
+    expect(pr3.inventoryCapPerPower).toBe(pr2.inventoryCapPerPower);
   });
 
   it("the C6.1 trait numbers and the C6.4 caps, as C states them", () => {
@@ -297,6 +301,81 @@ describe("ruleset r3's bosses are the simulator's (Phase 27, M2-04, C7)", () => 
     // Health and speed are the boss's own, not scaled by the wave (Game._spawn).
     expect(simSource).toContain('a.maxhp = int(wd.get("bossHp") or b["hp"])');
     expect(simSource).toContain('a.speed = b["speed"] * b["phases"][0]["speedFactor"]');
+  });
+});
+
+/**
+ * The meteor powers (Phase 28, M2-05, C10). game-data names them with the contracts' hyphenated key IDs (spine S9.5
+ * keyId: "powers frost-pulse"), the simulator with underscores: frost_pulse is frost-pulse, and so on. The
+ * simulator's prose (effect, targeting, mouse, keyboard), its pausedWhileTargeting flag (a player-app rule, D) and its
+ * meteorSchedule (planet data: the wave set's meteorAfter) are not ruleset data; `effect` is game-data's own field,
+ * naming which rule the simulation applies (the simulator decides by the power's ID).
+ */
+describe("ruleset r3's meteor powers are the simulator's (Phase 28, M2-05, C10)", () => {
+  const simId = (id: string): string => id.replaceAll("-", "_");
+  const simSource = readFileSync(join(SIM_DIR, "sim.py"), "utf8");
+
+  it("the same three powers, every number", () => {
+    expect(Object.keys(ruleset3.powers).map(simId).sort()).toEqual(Object.keys(sim.powers).sort());
+    expect(ruleset3.powers).toEqual({
+      "colony-shield": { name: sim.powers.colony_shield.name, effect: "shield", shieldPoints: sim.powers.colony_shield.shieldPoints },
+      "comet-burst": {
+        name: sim.powers.comet_burst.name,
+        effect: "burst",
+        radius: sim.powers.comet_burst.radius,
+        pctMaxHp: sim.powers.comet_burst.pctMaxHp,
+        bossPctMaxHp: sim.powers.comet_burst.bossPctMaxHp,
+      },
+      "frost-pulse": { name: sim.powers.frost_pulse.name, effect: "slow", slowPct: sim.powers.frost_pulse.slowPct, duration: sim.powers.frost_pulse.duration },
+    });
+  });
+
+  it("the C10 table, as C states it: 50% for 6 s (bosses 25%); 50% of maximum health within 1.5 tiles (bosses 10%); 10 points", () => {
+    expect(ruleset3.powers["frost-pulse"]).toMatchObject({ slowPct: 50, duration: 6 });
+    // Bosses 25%: the boss's own slowFactorPct (50) applies to the pulse as to Pip's slow (C5.4, C7).
+    for (const boss of Object.values(ruleset3.bosses)) expect(Math.floor((50 * boss.slowFactorPct) / 100)).toBe(25);
+    expect(ruleset3.powers["comet-burst"]).toMatchObject({ radius: 1.5, pctMaxHp: 50, bossPctMaxHp: 10 });
+    expect(ruleset3.powers["colony-shield"]).toMatchObject({ shieldPoints: 10 });
+    expect([ruleset3.colony.shieldCap, ruleset3.colony.shieldAbsoluteCap]).toEqual([10, 20]);
+  });
+
+  it("powerRules: cap 2, each power once a wave, a 3 s shared lockout, the rotation of the meteor schedule, one charge each", () => {
+    const pr = sim.powerRules;
+    expect(ruleset3.powerRules).toEqual({
+      inventoryCapPerPower: pr.inventoryCapPerPower,
+      perWaveUseLimitPerPower: pr.perWaveUseLimitPerPower,
+      sharedLockoutSeconds: pr.sharedLockoutSeconds,
+      awardRotation: ["frost-pulse", "comet-burst", "colony-shield"],
+    });
+    expect(ruleset3.powerRules).toMatchObject({ inventoryCapPerPower: 2, perWaveUseLimitPerPower: 1, sharedLockoutSeconds: 3 });
+    // The simulator's five meteor challenges follow the rotation, one charge each (the contract's reward holds one
+    // powerId: one charge per success).
+    // oxlint-disable-next-line typescript/no-explicit-any
+    pr.meteorSchedule.forEach((m: any, i: number) => {
+      expect(meteorAward(ruleset3, i + 1), m.slotId).toBe(m.power.replaceAll("_", "-"));
+      expect(m.charges, m.slotId).toBe(1);
+    });
+    // The sixth (endless M-059) is the third again (C10: "the mapping continues in endless").
+    expect(meteorAward(ruleset3, 6)).toBe("colony-shield");
+    expect(pr.awardMapping).toMatch(/Frost Pulse, Comet Burst, Colony Shield, then round again/);
+    expect(meteorAward(ruleset2, 1)).toBeNull();
+  });
+
+  it("Comet Burst's rounding is the simulator's: ceil(maxHealth x pct / 100), for every health up to 4,000 and both shares", () => {
+    expect(sim.combatRules.rounding.cometBurst).toBe("ceil(maxHealth * pct / 100), removed directly from health");
+    expect(simSource).toContain('self._lose(a, int(math.ceil(a.maxhp * pct / 100.0)))');
+    for (const pct of [50, 10]) {
+      for (let maxHp = 1; maxHp <= 4000; maxHp += 1) expect(cometDamage(maxHp, pct)).toBe(Math.ceil((maxHp * pct) / 100));
+    }
+  });
+
+  it("the simulator's use rules are C10's: in a wave, a charge held, once a wave, after the lockout; the charge taken on use", () => {
+    expect(simSource).toContain("self.in_wave and self.powers.get(pid, 0) > 0 and pid not in self.power_used_this_wave");
+    expect(simSource).toContain("and self.t >= self.power_lock_until)");
+    expect(simSource).toContain('self.shield = min(self.col["shieldAbsoluteCap"], self.shield + p["shieldPoints"])');
+    expect(simSource).toContain("self.powers[pid] -= 1");
+    // Reset at every wave start (run_wave), so nothing but the counts crosses a wave (C2.5).
+    expect(simSource).toContain("self.power_used_this_wave = set()\n        self.power_lock_until = 0.0");
   });
 });
 

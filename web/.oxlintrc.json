@@ -78,7 +78,11 @@
           "setTimeout",
           "setInterval",
           "performance",
-          "process"
+          "process",
+          "setImmediate",
+          "queueMicrotask",
+          "Date",
+          "crypto"
         ]
       }
     },

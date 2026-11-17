@@ -91,13 +91,20 @@ function copyPlacements(placements: Placements): Placements {
   return placements.map((p) => ({ ...p }));
 }
 
+/**
+ * One more charge of `powerId`, unless the run already holds `cap` of it (C10 "inventory cap"; spine S3.2: a success
+ * at the cap is still SUCCEEDED, with no charge added). This is the one place a charge is ever added, and so the one
+ * place the cap is enforced: the battle only ever takes charges away (usePower), and the server's grant runs this
+ * same rule in its Python mirror (api/shared/rules/reducer.py _grant).
+ */
+export function grantPowerCharge(powers: Powers, powerId: string, cap: number): Powers {
+  const held = powers[powerId] ?? 0;
+  return held < cap ? { ...powers, [powerId]: held + 1 } : powers;
+}
+
 /** Add a slot's pinned reward: credits, or one power charge unless that power is already at its cap. */
 function grant(snapshot: Snapshot, reward: Reward, powerChargeCap: number): Snapshot {
-  let powers: Powers = snapshot.powers;
-  if (reward.powerId !== undefined) {
-    const held = snapshot.powers[reward.powerId] ?? 0;
-    if (held < powerChargeCap) powers = { ...snapshot.powers, [reward.powerId]: held + 1 };
-  }
+  const powers = reward.powerId === undefined ? snapshot.powers : grantPowerCharge(snapshot.powers, reward.powerId, powerChargeCap);
   return { ...snapshot, credits: snapshot.credits + reward.credits, powers };
 }
 

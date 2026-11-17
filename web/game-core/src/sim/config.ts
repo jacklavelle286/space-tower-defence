@@ -19,7 +19,11 @@
 // Bosses (Phase 27, M2-04, C7): each boss is compiled into an AlienStats like any alien, with `boss` set to its
 // phases in simulation units (speed per tick, gift radius squared). The simulation reads the boss's phase from its
 // health with bossPhaseAt; nothing names a boss.
-import type { AttackKind, AuthoredWave, Boss, ClassLevel, PlanetDocument, ReleaseSpec, Ruleset, Targeting, WaveSet } from "../data/game-data";
+//
+// Meteor powers (Phase 28, M2-05, C10): each power is compiled into a PowerStats holding its effect in simulation
+// units (slow ticks, burst radius squared); the simulation reads the effect, never the power's ID. The use rules (uses
+// per wave, the shared lockout in ticks) are compiled once here too.
+import type { AttackKind, AuthoredWave, Boss, ClassLevel, PlanetDocument, Power, ReleaseSpec, Ruleset, Targeting, WaveSet } from "../data/game-data";
 import { STEPS_PER_SECOND } from "../clock";
 import { buildRoute, UNITS_PER_TILE, type Route } from "./route";
 
@@ -153,6 +157,28 @@ export interface AlienStats {
   readonly boss: BossStats | null;
 }
 
+/** What one meteor power does when used (C10), in simulation units. */
+export type PowerEffectStats =
+  /** Frost Pulse: a slow on every alien on the field, under the C5.4 rules (cap, one slow at a time, bosses at half). */
+  | { readonly kind: "slow"; readonly pct: number; readonly ticks: number }
+  /** Comet Burst: every alien within the radius of the chosen route point loses a share of its maximum health. */
+  | { readonly kind: "burst"; readonly radiusSq: number; readonly radiusTiles: number; readonly pct: number; readonly bossPct: number }
+  /** Colony Shield: points added at once, up to the colony's shieldAbsoluteCap. */
+  | { readonly kind: "shield"; readonly points: number };
+
+export interface PowerStats {
+  readonly id: string;
+  readonly name: string;
+  readonly effect: PowerEffectStats;
+}
+
+/** C10's use rules in ticks. A ruleset with no powers has usesPerWave 0, so no use is ever allowed. */
+export interface PowerRuleStats {
+  readonly usesPerWave: number;
+  /** After any power is used on tick t, the next may be used from tick t + lockoutTicks. */
+  readonly lockoutTicks: number;
+}
+
 /** The object caps of C6.4, durations in ticks. */
 export interface CapStats {
   /** Hard cap: never more aliens alive at once, descendants included. */
@@ -230,6 +256,9 @@ export interface BattleConfig {
   /** The healers' shared clock (C6.1, C2.5: it starts at wave start): a pulse on every multiple of this tick. Null
    *  when no alien in the ruleset heals. */
   readonly healPeriodTicks: number | null;
+  /** The meteor powers (C10), by power ID; {} before mechanics 3. */
+  readonly powers: Readonly<Record<string, PowerStats>>;
+  readonly powerRules: PowerRuleStats;
 }
 
 /** Seconds from the data to whole ticks (C2.1: ticks = round(seconds x 60)). */
@@ -284,6 +313,11 @@ export function bossPhaseAt(boss: BossStats, hp: number, maxHp: number): number 
 /** A slow's strength on a boss (C7 "slows work at half strength"): floor(pct x slowFactorPct / 100), before the cap. */
 export function bossSlowPct(pct: number, slowFactorPct: number): number {
   return Math.floor((pct * slowFactorPct) / 100);
+}
+
+/** Comet Burst (C2.2): ceil(maxHealth x pct / 100), in integers: removed directly from health. */
+export function cometDamage(maxHp: number, pct: number): number {
+  return Math.floor((maxHp * pct + 99) / 100);
 }
 
 /** Sell refund (C2.2, C5.7): floor(floor(invested x 70 / 100) / 5) x 5. */
@@ -346,6 +380,22 @@ function bossAlienStats(id: string, boss: Boss): AlienStats {
     descendantOnly: false,
     boss: { phases, slowFactorPct: boss.slowFactorPct },
   };
+}
+
+/** One power (C10) in simulation units. */
+function powerStats(id: string, p: Power): PowerStats {
+  switch (p.effect) {
+    case "slow":
+      return { id, name: p.name, effect: { kind: "slow", pct: p.slowPct, ticks: secondsToTicks(p.duration) } };
+    case "burst":
+      return {
+        id,
+        name: p.name,
+        effect: { kind: "burst", radiusSq: tilesSq(p.radius), radiusTiles: p.radius, pct: p.pctMaxHp, bossPct: p.bossPctMaxHp },
+      };
+    case "shield":
+      return { id, name: p.name, effect: { kind: "shield", points: p.shieldPoints } };
+  }
 }
 
 /** A distance in tiles as squared units, for comparing against squared distances (C2.2: no square roots). */
@@ -483,5 +533,10 @@ export function compileBattleConfig(ruleset: Ruleset, planet: PlanetDocument, wa
       maxDescendantDepth: ruleset.caps.maxDescendantDepth,
     },
     healPeriodTicks,
+    powers: Object.fromEntries(Object.entries(ruleset.powers).map(([id, p]) => [id, powerStats(id, p)])),
+    powerRules: {
+      usesPerWave: ruleset.powerRules.perWaveUseLimitPerPower ?? 0,
+      lockoutTicks: secondsToTicks(ruleset.powerRules.sharedLockoutSeconds ?? 0),
+    },
   };
 }
