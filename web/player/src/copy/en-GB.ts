@@ -53,6 +53,20 @@ export const COPY = {
     savedGames: "Saved games", // D4 P5
     myProgress: "My progress", // D4 P12
   },
+  runSetup: {
+    // D4 P7 run setup (Phase 53); challenge names come from the wave set, "about" lines are C13's [PROPOSAL]
+    heading: (planet: string) => `New game: ${planet}`,
+    campaignLength: (n: number) => `${n} waves · 5 bosses`,
+    waves: (n: number) => `${n} waves`,
+    challenges: "Quick challenges",
+    start: "Start",
+    about: {
+      campaign: "The whole adventure: new astronauts, bosses and meteor challenges along the way.",
+      "blob-parade": "Five gentle waves with only Nova: a first taste, or a quick go.",
+      "wobble-rematch": "The team is ready. Two warm-up waves, a meteor challenge, then King Wobble.",
+      "bubble-trouble": "A ready-made team with Juno and Pip. Six waves of swarms and Bubble Guards.",
+    } as Record<string, string>,
+  },
   progress: {
     // D4 P12 My progress [PROPOSAL] copy: counts only, no percentages, grades, ages, streaks or comparisons
     heading: "My progress",
@@ -142,6 +156,9 @@ export const COPY = {
     { id: "safe-and-sound", name: "Safe and Sound", rule: "Beat a boss without losing health" },
     { id: "full-crew", name: "Full Crew", rule: "Have all six astronauts out at once" },
     { id: "top-team", name: "Top Team", rule: "Upgrade an astronaut to level 3" },
+    { id: "challenge-blob-parade", name: "Parade Marshal", rule: "Finish Blob Parade" },
+    { id: "challenge-wobble-rematch", name: "Boss Buddy", rule: "Finish Wobble Rematch" },
+    { id: "challenge-bubble-trouble", name: "Bubble Wrangler", rule: "Finish Bubble Trouble" },
   ] as const,
   meteor: {
     // D4 P9 meteor offer [CONFIRMED] wording for heading and No thanks reply; P8 full-power line [PROPOSAL]

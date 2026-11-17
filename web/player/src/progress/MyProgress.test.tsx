@@ -49,7 +49,7 @@ describe("MyProgress (Phase 43, D4 P12)", () => {
     const notYet = screen.getByText("Wobble Stopper").closest("li");
     expect(notYet?.querySelector("img")?.getAttribute("src")).toBe("/assets/ui/badge-boss-1-outline.png");
     expect(screen.getByText("Clear wave 10")).toBeTruthy();
-    expect(screen.getAllByRole("listitem").filter((li) => li.classList.contains("badge"))).toHaveLength(10);
+    expect(screen.getAllByRole("listitem").filter((li) => li.classList.contains("badge"))).toHaveLength(13); // ten C12 badges + three challenge badges (Phase 53)
   });
 
   it("says so when there is nothing yet, and when it cannot load", async () => {

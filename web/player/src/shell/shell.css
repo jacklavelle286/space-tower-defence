@@ -613,3 +613,28 @@ body {
   clip-path: inset(50%);
   white-space: nowrap;
 }
+
+/* P7 run setup (Phase 53): the campaign, then the quick challenges. */
+.run-setup ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.run-setup h3 {
+  margin: 16px 0 6px;
+}
+
+.setup-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 0;
+  font-size: 20px;
+}
+
+.setup-about {
+  display: block;
+  font-size: 16px;
+}

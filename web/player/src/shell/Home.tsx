@@ -1,4 +1,4 @@
-import type { Me, Planets } from "@scd/shared";
+import type { Me, Planets, WaveSetEntry } from "@scd/shared";
 import { useEffect, useRef, useState } from "react";
 import { COPY } from "../copy/en-GB";
 import type { PlayerApi } from "../api/playerApi";
@@ -26,6 +26,17 @@ function firstChoice(planets: Planets | null): GameChoice | null {
     if (ws) return { planetId: planet.planetId, waveSetId: ws.waveSetId };
   }
   return null;
+}
+
+/** Every wave set a new game could use now, planet by planet (P7, Phase 53): the campaign first, then challenges. */
+export function allChoices(planets: Planets | null): { planetName: string; choice: GameChoice; set: WaveSetEntry }[] {
+  const out: { planetName: string; choice: GameChoice; set: WaveSetEntry }[] = [];
+  for (const planet of planets?.planets ?? []) {
+    if (!planet.unlocked) continue;
+    const sets = [...planet.waveSets].sort((a, b) => (a.mode === b.mode ? 0 : a.mode === "CAMPAIGN" ? -1 : 1));
+    for (const set of sets) out.push({ planetName: planet.name, choice: { planetId: planet.planetId, waveSetId: set.waveSetId }, set });
+  }
+  return out;
 }
 
 /** The line Home shows when New game did not start a game (D7.3). */
@@ -141,7 +152,35 @@ export function Home({
         </section>
       ) : null}
 
+      {allChoices(planets).length > 1 ? (
+        <section className="panel run-setup" aria-labelledby="setup-heading">
+          <h2 id="setup-heading">{COPY.runSetup.heading(allChoices(planets)[0]?.planetName ?? "")}</h2>
+          <ul>
+            {allChoices(planets).map(({ choice: c, set }, i, list) => (
+              <li key={`${c.planetId}/${c.waveSetId}`}>
+                {set.mode === "CHALLENGE" && list[i - 1]?.set.mode !== "CHALLENGE" ? <h3>{COPY.runSetup.challenges}</h3> : null}
+                <div className="setup-row">
+                  <span className="setup-name">
+                    <strong>{set.name}</strong>{" "}
+                    {set.mode === "CAMPAIGN" ? COPY.runSetup.campaignLength(set.finalWave) : COPY.runSetup.waves(set.finalWave)}
+                    {COPY.runSetup.about[c.waveSetId] !== undefined ? <span className="setup-about">{COPY.runSetup.about[c.waveSetId]}</span> : null}
+                  </span>
+                  {set.available ? (
+                    <button type="button" className="btn btn-small btn-go" disabled={!online || busy} onClick={() => void start(c)}>
+                      {COPY.runSetup.start}
+                    </button>
+                  ) : (
+                    <span className="reason">{set.reason === "AGE_OUT_OF_RANGE" ? COPY.home.ageOutOfRange : COPY.home.comingLater}</span>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       <section className="home-actions">
+        {allChoices(planets).length > 1 ? null : (
         <button
           type="button"
           className="btn btn-big btn-go"
@@ -150,6 +189,7 @@ export function Home({
         >
           {busy ? COPY.home.starting : COPY.home.newGame}
         </button>
+        )}
         {onSavedGames !== undefined ? (
           <button type="button" className="btn btn-small" onClick={onSavedGames}>
             {COPY.home.savedGames}
