@@ -244,3 +244,14 @@
   min-width: 3ch;
   text-align: right;
 }
+
+/* Waves tab → Difficulty curve (Gate M, LD13). */
+.curve-chart {
+  width: 100%;
+  max-width: 640px;
+  height: auto;
+  display: block;
+}
+.curve-table td.warning {
+  font-weight: 700;
+}

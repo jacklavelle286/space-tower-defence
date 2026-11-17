@@ -2,6 +2,7 @@ import { CURVES, fillIn, introduceAlien, isBoss, scaleCounts, typesBy, vary, wav
 import { LIMITS } from "@scd/shared";
 import { useState } from "react";
 import type { LevelFile, LevelGroup, LevelWave, LevelWaveBody } from "../api";
+import { CurvePanel } from "./curves/CurvePanel";
 import { currentRuleset, liveBase, problemText, type LevelProblem } from "./levelFile";
 
 // The Waves tab (Gate M, LD4; scope-level-designer.md §3.1 step 8 and §3.1a). A campaign level edits the 50 campaign
@@ -191,6 +192,7 @@ export function WavesTab({ level, problems, onEdit }: Props) {
               Scale
             </button>
           </div>
+          <CurvePanel level={level} onSetWaves={(next) => setWaves(next)} />
           {waves.map((w, i) => {
             const roll = rolls[w.wave];
             const replace = (body: LevelWaveBody) => setWaves(waves.map((x, k) => (k === i ? { ...body, wave: w.wave } : x)));

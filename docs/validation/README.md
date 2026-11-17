@@ -16,6 +16,7 @@ birth, no e-mail addresses. Children are "child A, age 6".
 | [am0-animation.md](am0-animation.md) | Gate M AM0: walk frames made from one drawing beside the hand-drawn ones, and the owner's verdict | Phase AM0 |
 | [ld11-routes.md](ld11-routes.md) | Gate M LD11: the route tiles for any direction, four fixture maps, Moonbeam pixel-identical | Phase LD11 |
 | [ld12-preview.md](ld12-preview.md) | Gate M LD12: the battle preview on the admin site, its request log, the release classification | Phase LD12 |
+| [ld13-curves.md](ld13-curves.md) | Gate M LD13: the difficulty curve, margins against the simulator, the 15 % exit check | Phase LD13 |
 | [browsers.md](browsers.md) | One-clip check per browser the family uses (I.2.9 "Browser matrix") | Phase 23 |
 
 The deployed Playwright journeys that produce part of this evidence are in
