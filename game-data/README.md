@@ -14,6 +14,10 @@ Rules:
 - **Add, never edit.** A run pins its versions, and the release uploads every versioned file create-only. Re-uploading
   the same bytes is fine; a published file with different bytes stops the release. To change the game, add a new
   version and point `current.json` at it. `current.json` is the only file that is overwritten.
+- **Who writes `current.json` (Gate M, LD6).** The game-data publisher owns the live `current.json`. A release writes
+  this repo copy only when the live one is absent, or when it is dispatched with `reseed_current` ticked; a rollback
+  (`artefacts_from`) never does. So pointing new games at a repo version (a new ruleset, say) needs a release with
+  `reseed_current`, and that also undoes any admin publish for new games.
 - Versions match `^[a-z0-9.-]{1,40}$`, and each file's `version` field equals its file name.
 - A change to a *rule* (not a number) needs a new `mechanics` number, and `game-core` must support it first
   (`SUPPORTED_MECHANICS` in `web/game-core/src/data/game-data.ts`).

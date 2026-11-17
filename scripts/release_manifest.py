@@ -18,6 +18,11 @@
          archived release's manifest, so nothing is rebuilt. Only releases with schemaVersion 2 (Phase 8 on) can be
          reused: an older manifest has no Lambda zips, and current Terraform needs them.
 
+`gameDataReseed` (Gate M, LD6): from LD6 the game-data publisher owns game-data/current.json, and the release writes
+it only when it is absent, unless `build --reseed-current` sets this to true (the owner chose to point new games back
+at the repo's game data). A rollback never reseeds: `reuse` always writes false. A manifest without the key (before
+LD6) counts as false.
+
 The output is deterministic (sorted keys and lists, no timestamps of its own), so re-running the build job of the
 same release writes the same bytes and the create-only upload accepts it.
 
@@ -108,7 +113,7 @@ def check_release_id(value: str, what: str) -> str:
     return value
 
 
-def base_manifest(args: argparse.Namespace, artefacts_from: str | None) -> dict[str, Any]:
+def base_manifest(args: argparse.Namespace, artefacts_from: str | None, *, reseed: bool = False) -> dict[str, Any]:
     if not re.fullmatch(r"[0-9a-f]{40}", args.git_sha):
         raise ManifestError(f"--git-sha must be a full 40-character commit SHA: {args.git_sha!r}")
     release_id = check_release_id(args.release_id, "--release-id")
@@ -120,6 +125,7 @@ def base_manifest(args: argparse.Namespace, artefacts_from: str | None) -> dict[
         "gitSha": args.git_sha,
         "ref": args.ref,
         "artefactsFrom": artefacts_from,
+        "gameDataReseed": reseed,
         "releaseRunId": args.run_id,
         "actor": args.actor,
         "startedAt": args.started_at,
@@ -127,7 +133,7 @@ def base_manifest(args: argparse.Namespace, artefacts_from: str | None) -> dict[
 
 
 def build(args: argparse.Namespace) -> dict[str, Any]:
-    manifest = base_manifest(args, artefacts_from=None)
+    manifest = base_manifest(args, artefacts_from=None, reseed=bool(args.reseed_current))
     static: dict[str, Any] = {}
     for name, dist, public, archive_key, sha256 in args.app:
         if name in static:
@@ -226,6 +232,11 @@ def main(argv: list[str] | None = None) -> int:
         metavar=("KEY", "ZIP"),
         help="one Lambda zip (scripts/build_lambdas.py output); all five keys are required",
     )
+    p_build.add_argument(
+        "--reseed-current",
+        action="store_true",
+        help="overwrite game-data/current.json with the repo's (LD6: otherwise it is written only when absent)",
+    )
     p_reuse = sub.add_parser("reuse", parents=[common], help="manifest for a rollback (artefacts_from)")
     p_reuse.add_argument("--artefacts-from", required=True)
     p_reuse.add_argument("--archived", required=True, help="the archived release's manifest.json")
@@ -242,6 +253,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"release_manifest: {name}: {entry['archiveKey']} ({counts})")
     for key, entry in manifest["lambdas"].items():
         print(f"release_manifest: {key}: {entry['s3Key']}")
+    print(f"release_manifest: game-data/current.json: {'reseed (overwrite)' if manifest['gameDataReseed'] else 'only if absent'}")
     return 0
 
 

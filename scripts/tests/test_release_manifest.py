@@ -99,6 +99,7 @@ def test_build_writes_a_deterministic_manifest(tmp_path: Path, player: tuple[Pat
     manifest = json.loads(outs[0])
     assert manifest["releaseId"] == RELEASE_ID
     assert manifest["artefactsFrom"] is None
+    assert manifest["gameDataReseed"] is False  # LD6: current.json only if absent unless --reseed-current
     assert manifest["static"]["player"]["archiveKey"] == f"static/{HASH_A}/player.tar.gz"
     assert manifest["static"]["player"]["files"]["entry"] == ["index.html"]
     assert manifest["schemaVersion"] == 2
@@ -157,6 +158,23 @@ def test_reuse_copies_the_archived_static_build(tmp_path: Path, player: tuple[Pa
     assert reused["artefactsFrom"] == "20261101T0900Z-abcdef1"
     assert reused["static"] == archived["static"]
     assert reused["lambdas"] == archived["lambdas"]
+
+
+def test_reseed_current_is_recorded_and_a_rollback_never_reseeds(
+    tmp_path: Path, player: tuple[Path, Path], zips: list[str]
+) -> None:
+    dist, public = player
+    old = tmp_path / "old.json"
+    old_args = common_args(old)
+    old_args[1], old_args[3] = "20261101T0900Z-abcdef1", "abcdef1" + "0" * 33
+    app = ["--app", "player", str(dist), str(public), f"static/{HASH_A}/player.tar.gz", HASH_A]
+    assert release_manifest.main(["build", *old_args, *zips, *app, "--reseed-current"]) == 0
+    assert json.loads(old.read_text())["gameDataReseed"] is True
+
+    new = tmp_path / "new.json"
+    assert release_manifest.main(["reuse", *common_args(new), "--artefacts-from", "20261101T0900Z-abcdef1",
+                                  "--archived", str(old)]) == 0
+    assert json.loads(new.read_text())["gameDataReseed"] is False
 
 
 def test_reuse_refuses_a_release_from_before_lambda_zips(tmp_path: Path) -> None:

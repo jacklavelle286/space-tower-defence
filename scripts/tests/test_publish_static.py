@@ -252,7 +252,7 @@ def test_game_data_order_follows_h85(published_with_game_data):
 
 def test_versioned_game_data_is_create_only_one_put_per_file(published_with_game_data):
     plan, commands, work = published_with_game_data
-    create_only = [c for c in commands if c[0] == str(ps.CREATE_ONLY_SCRIPT)]
+    create_only = [c for c in commands if c[0] == str(ps.CREATE_ONLY_SCRIPT) and "--keep-existing" not in c]
     assert [c[2] for c in create_only] == sorted(GAME_DATA)  # the object key is the site path
     for cmd in create_only:
         _, bucket, key, source, cache, ctype = cmd
@@ -261,22 +261,47 @@ def test_versioned_game_data_is_create_only_one_put_per_file(published_with_game
         assert cache == ps.CACHE_IMMUTABLE and ctype == "application/json"
     assert commands[: len(GAME_DATA)] == create_only  # before anything else (H.8.5 b)
     assert ps.CREATE_ONLY_SCRIPT.name == "s3_put_create_only.sh" and ps.CREATE_ONLY_SCRIPT.is_file()
-    assert all(b.create_only == (b.label == "game-data") for b in plan)
+    assert all(b.create_only == (b.label in ("game-data", "game-data-current")) for b in plan)
 
 
-def test_current_json_is_the_only_game_data_overwrite(published_with_game_data):
-    _, commands, _ = published_with_game_data
-    cp = [c for c in commands if c[:3] == ["aws", "s3", "cp"]]
-    game_data_cp = [c for c in cp if "game-data" in " ".join(c)]
-    assert len(game_data_cp) == 1
-    cmd = game_data_cp[0]
-    assert cmd[4] == "s3://site-bucket/game-data/current.json"
-    assert cmd[cmd.index("--cache-control") + 1] == ps.CACHE_NO_CACHE
-    assert cmd[cmd.index("--content-type") + 1] == "application/json"
+def test_current_json_is_written_only_if_absent(published_with_game_data):
+    """LD6: the game-data publisher owns current.json, so the release puts it create-only and keeps an existing one."""
+    plan, commands, work = published_with_game_data
+    (cmd,) = [c for c in commands if "game-data/current.json" in c]
+    assert cmd == [str(ps.CREATE_ONLY_SCRIPT), "--keep-existing", "site-bucket", "game-data/current.json",
+                   str(work / "site" / "game-data/current.json"), ps.CACHE_NO_CACHE, "application/json"]
     # after every versioned file and the app's own files, before config.json and index.html
     assert commands.index(cmd) == len(commands) - 3
+    assert not [c for c in commands if c[:3] == ["aws", "s3", "cp"] and "game-data" in " ".join(c)]
+    (batch,) = [b for b in plan if b.label == "game-data-current"]
+    assert batch.keep_existing and batch.create_only
     for c in commands:
         assert "--delete" not in c and "sync" not in c
+
+
+def test_reseed_overwrites_current_json(tmp_path):
+    archive = make_archive(tmp_path, ["index.html", *HASHED, *UNHASHED, *GAME_DATA, "game-data/current.json"])
+    commands: list[list[str]] = []
+    manifest = {**manifest_for(archive, GAME_FILES), "gameDataReseed": True, "artefactsFrom": None}
+    ps.publish("player", manifest, archive, "site-bucket", RELEASE_ID, tmp_path / "work", commands.append, auth=AUTH)
+    (cmd,) = [c for c in commands if any("game-data/current.json" in part for part in c)]
+    assert cmd[:3] == ["aws", "s3", "cp"] and cmd[4] == "s3://site-bucket/game-data/current.json"
+    assert cmd[cmd.index("--cache-control") + 1] == ps.CACHE_NO_CACHE
+    assert commands.index(cmd) == len(commands) - 3
+
+
+@pytest.mark.parametrize(
+    ("extra", "match"),
+    [({"gameDataReseed": True, "artefactsFrom": "20261101T0900Z-abcdef1"}, "rollback"),
+     ({"gameDataReseed": "yes"}, "true or false")],
+)
+def test_rollback_or_malformed_reseed_refused_before_any_upload(tmp_path, extra, match):
+    archive = make_archive(tmp_path, ["index.html", *HASHED, *UNHASHED, *GAME_DATA, "game-data/current.json"])
+    commands: list[list[str]] = []
+    with pytest.raises(ps.PublishError, match=match):
+        ps.publish("player", {**manifest_for(archive, GAME_FILES), **extra}, archive, "site-bucket", RELEASE_ID,
+                   tmp_path / "work", commands.append, auth=AUTH)
+    assert commands == []
 
 
 def test_game_data_refused_on_the_admin_site(tmp_path):

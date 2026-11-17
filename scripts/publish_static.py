@@ -22,8 +22,11 @@ What it does, in this order:
           re-run or a rollback); a published file with different bytes stops the publish (H.8.5 b, spine S5.1).
        b. content-hashed Vite output ("hashed")      Cache-Control: public, max-age=31536000, immutable
        c. unhashed files copied from public/          Cache-Control: no-cache   (ADR-0013, until Phase 64 hashes them)
-       d. game-data/current.json ("gameDataCurrent")  Cache-Control: no-cache   (the only game-data overwrite; after
-                                                      the files it names, H.8.5 e)
+       d. game-data/current.json ("gameDataCurrent")  Cache-Control: no-cache   (after the files it names, H.8.5 e)
+          From Gate M (LD6) the game-data publisher owns current.json: it is written CREATE-ONLY too, and an existing
+          one is kept whatever it says (s3_put_create_only.sh --keep-existing), so a release never reverts an admin
+          publish. Only a manifest with gameDataReseed true (release.yml's reseed_current input) overwrites it, and a
+          rollback (artefactsFrom) never does.
        e. config.json, generated here                 Cache-Control: no-cache   (the site config + releaseId, H.8.5 f)
        f. index.html, LAST                            Cache-Control: no-cache
      so a browser that loads the new index.html finds every file it names. Every upload sets an explicit
@@ -101,6 +104,7 @@ class Batch:
     content_type: str
     files: list[str] = field(default_factory=list)  # paths relative to the site root, with '/'
     create_only: bool = False  # one s3_put_create_only.sh call per file instead of one `aws s3 cp`
+    keep_existing: bool = False  # create-only, and an existing object with other bytes is kept, not an error (LD6)
 
 
 def content_type(path: str) -> str:
@@ -237,16 +241,18 @@ def _grouped(label: str, cache_control: str, paths: Sequence[str]) -> list[Batch
     return [by_type[k] for k in sorted(by_type)]
 
 
-def build_plan(files: dict[str, list[str]]) -> list[Batch]:
+def build_plan(files: dict[str, list[str]], *, reseed: bool = False) -> list[Batch]:
     """The ordered upload batches. The order is the whole point (H.8.5): versioned game data (create-only), hashed,
-    unhashed, game-data/current.json, config.json, index.html."""
+    unhashed, game-data/current.json (only if absent, unless `reseed`), config.json, index.html."""
     plan: list[Batch] = []
     for batch in _grouped("game-data", CACHE_IMMUTABLE, group(files, "gameData")):
         batch.create_only = True
         plan.append(batch)
     plan += _grouped("hashed", CACHE_IMMUTABLE, files["hashed"])
     plan += _grouped("unhashed", CACHE_NO_CACHE, files["unhashed"])
-    plan += _grouped("game-data-current", CACHE_NO_CACHE, group(files, "gameDataCurrent"))
+    for batch in _grouped("game-data-current", CACHE_NO_CACHE, group(files, "gameDataCurrent")):
+        batch.create_only = batch.keep_existing = not reseed
+        plan.append(batch)
     plan.append(Batch("config", CACHE_NO_CACHE, content_type(CONFIG_FILE), [CONFIG_FILE]))
     plan.append(Batch("entry", CACHE_NO_CACHE, content_type(ENTRY_FILE), [ENTRY_FILE]))
     return plan
@@ -274,7 +280,19 @@ def cp_command(batch: Batch, source: Path, bucket: str) -> list[str]:
 
 def create_only_command(batch: Batch, rel: str, site_root: Path, bucket: str) -> list[str]:
     """One create-only PutObject (If-None-Match: *) for a game-data file, with its cache and content headers."""
-    return [str(CREATE_ONLY_SCRIPT), bucket, rel, str(site_root / rel), batch.cache_control, batch.content_type]
+    keep = ["--keep-existing"] if batch.keep_existing else []
+    return [str(CREATE_ONLY_SCRIPT), *keep, bucket, rel, str(site_root / rel), batch.cache_control, batch.content_type]
+
+
+def reseed_flag(manifest: dict[str, Any]) -> bool:
+    """Whether this release overwrites game-data/current.json (LD6). Missing (a manifest before LD6) is false; a
+    rollback never reseeds, whatever its manifest says."""
+    reseed = manifest.get("gameDataReseed", False)
+    if not isinstance(reseed, bool):
+        raise PublishError(f"the manifest's gameDataReseed is {reseed!r}, not true or false")
+    if reseed and manifest.get("artefactsFrom"):
+        raise PublishError("a rollback (artefactsFrom) never overwrites game-data/current.json; gameDataReseed must be false")
+    return reseed
 
 
 def publish(
@@ -290,6 +308,7 @@ def publish(
 ) -> list[Batch]:
     entry = app_entry(manifest, app)
     auth = site_config(auth)
+    reseed = reseed_flag(manifest)
     if manifest.get("releaseId") != release_id:
         raise PublishError(f"the manifest is for release {manifest.get('releaseId')!r}, not {release_id!r}")
     got = sha256_file(archive)
@@ -303,7 +322,7 @@ def publish(
     check_file_set(list_files(site_root), entry["files"])
     (site_root / CONFIG_FILE).write_text(config_json(release_id, auth), encoding="utf-8")
 
-    plan = build_plan(entry["files"])
+    plan = build_plan(entry["files"], reseed=reseed)
     for i, batch in enumerate(plan):
         if batch.create_only:
             for rel in batch.files:
@@ -351,7 +370,8 @@ def main(argv: list[str] | None = None) -> int:
         return 1
 
     rows = [{"order": i + 1, "label": b.label, "cacheControl": b.cache_control, "contentType": b.content_type,
-             "files": len(b.files), "createOnly": b.create_only} for i, b in enumerate(plan)]
+             "files": len(b.files), "createOnly": b.create_only, "keepExisting": b.keep_existing}
+            for i, b in enumerate(plan)]
     for row in rows:
         print(f"publish_static: {args.app}: {row['order']:>2}. {row['label']:<17} {row['files']:>4} file(s)  "
               f"{row['contentType']:<28} {row['cacheControl']}")

@@ -18,6 +18,11 @@ name: release
 # archive; the manifest lists it in its own groups, and apply.yml's publish uploads each versioned file create-only
 # (If-None-Match: *) and current.json last among them, the only game-data file ever overwritten.
 #
+# game-data/current.json (Gate M, LD6): from LD6 the game-data publisher owns it, so the release writes it only when it
+# is absent (an admin publish is never reverted). Tick reseed_current to point new games back at the repo's game data:
+# the manifest records it (gameDataReseed), the plan you approve carries it, and only then is current.json overwritten.
+# A rollback (artefacts_from) never reseeds; dispatching both is refused.
+#
 # Rollback (H.12): dispatch with artefacts_from=<release_id>. The build is skipped; upload writes this release's
 # manifest from the archived one (same static archives and Lambda zips, each checked by SHA-256 in S3), the plan uses
 # current main Terraform with that release's Lambda keys, and apply.yml then publishes that archived build with a
@@ -42,6 +47,11 @@ on:
         required: false
         default: ""
         type: string
+      reseed_current:
+        description: "Overwrite game-data/current.json with the repo's (undoes admin publishes for new games). Leave unticked unless you mean it."
+        required: false
+        default: false
+        type: boolean
 
 permissions: {} # every job lists exactly what it needs
 
@@ -70,6 +80,7 @@ jobs:
       release_id: ${{ steps.ref.outputs.release_id }}
       started_at: ${{ steps.ref.outputs.started_at }}
       artefacts_from: ${{ steps.ref.outputs.artefacts_from }}
+      reseed_current: ${{ steps.ref.outputs.reseed_current }}
       environment: ${{ steps.vars.outputs.environment }}
       account: ${{ steps.vars.outputs.account }}
       region: ${{ steps.vars.outputs.region }}
@@ -83,6 +94,7 @@ jobs:
         env:
           INPUT_REF: ${{ inputs.ref }}
           INPUT_ARTEFACTS_FROM: ${{ inputs.artefacts_from }}
+          INPUT_RESEED_CURRENT: ${{ inputs.reseed_current }}
         run: |
           # The workflow must be dispatched from main (the prod environment also allows only main).
           if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
@@ -103,6 +115,14 @@ jobs:
             echo "::error::artefacts_from must be a release_id like 20261115T1432Z-6b9e326, or empty."
             exit 1
           fi
+          case "$INPUT_RESEED_CURRENT" in
+            true | false) ;;
+            *) echo "::error::reseed_current must be true or false."; exit 1 ;;
+          esac
+          if [[ "$INPUT_RESEED_CURRENT" == "true" && -n "$INPUT_ARTEFACTS_FROM" ]]; then
+            echo "::error::A rollback (artefacts_from) never overwrites game-data/current.json; untick reseed_current."
+            exit 1
+          fi
           # release_id = <UTC yyyymmddThhmmZ>-<sha7> (plan H.8.2 step 0)
           release_id="$(date -u +%Y%m%dT%H%MZ)-${GITHUB_SHA:0:7}"
           {
@@ -110,6 +130,7 @@ jobs:
             echo "release_id=$release_id"
             echo "started_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
             echo "artefacts_from=$INPUT_ARTEFACTS_FROM"
+            echo "reseed_current=$INPUT_RESEED_CURRENT"
           } >> "$GITHUB_OUTPUT"
 
       - name: Checkout
@@ -152,6 +173,7 @@ jobs:
         env:
           RELEASE_ID: ${{ steps.ref.outputs.release_id }}
           ARTEFACTS_FROM: ${{ steps.ref.outputs.artefacts_from }}
+          RESEED_CURRENT: ${{ steps.ref.outputs.reseed_current }}
         run: |
           {
             echo "## Release $RELEASE_ID"
@@ -161,6 +183,11 @@ jobs:
               echo "- Build: reused from release \`$ARTEFACTS_FROM\` (rollback)"
             else
               echo "- Build: fresh"
+            fi
+            if [[ "$RESEED_CURRENT" == "true" ]]; then
+              echo "- game-data/current.json: **reseed** (overwritten with the repo's; admin publishes no longer reach new games)"
+            else
+              echo "- game-data/current.json: written only if absent (the game-data publisher owns it)"
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -379,8 +406,11 @@ jobs:
         env:
           PLAYER_SHA256: ${{ steps.archives.outputs.player_sha256 }}
           ADMIN_SHA256: ${{ steps.archives.outputs.admin_sha256 }}
+          RESEED_CURRENT: ${{ needs.config.outputs.reseed_current }}
         run: |
-          python scripts/release_manifest.py build \
+          reseed=()
+          [[ "$RESEED_CURRENT" == "true" ]] && reseed=(--reseed-current)
+          python scripts/release_manifest.py build "${reseed[@]}" \
             --release-id "$RELEASE_ID" --git-sha "$SHA" --ref "$INPUT_REF" --run-id "$GITHUB_RUN_ID" \
             --actor "$GITHUB_ACTOR" --started-at "$STARTED_AT" --out "$OUT/manifest.json" \
             --app player web/player/dist web/player/public "static/$PLAYER_SHA256/player.tar.gz" "$PLAYER_SHA256" \

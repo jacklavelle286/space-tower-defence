@@ -551,7 +551,9 @@ jobs:
           # The player archive carries game-data/ (Phase 13): publish_static.py puts each /game-data/<kind>/<version>.json
           # create-only through scripts/s3_put_create_only.sh (a published file with other bytes stops the publish), then
           # current.json with no-cache after the files it names (H.8.5 b, e). A pre-Phase-13 archive has none.
-          # Exactly the entry points, never /* (H.8.5 h); current.json is the only game-data file that changes.
+          # From LD6 current.json is written only if absent (the game-data publisher owns it) unless the manifest's
+          # gameDataReseed is true. Exactly the entry points, never /* (H.8.5 h); current.json is the only game-data
+          # file that can change, so it stays in the invalidation.
           publish_site player "$PLAYER_BUCKET" "$PLAYER_DISTRIBUTION_ID" /index.html /config.json /game-data/current.json
           publish_site admin "$ADMIN_BUCKET" "$ADMIN_DISTRIBUTION_ID" /index.html /config.json
 

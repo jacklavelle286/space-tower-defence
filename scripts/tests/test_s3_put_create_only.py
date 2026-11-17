@@ -101,3 +101,26 @@ def test_412_with_different_bytes_fails_and_never_overwrites(env, body):
 def test_wrong_argument_count_is_a_usage_error(env, body, count):
     args = ["bucket", "key", str(body), "cache", "type", "extra"][:count]
     assert run(args, env).returncode == 2
+
+
+def test_keep_existing_keeps_an_object_with_other_bytes(env, body):
+    """LD6: the release keeps the publisher's game-data/current.json."""
+    result = run(["--keep-existing", "site", "game-data/current.json", str(body), "no-cache", "application/json"],
+                 {**env, "FAKE_PUT": "412", "FAKE_REMOTE_B64": "c29tZXRoaW5nIGVsc2U="})
+    assert result.returncode == 0, result.stderr
+    assert "kept the existing s3://site/game-data/current.json" in result.stdout
+    put, head = calls(env)
+    assert "--if-none-match *" in put and "head-object" in head
+
+
+def test_keep_existing_still_uploads_when_absent(env, body):
+    result = run(["--keep-existing", "site", "game-data/current.json", str(body), "no-cache", "application/json"], env)
+    assert result.returncode == 0, result.stderr
+    (put,) = calls(env)
+    assert "--if-none-match *" in put and "--key game-data/current.json" in put
+
+
+def test_without_keep_existing_other_bytes_still_fail(env, body):
+    result = run(["site", "game-data/current.json", str(body), "no-cache", "application/json"],
+                 {**env, "FAKE_PUT": "412", "FAKE_REMOTE_B64": "c29tZXRoaW5nIGVsc2U="})
+    assert result.returncode == 1
