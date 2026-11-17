@@ -4577,6 +4577,314 @@
       "notes": "match the left edge to the straight tile"
     },
     {
+      "id": "route-straight-l",
+      "file": "route-straight-l.png",
+      "family": "map",
+      "conversation": null,
+      "card": "map.luna.route.straight — Route tile, straight, heading left",
+      "source": "drawn-svg",
+      "canvas": null,
+      "authorSize": [
+        192,
+        192
+      ],
+      "displaySize": [
+        96,
+        96
+      ],
+      "frames": 1,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "transparency": "alpha",
+      "atlas": "atlas-luna-1",
+      "rawPath": "art/source/map/route-straight-l.png",
+      "appPath": "web/player/public/assets/luna-1/route-straight-l.png",
+      "required": "M",
+      "notes": "Gate M, LD11: routes in any direction; drawn (not mirrored) so the light stays top-left; open edges match the straight tiles"
+    },
+    {
+      "id": "route-corner-left-down",
+      "file": "route-corner-left-down.png",
+      "family": "map",
+      "conversation": null,
+      "card": "map.luna.route.corner — Route tile, corner",
+      "source": "drawn-svg",
+      "canvas": null,
+      "authorSize": [
+        192,
+        192
+      ],
+      "displaySize": [
+        96,
+        96
+      ],
+      "frames": 1,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "transparency": "alpha",
+      "atlas": "atlas-luna-1",
+      "rawPath": "art/source/map/route-corner-left-down.png",
+      "appPath": "web/player/public/assets/luna-1/route-corner-left-down.png",
+      "required": "M",
+      "notes": "Gate M, LD11: routes in any direction; drawn (not mirrored) so the light stays top-left; open edges match the straight tiles"
+    },
+    {
+      "id": "route-corner-down-left",
+      "file": "route-corner-down-left.png",
+      "family": "map",
+      "conversation": null,
+      "card": "map.luna.route.corner — Route tile, corner",
+      "source": "drawn-svg",
+      "canvas": null,
+      "authorSize": [
+        192,
+        192
+      ],
+      "displaySize": [
+        96,
+        96
+      ],
+      "frames": 1,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "transparency": "alpha",
+      "atlas": "atlas-luna-1",
+      "rawPath": "art/source/map/route-corner-down-left.png",
+      "appPath": "web/player/public/assets/luna-1/route-corner-down-left.png",
+      "required": "M",
+      "notes": "Gate M, LD11: routes in any direction; drawn (not mirrored) so the light stays top-left; open edges match the straight tiles"
+    },
+    {
+      "id": "route-corner-left-up",
+      "file": "route-corner-left-up.png",
+      "family": "map",
+      "conversation": null,
+      "card": "map.luna.route.corner — Route tile, corner",
+      "source": "drawn-svg",
+      "canvas": null,
+      "authorSize": [
+        192,
+        192
+      ],
+      "displaySize": [
+        96,
+        96
+      ],
+      "frames": 1,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "transparency": "alpha",
+      "atlas": "atlas-luna-1",
+      "rawPath": "art/source/map/route-corner-left-up.png",
+      "appPath": "web/player/public/assets/luna-1/route-corner-left-up.png",
+      "required": "M",
+      "notes": "Gate M, LD11: routes in any direction; drawn (not mirrored) so the light stays top-left; open edges match the straight tiles"
+    },
+    {
+      "id": "route-corner-up-left",
+      "file": "route-corner-up-left.png",
+      "family": "map",
+      "conversation": null,
+      "card": "map.luna.route.corner — Route tile, corner",
+      "source": "drawn-svg",
+      "canvas": null,
+      "authorSize": [
+        192,
+        192
+      ],
+      "displaySize": [
+        96,
+        96
+      ],
+      "frames": 1,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "transparency": "alpha",
+      "atlas": "atlas-luna-1",
+      "rawPath": "art/source/map/route-corner-up-left.png",
+      "appPath": "web/player/public/assets/luna-1/route-corner-up-left.png",
+      "required": "M",
+      "notes": "Gate M, LD11: routes in any direction; drawn (not mirrored) so the light stays top-left; open edges match the straight tiles"
+    },
+    {
+      "id": "route-portal-end-down",
+      "file": "route-portal-end-down.png",
+      "family": "map",
+      "conversation": null,
+      "card": "map.luna.route.portal-end — Route start cap, top edge",
+      "source": "drawn-svg",
+      "canvas": null,
+      "authorSize": [
+        192,
+        192
+      ],
+      "displaySize": [
+        96,
+        96
+      ],
+      "frames": 1,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "transparency": "alpha",
+      "atlas": "atlas-luna-1",
+      "rawPath": "art/source/map/route-portal-end-down.png",
+      "appPath": "web/player/public/assets/luna-1/route-portal-end-down.png",
+      "required": "M",
+      "notes": "Gate M, LD11: routes in any direction; drawn (not mirrored) so the light stays top-left; open edges match the straight tiles"
+    },
+    {
+      "id": "route-portal-end-up",
+      "file": "route-portal-end-up.png",
+      "family": "map",
+      "conversation": null,
+      "card": "map.luna.route.portal-end — Route start cap, bottom edge",
+      "source": "drawn-svg",
+      "canvas": null,
+      "authorSize": [
+        192,
+        192
+      ],
+      "displaySize": [
+        96,
+        96
+      ],
+      "frames": 1,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "transparency": "alpha",
+      "atlas": "atlas-luna-1",
+      "rawPath": "art/source/map/route-portal-end-up.png",
+      "appPath": "web/player/public/assets/luna-1/route-portal-end-up.png",
+      "required": "M",
+      "notes": "Gate M, LD11: routes in any direction; drawn (not mirrored) so the light stays top-left; open edges match the straight tiles"
+    },
+    {
+      "id": "route-portal-end-left",
+      "file": "route-portal-end-left.png",
+      "family": "map",
+      "conversation": null,
+      "card": "map.luna.route.portal-end — Route start cap, right edge",
+      "source": "drawn-svg",
+      "canvas": null,
+      "authorSize": [
+        192,
+        192
+      ],
+      "displaySize": [
+        96,
+        96
+      ],
+      "frames": 1,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "transparency": "alpha",
+      "atlas": "atlas-luna-1",
+      "rawPath": "art/source/map/route-portal-end-left.png",
+      "appPath": "web/player/public/assets/luna-1/route-portal-end-left.png",
+      "required": "M",
+      "notes": "Gate M, LD11: routes in any direction; drawn (not mirrored) so the light stays top-left; open edges match the straight tiles"
+    },
+    {
+      "id": "route-colony-end-down",
+      "file": "route-colony-end-down.png",
+      "family": "map",
+      "conversation": null,
+      "card": "map.luna.route.colony-end — Route end cap, bottom edge",
+      "source": "drawn-svg",
+      "canvas": null,
+      "authorSize": [
+        192,
+        192
+      ],
+      "displaySize": [
+        96,
+        96
+      ],
+      "frames": 1,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "transparency": "alpha",
+      "atlas": "atlas-luna-1",
+      "rawPath": "art/source/map/route-colony-end-down.png",
+      "appPath": "web/player/public/assets/luna-1/route-colony-end-down.png",
+      "required": "M",
+      "notes": "Gate M, LD11: routes in any direction; drawn (not mirrored) so the light stays top-left; open edges match the straight tiles"
+    },
+    {
+      "id": "route-colony-end-up",
+      "file": "route-colony-end-up.png",
+      "family": "map",
+      "conversation": null,
+      "card": "map.luna.route.colony-end — Route end cap, top edge",
+      "source": "drawn-svg",
+      "canvas": null,
+      "authorSize": [
+        192,
+        192
+      ],
+      "displaySize": [
+        96,
+        96
+      ],
+      "frames": 1,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "transparency": "alpha",
+      "atlas": "atlas-luna-1",
+      "rawPath": "art/source/map/route-colony-end-up.png",
+      "appPath": "web/player/public/assets/luna-1/route-colony-end-up.png",
+      "required": "M",
+      "notes": "Gate M, LD11: routes in any direction; drawn (not mirrored) so the light stays top-left; open edges match the straight tiles"
+    },
+    {
+      "id": "route-colony-end-left",
+      "file": "route-colony-end-left.png",
+      "family": "map",
+      "conversation": null,
+      "card": "map.luna.route.colony-end — Route end cap, left edge",
+      "source": "drawn-svg",
+      "canvas": null,
+      "authorSize": [
+        192,
+        192
+      ],
+      "displaySize": [
+        96,
+        96
+      ],
+      "frames": 1,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "transparency": "alpha",
+      "atlas": "atlas-luna-1",
+      "rawPath": "art/source/map/route-colony-end-left.png",
+      "appPath": "web/player/public/assets/luna-1/route-colony-end-left.png",
+      "required": "M",
+      "notes": "Gate M, LD11: routes in any direction; drawn (not mirrored) so the light stays top-left; open edges match the straight tiles"
+    },
+    {
       "id": "portal-idle",
       "file": "portal-idle-01.png",
       "family": "map",

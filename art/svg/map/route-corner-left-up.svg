@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <!-- route-corner-left-up: route tile, corner, enters right, leaves top. Drawn for LD11. Quarter-circle centre line r 96 with the same layered strokes as the straight tile. Single frame. Anchor centre (96,96). -->
+  <g id="route-corner">
+    <g id="track" fill="none" stroke-linecap="butt">
+      <path id="glow" d="M192 96 A96 96 0 0 1 96 0" stroke="#3FB8AF" stroke-width="164" opacity="0.3"/>
+      <path id="outline" d="M192 96 A96 96 0 0 1 96 0" stroke="#2A1E3D" stroke-width="146"/>
+      <path id="border" d="M192 96 A96 96 0 0 1 96 0" stroke="#3FB8AF" stroke-width="134"/>
+      <path id="border-light" d="M192 96 A96 96 0 0 1 96 0" stroke="#7FD9D2" stroke-width="124"/>
+      <path id="inner-line" d="M192 96 A96 96 0 0 1 96 0" stroke="#2A1E3D" stroke-width="112"/>
+      <path id="dust" d="M192 96 A96 96 0 0 1 96 0" stroke="#E6DDF7" stroke-width="106"/>
+    </g>
+    <g id="specks" fill="#C9C0F0"><ellipse cx="148.6" cy="120.4" rx="6.5" ry="4.8"/><ellipse cx="129.9" cy="22.4" rx="6.5" ry="4.8"/></g>
+    <g id="arrow" transform="translate(124.1 67.9)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M-15 -24 L13 0 L-15 24" stroke="#B3A8E3" stroke-width="17" transform="rotate(225)"/>
+      <path d="M-15 -24 L13 0 L-15 24" stroke="#FFFFFF" stroke-width="5" opacity="0.8" transform="translate(-3 -2) rotate(225)"/>
+    </g>
+  </g>
+</svg>

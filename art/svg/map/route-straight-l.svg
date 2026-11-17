@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" width="192" height="192">
+  <!-- route-straight-l: route tile, straight, runs right to left, arrows left. Drawn for LD11 (not mirrored: the arrow's highlight stays up-left). Track = layered strokes on the centre line; open edges identical on every route tile. Single frame. Anchor centre (96,96). -->
+  <g id="route-straight">
+    <g id="track" fill="none" stroke-linecap="butt">
+      <path id="glow" d="M192 96 H0" stroke="#3FB8AF" stroke-width="164" opacity="0.3"/>
+      <path id="outline" d="M192 96 H0" stroke="#2A1E3D" stroke-width="146"/>
+      <path id="border" d="M192 96 H0" stroke="#3FB8AF" stroke-width="134"/>
+      <path id="border-light" d="M192 96 H0" stroke="#7FD9D2" stroke-width="124"/>
+      <path id="inner-line" d="M192 96 H0" stroke="#2A1E3D" stroke-width="112"/>
+      <path id="dust" d="M192 96 H0" stroke="#E6DDF7" stroke-width="106"/>
+    </g>
+    <g id="specks" fill="#C9C0F0"><ellipse cx="46" cy="66" rx="6" ry="4.5"/><ellipse cx="150" cy="128" rx="7" ry="5"/></g>
+    <g id="arrow" transform="translate(96 96)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M-15 -24 L13 0 L-15 24" stroke="#B3A8E3" stroke-width="17" transform="rotate(180)"/>
+      <path d="M-15 -24 L13 0 L-15 24" stroke="#FFFFFF" stroke-width="5" opacity="0.8" transform="translate(-3 -2) rotate(180)"/>
+    </g>
+  </g>
+</svg>
