@@ -1,8 +1,9 @@
 // The panel for a selected pad (D4 "Selected astronaut panel"). On an open empty pad: a card for each class the wave
 // set lists (choosing a pad first is the other way to place; the shop is the main one, Phase 31). On an astronaut:
 // its level, Upgrade with its cost and a short benefit line ("faster shots"), Send home with the refund (confirmed
-// in a dialog, D5.2), and Aim: the targeting choices the class has at its level (C5.3). Prices and refusals come from
-// the bridge, which asks game-core (checkCommand); the simulation still checks every command when it applies (AC-09).
+// in a dialog, D5.2), and Aim: the targeting choices the class has at its level (C5.3), each explained by a short
+// sentence on hover and keyboard focus. Prices and refusals come from the bridge, which asks game-core
+// (checkCommand); the simulation still checks every command when it applies (AC-09).
 import type { GameBridge } from "../game/GameBridge";
 import { ClassTip } from "../hud/ClassTip";
 import { aimChoices } from "../hud/padNav";
@@ -10,6 +11,14 @@ import { classSummary, upgradeGain } from "./classSummary";
 import { useSelection } from "./useBridge";
 
 const AIM_NAMES = { FRONT: "Front", FAST: "Fastest", CROWD: "Biggest group", STRONG: "Strongest" } as const;
+
+/** What each aim does (C5.3), shown over its button on hover and keyboard focus, in words a young player can follow. */
+export const AIM_TIPS = {
+  FRONT: "Shoots the alien closest to your colony.",
+  FAST: "Shoots the quickest alien first, so speedy ones can't rush past.",
+  CROWD: "Aims at the biggest bunch of aliens, to hit lots at once.",
+  STRONG: "Shoots the toughest alien, the one with the most health left.",
+} as const;
 
 export function PadPanel({ bridge, credits, onSendHome }: { bridge: GameBridge; credits: number; onSendHome: () => void }) {
   const selection = useSelection(bridge);
@@ -70,16 +79,21 @@ export function PadPanel({ bridge, credits, onSendHome }: { bridge: GameBridge; 
             <span className="bf-aim" role="group" aria-label="Aim">
               Aim:
               {choices.map((mode) => (
-                <button
-                  key={mode}
-                  type="button"
-                  className="bf-small"
-                  aria-pressed={tower.targeting === mode}
-                  aria-keyshortcuts="T"
-                  onClick={() => bridge.setTargeting(padId, mode)}
-                >
-                  {AIM_NAMES[mode]}
-                </button>
+                <span key={mode} className="bf-aim-choice">
+                  <button
+                    type="button"
+                    className="bf-small"
+                    aria-pressed={tower.targeting === mode}
+                    aria-keyshortcuts="T"
+                    aria-describedby={`bf-aim-tip-${mode}`}
+                    onClick={() => bridge.setTargeting(padId, mode)}
+                  >
+                    {AIM_NAMES[mode]}
+                  </button>
+                  <span className="bf-tip bf-tip-aim" id={`bf-aim-tip-${mode}`} role="tooltip">
+                    {AIM_TIPS[mode]}
+                  </span>
+                </span>
               ))}
             </span>
           )}
