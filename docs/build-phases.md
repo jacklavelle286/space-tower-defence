@@ -85,6 +85,22 @@ until then it was `release.yml` then `apply.yml`, and older rows still say "disp
 | 54 | Endless | M4 | M4-05 | Nothing planned above interval 998 | Release |
 | 55 | Resets | M4 | M4-06 | F §12.5 matrix per reset type | Release |
 | 56 | Balance playtests P3 | M4 | M4-07 | Session notes; simulator run behind each change | Playtests |
+| LD0 | Spikes: TypeScript bots, admin bundle, check run time | M | — (Gate M) | TS bots agree with the simulator; gzip and run time recorded | Agree the tolerance |
+| LD1 | Design rules and the shared map module | M | — | One failing fixture per rule; published planets pass | — |
+| LD2 | Planet document schema 2 and the player's map art | M | — | v1 and v2 parse; Moonbeam pixel-identical | Release |
+| LD3 | Map editor, level file download and upload | M | — | Edit, save, download, upload round trip | Release (optional) |
+| LD4 | Waves and wave sets: keyframes, fill-in, Vary | M | — | Same seed, same roll | — |
+| LD5 | Test play with the bots | M | — | Known-bad levels fail for their reason | — |
+| LD6 | The publisher | M | — | Release stops overwriting `current.json`; parity with build-bounds | Release (infra) |
+| LD7 | Publish, preview and versions | M | — | Draft → preview → publish → rollback on production | Release; end-to-end check |
+| LD8 | Asset manifest and art sets | M | — | Every sprite through the manifest | Release |
+| LD9 | Several planets in `current.json` | M | — | Old clients keep working | Release |
+| LD10 | The Planets page | M | — | Release refused without 50 waves | Release |
+| AM0 | Alien animation spike | M | — | Derived walk cycle beside the drawn one | Judge the frames |
+| AM1 | The alien maker | M | — | A made alien plays in a preview | Release; approve an alien |
+| LD11 | Routes in any direction | M | — | Four fixture maps render | Review art; release |
+| LD12 | Real-renderer preview | M | — | A draft plays with no API call | Release |
+| LD13 | Curve tools | M | — | hpMult from the curve | Release |
 | 57 | Local database | M5 | M5-01 | Upgrade keeps queued ops | — |
 | 58 | Offline queue | M5 | M5-02 | Playwright: offline then flush in order | Release |
 | 59 | Offline preparation and audio cache | M5 | M5-03 | Network cut after "Ready offline": play continues | Release; try it |
@@ -269,7 +285,7 @@ entry below still says what it builds, how to test it and what to look at.
 | E | 24–28 | Roster, targeting, aliens, bosses, meteor powers |
 | F | 29–34, 43–44 | Run lifecycle, plausibility bounds, HUD and shop, saved games, backup runbook, learning summaries, withdrawal; playtest P2 |
 | J | 50–56 | Campaign, meteor offers, badges, challenges, endless, resets; playtest P3 |
-| M | LD0–LD13 + alien maker (new, about 16) | **Level and planet designer, all three tiers** (maps, pads, waves, wave sets, backgrounds, decorations, bot checks, tester preview, file export, then runtime publish; new planets with art, tile sets, campaign, unlock and Home choice; routes turning any direction, real-graphics test play, difficulty-curve tools) ([ADR-0032](decisions/0032-admin-level-designer-gate-m.md), [scope](plan/scope-level-designer.md)). Phase entries are written when Gate J is approved |
+| M | LD0–LD13 + alien maker (new, about 16) | **Level and planet designer, all three tiers** (maps, pads, waves, wave sets, backgrounds, decorations, bot checks, tester preview, file export, then runtime publish; new planets with art, tile sets, campaign, unlock and Home choice; routes turning any direction, real-graphics test play, difficulty-curve tools) ([ADR-0032](decisions/0032-admin-level-designer-gate-m.md), [scope](plan/scope-level-designer.md)). Phase entries in [Stage M](#stage-m--level-and-planet-designer-gate-m-phases-ld0ld13-am0am1) |
 | L | 64–74 | Art and sound polish, performance, accessibility, scoped CI role, drills, monitoring, acceptance P4 (without AC-30..34), data freeze: **launch, online only** |
 | K | 57–63 | **After launch.** Offline: local database, queue, audio cache, divergence, takeover, versions, hard cases; AC-30..34 accepted here |
 
@@ -2092,6 +2108,455 @@ by playtests (`prompt.md:1279-1280`). D-6 and D-11 are built in here **[CONFIRME
 5. The schedule of sessions.
 
 *Concept:* none new.
+
+---
+
+## Stage M — Level and planet designer, Gate M (phases LD0–LD13, AM0–AM1)
+
+Goal of the gate: from the admin portal, with no code release, the owner designs maps (route, pads, backdrop, decorations), writes
+waves and wave sets, checks them with test players, previews them with a tester profile, publishes, rolls back and retires; adds
+new planets; and (tier 3) draws routes in any direction and tests in the real renderer. Scope and rules:
+[scope-level-designer.md](plan/scope-level-designer.md) (§3 tiers, §4 test play, §5 design rules) and
+[scope-asset-kinds-and-makers.md §3.0, §3.2, §3.6](plan/scope-asset-kinds-and-makers.md#3-part-2-makers); decision
+[ADR-0032](decisions/0032-admin-level-designer-gate-m.md). Written 2026-11-17 when Gate J was approved. **[PROPOSAL]** for the
+order and sizes below; the tier contents are **[CONFIRMED by owner, 2026-11-16]**.
+
+Gate M has no J tasks: J was written before the owner added the gate. Each entry names the scope section it builds instead.
+
+What changed since the scope was written (2026-11-16), checked on 2026-11-17 **[VERIFIED in the repo]**:
+- Phase 50 wrote the 50 campaign waves; the live pair is `r4` + `luna-1-c2` (campaign, three challenges, endless). "Copy
+  Moonbeam" therefore copies a full campaign, not two waves.
+- Bosses (Phase 27) and endless (Phase 54) exist, so the "bosses only on 10/20/30/40/50" rule is hard from LD1, and the
+  "editing waves 41–49 changes endless" warning applies from LD4.
+- Pads already open in stages during a campaign (`padOpen`, Phase 50), so the designer's "Opens after wave" field has a
+  consumer.
+
+**Order inside the gate.** Tier 1 (LD0–LD7), then tier 2 (LD8–LD10), then the alien maker (AM0–AM1, needs the LD8 manifest),
+then tier 3 (LD11–LD13). Releases stay bundled at the owner's choice, but three points need a release before the next step can
+be used on production, and each entry says so: the schema-2 player (LD2) before any schema-2 data is live; the `current.json`
+ownership fix and the publisher infrastructure (LD6) before the first runtime publish; the any-direction route art (LD11)
+before the parser accepts such routes.
+
+---
+
+### Phase LD0 — Spikes: TypeScript bots, admin bundle, check run time
+
+**Goal.** Prove the three unknowns the rest of the gate rests on, before building on them.
+**Why now.** Every check in LD5 and LD6 depends on bots that do not exist in TypeScript yet; the Python Competent bot only knows
+Moonbeam (scope §4).
+
+| Field | Detail |
+|---|---|
+| Scope | Scope §3.1 "Phases (tier 1)" row LD0 |
+| In scope | `web/game-core/src/bot/`: the C17.1 policies (none, presets-only, minimal, naive with a seed, competent) with a learning-success rate, driving `createBattle`/`step`. Comparison against the Python simulator on the `luna-1-c2` campaign: waves reached per policy and learning rate. Admin build importing game-core (gzip size before and after; `no-phaser.test.ts` still green). Run time of the full check (policies × 3 learning rates × 20 naive seeds × the set's waves) in Node and in a browser Worker |
+| Out of scope | Any admin UI; the bots judging new maps (LD5) |
+| Files | `web/game-core/src/bot/`, `web/game-core/scripts/bot-vs-sim.ts`, `docs/validation/ld0-spikes.md` |
+| Depends on | Phase 50 (campaign), Phase 56 (live pair) |
+| Owner actions | Agree the tolerance (proposal: the TS competent bot's waves reached within ±2 of Python's at each learning rate) |
+| Tests and how to run | `cd web && npx vitest run --project game-core`; `npx tsx web/game-core/scripts/bot-vs-sim.ts` |
+| Deployed / how to see | Nothing deployed; the record in `docs/validation/ld0-spikes.md` |
+| Exit criteria | Waves reached agree within the tolerance, or the gap is explained and the blocking rules are narrowed; gzip delta recorded; run time recorded, which sets the Worker budget (LD5) and the publisher Lambda timeout (LD6) |
+| Risks | Bots give no useful signal [UNVERIFIED, scope §4]: then only the two C-target rules block and the rest stay warnings (ADR-0032) |
+
+**How to review this phase**
+1. The record's table: TS against Python per policy and learning rate.
+2. That bots only use classes the wave set offers.
+3. The gzip delta and the run time, and the budgets they set.
+
+*Concept:* **spikes** — a small, throwaway-or-keep experiment that settles a risk before the expensive work commits to it.
+
+---
+
+### Phase LD1 — Design rules and the shared map module
+
+**Goal.** One collect-all checker of the §5 map, pad and wave rules, and one map-drawing module shared by game and editor.
+**Why now.** The editor (LD3), the publisher (LD6) and the player all need the same rules and the same drawing maths.
+
+| Field | Detail |
+|---|---|
+| Scope | Scope §3.1 "Game-core, renderer and simulator changes"; §5 rules marked H and P |
+| In scope | `planetProblems(doc, ruleset) -> {field, rule, severity}[]` (Block or Warn); `parsePlanet` throws on any hard problem, so the player behaves as before; `map/rules.ts`, `map/coverage.ts` (route length, integer units), `map/order.ts` (pad order by route progress, D5.2 arrow neighbours). Move `tileToPx`, `routeTiles` and the map ART entries from `web/player/src/game/layout.ts` and `assets.ts` to `@scd/shared/map`, adding ART entries for the catalogued decorations |
+| Out of scope | Schema 2 (LD2); bot rules (S, LD5) |
+| Files | `web/game-core/src/map/`, `web/game-core/src/data/game-data.ts`, `web/shared/src/map/`, `web/player/src/game/` |
+| Depends on | LD0 |
+| Owner actions | None |
+| Tests and how to run | `cd web && npx vitest run`: every published planet passes; one known-bad fixture per rule; property test (any document with no hard problems runs through `routeTiles` and builds bounds); layout tests moved; sim-agreement green |
+| Deployed / how to see | Nothing visible (the player draws the same map) |
+| Exit criteria | `luna-1-c1` and `luna-1-c2` have no Block problems; each rule has a failing fixture; `build-bounds --check` unchanged |
+| Risks | A new hard rule refusing a published document would break pinned runs: hard rules are only those the renderer already needs |
+
+**How to review this phase**
+1. The rule table in `map/rules.ts` against scope §5.
+2. A problem names a field and a rule, never a value.
+3. The move to `@scd/shared/map` changes no pixel.
+
+*Concept:* **collect-all validation** — report every problem at once (for an editor), rather than stop at the first (for a loader).
+
+---
+
+### Phase LD2 — Planet document schema 2 and the player's map art
+
+**Goal.** Several maps per planet, challenge-only waves, and per-map backdrop and decorations, read by both languages and drawn
+by the player.
+**Why now.** The editor writes schema 2; the player must read it first.
+
+| Field | Detail |
+|---|---|
+| Scope | Scope §3.1 "Data model: planet document schema 2" |
+| In scope | `schema: 2`, `maps{}`, `mapId` per wave set, `challengeWaves` with string IDs (C13 amendment), `map.art {backdrop, decorations}`; schema 1 still parses (absent `schema` = 1). `compileBattleConfig` picks the set's map; bounds gain `waveSets.<id>.pads`; Python passthrough and player-api refuses a pad from another map. Player: backdrop from `/pictures/v1/` with fallback to `luna-backdrop.webp`, decorations at depth 10 + y/1000, skipped on load failure, document pictures preloaded |
+| Out of scope | Admin UI; asset manifest (LD8) |
+| Files | `web/game-core/src/data/`, `web/game-core/src/sim/config.ts`, `web/game-core/scripts/build-bounds.ts`, `api/shared/bounds.py`, `api/shared/ops.py`, `web/player/src/game/`, `contracts/fixtures/` |
+| Depends on | LD1 |
+| Owner actions | **Release** (the schema-2 player must be live before any schema-2 data is) |
+| Tests and how to run | Vitest and pytest: v1 and v2 parse; saved runs replay identically; bounds contract tests; published bounds files byte-identical; Moonbeam pixel-identical (Playwright screenshot) |
+| Deployed / how to see | Nothing changes on screen; the release carries the parser |
+| Exit criteria | All suites green; `build-bounds --check` unchanged for published pairs; a schema-2 fixture plays locally with a backdrop and decorations |
+| Risks | An open browser tab still running the old player loading a schema-2 document: no schema-2 document becomes current until a release after this one (LD6 guard) |
+
+**How to review this phase**
+1. How schema 1 maps onto schema 2 in the parser.
+2. Pad IDs unique across the document; per-set pads in bounds.
+3. The skip-on-fail decoration loader.
+
+*Concept:* **schema versioning** — new readers accept old documents; old readers never see new ones.
+
+---
+
+### Phase LD3 — Map editor, with level file download and upload
+
+**Goal.** Admin → Levels: draw a route, place pads, backdrop and decorations, see problems live, save drafts, and download or
+upload a level file.
+**Why now.** From here the designer is useful with no new infrastructure: download, commit, normal release (scope §3.1).
+
+| Field | Detail |
+|---|---|
+| Scope | Scope §3.1 walkthrough steps 1–7, 14 |
+| In scope | Levels nav, list and pages; SVG canvas over the 20×11 grid; Route, Pads (coverage overlay), Decorations, Backdrop tools; keyboard cursor (arrows, Enter, Backspace, Esc); one undo/redo across the level; problems panel with jump-to-cell; unsaved edits per tab; second-tab warning; LEVEL draft lifecycle in the content table (create, `PUT draft` with DRAFT_CONFLICT, delete rules); conflict screen; **Download level file** and **Upload level file**; Background and Decoration picture kinds gain `consumer: "level"`; `picture_users` scans level drafts |
+| Out of scope | Waves (LD4), test play (LD5), publishing (LD6) |
+| Files | `web/admin/src/levels/`, `api/functions/admin_api/`, `api/shared/levels.py`, `contracts/routes.json`, `contracts/limits.json` |
+| Depends on | LD2 |
+| Owner actions | Release (optional, to use it on production) |
+| Tests and how to run | Reducer and undo tests; keyboard-only Playwright run; pytest on moto; routes contract; ddblocal race test |
+| Deployed / how to see | `admin.aliens.jackgl.com/#/levels` after a release |
+| Exit criteria | A copy of Moonbeam edited, saved, downloaded and re-uploaded gives the same document; every editor action works by keyboard |
+| Risks | Admin bundle growth (LD0 measured it); draft byte cap of 64 KB with 50 waves [ASSUMPTION; measure] |
+
+**How to review this phase**
+1. The editor reducer: every action is a pure function of state.
+2. Undo is one history for the whole level.
+3. The draft conflict path.
+
+*Concept:* **command pattern undo** — store actions or snapshots so any edit can be reversed.
+
+---
+
+### Phase LD4 — Waves and wave sets: keyframes, fill-in, Vary
+
+**Goal.** Edit campaign and challenge waves, build wave sets, and shape a ramp from a few keyframes.
+**Why now.** Maps need waves before they can be tested.
+
+| Field | Detail |
+|---|---|
+| Scope | Scope §3.1 walkthrough steps 8–9; §3.1a keyframes and Vary |
+| In scope | Wave table (group chips, hpMult, speedMult; copy, scale over a range, introduce alien); derived columns (total aliens, HP, duration, peak live); keyframes with fill-in (counts and mixes interpolate; bosses stay on every tenth wave; hand overrides kept); Vary (seeded re-roll inside a difficulty budget, shown before keeping); challenge waves; wave-set and challenge editor with friendly ranges and presets on a mini map; impact warnings (waves a challenge uses; waves 41–49 feed endless) |
+| Out of scope | Randomness per play (none: published waves are fixed, prompt.md:409) |
+| Files | `web/admin/src/levels/waves/`, `web/game-core/src/map/keyframes.ts`, `contracts/fixtures/` |
+| Depends on | LD3 |
+| Owner actions | None |
+| Tests and how to run | Model tests (fill-in, Vary with a fixed seed); TS/Python contract fixtures; G-15 errors land on the right cells |
+| Deployed / how to see | Waves and Wave sets tabs |
+| Exit criteria | Keyframes 1 and 50 regenerate a ramp that passes the hard rules; the same seed gives the same Vary roll |
+| Risks | Fill-in breaking boss placement: bosses are fixed by wave number, not interpolated |
+
+**How to review this phase**
+1. The interpolation for counts and mixes.
+2. Overrides surviving a keyframe move.
+3. Vary's budget and its seed.
+
+*Concept:* **seeded randomness** — the same seed gives the same result, so a design-time roll is reproducible.
+
+---
+
+### Phase LD5 — Test play with the bots
+
+**Goal.** Run checks in a Web Worker and show, per wave and test player, whether the colony survives.
+**Why now.** The balance rules (§5, S) need the LD0 bots wired to the editor.
+
+| Field | Detail |
+|---|---|
+| Scope | Scope §3.1 walkthrough step 10; §4 option A; §5 balance and performance rules |
+| In scope | Worker runner on the saved revision; bots at 0/60/100% learning; presets-only board; results table (green, amber, red) with a verdict; `testPlayedDraftRevision`; the two blocking rules (minimal clears 1–5; competent at 0% clears the set) and the warnings |
+| Out of scope | The real renderer (LD12) |
+| Files | `web/admin/src/levels/test/`, `web/game-core/src/bot/checks.ts` |
+| Depends on | LD0, LD4 |
+| Owner actions | None |
+| Tests and how to run | The same revision gives the same table twice; known-bad levels (unwinnable, plays itself, too long) each raise their rule; run time within the LD0 budget |
+| Deployed / how to see | Test tab |
+| Exit criteria | The live campaign passes; each known-bad fixture fails for its reason |
+| Risks | Run time on the laptop; the Worker reports progress and can be cancelled |
+
+**How to review this phase**
+1. Which rules block and which warn.
+2. The Worker message protocol.
+
+*Concept:* **Web Workers** — run heavy work off the page's main thread so the page stays responsive.
+
+---
+
+### Phase LD6 — The publisher
+
+**Goal.** A Node Lambda that turns a checked draft into immutable game-data files and moves `current.json`, and the infrastructure
+that lets only it do so.
+**Why now.** Runtime publish is what makes the designer "entirely from the admin portal".
+
+| Field | Detail |
+|---|---|
+| Scope | Scope §3.1 "Admin-api, publisher and infra changes"; scope-asset-kinds §3.0 |
+| In scope | **First**: `scripts/publish_static.py` writes `current.json` only if absent or with a reseed flag, and `artefacts_from` rollback never overwrites it. Then: publisher Lambda (freeze flag → draft at revision → STALE_SOURCE check and section merge → `planetProblems` → pictures approved and of the right kind → bots → bank readiness → `buildBounds` → backdrop WebP under a byte cap → create-only `campaign/luna-1-a<n>.json` and `bounds/...` → `current.json` with If-Match → V#, GDPUBLISH and AUDIT rows in one transaction); `versions.json` per (version, wave set); create-run allow-list; publisher IAM; site bucket Deny on `game-data/*` writes except publisher and CI roles; throttles; Lambda timeout from LD0; one ADR (Proposed) amending spine S5.1, D-T10, ADR-0010, G-8, C13 |
+| Out of scope | Publish UX (LD7) |
+| Files | `scripts/publish_static.py`, `api/functions/publisher/` (Node 24), `infrastructure/modules/publisher/`, `infrastructure/main/`, `api/functions/player_api/handler.py`, `docs/decisions/` |
+| Depends on | LD5 |
+| Owner actions | **Release** (infrastructure: new Lambda, IAM, bucket policy; read the plan) |
+| Tests and how to run | `terraform fmt`, `validate`, read-only `plan`; moto and ddblocal tests; player-api retire, invalid and resume per wave set; stale-source refusal; publisher bounds byte-identical to `build-bounds.ts` for the same input |
+| Deployed / how to see | The publisher in the release plan; no admin button yet |
+| Exit criteria | Plan shows only additions and the bucket policy change; parity test green; the release no longer overwrites `current.json` |
+| Risks | A release reverting an admin publish (fixed first); two publishes at once (If-Match, one wins) |
+
+**How to review this phase**
+1. The order of the publisher's steps and where each can refuse.
+2. The bucket Deny and who is excepted.
+3. The ADR's account of what G-8 no longer sees.
+
+*Concept:* **optimistic concurrency** — write only if the object is still the version you read (If-Match), else retry or refuse.
+
+---
+
+### Phase LD7 — Publish, preview and versions in the portal
+
+**Goal.** Diff, checklist, tester preview, Publish, Make live, Retire, Mark invalid and version history in the admin portal.
+**Why now.** The last tier 1 step: the owner can run the whole loop.
+
+| Field | Detail |
+|---|---|
+| Scope | Scope §3.1 walkthrough steps 11–13; §3.1a planet versions |
+| In scope | Diff against live; publish checklist (automatic ticks from validate, hand ticks); tester profiles and `preview` versions shown only to them on Home; Make live (rollback), Retire, Mark invalid per wave set; versions list with who and when; drawing spend per level and the Background sub-cap |
+| Out of scope | New planets (LD9–LD10) |
+| Files | `web/admin/src/levels/publish/`, `api/functions/admin_api/`, `api/functions/player_api/`, `web/player/src/shell/Home.tsx` |
+| Depends on | LD6 |
+| Owner actions | **Release**, then the end-to-end check: draft → preview with a tester → publish → new run pinned → rollback → old run resumes; mark a version invalid → resume ends gracefully |
+| Tests and how to run | pytest (preview never reaches a non-tester; retire and invalid per set); Vitest for the diff; rollback test |
+| Deployed / how to see | Publish tab and Versions panel |
+| Exit criteria | The owner's end-to-end check passes on production |
+| Risks | A preview leaking to a child: tester list checked server-side on create-run and resume |
+
+**How to review this phase**
+1. The tester check is on the server, not only the Home screen.
+2. Invalid never counts as a loss (prompt.md:556).
+
+*Concept:* **immutable versions with a moving pointer** — rollback is only a pointer change.
+
+---
+
+### Phase LD8 — Asset manifest and art sets
+
+**Goal.** A versioned asset manifest the player loads art from, with tile sets, so a new planet can look different.
+**Why now.** Tier 2 planets and the alien maker need art that is not hard-coded.
+
+| Field | Detail |
+|---|---|
+| Scope | Scope §3.2 tier 2 row LD8; scope-asset-kinds §3.0 |
+| In scope | Manifest schema and `m1` seed from the ART table; manifest preload; tile-set keys; Route tile picture kind (192 px, tiles join); extended picture delete guard; a run saved before the manifest resumes on `m1` |
+| Out of scope | Atlas and performance work (Phase 64) |
+| Files | `web/shared/src/manifest/`, `web/player/src/game/assets.ts`, `contracts/`, `api/shared/pictures.py`, `contracts/limits.json` |
+| Depends on | LD7 |
+| Owner actions | Release |
+| Tests and how to run | Contract tests in TS and Python; old runs resume; Moonbeam pixel-identical; a manifest URL that 404s loads the repo sprite |
+| Deployed / how to see | No visible change |
+| Exit criteria | Every sprite the player draws comes through the manifest |
+| Risks | Load time (AC-42): the manifest adds one request; measured |
+
+**How to review this phase**
+1. The fallback path for a missing picture.
+2. The `m1` migration for saved runs.
+
+*Concept:* **indirection through a manifest** — code names an asset; data says which file it is.
+
+---
+
+### Phase LD9 — Several planets in `current.json`
+
+**Goal.** `current.json` lists released planets; the player offers a planet choice on Home.
+**Why now.** The pointer must hold more than one planet before a second can be released.
+
+| Field | Detail |
+|---|---|
+| Scope | Scope §3.2 "Data model" and "Changes" |
+| In scope | `current.json` v2 (`planets[]`, top-level `campaignVersion` kept for one release); readers in TS and Python; one bounds file per listed pair; `newGame.ts` sends the chosen planet's version; Home planet choice; unlock after wave 20 on the previous planet; per-planet badge IDs; endless reads the planet's own waves 41–50 |
+| Out of scope | The admin Planets page (LD10) |
+| Files | `web/game-core/src/data/`, `api/shared/game_data.py`, `web/player/src/run/newGame.ts`, `web/player/src/shell/Home.tsx` |
+| Depends on | LD8 |
+| Owner actions | Release |
+| Tests and how to run | Old-client contract tests; unlock tests; "an unreleased planet is never shown as playable" |
+| Deployed / how to see | Home shows one planet until a second is released |
+| Exit criteria | v1 and v2 readers agree; old clients keep working |
+| Risks | R30 question demand grows with each planet |
+
+**How to review this phase**
+1. The one-release overlap for old clients.
+2. The unlock rule on the server.
+
+*Concept:* **expand and contract** — add the new field beside the old, move readers, then remove the old.
+
+---
+
+### Phase LD10 — The Planets page
+
+**Goal.** Add a planet with name, icon, tile set and default backdrop, build its campaign, and release it.
+**Why now.** The last tier 2 step.
+
+| Field | Detail |
+|---|---|
+| Scope | Scope §3.2 "Admin UX" |
+| In scope | Planets list; Add planet; Release (disabled until the campaign has 50 published waves and every check passes); append-only order; badge IDs |
+| Out of scope | Reordering or removing a released planet (never) |
+| Files | `web/admin/src/levels/planets/`, `api/functions/admin_api/`, `api/functions/publisher/` |
+| Depends on | LD9 |
+| Owner actions | Release; design a second planet when wanted |
+| Tests and how to run | pytest lifecycle; release refused without 50 waves |
+| Deployed / how to see | Levels → Planets |
+| Exit criteria | A test planet released in a test, refused when incomplete |
+| Risks | Each planet adds playtest, accessibility and acceptance work in Gate L (ADR-0032) |
+
+**How to review this phase**
+1. Why order is append-only (unlocks depend on it).
+
+*Concept:* **append-only lists** — earlier entries never move, so references to them stay valid.
+
+---
+
+### Phase AM0 — Alien animation spike
+
+**Goal.** Show whether a shared animator can make an acceptable walk cycle from one drawn frame.
+**Why now.** The alien maker depends on it (scope-asset-kinds §3.2).
+
+| Field | Detail |
+|---|---|
+| Scope | Scope-asset-kinds §3.2 "Animation" |
+| In scope | Frame 01 with STYLE §9 group IDs; a TypeScript animator applying the STYLE §11 transform table to make 6 walk frames; compared with the hand-drawn `alien-blob-walk` frames; list of every state the renderer requests per kind and how each is made or falls back |
+| Out of scope | Bosses (no boss maker) |
+| Files | `web/shared/src/animator/`, `docs/validation/am0-animation.md` |
+| Depends on | LD8 |
+| Owner actions | Judge the frames against the hand-drawn ones |
+| Tests and how to run | Vitest on the transforms; preview sheet |
+| Deployed / how to see | Nothing; preview sheet in the record |
+| Exit criteria | Owner verdict: good enough, or use the whole-sprite bob fallback |
+| Risks | Derived frames look simpler than hand-drawn [UNVERIFIED] |
+
+**How to review this phase**
+1. The preview sheet side by side.
+
+*Concept:* **procedural animation** — frames computed from transforms instead of drawn one by one.
+
+---
+
+### Phase AM1 — The alien maker
+
+**Goal.** Make a plain alien (name, bounded hp, speed, leak, bounty, drawn art) that waves can use.
+**Why now.** After the manifest and the animation verdict.
+
+| Field | Detail |
+|---|---|
+| Scope | Scope-asset-kinds §3.2 |
+| In scope | Sliders inside bounds; Draw with Claude, Alien kind; walk-cycle preview; a new ruleset version adding `aliens.<id>` (mechanics 1, no traits); art in the manifest; balance re-run for every wave set using it; approval with the kind checklist |
+| Out of scope | Bosses; traits; tower maker (deferred past launch) |
+| Files | `web/admin/src/levels/aliens/`, `api/functions/publisher/`, `web/game-core/src/data/` |
+| Depends on | AM0 |
+| Owner actions | Release; draw and approve an alien |
+| Tests and how to run | Parser and bounds tests for the new ruleset; publisher test; a wave using the alien passes the checks |
+| Deployed / how to see | Levels → Aliens; the alien appears in the wave table |
+| Exit criteria | A made alien plays in a previewed challenge |
+| Risks | A new ruleset version per alien; the publisher rebuilds bounds for every listed planet |
+
+**How to review this phase**
+1. The bounds on each slider.
+2. Saved runs keep their ruleset.
+
+*Concept:* **data-driven content** — new content is data the engine already knows how to run.
+
+---
+
+### Phase LD11 — Routes in any direction
+
+**Goal.** Routes that turn left and enter or leave on any edge.
+**Why now.** First tier 3 step; needs drawn tiles before the parser loosens.
+
+| Field | Detail |
+|---|---|
+| Scope | Scope §3.3 |
+| In scope | 11 route SVGs in `art/svg/map` (drawn, not mirrored); cap choice by first and last direction; portal, colony and leak offsets by direction; parser loosens only after the art is released |
+| Out of scope | Several spawns, branches, diagonals (never; prompt.md and integer determinism) |
+| Files | `art/svg/map/`, `web/shared/src/map/`, `web/player/src/game/BattleScene.ts`, `web/game-core/src/map/rules.ts` |
+| Depends on | LD10 |
+| Owner actions | Review the art; **release** before the parser change ships |
+| Tests and how to run | Layout tests for all 12 tile cases; screenshots of 4 fixture maps (one per entry edge); Moonbeam pixel-identical; STYLE review |
+| Deployed / how to see | The route tool stops greying out left turns |
+| Exit criteria | Four fixture maps render correctly |
+| Risks | Colony near the top edge needs inward framing [ASSUMPTION; screenshots prove it] |
+
+**How to review this phase**
+1. The screenshots.
+
+*Concept:* **lookup tables over special cases** — one table maps (in, out) directions to a tile.
+
+---
+
+### Phase LD12 — Real-renderer preview
+
+**Goal.** Watch or play a draft in the real game, in a new tab on the admin site.
+**Why now.** Numbers from bots miss what a level looks like.
+
+| Field | Detail |
+|---|---|
+| Scope | Scope §4 option C |
+| In scope | `battle-preview.html`, a second build entry of web/player published to the admin bucket under `/preview/`; draft passed by same-origin BroadcastChannel; bot or self play; jump to wave; 1x/2x/4x |
+| Out of scope | Iframe preview (needs a CSP change on the children's site) |
+| Files | `web/player/battle-preview.html`, `web/player/src/preview/`, `scripts/publish_static.py`, release manifest |
+| Depends on | LD11 |
+| Owner actions | Release |
+| Tests and how to run | No network writes (Playwright request log); AC-04 test; release manifest allows the entry |
+| Deployed / how to see | Test tab → Watch wave N / Play it yourself |
+| Exit criteria | A draft plays with no API call |
+| Risks | Phaser leaking into the admin bundle (the no-phaser test guards it) |
+
+**How to review this phase**
+1. The request log: nothing written.
+
+*Concept:* **same-origin messaging** — BroadcastChannel passes data between tabs of one site with no server.
+
+---
+
+### Phase LD13 — Curve tools
+
+**Goal.** Shape difficulty with curves against the C8 anchors.
+**Why now.** The last tier 3 step.
+
+| Field | Detail |
+|---|---|
+| Scope | Scope §3.3 "Admin UX" (Waves tab) |
+| In scope | Curve panel: toughness against C8.1 anchors, simulated margin against the C8.3 sawtooth, duration against the C17 bands; "set hpMult from curve" over a range; curve presets; endless preview for waves 51–60 |
+| Out of scope | Anything that changes per play |
+| Files | `web/admin/src/levels/waves/curves/`, `web/game-core/src/map/curves.ts` |
+| Depends on | LD12 |
+| Owner actions | Release at the gate |
+| Tests and how to run | Model tests |
+| Deployed / how to see | Waves tab curve panel |
+| Exit criteria | Setting hpMult from the curve gives margins within 15% of the target |
+| Risks | Low |
+
+**How to review this phase**
+1. One curve against its anchor table.
+
+*Concept:* **piecewise interpolation** — a curve through a few points defines every value between them.
 
 ---
 
