@@ -13,7 +13,8 @@
     "./audio/testing": "./src/audio/testing.ts",
     "./map": "./src/map/index.ts",
     "./manifest": "./src/manifest/index.ts",
-    "./animator": "./src/animator/index.ts"
+    "./animator": "./src/animator/index.ts",
+    "./preview": "./src/preview/index.ts"
   },
   "scripts": {
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json",

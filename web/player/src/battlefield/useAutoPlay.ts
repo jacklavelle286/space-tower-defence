@@ -7,12 +7,13 @@ import type { GameBridge, HudState } from "../game/GameBridge";
 import type { LocalRun } from "../game/localRun";
 import { PLACEHOLDER_ANSWER } from "./ActivityPlaceholder";
 
-export type AutoPlayMode = "play" | "lose";
+/** "watch" (the admin's battle preview, LD12): towers are already built; it only presses Ready and answers. */
+export type AutoPlayMode = "play" | "lose" | "watch";
 
 export function useAutoPlay(bridge: GameBridge, run: LocalRun, hud: HudState, mode: AutoPlayMode | null): void {
   useEffect(() => {
     if (mode === null || hud.runStatus !== "IN_PROGRESS") return;
-    if (hud.runPhase === "ACTIVITY") {
+    if (hud.runPhase === "ACTIVITY" || (mode === "watch" && hud.runPhase === "METEOR")) {
       run.submitAttempt(PLACEHOLDER_ANSWER);
       return;
     }
@@ -20,7 +21,7 @@ export function useAutoPlay(bridge: GameBridge, run: LocalRun, hud: HudState, mo
     const battle = bridge.battle;
     if (battle === null) return;
     const cost = bridge.config.classes["nova"]?.levels[0]?.cost ?? Infinity;
-    let credits = mode === "lose" ? 0 : battle.credits;
+    let credits = mode === "play" ? battle.credits : 0;
     for (const pad of bridge.config.pads) {
       if (credits < cost) break;
       if (!pad.open || battle.towers.some((t) => t.padId === pad.id)) continue;

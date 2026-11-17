@@ -11,6 +11,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "build:perf": "vite build --mode perf --outDir dist-perf",
+    "build:preview": "vite build --config vite.preview.config.ts",
     "preview:perf": "vite preview --outDir dist-perf"
   },
   "dependencies": {

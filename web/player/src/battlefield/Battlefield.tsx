@@ -2,7 +2,7 @@
 // GameBridge, and to the run rules only through a RunPort: LocalRun in the development slice (Phase 14, saves
 // nothing) and SyncedRun on the real run screen (Phase 22, saved through the op queue). The overlays differ (the local
 // slice has a placeholder activity, the real run the learning panel), so the caller passes them as children.
-import { compileBattleConfig } from "@scd/game-core";
+import { compileBattleConfig, type Speed } from "@scd/game-core";
 import { AUTO, Game, Scale } from "phaser";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { BridgeContext } from "./bridgeContext";
@@ -22,7 +22,8 @@ export interface BattlefieldProps {
   readonly run: RunPort;
   /** The run seed (from the server for a saved run, spine S5.1). */
   readonly seed: string;
-  readonly speed: 1 | 2;
+  /** 1x or 2x; 4x only in the admin's battle preview (LD12). */
+  readonly speed: Speed;
   /** The overlays; they read the bridge with useGameBridge(). */
   readonly children: ReactNode;
   /** Called once the bridge exists (the run screen needs it for Save and exit), and with null when it goes. */
