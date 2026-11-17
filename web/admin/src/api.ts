@@ -606,7 +606,47 @@ export function adminApi(request: Request) {
       request("POST", "/admin/picture-jobs", body) as Promise<PictureJobStarted>,
     /** R39: where a drawing job is. */
     getPictureJob: (jobId: string) => request("GET", `/admin/picture-jobs/${id(jobId)}`) as Promise<PictureJob>,
+    /** R40, every page: the level drafts (Gate M, LD3). */
+    listLevels: () => allPages<LevelSummary>("/admin/levels"),
+    /** R41: a new level from a level file body (a template or an uploaded file). An ID in use is refused
+     * (`level.levelId` / `exists`). */
+    createLevel: (level: LevelFile) => request("POST", "/admin/levels", { level }) as Promise<LevelView>,
+    /** R42: the header and the draft. */
+    getLevel: (levelId: string) => request("GET", `/admin/levels/${id(levelId)}`) as Promise<LevelView>,
+    /** R43: save the draft; 409 DRAFT_CONFLICT when someone saved since `draftRevision`. */
+    saveLevel: (levelId: string, body: { draftRevision: number; level: LevelFile }) =>
+      request("PUT", `/admin/levels/${id(levelId)}/draft`, body) as Promise<LevelView>,
+    /** R44: delete a level that was never published. */
+    deleteLevel: (levelId: string) =>
+      request("DELETE", `/admin/levels/${id(levelId)}`) as Promise<{ levelId: string; deleted: true }>,
   };
 }
+
+// --- Levels (R40-R44; Gate M, LD3) -----------------------------------------------------------------------------------
+
+/** A level file: one map and (from LD4) the challenge waves and wave sets it owns. The same JSON is downloaded,
+ * uploaded and stored as the draft (api/shared/levels.py). */
+export type LevelFile = {
+  kind: "level";
+  schema: 1;
+  levelId: string;
+  name: string;
+  map: {
+    name: string;
+    grid: { cols: number; rows: number };
+    route: [number, number][];
+    pads: { id: string; x: number; y: number; opensAfterWave: number }[];
+    art: { backdrop: string | null; decorations: { art: string; x: number; y: number }[] };
+  };
+  challengeWaves: Record<string, unknown>;
+  waveSets: Record<string, unknown>;
+};
+
+export type LevelSummary = { levelId: string; name: string; status: "DRAFT"; updatedAt: string };
+
+export type LevelView = {
+  header: LevelSummary;
+  draft: { level: LevelFile; draftRevision: number; updatedAt: string };
+};
 
 export type AdminApi = ReturnType<typeof adminApi>;

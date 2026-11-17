@@ -4,6 +4,8 @@
 // (contracts/fixtures/activities/) prove the editor's drafts pass them. Every call is recorded. Example IDs only.
 import { isPictureKind, pictureKindOf, pictureKindSpec, type PictureKindId } from "@scd/shared";
 import {
+  type LevelFile,
+  type LevelView,
   ApiError,
   type ActivitySummary,
   type ActivityView,
@@ -347,7 +349,48 @@ export class FakeAdminApi {
       const next = script.length > 1 ? script.shift() : script[0];
       return clone(next as PictureJob);
     },
+    listLevels: async () => {
+      this.record("listLevels");
+      return {
+        items: [...this.levels.values()].map(({ level, updatedAt }) => ({ levelId: level.levelId, name: level.name, status: "DRAFT" as const, updatedAt })),
+      };
+    },
+    createLevel: async (level: LevelFile) => {
+      this.record("createLevel", level);
+      if (this.levels.has(level.levelId)) throw new ApiError(400, "VALIDATION_FAILED", [{ field: "level.levelId", rule: "exists" }]);
+      this.levels.set(level.levelId, { level: clone(level), draftRevision: 0, updatedAt: "2026-11-17T10:00:00Z" });
+      return this.levelView(level.levelId);
+    },
+    getLevel: async (levelId: string) => {
+      this.record("getLevel", levelId);
+      return this.levelView(levelId);
+    },
+    saveLevel: async (levelId: string, body: { draftRevision: number; level: LevelFile }) => {
+      this.record("saveLevel", levelId, body);
+      const stored = this.levels.get(levelId);
+      if (stored === undefined) throw new ApiError(404, "NOT_FOUND");
+      if (stored.draftRevision !== body.draftRevision) throw new ApiError(409, "DRAFT_CONFLICT");
+      this.levels.set(levelId, { level: clone(body.level), draftRevision: stored.draftRevision + 1, updatedAt: "2026-11-17T10:05:00Z" });
+      return this.levelView(levelId);
+    },
+    deleteLevel: async (levelId: string) => {
+      this.record("deleteLevel", levelId);
+      if (!this.levels.delete(levelId)) throw new ApiError(404, "NOT_FOUND");
+      return { levelId, deleted: true as const };
+    },
   };
+
+  /** Level drafts (Gate M, LD3), by level ID. */
+  readonly levels = new Map<string, { level: LevelFile; draftRevision: number; updatedAt: string }>();
+
+  private levelView(levelId: string): LevelView {
+    const stored = this.levels.get(levelId);
+    if (stored === undefined) throw new ApiError(404, "NOT_FOUND");
+    return {
+      header: { levelId, name: stored.level.name, status: "DRAFT", updatedAt: stored.updatedAt },
+      draft: { level: clone(stored.level), draftRevision: stored.draftRevision, updatedAt: stored.updatedAt },
+    };
+  }
 
   callsNamed(name: string): Call[] {
     return this.calls.filter((c) => c.name === name);

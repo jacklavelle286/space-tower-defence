@@ -490,7 +490,7 @@ describe("Library", () => {
     await openPage("library");
     fireEvent.click(screen.getByRole("button", { name: "Fox (Approved)" }));
     const details = await screen.findByRole("region", { name: "Picture: Fox" });
-    await within(details).findByText("No activity uses it.");
+    await within(details).findByText("No activity or level uses it.");
     fireEvent.click(within(details).getByRole("button", { name: "Delete picture" }));
     fireEvent.click(within(screen.getByRole("dialog", { name: "Delete “Fox”?" })).getByRole("button", { name: "Delete picture" }));
     const done = await screen.findByText('"Fox" deleted.');

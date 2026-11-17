@@ -1,0 +1,209 @@
+// The map editor's state and its one reducer (Gate M, LD3; scope-level-designer.md §3.1 steps 3-7). Pure: every edit
+// is an action, so the editor, the keyboard and the tests all go through the same code, and undo is a history of
+// level snapshots (one history for the whole level, as the scope asks; waves join it in LD4).
+//
+// Tools:
+//   route        a cell on the left edge starts the route; each next cell snaps straight (same row or column as the
+//                last point); a step left is refused with the reason (no left-heading art yet, tier 1); a cell on the
+//                right edge finishes it. Backspace takes the last point back.
+//   pads         a free cell adds a pad (open from the start); a pad's cell removes it. Pads are renumbered in route
+//                order after every pad or route edit.
+//   decorations  a free cell places the chosen decoration; a decorated cell removes it.
+// Moving the cursor never changes the level, so it is not in the history.
+import { GRID_COLS, GRID_ROWS } from "@scd/game-core";
+import type { LevelFile } from "../api";
+import { numberPadsInRouteOrder, padId, type Cell } from "./levelFile";
+
+export type Tool = "route" | "pads" | "decorations";
+export const TOOLS: readonly { readonly id: Tool; readonly label: string; readonly key: string }[] = [
+  { id: "route", label: "Route", key: "1" },
+  { id: "pads", label: "Pads", key: "2" },
+  { id: "decorations", label: "Decorations", key: "3" },
+];
+const HISTORY_MAX = 200;
+
+export interface EditorState {
+  readonly level: LevelFile;
+  readonly past: readonly LevelFile[];
+  readonly future: readonly LevelFile[];
+  readonly tool: Tool;
+  readonly cursor: Cell;
+  /** The decoration the decorations tool places: a repo decoration or an approved library picture ID. */
+  readonly decoration: string;
+  /** Why the last action did nothing ("Turns left: no tile art yet"), for the status line; null after a good one. */
+  readonly refusal: string | null;
+}
+
+export type Action =
+  | { readonly type: "tool"; readonly tool: Tool }
+  | { readonly type: "cursor"; readonly cell: Cell }
+  | { readonly type: "move"; readonly dx: number; readonly dy: number }
+  | { readonly type: "place" }
+  | { readonly type: "back" }
+  | { readonly type: "clearRoute" }
+  | { readonly type: "opens"; readonly padId: string; readonly wave: number }
+  | { readonly type: "backdrop"; readonly backdrop: string | null }
+  | { readonly type: "decoration"; readonly art: string }
+  | { readonly type: "rename"; readonly name: string }
+  | { readonly type: "undo" }
+  | { readonly type: "redo" }
+  | { readonly type: "replace"; readonly level: LevelFile };
+
+export function initialEditor(level: LevelFile): EditorState {
+  return { level, past: [], future: [], tool: "route", cursor: [0, 5], decoration: "deco-rock-1", refusal: null };
+}
+
+const clamp = (v: number, hi: number): number => Math.max(0, Math.min(hi, v));
+
+/** The cells the route runs through (waypoints included), as "x,y". */
+export function routeCellSet(route: readonly (readonly [number, number])[]): Set<string> {
+  const out = new Set<string>();
+  for (let i = 0; i < route.length; i += 1) {
+    const [ax, ay] = route[i] ?? [0, 0];
+    out.add(`${ax},${ay}`);
+    const next = route[i + 1];
+    if (next === undefined) continue;
+    const [bx, by] = next;
+    const sx = Math.sign(bx - ax);
+    const sy = Math.sign(by - ay);
+    if (sx !== 0 && sy !== 0) continue;
+    for (let x = ax, y = ay; x !== bx || y !== by; x += sx, y += sy) out.add(`${x},${y}`);
+  }
+  return out;
+}
+
+/** Where a click on `cell` puts the next route point, or why it cannot. */
+export function nextRoutePoint(route: readonly (readonly [number, number])[], cell: Cell): { point: [number, number] } | { refusal: string } {
+  const [x, y] = cell;
+  const last = route[route.length - 1];
+  if (last === undefined) return x === 0 ? { point: [x, y] } : { refusal: "Start the route on the left edge." };
+  if (last[0] === GRID_COLS - 1 && route.length > 1) return { refusal: "The route already reaches the colony. Backspace takes the last point back." };
+  // Snap straight: keep the bigger move, drop the smaller.
+  const dx = x - last[0];
+  const dy = y - last[1];
+  const point: [number, number] = Math.abs(dx) >= Math.abs(dy) ? [x, last[1]] : [last[0], y];
+  if (point[0] === last[0] && point[1] === last[1]) return { refusal: "Choose a cell in the same row or column as the last point." };
+  if (point[0] < last[0]) return { refusal: "Turns left: no route art for that yet." };
+  // Going back over the route (a reversal) is a crossing too.
+  const taken = routeCellSet(route);
+  taken.delete(`${last[0]},${last[1]}`);
+  const sx = Math.sign(point[0] - last[0]);
+  const sy = Math.sign(point[1] - last[1]);
+  for (let cx = last[0] + sx, cy = last[1] + sy; ; cx += sx, cy += sy) {
+    if (taken.has(`${cx},${cy}`)) return { refusal: "The route cannot cross itself." };
+    if (cx === point[0] && cy === point[1]) break;
+  }
+  return { point };
+}
+
+function edited(state: EditorState, level: LevelFile): EditorState {
+  return {
+    ...state,
+    level,
+    past: [...state.past, state.level].slice(-HISTORY_MAX),
+    future: [],
+    refusal: null,
+  };
+}
+
+function withMap(level: LevelFile, map: Partial<LevelFile["map"]>): LevelFile {
+  return { ...level, map: { ...level.map, ...map } };
+}
+
+function nextPadNumber(level: LevelFile): number {
+  const used = new Set(level.map.pads.map((p) => p.id));
+  for (let n = 1; ; n += 1) if (!used.has(padId(level.levelId, n))) return n;
+}
+
+function place(state: EditorState): EditorState {
+  const { level, cursor, tool } = state;
+  const [x, y] = cursor;
+  const key = `${x},${y}`;
+  const onRoute = routeCellSet(level.map.route).has(key);
+  if (tool === "route") {
+    const next = nextRoutePoint(level.map.route, cursor);
+    if ("refusal" in next) return { ...state, refusal: next.refusal };
+    const route = level.map.route.map(([a, b]): [number, number] => [a, b]);
+    const prev = route[route.length - 2];
+    const last = route[route.length - 1];
+    // Continuing in the same direction moves the last point instead of adding a waypoint.
+    const extending = prev !== undefined && last !== undefined && ((prev[0] === last[0] && last[0] === next.point[0]) || (prev[1] === last[1] && last[1] === next.point[1]));
+    if (extending) route[route.length - 1] = next.point;
+    else route.push(next.point);
+    // A pad or decoration the route now runs over goes (the editor keeps the map drawable as you go).
+    const cells = routeCellSet(route);
+    const map = {
+      route,
+      pads: level.map.pads.filter((p) => !cells.has(`${p.x},${p.y}`)),
+      art: { ...level.map.art, decorations: level.map.art.decorations.filter((d) => !cells.has(`${d.x},${d.y}`)) },
+    };
+    return edited(state, numberPadsInRouteOrder(withMap(level, map)));
+  }
+  if (tool === "pads") {
+    const existing = level.map.pads.find((p) => p.x === x && p.y === y);
+    if (existing !== undefined) return edited(state, numberPadsInRouteOrder(withMap(level, { pads: level.map.pads.filter((p) => p !== existing) })));
+    if (onRoute) return { ...state, refusal: "A pad cannot sit on the route." };
+    if (level.map.art.decorations.some((d) => d.x === x && d.y === y)) return { ...state, refusal: "A decoration is there." };
+    const pad = { id: padId(level.levelId, nextPadNumber(level)), x, y, opensAfterWave: 0 };
+    return edited(state, numberPadsInRouteOrder(withMap(level, { pads: [...level.map.pads, pad] })));
+  }
+  const decorations = level.map.art.decorations;
+  const existing = decorations.find((d) => d.x === x && d.y === y);
+  if (existing !== undefined) return edited(state, withMap(level, { art: { ...level.map.art, decorations: decorations.filter((d) => d !== existing) } }));
+  if (onRoute) return { ...state, refusal: "Decorations stay off the route." };
+  if (level.map.pads.some((p) => p.x === x && p.y === y)) return { ...state, refusal: "A pad is there." };
+  return edited(state, withMap(level, { art: { ...level.map.art, decorations: [...decorations, { art: state.decoration, x, y }] } }));
+}
+
+function back(state: EditorState): EditorState {
+  const { level, tool, cursor } = state;
+  if (tool === "route") {
+    if (level.map.route.length === 0) return { ...state, refusal: "The route is empty." };
+    return edited(state, numberPadsInRouteOrder(withMap(level, { route: level.map.route.slice(0, -1) })));
+  }
+  // Pads and decorations: Backspace removes what is under the cursor, as Enter on it does.
+  const [x, y] = cursor;
+  const here = tool === "pads" ? level.map.pads.some((p) => p.x === x && p.y === y) : level.map.art.decorations.some((d) => d.x === x && d.y === y);
+  return here ? place(state) : { ...state, refusal: "Nothing to remove here." };
+}
+
+export function editorReducer(state: EditorState, action: Action): EditorState {
+  switch (action.type) {
+    case "tool":
+      return { ...state, tool: action.tool, refusal: null };
+    case "cursor":
+      return { ...state, cursor: [clamp(action.cell[0], GRID_COLS - 1), clamp(action.cell[1], GRID_ROWS - 1)] };
+    case "move":
+      return { ...state, cursor: [clamp(state.cursor[0] + action.dx, GRID_COLS - 1), clamp(state.cursor[1] + action.dy, GRID_ROWS - 1)] };
+    case "place":
+      return place(state);
+    case "back":
+      return back(state);
+    case "clearRoute":
+      return state.level.map.route.length === 0 ? state : edited(state, withMap(state.level, { route: [] }));
+    case "opens": {
+      const pads = state.level.map.pads.map((p) => (p.id === action.padId ? { ...p, opensAfterWave: action.wave } : p));
+      return edited(state, withMap(state.level, { pads }));
+    }
+    case "backdrop":
+      return edited(state, withMap(state.level, { art: { ...state.level.map.art, backdrop: action.backdrop } }));
+    case "decoration":
+      return { ...state, decoration: action.art, tool: "decorations", refusal: null };
+    case "rename": {
+      const name = action.name.slice(0, 60);
+      return edited(state, { ...state.level, name, map: { ...state.level.map, name } });
+    }
+    case "undo": {
+      const prev = state.past[state.past.length - 1];
+      if (prev === undefined) return { ...state, refusal: "Nothing to undo." };
+      return { ...state, level: prev, past: state.past.slice(0, -1), future: [state.level, ...state.future], refusal: null };
+    }
+    case "redo": {
+      const next = state.future[0];
+      if (next === undefined) return { ...state, refusal: "Nothing to redo." };
+      return { ...state, level: next, past: [...state.past, state.level], future: state.future.slice(1), refusal: null };
+    }
+    case "replace":
+      return { ...initialEditor(action.level), tool: state.tool, cursor: state.cursor, decoration: state.decoration };
+  }
+}

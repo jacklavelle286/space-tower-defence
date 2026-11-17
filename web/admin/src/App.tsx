@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { adminApi, ApiError, makeRequest, type Request } from "./api";
 import { completeSignIn, currentSession, forgetSession, isCallback, signOut, startSignIn, type Session } from "./auth/session";
 import { loadConfig, type AdminConfig } from "./config";
@@ -10,6 +10,11 @@ import { BankStatusPage } from "./pages/BankStatusPage";
 import { PicturesPage } from "./pages/PicturesPage";
 import { SpeechPage } from "./pages/SpeechPage";
 import { parseRoute, SECTIONS, sectionOf, type Route } from "./routes";
+
+// The level designer (Gate M) loads on demand: game-core, the design rules and the map art stay out of the rest of the
+// admin's first load (LD0 measured game-core and the test players at +17 KiB gzip).
+const LevelListPage = lazy(() => import("./levels/LevelListPage").then((m) => ({ default: m.LevelListPage })));
+const LevelEditor = lazy(() => import("./levels/LevelEditor").then((m) => ({ default: m.LevelEditor })));
 
 // The admin app shell (Phase 35, M3-01; D §D8): sign-in, the route guard, navigation and the pages. The order matters:
 // config, then the session, then the guard on the token's claims, and only then the API client. A token that is not an
@@ -184,6 +189,11 @@ export function App() {
           {route.page === "speech" && <SpeechPage key={route.id ?? ""} api={api} initial={route.id} />}
           {route.page === "pictures" && <PicturesPage api={api} tab={route.tab} />}
           {route.page === "bank" && <BankStatusPage api={api} />}
+          {(route.page === "levels" || route.page === "level") && (
+            <Suspense fallback={<p>Loading…</p>}>
+              {route.page === "levels" ? <LevelListPage api={api} /> : <LevelEditor key={route.id} api={api} levelId={route.id} />}
+            </Suspense>
+          )}
         </main>
       </div>
     </div>

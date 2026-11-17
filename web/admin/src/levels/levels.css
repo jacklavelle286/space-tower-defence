@@ -1,0 +1,104 @@
+/* The level editor (Gate M, LD3). Laptop width (at least 1280 px); a phone gets the list only (scope §3.1). */
+.level-work {
+  display: grid;
+  grid-template-columns: 10rem minmax(0, 1fr) 20rem;
+  gap: 1rem;
+  align-items: start;
+}
+
+.level-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.level-tools button[aria-pressed="true"] {
+  outline: 3px solid var(--focus, #f0a500);
+}
+
+.level-canvas {
+  width: 100%;
+  height: auto;
+  border: 2px solid var(--line, #2a1e3d);
+  background: #1b1630;
+}
+
+.level-canvas:focus-visible {
+  outline: 4px solid var(--focus, #f0a500);
+  outline-offset: 2px;
+}
+
+.level-cell {
+  fill: #7fe0ff;
+  stroke: rgb(255 255 255 / 12%);
+  stroke-width: 1;
+  cursor: pointer;
+}
+
+.level-cursor {
+  fill: none;
+  stroke: #f0a500;
+  stroke-width: 6;
+}
+
+.level-route-line {
+  fill: none;
+  stroke: #ffd36b;
+  stroke-width: 24;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.8;
+}
+
+.level-pad-number {
+  fill: #fff;
+  font: 700 36px sans-serif;
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: #2a1e3d;
+  stroke-width: 6;
+}
+
+.level-problem {
+  fill: none;
+  stroke-width: 6;
+}
+
+.level-problem-hard,
+.level-problem-block {
+  stroke: #ff4d4d;
+}
+
+.level-problem-warn {
+  stroke: #ffb020;
+  stroke-dasharray: 12 8;
+}
+
+.level-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.level-side label {
+  display: block;
+  margin: 0.5rem 0;
+}
+
+.level-problems .severity-hard,
+.level-problems .severity-block {
+  font-weight: 700;
+}
+
+.conflict {
+  border: 3px solid #ff4d4d;
+  padding: 0.5rem 1rem;
+  margin: 0.5rem 0;
+}
+
+@media (width < 1280px) {
+  .level-work {
+    grid-template-columns: 1fr;
+  }
+}

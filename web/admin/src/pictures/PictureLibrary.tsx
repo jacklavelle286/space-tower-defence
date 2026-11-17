@@ -225,14 +225,18 @@ function PictureDetails({
           {detail !== null && (
             <p>
               {usedBy.length === 0 ? (
-                "No activity uses it."
+                "No activity or level uses it."
               ) : (
                 <>
                   Used by:{" "}
                   {usedBy.map((id, i) => (
                     <span key={id}>
                       {i > 0 && ", "}
-                      <a href={hrefOf({ page: "activity", id })}>{id}</a>
+                      {id.startsWith("level:") ? (
+                        <a href={hrefOf({ page: "level", id: id.slice("level:".length) })}>level {id.slice("level:".length)}</a>
+                      ) : (
+                        <a href={hrefOf({ page: "activity", id })}>{id}</a>
+                      )}
                     </span>
                   ))}
                 </>
