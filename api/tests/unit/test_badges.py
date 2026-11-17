@@ -73,6 +73,15 @@ def test_full_crew_and_top_team_on_any_run() -> None:
     assert earned(challenge, START, state(1, placements=ALL_SIX[:5])) == []  # five classes are not a full crew
 
 
+def test_a_challenge_badge_for_its_final_wave_only() -> None:
+    run = {"mode": "CHALLENGE", "stage": "AUTHORED", "planetId": "luna-1", "waveSetId": "blob-parade"}
+    done = {**state(5), "status": "COMPLETED"}
+    assert earned(run, START, done) == ["challenge-blob-parade"]
+    assert earned(run, START, {**state(4), "status": "IN_PROGRESS"}) == []
+    assert earned({**run, "waveSetId": "first-contact"}, START, done) == []  # the Milestone 1 set has no badge
+    assert "first-steps" not in earned(run, START, done)  # never a campaign badge from a challenge
+
+
 # --- Through the handler ------------------------------------------------------------------------------------------
 
 

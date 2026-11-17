@@ -5,8 +5,8 @@ Each badge is a threshold re-evaluated on every COMPLETE_WAVE, not a one-off eve
 (`badges = {}`) a still-running run re-earns what it has reached (F §10.2). The award is a map set-add with
 `if_not_exists`, so applying it twice changes nothing (spine S7.1).
 
-Campaign-progress badges only on CAMPAIGN runs; "any" badges on any run; challenge badges (the final wave of a named
-challenge wave set) arrive with the challenges (Phase 53). A CHALLENGE run's COMPLETE_WAVE may write PROFILE `badges`
+Campaign-progress badges only on CAMPAIGN runs; "any" badges on any run; a challenge badge for the final wave of a
+named challenge wave set (Phase 53). A CHALLENGE run's COMPLETE_WAVE may write PROFILE `badges`
 only, never planets or eligibility (spine S3.2). No learning-outcome badges in v1 (C12 notes).
 
 Why code and not the ruleset (C15 lists "badge definitions" in the ruleset): each badge is a rule over the run and its
@@ -31,6 +31,9 @@ THRESHOLDS: tuple[tuple[str, int], ...] = (
     ("endless-60", 60),
 )
 # The campaign badge is per planet: campaign-<planetId>, committed in the COMPLETE_WAVE that completes the campaign.
+# Challenge badges (C12, Phase 53): challenge-<waveSetId>, for the final COMPLETE_WAVE of these CHALLENGE wave sets.
+# first-contact (the Milestone 1 set) has none.
+CHALLENGE_BADGES = frozenset({"blob-parade", "wobble-rematch", "bubble-trouble"})
 
 
 def earned(run: Mapping[str, Any], stored: Mapping[str, Any] | None, new_state: Mapping[str, Any]) -> list[str]:
@@ -54,6 +57,12 @@ def earned(run: Mapping[str, Any], stored: Mapping[str, Any] | None, new_state: 
             and end_health >= start_health
         ):
             badges.append("safe-and-sound")
+    if (
+        run.get("mode") == "CHALLENGE"
+        and new_state.get("status") == "COMPLETED"
+        and str(run.get("waveSetId")) in CHALLENGE_BADGES
+    ):
+        badges.append(f"challenge-{run.get('waveSetId')}")
     placements = after.get("placements") or []
     if {p.get("classId") for p in placements} >= ALL_CLASSES:
         badges.append("full-crew")

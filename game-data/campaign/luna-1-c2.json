@@ -1,5 +1,5 @@
 {
-  "$comment": "Planet document luna-1-c2 (Phase 50, M4-01; C3, C8, C13, spine S3.1): luna-1-c1's Moonbeam Colony map and its first-contact CHALLENGE (waves 1 and 2, unchanged), plus the 50-wave CAMPAIGN of C8.2: authored waves 1 to 50 copied number for number from tools/sim/game_data.json (bosses on waves 10, 20, 30, 40, 50; carriers' cargo as authored), meteor challenges after waves 9, 19, 29, 39 and 49 (slots M-009 to M-049), every class in unlock order (C5.9) and pads opening as waves are cleared (each pad's opensAfterWave, C3.3). Needs ruleset r3 (mechanics 3: the full alien catalogue, bosses and powers). Checked against the simulator by web/game-core/src/data/sim-agreement.test.ts. Create-run actions for the campaign: 3 + 49 + 5 = 57 of DynamoDB's 100 (G-15). Not used for new runs until current.json names it. Published create-only to /game-data/campaign/luna-1-c2.json: never edit a published version, add a new one.",
+  "$comment": "Planet document luna-1-c2 (Phase 50, M4-01; C3, C8, C13, spine S3.1): luna-1-c1's Moonbeam Colony map and its first-contact CHALLENGE (waves 1 and 2, unchanged), plus the 50-wave CAMPAIGN of C8.2 and the three standalone challenges of C13 (Phase 53: blob-parade, wobble-rematch with a meteor before King Wobble, bubble-trouble; each reuses campaign waves, with its own credits, classes, open pads and astronauts already placed; learning rewards come from the ruleset by interval, so 30 each): authored waves 1 to 50 copied number for number from tools/sim/game_data.json (bosses on waves 10, 20, 30, 40, 50; carriers' cargo as authored), meteor challenges after waves 9, 19, 29, 39 and 49 (slots M-009 to M-049), every class in unlock order (C5.9) and pads opening as waves are cleared (each pad's opensAfterWave, C3.3). Needs ruleset r3 (mechanics 3: the full alien catalogue, bosses and powers). Checked against the simulator by web/game-core/src/data/sim-agreement.test.ts. Create-run actions for the campaign: 3 + 49 + 5 = 57 of DynamoDB's 100 (G-15). Not used for new runs until current.json names it. Published create-only to /game-data/campaign/luna-1-c2.json: never edit a published version, add a new one.",
   "kind": "campaign",
   "version": "luna-1-c2",
   "planetId": "luna-1",
@@ -1787,6 +1787,135 @@
       ],
       "padsOpenAsForWave": 1,
       "presetPlacements": []
+    },
+    "blob-parade": {
+      "mode": "CHALLENGE",
+      "name": "Blob Parade",
+      "waves": [
+        1,
+        2,
+        4,
+        5,
+        7
+      ],
+      "meteorAfter": [],
+      "startCredits": 150,
+      "colonyHealth": 20,
+      "classes": [
+        "nova"
+      ],
+      "padsOpenAsForWave": 1,
+      "presetPlacements": []
+    },
+    "wobble-rematch": {
+      "mode": "CHALLENGE",
+      "name": "Wobble Rematch",
+      "waves": [
+        7,
+        9,
+        10
+      ],
+      "meteorAfter": [
+        2
+      ],
+      "startCredits": 200,
+      "colonyHealth": 20,
+      "classes": [
+        "nova",
+        "pip"
+      ],
+      "padsOpenAsForWave": 10,
+      "presetPlacements": [
+        {
+          "padId": "p04",
+          "classId": "nova",
+          "level": 1,
+          "targeting": "FRONT"
+        },
+        {
+          "padId": "p05",
+          "classId": "nova",
+          "level": 1,
+          "targeting": "FRONT"
+        },
+        {
+          "padId": "p09",
+          "classId": "nova",
+          "level": 1,
+          "targeting": "FRONT"
+        },
+        {
+          "padId": "p12",
+          "classId": "nova",
+          "level": 1,
+          "targeting": "FRONT"
+        }
+      ]
+    },
+    "bubble-trouble": {
+      "mode": "CHALLENGE",
+      "name": "Bubble Trouble",
+      "waves": [
+        8,
+        13,
+        14,
+        17,
+        18,
+        19
+      ],
+      "meteorAfter": [],
+      "startCredits": 250,
+      "colonyHealth": 20,
+      "classes": [
+        "nova",
+        "pip",
+        "juno"
+      ],
+      "padsOpenAsForWave": 16,
+      "presetPlacements": [
+        {
+          "padId": "p02",
+          "classId": "nova",
+          "level": 1,
+          "targeting": "FRONT"
+        },
+        {
+          "padId": "p04",
+          "classId": "nova",
+          "level": 1,
+          "targeting": "FRONT"
+        },
+        {
+          "padId": "p05",
+          "classId": "juno",
+          "level": 1,
+          "targeting": "FRONT"
+        },
+        {
+          "padId": "p09",
+          "classId": "nova",
+          "level": 1,
+          "targeting": "FRONT"
+        },
+        {
+          "padId": "p12",
+          "classId": "nova",
+          "level": 1,
+          "targeting": "FRONT"
+        },
+        {
+          "padId": "p13",
+          "classId": "pip",
+          "level": 1,
+          "targeting": "FRONT"
+        },
+        {
+          "padId": "p16",
+          "classId": "nova",
+          "level": 1,
+          "targeting": "FRONT"
+        }
+      ]
     }
   }
 }

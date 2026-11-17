@@ -560,6 +560,25 @@ describe("planet document luna-1-c2: the 50-wave campaign (Phase 50, M4-01; C8.2
     expect(run.slots.find((s) => s.slotId === "N-010")?.reward).toEqual({ credits: 40 }); // C9.2 block 10-19
   });
 
+  it("the three C13 challenges are the simulator's: waves, credits, classes, pads, placements; rewards 30 by interval", () => {
+    const challenges: Loose[] = sim.challenges;
+    for (const c of challenges) {
+      const set = c2.waveSets[c.id];
+      expect(set?.mode, c.id).toBe("CHALLENGE");
+      expect(set?.waves, c.id).toEqual(c.waves);
+      expect(set?.meteorAfter, c.id).toEqual(c.meteor ? [c.meteorAfterIndex] : []);
+      expect([set?.startCredits, set?.colonyHealth, set?.padsOpenAsForWave], c.id).toEqual([c.startingCredits, c.colonyHealth, c.padsOpenAsForWave]);
+      expect(set?.classes, c.id).toEqual(c.classes);
+      expect(set?.presetPlacements.map((p) => [p.padId, p.classId, p.level]), c.id).toEqual(
+        c.presetPlacements.map((p: Loose) => [String(p.pad).toLowerCase(), p.class, p.level]),
+      );
+      // C13: a challenge slot's reward is the ruleset's by interval (30 in the first block), not the research's 40.
+      expect(buildBounds(ruleset3, c2).waveSets[c.id]?.normalRewardByInterval.every((r) => r === 30), c.id).toBe(true);
+    }
+    const run = initialRunState(ruleset3, compileBattleConfig(ruleset3, c2, "wobble-rematch"), ["x"]);
+    expect(run.slots.find((s) => s.kind === "METEOR")).toMatchObject({ slotId: "M-002", reward: { credits: 0, powerId: "frost-pulse" } });
+  });
+
   it("pads open as C3.3 schedules them, the same pads as the simulator's map", () => {
     const simPads: Loose[] = sim.map.pads;
     expect(c2.map.pads.map((p) => [p.id, p.opensAfterWave])).toEqual(simPads.map((p) => [p.id.toLowerCase(), p.opensAfterWave]));
