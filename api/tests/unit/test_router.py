@@ -84,20 +84,12 @@ def test_real_handler_unknown_route_creates_no_client(
     assert created == []
 
 
-# tts has every route since Phase 19, admin-api since Phase 42 (R30 bank status)
-@pytest.mark.parametrize("function", ["player_api"])
-def test_every_catalogued_route_without_a_handler_answers_501_envelope(player_event: dict, function: str) -> None:
+# tts has every route since Phase 19, admin-api since Phase 42 (R30 bank status), player-api since Phase 55 (R5
+# resets): no catalogued route answers 501 any more.
+@pytest.mark.parametrize("function", ["player_api", "tts"])
+def test_every_catalogued_route_has_a_handler(function: str) -> None:
     module = load_handler(function)
-    stubs = {key: authoriser for key, authoriser in module.ROUTES.items() if key not in module.ROUTER.handlers}
-    assert stubs, "every route has a handler: delete this test"
-    for route_key, authoriser in stubs.items():
-        groups = "[admin]" if authoriser == OPERATOR else None
-        response = module.handler(event_for(player_event, route_key, cognito__groups=groups), None)
-        assert response["statusCode"] == 501, route_key
-        assert response["headers"] == {"content-type": "application/json", "cache-control": "no-store"}
-        error = json.loads(response["body"])["error"]
-        assert error["code"] == "NOT_IMPLEMENTED"
-        assert error["requestId"] == REQUEST_ID
+    assert set(module.ROUTES) == set(module.ROUTER.handlers)
 
 
 def test_handler_crash_is_internal_and_logs_only_the_class_name(

@@ -6,7 +6,8 @@ Phase 16 adds runs and the session lease (G §4, §7): `POST /api/runs`, `GET /a
 `POST /api/runs/{runId}/ops`, applied by shared/ops.py. Phase 29 adds `POST /api/runs/{runId}/endless` (G §6): the
 same pipeline for exactly one CHOOSE_ENDLESS (endless slot planning arrives with endless content, Phase 54). Phase 32
 adds `GET /api/runs` (G §4 R7, shared/runlist.py) and the G9 prune after an op ends a run (shared/prune.py). Phase 43
-adds `GET /api/me/progress` (G §3 R2): the learning summaries the resolving transactions keep. The other
+adds `GET /api/me/progress` (G §3 R2): the learning summaries the resolving transactions keep. Phase 55 adds
+`POST /api/me/resets` (G §3 R5, shared/resets.py). The other
 catalogued routes still answer 501 NOT_IMPLEMENTED until their phase adds a handler.
 
 The date of birth is write-only (spine S2): it enters in PUT/PATCH, is stored as PROFILE.dob, and is read back only to
@@ -56,6 +57,7 @@ from shared.log import ApiLogger
 from shared.ops import ENDLESS_ENVELOPE, OPS_ENVELOPE, OPS_MAX_BYTES, OpsBatch, check_envelope
 from shared.profile import age_band, stored_age, today_in_london, validate_profile
 from shared.prune import prune_terminal_runs
+from shared.resets import apply_reset, checked_type
 from shared.router import Request, Router
 from shared.rules.contracts import LIMITS
 from shared.runlist import page, parse_query
@@ -779,6 +781,16 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         pk = _pk(request)
         return json_response(200, _me_view(deps, table, pk, _profile_or_404(table, pk), session_id))
 
+    # --- R5 POST /api/me/resets (G §3; Phase 55) ---------------------------------------------------------------------
+
+    def post_reset(request: Request) -> dict[str, Any]:
+        """The three account resets of F §12.5; 200 only when every step has finished (the client repeats on error)."""
+        reset = checked_type(json_object(request.event))
+        body = apply_reset(
+            deps.game(), _pk(request), reset, request_id=request.request_id, now=deps.now(), sleep=deps.sleep
+        )
+        return json_response(200, body)
+
     def get_progress(request: Request) -> dict[str, Any]:
         """R2: one summary per topic the child has resolved an activity in (counts only: no answers, attempt numbers or
         age band), plus planets and badges as in R1. The counters are written in the resolving op's transaction
@@ -902,6 +914,7 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
     handlers = {
         "GET /api/me": get_me,
         "GET /api/me/progress": get_progress,
+        "POST /api/me/resets": post_reset,
         "PUT /api/me/profile": put_profile,
         "PATCH /api/me/profile": patch_profile,
         "GET /api/planets": get_planets,
