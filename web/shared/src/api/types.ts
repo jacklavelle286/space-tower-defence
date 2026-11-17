@@ -59,6 +59,23 @@ export interface RunSummary {
   reason?: string;
 }
 
+/** One learning summary of R2 (G §3): counts only, per topic the child has resolved an activity in. */
+export interface TopicSummary {
+  subject: string;
+  topicId: string;
+  completed: number;
+  succeeded: number;
+  failed: number;
+  lastResolvedAt: string;
+}
+
+/** R2 `GET /api/me/progress`. */
+export interface Progress {
+  summaries: TopicSummary[];
+  planets: Record<string, { bestCompletedWave?: number }>;
+  badges: Record<string, string>;
+}
+
 /** R7 `GET /api/runs?state=open|done` (G §4, §8): one page, newest first; `nextCursor` is opaque, null on the last page. */
 export interface RunList {
   items: RunSummary[];

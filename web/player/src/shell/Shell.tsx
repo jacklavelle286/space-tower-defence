@@ -12,6 +12,7 @@ import { createRun } from "../run/newGame";
 import type { RunServices } from "../run/RunScreen";
 import { PROTOCOL_VERSION } from "../sync/protocol";
 import { SyncQueue } from "../sync/queue";
+import { MyProgress } from "../progress/MyProgress";
 import { SavedGames } from "./SavedGames";
 import { Home, type GameChoice } from "./Home";
 import { Landing } from "./Landing";
@@ -274,6 +275,7 @@ export function Shell({ services }: { services: Services }) {
                     onSignInAgain={() => signIn("sign-in")}
                     onContinue={(runId) => navigate(`/play/${runId}`)}
                     onSavedGames={() => navigate("/games")}
+                    onMyProgress={() => navigate("/progress")}
                     onNewGame={newGame}
                     practice={services.localPractice}
                   />
@@ -281,6 +283,10 @@ export function Shell({ services }: { services: Services }) {
                   <Navigate to="/setup" replace />
                 )
               }
+            />
+            <Route
+              path="/progress"
+              element={me ? <MyProgress api={s.api} onBack={() => navigate("/home")} /> : <Navigate to="/setup" replace />}
             />
             <Route
               path="/games"

@@ -60,6 +60,7 @@ export function Home({
   onSignInAgain,
   onContinue,
   onSavedGames,
+  onMyProgress,
   onNewGame,
   practice = false,
 }: {
@@ -71,6 +72,8 @@ export function Home({
   onContinue: (runId: string) => void;
   /** Opens P5 Saved games (Phase 32). Optional so older callers keep working. */
   onSavedGames?: () => void;
+  /** Opens P12 My progress (Phase 43). */
+  onMyProgress?: () => void;
   /** Creates the run; on `ok` the caller has already moved to the run screen. */
   onNewGame: (choice: GameChoice, options: { runId?: string; takeover?: boolean }) => Promise<CreateOutcome>;
   practice?: boolean;
@@ -150,6 +153,11 @@ export function Home({
         {onSavedGames !== undefined ? (
           <button type="button" className="btn btn-small" onClick={onSavedGames}>
             {COPY.home.savedGames}
+          </button>
+        ) : null}
+        {onMyProgress !== undefined ? (
+          <button type="button" className="btn btn-small" onClick={onMyProgress}>
+            {COPY.home.myProgress}
           </button>
         ) : null}
         {!online ? <p className="reason">{COPY.offline}</p> : null}

@@ -12,9 +12,11 @@ export type {
   PlanetEntry,
   Planets,
   ProfileInput,
+  Progress,
   RunList,
   RunMode,
   RunSummary,
+  TopicSummary,
   WaveSetEntry,
   WireOp,
 } from "./types";

@@ -51,6 +51,23 @@ export const COPY = {
     signOut: "Sign out",
     practice: "Practice battle (development only)",
     savedGames: "Saved games", // D4 P5
+    myProgress: "My progress", // D4 P12
+  },
+  progress: {
+    // D4 P12 My progress [PROPOSAL] copy: counts only, no percentages, grades, ages, streaks or comparisons
+    heading: "My progress",
+    subjects: { maths: "Maths", phonics: "Phonics", spelling: "Spelling" } as Record<string, string>,
+    done: (n: number) => `Activities done: ${n}`,
+    stars: (n: number) => `Stars: ${n}`,
+    practising: (n: number) => `Still practising: ${n}`,
+    nothingYet: "Nothing here yet. Play a game to start!",
+    showTopics: "Show topics",
+    hideTopics: "Hide topics",
+    planetsHeading: "Planets",
+    best: (planet: string, n: number) => `${planet}: best ${n} ${n === 1 ? "wave" : "waves"} cleared`,
+    badgesHeading: "Badges",
+    back: "Home",
+    failed: "We couldn't load your progress. Please check the internet and try again.",
   },
   games: {
     // D4 P5 Saved games [PROPOSAL] copy

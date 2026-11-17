@@ -552,3 +552,27 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* P12 My progress (Phase 43). */
+.progress-subjects {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin: 12px 0 20px;
+}
+
+.progress-card h2 {
+  margin: 0 0 6px;
+}
+
+.progress-card p {
+  margin: 4px 0;
+  font-size: 20px;
+}
+
+.progress-topics {
+  margin: 8px 0;
+  padding-left: 20px;
+  font-size: 18px;
+  line-height: 1.5;
+}
