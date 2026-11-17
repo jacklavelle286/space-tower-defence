@@ -94,7 +94,8 @@ PICTURE_FIELDS = {
 
 def test_allow_list_is_g15_plus_error_type_and_the_picture_fields() -> None:
     """Gate P adds identifiers, counts and token numbers only: no field can carry a description or an SVG."""
-    assert ALLOWED_FIELDS - {"errorType"} - PICTURE_FIELDS == {
+    # "pruned": the G9 prune's count of removed runs (Phase 32), an int.
+    assert ALLOWED_FIELDS - {"errorType", "pruned"} - PICTURE_FIELDS == {
         "requestId",
         "routeKey",
         "status",

@@ -313,9 +313,38 @@ class DynamoTable:
                 raise BatchGetIncomplete(f"{len(pending)} keys still unprocessed after {max_rounds} rounds")
         return found
 
+    # --- BatchWriteItem deletes (G9 prune) ------------------------------------------------------------------------
+
+    def batch_delete(
+        self,
+        keys: Sequence[tuple[str, str]],
+        *,
+        max_rounds: int = 10,
+        sleep: Callable[[float], None] | None = None,
+    ) -> None:
+        """Delete every item at `keys` (missing ones are fine), 25 per request, retrying UnprocessedItems with a short
+        back-off. Raises BatchWriteIncomplete when some are still unprocessed after `max_rounds` (G9: the caller
+        logs it; deletes are idempotent, so a later prune finishes the job)."""
+        wanted = list(dict.fromkeys(keys))
+        for start in range(0, len(wanted), BATCH_WRITE_MAX_ITEMS):
+            pending: list[dict[str, Any]] = [
+                {"DeleteRequest": {"Key": _serialise({"pk": pk, "sk": sk})}}
+                for pk, sk in wanted[start : start + BATCH_WRITE_MAX_ITEMS]
+            ]
+            for round_number in range(max_rounds):
+                if not pending:
+                    break
+                if round_number and sleep is not None:
+                    sleep(min(0.05 * 2**round_number, 1.0))
+                response = self._client.batch_write_item(RequestItems={self.table_name: pending})
+                pending = list(response.get("UnprocessedItems", {}).get(self.table_name, []))
+            if pending:
+                raise BatchWriteIncomplete(f"{len(pending)} deletes still unprocessed after {max_rounds} rounds")
+
 
 MAX_TRANSACTION_ACTIONS = 100  # TransactWriteItems limit (F §12.3, [VERIFIED] sources/08-aws-data-ops.md §a.1)
 BATCH_GET_MAX_KEYS = 100  # BatchGetItem limit per request
+BATCH_WRITE_MAX_ITEMS = 25  # BatchWriteItem limit per request
 
 # Transient answers: the same request may succeed if repeated after a short, jittered pause (G §7 R13, F §5.3).
 TRANSIENT_CODES = frozenset(
@@ -332,6 +361,10 @@ TRANSIENT_REASONS = frozenset({"TransactionConflict", "ProvisionedThroughputExce
 
 class BatchGetIncomplete(Exception):
     """BatchGetItem could not read every requested key (still unprocessed, or an unexpected item came back)."""
+
+
+class BatchWriteIncomplete(Exception):
+    """BatchWriteItem left some deletes unprocessed after every retry."""
 
 
 @dataclass(frozen=True)

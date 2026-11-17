@@ -46,6 +46,7 @@ ALLOWED_FIELDS: frozenset[str] = frozenset(
         "speechId",
         "versionId",
         "errorType",
+        "pruned",  # G9 prune (Phase 32): how many ended runs were removed beyond the newest 50
         # Pictures (Gate P, Phase 42): the picture and job IDs, the cap period a refusal hit and the counts after a
         # start (R38), and picture-gen's one usage line per job: token counts only, never the prompt or the SVG.
         "pictureId",

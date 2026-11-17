@@ -4,7 +4,8 @@ Phase 15 added the profile routes (G §3): `GET /api/me`, `PUT` and `PATCH /api/
 Phase 16 adds runs and the session lease (G §4, §7): `POST /api/runs`, `GET /api/runs/{runId}`,
 `GET /api/runs/{runId}/pack`, `PUT` and `DELETE /api/session`. Phase 17 adds the ops batch (G §5):
 `POST /api/runs/{runId}/ops`, applied by shared/ops.py. Phase 29 adds `POST /api/runs/{runId}/endless` (G §6): the
-same pipeline for exactly one CHOOSE_ENDLESS (endless slot planning arrives with endless content, Phase 54). The other
+same pipeline for exactly one CHOOSE_ENDLESS (endless slot planning arrives with endless content, Phase 54). Phase 32
+adds `GET /api/runs` (G §4 R7, shared/runlist.py) and the G9 prune after an op ends a run (shared/prune.py). The other
 catalogued routes still answer 501 NOT_IMPLEMENTED until their phase adds a handler.
 
 The date of birth is write-only (spine S2): it enters in PUT/PATCH, is stored as PROFILE.dob, and is read back only to
@@ -53,8 +54,10 @@ from shared.game_data import GameDataReader, GameDataUnavailable, Planet, reader
 from shared.log import ApiLogger
 from shared.ops import ENDLESS_ENVELOPE, OPS_ENVELOPE, OPS_MAX_BYTES, OpsBatch, check_envelope
 from shared.profile import age_band, stored_age, today_in_london, validate_profile
+from shared.prune import prune_terminal_runs
 from shared.router import Request, Router
 from shared.rules.contracts import LIMITS
+from shared.runlist import page, parse_query
 from shared.runs import (
     RUN_PREFIX,
     TERMINAL,
@@ -586,6 +589,23 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
 
     # --- R9 and R10 --------------------------------------------------------------------------------------------------
 
+    # --- R7 GET /api/runs (G §4, §8; Phase 32) ------------------------------------------------------------------------
+
+    def get_runs(request: Request) -> dict[str, Any]:
+        """The caller's open or finished runs as RunSummary, newest first, `limit` per page with an opaque cursor."""
+        state, limit, offset = parse_query(
+            query_param(request.event, "state"),
+            query_param(request.event, "limit"),
+            query_param(request.event, "cursor"),
+        )
+        table = deps.game()
+        pk = _pk(request)
+        _profile_or_404(table, pk)
+        items = table.query_prefix(pk, RUN_PREFIX, attributes=RUN_SUMMARY_ATTRIBUTES)
+        chunk, next_cursor = page(items, state, limit, offset)
+        playable = _Playability(deps.bounds)
+        return json_response(200, {"items": [run_summary(item, playable) for item in chunk], "nextCursor": next_cursor})
+
     def get_run(request: Request) -> dict[str, Any]:
         run_id = _path_run_id(request)
         table = deps.game()
@@ -732,6 +752,10 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         run = table.get_item(pk, run_sk(run_id))
         if run is None:  # deleted after its ops were looked at (a whole-profile reset): nothing left to show
             raise ApiError("NOT_FOUND")
+        # G9: an op of this batch ended the run, so the account may now hold more than 50 ended runs. Best effort,
+        # after the op's write; prune_terminal_runs never raises, so it cannot change the answer below.
+        if run.get("status") in TERMINAL and any(r["result"] == "APPLIED" for r in outcome.results):
+            prune_terminal_runs(table, pk, log, sleep=deps.sleep)
         body = {"results": outcome.results, "run": view_of(run, table, pk)}
         if outcome.stop == "STALE_SESSION_FIRST":
             raise ApiError("STALE_SESSION", "Session generation is no longer current", extra=body)
@@ -839,6 +863,7 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         "PUT /api/me/profile": put_profile,
         "PATCH /api/me/profile": patch_profile,
         "GET /api/planets": get_planets,
+        "GET /api/runs": get_runs,
         "POST /api/runs": post_runs,
         "GET /api/runs/{runId}": get_run,
         "GET /api/runs/{runId}/pack": get_pack,
