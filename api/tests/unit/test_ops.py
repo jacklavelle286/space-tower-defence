@@ -307,7 +307,13 @@ def test_a_campaign_wave_raises_the_best_wave_on_the_profile_only_when_it_change
     batch = [attempt(4, 3, "b"), start_wave(5, 4, wave=2), complete_wave(6, 5, wave=2)]
     status, body = send(api, player_event, batch)
     assert status == 200 and results(body)[-1] == ("APPLIED", None)
-    assert len(transacts(api)[-1]) == 2  # best already 2: PROFILE not written
+    # Best already 2, so `planets` is not written; but clearing the final wave earns the campaign badge (C12, Phase 52).
+    update = transacts(api)[-1][2]["Update"]
+    assert (
+        "#planets" not in update["UpdateExpression"]
+        and "campaign-luna-1" in update["ExpressionAttributeNames"].values()
+    )
+    assert api.item("PROFILE")["planets"] == {"luna-1": {"bestCompletedWave": 2}}
     run = run_item(api)
     assert run["phase"] == "COMPLETION_OFFER" and run["campaignCompletedAt"] == "2026-11-20T10:00:00Z"
     assert run["status"] == "IN_PROGRESS"

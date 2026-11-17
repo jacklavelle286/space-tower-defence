@@ -37,6 +37,7 @@ from typing import Any
 
 from botocore.exceptions import ClientError
 
+from shared.badges import earned as earned_badges
 from shared.bounds import KEY_ID, BoundsUnavailable
 from shared.data import DynamoTable, cancellation_reasons, is_transient
 from shared.errors import ApiError
@@ -337,14 +338,36 @@ def summary_update(succeeded: bool, *, now: str) -> dict[str, Any]:
 
 
 def profile_best_update(planet_id: str, entry: Mapping[str, Any]) -> dict[str, Any]:
-    """Update PROFILE with a new best wave (F §12.3): the whole per-planet map, so it works after a progress reset
-    left `planets` empty; `attribute_exists(pk)` so it can never recreate a deleted profile."""
-    return {
-        "update": "SET #planets.#planet = :entry",
-        "names": {"#planets": "planets", "#planet": planet_id, "#pk": "pk"},
-        "values": {":entry": dict(entry)},
-        "condition": "attribute_exists(#pk)",
-    }
+    """Update PROFILE with a new best wave only (see profile_update)."""
+    return profile_update((planet_id, entry), [], now="", badges_map_exists=True)
+
+
+def profile_update(
+    best: tuple[str, Mapping[str, Any]] | None, badges: list[str], *, now: str, badges_map_exists: bool
+) -> dict[str, Any]:
+    """Update PROFILE (F §12.3): a new best wave writes the whole per-planet entry, so it works after a progress reset
+    left `planets` empty; each new badge is `SET badges.#b = if_not_exists(badges.#b, :now)`, so a badge is awarded
+    once and its first date kept (C12). A profile without a badges map gets the map whole. `attribute_exists(pk)`, so
+    it can never recreate a deleted profile."""
+    sets: list[str] = []
+    names: dict[str, str] = {"#pk": "pk"}
+    values: dict[str, Any] = {}
+    if best is not None:
+        planet_id, entry = best
+        names.update({"#planets": "planets", "#planet": planet_id})
+        values[":entry"] = dict(entry)
+        sets.append("#planets.#planet = :entry")
+    if badges:
+        names["#badges"] = "badges"
+        if badges_map_exists:
+            values[":now"] = now
+            for i, badge in enumerate(badges):
+                names[f"#b{i}"] = badge
+                sets.append(f"#badges.#b{i} = if_not_exists(#badges.#b{i}, :now)")
+        else:
+            values[":badges"] = {badge: now for badge in badges}
+            sets.append("#badges = :badges")
+    return {"update": "SET " + ", ".join(sets), "names": names, "values": values, "condition": "attribute_exists(#pk)"}
 
 
 # --- The batch -----------------------------------------------------------------------------------------------------
@@ -560,7 +583,7 @@ class OpsBatch:
                 form = summary_update(outcome == "RESOLVED_SUCCEEDED", now=now)
                 actions.append(self.table.update_action(pk, summary_sk(addressed_slot), **form))
         if op["type"] == "COMPLETE_WAVE":
-            profile_action = self._best_wave(pk, run, new_state)
+            profile_action = self._profile_action(pk, run, new_state, now)
             if profile_action is not None:
                 actions.append(profile_action)
 
@@ -581,21 +604,28 @@ class OpsBatch:
             slot_id=reads.addressed,
         )
 
-    def _best_wave(self, pk: str, run: Mapping[str, Any], new_state: Mapping[str, Any]) -> dict[str, Any] | None:
-        """The PROFILE action of a COMPLETE_WAVE, only when something changes (F §12.3). A CAMPAIGN run raises its
-        planet's bestCompletedWave. A CHALLENGE run never touches `planets` (spine S3.2); its badges arrive with the
-        badge definitions (C12), so nothing is written for it yet."""
-        if run.get("mode") != "CAMPAIGN":
-            return None
-        profile = self.table.get_item(pk, PROFILE_SK, attributes=("pk", "planets"))
+    def _profile_action(
+        self, pk: str, run: Mapping[str, Any], new_state: Mapping[str, Any], now: str
+    ) -> dict[str, Any] | None:
+        """The PROFILE action of a COMPLETE_WAVE, only when something changes (F §12.3): a CAMPAIGN run raises its
+        planet's bestCompletedWave; any run adds the C12 badges it has newly earned (shared/badges.py), each with
+        if_not_exists. A CHALLENGE run never touches `planets` (spine S3.2), only `badges`."""
+        profile = self.table.get_item(pk, PROFILE_SK, attributes=("pk", "planets", "badges"))
         if profile is None:
             return None  # a whole-profile reset is under way; its new generation fails this op's fence anyway
-        planet_id = str(run.get("planetId"))
-        planets = profile.get("planets") if isinstance(profile.get("planets"), Mapping) else {}
-        entry = plain(planets.get(planet_id)) if isinstance(planets.get(planet_id), Mapping) else {}
-        best = entry.get("bestCompletedWave")
-        wave = int(new_state["highestCompletedWave"])
-        if isinstance(best, int) and not isinstance(best, bool) and best >= wave:
+        best_entry: tuple[str, dict[str, Any]] | None = None
+        if run.get("mode") == "CAMPAIGN":
+            planet_id = str(run.get("planetId"))
+            planets = profile.get("planets") if isinstance(profile.get("planets"), Mapping) else {}
+            entry = plain(planets.get(planet_id)) if isinstance(planets.get(planet_id), Mapping) else {}
+            best = entry.get("bestCompletedWave")
+            wave = int(new_state["highestCompletedWave"])
+            if not (isinstance(best, int) and not isinstance(best, bool) and best >= wave):
+                best_entry = (planet_id, {**entry, "bestCompletedWave": wave})
+        held = profile.get("badges") if isinstance(profile.get("badges"), Mapping) else None
+        stored = plain(run.get("snapshot")) if isinstance(run.get("snapshot"), Mapping) else None
+        new_badges = [b for b in earned_badges(run, stored, new_state) if held is None or b not in held]
+        if best_entry is None and not new_badges:
             return None
-        form = profile_best_update(planet_id, {**entry, "bestCompletedWave": wave})
+        form = profile_update(best_entry, new_badges, now=now, badges_map_exists=held is not None)
         return self.table.update_action(pk, PROFILE_SK, **form)
