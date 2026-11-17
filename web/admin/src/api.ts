@@ -661,6 +661,18 @@ export function adminApi(request: Request) {
     /** R56: release a planet (appended to the unlock order for good). */
     releasePlanet: (planetId: string) =>
       request("POST", `/admin/planets/${id(planetId)}/release`) as Promise<{ planetId: string; released: true; order?: number }>,
+    /** R57: the game's aliens and the made ones (Gate M, AM1). */
+    listAliens: () => request("GET", "/admin/aliens") as Promise<AlienList>,
+    /** R58: make an alien (a draft; no walk yet). */
+    createAlien: (body: NewAlien) => request("POST", "/admin/aliens", body) as Promise<{ alien: MadeAlien }>,
+    /** R59: change a draft: its stats and its walk ([] or six approved Alien pictures). */
+    updateAlien: (alienId: string, body: AlienStats & { art: string[] }) =>
+      request("PUT", `/admin/aliens/${id(alienId)}`, body) as Promise<{ alien: MadeAlien }>,
+    /** R60: delete a draft. */
+    deleteAlien: (alienId: string) => request("DELETE", `/admin/aliens/${id(alienId)}`) as Promise<{ deleted: string }>,
+    /** R61: queue the publish (202); poll listAliens for `publish`. */
+    publishAlien: (alienId: string, ticks: AlienTicks) =>
+      request("POST", `/admin/aliens/${id(alienId)}/publish`, { ticks }) as Promise<{ alien: MadeAlien }>,
   };
 }
 
@@ -795,10 +807,44 @@ export type PlanetSummary = {
 
 export type NewPlanet = { planetId: string; name: string; icon: string | null; artSet: string; backdrop: string | null };
 
+// --- Aliens made in the portal (R57-R61; Gate M, AM1, ADR-0041) ----------------------------------------------------
+
+/** A made alien's stats, inside LIMITS.alienMaker. */
+export type AlienStats = { name: string; hp: number; speed: number; leak: number; bounty: number };
+export type NewAlien = AlienStats & { alienId: string };
+/** Where a made alien's publish is: R61 queues it, the publisher runs it (asynchronously) and keeps the outcome. */
+export type AlienPublish = {
+  state: "QUEUED" | "RUNNING" | "DONE" | "REFUSED";
+  updatedAt?: string;
+  code?: string;
+  details?: { code?: string; message?: string; details?: unknown };
+};
+export type MadeAlien = NewAlien & {
+  /** [] until the walk is made; then six approved Alien pictures. */
+  art: string[];
+  status: "DRAFT" | "PUBLISHED";
+  rulesetVersion?: string;
+  assetManifestVersion?: string;
+  publishedAt?: string;
+  updatedAt?: string;
+  publish?: AlienPublish;
+};
+/** R57: the live ruleset's aliens (read-only; `made` for one published here) and the made ones. */
+export type AlienList = {
+  rulesetVersion: string;
+  game: (NewAlien & { made: boolean })[];
+  aliens: MadeAlien[];
+  bosses: string[];
+};
+/** R61's three hand ticks: what only a person can judge before a made alien reaches children. */
+export type AlienTicks = { friendly: boolean; walkLooksRight: boolean; statsFitTheName: boolean };
+
 /** R46: what is published, newest version first. */
 export type GameData = {
   /** current.json; `planets` (LD9) lists each released planet's live version, planetId null in schema 1. */
   current: { rulesetVersion: string; campaignVersion: string; planets?: { planetId: string | null; campaignVersion: string }[] };
+  /** The live ruleset (AM1: made aliens are in it); the editor checks levels against it. */
+  ruleset?: unknown;
   /** The document levels of `base.planetId` are merged into (R46 ?planet=, LD10). */
   live: unknown;
   /** Which planet `live` is, and the version a publish names as its source ("<planetId>-new" before any). */

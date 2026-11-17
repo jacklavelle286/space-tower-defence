@@ -17,6 +17,7 @@ const LevelListPage = lazy(() => import("./levels/LevelListPage").then((m) => ({
 const LevelEditor = lazy(() => import("./levels/LevelEditor").then((m) => ({ default: m.LevelEditor })));
 const VersionsPage = lazy(() => import("./levels/publish/VersionsPage").then((m) => ({ default: m.VersionsPage })));
 const PlanetsPage = lazy(() => import("./levels/planets/PlanetsPage").then((m) => ({ default: m.PlanetsPage })));
+const AliensPage = lazy(() => import("./levels/aliens/AliensPage").then((m) => ({ default: m.AliensPage })));
 
 // The admin app shell (Phase 35, M3-01; D §D8): sign-in, the route guard, navigation and the pages. The order matters:
 // config, then the session, then the guard on the token's claims, and only then the API client. A token that is not an
@@ -191,12 +192,13 @@ export function App() {
           {route.page === "speech" && <SpeechPage key={route.id ?? ""} api={api} initial={route.id} />}
           {route.page === "pictures" && <PicturesPage api={api} tab={route.tab} />}
           {route.page === "bank" && <BankStatusPage api={api} />}
-          {(route.page === "levels" || route.page === "level" || route.page === "versions" || route.page === "planets") && (
+          {(route.page === "levels" || route.page === "level" || route.page === "versions" || route.page === "planets" || route.page === "aliens") && (
             <Suspense fallback={<p>Loading…</p>}>
               {route.page === "levels" && <LevelListPage api={api} />}
               {route.page === "level" && <LevelEditor key={route.id} api={api} levelId={route.id} />}
               {route.page === "versions" && <VersionsPage api={api} />}
               {route.page === "planets" && <PlanetsPage api={api} />}
+              {route.page === "aliens" && <AliensPage api={api} />}
             </Suspense>
           )}
         </main>

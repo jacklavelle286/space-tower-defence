@@ -215,3 +215,32 @@
   align-items: end;
   flex-wrap: wrap;
 }
+
+/* Levels → Aliens (Gate M, AM1): the walk preview plays the frames as the battle does, with every frame beneath. */
+.walk-preview {
+  display: flex;
+  gap: 1rem;
+  align-items: end;
+  margin: 0.5rem 0;
+}
+.walk-preview .walk-big {
+  background: var(--surface-2, #eef0f6);
+  border-radius: 8px;
+}
+.walk-strip {
+  display: flex;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+.made-aliens li {
+  margin: 0.25rem 0;
+}
+.alien-editor {
+  border-top: 1px solid currentColor;
+  margin-top: 1rem;
+  padding-top: 0.5rem;
+}
+.stat-slider output {
+  min-width: 3ch;
+  text-align: right;
+}

@@ -4,8 +4,12 @@
 // (contracts/fixtures/activities/) prove the editor's drafts pass them. Every call is recorded. Example IDs only.
 import { isPictureKind, pictureKindOf, pictureKindSpec, type PictureKindId } from "@scd/shared";
 import currentJson from "../../../../game-data/current.json";
-import { REPO_BASE } from "../levels/levelFile";
+import { REPO_BASE, REPO_RULESET } from "../levels/levelFile";
 import {
+  type AlienStats,
+  type AlienTicks,
+  type MadeAlien,
+  type NewAlien,
   type GameData,
   type LevelFile,
   type LevelPublish,
@@ -441,6 +445,44 @@ export class FakeAdminApi {
       Object.assign(planet, body);
       return { planet: clone(planet) };
     },
+    listAliens: async () => {
+      this.record("listAliens");
+      const game = Object.entries(REPO_RULESET.aliens)
+        .filter(([, a]) => !a.descendantOnly)
+        .map(([alienId, a]) => ({ alienId, name: a.name, hp: a.hp, speed: a.speed, leak: a.leak, bounty: a.bounty, made: false }));
+      return { rulesetVersion: REPO_RULESET.version, game, aliens: clone([...this.aliens.values()]), bosses: Object.keys(REPO_RULESET.bosses) };
+    },
+    createAlien: async (body: NewAlien) => {
+      this.record("createAlien", body);
+      if (this.aliens.has(body.alienId) || Object.hasOwn(REPO_RULESET.aliens, body.alienId)) {
+        throw new ApiError(400, "VALIDATION_FAILED", [{ field: "alienId", rule: "exists" }]);
+      }
+      const alien: MadeAlien = { ...body, art: [], status: "DRAFT", updatedAt: `2026-11-20T10:00:0${this.aliens.size}Z` };
+      this.aliens.set(body.alienId, alien);
+      return { alien: clone(alien) };
+    },
+    updateAlien: async (alienId: string, body: AlienStats & { art: string[] }) => {
+      this.record("updateAlien", alienId, body);
+      const alien = this.aliens.get(alienId);
+      if (alien === undefined) throw new ApiError(404, "NOT_FOUND");
+      if (alien.status !== "DRAFT") throw new ApiError(409, "PUBLISH_REFUSED", [], { code: "ALIEN_PUBLISHED", message: "fixed" });
+      Object.assign(alien, body, { updatedAt: `${alien.updatedAt ?? ""}+` });
+      delete alien.publish;
+      return { alien: clone(alien) };
+    },
+    deleteAlien: async (alienId: string) => {
+      this.record("deleteAlien", alienId);
+      if (!this.aliens.delete(alienId)) throw new ApiError(404, "NOT_FOUND");
+      return { deleted: alienId };
+    },
+    publishAlien: async (alienId: string, ticks: AlienTicks) => {
+      this.record("publishAlien", alienId, ticks);
+      const alien = this.aliens.get(alienId);
+      if (alien === undefined) throw new ApiError(404, "NOT_FOUND");
+      if (alien.art.length !== 6) throw new ApiError(400, "VALIDATION_FAILED", [{ field: "art", rule: "frames" }]);
+      alien.publish = { state: "QUEUED", updatedAt: "2026-11-20T10:01:00Z" };
+      return { alien: clone(alien) };
+    },
     releasePlanet: async (planetId: string) => {
       this.record("releasePlanet", planetId);
       const planet = this.planets.get(planetId);
@@ -525,6 +567,8 @@ export class FakeAdminApi {
   >();
   /** Planets in the registry (LD10); luna-1 is always there, released. */
   readonly planets = new Map<string, PlanetSummary>();
+  /** Made aliens (AM1), by ID. */
+  readonly aliens = new Map<string, MadeAlien>();
 
   private levelView(levelId: string): LevelView {
     const stored = this.levels.get(levelId);
