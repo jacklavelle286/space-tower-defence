@@ -71,11 +71,20 @@ export function liveBaseLoaded(): boolean {
   return fromServer;
 }
 
-/** Use `raw` (the document R46 sent, parsed with this build's ruleset) as the live planet. Throws when it does not parse. */
+/** Use `raw` (the document R46 sent, parsed with this build's ruleset) as the live planet. Throws when it does not parse.
+ *  A new planet's empty starting document (LD10: no waves yet, which the parser refuses) is taken as it is. */
 export function setLiveBase(version: string, raw: unknown): LiveBase {
-  base = { version, raw, planet: parsePlanet(raw, CURRENT_RULESET) };
+  base = { version, raw, planet: isEmptyPlanet(raw) ? (raw as PlanetDocument) : parsePlanet(raw, CURRENT_RULESET) };
   fromServer = true;
   return base;
+}
+
+/** The empty starting document of a planet with no published version (api/shared/planets.py empty_planet). */
+function isEmptyPlanet(raw: unknown): boolean {
+  if (typeof raw !== "object" || raw === null) return false;
+  const doc = raw as Record<string, unknown>;
+  const empty = (v: unknown) => (Array.isArray(v) ? v.length === 0 : typeof v === "object" && v !== null && Object.keys(v).length === 0);
+  return typeof doc["version"] === "string" && doc["version"].endsWith("-new") && empty(doc["waves"]) && empty(doc["maps"]) && empty(doc["waveSets"]);
 }
 
 /** Back to the repository's copy (tests). */
@@ -163,7 +172,8 @@ export function newLevel(levelId: string, name: string, templateId: string): Lev
   map.pads = (t?.pads ?? []).map((cell, i) => ({ id: padId(levelId, i + 1), x: cell[0], y: cell[1], opensAfterWave: cell[2] ?? 0 }));
   const level: LevelFile = { kind: "level", schema: 1, levelId, name, map, challengeWaves: {}, waveSets: {} };
   if (t?.campaign === true) {
-    const live = liveBase().planet;
+    // The base's campaign; a planet with nothing published (LD10) starts from the Moon's.
+    const live = liveBase().planet.waveSets["campaign"] !== undefined ? liveBase().planet : REPO_BASE.planet;
     const campaign = live.waveSets["campaign"] as unknown as LevelWaveSet;
     level.waves = structuredClone(live.waves as unknown as LevelWave[]);
     level.waveSets = { campaign: { ...structuredClone(campaign), mapId: levelId, presetPlacements: [] } };

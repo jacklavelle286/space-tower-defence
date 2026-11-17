@@ -227,11 +227,15 @@ export function LevelEditor({ api, levelId, makeWorker }: Props) {
   const otherTab = useSecondTabWarning(levelId);
   const canvas = useRef<SVGSVGElement>(null);
 
+  // The planet the level belongs to (LD10), known once the level has loaded; its base is loaded after.
+  const [planetId, setPlanetId] = useState<string | null>(null);
+  const [released, setReleased] = useState(true);
   const load = useCallback(() => {
     api.getLevel(levelId).then(
       (view) => {
         const kept = unsavedFor(levelId, view.draft.draftRevision);
         setLoaded(fromView(view));
+        setPlanetId(view.header.planetId ?? "luna-1");
         setConflict(false);
         dispatch({ type: "replace", level: kept ?? view.draft.level });
         setMessage(kept === null ? null : "Your unsaved changes were kept.");
@@ -242,14 +246,16 @@ export function LevelEditor({ api, levelId, makeWorker }: Props) {
   useEffect(load, [load]);
 
   const loadBase = useCallback(() => {
-    loadLiveBase(api).then(
-      ({ base }) => {
+    if (planetId === null) return;
+    loadLiveBase(api, planetId).then(
+      ({ base, released: isReleased }) => {
         setBaseVersion(base.version);
+        setReleased(isReleased);
         setBaseError(null);
       },
       (error: unknown) => setBaseError(describeError(error)),
     );
-  }, [api]);
+  }, [api, planetId]);
   useEffect(loadBase, [loadBase]);
 
   useEffect(() => {
@@ -587,6 +593,7 @@ export function LevelEditor({ api, levelId, makeWorker }: Props) {
               dirty={dirty}
               blocked={problems.some((p) => p.severity !== "warn")}
               baseVersion={baseError === null ? baseVersion : null}
+              released={released}
               publish={loaded.publish}
               versions={loaded.versions}
               onView={onPublishView}

@@ -1,10 +1,24 @@
-// Loading the live planet document from admin-api (Gate M, LD7): R46 sends current.json's campaign version and its
-// document, and the editor merges and checks levels against it (levelFile.ts `liveBase`). A publish in the portal
-// moves the live version without a release, so the copy this build was made with can be out of date.
+// Loading the planet a level is merged into from admin-api (Gate M, LD7, LD10): R46 sends the planet's document (its
+// live one, an unreleased planet's newest, or its empty starting document) and the version a publish names as its
+// source, and the editor merges and checks levels against it (levelFile.ts `liveBase`). A publish in the portal moves
+// these without a release, so the copy this build was made with can be out of date.
 import type { AdminApi, GameData } from "../api";
 import { setLiveBase, type LiveBase } from "./levelFile";
 
-export async function loadLiveBase(api: Pick<AdminApi, "getGameData">): Promise<{ base: LiveBase; data: GameData }> {
-  const data = await api.getGameData();
-  return { base: setLiveBase(data.current.campaignVersion, data.live), data };
+export interface LoadedBase {
+  readonly base: LiveBase;
+  readonly data: GameData;
+  /** The planet whose document this is. */
+  readonly planetId: string;
+  /** Whether that planet is released (in current.json): only then can a level of it be published live. */
+  readonly released: boolean;
+}
+
+export async function loadLiveBase(api: Pick<AdminApi, "getGameData">, planetId?: string): Promise<LoadedBase> {
+  const data = await api.getGameData(planetId);
+  const planet = data.base?.planetId ?? planetId ?? "luna-1";
+  const version = data.base?.sourceVersion ?? data.current.campaignVersion;
+  const listed = data.current.planets ?? [{ planetId: null, campaignVersion: data.current.campaignVersion }];
+  const released = listed.some((p) => p.planetId === planet || (p.planetId === null && p.campaignVersion === version));
+  return { base: setLiveBase(version, data.live), data, planetId: planet, released };
 }

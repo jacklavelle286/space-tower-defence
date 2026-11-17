@@ -615,7 +615,8 @@ export function adminApi(request: Request) {
     listLevels: () => allPages<LevelSummary>("/admin/levels"),
     /** R41: a new level from a level file body (a template or an uploaded file). An ID in use is refused
      * (`level.levelId` / `exists`). */
-    createLevel: (level: LevelFile) => request("POST", "/admin/levels", { level }) as Promise<LevelView>,
+    createLevel: (level: LevelFile, planetId?: string) =>
+      request("POST", "/admin/levels", planetId === undefined ? { level } : { level, planetId }) as Promise<LevelView>,
     /** R42: the header and the draft. */
     getLevel: (levelId: string) => request("GET", `/admin/levels/${id(levelId)}`) as Promise<LevelView>,
     /** R43: save the draft; 409 DRAFT_CONFLICT when someone saved since `draftRevision`. */
@@ -631,7 +632,8 @@ export function adminApi(request: Request) {
     deleteLevel: (levelId: string) =>
       request("DELETE", `/admin/levels/${id(levelId)}`) as Promise<{ levelId: string; deleted: true }>,
     /** R46: the live game data, versions, testers and publish history (Gate M, LD7). */
-    getGameData: () => request("GET", "/admin/game-data") as Promise<GameData>,
+    getGameData: (planetId?: string) =>
+      request("GET", planetId === undefined ? "/admin/game-data" : `/admin/game-data?planet=${id(planetId)}`) as Promise<GameData>,
     /** R47: one published planet document. */
     getVersion: (campaignVersion: string) =>
       request("GET", `/admin/game-data/versions/${id(campaignVersion)}`) as Promise<{ campaignVersion: string; document: unknown }>,
@@ -649,6 +651,16 @@ export function adminApi(request: Request) {
       request("POST", "/admin/game-data/states", body) as Promise<unknown>,
     /** R52: the accounts (tester codes) that may play preview wave sets. */
     setTesters: (testers: string[]) => request("PUT", "/admin/game-data/testers", { testers }) as Promise<unknown>,
+    /** R53: every planet, released ones first in unlock order (Gate M, LD10). */
+    listPlanets: () => request("GET", "/admin/planets") as Promise<{ planets: PlanetSummary[]; artSets: string[] }>,
+    /** R54: add a planet (not released until R56). */
+    createPlanet: (body: NewPlanet) => request("POST", "/admin/planets", body) as Promise<{ planet: PlanetSummary }>,
+    /** R55: change an unreleased planet. */
+    updatePlanet: (planetId: string, body: Omit<NewPlanet, "planetId">) =>
+      request("PUT", `/admin/planets/${id(planetId)}`, body) as Promise<{ planet: PlanetSummary }>,
+    /** R56: release a planet (appended to the unlock order for good). */
+    releasePlanet: (planetId: string) =>
+      request("POST", `/admin/planets/${id(planetId)}/release`) as Promise<{ planetId: string; released: true; order?: number }>,
   };
 }
 
@@ -698,6 +710,8 @@ export type LevelSummary = {
   levelId: string;
   name: string;
   status: "DRAFT" | "PUBLISHED";
+  /** The planet the level belongs to (LD10; luna-1 for every older level). */
+  planetId?: string;
   updatedAt: string;
   /** Drawing places used for this level this London month (R38 with levelId; a background takes 3). */
   drawingsThisMonth?: number;
@@ -764,11 +778,31 @@ export type PublishRequest = {
 
 export type WaveSetState = "published" | "preview" | "retired" | "invalid";
 
+/** A planet (R53, LD10): released ones have `order` and `liveVersion`; unreleased ones their newest version. */
+export type PlanetSummary = {
+  planetId: string;
+  name: string;
+  icon?: string | null;
+  artSet?: string;
+  backdrop?: string | null;
+  status: "DRAFT" | "RELEASED";
+  order?: number;
+  liveVersion?: string;
+  latestVersion?: string;
+  campaignWaves?: number;
+  readyToRelease?: boolean;
+};
+
+export type NewPlanet = { planetId: string; name: string; icon: string | null; artSet: string; backdrop: string | null };
+
 /** R46: what is published, newest version first. */
 export type GameData = {
   /** current.json; `planets` (LD9) lists each released planet's live version, planetId null in schema 1. */
   current: { rulesetVersion: string; campaignVersion: string; planets?: { planetId: string | null; campaignVersion: string }[] };
+  /** The document levels of `base.planetId` are merged into (R46 ?planet=, LD10). */
   live: unknown;
+  /** Which planet `live` is, and the version a publish names as its source ("<planetId>-new" before any). */
+  base?: { planetId: string; sourceVersion: string };
   testers: string[];
   versions: {
     campaignVersion: string;

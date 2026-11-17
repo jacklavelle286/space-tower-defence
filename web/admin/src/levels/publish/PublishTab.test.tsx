@@ -22,7 +22,7 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-function show(props: { review?: LevelReview; publish?: LevelPublish | null; dirty?: boolean; baseVersion?: string | null } = {}) {
+function show(props: { review?: LevelReview; publish?: LevelPublish | null; dirty?: boolean; baseVersion?: string | null; released?: boolean } = {}) {
   const onView = vi.fn();
   render(
     <PublishTab
@@ -34,6 +34,7 @@ function show(props: { review?: LevelReview; publish?: LevelPublish | null; dirt
       dirty={props.dirty ?? false}
       blocked={false}
       baseVersion={props.baseVersion === undefined ? REPO_BASE.version : props.baseVersion}
+      released={props.released ?? true}
       publish={props.publish ?? null}
       versions={[]}
       onView={onView}
@@ -112,6 +113,16 @@ describe("PublishTab", () => {
       vi.advanceTimersByTime(3000);
     });
     expect(onView).toHaveBeenCalledWith(expect.objectContaining({ publish: expect.objectContaining({ state: "DONE" }) }), true);
+  });
+});
+
+describe("an unreleased planet (LD10)", () => {
+  it("offers only Send to testers, and says why", () => {
+    show({ review: TESTED, released: false, baseVersion: "mars-1-new" });
+    expect(screen.queryByRole("button", { name: "Publish" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Send to testers" })).toBeTruthy();
+    expect(screen.getByText(/not released yet: its versions are previews/u)).toBeTruthy();
+    expect(screen.getByText(/its first version starts from this level, which must hold the 50-wave campaign/u)).toBeTruthy();
   });
 });
 

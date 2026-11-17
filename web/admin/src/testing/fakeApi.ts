@@ -13,6 +13,8 @@ import {
   type LevelValidation,
   type LevelVersion,
   type LevelView,
+  type NewPlanet,
+  type PlanetSummary,
   type PublishRequest,
   ApiError,
   type ActivitySummary,
@@ -360,7 +362,8 @@ export class FakeAdminApi {
     listLevels: async () => {
       this.record("listLevels");
       return {
-        items: [...this.levels.values()].map(({ level, updatedAt, versions }) => ({
+        items: [...this.levels.values()].map(({ level, updatedAt, versions, planetId }) => ({
+          planetId: planetId ?? "luna-1",
           levelId: level.levelId,
           name: level.name,
           status: (versions?.length ?? 0) > 0 ? ("PUBLISHED" as const) : ("DRAFT" as const),
@@ -368,10 +371,11 @@ export class FakeAdminApi {
         })),
       };
     },
-    createLevel: async (level: LevelFile) => {
-      this.record("createLevel", level);
+    createLevel: async (level: LevelFile, planetId?: string) => {
+      this.record("createLevel", level, planetId);
       if (this.levels.has(level.levelId)) throw new ApiError(400, "VALIDATION_FAILED", [{ field: "level.levelId", rule: "exists" }]);
-      this.levels.set(level.levelId, { level: clone(level), draftRevision: 0, updatedAt: "2026-11-17T10:00:00Z" });
+      if (planetId !== undefined && planetId !== "luna-1" && !this.planets.has(planetId)) throw new ApiError(400, "VALIDATION_FAILED", [{ field: "planetId", rule: "unknown_planet" }]);
+      this.levels.set(level.levelId, { level: clone(level), draftRevision: 0, updatedAt: "2026-11-17T10:00:00Z", planetId: planetId ?? "luna-1" });
       return this.levelView(level.levelId);
     },
     getLevel: async (levelId: string) => {
@@ -408,10 +412,43 @@ export class FakeAdminApi {
       this.levels.delete(levelId);
       return { levelId, deleted: true as const };
     },
-    getGameData: async () => {
-      this.record("getGameData");
+    getGameData: async (planetId?: string) => {
+      this.record("getGameData", planetId);
       if (this.gameDataError !== null) throw this.gameDataError;
-      return clone(this.gameData);
+      const planet = planetId === undefined || planetId === "luna-1" ? undefined : this.planets.get(planetId);
+      if (planetId !== undefined && planetId !== "luna-1" && planet === undefined) throw new ApiError(404, "NOT_FOUND");
+      if (planet === undefined) return { ...clone(this.gameData), base: { planetId: "luna-1", sourceVersion: this.gameData.current.campaignVersion } };
+      const empty = { kind: "campaign", schema: 2, version: `${planet.planetId}-new`, planetId: planet.planetId, name: planet.name, look: { icon: planet.icon ?? null, artSet: planet.artSet ?? "moon" }, maps: {}, waves: [], challengeWaves: {}, waveSets: {} };
+      return { ...clone(this.gameData), live: empty, base: { planetId: planet.planetId, sourceVersion: `${planet.planetId}-new` } };
+    },
+    listPlanets: async () => {
+      this.record("listPlanets");
+      const luna: PlanetSummary = { planetId: "luna-1", name: REPO_BASE.planet.name, status: "RELEASED", order: 0, liveVersion: REPO_BASE.version };
+      return { planets: [luna, ...clone([...this.planets.values()])], artSets: ["moon"] };
+    },
+    createPlanet: async (body: NewPlanet) => {
+      this.record("createPlanet", body);
+      if (body.planetId === "luna-1" || this.planets.has(body.planetId)) throw new ApiError(400, "VALIDATION_FAILED", [{ field: "planetId", rule: "exists" }]);
+      const planet: PlanetSummary = { ...body, status: "DRAFT", campaignWaves: 0, readyToRelease: false };
+      this.planets.set(body.planetId, planet);
+      return { planet: clone(planet) };
+    },
+    updatePlanet: async (planetId: string, body: Omit<NewPlanet, "planetId">) => {
+      this.record("updatePlanet", planetId, body);
+      const planet = this.planets.get(planetId);
+      if (planet === undefined) throw new ApiError(404, "NOT_FOUND");
+      if (planet.status === "RELEASED") throw new ApiError(409, "PUBLISH_REFUSED", [], { code: "PLANET_RELEASED", message: "fixed" });
+      Object.assign(planet, body);
+      return { planet: clone(planet) };
+    },
+    releasePlanet: async (planetId: string) => {
+      this.record("releasePlanet", planetId);
+      const planet = this.planets.get(planetId);
+      if (planet === undefined) throw new ApiError(404, "NOT_FOUND");
+      if (planet.readyToRelease !== true) throw new ApiError(409, "PUBLISH_REFUSED", [], { code: "NOT_READY", message: "no campaign" });
+      planet.status = "RELEASED";
+      planet.order = 1;
+      return { planetId, released: true as const, order: 1 };
     },
     getVersion: async (campaignVersion: string) => {
       this.record("getVersion", campaignVersion);
@@ -484,14 +521,16 @@ export class FakeAdminApi {
   /** Level drafts (Gate M, LD3), by level ID. */
   readonly levels = new Map<
     string,
-    { level: LevelFile; draftRevision: number; updatedAt: string; review?: LevelReview; publish?: LevelPublish; versions?: LevelVersion[] }
+    { level: LevelFile; draftRevision: number; updatedAt: string; review?: LevelReview; publish?: LevelPublish; versions?: LevelVersion[]; planetId?: string }
   >();
+  /** Planets in the registry (LD10); luna-1 is always there, released. */
+  readonly planets = new Map<string, PlanetSummary>();
 
   private levelView(levelId: string): LevelView {
     const stored = this.levels.get(levelId);
     if (stored === undefined) throw new ApiError(404, "NOT_FOUND");
     return {
-      header: { levelId, name: stored.level.name, status: (stored.versions?.length ?? 0) > 0 ? "PUBLISHED" : "DRAFT", updatedAt: stored.updatedAt },
+      header: { levelId, name: stored.level.name, status: (stored.versions?.length ?? 0) > 0 ? "PUBLISHED" : "DRAFT", updatedAt: stored.updatedAt, planetId: stored.planetId ?? "luna-1" },
       draft: { level: clone(stored.level), draftRevision: stored.draftRevision, updatedAt: stored.updatedAt, ...(stored.review === undefined ? {} : { review: clone(stored.review) }) },
       publish: stored.publish === undefined ? null : clone(stored.publish),
       versions: clone(stored.versions ?? []),

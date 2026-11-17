@@ -92,3 +92,22 @@ describe("waves and wave sets in the problems", () => {
     expect(impact).not.toContain("planet.waves[2]");
   });
 });
+
+describe("the base of a planet with nothing published (LD10)", () => {
+  it("is taken as it is, and a campaign level merged into it parses", async () => {
+    const { setLiveBase, resetLiveBase, mergedLevel, newLevel: make } = await import("./levelFile");
+    const empty = { kind: "campaign", schema: 2, version: "mars-1-new", planetId: "mars-1", name: "Red Dust", look: { icon: null, artSet: "moon" }, maps: {}, waves: [], challengeWaves: {}, waveSets: {} };
+    try {
+      const base = setLiveBase("mars-1-new", empty);
+      expect(base.planet.waves).toEqual([]);
+      // The base has no campaign yet: the template copies the Moon's 50 waves and campaign wave set.
+      const campaign = make("dusty", "Dusty", "moonbeam-campaign");
+      expect(campaign.waves).toHaveLength(50);
+      expect(campaign.waveSets["campaign"]?.mapId).toBe("dusty");
+      expect(mergedLevel(campaign, empty).waves).toHaveLength(50);
+      expect(mergedLevel(campaign, empty).planetId).toBe("mars-1");
+    } finally {
+      resetLiveBase();
+    }
+  });
+});

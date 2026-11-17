@@ -31,6 +31,19 @@ describe("LevelListPage", () => {
     expect(fake.levels.get("blob-rush")?.level.map.pads[0]?.id).toBe("blob-rush-p01");
   });
 
+  it("a level of another planet belongs to it and starts with its default backdrop (LD10)", async () => {
+    const BACK = "lib-" + "2".repeat(32);
+    fake.planets.set("mars-1", { planetId: "mars-1", name: "Red Dust", status: "DRAFT", backdrop: BACK, artSet: "moon" });
+    const navigate = vi.fn();
+    render(<LevelListPage api={fake.api} navigate={navigate} />);
+    fireEvent.change(await screen.findByLabelText(/^Planet/u), { target: { value: "mars-1" } });
+    fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: "Dusty" } });
+    fireEvent.click(screen.getByRole("button", { name: "Create" }));
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith("#levels/dusty"));
+    expect(fake.levels.get("dusty")?.planetId).toBe("mars-1");
+    expect(fake.levels.get("dusty")?.level.map.art.backdrop).toBe(BACK);
+  });
+
   it("says when the ID is taken", async () => {
     await fake.api.createLevel(newLevel("blob-rush", "Old", "blank"));
     render(<LevelListPage api={fake.api} navigate={vi.fn()} />);

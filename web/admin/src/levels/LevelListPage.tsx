@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ApiError, describeError, type AdminApi, type LevelFile, type LevelSummary } from "../api";
+import { ApiError, describeError, type AdminApi, type LevelFile, type LevelSummary, type PlanetSummary } from "../api";
 import { ConfirmDialog, useFocusReturn } from "../ConfirmDialog";
 import { clearFlash, peekFlash, setFlash } from "../flash";
 import { hrefOf } from "../routes";
@@ -52,9 +52,19 @@ export function LevelListPage({ api, navigate = (hash) => window.location.assign
   useEffect(load, [api]);
   // "Copy Moonbeam map and campaign" copies the live campaign: load the live version (LD7). On failure the template
   // uses this build's copy; the editor says so and keeps publishing off.
+  // LD10: the planets a new level can belong to (any but a released one other than the first is fine); the chosen
+  // planet's base is what "Copy Moonbeam map and campaign" copies from when it has a campaign.
+  const [planets, setPlanets] = useState<PlanetSummary[]>([]);
+  const [planet, setPlanet] = useState("luna-1");
   useEffect(() => {
-    loadLiveBase(api).catch(() => undefined);
+    api.listPlanets().then(
+      (answer) => setPlanets(answer.planets),
+      () => setPlanets([]),
+    );
   }, [api]);
+  useEffect(() => {
+    loadLiveBase(api, planet === "luna-1" ? undefined : planet).catch(() => undefined);
+  }, [api, planet]);
 
   const id = idTouched ? levelId : slugOf(name);
   const idOk = LEVEL_ID.test(id);
@@ -64,7 +74,10 @@ export function LevelListPage({ api, navigate = (hash) => window.location.assign
     setBusy(true);
     setMessage(null);
     try {
-      await api.createLevel(level);
+      // LD10: a level of another planet starts with that planet's default backdrop (still changeable on the map).
+      const chosen = planets.find((p) => p.planetId === planet);
+      const start = chosen?.backdrop && level.map.art.backdrop === null ? { ...level, map: { ...level.map, art: { ...level.map.art, backdrop: chosen.backdrop } } } : level;
+      await api.createLevel(start, planet === "luna-1" ? undefined : planet);
       navigate(hrefOf({ page: "level", id: level.levelId }));
     } catch (error) {
       setMessage(createError(error));
@@ -101,7 +114,8 @@ export function LevelListPage({ api, navigate = (hash) => window.location.assign
     <section className="levels">
       <h2>Levels</h2>
       <p>
-        <a href={hrefOf({ page: "versions" })}>Versions</a>: what is live, rollback, retire, testers.
+        <a href={hrefOf({ page: "versions" })}>Versions</a>: what is live, rollback, retire, testers.{" "}
+        <a href={hrefOf({ page: "planets" })}>Planets</a>: add a planet and release it.
       </p>
       <div role="status">
         {flash !== null && <p className="flash">{flash}</p>}
@@ -136,6 +150,19 @@ export function LevelListPage({ api, navigate = (hash) => window.location.assign
         <p id="level-id-hint" className="muted">
           Lower case letters, digits and dashes. It names the map and its pads, and cannot change later.
         </p>
+        {planets.length > 1 && (
+          <label>
+            Planet{" "}
+            <select value={planet} onChange={(e) => setPlanet(e.target.value)}>
+              {planets.map((p) => (
+                <option key={p.planetId} value={p.planetId}>
+                  {p.name}
+                  {p.status === "RELEASED" ? "" : " (not released)"}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <label>
           Start from{" "}
           <select value={template} onChange={(e) => setTemplate(e.target.value)}>
@@ -177,6 +204,7 @@ export function LevelListPage({ api, navigate = (hash) => window.location.assign
             <tr>
               <th scope="col">Name</th>
               <th scope="col">ID</th>
+              <th scope="col">Planet</th>
               <th scope="col">Status</th>
               <th scope="col">Updated</th>
               <th scope="col">Drawings this month</th>
@@ -192,6 +220,7 @@ export function LevelListPage({ api, navigate = (hash) => window.location.assign
                   <a href={hrefOf({ page: "level", id: item.levelId })}>{item.name}</a>
                 </td>
                 <td>{item.levelId}</td>
+                <td>{planets.find((p) => p.planetId === (item.planetId ?? "luna-1"))?.name ?? item.planetId ?? "luna-1"}</td>
                 <td>{item.status === "DRAFT" ? "Draft" : "Published"}</td>
                 <td>{item.updatedAt.slice(0, 16).replace("T", " ")}</td>
                 <td>{item.drawingsThisMonth ?? 0}</td>

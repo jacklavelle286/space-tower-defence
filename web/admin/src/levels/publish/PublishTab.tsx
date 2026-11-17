@@ -48,6 +48,12 @@ export function refusalText(refusal: PublishRefusal): string {
       return "The live version changed meanwhile. Look at Versions and try again.";
     case "BUSY":
       return "The publisher was busy. Try again.";
+    case "NEEDS_CAMPAIGN":
+      return "A new planet's first version must come from a level that holds its 50-wave campaign.";
+    case "NOT_RELEASED":
+      return "This planet is not released yet. Release it on the Planets page.";
+    case "NOT_READY":
+      return "The planet's newest version does not have its full 50-wave campaign yet.";
     default:
       return `The publisher refused (${refusal.code}): ${refusal.message}`;
   }
@@ -72,13 +78,15 @@ type Props = {
   readonly blocked: boolean;
   /** The live version the editor checks against, or null when it could not be loaded. */
   readonly baseVersion: string | null;
+  /** Whether the level's planet is released (LD10): an unreleased planet's versions are previews until its release. */
+  readonly released?: boolean;
   readonly publish: LevelPublish | null;
   readonly versions: readonly LevelVersion[];
   /** A fresh level view (after a poll); `wentLive` when a publish just moved the live version. */
   readonly onView: (view: LevelView, wentLive: boolean) => void;
 };
 
-export function PublishTab({ api, levelId, level, draftRevision, review, dirty, blocked, baseVersion, publish, versions, onView }: Props) {
+export function PublishTab({ api, levelId, level, draftRevision, review, dirty, blocked, baseVersion, released = true, publish, versions, onView }: Props) {
   const [validation, setValidation] = useState<{ revision: number; result: LevelValidation } | null>(null);
   const [ticks, setTicks] = useState<Record<HandTick, boolean>>(() => Object.fromEntries(HAND_TICKS.map(([k]) => [k, false])) as Record<HandTick, boolean>);
   const [busy, setBusy] = useState(false);
@@ -165,8 +173,14 @@ export function PublishTab({ api, levelId, level, draftRevision, review, dirty, 
         <p className="notice">The live game data could not be loaded, so publishing is off. Reload the page to try again.</p>
       ) : (
         <p className="muted">
-          Live version: <strong>{baseVersion}</strong>. Publishing makes a new version from it with this level's map, waves and
-          wave sets; nothing else changes.
+          {baseVersion.endsWith("-new") ? (
+            <>This planet has nothing published yet: its first version starts from this level, which must hold the 50-wave campaign.</>
+          ) : (
+            <>
+              {released ? "Live version" : "Newest version"}: <strong>{baseVersion}</strong>. Publishing makes a new version from it with
+              this level's map, waves and wave sets; nothing else changes.
+            </>
+          )}
         </p>
       )}
 
@@ -224,10 +238,16 @@ export function PublishTab({ api, levelId, level, draftRevision, review, dirty, 
         <button type="button" onClick={() => void send(false)} disabled={!ready || busy || running}>
           Send to testers
         </button>
-        <button type="button" className="primary" onClick={() => setConfirmLive(true)} disabled={!ready || busy || running}>
-          Publish
-        </button>
-        <span className="muted">Send to testers makes a preview version only tester accounts see on Home.</span>
+        {released ? (
+          <button type="button" className="primary" onClick={() => setConfirmLive(true)} disabled={!ready || busy || running}>
+            Publish
+          </button>
+        ) : null}
+        <span className="muted">
+          {released
+            ? "Send to testers makes a preview version only tester accounts see on Home."
+            : "This planet is not released yet: its versions are previews for tester accounts until you release it on the Planets page."}
+        </span>
       </div>
       {message !== null && (
         <p role="alert" className="notice">

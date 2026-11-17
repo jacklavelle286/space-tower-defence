@@ -11,7 +11,8 @@ export type Route =
   | { readonly page: "pictures"; readonly tab: PictureTab }
   | { readonly page: "levels" }
   | { readonly page: "level"; readonly id: string }
-  | { readonly page: "versions" };
+  | { readonly page: "versions" }
+  | { readonly page: "planets" };
 
 /** The Pictures page's tabs (Phases 42a and 42b). */
 export const PICTURE_TABS = ["upload", "draw", "library"] as const;
@@ -36,6 +37,8 @@ export function parseRoute(hash: string): Route {
       return goodId === null ? { page: "levels" } : { page: "level", id: goodId };
     case "versions":
       return { page: "versions" };
+    case "planets":
+      return { page: "planets" };
     case "activities":
       return goodId === null ? { page: "activities" } : { page: "activity", id: goodId };
     default:
@@ -63,6 +66,8 @@ export function hrefOf(route: Route): string {
       return `#levels/${route.id}`;
     case "versions":
       return "#versions";
+    case "planets":
+      return "#planets";
   }
 }
 
@@ -71,7 +76,7 @@ export type Section = "activities" | "speech" | "pictures" | "levels" | "bank";
 
 export function sectionOf(route: Route): Section {
   if (route.page === "activity" || route.page === "new") return "activities";
-  return route.page === "level" || route.page === "versions" ? "levels" : route.page;
+  return route.page === "level" || route.page === "versions" || route.page === "planets" ? "levels" : route.page;
 }
 
 export const SECTIONS: readonly { readonly section: Section; readonly label: string; readonly href: string }[] = [
