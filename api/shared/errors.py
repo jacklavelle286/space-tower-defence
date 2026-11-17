@@ -26,7 +26,9 @@ STATUS_BY_CODE: Mapping[str, int] = {
     "CONTENT_UNAVAILABLE": 409,
     "CONTENT_VERSION_UNSUPPORTED": 409,
     "DRAFT_CONFLICT": 409,
+    "LEVEL_PUBLISHED": 409,  # R44: a level that was ever published is retired, never deleted (Gate M, LD7)
     "PROTOCOL_UNSUPPORTED": 409,
+    "PUBLISH_REFUSED": 409,  # R48-R52: the game-data publisher refused; details are its {code, message, details}
     "RUN_LIMIT_REACHED": 409,
     "RUN_TERMINAL": 409,
     "STALE_SESSION": 409,
@@ -51,6 +53,8 @@ _DEFAULT_MESSAGES: Mapping[str, str] = {
     "THROTTLED": "Busy, retry",
     "PAYLOAD_TOO_LARGE": "Picture too large",
     "PICTURE_CAP_REACHED": "Drawing limit reached",
+    "PUBLISH_REFUSED": "The game-data publisher refused",
+    "LEVEL_PUBLISHED": "A published level cannot be deleted",
 }
 
 # Every API response carries these (G §1.1: no-store so the browser keeps no copy of profile or run data).

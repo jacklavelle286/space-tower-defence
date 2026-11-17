@@ -148,18 +148,24 @@ def test_shared_invalid_level_files_name_their_problem(name: str) -> None:
 
 def test_a_test_play_is_recorded_on_its_revision_only(api: Admin) -> None:
     api.call("POST /api/admin/levels", {"level": level()})
-    status, view = api.call(
-        "POST /api/admin/levels/{id}/testplay", {"draftRevision": 0, "blocking": 0, "warnings": 2}, id="zigzag"
-    )
+    played = {"draftRevision": 0, "sourceVersion": "luna-1-c2", "blocking": 0, "warnings": 2}
+    status, view = api.call("POST /api/admin/levels/{id}/testplay", played, id="zigzag")
     assert status == 200, view
     review = view["draft"]["review"]
-    assert (review["testPlayedDraftRevision"], review["blocking"], review["warnings"]) == (0, 0, 2)
-    api.call("PUT /api/admin/levels/{id}/draft", {"draftRevision": 0, "level": level()}, id="zigzag")
-    status, body = api.call(
-        "POST /api/admin/levels/{id}/testplay", {"draftRevision": 0, "blocking": 0, "warnings": 0}, id="zigzag"
+    assert (review["testPlayedDraftRevision"], review["sourceVersion"], review["blocking"], review["warnings"]) == (
+        0,
+        "luna-1-c2",
+        0,
+        2,
     )
+    api.call("PUT /api/admin/levels/{id}/draft", {"draftRevision": 0, "level": level()}, id="zigzag")
+    status, body = api.call("POST /api/admin/levels/{id}/testplay", played, id="zigzag")
     assert status == 409 and body["error"]["code"] == "DRAFT_CONFLICT"
     status, body = api.call(
-        "POST /api/admin/levels/{id}/testplay", {"draftRevision": 1, "blocking": -1, "warnings": 0}, id="zigzag"
+        "POST /api/admin/levels/{id}/testplay", {**played, "draftRevision": 1, "blocking": -1}, id="zigzag"
     )
     assert status == 400
+    status, body = api.call(
+        "POST /api/admin/levels/{id}/testplay", {**played, "draftRevision": 1, "sourceVersion": "Luna"}, id="zigzag"
+    )
+    assert status == 400 and body["error"]["details"] == [{"field": "sourceVersion", "rule": "pattern"}]

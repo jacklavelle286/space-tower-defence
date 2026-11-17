@@ -674,6 +674,12 @@ module "api" {
     "POST /api/admin/speech/preview" = { rate_limit = 2, burst_limit = 5 }
     "POST /api/admin/pictures"       = { rate_limit = 2, burst_limit = 5 } # R34 upload, up to 768 KiB body (42a)
     "POST /api/admin/picture-jobs"   = { rate_limit = 1, burst_limit = 2 } # R38 starts a paid generation (42b)
+    # Gate M, LD7: each invokes the game-data publisher (reserved concurrency 2); publish starts a minute of checks.
+    "POST /api/admin/levels/{id}/validate" = { rate_limit = 2, burst_limit = 5 }
+    "POST /api/admin/levels/{id}/publish"  = { rate_limit = 1, burst_limit = 2 }
+    "POST /api/admin/game-data/live"       = { rate_limit = 1, burst_limit = 3 }
+    "POST /api/admin/game-data/states"     = { rate_limit = 1, burst_limit = 3 }
+    "PUT /api/admin/game-data/testers"     = { rate_limit = 1, burst_limit = 3 }
   }
 }
 

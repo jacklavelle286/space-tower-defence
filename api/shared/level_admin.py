@@ -5,14 +5,16 @@
     R42 GET    /api/admin/levels/{id}            the header and the draft (the level file body and its revision)
     R43 PUT    /api/admin/levels/{id}/draft      save: {draftRevision, level}; a stale revision is 409 DRAFT_CONFLICT
     R44 DELETE /api/admin/levels/{id}            delete a level (in LD3 every level is a draft never published)
-    R45 POST   /api/admin/levels/{id}/testplay   record that the checks ran on a draft revision: {draftRevision,
-                                                 blocking, warnings} (LD5); refused (409) when the draft moved on
+    R45 POST   /api/admin/levels/{id}/testplay   record that the checks ran on a draft revision against a live
+                                                 version: {draftRevision, sourceVersion, blocking, warnings} (LD5,
+                                                 LD7); refused (409) when the draft moved on
 
 Create is create-only: header, draft and audit item in one transaction; an ID already used is refused
 (`{field: "level.levelId", rule: "exists"}`). Save conditions the draft on the revision the editor loaded, the same
 optimistic check as activity drafts (R23), so two tabs cannot overwrite each other silently. Delete removes header,
-draft and audit item in one transaction, conditioned on the header still being a draft. Publishing, versions and
-retiring arrive with the publisher (LD6, LD7); delete then refuses a level that was ever published.
+draft and audit item in one transaction, conditioned on the header still being a draft: a level that was ever
+published is refused (409 LEVEL_PUBLISHED), since saved games may be pinned to its versions; retire its wave sets
+instead (LD7). Validate, publish and the versions panel are shared/gamedata_admin.py.
 """
 
 from __future__ import annotations
@@ -22,9 +24,11 @@ from datetime import datetime
 from typing import Any
 
 from shared.body import json_object
+from shared.bounds import VERSION
 from shared.content import as_int, audit_item, audit_key, iso_z, plain, problem
 from shared.data import DynamoTable
 from shared.errors import ApiError, json_response
+from shared.gamedata_admin import level_publishing
 from shared.levels import DRAFT_SK, LEVEL_ID, LEVEL_PK, level_pk, level_problems, level_summary, new_level_items
 from shared.router import Request
 from shared.rules.contracts import LIMITS
@@ -71,7 +75,10 @@ def make_level_handlers(
 
     def view(level_id: str) -> dict[str, Any]:
         header, draft = items(level_id)
+        publish, versions = level_publishing(table(), level_id)
         return {
+            "publish": publish,
+            "versions": versions,
             "header": level_summary(header),
             "draft": {
                 "level": plain(draft.get("level")),
@@ -179,27 +186,35 @@ def make_level_handlers(
             ),
         ]
         if transact(content, actions) is not None:
-            raise ApiError("NOT_FOUND")  # deleted meanwhile (a published level cannot exist before LD6)
+            header = content.get_item(LEVEL_PK, level_id)
+            if header is not None and header.get("status") != "DRAFT":
+                raise ApiError("LEVEL_PUBLISHED")
+            raise ApiError("NOT_FOUND")  # deleted meanwhile
         return json_response(200, {"levelId": level_id, "deleted": True})
 
     def record_testplay(request: Request) -> dict[str, Any]:
-        """The editor ran the balance checks (LD5) on `draftRevision`: store the counts on the draft's review. The
-        publisher (LD6) requires a test play of the revision it publishes, and re-runs the blocking checks itself."""
+        """The editor ran the balance checks (LD5) on `draftRevision`, merged into the live `sourceVersion`: store the
+        counts on the draft's review. Publish (R49) requires a test play of the revision and live version it
+        publishes; the publisher re-runs the blocking checks itself."""
         level_id = _level_id(request)
         request.log.update(levelId=level_id, action="testplay")
         body = json_object(request.event)
-        _only(body, {"draftRevision", "blocking", "warnings"})
+        _only(body, {"draftRevision", "sourceVersion", "blocking", "warnings"})
         revision, blocking, warnings = (as_int(body[k]) for k in ("draftRevision", "blocking", "warnings"))
+        source = body["sourceVersion"]
         problems = [
             problem(k, "type")
             for k, v in (("draftRevision", revision), ("blocking", blocking), ("warnings", warnings))
             if v is None or v < 0
         ]
+        if not isinstance(source, str) or not VERSION.fullmatch(source):
+            problems.append(problem("sourceVersion", "pattern"))
         if problems:
             raise _invalid(problems)
         items(level_id)
         review = {
             "testPlayedDraftRevision": revision,
+            "sourceVersion": source,
             "blocking": blocking,
             "warnings": warnings,
             "at": iso_z(now()),

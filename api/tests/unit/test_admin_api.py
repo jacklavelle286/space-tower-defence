@@ -81,15 +81,19 @@ class Admin:
                 raise GameDataUnavailable("no released game data in this test")
             return self.reader
 
+        self.clock = Clock()
+        # The game-data publisher (LD7): a test sets one (test_gamedata_admin.FakePublisher) before calling R48-R52.
+        self.publisher: Any = None
         self.router = admin.make_router(
             admin.Deps(
                 content=lambda: self.table,
                 s3=admin.s3_client,
                 store=lambda: store,
                 config=lambda: CONFIG,
-                now=Clock(),
+                now=self.clock,
                 game_data=game_data,
                 bounds=load_bounds_fixture,
+                publisher=lambda: self.publisher,
             ),
             self.logger,
         )
@@ -623,7 +627,7 @@ def test_every_admin_route_refuses_a_non_operator_before_any_read(
 def test_every_admin_route_is_behind_the_operator_authoriser() -> None:
     """A player token is refused at the gateway (401): the operator authoriser trusts only the operator pool's issuer
     and its admin client (infrastructure/main/main.tf), and routes.json puts every /api/admin route behind it."""
-    assert len(ADMIN_ROUTES) == 30  # R16 (tts), R17-R39 and R40-R45 (levels, Gate M LD3-LD5)
+    assert len(ADMIN_ROUTES) == 37  # R16 (tts), R17-R39, R40-R45 (levels, Gate M LD3-LD5) and R46-R52 (LD7)
     assert all(
         r["authoriser"] == "operator" and r["scope"] == "ops/content"
         for r in ROUTES

@@ -23,6 +23,7 @@ import os
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Any
 
 import boto3
@@ -140,6 +141,7 @@ class GameDataReader:
         self._current: tuple[float, dict[str, str]] | None = None
         self._versions: tuple[float, Versions] | None = None
         self._planets: dict[str, Planet] = {}
+        self._documents: dict[str, dict[str, Any]] = {}
 
     def _client(self) -> Any:
         if self._s3 is None:
@@ -202,11 +204,45 @@ class GameDataReader:
         cached = self._planets.get(campaign_version)
         if cached is not None:
             return cached
-        if not VERSION.match(campaign_version):
-            raise GameDataUnavailable("bad campaignVersion")
-        planet = _parse_planet(self._get_json(f"{self.prefix}campaign/{campaign_version}.json"), campaign_version)
+        planet = _parse_planet(self.document(campaign_version), campaign_version)
         self._planets[campaign_version] = planet
         return planet
+
+    def document(self, campaign_version: str) -> dict[str, Any]:
+        """One planet document as published (cached: published versions never change). admin-api sends it to the
+        level designer, which merges levels into it (Gate M, LD7). Callers must not change it."""
+        cached = self._documents.get(campaign_version)
+        if cached is not None:
+            return cached
+        if not isinstance(campaign_version, str) or not VERSION.match(campaign_version):
+            raise GameDataUnavailable("bad campaignVersion")
+        data = self._get_json(f"{self.prefix}campaign/{campaign_version}.json")
+        if not isinstance(data, dict) or data.get("version") != campaign_version:
+            raise GameDataUnavailable(f"campaign {campaign_version}: not the document for this version")
+        self._documents[campaign_version] = data
+        return data
+
+    def campaign_versions(self) -> list[tuple[str, datetime]]:
+        """Every published planet document's version and when it was written, newest first (admin-api's Versions
+        panel, LD7). Not cached: a publish adds one. Needs s3:ListBucket on the prefix."""
+        if not self.bucket:
+            raise GameDataUnavailable(f"no bucket: set {BUCKET_ENV}")
+        out: list[tuple[str, datetime]] = []
+        try:
+            pages = (
+                self._client()
+                .get_paginator("list_objects_v2")
+                .paginate(Bucket=self.bucket, Prefix=f"{self.prefix}campaign/")
+            )
+            for page in pages:
+                for entry in page.get("Contents", []):
+                    name = entry["Key"].rsplit("/", 1)[-1]
+                    version = name.removesuffix(".json")
+                    if name.endswith(".json") and VERSION.match(version):
+                        out.append((version, entry["LastModified"]))
+        except ClientError as exc:
+            raise GameDataUnavailable(f"s3://{self.bucket}/{self.prefix}campaign/: list failed") from exc
+        return sorted(out, key=lambda v: (v[1], v[0]), reverse=True)
 
     def released_planets(self) -> list[Planet]:
         """The planets new runs can use, in order (one today: the campaignVersion in current.json)."""

@@ -56,6 +56,7 @@ and withdraw (C6) write their audit item in the same transaction as the change.
 from __future__ import annotations
 
 import contextlib
+import os
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -127,6 +128,7 @@ from shared.data import (
 )
 from shared.errors import ApiError, json_response
 from shared.game_data import GameDataReader, GameDataUnavailable, reader_from_env
+from shared.gamedata_admin import PublisherClient, make_gamedata_handlers
 from shared.level_admin import make_level_handlers
 from shared.log import ApiLogger
 from shared.picture_admin import PictureServices, make_picture_handlers
@@ -169,6 +171,13 @@ ROUTES: dict[str, str] = {
     "PUT /api/admin/levels/{id}/draft": OPERATOR,
     "DELETE /api/admin/levels/{id}": OPERATOR,
     "POST /api/admin/levels/{id}/testplay": OPERATOR,
+    "GET /api/admin/game-data": OPERATOR,
+    "GET /api/admin/game-data/versions/{id}": OPERATOR,
+    "POST /api/admin/levels/{id}/validate": OPERATOR,
+    "POST /api/admin/levels/{id}/publish": OPERATOR,
+    "POST /api/admin/game-data/live": OPERATOR,
+    "POST /api/admin/game-data/states": OPERATOR,
+    "PUT /api/admin/game-data/testers": OPERATOR,
 }
 
 DRAFT_MAX_BYTES: int = LIMITS["bodyMaxBytes"]["adminActivityDraft"]  # 64 KB for PUT .../draft (G §12)
@@ -188,6 +197,8 @@ _container_s3 = cache(s3_client)
 _container_game_data = cache(reader_from_env)  # one game-data reader, and so one cache, per Lambda container
 _container_sqs = cache(lambda: boto3.client("sqs"))
 _container_cloudfront = cache(lambda: boto3.client("cloudfront"))
+# The game-data publisher (Gate M, LD6-LD7): R48-R52 invoke it. PUBLISHER_FUNCTION_NAME is set by infrastructure/main.
+_container_publisher = cache(lambda: PublisherClient(os.environ.get("PUBLISHER_FUNCTION_NAME", "")))
 
 
 @dataclass(frozen=True)
@@ -205,6 +216,7 @@ class Deps:
     pictures: Callable[[], PictureConfig] = PictureConfig.from_env
     sqs: Callable[[], Any] = _container_sqs
     cloudfront: Callable[[], Any] = _container_cloudfront
+    publisher: Callable[[], PublisherClient] = _container_publisher
 
 
 # --- Request helpers ------------------------------------------------------------------------------------------------
@@ -1131,6 +1143,9 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
             transact=transact,
         ),
         **make_level_handlers(table=table, now=deps.now, transact=transact, page=page),
+        **make_gamedata_handlers(
+            table=table, now=deps.now, transact=transact, game_data=deps.game_data, publisher=deps.publisher
+        ),
     }
     return Router(routes=ROUTES, handlers=handlers, logger=logger)
 
