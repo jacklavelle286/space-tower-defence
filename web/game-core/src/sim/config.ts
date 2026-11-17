@@ -265,6 +265,8 @@ export interface BattleConfig {
   /** The map's pictures (schema 2): a Background picture ID or null (the repo ground), and its decorations. Drawing
    *  only; the simulation never reads it. */
   readonly art: { readonly backdrop: string | null; readonly decorations: readonly MapDecoration[] };
+  /** The asset manifest's art set the map is drawn with (the planet's look, LD10). Drawing only. */
+  readonly artSet: string;
   /** In attack order: the planet document's pad order, p01 to p16 (C2.3 step 4). */
   readonly pads: readonly PadInfo[];
   readonly classes: Readonly<Record<string, ClassStats>>;
@@ -576,6 +578,7 @@ export function compileBattleConfig(ruleset: Ruleset, planet: PlanetDocument, wa
     route: buildRoute(map.route),
     grid: map.grid,
     art: map.art,
+    artSet: planet.look.artSet,
     pads,
     classes,
     aliens,

@@ -174,7 +174,7 @@ export class BattleScene extends Scene {
 
   /** The asset as this run draws it: a map piece through the art set, anything else through the manifest. */
   #b(asset: ArtAsset): ArtAsset {
-    return this.#art.map(asset);
+    return this.#art.map(asset, this.#bridge.config.artSet); // the planet's art set (LD10); moon by default
   }
 
   /** True when the ruleset has meteor powers (C10; mechanics 3): only then are their effects loaded and played. */
@@ -192,7 +192,8 @@ export class BattleScene extends Scene {
       retried.add(file.key);
       this.load.image(file.key, repo);
     });
-    for (const [key, url] of this.#art.frames([...Object.values(ART), ...(this.#hasPowers ? Object.values(POWER_ART) : [])])) this.load.image(key, url);
+    const repo = [...Object.values(ART), ...(this.#hasPowers ? Object.values(POWER_ART) : [])];
+    for (const [key, url] of this.#art.frames(repo, this.#bridge.config.artSet)) this.load.image(key, url);
     // The map's own backdrop and decorations (Gate M, LD2). One that fails to load is skipped in create().
     for (const { key, url } of mapPicturesToLoad(this.#bridge.config, this.#art)) if (!this.textures.exists(key)) this.load.image(key, url);
   }

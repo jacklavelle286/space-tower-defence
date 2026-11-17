@@ -198,6 +198,7 @@ export function levelAsPlanet(level: LevelFile): PlanetDocument {
     waves: [],
     challengeWaves: {},
     waveSets: {},
+    look: { icon: null, artSet: "moon" },
   };
 }
 

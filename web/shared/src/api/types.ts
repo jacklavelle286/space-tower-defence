@@ -120,6 +120,10 @@ export interface PlanetEntry {
   name: string;
   /** The campaign version new games on this planet use (Gate M, LD9). */
   campaignVersion?: string;
+  /** The planet's library Planet picture (LD10); absent: the repo icon /assets/ui/planet-<planetId>.png. */
+  icon?: string;
+  /** A planet not yet released, offered to a tester account for preview (LD10). */
+  preview?: boolean;
   unlocked: boolean;
   waveSets: WaveSetEntry[];
 }

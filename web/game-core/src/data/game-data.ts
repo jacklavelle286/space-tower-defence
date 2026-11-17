@@ -459,6 +459,14 @@ export interface PlanetDocument {
   waves: AuthoredWave[];
   challengeWaves: Record<string, ChallengeWave>;
   waveSets: Record<string, WaveSet>;
+  /** How the planet looks (Gate M, LD10; schema 2, optional): its Planet picture for Home (a library ID, or null for the
+   *  repo icon) and the asset manifest's art set its maps are drawn with. Absent: the repo icon and the moon set. */
+  look: PlanetLook;
+}
+
+export interface PlanetLook {
+  icon: string | null;
+  artSet: string;
 }
 
 /** A released planet and the campaign version new games on it use (Gate M, LD9). `planetId` is null in a schema 1
@@ -1451,7 +1459,7 @@ export function parsePlanet(raw: unknown, ruleset: Ruleset): PlanetDocument {
   const schema: 1 | 2 = typeof raw === "object" && raw !== null && Object.hasOwn(raw, "schema") ? 2 : 1;
   const top =
     schema === 2
-      ? obj(raw, "planet", ["kind", "schema", "version", "planetId", "name", "maps", "waves", "waveSets"], ["$comment", "challengeWaves"])
+      ? obj(raw, "planet", ["kind", "schema", "version", "planetId", "name", "maps", "waves", "waveSets"], ["$comment", "challengeWaves", "look"])
       : obj(raw, "planet", ["kind", "version", "planetId", "name", "map", "waves", "waveSets"], ["$comment"]);
   if (top["kind"] !== "campaign") fail("planet.kind", 'must be "campaign"');
   if (schema === 2 && top["schema"] !== 2) fail("planet.schema", "must be 2 (a schema 1 document has no schema key)");
@@ -1499,6 +1507,17 @@ export function parsePlanet(raw: unknown, ruleset: Ruleset): PlanetDocument {
     waveSets: idMap(top["waveSets"], "planet.waveSets", (v, p) =>
       parseWaveSet(v, p, p.slice("planet.waveSets.".length), ruleset, authored, challengeWaves, maps, schema),
     ),
+    look: parseLook(top["look"]),
+  };
+}
+
+/** A planet's look (LD10): absent is the repo icon and the moon art set. */
+function parseLook(value: unknown): PlanetLook {
+  if (value === undefined) return { icon: null, artSet: "moon" };
+  const o = obj(value, "planet.look", ["icon", "artSet"]);
+  return {
+    icon: o["icon"] === null ? null : str(o["icon"], "planet.look.icon", LIBRARY_PICTURE_PATTERN, 40),
+    artSet: str(o["artSet"], "planet.look.artSet", KEY_ID_PATTERN, 40),
   };
 }
 

@@ -1,4 +1,4 @@
-import type { Me, Planets, WaveSetEntry } from "@scd/shared";
+import { libraryPictureUrl, type Me, type Planets, type WaveSetEntry } from "@scd/shared";
 import { useEffect, useRef, useState } from "react";
 import { COPY } from "../copy/en-GB";
 import type { PlayerApi } from "../api/playerApi";
@@ -11,6 +11,13 @@ function reasonLine(reason: string | undefined): string | null {
   if (reason === "AGE_OUT_OF_RANGE") return COPY.home.ageOutOfRange;
   if (reason === "BANK_NOT_READY") return COPY.home.bankNotReady;
   return null;
+}
+
+/** A planet's picture: its library Planet picture (LD10), the repo icon for luna-1, or the silhouette for another. */
+export function planetIcon(planet: { planetId: string; icon?: string }): string {
+  const own = planet.icon === undefined ? null : libraryPictureUrl(planet.icon);
+  if (own !== null) return own;
+  return planet.planetId === "luna-1" ? "/assets/ui/planet-luna-1.png" : "/assets/ui/planet-silhouette.png";
 }
 
 /** What New game starts (Milestone 1 has one planet and one wave set; the planet screens P6/P7 come later). */
@@ -269,7 +276,7 @@ export function Home({
           <ul className="planet-list">
             {planets.planets.map((planet) => (
               <li key={planet.planetId} className="planet">
-                <img src={`/assets/ui/planet-${planet.planetId}.png`} alt="" width={96} height={96} />
+                <img src={planetIcon(planet)} alt="" width={96} height={96} />
                 <div>
                   <h3>{planet.name}</h3>
                   {planet.unlocked ? null : (
