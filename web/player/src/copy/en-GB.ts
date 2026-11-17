@@ -160,6 +160,17 @@ export const COPY = {
     { id: "challenge-wobble-rematch", name: "Boss Buddy", rule: "Finish Wobble Rematch" },
     { id: "challenge-bubble-trouble", name: "Bubble Wrangler", rule: "Finish Bubble Trouble" },
   ] as const,
+  complete: {
+    // D4 P10 Campaign complete [PROPOSAL] copy; the endless notes are C24.6 / D-6
+    heading: "You saved the colony!",
+    waves: (n: number) => `Waves cleared: ${n}`,
+    keepGoing: "Keep going",
+    finish: "Finish this game",
+    starting: "Getting ready…",
+    needsInternet: "You need the internet to keep going.",
+    cannot: "Endless isn't ready yet. You can finish this game and keep your badge.",
+    allDone: "You have done every activity we have for now.",
+  },
   meteor: {
     // D4 P9 meteor offer [CONFIRMED] wording for heading and No thanks reply; P8 full-power line [PROPOSAL]
     heading: "Meteor challenge!",

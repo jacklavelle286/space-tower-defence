@@ -48,7 +48,7 @@ describe("battlefield art", () => {
       (f) => JSON.parse(readFileSync(join(REPO, "game-data", "ruleset", f), "utf8")) as { bosses?: Record<string, { phases: unknown[] }> },
     );
     const bosses = rulesets.flatMap((r) => Object.entries(r.bosses ?? {}));
-    expect(bosses.map(([id]) => id).sort()).toEqual(["boss1", "boss2", "boss3", "boss4", "boss5"]);
+    expect([...new Set(bosses.map(([id]) => id))].sort()).toEqual(["boss1", "boss2", "boss3", "boss4", "boss5"]); // r3 and r4 share them
     for (const [id, boss] of bosses) {
       const art = bossArt(id);
       expect(art?.phases, id).toHaveLength(boss.phases.length);

@@ -114,3 +114,12 @@
   gap: 14px;
   justify-content: center;
 }
+
+/* Phase 54: the endless "all done" notice, over the top of the board. */
+.run-all-done {
+  position: absolute;
+  top: 64px;
+  left: 50%;
+  z-index: 20;
+  transform: translateX(-50%);
+}

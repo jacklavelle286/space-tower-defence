@@ -23,7 +23,7 @@ export function Hud({ bridge, hud }: { bridge: GameBridge; hud: HudState }) {
         </span>
       )}
       <span className="bf-stat" title="Wave">
-        <img src="/assets/ui/icon-wave.svg" alt="" /> Wave {hud.wave} of {hud.finalWave}
+        <img src="/assets/ui/icon-wave.svg" alt="" /> {hud.wave > hud.finalWave ? `Wave ${hud.wave}` : `Wave ${hud.wave} of ${hud.finalWave}`}
       </span>
       {fighting && <span className="bf-stat">Aliens left: {hud.aliensLeft}</span>}
       <span className="bf-spacer" />

@@ -22,6 +22,7 @@ import {
   UNITS_PER_TILE,
   battleSnapshot,
   padOpen,
+  planFor,
   checkCommand,
   createBattle,
   drainEvents,
@@ -249,7 +250,7 @@ export class GameBridge {
         b === null
           ? 0
           : b.aliens.length +
-            (this.config.waves[b.wave - 1]?.spawns.length ?? 0) -
+            planFor(this.config, b.wave).spawns.length -
             b.spawnIndex +
             b.releases.reduce((n, r) => n + r.types.length - r.released, 0),
       speed: this.#speed,

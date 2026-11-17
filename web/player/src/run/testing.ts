@@ -37,6 +37,7 @@ export function apiFor(server: FakeRunServer): PlayerApi {
     getRuns: async () => ({ kind: "error", status: 500, code: "INTERNAL", body: null }),
     createRun: async (body) => reply(await server.createRun({ ...body })),
     getRun: async (runId) => reply(await server.getRun(runId)),
+    chooseEndless: async () => ({ kind: "error", status: 500, code: "INTERNAL", body: null }),
     getPack: async (runId) => reply(await server.getPack(runId)),
     putSession: async (body) => reply(await server.session({ ...body })),
     deleteSession: async (body) => reply(await server.release({ ...body })),

@@ -17,6 +17,8 @@ export interface PlayerApi extends SyncTransport {
   getRuns(state: "open" | "done", cursor?: string): Promise<ApiResult<RunList>>;
   createRun(body: CreateRunBody): Promise<ApiResult<unknown>>;
   getRun(runId: string): Promise<ApiResult<unknown>>;
+  /** R12 CHOOSE_ENDLESS (online only, never queued; Phase 54): exactly one op in the R11 envelope. */
+  chooseEndless(runId: string, body: OpsBatchBody): Promise<ApiResult<OpsResponse>>;
   getPack(runId: string): Promise<ApiResult<unknown>>;
   putSession(body: SessionBody): Promise<ApiResult<unknown>>;
   deleteSession(body: { sessionId: string; generation: number }): Promise<ApiResult<unknown>>;
@@ -35,6 +37,7 @@ export function createPlayerApi(client: ApiClient): PlayerApi {
     sendOps: (runId: string, body: OpsBatchBody) => client.request<OpsResponse>("POST", `${run(runId)}/ops`, body),
     createRun: (body) => client.request<unknown>("POST", "/runs", body),
     getRun: (runId) => client.request<unknown>("GET", run(runId)),
+    chooseEndless: (runId, body) => client.request<OpsResponse>("POST", `${run(runId)}/endless`, body),
     getPack: (runId) => client.request<unknown>("GET", `${run(runId)}/pack`),
     putSession: (body) => client.request<unknown>("PUT", "/session", body),
     deleteSession: (body) => client.request<unknown>("DELETE", "/session", body),

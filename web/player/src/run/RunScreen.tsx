@@ -21,6 +21,7 @@ import { SyncChip } from "../sync/SyncChip";
 import type { AckTracker } from "./ackTracker";
 import { ActivityPanel } from "./ActivityPanel";
 import { powerName } from "./buildRunState";
+import { CompletionOffer } from "./CompletionOffer";
 import { MeteorOffer } from "./MeteorOffer";
 import type { PlayLease } from "./lease";
 import { loadRun, type LoadedRun } from "./loadRun";
@@ -52,6 +53,8 @@ export type Screen =
 export function RunScreen({ services }: { services: RunServices }) {
   const { runId = "" } = useParams();
   const [screen, setScreen] = useState<Screen>({ kind: "loading" });
+  // Each full load of the run gets a new key, so a reload (after CHOOSE_ENDLESS) rebuilds the screen from scratch.
+  const [loads, setLoads] = useState(0);
   const { api, queue, lease, clips, tracker, loadData } = services;
 
   const prefetchAll = useCallback(
@@ -75,6 +78,7 @@ export function RunScreen({ services }: { services: RunServices }) {
           return;
         }
         setScreen(next);
+        setLoads((n) => n + 1);
         if (next.kind === "ready") void prefetchAll(next.loaded);
       });
     },
@@ -90,6 +94,9 @@ export function RunScreen({ services }: { services: RunServices }) {
   }, [open]);
 
   useEffect(() => lease.onStale(() => setScreen({ kind: "stale" })), [lease]);
+
+  // A full reload of the run (after CHOOSE_ENDLESS, or when the server has planned another endless block).
+  const reload = useCallback(async () => open(false), [open]);
 
   // Renewing needs recent input (spine S3.4).
   useEffect(() => {
@@ -167,7 +174,17 @@ export function RunScreen({ services }: { services: RunServices }) {
         />
       );
     case "ready":
-      return <ReadyRun key={screen.run.runId} loaded={screen.loaded} run={screen.run} services={services} onLeave={leave} tracker={tracker} />;
+      return (
+        <ReadyRun
+          key={`${screen.run.runId}:${loads}`}
+          loaded={screen.loaded}
+          run={screen.run}
+          services={services}
+          onLeave={leave}
+          onReload={reload}
+          tracker={tracker}
+        />
+      );
   }
 }
 
@@ -218,12 +235,15 @@ function ReadyRun({
   services,
   tracker,
   onLeave,
+  onReload,
 }: {
   loaded: LoadedRun;
   run: SyncedRun;
   services: RunServices;
   tracker: AckTracker;
   onLeave: () => Promise<void>;
+  /** Load the whole run again: state, slots and content pack (after CHOOSE_ENDLESS or a new endless block). */
+  onReload: () => Promise<void>;
 }) {
   const bridgeRef = useRef<GameBridge | null>(null);
   const onBridge = useCallback((bridge: GameBridge | null) => {
@@ -255,9 +275,11 @@ function ReadyRun({
         setTimeout(() => {
           if (services.queue.getSnapshot().pending > 0) return;
           if (view.revision !== run.state.revision || view["phase"] !== run.state.phase) void resync();
+          // The server planned another endless block (Phase 54): its slots and their content come with a full reload.
+          else if (typeof view["plannedThrough"] === "number" && view["plannedThrough"] > run.state.plannedThrough) void onReload();
         }, 0);
       }),
-    [tracker, run, services.queue, resync],
+    [tracker, run, services.queue, resync, onReload],
   );
 
   const saveAndExit = useCallback(async () => {
@@ -330,7 +352,16 @@ function ReadyRun({
         </p>
       ) : null}
       <Battlefield data={loaded.data} waveSetId={detail.waveSetId} run={run} seed={seed} speed={1} onBridge={onBridge}>
-        <RunOverlays run={run} loaded={loaded} services={services} onResync={resync} onSaveAndExit={saveAndExit} onLeave={onLeave} onOverlay={setOverlayOpen} />
+        <RunOverlays
+          run={run}
+          loaded={loaded}
+          services={services}
+          onResync={resync}
+          onReload={onReload}
+          onSaveAndExit={saveAndExit}
+          onLeave={onLeave}
+          onOverlay={setOverlayOpen}
+        />
       </Battlefield>
     </main>
   );
@@ -370,6 +401,7 @@ function RunOverlays({
   loaded,
   services,
   onResync,
+  onReload,
   onSaveAndExit,
   onLeave,
   onOverlay,
@@ -378,6 +410,7 @@ function RunOverlays({
   loaded: LoadedRun;
   services: RunServices;
   onResync: () => Promise<void>;
+  onReload: () => Promise<void>;
   onSaveAndExit: () => Promise<void>;
   onLeave: () => Promise<void>;
   /** Told whether the learning panel or the end screen is showing. */
@@ -414,13 +447,38 @@ function RunOverlays({
       ? { ...content.activity, reward: { ...content.activity.reward, powerFullAt: state.powerChargeCap } }
       : (content?.activity ?? null);
   const ended = state.status !== "IN_PROGRESS";
+  const offer = !ended && state.phase === "COMPLETION_OFFER";
   const panelOpen = panelSlot !== null && !ended;
-  useEffect(() => onOverlay(panelOpen || ended), [onOverlay, panelOpen, ended]);
+  useEffect(() => onOverlay(panelOpen || ended || offer), [onOverlay, panelOpen, ended, offer]);
+  // C24.6 / D-6: an endless interval the bank could not fill has no slot; say so instead of silently skipping.
+  const allDone =
+    !ended &&
+    state.stage === "ENDLESS" &&
+    state.phase === "BUILD" &&
+    state.wave - 1 >= state.finalWave &&
+    !state.slots.some((s) => s.slotId === `N-${String(state.wave - 1).padStart(3, "0")}`);
 
   return (
     <>
       <Hud bridge={bridge} hud={hud} />
-      <BattlefieldControls bridge={bridge} hud={hud} active={!ended && panelSlot === null && hud.runPhase !== "ACTIVITY"} />
+      <BattlefieldControls bridge={bridge} hud={hud} active={!ended && !offer && panelSlot === null && hud.runPhase !== "ACTIVITY"} />
+      {allDone ? (
+        <p className="notice run-all-done" role="status">
+          {COPY.complete.allDone}
+        </p>
+      ) : null}
+      {offer ? (
+        <CompletionOffer
+          run={run}
+          services={services}
+          wavesCleared={state.highestCompletedWave}
+          planetId={loaded.detail.planetId}
+          onEndless={onReload}
+          onFinish={() => {
+            run.endGame();
+          }}
+        />
+      ) : null}
       {panelSlot !== null && !ended && offering && meteorPower !== undefined ? (
         <MeteorOffer
           run={run}
