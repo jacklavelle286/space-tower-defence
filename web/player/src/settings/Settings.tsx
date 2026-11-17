@@ -3,6 +3,7 @@
 // then sends confirm = type (spine S8.2). A reset needs a connection and an empty queue. The whole-profile reset may
 // discard unsent progress after saying so; afterwards the device's local database goes and Profile setup opens.
 // "Give up current game" is on Saved games (an ABANDON op, not a reset).
+import { sounds } from "../sound/board";
 import { trapTab } from "@scd/shared";
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { PlayerApi, ResetType } from "../api/playerApi";
@@ -62,6 +63,7 @@ export function Settings({
           {COPY.settings.back}
         </button>
       </header>
+      <SoundSettingsPanel />
       <section className="panel" aria-labelledby="resets-heading">
         <h2 id="resets-heading">{COPY.settings.resetsHeading}</h2>
         <div className="settings-resets">
@@ -123,5 +125,42 @@ export function Settings({
         </div>
       ) : null}
     </main>
+  );
+}
+
+/** The combat sounds' volume and mute (Phase 66; D10.10): on this computer only. */
+function SoundSettingsPanel() {
+  const [settings, setSettings] = useState(sounds.settings);
+  useEffect(() => sounds.onChange(setSettings), []);
+  const percent = Math.round(settings.volume * 100);
+  return (
+    <section className="panel" aria-labelledby="sound-heading">
+      <h2 id="sound-heading">{COPY.settings.soundHeading}</h2>
+      <p className="settings-sound">
+        <label>
+          <input type="checkbox" checked={!settings.muted} onChange={(e) => sounds.set({ ...settings, muted: !e.target.checked })} />{" "}
+          {COPY.settings.soundOn}
+        </label>
+      </p>
+      <p className="settings-sound">
+        <label>
+          {COPY.settings.soundVolume}{" "}
+          <input
+            type="range"
+            min={0}
+            max={100}
+            step={10}
+            value={percent}
+            disabled={settings.muted}
+            onChange={(e) => sounds.set({ ...settings, volume: Number(e.target.value) / 100 })}
+          />{" "}
+          {percent}%
+        </label>{" "}
+        <button type="button" className="btn btn-small" disabled={settings.muted} onClick={() => sounds.play("sfx-wave-clear")}>
+          {COPY.settings.soundTry}
+        </button>
+      </p>
+      <p className="reason">{COPY.settings.soundHint}</p>
+    </section>
   );
 }

@@ -48,6 +48,8 @@ import {
   type ArtAsset,
 } from "./assets";
 import type { GameBridge } from "./GameBridge";
+import { sounds } from "../sound/board";
+import { classSound } from "../sound/recipes";
 import { nearestProgress } from "../hud/padNav";
 import { pressedOnCanvas } from "./pointer";
 import { Pool } from "./pool";
@@ -155,6 +157,8 @@ export class BattleScene extends Scene {
   #colony: GameObjects.Image | null = null;
   /** The shield dome over the colony (Phase 65), and the shield points it showed last frame. */
   #dome: GameObjects.Sprite | null = null;
+  /** The battle status last frame, for the wave start and clear sounds. */
+  #status: Battle["status"] | null = null;
   #domeShield = 0;
   #range: GameObjects.Graphics | null = null;
   /** The Comet Burst aiming ring (Phase 31). */
@@ -316,12 +320,18 @@ export class BattleScene extends Scene {
     this.#drawTowers(battle);
     this.#drawAliens(battle);
     this.#drawColony(battle);
+    if (battle.status !== this.#status) {
+      if (battle.status === "IN_WAVE" && this.#status === "PREP") sounds.play("sfx-wave-start");
+      if (battle.status === "CLEARED" && this.#status === "IN_WAVE") sounds.play("sfx-wave-clear");
+      this.#status = battle.status;
+    }
     for (const event of this.#bridge.takeSceneEvents()) this.#effect(event);
   }
 
   /** A new wave's battle: tower sprites go, alien views return to the pool; the next sync rebuilds from the new state. */
   #newBattle(battle: Readonly<Battle> | null): void {
     this.#domeShield = battle?.shield ?? 0; // a wave starts from its own shield: no break or flash for the change
+    this.#status = battle?.status ?? null;
     for (const view of this.#towers.values()) {
       view.sprite.destroy();
       view.beam.destroy();
@@ -419,9 +429,13 @@ export class BattleScene extends Scene {
         const beam = this.add.sprite(x, y, frameKey(this.#b(beamArt(tower.level)), 1)).setVisible(false).setDepth(9);
         view = { classId: tower.classId, sprite, beam, level: tower.level, lastShotSeen: tower.lastShotTick };
         this.#towers.set(tower.padId, view);
-        if (!this.#restored.has(tower.padId)) this.#playOnce(ART.place, x, y - 8, 9);
+        if (!this.#restored.has(tower.padId)) {
+          this.#playOnce(ART.place, x, y - 8, 9);
+          sounds.play("sfx-place");
+        }
       }
       if (view.level !== tower.level) {
+        if (view.level < tower.level) sounds.play("sfx-upgrade");
         view.level = tower.level;
         view.sprite.play(this.#b(art.idle).id);
       }
@@ -459,6 +473,7 @@ export class BattleScene extends Scene {
       view.sprite.destroy();
       view.beam.destroy();
       this.#towers.delete(padId);
+      sounds.play("sfx-sell"); // sent home (a new wave clears the views in #newBattle, not here)
     }
   }
 
@@ -533,6 +548,7 @@ export class BattleScene extends Scene {
       view.phase = alien.phase;
       const { x, y } = this.#feet(alien);
       this.#playOnce(ART.bossArrive, x, y, 8, BOSS_RING);
+      sounds.play("sfx-boss-arrive");
       return;
     }
     const art = this.#b(alienArt(alien.type).move);
@@ -642,12 +658,14 @@ export class BattleScene extends Scene {
           // A boss pops into a large star burst (C7); the Mothership's last door opens under it first.
           if (boss.defeat !== null) this.#playOnce(boss.defeat, x, y, 19, [BOSS_PX, BOSS_PX]);
           this.#playOnce(ART.popStars, x, y - BOSS_PX / 2, 20, [BOSS_PX, BOSS_PX]);
+          sounds.play("sfx-pop-stars");
           break;
         }
         // A Split Slime splits and a Craft opens its doors as its descendants are queued (C6.3), then the stars.
         const defeat = alienArt(event.type).defeat;
         if (defeat !== null) this.#playOnce(defeat, x, y, 19);
         this.#playOnce(ART.popStars, x, y - 40, 20);
+        sounds.play("sfx-pop-stars");
         break;
       }
       case "bossPhase": {
@@ -656,12 +674,14 @@ export class BattleScene extends Scene {
         const x = unitsToPx(event.at.x);
         const y = unitsToPx(event.at.y) + ALIEN_FEET_DY - BOSS_PX / 2;
         this.#playOnce(ART.bossPhaseFlash, x, y, 21, [BOSS_PX, BOSS_PX]);
+        sounds.play("sfx-boss-phase");
         const burst = bossArt(event.type)?.phases[event.phase]?.burst ?? null;
         if (burst !== null) this.#playOnce(burst, x, y, 21, [BOSS_PX, BOSS_PX]);
         break;
       }
       case "power": {
         if (!this.#hasPowers) break;
+        sounds.play(event.effect === "slow" ? "sfx-frost-pulse" : event.effect === "burst" ? "sfx-comet-burst" : "sfx-colony-shield");
         if (event.effect === "slow") {
           // The frost wash covers the whole canvas (its art is canvas-sized), above the aliens.
           this.#playOnce(POWER_ART.slow, CANVAS_WIDTH / 2, CANVAS_HEIGHT / 2, 22);
@@ -679,15 +699,20 @@ export class BattleScene extends Scene {
       case "leaked": {
         const leak = mapEnds(this.#bridge.config.route.waypoints)?.leak;
         if (leak !== undefined) this.#playOnce(ART.leak, leak.x, leak.y, 20);
+        sounds.play("sfx-leak");
         break;
       }
       case "shot": {
         // C6.1 Shellback: "hits make a 'clonk' spark". Read from the trait, so any armoured alien clonks; a boss
         // clonks while its phase has armour (Captain Clank's plates, C7).
+        const classId = battle?.towers.find((t) => t.padId === event.padId)?.classId;
+        const attack = classId === undefined ? null : classSound(classId);
+        if (attack !== null) sounds.play(attack);
         const alien = living(event.alienId);
         const stats = alien === undefined ? undefined : this.#bridge.config.aliens[alien.type];
         const armour = stats?.boss?.phases[alien?.phase ?? 0]?.armour ?? stats?.armour ?? 0;
         if (alien === undefined || armour === 0) break;
+        sounds.play("sfx-hit-clonk");
         const { x, y } = this.#feet(alien);
         this.#playOnce(ART.armourClonk, x, y + ON_ALIEN_DY, 20);
         break;
@@ -697,8 +722,12 @@ export class BattleScene extends Scene {
         if (alien === undefined) break;
         const { x, y } = this.#feet(alien);
         this.#playOnce(ART.guardPop, x, y + LAYERS_DY, 20);
+        sounds.play("sfx-bubble-pop");
         break;
       }
+      case "shielded":
+        sounds.play("sfx-mira"); // Mira's pulse added shield points (C5.5)
+        break;
       case "healPulse": {
         // The sparkle ring lies on the ground around the Patchling (its art is already squashed to 4:3).
         this.#playOnce(ART.patchHeal, unitsToPx(event.at.x), unitsToPx(event.at.y) + ALIEN_FEET_DY - 8, 8);

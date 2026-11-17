@@ -5,6 +5,7 @@
 // Keep going is CHOOSE_ENDLESS, online only and never queued (G §6): the account's queue is flushed first (so the op's
 // expectedRevision is current), then the op goes to R12 stamped with the lease, and the run is read again because the
 // server planned the first endless slots. Finish this game is FINISH_RUN, queued like any op.
+import { sounds } from "../sound/board";
 import { trapTab } from "@scd/shared";
 import { useState } from "react";
 import { COPY } from "../copy/en-GB";
@@ -83,7 +84,7 @@ export function CompletionOffer({
         <h2 className="lp-heading" id="complete-heading">
           {COPY.complete.heading}
         </h2>
-        <img src={`/assets/ui/badge-campaign-${planetId}.png`} alt="Colony Hero" width={160} height={160} />
+        <img src={`/assets/ui/badge-campaign-${planetId}.png`} alt="Colony Hero" width={160} height={160} onLoad={() => sounds.play("sfx-badge")} />
         <p>{COPY.complete.waves(wavesCleared)}</p>
         <div className="meteor-buttons">
           <button type="button" className="lp-btn lp-go" autoFocus disabled={busy || !online} onClick={() => void keepGoing()}>

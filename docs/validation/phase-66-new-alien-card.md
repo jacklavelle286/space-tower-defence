@@ -32,3 +32,26 @@ the Play button the learning panel has. Owner to decide whether it is wanted bef
 Tests: `GameBridge.test.ts` (the battle waits on the card, once per type, nothing for a resumed run's earlier types),
 `NewAlienCard.test.ts` (the line for every alien and boss of r4); Chrome on the local slice (the card, its focus,
 Enter goes on).
+
+# Phase 66: combat sounds, app icons, font
+
+**Sounds (D10.10).** The 25 sounds are made in the browser from recipes (`web/player/src/sound/recipes.ts`: a few
+tones and a little filtered noise each, every one under a second), not recorded files: nothing to license or
+download, and their loudness balanced in one table [PROPOSAL: the owner judges them by ear and may ask for recorded
+ones instead]. They play for placing, upgrading and sending home; each class's attack (Mira's on her shield pulse;
+Sol never fires, so his has no moment yet); an armour clonk, a bubble pop, the star pop and a leak; wave start and
+clear; a boss arriving and changing phase; the three powers; and in the learning panel a chime and the reward for a
+right answer and a soft "not quite" otherwise; the badge when the campaign completes. A sound played again within
+its own length is dropped, so 16 astronauts firing never make a din. Settings → Sound: on or off and a volume, kept
+on this computer only (they are not progress); the spoken words in activities are not changed. Sound starts after
+the first key or tap (browser rules). Checked: unit tests (`sound.test.ts`); a local battle with powers plays them
+with no page error. **Not checked: how they sound (owner, by ear).**
+
+**App icons.** `app-icon-512.png`, `app-icon-192.png` and `apple-touch-icon.png` (180 px): the on-dark logo on the
+game's night blue, made by `tools/art/app_icons.py`; the player page names them. The admin site's tab now shows the
+logo too.
+
+**Font.** Unkempt, chosen by the owner on 2026-11-15 and self-hosted (`web/player/src/global.css`): nothing to do.
+
+**Still open in Phase 66:** D10.9's remaining age 6-7 noun pictures and the demonstration card art (they come with
+content, through the picture library); reading the new-alien card aloud (above).

@@ -8160,6 +8160,90 @@
       "notes": "preferred form of the on-dark variant (card: SVG preferred, variants default and on-dark); id exception (logo-on-dark is the PNG); file name derived; logo-svg with a cream outer stroke for #141633"
     },
     {
+      "id": "app-icon-512",
+      "file": "app-icon-512.png",
+      "family": "ui",
+      "conversation": null,
+      "card": "ui.app-icon — App icon (from the logo)",
+      "source": "derived",
+      "canvas": null,
+      "authorSize": [
+        512,
+        512
+      ],
+      "displaySize": [
+        512,
+        512
+      ],
+      "frames": 1,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "transparency": "opaque",
+      "atlas": null,
+      "rawPath": null,
+      "appPath": "web/player/public/assets/ui/app-icon-512.png",
+      "required": "M6",
+      "notes": "Phase 66: logo-on-dark.svg centred on #141633 with 10% padding, rendered by tools/art/app_icons.py (not render.py: no SVG source of its own)"
+    },
+    {
+      "id": "app-icon-192",
+      "file": "app-icon-192.png",
+      "family": "ui",
+      "conversation": null,
+      "card": "ui.app-icon — App icon (from the logo)",
+      "source": "derived",
+      "canvas": null,
+      "authorSize": [
+        192,
+        192
+      ],
+      "displaySize": [
+        192,
+        192
+      ],
+      "frames": 1,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "transparency": "opaque",
+      "atlas": null,
+      "rawPath": null,
+      "appPath": "web/player/public/assets/ui/app-icon-192.png",
+      "required": "M6",
+      "notes": "Phase 66: logo-on-dark.svg centred on #141633 with 10% padding, rendered by tools/art/app_icons.py (not render.py: no SVG source of its own)"
+    },
+    {
+      "id": "apple-touch-icon",
+      "file": "apple-touch-icon.png",
+      "family": "ui",
+      "conversation": null,
+      "card": "ui.app-icon — App icon (from the logo)",
+      "source": "derived",
+      "canvas": null,
+      "authorSize": [
+        180,
+        180
+      ],
+      "displaySize": [
+        180,
+        180
+      ],
+      "frames": 1,
+      "anchor": [
+        0.5,
+        0.5
+      ],
+      "transparency": "opaque",
+      "atlas": null,
+      "rawPath": null,
+      "appPath": "web/player/public/assets/ui/apple-touch-icon.png",
+      "required": "M6",
+      "notes": "Phase 66: logo-on-dark.svg centred on #141633 with 10% padding, rendered by tools/art/app_icons.py (not render.py: no SVG source of its own)"
+    },
+    {
       "id": "landing-hero",
       "file": "landing-hero.webp",
       "family": "screens",

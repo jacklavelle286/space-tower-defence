@@ -57,6 +57,12 @@ export const COPY = {
     settings: "Settings", // D4 P13
   },
   settings: {
+    // Phase 66 (D10.10 [PROPOSAL]): the combat sounds' volume and mute, kept on this computer.
+    soundHeading: "Sound",
+    soundVolume: "Sound effects volume",
+    soundOn: "Sound effects on",
+    soundTry: "Try it",
+    soundHint: "Only on this computer. The spoken words in activities are not changed.",
     // D4 P13 Settings and resets [PROPOSAL] copy: written for the grown-up
     heading: "Settings",
     back: "Home",

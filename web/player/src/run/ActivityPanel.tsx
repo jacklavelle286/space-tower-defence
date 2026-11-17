@@ -7,6 +7,7 @@
 //   acknowledged it (durability in online-only mode, spine S4); the server's judgement is the one that counts: if it
 //   disagrees with the reducer, the run is reloaded from the cloud save.
 // - Play goes to the ClipPlayer only. Nothing about sound touches attempts (AC-22).
+import { sounds } from "../sound/board";
 import { trapTab } from "@scd/shared";
 import { useClip, type ClipPlayer, type ClipRef } from "@scd/shared/audio";
 import { LearningPanel, PANEL_COPY, type CheckResult, type PanelActivity, type PanelStatus } from "@scd/shared/learning";
@@ -71,6 +72,10 @@ export function ActivityPanel(props: ActivityPanelProps) {
       return { kind: "not-saved" };
     }
     const server = ack.result.attempt;
+    // D10.10: a chime and the reward for a right answer, a soft neutral "not quite" for another try.
+    const correct = server?.correct ?? submitted.applied.attempt?.correct ?? false;
+    sounds.play(correct ? "sfx-correct" : "sfx-not-quite");
+    if (correct) window.setTimeout(() => sounds.play("sfx-reward"), 350);
     if (server !== undefined && server.correct !== submitted.applied.attempt?.correct) {
       // Optimistic UI, authoritative server: the cloud save decides what the child sees next.
       console.warn("attempt judged differently by the server; reloading the run", { slotId });

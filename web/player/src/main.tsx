@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import "./global.css";
 import { App } from "./App";
+import { sounds } from "./sound/board";
 import { loadConfig } from "./config";
 import { COPY } from "./copy/en-GB";
 import type { Services } from "./shell/services";
@@ -9,6 +10,8 @@ import type { Services } from "./shell/services";
 const root = document.getElementById("root");
 if (!root) throw new Error("index.html is missing #root");
 const reactRoot = createRoot(root);
+// The combat sounds may start only after a key or a tap (browser autoplay rules; Phase 66).
+for (const type of ["pointerdown", "keydown"] as const) window.addEventListener(type, () => sounds.unlock(), { capture: true, passive: true });
 
 async function services(): Promise<Services> {
   // `npm run dev` has no config.json and its origin is not a registered callback URL, so development uses a fake

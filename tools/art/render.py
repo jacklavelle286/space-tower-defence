@@ -81,6 +81,8 @@ def main() -> int:
             continue
         if args.id and e["id"] != args.id:
             continue
+        if e.get("source") == "derived":
+            continue  # made from other art by its own script (tools/art/app_icons.py), not from an SVG of its own
         w, h = e["authorSize"]
         for name in frame_files(e):
             src, dst = svg_path(e, name), output_path(e, name)
