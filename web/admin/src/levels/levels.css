@@ -102,3 +102,63 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Waves and wave sets tabs (Gate M, LD4). */
+.level-tabs {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0.5rem 0;
+}
+
+.level-tabs [role="tab"][aria-selected="true"] {
+  outline: 3px solid var(--focus, #f0a500);
+}
+
+.wave-row,
+.wave-set {
+  margin: 0.5rem 0;
+}
+
+.wave-row input[type="number"] {
+  width: 5rem;
+}
+
+.wave-controls label,
+.wave-tools label,
+.wave-set label.inline {
+  margin-right: 0.75rem;
+}
+
+.vary-preview {
+  border-left: 4px solid var(--focus, #f0a500);
+  padding-left: 0.75rem;
+}
+
+.mini-map {
+  width: 24rem;
+  max-width: 100%;
+  height: auto;
+}
+
+.mini-ground {
+  fill: #2a2248;
+}
+
+.mini-open {
+  fill: #7fe0ff;
+}
+
+.mini-closed {
+  fill: #5a5470;
+}
+
+.mini-preset {
+  fill: #f0a500;
+}
+
+.mini-label {
+  fill: #2a1e3d;
+  font: 700 40px sans-serif;
+  text-anchor: middle;
+}

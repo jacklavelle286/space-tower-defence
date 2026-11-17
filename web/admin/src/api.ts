@@ -638,8 +638,30 @@ export type LevelFile = {
     pads: { id: string; x: number; y: number; opensAfterWave: number }[];
     art: { backdrop: string | null; decorations: { art: string; x: number; y: number }[] };
   };
-  challengeWaves: Record<string, unknown>;
-  waveSets: Record<string, unknown>;
+  /** The editor's keyframes and hand-set waves (wave numbers, LD4). Never part of the planet document. */
+  design?: { keyframes?: number[]; overrides?: number[] };
+  /** The campaign's 50 waves, only in a level that owns the campaign (LD4); absent or [] otherwise. */
+  waves?: LevelWave[];
+  /** Challenge-only waves by ID ("<levelId>-..."), played only in this level's challenges. */
+  challengeWaves: Record<string, LevelWaveBody>;
+  /** The wave sets this level owns: "campaign" (with `waves`) and challenges ("<levelId>-..."), all on this map. */
+  waveSets: Record<string, LevelWaveSet>;
+};
+
+export type LevelGroup = { type: string; count: number; at: number; gap: number; cargo?: { type: string; count: number }[] };
+export type LevelWaveBody = { groups: LevelGroup[]; hpMult: number; speedMult: number };
+export type LevelWave = LevelWaveBody & { wave: number };
+export type LevelWaveSet = {
+  mode: "CAMPAIGN" | "CHALLENGE";
+  name: string;
+  mapId: string;
+  waves: (number | string)[];
+  meteorAfter: number[];
+  startCredits: number;
+  colonyHealth: number;
+  classes: string[];
+  padsOpenAsForWave: number;
+  presetPlacements: { padId: string; classId: string; level: number; targeting: "FRONT" | "FAST" | "CROWD" | "STRONG" }[];
 };
 
 export type LevelSummary = { levelId: string; name: string; status: "DRAFT"; updatedAt: string };

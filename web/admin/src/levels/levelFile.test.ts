@@ -1,6 +1,7 @@
 // Level files and templates (Gate M, LD3).
 import { buildRoute, nearestProgress, UNITS_PER_TILE } from "@scd/game-core";
 import { describe, expect, it } from "vitest";
+import shapes from "../../../../contracts/fixtures/levels/shapes.json";
 import { levelFileDownload, levelProblems, newLevel, numberPadsInRouteOrder, readLevelFile, TEMPLATES } from "./levelFile";
 
 describe("templates", () => {
@@ -46,5 +47,48 @@ describe("level files", () => {
     ["an extra key", JSON.stringify({ ...newLevel("zig", "Zig", "zigzag"), extra: 1 })],
   ])("refuses %s", (_name, text) => {
     expect(readLevelFile(text).ok).toBe(false);
+  });
+});
+
+describe("shared level file vectors (contracts/fixtures/levels/shapes.json)", () => {
+  it.each(Object.entries(shapes.valid))("accepts %s", (_name, level) => {
+    expect(readLevelFile(JSON.stringify(level)).ok).toBe(true);
+  });
+  it.each(Object.entries(shapes.invalid))("refuses %s", (_name, entry) => {
+    expect(readLevelFile(JSON.stringify(entry.level)).ok).toBe(false);
+  });
+});
+
+describe("waves and wave sets in the problems", () => {
+  it("the campaign template owns the campaign and has no blocking problem", () => {
+    const level = newLevel("moon2", "Moon two", "moonbeam-campaign");
+    expect(level.waves).toHaveLength(50);
+    expect(level.waveSets["campaign"]?.mapId).toBe("moon2");
+    expect(levelProblems(level).filter((p) => p.severity !== "warn").map((p) => [p.field, p.rule])).toEqual([]);
+  });
+
+  it("a G-15 refusal lands on the wave set's waves", () => {
+    const level = newLevel("zig", "Zig", "zigzag");
+    level.waveSets["zig-long"] = {
+      mode: "CHALLENGE", name: "Too long", mapId: "zig", waves: Array.from({ length: 99 }, (_, i) => (i % 50) + 1), meteorAfter: [],
+      startCredits: 200, colonyHealth: 20, classes: ["nova"], padsOpenAsForWave: 1, presetPlacements: [],
+    };
+    const parse = levelProblems(level).find((p) => p.rule === "parse");
+    expect(parse?.field).toBe("planet.waveSets.zig-long");
+  });
+
+  it("changing a wave a live challenge plays, or an endless template, warns", () => {
+    const level = newLevel("moon2", "Moon two", "moonbeam-campaign");
+    const w45 = level.waves?.[44];
+    const w7 = level.waves?.[6]; // blob-parade and wobble-rematch play wave 7
+    const w3 = level.waves?.[2]; // no challenge plays wave 3
+    if (w45 === undefined || w7 === undefined || w3 === undefined) throw new Error("waves");
+    w45.hpMult += 0.5;
+    w7.hpMult += 0.5;
+    w3.hpMult += 0.5;
+    const impact = levelProblems(level).filter((p) => p.rule === "impact").map((p) => p.field);
+    expect(impact).toContain("planet.waves[44]");
+    expect(impact).toContain("planet.waves[6]");
+    expect(impact).not.toContain("planet.waves[2]");
   });
 });

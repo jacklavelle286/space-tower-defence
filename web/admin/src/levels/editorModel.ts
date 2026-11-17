@@ -47,7 +47,9 @@ export type Action =
   | { readonly type: "rename"; readonly name: string }
   | { readonly type: "undo" }
   | { readonly type: "redo" }
-  | { readonly type: "replace"; readonly level: LevelFile };
+  | { readonly type: "replace"; readonly level: LevelFile }
+  /** Any other edit (the waves and wave sets tabs build the new level): one step of the undo history. */
+  | { readonly type: "edit"; readonly level: LevelFile };
 
 export function initialEditor(level: LevelFile): EditorState {
   return { level, past: [], future: [], tool: "route", cursor: [0, 5], decoration: "deco-rock-1", refusal: null };
@@ -203,6 +205,8 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
       if (next === undefined) return { ...state, refusal: "Nothing to redo." };
       return { ...state, level: next, past: [...state.past, state.level], future: state.future.slice(1), refusal: null };
     }
+    case "edit":
+      return edited(state, action.level);
     case "replace":
       return { ...initialEditor(action.level), tool: state.tool, cursor: state.cursor, decoration: state.decoration };
   }
