@@ -5,6 +5,7 @@
 //   WRITE_GOLDEN=1 npx vitest run src/golden.test.ts      (in web/game-core; only for a file that does not exist yet)
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { env } from "node:process";
 import { describe, expect, it } from "vitest";
 import { GAME_DATA_DIR } from "../scripts/build-bounds";
 import { betweenWaves, competentPolicy, fightWave, startingSnapshot } from "./bot";
@@ -57,7 +58,7 @@ describe("golden scenarios (G-9)", () => {
   it.each(SCENARIOS.map((s) => [s.id, s] as const))("%s plays as it did when it was recorded", (id, s) => {
     const file = join(GOLDEN, `${id}.json`);
     const now = play(s);
-    if (process.env["WRITE_GOLDEN"] === "1" && !existsSync(file)) writeFileSync(file, `${JSON.stringify(now, null, 1)}\n`);
+    if (env["WRITE_GOLDEN"] === "1" && !existsSync(file)) writeFileSync(file, `${JSON.stringify(now, null, 1)}\n`);
     expect(existsSync(file), `${file} is missing: record it once with WRITE_GOLDEN=1`).toBe(true);
     expect(now).toEqual(JSON.parse(readFileSync(file, "utf8")));
   }, 120_000);
