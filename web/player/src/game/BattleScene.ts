@@ -28,6 +28,10 @@ const COLONY_PX = 240;
 /** Colony feet relative to the gate tile centre: pulled left so it fits on the canvas and sits over the route end. */
 const COLONY_DX = -72;
 const COLONY_DY = 74;
+/** A slowed alien is drawn with a frost tint while its slow lasts (C5.4; cosmetic, read from the battle state). */
+const FROST_TINT = 0x9fd8ff;
+/** Sol's buff ring in the pad preview (C5.6), a different colour from an attacker's range circle. */
+const BUFF_RING = 0xffc857;
 
 const LOOPED: readonly ArtAsset[] = [ART.portal, ART.blobWalk, ...ASTRONAUT_LOOPED, ART.novaBeam1, ART.novaBeam2, ART.novaBeam3];
 const ONE_SHOT: readonly ArtAsset[] = [...ASTRONAUT_ONE_SHOT, ART.popStars, ART.leak, ART.place];
@@ -152,11 +156,13 @@ export class BattleScene extends Scene {
     const tower = battle?.towers.find((t) => t.padId === selected);
     const pad = this.#bridge.config.pads.find((p) => p.id === selected);
     if (tower === undefined || pad === undefined) return;
-    // Mira and Sol have no shot, so no attack range to preview (Sol's buff ring belongs to Phase 25).
-    const shot = this.#bridge.config.classes[tower.classId]?.levels[tower.level - 1]?.shot;
-    if (shot === undefined || shot === null) return;
-    range.fillStyle(0xfff4d6, 0.12).fillCircle(tileToPx(pad.x), tileToPx(pad.y), shot.rangeTiles * TILE_PX);
-    range.lineStyle(4, 0xfff4d6, 0.7).strokeCircle(tileToPx(pad.x), tileToPx(pad.y), shot.rangeTiles * TILE_PX);
+    // An attacker shows its range; Sol shows the ring her buff reaches (pad centres inside it, C5.6); Mira has none.
+    const level = this.#bridge.config.classes[tower.classId]?.levels[tower.level - 1];
+    const radius = level?.shot?.rangeTiles ?? level?.buff?.radiusTiles;
+    if (radius === undefined) return;
+    const colour = level?.shot ? 0xfff4d6 : BUFF_RING;
+    range.fillStyle(colour, 0.12).fillCircle(tileToPx(pad.x), tileToPx(pad.y), radius * TILE_PX);
+    range.lineStyle(4, colour, 0.7).strokeCircle(tileToPx(pad.x), tileToPx(pad.y), radius * TILE_PX);
   }
 
   #drawTowers(battle: Readonly<Battle>): void {
@@ -242,6 +248,8 @@ export class BattleScene extends Scene {
         this.#aliens.set(alien.id, sprite);
       }
       sprite.setPosition(x, y).setDepth(10 + y / 1000);
+      if (alien.slowTicksLeft > 0) sprite.setTint(FROST_TINT);
+      else sprite.clearTint();
     }
     for (const [id, sprite] of this.#aliens) {
       if (present.has(id)) continue;
