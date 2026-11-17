@@ -62,6 +62,8 @@ describe("check", () => {
     mkdirSync(join(dir, "ruleset"));
     mkdirSync(join(dir, "campaign"));
     copyFileSync(join(GAME_DATA_DIR, "ruleset", "r4.json"), join(dir, "ruleset", "r4.json"));
+    mkdirSync(join(dir, "asset-manifest")); // the build requires m1 (Gate M, LD8)
+    copyFileSync(join(GAME_DATA_DIR, "asset-manifest", "m1.json"), join(dir, "asset-manifest", "m1.json"));
     writeFileSync(join(dir, "campaign", "luna-1-a1.json"), out.planetJson ?? "");
     writeFileSync(join(dir, "current.json"), JSON.stringify({ rulesetVersion: "r4", campaignVersion: "luna-1-a1" }));
     const build = buildGameData(dir);
