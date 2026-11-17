@@ -51,6 +51,24 @@ describe("route tool", () => {
     expect(nextRoutePoint([[0, 5], [4, 5], [4, 9], [8, 9], [8, 2]], [8, 5])).toEqual({ refusal: "The route cannot cross itself." });
   });
 
+  it("with routes in any direction (LD11, behind ANY_DIRECTION_ROUTES): any edge, either turn, any edge out", () => {
+    expect(nextRoutePoint([], [5, 5])).toEqual({ refusal: "Start the route on the left edge." }); // off today
+    expect(nextRoutePoint([], [7, 0], true)).toEqual({ point: [7, 0] });
+    expect(nextRoutePoint([], [5, 5], true)).toEqual({ refusal: "Start the route on an edge of the map." });
+    expect(nextRoutePoint([[7, 0]], [12, 0], true)).toEqual({ refusal: "Leave the portal heading into the map." });
+    expect(nextRoutePoint([[7, 0]], [7, 6], true)).toEqual({ point: [7, 6] });
+    expect(nextRoutePoint([[7, 0], [7, 6]], [2, 6], true)).toEqual({ point: [2, 6] }); // a left turn
+    expect(nextRoutePoint([[7, 0], [7, 6]], [2, 6])).toEqual({ refusal: "Turns left: no route art for that yet." });
+    expect(nextRoutePoint([[7, 0], [7, 6], [2, 6], [2, 10]], [5, 10], true)).toEqual({
+      refusal: "The route already reaches the colony. Backspace takes the last point back.",
+    });
+    expect(nextRoutePoint([[7, 0], [7, 6], [0, 6]], [0, 9], true)).toEqual({
+      refusal: "The route already reaches the colony. Backspace takes the last point back.",
+    });
+    // Running along an edge is not leaving by it: the route goes on.
+    expect(nextRoutePoint([[0, 0], [0, 6]], [5, 6], true)).toEqual({ point: [5, 6] });
+  });
+
   it("Backspace takes the last point back; a route over a pad removes the pad", () => {
     let s = run(initialEditor(blank()), ...at(0, 5), ...at(10, 5), { type: "tool", tool: "pads" }, ...at(15, 5));
     expect(s.level.map.pads.map((p) => [p.x, p.y])).toEqual([[15, 5]]);

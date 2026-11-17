@@ -10,7 +10,7 @@
 //                order after every pad or route edit.
 //   decorations  a free cell places the chosen decoration; a decorated cell removes it.
 // Moving the cursor never changes the level, so it is not in the history.
-import { GRID_COLS, GRID_ROWS } from "@scd/game-core";
+import { ANY_DIRECTION_ROUTES, entersFrom, GRID_COLS, GRID_ROWS, headingOf, leavesBy } from "@scd/game-core";
 import type { LevelFile } from "../api";
 import { numberPadsInRouteOrder, padId, type Cell } from "./levelFile";
 
@@ -74,18 +74,33 @@ export function routeCellSet(route: readonly (readonly [number, number])[]): Set
   return out;
 }
 
-/** Where a click on `cell` puts the next route point, or why it cannot. */
-export function nextRoutePoint(route: readonly (readonly [number, number])[], cell: Cell): { point: [number, number] } | { refusal: string } {
+/** Where a click on `cell` puts the next route point, or why it cannot. With `anyDirection` (ANY_DIRECTION_ROUTES, LD11)
+ *  the route starts on any edge heading into the map, turns either way and ends on any edge heading off it. */
+export function nextRoutePoint(
+  route: readonly (readonly [number, number])[],
+  cell: Cell,
+  anyDirection: boolean = ANY_DIRECTION_ROUTES,
+): { point: [number, number] } | { refusal: string } {
   const [x, y] = cell;
   const last = route[route.length - 1];
-  if (last === undefined) return x === 0 ? { point: [x, y] } : { refusal: "Start the route on the left edge." };
-  if (last[0] === GRID_COLS - 1 && route.length > 1) return { refusal: "The route already reaches the colony. Backspace takes the last point back." };
+  const onEdge = x === 0 || y === 0 || x === GRID_COLS - 1 || y === GRID_ROWS - 1;
+  if (last === undefined) {
+    if (anyDirection) return onEdge ? { point: [x, y] } : { refusal: "Start the route on an edge of the map." };
+    return x === 0 ? { point: [x, y] } : { refusal: "Start the route on the left edge." };
+  }
+  const before = route[route.length - 2];
+  const done =
+    route.length > 1 && (anyDirection ? before !== undefined && leavesBy(last[0], last[1], headingOf(last[0] - before[0], last[1] - before[1])) : last[0] === GRID_COLS - 1);
+  if (done) return { refusal: "The route already reaches the colony. Backspace takes the last point back." };
   // Snap straight: keep the bigger move, drop the smaller.
   const dx = x - last[0];
   const dy = y - last[1];
   const point: [number, number] = Math.abs(dx) >= Math.abs(dy) ? [x, last[1]] : [last[0], y];
   if (point[0] === last[0] && point[1] === last[1]) return { refusal: "Choose a cell in the same row or column as the last point." };
-  if (point[0] < last[0]) return { refusal: "Turns left: no route art for that yet." };
+  if (!anyDirection && point[0] < last[0]) return { refusal: "Turns left: no route art for that yet." };
+  if (anyDirection && route.length === 1 && !entersFrom(last[0], last[1], headingOf(point[0] - last[0], point[1] - last[1]))) {
+    return { refusal: "Leave the portal heading into the map." };
+  }
   // Going back over the route (a reversal) is a crossing too.
   const taken = routeCellSet(route);
   taken.delete(`${last[0]},${last[1]}`);
