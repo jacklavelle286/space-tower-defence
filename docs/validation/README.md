@@ -13,6 +13,8 @@ birth, no e-mail addresses. Children are "child A, age 6".
 | [playtests/P3.md](playtests/P3.md) | Playtest P3 notes: the campaign over several visits, meteors, bosses, badges | Phase 56 |
 | [performance/ac42-measurement.md](performance/ac42-measurement.md) | The AC-42 procedure (perf build, wave 37 at 2x, the synthetic scene, frame recorder) and its record | Phase 34 |
 | [ld0-spikes.md](ld0-spikes.md) | Gate M LD0: TypeScript test players against the simulator, admin bundle size, check run time | Phase LD0 |
+| [am0-animation.md](am0-animation.md) | Gate M AM0: walk frames made from one drawing beside the hand-drawn ones, and the owner's verdict | Phase AM0 |
+| [ld11-routes.md](ld11-routes.md) | Gate M LD11: the route tiles for any direction, four fixture maps, Moonbeam pixel-identical | Phase LD11 |
 | [browsers.md](browsers.md) | One-clip check per browser the family uses (I.2.9 "Browser matrix") | Phase 23 |
 
 The deployed Playwright journeys that produce part of this evidence are in
