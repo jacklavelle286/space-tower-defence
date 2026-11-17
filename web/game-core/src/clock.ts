@@ -22,11 +22,12 @@ export const STEP_UNITS = (1000 * UNITS_PER_MS) / STEPS_PER_SECOND;
 /** A frame longer than this (a stall, a breakpoint, a background tab) counts as this long. */
 export const MAX_FRAME_MS = 250;
 
-/** Most steps one frame may run: 250 ms at 2x is 30,000 units, 30 steps. Beyond it the leftover is discarded. */
+/** Most steps one frame may run: 250 ms at 2x is 30,000 units, 30 steps (4x reaches it sooner on a stalled frame). Beyond
+ *  it the leftover is discarded. */
 export const MAX_STEPS_PER_FRAME = 30;
 
-/** Battle speed: 1x or 2x (C2.1). */
-export type Speed = 1 | 2;
+/** Battle speed: 1x or 2x (C2.1); 4x only in the admin's battle preview (Gate M, LD12), never offered to children. */
+export type Speed = 1 | 2 | 4;
 
 /** What the clock carries from one frame to the next. */
 export interface ClockState {
@@ -51,7 +52,7 @@ export interface ClockFrame {
  *
  * @param state the bank carried from the previous frame (a whole, non-negative number of units)
  * @param deltaMs milliseconds since the previous frame, as the host measured them
- * @param speed battle speed, 1 or 2
+ * @param speed battle speed, 1 or 2 (4 in the admin's preview)
  * @param paused true while the simulation is paused (page hidden, dialog or learning panel open)
  */
 export function advanceClock(state: ClockState, deltaMs: number, speed: Speed, paused: boolean): ClockFrame {

@@ -6,6 +6,7 @@ export {
   fightWave,
   learnSucceeds,
   MAX_WAVE_TICKS,
+  playUpTo,
   playWaveSet,
   startingSnapshot,
   type BotRunOptions,

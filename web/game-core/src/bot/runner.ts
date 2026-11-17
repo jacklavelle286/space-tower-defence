@@ -129,30 +129,52 @@ export function fightWave(battle: Battle, policy: Policy | null): WaveRow {
   };
 }
 
+/** The snapshot after interval `interval` (the wave just cleared): its learning reward and meteor charge, paid when
+ *  the learning "succeeds" (learnSucceeds). */
+function afterInterval(ruleset: Ruleset, config: BattleConfig, snapshot: Snapshot, interval: number, learn: number, meteors: boolean): Snapshot {
+  let credits = snapshot.credits;
+  const powers = { ...snapshot.powers };
+  if (learnSucceeds(learn, interval)) credits += learningReward(ruleset, interval);
+  const j = config.waveSet.meteorAfter.indexOf(interval) + 1;
+  if (meteors && j > 0 && learnSucceeds(learn, interval + 1000)) {
+    const powerId = meteorAward(ruleset, j);
+    if (powerId !== null) powers[powerId] = Math.min(ruleset.powerRules.inventoryCapPerPower, (powers[powerId] ?? 0) + 1);
+  }
+  return { ...snapshot, credits, powers };
+}
+
+/**
+ * What a test player holds when wave `wave` is about to start (Gate M, LD12: the admin's battle preview jumps to a
+ * wave): it plays waves 1 to wave - 1 with `policy` and is paid between them, as playWaveSet. `defeatedAt` is the
+ * wave it lost, if it did (the snapshot is then the one it lost with, to show the operator).
+ */
+export function playUpTo(ruleset: Ruleset, config: BattleConfig, policy: Policy, wave: number, options: BotRunOptions): { snapshot: Snapshot; defeatedAt: number | null } {
+  let snapshot = startingSnapshot(config);
+  for (let w = 1; w < Math.min(wave, config.waves.length + 1); w += 1) {
+    if (w > 1) snapshot = afterInterval(ruleset, config, snapshot, w - 1, options.learn, options.meteors ?? true);
+    const battle = createBattle(config, snapshot, w, options.runSeed ?? "bot");
+    policy.prep(battle);
+    const row = fightWave(battle, policy);
+    policy.afterWave({ leakDamage: row.leakDamage, penetration: row.penetration });
+    if (!row.cleared) return { snapshot: battleSnapshot(battle), defeatedAt: w };
+    snapshot = battleSnapshot(battle);
+  }
+  if (wave > 1) snapshot = afterInterval(ruleset, config, snapshot, wave - 1, options.learn, options.meteors ?? true);
+  return { snapshot, defeatedAt: null };
+}
+
 /** Plays the wave set from its first wave with `policy` until defeat or the last wave (tools/sim run_campaign). */
 export function playWaveSet(ruleset: Ruleset, config: BattleConfig, policy: Policy, options: BotRunOptions): BotRunResult {
   const { learn } = options;
   const last = Math.min(options.maxWave ?? config.waves.length, config.waves.length);
   const meteors = options.meteors ?? true;
-  const cap = ruleset.powerRules.inventoryCapPerPower;
   let snapshot = startingSnapshot(config);
   const rows: WaveRow[] = [];
   let cleared = 0;
   let defeatedAt: number | null = null;
   let health = snapshot.colony.health;
   for (let wave = 1; wave <= last; wave += 1) {
-    if (wave > 1) {
-      const interval = wave - 1;
-      let credits = snapshot.credits;
-      const powers = { ...snapshot.powers };
-      if (learnSucceeds(learn, interval)) credits += learningReward(ruleset, interval);
-      const j = config.waveSet.meteorAfter.indexOf(interval) + 1;
-      if (meteors && j > 0 && learnSucceeds(learn, interval + 1000)) {
-        const powerId = meteorAward(ruleset, j);
-        if (powerId !== null) powers[powerId] = Math.min(cap, (powers[powerId] ?? 0) + 1);
-      }
-      snapshot = { ...snapshot, credits, powers };
-    }
+    if (wave > 1) snapshot = afterInterval(ruleset, config, snapshot, wave - 1, learn, meteors);
     const battle = createBattle(config, snapshot, wave, options.runSeed ?? "bot");
     policy.prep(battle);
     const row = fightWave(battle, policy);

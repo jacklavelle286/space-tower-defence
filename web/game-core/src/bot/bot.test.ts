@@ -6,7 +6,7 @@ import { describe, expect, it } from "vitest";
 import { GAME_DATA_DIR } from "../../scripts/build-bounds";
 import { parsePlanet, parseRuleset } from "../data/game-data";
 import { compileBattleConfig } from "../sim/config";
-import { competentPolicy, deriveBlueprint, learnSucceeds, MOONBEAM_BLUEPRINT, minimalPolicy, naivePolicy, nonePolicy, playWaveSet, presetsOnlyPolicy } from ".";
+import { competentPolicy, deriveBlueprint, learnSucceeds, MOONBEAM_BLUEPRINT, minimalPolicy, naivePolicy, nonePolicy, playUpTo, playWaveSet, presetsOnlyPolicy } from ".";
 
 const rs = parseRuleset(JSON.parse(readFileSync(join(GAME_DATA_DIR, "ruleset", "r4.json"), "utf8")));
 const planet = parsePlanet(JSON.parse(readFileSync(join(GAME_DATA_DIR, "campaign", "luna-1-c2.json"), "utf8")), rs);
@@ -91,5 +91,21 @@ describe("derived pad plan", () => {
 
   it("the simulator's Moonbeam plan names every Moonbeam pad", () => {
     expect(Object.keys(MOONBEAM_BLUEPRINT).sort()).toEqual(campaign.pads.map((p) => p.id).sort());
+  });
+});
+
+describe("playUpTo (LD12: the battle preview jumps to a wave)", () => {
+  it("holds what playWaveSet's test player holds when that wave starts", () => {
+    const r4 = parseRuleset(JSON.parse(readFileSync(join(GAME_DATA_DIR, "ruleset", "r4.json"), "utf8")));
+    const luna = parsePlanet(JSON.parse(readFileSync(join(GAME_DATA_DIR, "campaign", "luna-1-c2.json"), "utf8")), r4);
+    const config = compileBattleConfig(r4, luna, "campaign");
+    const full = playWaveSet(r4, config, competentPolicy(config), { learn: 0.6, maxWave: 6 });
+    const at6 = playUpTo(r4, config, competentPolicy(config), 6, { learn: 0.6 });
+    expect(at6.defeatedAt).toBeNull();
+    // Wave 5's credits when it ended, plus interval 5's learning reward when the learning succeeds.
+    const credits5 = full.rows[4]?.credits ?? 0;
+    expect(at6.snapshot.credits).toBeGreaterThanOrEqual(credits5);
+    expect(at6.snapshot.placements.length).toBeGreaterThan(0);
+    expect(playUpTo(r4, config, competentPolicy(config), 1, { learn: 0.6 }).snapshot.credits).toBe(config.waveSet.startCredits);
   });
 });
