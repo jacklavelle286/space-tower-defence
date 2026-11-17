@@ -115,6 +115,13 @@ function gains(prev: LevelStats, next: LevelStats): string {
   return out.length > 0 ? out.join(", ") : "stronger";
 }
 
+/** What upgrading the class from `level` to the next adds ("faster shots"), or null at the top level (D4 panel). */
+export function upgradeGain(cls: ClassStats, level: number): string | null {
+  const prev = cls.levels[level - 1];
+  const next = cls.levels[level];
+  return prev === undefined || next === undefined ? null : gains(prev, next);
+}
+
 /** value as stars against best: at least 1 for anything above 0, MAX_STARS at best. */
 function stars(value: number, best: number): number {
   if (best <= 0 || value <= 0) return 1;

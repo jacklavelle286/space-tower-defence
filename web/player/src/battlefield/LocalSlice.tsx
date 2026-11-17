@@ -4,15 +4,15 @@ import { loadCurrent, loadGameDataVersions, type GameData } from "../game/gameDa
 import { LocalRun } from "../game/localRun";
 import { ActivityPlaceholder, PLACEHOLDER_ANSWER } from "./ActivityPlaceholder";
 import { devBossWaves, devPowers, devWave } from "./devWave";
-import { DevPowers } from "./DevPowers";
 import { Battlefield, WAVE_SET_ID } from "./Battlefield";
 import { useGameBridge } from "./bridgeContext";
 import { EndScreen } from "./EndScreen";
 import { Hud } from "./Hud";
-import { PadPanel } from "./PadPanel";
 import { PausedCard } from "./PausedCard";
 import { useAutoPlay, type AutoPlayMode } from "./useAutoPlay";
 import { useHud } from "./useBridge";
+import { BattlefieldControls } from "../hud/BattlefieldControls";
+import "../run/run.css";
 
 interface LocalOptions {
   /** The run seed (the server makes 64 random bits in the real game, spine S5.1). */
@@ -162,11 +162,12 @@ export function LocalSlice() {
   else
     body = (
       <Battlefield key={game.n} data={data} waveSetId={WAVE_SET_ID} run={game.run} seed={options.seed} speed={options.speed}>
-        <Overlays run={game.run} autoPlay={options.autoPlay} devPowers={options.powers !== null} onNewGame={newGame} />
+        <Overlays run={game.run} autoPlay={options.autoPlay} onNewGame={newGame} />
       </Battlefield>
     );
   return (
-    <main style={{ margin: 0, minHeight: "100vh", background: "#141633", color: "#FFF4D6" }}>
+    // The run screen's one-window layout (run.css), so the local slice shows what a real run looks like.
+    <main className="run-screen">
       <h1 style={{ margin: 0, padding: "8px 16px", fontSize: 28 }}>Space Colony Defence</h1>
       {body}
     </main>
@@ -176,12 +177,10 @@ export function LocalSlice() {
 function Overlays({
   run,
   autoPlay,
-  devPowers: showDevPowers,
   onNewGame,
 }: {
   run: LocalRun;
   autoPlay: AutoPlayMode | null;
-  devPowers: boolean;
   onNewGame: () => void;
 }) {
   const bridge = useGameBridge();
@@ -191,8 +190,7 @@ function Overlays({
   return (
     <>
       <Hud bridge={bridge} hud={hud} />
-      {showDevPowers && !ended && <DevPowers bridge={bridge} hud={hud} />}
-      {!ended && hud.runPhase !== "ACTIVITY" && <PadPanel bridge={bridge} credits={hud.credits} />}
+      <BattlefieldControls bridge={bridge} hud={hud} active={!ended && hud.runPhase !== "ACTIVITY"} />
       {hud.runPhase === "ACTIVITY" && <ActivityPlaceholder run={run} afterWave={hud.wave - 1} />}
       {hud.paused && !ended && hud.battle === "IN_WAVE" && <PausedCard bridge={bridge} />}
       {ended && <EndScreen hud={hud} onAction={onNewGame} actionLabel="New game" />}

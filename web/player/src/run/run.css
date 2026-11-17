@@ -88,3 +88,13 @@
   position: relative;
   flex: 1;
 }
+
+/* Phase 31: the stage is a grid (battlefield.css); the board row takes whatever height the HUD, powers and shop
+   leave, so the window still never scrolls. */
+.run-screen .bf-stage {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.run-screen .bf-canvas {
+  height: 100%;
+}

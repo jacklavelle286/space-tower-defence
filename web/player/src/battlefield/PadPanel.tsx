@@ -1,27 +1,32 @@
-// What a selected pad offers: a card for each class the wave set lists, on an open empty pad, or upgrade / sell for
-// the astronaut on it. Prices and refusals come from the bridge, which asks game-core (checkCommand); the simulation
-// still checks every command when it applies (AC-09). With ruleset r1 the wave set lists only Nova, so the live game
-// shows the single Nova card it always did. The full shop (D4: role, explanation, "Need 15 more", cap tokens, Aim) is
-// the Phase 31 HUD; this is the Phase 24 minimum to place the new classes on the local battlefield. Each card shows
-// a summary of the class (classSummary.ts) on hover and on keyboard focus, read out as the button's description.
+// The panel for a selected pad (D4 "Selected astronaut panel"). On an open empty pad: a card for each class the wave
+// set lists (choosing a pad first is the other way to place; the shop is the main one, Phase 31). On an astronaut:
+// its level, Upgrade with its cost and a short benefit line ("faster shots"), Send home with the refund (confirmed
+// in a dialog, D5.2), and Aim: the targeting choices the class has at its level (C5.3). Prices and refusals come from
+// the bridge, which asks game-core (checkCommand); the simulation still checks every command when it applies (AC-09).
 import type { GameBridge } from "../game/GameBridge";
-import { classSummary, MAX_STARS } from "./classSummary";
+import { ClassTip } from "../hud/ClassTip";
+import { aimChoices } from "../hud/padNav";
+import { classSummary, upgradeGain } from "./classSummary";
 import { useSelection } from "./useBridge";
 
-export function PadPanel({ bridge, credits }: { bridge: GameBridge; credits: number }) {
+const AIM_NAMES = { FRONT: "Front", FAST: "Fastest", CROWD: "Biggest group", STRONG: "Strongest" } as const;
+
+export function PadPanel({ bridge, credits, onSendHome }: { bridge: GameBridge; credits: number; onSendHome: () => void }) {
   const selection = useSelection(bridge);
   if (selection === null) {
     return null;
   }
   const { padId, tower } = selection;
+  const cls = tower === null ? undefined : bridge.config.classes[tower.classId];
+  const gain = tower !== null && cls !== undefined ? upgradeGain(cls, tower.level) : null;
+  const choices = tower === null ? [] : aimChoices(bridge.config, tower.classId, tower.level);
   return (
     <div className="bf-panel" role="dialog" aria-label="Pad">
       {tower === null && !selection.open && <p>This pad opens later in the game.</p>}
       {selection.offers.map((offer) => {
         // A locked class shows its silhouette card and when it unlocks (D4, C5.9).
         const locked = offer.refusal === "CLASS_LOCKED";
-        const cls = bridge.config.classes[offer.classId];
-        const summary = cls === undefined ? null : classSummary(cls, bridge.config.classes);
+        const offered = bridge.config.classes[offer.classId];
         const tipId = `bf-tip-${offer.classId}`;
         return (
           <div key={offer.classId} className="bf-offer">
@@ -29,7 +34,7 @@ export function PadPanel({ bridge, credits }: { bridge: GameBridge; credits: num
               type="button"
               className="bf-card-button"
               disabled={offer.refusal !== null}
-              aria-describedby={summary === null ? undefined : tipId}
+              aria-describedby={offered === undefined ? undefined : tipId}
               onClick={() => {
                 bridge.place(padId, offer.classId);
               }}
@@ -40,36 +45,7 @@ export function PadPanel({ bridge, credits }: { bridge: GameBridge; credits: num
               </span>
               {locked && <span className="bf-card-note">Unlocks after wave {offer.unlockAfterWave}</span>}
             </button>
-            {summary !== null && (
-              <div className="bf-tip" id={tipId} role="tooltip">
-                <strong>{summary.title}</strong>
-                <p>{summary.line}</p>
-                <dl className="bf-tip-stars">
-                  {summary.ratings.map((r) => (
-                    <div key={r.label}>
-                      <dt>{r.label}</dt>
-                      <dd aria-label={`${r.stars} of ${MAX_STARS} stars`}>
-                        <span aria-hidden="true">
-                          <span className="bf-star-on">{"★".repeat(r.stars)}</span>
-                          <span className="bf-star-off">{"★".repeat(MAX_STARS - r.stars)}</span>
-                        </span>
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-                <ul>
-                  {summary.facts.map((f) => (
-                    <li key={f}>{f}</li>
-                  ))}
-                </ul>
-                <ul className="bf-tip-upgrades">
-                  {summary.upgrades.map((u) => (
-                    <li key={u}>{u}</li>
-                  ))}
-                </ul>
-                {summary.quote !== null && <p className="bf-tip-quote">"{summary.quote}"</p>}
-              </div>
-            )}
+            {offered !== undefined && <ClassTip id={tipId} summary={classSummary(offered, bridge.config.classes)} />}
           </div>
         );
       })}
@@ -79,13 +55,37 @@ export function PadPanel({ bridge, credits }: { bridge: GameBridge; credits: num
             {tower.name}, level {tower.level}
           </p>
           {selection.upgradeCost !== null && (
-            <button type="button" className="bf-big" disabled={credits < selection.upgradeCost} onClick={() => bridge.upgrade(padId)}>
+            <button
+              type="button"
+              className="bf-big"
+              disabled={credits < selection.upgradeCost}
+              aria-keyshortcuts="U"
+              onClick={() => bridge.upgrade(padId)}
+            >
               Upgrade <img className="bf-coin" src="/assets/ui/icon-credits.svg" alt="credits" /> {selection.upgradeCost}
+              {gain !== null && <span className="bf-gain">{gain}</span>}
             </button>
           )}
+          {choices.length > 1 && (
+            <span className="bf-aim" role="group" aria-label="Aim">
+              Aim:
+              {choices.map((mode) => (
+                <button
+                  key={mode}
+                  type="button"
+                  className="bf-small"
+                  aria-pressed={tower.targeting === mode}
+                  aria-keyshortcuts="T"
+                  onClick={() => bridge.setTargeting(padId, mode)}
+                >
+                  {AIM_NAMES[mode]}
+                </button>
+              ))}
+            </span>
+          )}
           {selection.sellRefund !== null && (
-            <button type="button" className="bf-small" onClick={() => bridge.sell(padId)}>
-              Sell (+{selection.sellRefund})
+            <button type="button" className="bf-small" aria-keyshortcuts="X" onClick={onSendHome}>
+              Send home (+{selection.sellRefund})
             </button>
           )}
         </>

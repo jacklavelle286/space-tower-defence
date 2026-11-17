@@ -10,12 +10,12 @@ import { Battlefield } from "../battlefield/Battlefield";
 import { useGameBridge } from "../battlefield/bridgeContext";
 import { EndScreen } from "../battlefield/EndScreen";
 import { Hud } from "../battlefield/Hud";
-import { PadPanel } from "../battlefield/PadPanel";
 import { PausedCard } from "../battlefield/PausedCard";
 import { useHud } from "../battlefield/useBridge";
 import { COPY } from "../copy/en-GB";
 import type { GameBridge } from "../game/GameBridge";
 import type { GameData } from "../game/gameData";
+import { BattlefieldControls } from "../hud/BattlefieldControls";
 import type { SyncQueue } from "../sync/queue";
 import { SyncChip } from "../sync/SyncChip";
 import type { AckTracker } from "./ackTracker";
@@ -404,7 +404,7 @@ function RunOverlays({
   return (
     <>
       <Hud bridge={bridge} hud={hud} />
-      {!ended && panelSlot === null && hud.runPhase !== "ACTIVITY" && <PadPanel bridge={bridge} credits={hud.credits} />}
+      <BattlefieldControls bridge={bridge} hud={hud} active={!ended && panelSlot === null && hud.runPhase !== "ACTIVITY"} />
       {panelSlot !== null && !ended ? (
         <ActivityPanel
           run={run}
