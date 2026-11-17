@@ -4,6 +4,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { DECORATIONS, frameUrl } from "@scd/shared/map";
 import { alienArt, allFrames, ART, bossArt, bossBubbleArt, bubbleLayersArt, hasAlienArt, POWER_ART, powerFrames } from "./assets";
 
 const REPO = join(import.meta.dirname, "..", "..", "..", "..");
@@ -30,6 +31,23 @@ describe("battlefield art", () => {
       anchor: entry?.anchor,
       displaySize: entry?.displaySize,
     }).toEqual({ path: asset.path, frames: asset.frames, anchor: [...asset.anchor], displaySize: [...asset.displaySize] });
+  });
+
+  it.each(Object.values(DECORATIONS).map((a) => [a.id, a]))("decoration %s matches its catalogue entry and its file exists (LD1)", (id, asset) => {
+    const entry = byId.get(id);
+    expect(entry, `catalogue has no ${id}`).toBeDefined();
+    expect({
+      path: `/${entry?.appPath?.replace(/^web\/player\/public\//, "")}`,
+      frames: entry?.frames,
+      anchor: entry?.anchor,
+      displaySize: entry?.displaySize,
+    }).toEqual({ path: asset.path, frames: asset.frames, anchor: [...asset.anchor], displaySize: [...asset.displaySize] });
+    expect(existsSync(join(PUBLIC, frameUrl(asset, 1)))).toBe(true);
+  });
+
+  it("every catalogued decoration is offered to maps", () => {
+    const catalogued = catalogue.assets.filter((a) => a.id.startsWith("deco-")).map((a) => a.id).sort();
+    expect(Object.keys(DECORATIONS).sort()).toEqual(catalogued);
   });
 
   it("every alien in every ruleset in game-data/ has its own art (Phase 26)", () => {

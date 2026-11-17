@@ -1,61 +1,20 @@
-// The art the battlefield uses, loaded by path from /assets/ until the asset manifest exists (Phase 64).
+// The art the battlefield uses, loaded by path from /assets/ until the asset manifest exists (Phase 64). The map's
+// entries and the ArtAsset type live in @scd/shared/map (Gate M, LD1).
 //
 // Each entry copies its catalogue entry in docs/art/asset-catalogue.json: the app path, the frame count and file
 // pattern ({nn} = 01..frames), the anchor (normalised origin) and the display size on the 1920 x 1056 logical
 // canvas. The PNGs are drawn at 2x (authorSize), so sprites are always shown scaled down to displaySize.
 // assets.test.ts checks every entry against the catalogue, so a renamed or resized asset fails the tests.
 
-export interface ArtAsset {
-  /** Catalogue id; also the Phaser texture key (frame n of an animation is `${id}-${nn}`). */
-  readonly id: string;
-  /** URL path, with {nn} for an animation's frame number. */
-  readonly path: string;
-  readonly frames: number;
-  readonly anchor: readonly [number, number];
-  readonly displaySize: readonly [number, number];
-}
+import { anim, CENTRE, COMMON_DIR, FEET, frameKey, frameUrl, MAP_ART, still, type ArtAsset } from "@scd/shared/map";
 
-const C = "/assets/common";
-const L = "/assets/luna-1";
+export { frameKey, frameUrl, type ArtAsset } from "@scd/shared/map";
 
-const still = (id: string, dir: string, anchor: readonly [number, number], size: readonly [number, number], file = `${id}.png`): ArtAsset => ({
-  id,
-  path: `${dir}/${file}`,
-  frames: 1,
-  anchor,
-  displaySize: size,
-});
-const anim = (id: string, dir: string, frames: number, anchor: readonly [number, number], size: readonly [number, number]): ArtAsset => ({
-  id,
-  path: `${dir}/${id}-{nn}.png`,
-  frames,
-  anchor,
-  displaySize: size,
-});
-
-const CENTRE = [0.5, 0.5] as const;
-const FEET = [0.5, 1.0] as const;
-const TILE = [96, 96] as const;
+const C = COMMON_DIR;
 
 export const ART = {
-  backdrop: still("luna-backdrop", L, [0, 0], [1920, 1056], "luna-backdrop.webp"),
-  routeH: still("route-straight-h", L, CENTRE, TILE),
-  routeDown: still("route-straight-v", L, CENTRE, TILE),
-  routeUp: still("route-straight-up", L, CENTRE, TILE),
-  cornerRightDown: still("route-corner-right-down", L, CENTRE, TILE),
-  cornerDownRight: still("route-corner-down-right", L, CENTRE, TILE),
-  cornerRightUp: still("route-corner-right-up", L, CENTRE, TILE),
-  cornerUpRight: still("route-corner-up-right", L, CENTRE, TILE),
-  portalEnd: still("route-portal-end", L, CENTRE, TILE),
-  colonyEnd: still("route-colony-end", L, CENTRE, TILE),
-  portal: anim("portal-idle", L, 6, [0.5, 0.62], [256, 256]),
-  padEmpty: still("pad-empty", L, CENTRE, [128, 128]),
-  padHover: still("pad-hover", L, CENTRE, [128, 128]),
-  padSelected: still("pad-selected", L, CENTRE, [128, 128]),
-  padClosed: still("pad-closed", L, CENTRE, [128, 128]),
-  colonyHealthy: still("colony-healthy", L, FEET, [384, 384]),
-  colonyWorried: still("colony-worried", L, FEET, [384, 384]),
-  colonyVeryWorried: still("colony-very-worried", L, FEET, [384, 384]),
+  // The map (route, portal, pads, colony) comes from @scd/shared/map, which the level editor draws from too (LD1).
+  ...MAP_ART,
   novaIdle1: anim("nova-l1-idle", C, 4, FEET, [128, 128]),
   novaAttack1: anim("nova-l1-attack", C, 4, FEET, [128, 128]),
   novaIdle2: anim("nova-l2-idle", C, 4, FEET, [128, 128]),
@@ -152,16 +111,6 @@ export const ART = {
 } as const satisfies Record<string, ArtAsset>;
 
 export type ArtKey = keyof typeof ART;
-
-/** Texture key of frame `n` (1-based) of an asset: the id itself for a still. */
-export function frameKey(asset: ArtAsset, n: number): string {
-  return asset.frames === 1 ? asset.id : `${asset.id}-${String(n).padStart(2, "0")}`;
-}
-
-/** URL of frame `n` (1-based). */
-export function frameUrl(asset: ArtAsset, n: number): string {
-  return asset.path.replace("{nn}", String(n).padStart(2, "0"));
-}
 
 /** Every [textureKey, url] pair to preload. */
 export function allFrames(): [string, string][] {
