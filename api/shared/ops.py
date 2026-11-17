@@ -13,7 +13,7 @@ with every `game` read consistent:
   (f) phase, wave, current slot } the rules reducer, shared/rules else REJECTED PHASE_MISMATCH
   (g) payload schema            } (the browser's decisions)       else REJECTED VALIDATION_FAILED
       plus the placements' values against the pinned bounds file (pads, classes, levels, targeting)
-  (h) plausibility bounds: Phase 30 (M2-07) adds them here; nothing is checked yet
+  (h) plausibility bounds (shared/plausibility.py, spine S6; Phase 30) else REJECTED CHECKPOINT_OUT_OF_BOUNDS
   (i) one TransactWriteItems (G5): ConditionCheck SESSION (the fence) + Update RUN (`revision = :expected`)
       [+ Update SLOT (`attribute_exists(pk) AND status = UNRESOLVED`)] [+ Update SUM#] [+ Update PROFILE]
 
@@ -40,6 +40,7 @@ from botocore.exceptions import ClientError
 from shared.bounds import KEY_ID, BoundsUnavailable
 from shared.data import DynamoTable, cancellation_reasons, is_transient
 from shared.errors import ApiError
+from shared.plausibility import plausibility_problems
 from shared.rules import reduce, validate
 from shared.rules.contracts import LIMITS
 from shared.rules.next_phase import slot_id_for
@@ -522,7 +523,15 @@ class OpsBatch:
             problems = pinned_value_problems(op, bounds, str(run.get("waveSetId")))
             if problems:
                 return rejected("VALIDATION_FAILED", problems)
-        # (h) plausibility bounds: Phase 30 (M2-07).
+            # (h) plausibility bounds, against the stored snapshot (spine S6): only checkpoint ops have any.
+            stored = {
+                "waveSetId": str(run.get("waveSetId")),
+                "highestCompletedWave": int(plain(run.get("highestCompletedWave")) or 0),
+                "snapshot": plain(run.get("snapshot")) or {},
+            }
+            problems = plausibility_problems(bounds, stored, op) if run.get("snapshot") is not None else []
+            if problems:
+                return rejected("CHECKPOINT_OUT_OF_BOUNDS", problems)
 
         # (i) the G5 transaction. Action order is fixed (CancellationReasons come back in this order):
         #     0 SESSION fence, 1 RUN, then SLOT, SUM# and PROFILE when the op needs them.
