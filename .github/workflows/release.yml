@@ -215,6 +215,20 @@ jobs:
         with:
           ref: ${{ needs.config.outputs.sha }}
           persist-credentials: false
+          # G-8 compares with the last release tag: full history and the tags.
+          fetch-depth: 0
+          fetch-tags: true
+
+      # G-8 (Phase 71; H.10, spine S11.4): released game data and golden files are only ever added to. Advisory until
+      # the data freeze sets infrastructure/plan-guard.json "enforce": true (Phase 74), then a finding stops the release.
+      - name: G-8 game-data lock
+        env:
+          ARTEFACTS_FROM: ${{ needs.config.outputs.artefacts_from }}
+        run: |
+          args=(--ref HEAD)
+          [[ -n "$ARTEFACTS_FROM" ]] && args+=(--archived "${ARTEFACTS_FROM##*-}")
+          [[ "$(jq -r '.enforce' infrastructure/plan-guard.json)" == "true" ]] || args+=(--advisory)
+          python3 scripts/gamedata_lock_check.py "${args[@]}"
 
       - name: Setup Node (version from .nvmrc)
         uses: actions/setup-node@v7

@@ -170,7 +170,7 @@ jobs:
         run: >-
           ruff check --config api/pyproject.toml api scripts/build_lambdas.py scripts/tests/test_build_lambdas.py
           scripts/lambda_artifacts.py scripts/tests/test_lambda_artifacts.py scripts/seed_content.py scripts/gen_topics.py
-          scripts/tests/test_terraform_locks.py
+          scripts/tests/test_terraform_locks.py scripts/gamedata_lock_check.py scripts/tests/test_gamedata_lock_check.py
 
       - name: Wait for DynamoDB Local
         run: |
