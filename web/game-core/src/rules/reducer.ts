@@ -1,4 +1,5 @@
-// The rules reducer for the six Milestone 1 ops (spine S3.2, F sections 3.3-3.5; M1-13).
+// The rules reducer for every run op except CREATE_RUN (spine S3.2, F sections 3.3-3.5): the six Milestone 1 ops
+// (M1-13) and, from Phase 29 (M2-06), DISMISS_SLOT, FINISH_RUN and CHOOSE_ENDLESS.
 //
 // reduce(state, op) is a pure function: it never changes `state` or `op`, reads no clock and does no I/O, and it
 // returns either the new state or a refusal with a named code. The browser calls it before an op may exist at all;
@@ -15,6 +16,10 @@
 //
 // (f) compares a payload field (wave, slotId) only when it has the right JSON type; a missing or wrongly typed
 // field is left for (g) to refuse, so the same bad op gets the same code in both languages.
+//
+// CHOOSE_ENDLESS is online only (G section 6): the browser never applies it, but the server runs it through this same
+// function. Endless block planning (F section 3.6) selects content, so it is not here: the server adds the planned
+// slots to the state before calling reduce (Phase 54), and the next-phase rule then finds them.
 import {
   LIMITS,
   type AttemptResult,
@@ -62,6 +67,17 @@ function waveMatches(payload: Readonly<Record<string, unknown>>, wave: number): 
   return !isInteger(value) || value === wave;
 }
 
+/** SUBMIT_ATTEMPT and DISMISS_SLOT naming a slot that is already VOIDED (the no-op of F section 3.3, any phase). */
+function namesVoidedSlot(state: RunState, slotId: unknown): boolean {
+  return typeof slotId === "string" && state.slots.some((s) => s.slotId === slotId && s.status === "VOIDED");
+}
+
+/** The current slot, when `slotId` names it and it is still UNRESOLVED; else undefined. */
+function openCurrentSlot(state: RunState, slotId: string): Slot | undefined {
+  const slot = state.slots.find((s) => s.slotId === slotId);
+  return slotId === currentSlotId(state) && slot?.status === "UNRESOLVED" ? slot : undefined;
+}
+
 function gate(state: RunState, phase: RunPhase, op: Op): Gate {
   const payload: Readonly<Record<string, unknown>> = op.payload;
   switch (op.type) {
@@ -76,14 +92,25 @@ function gate(state: RunState, phase: RunPhase, op: Op): Gate {
       return state.campaignCompleted ? "mismatch" : "ok";
     case "SUBMIT_ATTEMPT": {
       const slotId = payload["slotId"];
-      if (typeof slotId === "string" && state.slots.some((s) => s.slotId === slotId && s.status === "VOIDED")) {
-        return "voided-slot";
-      }
+      if (namesVoidedSlot(state, slotId)) return "voided-slot";
       if (phase !== "ACTIVITY" && phase !== "METEOR") return "mismatch";
       if (typeof slotId !== "string") return "ok";
-      const slot = state.slots.find((s) => s.slotId === slotId);
-      return slotId === currentSlotId(state) && slot?.status === "UNRESOLVED" ? "ok" : "mismatch";
+      return openCurrentSlot(state, slotId) !== undefined ? "ok" : "mismatch";
     }
+    case "DISMISS_SLOT": {
+      // Only a meteor slot before any attempt (DECLINED; owner decision D-11) or a withdrawn slot (VOIDED).
+      const slotId = payload["slotId"];
+      if (namesVoidedSlot(state, slotId)) return "voided-slot";
+      if (phase !== "ACTIVITY" && phase !== "METEOR") return "mismatch";
+      if (typeof slotId !== "string") return "ok";
+      const slot = openCurrentSlot(state, slotId);
+      if (slot === undefined) return "mismatch";
+      return slot.withdrawn || (slot.kind === "METEOR" && slot.attempts.length === 0) ? "ok" : "mismatch";
+    }
+    case "FINISH_RUN":
+      return state.campaignCompleted && phase !== "IN_WAVE" ? "ok" : "mismatch";
+    case "CHOOSE_ENDLESS":
+      return phase === "COMPLETION_OFFER" ? "ok" : "mismatch";
   }
 }
 
@@ -166,6 +193,28 @@ function submitAttempt(state: RunState, op: Extract<Op, { type: "SUBMIT_ATTEMPT"
   };
 }
 
+function dismissSlot(state: RunState, op: Extract<Op, { type: "DISMISS_SLOT" }>, revision: number): Applied {
+  const index = state.slots.findIndex((s) => s.slotId === op.payload.slotId);
+  const slot = state.slots[index];
+  if (slot === undefined) throw new Error("invalid run state: the current slot is missing");
+  const snapshot = needSnapshot(state);
+  // Withdrawn wins: VOIDED with its reward, exactly as a SUBMIT_ATTEMPT on it would be (spine S3.3). Otherwise the
+  // child declined a meteor before trying it: DECLINED, no reward, and it never counts in the learning summary.
+  const voided = slot.withdrawn;
+  const slots = state.slots.map((s, i) => (i === index ? { ...slot, status: voided ? ("VOIDED" as const) : ("DECLINED" as const) } : s));
+  return {
+    result: "APPLIED",
+    outcome: voided ? "VOIDED" : "DECLINED",
+    state: {
+      ...state,
+      revision,
+      slots,
+      phase: nextPhase(slots, state.wave - 1),
+      snapshot: voided ? grant(snapshot, slot.reward, state.powerChargeCap) : snapshot,
+    },
+  };
+}
+
 function completeWave(state: RunState, op: Extract<Op, { type: "COMPLETE_WAVE" }>, revision: number): RunState {
   const { wave, credits, placements, colony, powers } = op.payload;
   const snapshot: Snapshot = { credits, placements: copyPlacements(placements), colony: { ...colony }, powers: { ...powers } };
@@ -229,5 +278,15 @@ export function reduce(state: RunState, op: unknown): ReduceResult {
       return { result: "APPLIED", state: finish({ ...state, revision }, "DEFEATED") };
     case "ABANDON":
       return { result: "APPLIED", state: finish({ ...state, revision }, "ABANDONED") };
+    case "DISMISS_SLOT":
+      return dismissSlot(state, valid, revision);
+    case "FINISH_RUN":
+      return { result: "APPLIED", state: finish({ ...state, revision }, "COMPLETED") };
+    case "CHOOSE_ENDLESS":
+      // wave = finalWave + 1; the phase comes from the interval just reached, finalWave (normally N-<finalWave>).
+      return {
+        result: "APPLIED",
+        state: { ...state, revision, stage: "ENDLESS", wave: state.finalWave + 1, phase: nextPhase(state.slots, state.finalWave) },
+      };
   }
 }

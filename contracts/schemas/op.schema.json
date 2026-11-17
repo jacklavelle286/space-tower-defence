@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "op.schema.json",
   "title": "Op",
-  "description": "One queued op (spine S7.1, G section 5.1) for protocolVersion 1. The type list is the six Milestone 1 ops; DISMISS_SLOT and FINISH_RUN arrive with M2 (Phase 29), and CREATE_RUN and CHOOSE_ENDLESS never travel in /ops. The payload is checked by the branch for its type.",
+  "description": "One run op (spine S3.2, S7.1, G sections 5.1 and 6) for protocolVersion 1: the eight queueable ops, plus CHOOSE_ENDLESS, which the reducers apply but which travels only in the R12 endless body (the /ops envelope refuses it; CREATE_RUN has its own route). The payload is checked by the branch for its type.",
   "type": "object",
   "properties": {
     "opId": {
@@ -18,8 +18,11 @@
         "START_WAVE",
         "COMPLETE_WAVE",
         "SUBMIT_ATTEMPT",
+        "DISMISS_SLOT",
         "DEFEAT",
-        "ABANDON"
+        "ABANDON",
+        "FINISH_RUN",
+        "CHOOSE_ENDLESS"
       ]
     },
     "payload": {
@@ -148,6 +151,63 @@
         "properties": {
           "payload": {
             "$ref": "op-abandon.schema.json"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "DISMISS_SLOT"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "op-dismiss-slot.schema.json"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "FINISH_RUN"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "op-finish-run.schema.json"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "type": {
+            "const": "CHOOSE_ENDLESS"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "then": {
+        "properties": {
+          "payload": {
+            "$ref": "op-choose-endless.schema.json"
           }
         }
       }

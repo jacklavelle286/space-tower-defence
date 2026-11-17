@@ -1,0 +1,210 @@
+{
+  "name": "matrix-endless-build",
+  "description": "An endless run in BUILD and IN_WAVE (F 3.5, FINISH_RUN and ABANDON columns): ABANDON is refused once the campaign is complete; FINISH_RUN is refused mid-wave and completes the run from BUILD.",
+  "sources": [
+    "F 3.5 (phase x op matrix)",
+    "spine S3.2 (op table)",
+    "F 3.4 (next-phase rule, current slot)"
+  ],
+  "start": {
+    "mode": "CAMPAIGN",
+    "status": "IN_PROGRESS",
+    "stage": "ENDLESS",
+    "phase": "BUILD",
+    "wave": 5,
+    "finalWave": 3,
+    "highestCompletedWave": 4,
+    "campaignCompleted": true,
+    "plannedThrough": 4,
+    "revision": 10,
+    "powerChargeCap": 2,
+    "snapshot": {
+      "credits": 50,
+      "placements": [
+        {
+          "padId": "p04",
+          "classId": "nova",
+          "level": 1,
+          "targeting": "FRONT"
+        }
+      ],
+      "colony": {
+        "health": 20,
+        "shield": 0
+      },
+      "powers": {}
+    },
+    "slots": [
+      {
+        "slotId": "N-001",
+        "kind": "NORMAL",
+        "status": "SUCCEEDED",
+        "attempts": [
+          {
+            "n": 1,
+            "attemptId": "00000000-0000-4000-8000-00000000a001",
+            "answer": "c",
+            "correct": true
+          }
+        ],
+        "accepted": [
+          "c"
+        ],
+        "withdrawn": false,
+        "reward": {
+          "credits": 30
+        }
+      },
+      {
+        "slotId": "M-001",
+        "kind": "METEOR",
+        "status": "VOIDED",
+        "attempts": [],
+        "accepted": [
+          "7"
+        ],
+        "withdrawn": true,
+        "reward": {
+          "credits": 0,
+          "powerId": "comet-burst"
+        }
+      },
+      {
+        "slotId": "N-004",
+        "kind": "NORMAL",
+        "status": "SUCCEEDED",
+        "attempts": [
+          {
+            "n": 1,
+            "attemptId": "00000000-0000-4000-8000-00000000a004",
+            "answer": "e",
+            "correct": true
+          }
+        ],
+        "accepted": [
+          "e"
+        ],
+        "withdrawn": false,
+        "reward": {
+          "credits": 30
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "note": "ABANDON after the campaign is complete: refused.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-bc0000000001",
+        "expectedRevision": 10,
+        "type": "ABANDON",
+        "clientTime": "2026-11-17T10:00:01Z",
+        "payload": {}
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "PHASE_MISMATCH",
+        "details": {
+          "phase": "BUILD",
+          "wave": 5,
+          "currentSlotId": null
+        }
+      }
+    },
+    {
+      "note": "START_WAVE 5.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-bc0000000002",
+        "expectedRevision": 10,
+        "type": "START_WAVE",
+        "clientTime": "2026-11-17T10:00:02Z",
+        "payload": {
+          "wave": 5,
+          "credits": 50,
+          "placements": [
+            {
+              "padId": "p04",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ]
+        }
+      },
+      "expect": {
+        "result": "APPLIED",
+        "state": {
+          "revision": 11,
+          "phase": "IN_WAVE"
+        }
+      }
+    },
+    {
+      "note": "FINISH_RUN mid-wave: refused (never mid-wave).",
+      "op": {
+        "opId": "00000000-0000-4000-8000-bc0000000003",
+        "expectedRevision": 11,
+        "type": "FINISH_RUN",
+        "clientTime": "2026-11-17T10:00:03Z",
+        "payload": {}
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "PHASE_MISMATCH",
+        "details": {
+          "phase": "IN_WAVE",
+          "wave": 5,
+          "currentSlotId": null
+        }
+      }
+    },
+    {
+      "note": "SAVE_PREP: back to BUILD.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-bc0000000004",
+        "expectedRevision": 11,
+        "type": "SAVE_PREP",
+        "clientTime": "2026-11-17T10:00:04Z",
+        "payload": {
+          "credits": 50,
+          "placements": [
+            {
+              "padId": "p04",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ]
+        }
+      },
+      "expect": {
+        "result": "APPLIED",
+        "state": {
+          "revision": 12,
+          "phase": "BUILD"
+        }
+      }
+    },
+    {
+      "note": "FINISH_RUN in BUILD: COMPLETED.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-bc0000000005",
+        "expectedRevision": 12,
+        "type": "FINISH_RUN",
+        "clientTime": "2026-11-17T10:00:05Z",
+        "payload": {}
+      },
+      "expect": {
+        "result": "APPLIED",
+        "state": {
+          "revision": 13,
+          "status": "COMPLETED"
+        },
+        "removed": [
+          "phase",
+          "snapshot"
+        ]
+      }
+    }
+  ]
+}

@@ -354,11 +354,60 @@ export const SCHEMAS: Readonly<Record<string, unknown>> = {
       }
     }
   },
+  "endless-envelope.schema.json": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "endless-envelope.schema.json",
+    "title": "EndlessEnvelope",
+    "description": "Body of POST /api/runs/{runId}/endless (R12, G section 6): the R11 envelope with exactly one CHOOSE_ENDLESS op. Online only: never queued, never applied optimistically.",
+    "type": "object",
+    "properties": {
+      "protocolVersion": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 2147483647
+      },
+      "sessionId": {
+        "$ref": "common.schema.json#/$defs/uuid"
+      },
+      "generation": {
+        "$ref": "common.schema.json#/$defs/count"
+      },
+      "ops": {
+        "type": "array",
+        "items": {
+          "$ref": "op.schema.json",
+          "properties": {
+            "type": {
+              "const": "CHOOSE_ENDLESS"
+            }
+          }
+        },
+        "minItems": 1,
+        "maxItems": 1
+      }
+    },
+    "required": [
+      "protocolVersion",
+      "sessionId",
+      "generation",
+      "ops"
+    ],
+    "additionalProperties": false
+  },
   "op-abandon.schema.json": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "op-abandon.schema.json",
     "title": "AbandonPayload",
     "description": "ABANDON payload (G section 5.2): always empty.",
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+  },
+  "op-choose-endless.schema.json": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "op-choose-endless.schema.json",
+    "title": "ChooseEndlessPayload",
+    "description": "CHOOSE_ENDLESS payload (G section 6): always empty. Sent only to POST /api/runs/{runId}/endless, never to /ops.",
     "type": "object",
     "properties": {},
     "additionalProperties": false
@@ -411,11 +460,27 @@ export const SCHEMAS: Readonly<Record<string, unknown>> = {
     ],
     "additionalProperties": false
   },
+  "op-dismiss-slot.schema.json": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "op-dismiss-slot.schema.json",
+    "title": "DismissSlotPayload",
+    "description": "DISMISS_SLOT payload (G section 5.2): the current slot, when it is a meteor slot before any attempt (DECLINED) or its pinned version is withdrawn (VOIDED).",
+    "type": "object",
+    "properties": {
+      "slotId": {
+        "$ref": "common.schema.json#/$defs/slotId"
+      }
+    },
+    "required": [
+      "slotId"
+    ],
+    "additionalProperties": false
+  },
   "op-envelope.schema.json": {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "op-envelope.schema.json",
     "title": "OpEnvelope",
-    "description": "Body of POST /api/runs/{runId}/ops (spine S7.1, G section 5.1): 1-25 ops in revision order, stamped with the session and generation they were queued under. The 64 KB body limit is checked on the raw body before this schema.",
+    "description": "Body of POST /api/runs/{runId}/ops (spine S7.1, G section 5.1): 1-25 queueable ops in revision order, stamped with the session and generation they were queued under. CHOOSE_ENDLESS (R12 only) and CREATE_RUN (R9) are refused here as unknown types. The 64 KB body limit is checked on the raw body before this schema.",
     "type": "object",
     "properties": {
       "protocolVersion": {
@@ -432,7 +497,21 @@ export const SCHEMAS: Readonly<Record<string, unknown>> = {
       "ops": {
         "type": "array",
         "items": {
-          "$ref": "op.schema.json"
+          "$ref": "op.schema.json",
+          "properties": {
+            "type": {
+              "enum": [
+                "SAVE_PREP",
+                "START_WAVE",
+                "COMPLETE_WAVE",
+                "SUBMIT_ATTEMPT",
+                "DISMISS_SLOT",
+                "DEFEAT",
+                "ABANDON",
+                "FINISH_RUN"
+              ]
+            }
+          }
         },
         "minItems": 1,
         "maxItems": 25
@@ -444,6 +523,15 @@ export const SCHEMAS: Readonly<Record<string, unknown>> = {
       "generation",
       "ops"
     ],
+    "additionalProperties": false
+  },
+  "op-finish-run.schema.json": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "op-finish-run.schema.json",
+    "title": "FinishRunPayload",
+    "description": "FINISH_RUN payload (G section 5.2): always empty.",
+    "type": "object",
+    "properties": {},
     "additionalProperties": false
   },
   "op-result.schema.json": {
@@ -621,7 +709,7 @@ export const SCHEMAS: Readonly<Record<string, unknown>> = {
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "op.schema.json",
     "title": "Op",
-    "description": "One queued op (spine S7.1, G section 5.1) for protocolVersion 1. The type list is the six Milestone 1 ops; DISMISS_SLOT and FINISH_RUN arrive with M2 (Phase 29), and CREATE_RUN and CHOOSE_ENDLESS never travel in /ops. The payload is checked by the branch for its type.",
+    "description": "One run op (spine S3.2, S7.1, G sections 5.1 and 6) for protocolVersion 1: the eight queueable ops, plus CHOOSE_ENDLESS, which the reducers apply but which travels only in the R12 endless body (the /ops envelope refuses it; CREATE_RUN has its own route). The payload is checked by the branch for its type.",
     "type": "object",
     "properties": {
       "opId": {
@@ -637,8 +725,11 @@ export const SCHEMAS: Readonly<Record<string, unknown>> = {
           "START_WAVE",
           "COMPLETE_WAVE",
           "SUBMIT_ATTEMPT",
+          "DISMISS_SLOT",
           "DEFEAT",
-          "ABANDON"
+          "ABANDON",
+          "FINISH_RUN",
+          "CHOOSE_ENDLESS"
         ]
       },
       "payload": {
@@ -767,6 +858,63 @@ export const SCHEMAS: Readonly<Record<string, unknown>> = {
           "properties": {
             "payload": {
               "$ref": "op-abandon.schema.json"
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "type": {
+              "const": "DISMISS_SLOT"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        "then": {
+          "properties": {
+            "payload": {
+              "$ref": "op-dismiss-slot.schema.json"
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "type": {
+              "const": "FINISH_RUN"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        "then": {
+          "properties": {
+            "payload": {
+              "$ref": "op-finish-run.schema.json"
+            }
+          }
+        }
+      },
+      {
+        "if": {
+          "properties": {
+            "type": {
+              "const": "CHOOSE_ENDLESS"
+            }
+          },
+          "required": [
+            "type"
+          ]
+        },
+        "then": {
+          "properties": {
+            "payload": {
+              "$ref": "op-choose-endless.schema.json"
             }
           }
         }
@@ -1034,8 +1182,19 @@ export type Answer = string;
 /** Informational client UTC time; never trusted. */
 export type ClientTime = string;
 
+/** Body of POST /api/runs/{runId}/endless (R12, G section 6): the R11 envelope with exactly one CHOOSE_ENDLESS op. Online only: never queued, never applied optimistically. */
+export type EndlessEnvelope = {
+  readonly protocolVersion: number;
+  readonly sessionId: Uuid;
+  readonly generation: Count;
+  readonly ops: readonly Op[];
+};
+
 /** ABANDON payload (G section 5.2): always empty. */
 export type AbandonPayload = Readonly<Record<string, never>>;
+
+/** CHOOSE_ENDLESS payload (G section 6): always empty. Sent only to POST /api/runs/{runId}/endless, never to /ops. */
+export type ChooseEndlessPayload = Readonly<Record<string, never>>;
 
 /** COMPLETE_WAVE payload (G section 5.2): the full post-wave snapshot. */
 export type CompleteWavePayload = {
@@ -1051,13 +1210,21 @@ export type DefeatPayload = {
   readonly wave: Wave;
 };
 
-/** Body of POST /api/runs/{runId}/ops (spine S7.1, G section 5.1): 1-25 ops in revision order, stamped with the session and generation they were queued under. The 64 KB body limit is checked on the raw body before this schema. */
+/** DISMISS_SLOT payload (G section 5.2): the current slot, when it is a meteor slot before any attempt (DECLINED) or its pinned version is withdrawn (VOIDED). */
+export type DismissSlotPayload = {
+  readonly slotId: SlotId;
+};
+
+/** Body of POST /api/runs/{runId}/ops (spine S7.1, G section 5.1): 1-25 queueable ops in revision order, stamped with the session and generation they were queued under. CHOOSE_ENDLESS (R12 only) and CREATE_RUN (R9) are refused here as unknown types. The 64 KB body limit is checked on the raw body before this schema. */
 export type OpEnvelope = {
   readonly protocolVersion: number;
   readonly sessionId: Uuid;
   readonly generation: Count;
   readonly ops: readonly Op[];
 };
+
+/** FINISH_RUN payload (G section 5.2): always empty. */
+export type FinishRunPayload = Readonly<Record<string, never>>;
 
 export type ResultKind = "APPLIED" | "ALREADY_APPLIED" | "REJECTED" | "STALE_SESSION" | "NOT_PROCESSED";
 
@@ -1103,7 +1270,7 @@ export type SubmitAttemptPayload = {
   readonly answer: Answer;
 };
 
-/** One queued op (spine S7.1, G section 5.1) for protocolVersion 1. The type list is the six Milestone 1 ops; DISMISS_SLOT and FINISH_RUN arrive with M2 (Phase 29), and CREATE_RUN and CHOOSE_ENDLESS never travel in /ops. The payload is checked by the branch for its type. */
+/** One run op (spine S3.2, S7.1, G sections 5.1 and 6) for protocolVersion 1: the eight queueable ops, plus CHOOSE_ENDLESS, which the reducers apply but which travels only in the R12 endless body (the /ops envelope refuses it; CREATE_RUN has its own route). The payload is checked by the branch for its type. */
 export type Op =
   | {
     readonly opId: Uuid;
@@ -1145,6 +1312,27 @@ export type Op =
     readonly expectedRevision: Count;
     readonly type: "ABANDON";
     readonly payload: AbandonPayload;
+    readonly clientTime: ClientTime;
+  }
+  | {
+    readonly opId: Uuid;
+    readonly expectedRevision: Count;
+    readonly type: "DISMISS_SLOT";
+    readonly payload: DismissSlotPayload;
+    readonly clientTime: ClientTime;
+  }
+  | {
+    readonly opId: Uuid;
+    readonly expectedRevision: Count;
+    readonly type: "FINISH_RUN";
+    readonly payload: FinishRunPayload;
+    readonly clientTime: ClientTime;
+  }
+  | {
+    readonly opId: Uuid;
+    readonly expectedRevision: Count;
+    readonly type: "CHOOSE_ENDLESS";
+    readonly payload: ChooseEndlessPayload;
     readonly clientTime: ClientTime;
   };
 

@@ -1,0 +1,325 @@
+{
+  "name": "matrix-dismiss-withdrawn",
+  "description": "DISMISS_SLOT of a withdrawn current slot (F 3.5): VOIDED with its reward, in ACTIVITY (a normal slot) and in METEOR (even after an attempt: withdrawn wins).",
+  "sources": [
+    "F 3.5 (phase x op matrix)",
+    "spine S3.2 (op table)",
+    "F 3.4 (next-phase rule, current slot)",
+    "spine S3.3 (VOID: reward granted once)"
+  ],
+  "start": {
+    "mode": "CAMPAIGN",
+    "status": "IN_PROGRESS",
+    "stage": "AUTHORED",
+    "phase": "ACTIVITY",
+    "wave": 3,
+    "finalWave": 3,
+    "highestCompletedWave": 2,
+    "campaignCompleted": false,
+    "plannedThrough": 2,
+    "revision": 10,
+    "powerChargeCap": 2,
+    "snapshot": {
+      "credits": 50,
+      "placements": [
+        {
+          "padId": "p04",
+          "classId": "nova",
+          "level": 1,
+          "targeting": "FRONT"
+        }
+      ],
+      "colony": {
+        "health": 20,
+        "shield": 0
+      },
+      "powers": {}
+    },
+    "slots": [
+      {
+        "slotId": "N-001",
+        "kind": "NORMAL",
+        "status": "SUCCEEDED",
+        "attempts": [
+          {
+            "n": 1,
+            "attemptId": "00000000-0000-4000-8000-00000000a001",
+            "answer": "c",
+            "correct": true
+          }
+        ],
+        "accepted": [
+          "c"
+        ],
+        "withdrawn": false,
+        "reward": {
+          "credits": 30
+        }
+      },
+      {
+        "slotId": "M-001",
+        "kind": "METEOR",
+        "status": "VOIDED",
+        "attempts": [],
+        "accepted": [
+          "7"
+        ],
+        "withdrawn": true,
+        "reward": {
+          "credits": 0,
+          "powerId": "comet-burst"
+        }
+      },
+      {
+        "slotId": "N-002",
+        "kind": "NORMAL",
+        "status": "UNRESOLVED",
+        "attempts": [],
+        "accepted": [
+          "b"
+        ],
+        "withdrawn": true,
+        "reward": {
+          "credits": 30
+        }
+      },
+      {
+        "slotId": "M-002",
+        "kind": "METEOR",
+        "status": "UNRESOLVED",
+        "attempts": [
+          {
+            "n": 1,
+            "attemptId": "00000000-0000-4000-8000-00000000a003",
+            "answer": "3",
+            "correct": false
+          }
+        ],
+        "accepted": [
+          "4"
+        ],
+        "withdrawn": true,
+        "reward": {
+          "credits": 0,
+          "powerId": "comet-burst"
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "note": "DISMISS_SLOT N-002 (withdrawn): VOIDED, +30 credits, then METEOR for M-002.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-b90000000001",
+        "expectedRevision": 10,
+        "type": "DISMISS_SLOT",
+        "clientTime": "2026-11-17T10:00:01Z",
+        "payload": {
+          "slotId": "N-002"
+        }
+      },
+      "expect": {
+        "result": "APPLIED",
+        "outcome": "VOIDED",
+        "state": {
+          "revision": 11,
+          "slots": [
+            {
+              "slotId": "N-001",
+              "kind": "NORMAL",
+              "status": "SUCCEEDED",
+              "attempts": [
+                {
+                  "n": 1,
+                  "attemptId": "00000000-0000-4000-8000-00000000a001",
+                  "answer": "c",
+                  "correct": true
+                }
+              ],
+              "accepted": [
+                "c"
+              ],
+              "withdrawn": false,
+              "reward": {
+                "credits": 30
+              }
+            },
+            {
+              "slotId": "M-001",
+              "kind": "METEOR",
+              "status": "VOIDED",
+              "attempts": [],
+              "accepted": [
+                "7"
+              ],
+              "withdrawn": true,
+              "reward": {
+                "credits": 0,
+                "powerId": "comet-burst"
+              }
+            },
+            {
+              "slotId": "N-002",
+              "kind": "NORMAL",
+              "status": "VOIDED",
+              "attempts": [],
+              "accepted": [
+                "b"
+              ],
+              "withdrawn": true,
+              "reward": {
+                "credits": 30
+              }
+            },
+            {
+              "slotId": "M-002",
+              "kind": "METEOR",
+              "status": "UNRESOLVED",
+              "attempts": [
+                {
+                  "n": 1,
+                  "attemptId": "00000000-0000-4000-8000-00000000a003",
+                  "answer": "3",
+                  "correct": false
+                }
+              ],
+              "accepted": [
+                "4"
+              ],
+              "withdrawn": true,
+              "reward": {
+                "credits": 0,
+                "powerId": "comet-burst"
+              }
+            }
+          ],
+          "phase": "METEOR",
+          "snapshot": {
+            "credits": 80,
+            "placements": [
+              {
+                "padId": "p04",
+                "classId": "nova",
+                "level": 1,
+                "targeting": "FRONT"
+              }
+            ],
+            "colony": {
+              "health": 20,
+              "shield": 0
+            },
+            "powers": {}
+          }
+        }
+      }
+    },
+    {
+      "note": "DISMISS_SLOT M-002 (withdrawn, one attempt already): VOIDED, one Comet Burst charge, BUILD.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-b90000000002",
+        "expectedRevision": 11,
+        "type": "DISMISS_SLOT",
+        "clientTime": "2026-11-17T10:00:02Z",
+        "payload": {
+          "slotId": "M-002"
+        }
+      },
+      "expect": {
+        "result": "APPLIED",
+        "outcome": "VOIDED",
+        "state": {
+          "revision": 12,
+          "slots": [
+            {
+              "slotId": "N-001",
+              "kind": "NORMAL",
+              "status": "SUCCEEDED",
+              "attempts": [
+                {
+                  "n": 1,
+                  "attemptId": "00000000-0000-4000-8000-00000000a001",
+                  "answer": "c",
+                  "correct": true
+                }
+              ],
+              "accepted": [
+                "c"
+              ],
+              "withdrawn": false,
+              "reward": {
+                "credits": 30
+              }
+            },
+            {
+              "slotId": "M-001",
+              "kind": "METEOR",
+              "status": "VOIDED",
+              "attempts": [],
+              "accepted": [
+                "7"
+              ],
+              "withdrawn": true,
+              "reward": {
+                "credits": 0,
+                "powerId": "comet-burst"
+              }
+            },
+            {
+              "slotId": "N-002",
+              "kind": "NORMAL",
+              "status": "VOIDED",
+              "attempts": [],
+              "accepted": [
+                "b"
+              ],
+              "withdrawn": true,
+              "reward": {
+                "credits": 30
+              }
+            },
+            {
+              "slotId": "M-002",
+              "kind": "METEOR",
+              "status": "VOIDED",
+              "attempts": [
+                {
+                  "n": 1,
+                  "attemptId": "00000000-0000-4000-8000-00000000a003",
+                  "answer": "3",
+                  "correct": false
+                }
+              ],
+              "accepted": [
+                "4"
+              ],
+              "withdrawn": true,
+              "reward": {
+                "credits": 0,
+                "powerId": "comet-burst"
+              }
+            }
+          ],
+          "phase": "BUILD",
+          "snapshot": {
+            "credits": 80,
+            "placements": [
+              {
+                "padId": "p04",
+                "classId": "nova",
+                "level": 1,
+                "targeting": "FRONT"
+              }
+            ],
+            "colony": {
+              "health": 20,
+              "shield": 0
+            },
+            "powers": {
+              "comet-burst": 1
+            }
+          }
+        }
+      }
+    }
+  ]
+}

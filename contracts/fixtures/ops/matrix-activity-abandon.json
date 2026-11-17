@@ -1,0 +1,294 @@
+{
+  "name": "matrix-activity-abandon",
+  "description": "ABANDON from ACTIVITY before the campaign is complete (F 3.5, column ABANDON), then every op on the ABANDONED run is RUN_TERMINAL (row DEFEATED / ABANDONED / COMPLETED).",
+  "sources": [
+    "F 3.5 (phase x op matrix)",
+    "spine S3.2 (op table)",
+    "F 3.4 (next-phase rule, current slot)"
+  ],
+  "start": {
+    "mode": "CAMPAIGN",
+    "status": "IN_PROGRESS",
+    "stage": "AUTHORED",
+    "phase": "ACTIVITY",
+    "wave": 3,
+    "finalWave": 3,
+    "highestCompletedWave": 2,
+    "campaignCompleted": false,
+    "plannedThrough": 2,
+    "revision": 10,
+    "powerChargeCap": 2,
+    "snapshot": {
+      "credits": 50,
+      "placements": [
+        {
+          "padId": "p04",
+          "classId": "nova",
+          "level": 1,
+          "targeting": "FRONT"
+        }
+      ],
+      "colony": {
+        "health": 20,
+        "shield": 0
+      },
+      "powers": {}
+    },
+    "slots": [
+      {
+        "slotId": "N-001",
+        "kind": "NORMAL",
+        "status": "SUCCEEDED",
+        "attempts": [
+          {
+            "n": 1,
+            "attemptId": "00000000-0000-4000-8000-00000000a001",
+            "answer": "c",
+            "correct": true
+          }
+        ],
+        "accepted": [
+          "c"
+        ],
+        "withdrawn": false,
+        "reward": {
+          "credits": 30
+        }
+      },
+      {
+        "slotId": "M-001",
+        "kind": "METEOR",
+        "status": "VOIDED",
+        "attempts": [],
+        "accepted": [
+          "7"
+        ],
+        "withdrawn": true,
+        "reward": {
+          "credits": 0,
+          "powerId": "comet-burst"
+        }
+      },
+      {
+        "slotId": "N-002",
+        "kind": "NORMAL",
+        "status": "UNRESOLVED",
+        "attempts": [],
+        "accepted": [
+          "b"
+        ],
+        "withdrawn": false,
+        "reward": {
+          "credits": 30
+        }
+      },
+      {
+        "slotId": "M-002",
+        "kind": "METEOR",
+        "status": "UNRESOLVED",
+        "attempts": [],
+        "accepted": [
+          "4"
+        ],
+        "withdrawn": false,
+        "reward": {
+          "credits": 0,
+          "powerId": "comet-burst"
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "note": "ABANDON in ACTIVITY: ABANDONED, phase and snapshot removed.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-b30000000001",
+        "expectedRevision": 10,
+        "type": "ABANDON",
+        "clientTime": "2026-11-17T10:00:01Z",
+        "payload": {}
+      },
+      "expect": {
+        "result": "APPLIED",
+        "state": {
+          "revision": 11,
+          "status": "ABANDONED"
+        },
+        "removed": [
+          "phase",
+          "snapshot"
+        ]
+      }
+    },
+    {
+      "note": "ABANDONED: SAVE_PREP is RUN_TERMINAL.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-b30000000002",
+        "expectedRevision": 11,
+        "type": "SAVE_PREP",
+        "clientTime": "2026-11-17T10:00:02Z",
+        "payload": {
+          "credits": 50,
+          "placements": [
+            {
+              "padId": "p04",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ]
+        }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "RUN_TERMINAL"
+      }
+    },
+    {
+      "note": "ABANDONED: START_WAVE is RUN_TERMINAL.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-b30000000003",
+        "expectedRevision": 11,
+        "type": "START_WAVE",
+        "clientTime": "2026-11-17T10:00:03Z",
+        "payload": {
+          "wave": 3,
+          "credits": 50,
+          "placements": [
+            {
+              "padId": "p04",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ]
+        }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "RUN_TERMINAL"
+      }
+    },
+    {
+      "note": "ABANDONED: COMPLETE_WAVE is RUN_TERMINAL.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-b30000000004",
+        "expectedRevision": 11,
+        "type": "COMPLETE_WAVE",
+        "clientTime": "2026-11-17T10:00:04Z",
+        "payload": {
+          "wave": 3,
+          "credits": 70,
+          "placements": [
+            {
+              "padId": "p04",
+              "classId": "nova",
+              "level": 1,
+              "targeting": "FRONT"
+            }
+          ],
+          "colony": {
+            "health": 20,
+            "shield": 0
+          },
+          "powers": {}
+        }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "RUN_TERMINAL"
+      }
+    },
+    {
+      "note": "ABANDONED: SUBMIT_ATTEMPT is RUN_TERMINAL.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-b30000000005",
+        "expectedRevision": 11,
+        "type": "SUBMIT_ATTEMPT",
+        "clientTime": "2026-11-17T10:00:05Z",
+        "payload": {
+          "slotId": "N-002",
+          "answer": "b"
+        }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "RUN_TERMINAL"
+      }
+    },
+    {
+      "note": "ABANDONED: DISMISS_SLOT is RUN_TERMINAL.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-b30000000006",
+        "expectedRevision": 11,
+        "type": "DISMISS_SLOT",
+        "clientTime": "2026-11-17T10:00:06Z",
+        "payload": {
+          "slotId": "M-002"
+        }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "RUN_TERMINAL"
+      }
+    },
+    {
+      "note": "ABANDONED: DEFEAT is RUN_TERMINAL.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-b30000000007",
+        "expectedRevision": 11,
+        "type": "DEFEAT",
+        "clientTime": "2026-11-17T10:00:07Z",
+        "payload": {
+          "wave": 3
+        }
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "RUN_TERMINAL"
+      }
+    },
+    {
+      "note": "ABANDONED: ABANDON is RUN_TERMINAL.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-b30000000008",
+        "expectedRevision": 11,
+        "type": "ABANDON",
+        "clientTime": "2026-11-17T10:00:08Z",
+        "payload": {}
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "RUN_TERMINAL"
+      }
+    },
+    {
+      "note": "ABANDONED: CHOOSE_ENDLESS is RUN_TERMINAL.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-b30000000009",
+        "expectedRevision": 11,
+        "type": "CHOOSE_ENDLESS",
+        "clientTime": "2026-11-17T10:00:09Z",
+        "payload": {}
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "RUN_TERMINAL"
+      }
+    },
+    {
+      "note": "ABANDONED: FINISH_RUN is RUN_TERMINAL.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-b30000000010",
+        "expectedRevision": 11,
+        "type": "FINISH_RUN",
+        "clientTime": "2026-11-17T10:00:10Z",
+        "payload": {}
+      },
+      "expect": {
+        "result": "REJECTED",
+        "code": "RUN_TERMINAL"
+      }
+    }
+  ]
+}

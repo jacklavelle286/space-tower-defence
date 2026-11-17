@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "op-choose-endless.schema.json",
+  "title": "ChooseEndlessPayload",
+  "description": "CHOOSE_ENDLESS payload (G section 6): always empty. Sent only to POST /api/runs/{runId}/endless, never to /ops.",
+  "type": "object",
+  "properties": {},
+  "additionalProperties": false
+}

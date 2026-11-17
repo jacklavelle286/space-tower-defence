@@ -99,14 +99,48 @@ def test_fixture_gives_the_expected_result_and_state_after_every_op(name: str) -
     assert run_sequence(load(name)) > 0
 
 
+OP_TYPES = (
+    "SAVE_PREP",
+    "START_WAVE",
+    "COMPLETE_WAVE",
+    "SUBMIT_ATTEMPT",
+    "DISMISS_SLOT",
+    "DEFEAT",
+    "ABANDON",
+    "CHOOSE_ENDLESS",
+    "FINISH_RUN",
+)
+MATRIX_ROWS = ("BUILD", "IN_WAVE", "ACTIVITY", "METEOR", "COMPLETION_OFFER", "TERMINAL")
+
+
 def test_fixtures_cover_every_op_type_refusal_code_and_outcome() -> None:
     steps = [step for name in FILES for step in load(name)["steps"]]
     types = {step["op"].get("type") for step in steps if isinstance(step.get("op"), dict)}
-    assert {"SAVE_PREP", "START_WAVE", "COMPLETE_WAVE", "SUBMIT_ATTEMPT", "DEFEAT", "ABANDON"} <= types
+    assert set(OP_TYPES) <= types
     codes = {step["expect"]["code"] for step in steps if "code" in step["expect"]}
     assert codes == {"PHASE_MISMATCH", "RUN_TERMINAL", "STALE_REVISION", "VALIDATION_FAILED"}
     outcomes = {step["expect"]["outcome"] for step in steps if "outcome" in step["expect"]}
-    assert outcomes == {"INCORRECT", "NO_OP_VOIDED_SLOT", "RESOLVED_FAILED", "RESOLVED_SUCCEEDED", "VOIDED"}
+    assert outcomes == {"DECLINED", "INCORRECT", "NO_OP_VOIDED_SLOT", "RESOLVED_FAILED", "RESOLVED_SUCCEEDED", "VOIDED"}
+
+
+def test_fixtures_cover_every_cell_of_the_phase_by_op_matrix() -> None:
+    """F §3.5, every row by every column (Phase 29 exit criterion). Replays each fixture (the per-file test proves the
+    reducer matches it) and notes the run's row (its phase, or TERMINAL) for every op whose type is valid."""
+    seen: set[tuple[str, str]] = set()
+    for name in FILES:
+        fixture = load(name)
+        state = fixture["start"]
+        for step in fixture["steps"]:
+            if "resend" in step:
+                continue
+            op = step["op"]
+            op_type = op.get("type") if isinstance(op, dict) else None
+            if op_type in OP_TYPES:
+                seen.add((state["phase"] if state["status"] == "IN_PROGRESS" else "TERMINAL", op_type))
+            result = reduce(state, op)
+            if result["result"] == "APPLIED":
+                state = result["state"]
+    assert [(row, t) for row in MATRIX_ROWS for t in OP_TYPES if (row, t) not in seen] == []
 
 
 def test_a_broken_expectation_fails_the_runner() -> None:

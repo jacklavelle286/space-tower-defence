@@ -100,10 +100,10 @@
       }
     },
     {
-      "note": "DISMISS_SLOT is not one of the six Milestone 1 ops yet (Phase 29).",
+      "note": "CREATE_RUN is not an op type: it has its own route (R9) and never travels as an op.",
       "op": {
-        "opId": "00000000-0000-4000-8000-000000000707", "expectedRevision": 0, "type": "DISMISS_SLOT", "clientTime": "2026-11-15T16:00:06Z",
-        "payload": { "slotId": "N-001" }
+        "opId": "00000000-0000-4000-8000-000000000707", "expectedRevision": 0, "type": "CREATE_RUN", "clientTime": "2026-11-15T16:00:06Z",
+        "payload": {}
       },
       "expect": {
         "result": "REJECTED",

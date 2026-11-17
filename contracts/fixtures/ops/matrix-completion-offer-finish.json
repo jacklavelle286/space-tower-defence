@@ -1,0 +1,144 @@
+{
+  "name": "matrix-completion-offer-finish",
+  "description": "FINISH_RUN from COMPLETION_OFFER (F 3.5): COMPLETED, phase and snapshot removed.",
+  "sources": [
+    "F 3.5 (phase x op matrix)",
+    "spine S3.2 (op table)",
+    "F 3.4 (next-phase rule, current slot)"
+  ],
+  "start": {
+    "mode": "CAMPAIGN",
+    "status": "IN_PROGRESS",
+    "stage": "AUTHORED",
+    "phase": "COMPLETION_OFFER",
+    "wave": 3,
+    "finalWave": 3,
+    "highestCompletedWave": 3,
+    "campaignCompleted": true,
+    "plannedThrough": 2,
+    "revision": 10,
+    "powerChargeCap": 2,
+    "snapshot": {
+      "credits": 50,
+      "placements": [
+        {
+          "padId": "p04",
+          "classId": "nova",
+          "level": 1,
+          "targeting": "FRONT"
+        }
+      ],
+      "colony": {
+        "health": 20,
+        "shield": 0
+      },
+      "powers": {}
+    },
+    "slots": [
+      {
+        "slotId": "N-001",
+        "kind": "NORMAL",
+        "status": "SUCCEEDED",
+        "attempts": [
+          {
+            "n": 1,
+            "attemptId": "00000000-0000-4000-8000-00000000a001",
+            "answer": "c",
+            "correct": true
+          }
+        ],
+        "accepted": [
+          "c"
+        ],
+        "withdrawn": false,
+        "reward": {
+          "credits": 30
+        }
+      },
+      {
+        "slotId": "M-001",
+        "kind": "METEOR",
+        "status": "VOIDED",
+        "attempts": [],
+        "accepted": [
+          "7"
+        ],
+        "withdrawn": true,
+        "reward": {
+          "credits": 0,
+          "powerId": "comet-burst"
+        }
+      },
+      {
+        "slotId": "N-002",
+        "kind": "NORMAL",
+        "status": "SUCCEEDED",
+        "attempts": [
+          {
+            "n": 1,
+            "attemptId": "00000000-0000-4000-8000-00000000a002",
+            "answer": "b",
+            "correct": true
+          }
+        ],
+        "accepted": [
+          "b"
+        ],
+        "withdrawn": false,
+        "reward": {
+          "credits": 30
+        }
+      },
+      {
+        "slotId": "M-002",
+        "kind": "METEOR",
+        "status": "DECLINED",
+        "attempts": [],
+        "accepted": [
+          "4"
+        ],
+        "withdrawn": false,
+        "reward": {
+          "credits": 0,
+          "powerId": "comet-burst"
+        }
+      },
+      {
+        "slotId": "N-003",
+        "kind": "NORMAL",
+        "status": "UNRESOLVED",
+        "attempts": [],
+        "accepted": [
+          "d"
+        ],
+        "withdrawn": false,
+        "reward": {
+          "credits": 30
+        }
+      }
+    ]
+  },
+  "steps": [
+    {
+      "note": "FINISH_RUN in COMPLETION_OFFER: COMPLETED.",
+      "op": {
+        "opId": "00000000-0000-4000-8000-bb0000000001",
+        "expectedRevision": 10,
+        "type": "FINISH_RUN",
+        "clientTime": "2026-11-17T10:00:01Z",
+        "payload": {}
+      },
+      "expect": {
+        "result": "APPLIED",
+        "state": {
+          "revision": 11,
+          "status": "COMPLETED"
+        },
+        "removed": [
+          "phase",
+          "snapshot"
+        ]
+      }
+    }
+  ]
+}

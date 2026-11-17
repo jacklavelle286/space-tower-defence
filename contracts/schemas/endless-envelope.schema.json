@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "endless-envelope.schema.json",
+  "title": "EndlessEnvelope",
+  "description": "Body of POST /api/runs/{runId}/endless (R12, G section 6): the R11 envelope with exactly one CHOOSE_ENDLESS op. Online only: never queued, never applied optimistically.",
+  "type": "object",
+  "properties": {
+    "protocolVersion": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 2147483647
+    },
+    "sessionId": {
+      "$ref": "common.schema.json#/$defs/uuid"
+    },
+    "generation": {
+      "$ref": "common.schema.json#/$defs/count"
+    },
+    "ops": {
+      "type": "array",
+      "items": {
+        "$ref": "op.schema.json",
+        "properties": {
+          "type": {
+            "const": "CHOOSE_ENDLESS"
+          }
+        }
+      },
+      "minItems": 1,
+      "maxItems": 1
+    }
+  },
+  "required": [
+    "protocolVersion",
+    "sessionId",
+    "generation",
+    "ops"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "op-dismiss-slot.schema.json",
+  "title": "DismissSlotPayload",
+  "description": "DISMISS_SLOT payload (G section 5.2): the current slot, when it is a meteor slot before any attempt (DECLINED) or its pinned version is withdrawn (VOIDED).",
+  "type": "object",
+  "properties": {
+    "slotId": {
+      "$ref": "common.schema.json#/$defs/slotId"
+    }
+  },
+  "required": [
+    "slotId"
+  ],
+  "additionalProperties": false
+}

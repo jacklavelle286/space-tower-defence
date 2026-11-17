@@ -21,6 +21,20 @@ type Expectation = {
 type Step = { note?: string; op?: unknown; resend?: number; expect: Expectation };
 type Fixture = { name: string; description: string; sources: string[]; start: RunState; steps: Step[] };
 
+/** F section 3.5's columns (every op the reducers apply) and rows (each IN_PROGRESS phase, then the terminal statuses). */
+const OP_TYPES = [
+  "SAVE_PREP",
+  "START_WAVE",
+  "COMPLETE_WAVE",
+  "SUBMIT_ATTEMPT",
+  "DISMISS_SLOT",
+  "DEFEAT",
+  "ABANDON",
+  "CHOOSE_ENDLESS",
+  "FINISH_RUN",
+] as const;
+const MATRIX_ROWS = ["BUILD", "IN_WAVE", "ACTIVITY", "METEOR", "COMPLETION_OFFER", "TERMINAL"] as const;
+
 function load(file: string): Fixture {
   return JSON.parse(readFileSync(resolve(OPS_DIR, file), "utf8")) as Fixture;
 }
@@ -80,16 +94,35 @@ describe("op-sequence fixtures", () => {
     });
   });
 
-  it("cover all six Milestone 1 op types, both results and every reducer refusal code", () => {
+  it("cover every op type, both results and every reducer refusal code", () => {
     const steps = files.flatMap((file) => load(file).steps);
     const types = new Set(steps.map((s) => (s.op as { type?: string } | undefined)?.type));
-    for (const type of ["SAVE_PREP", "START_WAVE", "COMPLETE_WAVE", "SUBMIT_ATTEMPT", "DEFEAT", "ABANDON"]) {
-      expect(types.has(type), type).toBe(true);
-    }
+    for (const type of OP_TYPES) expect(types.has(type), type).toBe(true);
     const codes = new Set(steps.map((s) => s.expect.code).filter((c) => c !== undefined));
     expect([...codes].sort()).toEqual(["PHASE_MISMATCH", "RUN_TERMINAL", "STALE_REVISION", "VALIDATION_FAILED"]);
     const outcomes = new Set(steps.map((s) => s.expect.outcome).filter((o) => o !== undefined));
-    expect([...outcomes].sort()).toEqual(["INCORRECT", "NO_OP_VOIDED_SLOT", "RESOLVED_FAILED", "RESOLVED_SUCCEEDED", "VOIDED"]);
+    expect([...outcomes].sort()).toEqual(["DECLINED", "INCORRECT", "NO_OP_VOIDED_SLOT", "RESOLVED_FAILED", "RESOLVED_SUCCEEDED", "VOIDED"]);
+  });
+
+  it("cover every cell of F section 3.5's phase x op matrix (Phase 29 exit criterion)", () => {
+    // Replays each fixture (the per-file test above proves the reducer matches it) and notes the run's row (its phase,
+    // or TERMINAL) for every op whose type is valid.
+    const seen = new Set<string>();
+    for (const file of files) {
+      const fixture = load(file);
+      let state = fixture.start;
+      for (const step of fixture.steps) {
+        if (step.resend !== undefined) continue;
+        const type = (step.op as { type?: unknown } | undefined)?.type;
+        if (typeof type === "string" && (OP_TYPES as readonly string[]).includes(type)) {
+          seen.add(`${state.status === "IN_PROGRESS" ? state.phase : "TERMINAL"} x ${type}`);
+        }
+        const result = reduce(state, step.op);
+        if (result.result === "APPLIED") state = result.state;
+      }
+    }
+    const missing = MATRIX_ROWS.flatMap((row) => OP_TYPES.map((type) => `${row} x ${type}`)).filter((cell) => !seen.has(cell));
+    expect(missing).toEqual([]);
   });
 });
 

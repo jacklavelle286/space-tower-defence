@@ -1,4 +1,4 @@
-"""The rules reducer for the six Milestone 1 ops (spine S3.2, F sections 3.3-3.5; M1-14).
+"""The rules reducer for every run op except CREATE_RUN (spine S3.2, F sections 3.3-3.5; M1-14, M2-06).
 
 Python mirror of web/game-core/src/rules/reducer.ts: same functions, same check order, same refusal codes, same
 results. contracts/fixtures/ops/*.json checks that both languages agree (api/tests/unit/test_rules_fixtures.py and
@@ -20,6 +20,9 @@ Not here: (a) duplicates (the pure reducers have no duplicate memory, I.2.3), (b
 
 (f) compares a payload field (wave, slotId) only when it has the right JSON type; a missing or wrongly typed
 field is left for (g) to refuse, so the same bad op gets the same code in both languages.
+
+CHOOSE_ENDLESS is online only (G section 6) and arrives only through R12. Endless block planning (F section 3.6)
+selects content, so it is not here: the handler adds the planned slots to the state before calling reduce (Phase 54).
 
 Integers only: JSON allows 74.0 for 74 and JavaScript cannot tell them apart, so every value copied from an op into
 the state goes through _plain(), which turns an integral float into an int. The state then serialises exactly as the
@@ -59,6 +62,19 @@ def _wave_matches(payload: Mapping[str, Any], wave: int) -> bool:
     return not is_integer(value) or value == wave
 
 
+def _names_voided_slot(state: RunState, slot_id: Any) -> bool:
+    """SUBMIT_ATTEMPT and DISMISS_SLOT naming a slot that is already VOIDED (the no-op of F section 3.3, any phase)."""
+    return isinstance(slot_id, str) and any(s["slotId"] == slot_id and s["status"] == "VOIDED" for s in state["slots"])
+
+
+def _open_current_slot(state: RunState, slot_id: str) -> dict[str, Any] | None:
+    """The current slot, when `slot_id` names it and it is still UNRESOLVED; else None."""
+    slot = next((s for s in state["slots"] if s["slotId"] == slot_id), None)
+    if slot_id == current_slot_id(state) and slot is not None and slot["status"] == "UNRESOLVED":
+        return slot
+    return None
+
+
 def _gate(state: RunState, phase: str, op: Mapping[str, Any]) -> str:
     """What step (f) decided: "ok" (go on), "voided-slot" (the VOIDED-slot no-op) or "mismatch"."""
     payload: Mapping[str, Any] = op["payload"]
@@ -71,17 +87,25 @@ def _gate(state: RunState, phase: str, op: Mapping[str, Any]) -> str:
         return "ok" if phase == "IN_WAVE" and _wave_matches(payload, state["wave"]) else "mismatch"
     if op_type == "ABANDON":
         return "mismatch" if state["campaignCompleted"] else "ok"
-    if op_type == "SUBMIT_ATTEMPT":
+    if op_type in ("SUBMIT_ATTEMPT", "DISMISS_SLOT"):
         slot_id = payload.get("slotId")
-        if isinstance(slot_id, str) and any(s["slotId"] == slot_id and s["status"] == "VOIDED" for s in state["slots"]):
+        if _names_voided_slot(state, slot_id):
             return "voided-slot"
         if phase not in ("ACTIVITY", "METEOR"):
             return "mismatch"
         if not isinstance(slot_id, str):
             return "ok"
-        slot = next((s for s in state["slots"] if s["slotId"] == slot_id), None)
-        current = slot_id == current_slot_id(state) and slot is not None and slot["status"] == "UNRESOLVED"
-        return "ok" if current else "mismatch"
+        slot = _open_current_slot(state, slot_id)
+        if slot is None:
+            return "mismatch"
+        if op_type == "SUBMIT_ATTEMPT":
+            return "ok"
+        # Only a meteor slot before any attempt (DECLINED; owner decision D-11) or a withdrawn slot (VOIDED).
+        return "ok" if slot["withdrawn"] or (slot["kind"] == "METEOR" and not slot["attempts"]) else "mismatch"
+    if op_type == "FINISH_RUN":
+        return "ok" if state["campaignCompleted"] and phase != "IN_WAVE" else "mismatch"
+    if op_type == "CHOOSE_ENDLESS":
+        return "ok" if phase == "COMPLETION_OFFER" else "mismatch"
     raise ValueError(f"unknown op type {op_type}")  # unreachable: the envelope step checked the type
 
 
@@ -160,6 +184,32 @@ def _submit_attempt(state: RunState, op: Mapping[str, Any], revision: int) -> Re
     }
 
 
+def _dismiss_slot(state: RunState, op: Mapping[str, Any], revision: int) -> ReduceResult:
+    index = next((i for i, s in enumerate(state["slots"]) if s["slotId"] == op["payload"]["slotId"]), None)
+    if index is None:
+        raise ValueError("invalid run state: the current slot is missing")
+    slot = state["slots"][index]
+    snapshot = _need_snapshot(state)
+    # Withdrawn wins: VOIDED with its reward, exactly as a SUBMIT_ATTEMPT on it would be (spine S3.3). Otherwise the
+    # child declined a meteor before trying it: DECLINED, no reward, and it never counts in the learning summary.
+    voided = bool(slot["withdrawn"])
+    slots = [
+        {**slot, "status": "VOIDED" if voided else "DECLINED"} if i == index else s
+        for i, s in enumerate(state["slots"])
+    ]
+    return {
+        "result": "APPLIED",
+        "outcome": "VOIDED" if voided else "DECLINED",
+        "state": {
+            **state,
+            "revision": revision,
+            "slots": slots,
+            "phase": next_phase(slots, state["wave"] - 1),
+            "snapshot": _grant(snapshot, slot["reward"], state["powerChargeCap"]) if voided else snapshot,
+        },
+    }
+
+
 def _complete_wave(state: RunState, op: Mapping[str, Any], revision: int) -> RunState:
     payload = _plain(op["payload"])
     wave = payload["wave"]
@@ -231,4 +281,21 @@ def reduce(state: RunState, op: Any) -> ReduceResult:
         return {"result": "APPLIED", "state": _finish({**state, "revision": revision}, "DEFEATED")}
     if op_type == "ABANDON":
         return {"result": "APPLIED", "state": _finish({**state, "revision": revision}, "ABANDONED")}
+    if op_type == "DISMISS_SLOT":
+        return _dismiss_slot(state, valid, revision)
+    if op_type == "FINISH_RUN":
+        return {"result": "APPLIED", "state": _finish({**state, "revision": revision}, "COMPLETED")}
+    if op_type == "CHOOSE_ENDLESS":
+        # wave = finalWave + 1; the phase comes from the interval just reached, finalWave (normally N-<finalWave>).
+        final_wave = state["finalWave"]
+        return {
+            "result": "APPLIED",
+            "state": {
+                **state,
+                "revision": revision,
+                "stage": "ENDLESS",
+                "wave": final_wave + 1,
+                "phase": next_phase(state["slots"], final_wave),
+            },
+        }
     raise ValueError(f"unknown op type {op_type}")  # unreachable: the envelope step checked the type

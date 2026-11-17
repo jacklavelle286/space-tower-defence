@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "op-envelope.schema.json",
   "title": "OpEnvelope",
-  "description": "Body of POST /api/runs/{runId}/ops (spine S7.1, G section 5.1): 1-25 ops in revision order, stamped with the session and generation they were queued under. The 64 KB body limit is checked on the raw body before this schema.",
+  "description": "Body of POST /api/runs/{runId}/ops (spine S7.1, G section 5.1): 1-25 queueable ops in revision order, stamped with the session and generation they were queued under. CHOOSE_ENDLESS (R12 only) and CREATE_RUN (R9) are refused here as unknown types. The 64 KB body limit is checked on the raw body before this schema.",
   "type": "object",
   "properties": {
     "protocolVersion": {
@@ -19,7 +19,21 @@
     "ops": {
       "type": "array",
       "items": {
-        "$ref": "op.schema.json"
+        "$ref": "op.schema.json",
+        "properties": {
+          "type": {
+            "enum": [
+              "SAVE_PREP",
+              "START_WAVE",
+              "COMPLETE_WAVE",
+              "SUBMIT_ATTEMPT",
+              "DISMISS_SLOT",
+              "DEFEAT",
+              "ABANDON",
+              "FINISH_RUN"
+            ]
+          }
+        }
       },
       "minItems": 1,
       "maxItems": 25
