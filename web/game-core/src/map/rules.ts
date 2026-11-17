@@ -74,12 +74,13 @@ export type ProblemRule = keyof typeof PROBLEM_TEXT;
 export { GRID_COLS, GRID_ROWS };
 export const MAX_WAYPOINTS = 16;
 /**
- * Gate M, LD11: routes that start and end on any edge and turn either way. Off until the player release that carries
- * the route art for them has shipped (scope-level-designer.md §3.3: a page loaded before that release could not draw
- * such a map), then switched on in its own commit. The parser, the publisher's checks and the editor's route tool all
- * read it.
+ * Gate M, LD11: routes that start and end on any edge and turn either way. The parser, the publisher's checks and the
+ * editor's route tool all read it. On from LD11, shipping in the same release as the route art (owner, 2026-11-17: one
+ * release at the end of the build): a player page left open from before that release cannot draw such a map and
+ * shows its load error until reloaded. False brings back the tier 1 rules (start left heading right, end right,
+ * never heading left), which the tests keep covered.
  */
-export const ANY_DIRECTION_ROUTES = false;
+export const ANY_DIRECTION_ROUTES = true;
 
 /** Whether a cell on the grid is on the edge a route heading `heading` enters from. */
 export function entersFrom(x: number, y: number, heading: Heading): boolean {

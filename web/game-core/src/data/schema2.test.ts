@@ -84,7 +84,7 @@ describe("schema 2", () => {
     ["a backdrop that is not a library picture", (d) => (at(d, "maps", "zigzag", "art")["backdrop"] = "luna-backdrop"), /backdrop/],
     ["five maps", (d) => ["a", "b", "c"].forEach((k) => (at(d, "maps")[k] = structuredClone(at(d, "maps", "zigzag")))), /at most 4 maps|appears twice/],
     ["a schema 1 key in schema 2", (d) => (d["map"] = at(d, "maps", "moonbeam")), /unknown key "map"/],
-    ["a hard map problem names the map", (d) => (at(d, "maps", "zigzag")["route"] = [[0, 5], [10, 5], [10, 8], [5, 8], [5, 10], [19, 10]]), /planet\.maps\.zigzag\.route\[3\]: The route never heads left/],
+    ["a hard map problem names the map", (d) => (at(d, "maps", "zigzag")["route"] = [[0, 5], [10, 5], [10, 8], [5, 8], [5, 9]]), /planet\.maps\.zigzag\.route\[4\]: The route must end on an edge/],
   ])("refuses %s", (_name, change, message) => {
     const bad = copy();
     change(bad);

@@ -86,8 +86,9 @@ describe("LevelEditor", () => {
   it("says why an edit was refused", async () => {
     const canvas = await open();
     press(canvas, "ArrowRight");
+    press(canvas, "ArrowDown");
     press(canvas, "Enter");
-    expect(await screen.findByText("Start the route on the left edge.")).toBeTruthy();
+    expect(await screen.findByText("Start the route on an edge of the map.")).toBeTruthy();
   });
 
   it("lists problems, and a problem with a cell moves the cursor there", async () => {

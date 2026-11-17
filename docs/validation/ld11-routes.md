@@ -4,14 +4,18 @@ Phase LD11 ([build-phases.md](../build-phases.md#phase-ld11--routes-in-any-direc
 [scope-level-designer.md §3.3](../plan/scope-level-designer.md#33-tier-3-flexible-routes-and-advanced-authoring)).
 Date: 2026-11-17. **Owner review of the art: pending.**
 
-The phase ships in two steps, because a player page loaded before the art release could not draw such a map:
+The phase was planned in two releases, because a player page loaded before the art release could not draw such a map.
+The owner chose one release at the end of the build (2026-11-17), so both steps ship together:
 
-1. **Art and renderer** (done, in this release): eleven route tiles, route pieces chosen by direction, the portal,
-   colony and leak puff placed for any edge (game-core `routeEnds`, which the footprint rule uses too), the editor's
-   route tool and the parser's tier 3 rules written but off (`ANY_DIRECTION_ROUTES = false` in
-   `web/game-core/src/map/rules.ts`).
-2. **The switch** (after the owner has released step 1): one commit sets `ANY_DIRECTION_ROUTES = true`. Then the
-   editor's route tool stops greying out left turns and other edges, and the publisher accepts such maps.
+1. **Art and renderer**: eleven route tiles, route pieces chosen by direction, the portal, colony and leak puff placed
+   for any edge (game-core `routeEnds`, which the footprint rule uses too).
+2. **The switch**: `ANY_DIRECTION_ROUTES = true` (`web/game-core/src/map/rules.ts`). The editor's route tool starts on
+   any edge, turns either way and finishes on any edge; the parser and the publisher accept such maps. Setting it
+   back to false restores the tier 1 rules, which the tests keep covered.
+
+**After the release:** reload any player tab left open from before it, before publishing a map that starts on another
+edge or turns left (such a tab shows its load error for that map until reloaded) [ASSUMPTION: acceptable for the
+family; the player has no new-release reload].
 
 ## The art
 

@@ -9,18 +9,18 @@ const run = (state: EditorState, ...actions: Action[]): EditorState => actions.r
 const at = (x: number, y: number): Action[] => [{ type: "cursor", cell: [x, y] }, { type: "place" }];
 
 describe("route tool", () => {
-  it("starts on the left edge, snaps straight, refuses a left turn, finishes on the right edge", () => {
+  it("starts on an edge, snaps straight, turns either way, finishes on an edge", () => {
     let s = initialEditor(blank());
     s = run(s, ...at(3, 5));
-    expect(s.refusal).toBe("Start the route on the left edge.");
+    expect(s.refusal).toBe("Start the route on an edge of the map.");
     s = run(s, ...at(0, 5), ...at(6, 6)); // (6, 6) snaps to (6, 5): the bigger move wins
     expect(s.level.map.route).toEqual([
       [0, 5],
       [6, 5],
     ]);
-    s = run(s, ...at(6, 2), ...at(2, 2));
-    expect(s.refusal).toBe("Turns left: no route art for that yet.");
-    s = run(s, ...at(19, 2));
+    s = run(s, ...at(6, 2), ...at(2, 2)); // a left turn (LD11)
+    expect(s.level.map.route.at(-1)).toEqual([2, 2]);
+    s = run(s, { type: "back" }, ...at(19, 2));
     expect(s.level.map.route).toEqual([
       [0, 5],
       [6, 5],
@@ -51,14 +51,14 @@ describe("route tool", () => {
     expect(nextRoutePoint([[0, 5], [4, 5], [4, 9], [8, 9], [8, 2]], [8, 5])).toEqual({ refusal: "The route cannot cross itself." });
   });
 
-  it("with routes in any direction (LD11, behind ANY_DIRECTION_ROUTES): any edge, either turn, any edge out", () => {
-    expect(nextRoutePoint([], [5, 5])).toEqual({ refusal: "Start the route on the left edge." }); // off today
+  it("routes in any direction (LD11, ANY_DIRECTION_ROUTES): any edge, either turn, any edge out", () => {
+    expect(nextRoutePoint([], [5, 5], false)).toEqual({ refusal: "Start the route on the left edge." }); // tier 1
     expect(nextRoutePoint([], [7, 0], true)).toEqual({ point: [7, 0] });
     expect(nextRoutePoint([], [5, 5], true)).toEqual({ refusal: "Start the route on an edge of the map." });
     expect(nextRoutePoint([[7, 0]], [12, 0], true)).toEqual({ refusal: "Leave the portal heading into the map." });
     expect(nextRoutePoint([[7, 0]], [7, 6], true)).toEqual({ point: [7, 6] });
     expect(nextRoutePoint([[7, 0], [7, 6]], [2, 6], true)).toEqual({ point: [2, 6] }); // a left turn
-    expect(nextRoutePoint([[7, 0], [7, 6]], [2, 6])).toEqual({ refusal: "Turns left: no route art for that yet." });
+    expect(nextRoutePoint([[7, 0], [7, 6]], [2, 6], false)).toEqual({ refusal: "Turns left: no route art for that yet." });
     expect(nextRoutePoint([[7, 0], [7, 6], [2, 6], [2, 10]], [5, 10], true)).toEqual({
       refusal: "The route already reaches the colony. Backspace takes the last point back.",
     });

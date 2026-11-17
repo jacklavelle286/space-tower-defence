@@ -49,11 +49,6 @@ describe("one broken document per rule", () => {
   const cases: [ProblemRule, Severity, PlanetDocument][] = [
     ["gridSize", "hard", doc((d) => (main(d).grid = { cols: 21, rows: 11 }))],
     ["waypoints", "hard", withRoute([[0, 1], [1, 1], [1, 2], [2, 2], [2, 1], [3, 1], [3, 2], [4, 2], [4, 1], [5, 1], [5, 2], [6, 2], [6, 1], [7, 1], [7, 2], [8, 2], [19, 2]])],
-    ["startEdge", "hard", withRoute([[1, 2], [19, 2]])],
-    ["startHeading", "hard", withRoute([[0, 2], [0, 5], [19, 5]])],
-    ["endEdge", "hard", withRoute([[0, 2], [18, 2]])],
-    ["endHeading", "hard", withRoute([[0, 2], [19, 2], [19, 5]])],
-    ["leftHeading", "hard", withRoute([[0, 2], [10, 2], [10, 5], [5, 5], [5, 8], [19, 8]])],
     ["crossing", "hard", withRoute([[0, 5], [5, 5], [5, 2], [5, 8], [19, 8]])],
     ["padOnRoute", "hard", doc((d) => Object.assign(pad(d, "p02"), { x: 1, y: 2 }))],
     ["bossWave", "block", doc((d) => d.waves[8]?.groups.push({ type: Object.keys(r4.bosses)[0] ?? "", count: 1, at: 0, gap: 0 }))],
@@ -89,7 +84,8 @@ describe("one broken document per rule", () => {
   it("covers every rule", () => {
     // decorationPlacement needs a schema 2 document: src/data/schema2.test.ts.
     // routeStart and routeEnd are the tier 3 rules (LD11), below.
-    const covered = new Set([...cases.map(([rule]) => rule), "padOrder", "arrowReach", "decorationPlacement", "routeStart", "routeEnd"]);
+    const tier1 = ["startEdge", "startHeading", "endEdge", "endHeading", "leftHeading"]; // below, with the switch off
+    const covered = new Set([...cases.map(([rule]) => rule), "padOrder", "arrowReach", "decorationPlacement", "routeStart", "routeEnd", ...tier1]);
     expect([...covered].sort()).toEqual(Object.keys(PROBLEM_TEXT).sort());
   });
 
@@ -110,23 +106,37 @@ describe("one broken document per rule", () => {
 describe("parsePlanet refuses hard map problems", () => {
   const raw = readJson("campaign", "luna-1-c2") as { map: { route: unknown; grid: unknown } };
   it.each([
-    ["a route heading left", { ...raw, map: { ...raw.map, route: [[0, 2], [10, 2], [10, 5], [5, 5], [5, 8], [19, 8]] } }, /never heads left/],
+    ["a route starting inside the map", { ...raw, map: { ...raw.map, route: [[3, 2], [10, 2], [10, 5], [19, 5]] } }, /start on an edge/],
     ["a 21-column grid", { ...raw, map: { ...raw.map, grid: { cols: 21, rows: 11 } } }, /20 by 11/],
   ])("%s", (_name, bad, message) => {
     expect(() => parsePlanet(bad, r4)).toThrow(message);
   });
 });
 
-describe("routes in any direction (LD11, behind ANY_DIRECTION_ROUTES)", () => {
+describe("the tier 1 route rules (ANY_DIRECTION_ROUTES false)", () => {
+  const strict = (route: [number, number][]): ProblemRule[] =>
+    rules(hardMapProblems({ grid: { cols: 20, rows: 11 }, route, pads: [] }, "planet.map", false));
+  it.each([
+    ["startEdge", [[1, 2], [19, 2]]],
+    ["startHeading", [[0, 2], [0, 5], [19, 5]]],
+    ["endEdge", [[0, 2], [18, 2]]],
+    ["endHeading", [[0, 2], [19, 2], [19, 5]]],
+    ["leftHeading", [[0, 2], [10, 2], [10, 5], [5, 5], [5, 8], [19, 8]]],
+  ] as [ProblemRule, [number, number][]][])("%s", (rule, route) => {
+    expect(strict(route)).toContain(rule);
+  });
+});
+
+describe("routes in any direction (LD11, ANY_DIRECTION_ROUTES)", () => {
   const ROUTES = fixtures.routes as unknown as Record<string, [number, number][]>;
   const map = (route: [number, number][]) => ({ grid: { cols: 20, rows: 11 }, route, pads: [] });
   const hardRules = (route: [number, number][], anyDirection: boolean): ProblemRule[] => rules(hardMapProblems(map(route), "planet.map", anyDirection));
 
-  it("is off until the player release with the route art has shipped", () => {
-    expect(ANY_DIRECTION_ROUTES).toBe(false);
+  it("is on (LD11 ships the route art and the rules in one release)", () => {
+    expect(ANY_DIRECTION_ROUTES).toBe(true);
   });
 
-  it.each(Object.entries(ROUTES))("%s is refused today and passes the tier 3 rules", (_name, route) => {
+  it.each(Object.entries(ROUTES))("%s is refused by the tier 1 rules and passes the tier 3 rules", (_name, route) => {
     expect(hardRules(route, false).length).toBeGreaterThan(0);
     expect(hardRules(route, true)).toEqual([]);
   });
@@ -147,10 +157,10 @@ describe("routes in any direction (LD11, behind ANY_DIRECTION_ROUTES)", () => {
     expect(hardRules(route, true)).toContain(rule);
   });
 
-  it("the parser takes them only when asked (development previews and tests)", () => {
+  it("the parser follows the switch, and takes the tier 1 rules when asked", () => {
     const raw = readJson("campaign", "luna-1-c2") as { map: Record<string, unknown> };
     const left = { ...raw, map: { ...raw.map, route: ROUTES["from-right"] } };
-    expect(() => parsePlanet(left, r4)).toThrow(/left edge/u);
-    expect(() => parsePlanet(left, r4, { anyDirection: true })).toThrow(/pad cannot sit on the route/u); // Moonbeam's pads
+    expect(() => parsePlanet(left, r4, { anyDirection: false })).toThrow(/left edge/u);
+    expect(() => parsePlanet(left, r4)).toThrow(/pad cannot sit on the route/u); // Moonbeam's pads are in its way
   });
 });
