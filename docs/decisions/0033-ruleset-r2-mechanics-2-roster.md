@@ -28,6 +28,11 @@ done; a planet document whose wave sets list the new classes (luna-1-c1's `first
 changes nothing visible until such a document exists); the bounds fixture regenerated (`--write-fixture`); `player-api`'s
 S6 checks reviewed for `targetingFromLevel` (M2-07). Bounds list `FRONT` as the only valid mode for Mira and Sol.
 
+Amended in Phase 25 (M2-02), before r2 was published: r2 gains a top-level `slow` block, `capPct` 50
+(the simulator's `combatRules.slow.capPct`) and `refreshWithinSeconds` 0.15 (the threshold in the simulator's Pip
+preference, `sim.py` `Game._pick`), required in mechanics 2 and refused in mechanics 1; and CROWD is accepted only for a
+`blast` class. Mira's and Sol's numbers were already in r2. So no r3 is needed for Phase 25.
+
 Evidence: **[VERIFIED]** 2026-11-16: `web/game-core/src/data/sim-agreement.test.ts` checks every r2 number against
 `tools/sim/game_data.json` and every price, cumulative cost and refund against the simulator's C5.2 table;
 `web/game-core/src/sim/economy.test.ts` (Phase 24 rules); `node game-core/scripts/build-bounds.ts --check` passes with r2 present.

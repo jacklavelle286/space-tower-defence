@@ -18,7 +18,7 @@ Rules:
 - A change to a *rule* (not a number) needs a new `mechanics` number, and `game-core` must support it first
   (`SUPPORTED_MECHANICS` in `web/game-core/src/data/game-data.ts`).
 - Rulesets so far: `r1` (mechanics 1, Phase 13: Nova only) is the one `current.json` names; `r2` (mechanics 2, Phase 24:
-  the six-class roster) is not used for new runs until Phase 25 completes its support rules
+  the six-class roster, plus the slow rules Phase 25 added) is not used for new runs until the Phase 25 gate
   ([ADR-0033](../docs/decisions/0033-ruleset-r2-mechanics-2-roster.md)). Try it locally at
   `/play/local?ruleset=r2&roster=all&credits=2000` (`npm run dev -w player`).
 - Numbers come from the balance simulator (`tools/sim/game_data.json`). `web/game-core/src/data/sim-agreement.test.ts`

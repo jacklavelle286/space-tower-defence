@@ -1,5 +1,5 @@
 {
-  "$comment": "Ruleset r2, mechanics 2 (Phase 24, M2-01; spine S5.1, C5, C9, C15): the six-class roster - Nova, Pip, Juno, Orion, Mira and Sol at three levels, with unlock waves, deployment caps and targeting by level - plus r1's colony, Moon Blob, economy, sell rule and caps unchanged. Every number is copied from tools/sim/game_data.json and checked against it by web/game-core/src/data/sim-agreement.test.ts. A class with no targeting modes (Mira, Sol) does not aim; its placements store defaultTargeting FRONT because the snapshot needs a mode. Not used for new runs until current.json names it (ADR-0033). Published create-only to /game-data/ruleset/r2.json: never edit a published version, add r3.",
+  "$comment": "Ruleset r2, mechanics 2 (Phase 24, M2-01; spine S5.1, C5, C9, C15): the six-class roster - Nova, Pip, Juno, Orion, Mira and Sol at three levels, with unlock waves, deployment caps and targeting by level - plus r1's colony, Moon Blob, economy, sell rule and caps unchanged. Every number is copied from tools/sim/game_data.json and checked against it by web/game-core/src/data/sim-agreement.test.ts. \"slow\" (Phase 25, M2-02; C5.4) holds the slow cap (combatRules.slow.capPct) and refreshWithinSeconds, the time left on a slow below which Pip treats an alien as unslowed (tools/sim/sim.py Game._pick). A class with no targeting modes (Mira, Sol) does not aim; its placements store defaultTargeting FRONT because the snapshot needs a mode. Not used for new runs until current.json names it (ADR-0033). Published create-only to /game-data/ruleset/r2.json: never edit a published version, add r3.",
   "kind": "ruleset",
   "version": "r2",
   "mechanics": 2,
@@ -12,6 +12,10 @@
     "shieldAbsoluteCap": 20,
     "repairOnBossClear": 3,
     "miraRepairCapPerWave": 1
+  },
+  "slow": {
+    "capPct": 50,
+    "refreshWithinSeconds": 0.15
   },
   "classes": {
     "nova": {
