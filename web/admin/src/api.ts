@@ -616,6 +616,9 @@ export function adminApi(request: Request) {
     /** R43: save the draft; 409 DRAFT_CONFLICT when someone saved since `draftRevision`. */
     saveLevel: (levelId: string, body: { draftRevision: number; level: LevelFile }) =>
       request("PUT", `/admin/levels/${id(levelId)}/draft`, body) as Promise<LevelView>,
+    /** R45: record that the balance checks ran on `draftRevision`; 409 DRAFT_CONFLICT when the draft moved on. */
+    recordTestplay: (levelId: string, body: { draftRevision: number; blocking: number; warnings: number }) =>
+      request("POST", `/admin/levels/${id(levelId)}/testplay`, body) as Promise<LevelView>,
     /** R44: delete a level that was never published. */
     deleteLevel: (levelId: string) =>
       request("DELETE", `/admin/levels/${id(levelId)}`) as Promise<{ levelId: string; deleted: true }>,
@@ -666,9 +669,12 @@ export type LevelWaveSet = {
 
 export type LevelSummary = { levelId: string; name: string; status: "DRAFT"; updatedAt: string };
 
+/** The last balance check run on the draft (R45, LD5): the publisher (LD6) wants one on the revision it publishes. */
+export type LevelReview = { testPlayedDraftRevision?: number; blocking?: number; warnings?: number; at?: string };
+
 export type LevelView = {
   header: LevelSummary;
-  draft: { level: LevelFile; draftRevision: number; updatedAt: string };
+  draft: { level: LevelFile; draftRevision: number; updatedAt: string; review?: LevelReview };
 };
 
 export type AdminApi = ReturnType<typeof adminApi>;

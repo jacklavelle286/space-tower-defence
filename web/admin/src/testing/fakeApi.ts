@@ -5,6 +5,7 @@
 import { isPictureKind, pictureKindOf, pictureKindSpec, type PictureKindId } from "@scd/shared";
 import {
   type LevelFile,
+  type LevelReview,
   type LevelView,
   ApiError,
   type ActivitySummary,
@@ -373,6 +374,14 @@ export class FakeAdminApi {
       this.levels.set(levelId, { level: clone(body.level), draftRevision: stored.draftRevision + 1, updatedAt: "2026-11-17T10:05:00Z" });
       return this.levelView(levelId);
     },
+    recordTestplay: async (levelId: string, body: { draftRevision: number; blocking: number; warnings: number }) => {
+      this.record("recordTestplay", levelId, body);
+      const stored = this.levels.get(levelId);
+      if (stored === undefined) throw new ApiError(404, "NOT_FOUND");
+      if (stored.draftRevision !== body.draftRevision) throw new ApiError(409, "DRAFT_CONFLICT");
+      stored.review = { testPlayedDraftRevision: body.draftRevision, blocking: body.blocking, warnings: body.warnings, at: "2026-11-17T11:00:00Z" };
+      return this.levelView(levelId);
+    },
     deleteLevel: async (levelId: string) => {
       this.record("deleteLevel", levelId);
       if (!this.levels.delete(levelId)) throw new ApiError(404, "NOT_FOUND");
@@ -381,14 +390,14 @@ export class FakeAdminApi {
   };
 
   /** Level drafts (Gate M, LD3), by level ID. */
-  readonly levels = new Map<string, { level: LevelFile; draftRevision: number; updatedAt: string }>();
+  readonly levels = new Map<string, { level: LevelFile; draftRevision: number; updatedAt: string; review?: LevelReview }>();
 
   private levelView(levelId: string): LevelView {
     const stored = this.levels.get(levelId);
     if (stored === undefined) throw new ApiError(404, "NOT_FOUND");
     return {
       header: { levelId, name: stored.level.name, status: "DRAFT", updatedAt: stored.updatedAt },
-      draft: { level: clone(stored.level), draftRevision: stored.draftRevision, updatedAt: stored.updatedAt },
+      draft: { level: clone(stored.level), draftRevision: stored.draftRevision, updatedAt: stored.updatedAt, ...(stored.review === undefined ? {} : { review: clone(stored.review) }) },
     };
   }
 

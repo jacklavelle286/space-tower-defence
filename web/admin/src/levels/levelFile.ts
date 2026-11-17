@@ -201,6 +201,11 @@ function parseProblem(error: unknown): LevelProblem {
   return { field: cut === -1 ? "planet" : text.slice(0, cut), rule: "parse", severity: "hard", message: cut === -1 ? text : text.slice(cut + 2) };
 }
 
+/** The level merged into the live planet document and parsed (throws when it does not parse). */
+export function mergedLevel(level: LevelFile): PlanetDocument {
+  return parsePlanet(mergeLevel(LIVE_PLANET_RAW, level, "draft"), CURRENT_RULESET);
+}
+
 /**
  * Every problem with the level, as publishing will see it: the map's design rules, then (once the map can be drawn)
  * the level merged into the live planet document, parsed, and its own waves and wave sets checked by the same rules.

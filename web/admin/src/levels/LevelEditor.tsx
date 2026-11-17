@@ -28,6 +28,7 @@ import {
   describeError,
   type AdminApi,
   type LevelFile,
+  type LevelReview,
   type PictureSummary,
 } from "../api";
 import { hrefOf } from "../routes";
@@ -48,6 +49,8 @@ import {
   type LevelProblem,
 } from "./levelFile";
 import "./levels.css";
+import type { CheckWorker } from "./checkRun";
+import { TestTab } from "./TestTab";
 import { WaveSetsTab } from "./WaveSetsTab";
 import { WavesTab } from "./WavesTab";
 
@@ -59,7 +62,12 @@ import { WavesTab } from "./WavesTab";
 // Unsaved edits survive a reload in this tab (sessionStorage, as the activity editor); a second tab on the same level
 // is warned (BroadcastChannel); a save someone else beat is a conflict screen, not a silent overwrite.
 
-type Props = { readonly api: AdminApi; readonly levelId: string };
+type Props = {
+  readonly api: AdminApi;
+  readonly levelId: string;
+  /** Tests run the balance checks on the main thread instead of in Web Workers. */
+  readonly makeWorker?: () => CheckWorker;
+};
 
 const MOONBEAM_LENGTH = 40;
 const UNSAVED = "scd-admin-level-unsaved:";
@@ -174,16 +182,17 @@ function useSecondTabWarning(levelId: string): boolean {
   return other;
 }
 
-export function LevelEditor({ api, levelId }: Props) {
+export function LevelEditor({ api, levelId, makeWorker }: Props) {
   const [loaded, setLoaded] = useState<{
     level: LevelFile;
     draftRevision: number;
+    review?: LevelReview;
   } | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [conflict, setConflict] = useState(false);
   const [busy, setBusy] = useState(false);
   const [showCoverage, setShowCoverage] = useState(false);
-  const [tab, setTab] = useState<"map" | "waves" | "sets">("map");
+  const [tab, setTab] = useState<"map" | "waves" | "sets" | "test">("map");
   const [pictures, setPictures] = useState<{
     backgrounds: PictureSummary[];
     decorations: PictureSummary[];
@@ -199,6 +208,9 @@ export function LevelEditor({ api, levelId }: Props) {
         setLoaded({
           level: view.draft.level,
           draftRevision: view.draft.draftRevision,
+          ...(view.draft.review === undefined
+            ? {}
+            : { review: view.draft.review }),
         });
         setConflict(false);
         dispatch({ type: "replace", level: kept ?? view.draft.level });
@@ -266,6 +278,9 @@ export function LevelEditor({ api, levelId }: Props) {
         setLoaded({
           level: view.draft.level,
           draftRevision: view.draft.draftRevision,
+          ...(view.draft.review === undefined
+            ? {}
+            : { review: view.draft.review }),
         });
         setConflict(false);
         setMessage("Saved.");
@@ -456,6 +471,7 @@ export function LevelEditor({ api, levelId }: Props) {
             ["map", "Map"],
             ["waves", "Waves"],
             ["sets", "Wave sets"],
+            ["test", "Test"],
           ] as const
         ).map(([id, label]) => (
           <button
@@ -479,17 +495,41 @@ export function LevelEditor({ api, levelId }: Props) {
           role="tabpanel"
           aria-labelledby={`level-tab-${tab}`}
         >
-          {tab === "waves" ? (
+          {tab === "waves" && (
             <WavesTab
               level={level}
               problems={problems}
               onEdit={(next) => dispatch({ type: "edit", level: next })}
             />
-          ) : (
+          )}
+          {tab === "sets" && (
             <WaveSetsTab
               level={level}
               problems={problems}
               onEdit={(next) => dispatch({ type: "edit", level: next })}
+            />
+          )}
+          {tab === "test" && loaded !== null && (
+            <TestTab
+              level={loaded.level}
+              dirty={dirty}
+              blocked={problems.some((p) => p.severity !== "warn")}
+              draftRevision={loaded.draftRevision}
+              review={loaded.review}
+              {...(makeWorker === undefined ? {} : { makeWorker })}
+              onRecord={async (counts) => {
+                const view = await api.recordTestplay(levelId, {
+                  draftRevision: loaded.draftRevision,
+                  ...counts,
+                });
+                setLoaded({
+                  level: view.draft.level,
+                  draftRevision: view.draft.draftRevision,
+                  ...(view.draft.review === undefined
+                    ? {}
+                    : { review: view.draft.review }),
+                });
+              }}
             />
           )}
         </div>
