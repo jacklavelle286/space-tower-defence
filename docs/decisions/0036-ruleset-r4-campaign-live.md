@@ -1,5 +1,5 @@
 # 0036. Ruleset r4 adds the endless generator; new games play r4 + luna-1-c2; badges are server code
-Status: Proposed · Date: 2026-11-17
+Status: Accepted · Date: 2026-11-17
 
 Context: Gate J (Phases 50-56) brings the 50-wave campaign, meteor offers, badges, challenges, endless and resets.
 r3 is published (create-only), so C11's endless numbers cannot be added to it. C15 lists "badge definitions" in the
