@@ -225,14 +225,17 @@ function PictureDetails({
           {detail !== null && (
             <p>
               {usedBy.length === 0 ? (
-                "No activity or level uses it."
+                "No activity, level or game art uses it."
               ) : (
                 <>
                   Used by:{" "}
                   {usedBy.map((id, i) => (
                     <span key={id}>
                       {i > 0 && ", "}
-                      {id.startsWith("level:") ? (
+                      {id.startsWith("manifest:") ? (
+                        // A published asset manifest draws with it (LD8): runs are pinned to it, so it is kept for good.
+                        <span>art for game version {id.slice("manifest:".length)}</span>
+                      ) : id.startsWith("level:") ? (
                         // "level:<id>" is a draft; "level:<id>@<version>" a published version (LD6), which keeps it for good.
                         <a href={hrefOf({ page: "level", id: (id.slice("level:".length).split("@")[0] ?? "") })}>
                           level {id.slice("level:".length).replace("@", ", published as ")}
