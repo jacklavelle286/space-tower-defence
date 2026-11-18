@@ -54,6 +54,7 @@ import {
   type LevelProblem,
 } from "./levelFile";
 import { loadLiveBase } from "./liveBase";
+import { MapMaker } from "./MapMaker";
 import { PublishTab } from "./publish/PublishTab";
 import "./levels.css";
 import type { CheckWorker } from "./checkRun";
@@ -821,6 +822,12 @@ export function LevelEditor({ api, levelId, makeWorker }: Props) {
                 ))}
               </select>
             </label>
+
+            <MapMaker
+              level={level}
+              libraryDecorations={pictures.decorations}
+              onMake={(map) => dispatch({ type: "generated", map })}
+            />
 
             <h3>Problems</h3>
             {problems.length === 0 ? (

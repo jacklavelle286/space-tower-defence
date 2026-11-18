@@ -10,7 +10,7 @@
 //                order after every pad or route edit.
 //   decorations  a free cell places the chosen decoration; a decorated cell removes it.
 // Moving the cursor never changes the level, so it is not in the history.
-import { ANY_DIRECTION_ROUTES, entersFrom, GRID_COLS, GRID_ROWS, headingOf, leavesBy, MAX_WAYPOINTS } from "@scd/game-core";
+import { ANY_DIRECTION_ROUTES, entersFrom, GRID_COLS, GRID_ROWS, headingOf, leavesBy, MAX_WAYPOINTS, type GeneratedMap } from "@scd/game-core";
 import type { LevelFile } from "../api";
 import { numberPadsInRouteOrder, padId, type Cell } from "./levelFile";
 
@@ -48,6 +48,8 @@ export type Action =
   | { readonly type: "undo" }
   | { readonly type: "redo" }
   | { readonly type: "replace"; readonly level: LevelFile }
+  /** "Make a map for me" (LD14): the generated route, pads and decorations, as one step of the undo history. */
+  | { readonly type: "generated"; readonly map: Pick<GeneratedMap, "route" | "pads" | "decorations"> }
   /** Any other edit (the waves and wave sets tabs build the new level): one step of the undo history. */
   | { readonly type: "edit"; readonly level: LevelFile };
 
@@ -231,6 +233,15 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
     }
     case "edit":
       return edited(state, action.level);
+    case "generated": {
+      const { route, pads, decorations } = action.map;
+      const level = withMap(state.level, {
+        route: route.map(([x, y]): [number, number] => [x, y]),
+        pads: pads.map((p, i) => ({ ...p, id: padId(state.level.levelId, i + 1) })), // already in route order
+        art: { ...state.level.map.art, decorations: decorations.map((d) => ({ ...d })) },
+      });
+      return edited(state, level);
+    }
     case "replace":
       return { ...initialEditor(action.level), tool: state.tool, cursor: state.cursor, decoration: state.decoration };
   }

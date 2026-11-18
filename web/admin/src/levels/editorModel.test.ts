@@ -84,6 +84,17 @@ describe("route tool", () => {
     expect(nextRoutePoint(route, [last[0], last[1] + 2], true)).toEqual({ point: [last[0], last[1] + 2] }); // y 8 to the bottom row
   });
 
+  it("puts a generated map in as one edit that Ctrl+Z takes back (LD14)", () => {
+    const start = initialEditor(blank());
+    const map = { route: [[0, 5], [19, 5]] as [number, number][], pads: [{ id: "p01", x: 3, y: 4, opensAfterWave: 0 }], decorations: [{ art: "deco-rock-1", x: 2, y: 9 }] };
+    const after = editorReducer(start, { type: "generated", map });
+    expect(after.level.map.route).toEqual([[0, 5], [19, 5]]);
+    expect(after.level.map.pads).toEqual([{ id: "lvl-p01", x: 3, y: 4, opensAfterWave: 0 }]);
+    expect(after.level.map.art.decorations).toEqual([{ art: "deco-rock-1", x: 2, y: 9 }]);
+    expect(after.level.map.art.backdrop).toBe(start.level.map.art.backdrop);
+    expect(editorReducer(after, { type: "undo" }).level).toEqual(start.level);
+  });
+
   it("Backspace takes the last point back; a route over a pad removes the pad", () => {
     let s = run(initialEditor(blank()), ...at(0, 5), ...at(10, 5), { type: "tool", tool: "pads" }, ...at(15, 5));
     expect(s.level.map.pads.map((p) => [p.x, p.y])).toEqual([[15, 5]]);

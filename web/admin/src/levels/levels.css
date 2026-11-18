@@ -255,3 +255,25 @@
 .curve-table td.warning {
   font-weight: 700;
 }
+
+/* Map tab → Make a map for me (LD14) */
+.map-maker {
+  margin: 0.75rem 0;
+}
+.map-maker[open] {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.35rem 0.5rem;
+  align-items: center;
+}
+.map-maker summary,
+.map-maker .hint,
+.map-maker .check,
+.map-maker .row,
+.map-maker [role="status"] {
+  grid-column: 1 / -1;
+}
+.map-maker summary {
+  cursor: pointer;
+  font-weight: 600;
+}
