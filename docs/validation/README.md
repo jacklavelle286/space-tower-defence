@@ -18,6 +18,7 @@ birth, no e-mail addresses. Children are "child A, age 6".
 | [ld12-preview.md](ld12-preview.md) | Gate M LD12: the battle preview on the admin site, its request log, the release classification | Phase LD12 |
 | [ld13-curves.md](ld13-curves.md) | Gate M LD13: the difficulty curve, margins against the simulator, the 15 % exit check | Phase LD13 |
 | [ld14-map-maker.md](ld14-map-maker.md) | Gate M LD14: Make a map for me, 150 seeds against the design rules, screenshots | Phase LD14 |
+| [ld15-wave-maker.md](ld15-wave-maker.md) | Gate M LD15: Make the waves for me, margins before and after tuning | Phase LD15 |
 | [phase-66-new-alien-card.md](phase-66-new-alien-card.md) | Phase 66: the new-alien card, the combat sounds, app icons, and what is still open | Phase 66 |
 | [phase-68-keyboard.md](phase-68-keyboard.md) | Phase 68: the keyboard-only journey and axe scans (local Playwright), and what they do not cover | Phase 68 |
 | [browsers.md](browsers.md) | One-clip check per browser the family uses (I.2.9 "Browser matrix") | Phase 23 |

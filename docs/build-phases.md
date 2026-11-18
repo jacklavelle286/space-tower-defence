@@ -102,6 +102,7 @@ until then it was `release.yml` then `apply.yml`, and older rows still say "disp
 | LD12 | Real-renderer preview | M | — | A draft plays with no API call | Release |
 | LD13 | Curve tools | M | — | hpMult from the curve | Release |
 | LD14 | Make a map for me | M | — | 150 seeds: no blocking problem | Release; try it |
+| LD15 | Make the waves for me | M | — | 40 seeds parse; tuned margins within 15 % on ordinary waves | Release; try it |
 | 57 | Local database | M5 | M5-01 | Upgrade keeps queued ops | — |
 | 58 | Offline queue | M5 | M5-02 | Playwright: offline then flush in order | Release |
 | 59 | Offline preparation and audio cache | M5 | M5-03 | Network cut after "Ready offline": play continues | Release; try it |
@@ -2580,6 +2581,26 @@ etc which fits the specs as it's quite hard to design". Added after LD13; [PROPO
 | Risks | Low: it only proposes a map; the designer still publishes it through the same checks |
 
 [Record](validation/ld14-map-maker.md).
+
+### Phase LD15 — Make the waves for me
+
+**Goal.** A button that makes all 50 campaign waves for a level, then tunes them with the test player.
+**Why now.** Owner, 2026-11-18: "can we get it to auto-create everything? number of rounds, alien dispersal across
+waves". Choices agreed the same day: campaign waves (challenges later), tuned automatically.
+
+| Field | Detail |
+|---|---|
+| In scope | game-core `generateWaves` (seeded; aliens in `introductionOrder`, each first on its own at the Moon's introduction waves; a boss with a light escort on every tenth wave; mixed waves from a scheduled-health budget read from luna-1-c2; hpMult on C8.1, speedMult the Moon's late rise; spaced to 25 s and the soft cap); the Waves tab panel (aliens to use, difficulty preset, tune, waves number, Make the waves, Another set, Stop); `curves/tune.ts` (measure on three workers, fit, up to three fits); a level without the campaign gets the campaign card |
+| Out of scope | Challenge wave sets; changing the campaign's fixed shape (50 waves, meteors after 9, 19, 29, 39, 49) |
+| Files | `web/game-core/src/waves/generate.ts`, `web/admin/src/levels/WaveMaker.tsx`, `web/admin/src/levels/curves/tune.ts`, `web/admin/src/levels/levelFile.ts` (`campaignCard`, `routeTiles`) |
+| Depends on | LD13 |
+| Owner actions | Release; try it |
+| Tests and how to run | `waves/generate.test.ts` (40 seeds through the parser), `WaveMaker.test.tsx` |
+| Deployed / how to see | Level editor → Waves tab → Make the waves for me |
+| Exit criteria | Generated waves parse and keep the designer's limits; each alien arrives alone; tuning leaves ordinary waves within 15 % of the margin target or names the ones that are not; Ctrl+Z restores the waves before |
+| Risks | Medium: tuning time on the children's laptop is unmeasured (node: 24 s a pass on one core, three workers per pass) |
+
+[Record](validation/ld15-wave-maker.md).
 
 ---
 
