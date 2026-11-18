@@ -101,6 +101,7 @@ until then it was `release.yml` then `apply.yml`, and older rows still say "disp
 | LD11 | Routes in any direction | M | — | Four fixture maps render | Review art; release |
 | LD12 | Real-renderer preview | M | — | A draft plays with no API call | Release |
 | LD13 | Curve tools | M | — | hpMult from the curve | Release |
+| LD14 | Make a map for me | M | — | 150 seeds: no blocking problem | Release; try it |
 | 57 | Local database | M5 | M5-01 | Upgrade keeps queued ops | — |
 | 58 | Offline queue | M5 | M5-02 | Playwright: offline then flush in order | Release |
 | 59 | Offline preparation and audio cache | M5 | M5-03 | Network cut after "Ready offline": play continues | Release; try it |
@@ -2559,6 +2560,26 @@ that lets only it do so.
 1. One curve against its anchor table.
 
 *Concept:* **piecewise interpolation** — a curve through a few points defines every value between them.
+
+### Phase LD14 — Make a map for me
+
+**Goal.** A button that makes a map (route, pads, decorations) meeting the design rules, to start from or keep.
+**Why now.** Owner, 2026-11-18: "it'd be cool to have a feature which auto creates a map with route, pads, decorations
+etc which fits the specs as it's quite hard to design". Added after LD13; [PROPOSAL] design agreed in chat the same day.
+
+| Field | Detail |
+|---|---|
+| In scope | game-core `generateMap` (seeded; route by trial with 4–5, 6–7 or 8–9 turns between chosen edges; 12–16 pads greedy on reach; decorations where the rule allows; or keep the designer's route), scored with the new `mapProblems` and `routeDesignProblems`; the Map tab panel (portal and colony edge, turns, pads, decorations and their source, keep my route, map number, Make a map, Another one); one undoable edit |
+| Out of scope | Waves (the LD13 curve tools); a test-player check of each map (Measure margins does that) |
+| Files | `web/game-core/src/map/generate.ts`, `web/game-core/src/map/rules.ts`, `web/admin/src/levels/MapMaker.tsx`, `web/admin/src/levels/editorModel.ts` |
+| Depends on | LD11 |
+| Owner actions | Release; try it |
+| Tests and how to run | `generate.test.ts` (150 seeds over every edge, twist and pad count), `MapMaker.test.tsx`, `editorModel.test.ts` |
+| Deployed / how to see | Level editor → Map tab → Make a map for me |
+| Exit criteria | Every generated map has no hard or blocking problem; the same map number makes the same map; Ctrl+Z restores the map before |
+| Risks | Low: it only proposes a map; the designer still publishes it through the same checks |
+
+[Record](validation/ld14-map-maker.md).
 
 ---
 
