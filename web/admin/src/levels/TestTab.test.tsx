@@ -62,3 +62,35 @@ describe("Test tab", () => {
     expect(screen.getByText(/Save first/)).toBeTruthy();
   });
 });
+
+describe("Publish tab → Get it ready (LD16)", () => {
+  it("saves the unsaved edit, runs and records the checks, then validates, and the Test tab shows the run", async () => {
+    render(<LevelEditor api={fake.api} levelId="zig" makeWorker={inlineWorker} />);
+    await screen.findByRole("application");
+    fireEvent.click(screen.getByRole("tab", { name: "Wave sets" }));
+    fireEvent.change(screen.getByLabelText("Starting credits"), { target: { value: "300" } }); // an unsaved edit
+    fireEvent.click(screen.getByRole("tab", { name: "Publish" }));
+    fireEvent.click(screen.getByRole("button", { name: "Get it ready" }));
+    expect(await screen.findByText(/^Ready: saved, checked and validated\./u, undefined, { timeout: 15000 })).toBeTruthy();
+    expect(fake.levels.get("zig")?.draftRevision).toBe(1);
+    expect(fake.levels.get("zig")?.review?.testPlayedDraftRevision).toBe(1);
+    expect(fake.callsNamed("validateLevel")[0]?.args).toEqual(["zig", 1]);
+    for (const text of ["The draft is saved.", "The server's Validate passes (rules and pictures)."]) {
+      expect(screen.getByText(text).closest("li")?.className).toBe("ok");
+    }
+    fireEvent.click(screen.getByRole("tab", { name: "Test" }));
+    expect(screen.getByRole("heading", { name: "zig-rush" })).toBeTruthy();
+  }, 20000);
+
+  it("stops with the reason when the editor shows a problem that stops publishing", async () => {
+    const broken = newLevel("zig", "Zig", "blank");
+    fake.levels.clear();
+    await fake.api.createLevel(broken);
+    render(<LevelEditor api={fake.api} levelId="zig" makeWorker={inlineWorker} />);
+    await screen.findByRole("application");
+    fireEvent.click(screen.getByRole("tab", { name: "Publish" }));
+    fireEvent.click(screen.getByRole("button", { name: "Get it ready" }));
+    expect(await screen.findByText("First fix the problems the editor shows: they stop publishing.")).toBeTruthy();
+    expect(fake.callsNamed("validateLevel")).toEqual([]);
+  });
+});

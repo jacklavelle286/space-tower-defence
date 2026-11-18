@@ -5,6 +5,7 @@ import {
   mapGeometry,
   padReach,
   routeCells,
+  type WaveSetReport,
 } from "@scd/game-core";
 import {
   DECORATIONS,
@@ -57,7 +58,8 @@ import { loadLiveBase } from "./liveBase";
 import { MapMaker } from "./MapMaker";
 import { PublishTab } from "./publish/PublishTab";
 import "./levels.css";
-import type { CheckWorker } from "./checkRun";
+import { runChecks, type CheckRun, type CheckWorker } from "./checkRun";
+import type { GetReady } from "./publish/PublishTab";
 import { TestTab } from "./TestTab";
 import { WaveSetsTab } from "./WaveSetsTab";
 import { WavesTab } from "./WavesTab";
@@ -329,6 +331,53 @@ export function LevelEditor({ api, levelId, makeWorker }: Props) {
     [api, busy, level, levelId, loaded],
   );
 
+  // Publish tab → Get it ready (LD16): save, run the checks on the saved draft and record them, as the Save button and
+  // the Test tab do; the tab then runs Validate. Stops at the first step that fails, with the reason.
+  const [lastReports, setLastReports] = useState<WaveSetReport[] | null>(null);
+  const readyRun = useRef<CheckRun | null>(null);
+  useEffect(() => () => readyRun.current?.cancel(), []);
+  const getReady: GetReady = async (onStep) => {
+    if (level === null || loaded === null) return { ok: false, message: "The level is still loading." };
+    if (problems.some((p) => p.severity !== "warn")) return { ok: false, message: "First fix the problems the editor shows: they stop publishing." };
+    let current = loaded;
+    if (dirty) {
+      onStep("Saving the draft…");
+      try {
+        current = fromView(await api.saveLevel(levelId, { draftRevision: loaded.draftRevision, level }));
+      } catch (error) {
+        if (error instanceof ApiError && error.code === "DRAFT_CONFLICT") setConflict(true);
+        return { ok: false, message: `The draft could not be saved: ${describeError(error)}` };
+      }
+      forgetUnsaved(levelId);
+      setLoaded(current);
+    }
+    const review = current.review;
+    const tested = review?.testPlayedDraftRevision === current.draftRevision && review.sourceVersion === liveBase().version && review.blocking === 0;
+    if (!tested) {
+      onStep("Running the checks…");
+      let reports: WaveSetReport[];
+      try {
+        readyRun.current = runChecks(current.level, (done, total) => onStep(`Running the checks: ${done} of ${total}…`), makeWorker);
+        reports = await readyRun.current.done;
+      } catch (error) {
+        return { ok: false, message: `The checks stopped: ${error instanceof Error ? error.message : String(error)}` };
+      } finally {
+        readyRun.current = null;
+      }
+      setLastReports(reports);
+      const findings = reports.flatMap((r) => r.findings);
+      const blocking = findings.filter((f) => f.severity === "block").length;
+      try {
+        current = fromView(await api.recordTestplay(levelId, { draftRevision: current.draftRevision, sourceVersion: liveBase().version, blocking, warnings: findings.length - blocking }));
+      } catch (error) {
+        return { ok: false, message: `The checks ran, but the result could not be recorded: ${describeError(error)}` };
+      }
+      setLoaded(current);
+      if (blocking > 0) return { ok: false, message: `The checks found ${blocking} red result${blocking === 1 ? "" : "s"}: the Test tab shows them.` };
+    }
+    return { ok: true, draftRevision: current.draftRevision };
+  };
+
   const onPublishView = useCallback(
     (view: LevelView, wentLive: boolean) => {
       setLoaded(fromView(view));
@@ -573,6 +622,7 @@ export function LevelEditor({ api, levelId, makeWorker }: Props) {
               blocked={problems.some((p) => p.severity !== "warn")}
               draftRevision={loaded.draftRevision}
               review={loaded.review}
+              lastReports={lastReports}
               {...(makeWorker === undefined ? {} : { makeWorker })}
               onRecord={async (counts) => {
                 const view = await api.recordTestplay(levelId, {
@@ -598,6 +648,7 @@ export function LevelEditor({ api, levelId, makeWorker }: Props) {
               publish={loaded.publish}
               versions={loaded.versions}
               onView={onPublishView}
+              onGetReady={getReady}
             />
           )}
         </div>

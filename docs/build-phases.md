@@ -103,6 +103,7 @@ until then it was `release.yml` then `apply.yml`, and older rows still say "disp
 | LD13 | Curve tools | M | — | hpMult from the curve | Release |
 | LD14 | Make a map for me | M | — | 150 seeds: no blocking problem | Release; try it |
 | LD15 | Make the waves for me | M | — | 40 seeds parse; tuned margins within 15 % on ordinary waves | Release; try it |
+| LD16 | Get it ready | M | — | One button: save, checks recorded, Validate | Release; try it |
 | 57 | Local database | M5 | M5-01 | Upgrade keeps queued ops | — |
 | 58 | Offline queue | M5 | M5-02 | Playwright: offline then flush in order | Release |
 | 59 | Offline preparation and audio cache | M5 | M5-03 | Network cut after "Ready offline": play continues | Release; try it |
@@ -2601,6 +2602,24 @@ waves". Choices agreed the same day: campaign waves (challenges later), tuned au
 | Risks | Medium: tuning time on the children's laptop is unmeasured (node: 24 s a pass on one core, three workers per pass) |
 
 [Record](validation/ld15-wave-maker.md).
+
+### Phase LD16 — Get it ready
+
+**Goal.** One button on the Publish tab that does the checklist's automatic steps: save, run the checks, Validate.
+**Why now.** Owner, 2026-11-18, pasting the checklist with three steps "Not yet": a button that does all three agreed
+the same day.
+
+| Field | Detail |
+|---|---|
+| In scope | Publish tab → Get it ready: stops first on a problem the editor shows; saves unsaved edits (as Save); runs the checks on the saved draft and records them (as the Test tab, which then shows that run); runs Validate on the server; says which step stopped it and why, or "Ready" |
+| Out of scope | The hand ticks (a person looks at the map) and Publish itself |
+| Files | `web/admin/src/levels/LevelEditor.tsx` (`getReady`), `web/admin/src/levels/publish/PublishTab.tsx`, `web/admin/src/levels/TestTab.tsx` (`lastReports`) |
+| Depends on | LD5, LD7 |
+| Owner actions | Release; try it |
+| Tests and how to run | `TestTab.test.tsx` ("Publish tab → Get it ready") |
+| Deployed / how to see | Level editor → Publish tab → Get it ready |
+| Exit criteria | With an unsaved edit, one press saves (revision +1), records the checks on that revision and validates it; a design problem stops it before anything is sent |
+| Risks | Low: it runs the same calls as the three buttons; the server repeats every check at publish |
 
 ---
 

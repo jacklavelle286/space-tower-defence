@@ -66,6 +66,9 @@ function refusalOf(error: unknown): PublishRefusal | null {
   return { code: typeof code === "string" ? code : "UNKNOWN", message: typeof message === "string" ? message : "" };
 }
 
+/** Get it ready (LD16): the editor saves and runs the checks, then says which draft revision to validate. */
+export type GetReady = (onStep: (text: string) => void) => Promise<{ readonly ok: true; readonly draftRevision: number } | { readonly ok: false; readonly message: string }>;
+
 type Props = {
   readonly api: Pick<AdminApi, "validateLevel" | "publishLevel" | "getLevel">;
   readonly levelId: string;
@@ -84,14 +87,17 @@ type Props = {
   readonly versions: readonly LevelVersion[];
   /** A fresh level view (after a poll); `wentLive` when a publish just moved the live version. */
   readonly onView: (view: LevelView, wentLive: boolean) => void;
+  readonly onGetReady?: GetReady;
 };
 
-export function PublishTab({ api, levelId, level, draftRevision, review, dirty, blocked, baseVersion, released = true, publish, versions, onView }: Props) {
+export function PublishTab({ api, levelId, level, draftRevision, review, dirty, blocked, baseVersion, released = true, publish, versions, onView, onGetReady }: Props) {
   const [validation, setValidation] = useState<{ revision: number; result: LevelValidation } | null>(null);
   const [ticks, setTicks] = useState<Record<HandTick, boolean>>(() => Object.fromEntries(HAND_TICKS.map(([k]) => [k, false])) as Record<HandTick, boolean>);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [confirmLive, setConfirmLive] = useState(false);
+  const [step, setStep] = useState<string | null>(null);
+  const [readyText, setReadyText] = useState<string | null>(null);
   const polls = useRef(0);
 
   const liveRaw = liveBase().raw; // the same object until a new live version is loaded
@@ -140,12 +146,40 @@ export function PublishTab({ api, levelId, level, draftRevision, review, dirty, 
   async function validate() {
     setBusy(true);
     setMessage(null);
+    setReadyText(null);
     try {
       setValidation({ revision: draftRevision, result: await api.validateLevel(levelId, draftRevision) });
     } catch (error) {
       const refusal = refusalOf(error);
       setMessage(refusal !== null ? refusalText(refusal) : describeError(error));
     } finally {
+      setBusy(false);
+    }
+  }
+
+  /** Save, run the checks (the editor does both), then Validate: stops at the first step that fails, with why. */
+  async function getReady() {
+    if (onGetReady === undefined) return;
+    setBusy(true);
+    setMessage(null);
+    setReadyText(null);
+    try {
+      const prepared = await onGetReady(setStep);
+      if (!prepared.ok) {
+        setMessage(prepared.message);
+        return;
+      }
+      setStep("Validating on the server…");
+      const result = await api.validateLevel(levelId, prepared.draftRevision);
+      setValidation({ revision: prepared.draftRevision, result });
+      const passed = result.problems.every((p) => p.severity === "warn") && result.pictures.length === 0;
+      if (passed) setReadyText("Ready: saved, checked and validated. Look at the map yourself and tick the boxes below, then publish.");
+      else setMessage("Validate found problems: they are listed under the checklist.");
+    } catch (error) {
+      const refusal = refusalOf(error);
+      setMessage(refusal !== null ? refusalText(refusal) : describeError(error));
+    } finally {
+      setStep(null);
       setBusy(false);
     }
   }
@@ -206,9 +240,19 @@ export function PublishTab({ api, levelId, level, draftRevision, review, dirty, 
           </li>
         ))}
       </ul>
-      <button type="button" onClick={() => void validate()} disabled={busy || dirty}>
-        Validate on the server
-      </button>
+      <p className="row">
+        {onGetReady !== undefined && (
+          <button type="button" className="primary" onClick={() => void getReady()} disabled={busy || running || baseVersion === null}>
+            Get it ready
+          </button>
+        )}
+        <button type="button" onClick={() => void validate()} disabled={busy || dirty}>
+          Validate on the server
+        </button>
+      </p>
+      {onGetReady !== undefined && <p className="muted">Get it ready saves the draft, runs the checks against the live version, then Validate.</p>}
+      {step !== null && <p role="status">{step}</p>}
+      {readyText !== null && <p role="status">{readyText}</p>}
       {validation !== null && validation.revision === draftRevision && !validated && (
         <ul className="problems">
           {validation.result.problems

@@ -29,6 +29,8 @@ type Props = {
     warnings: number;
   }) => Promise<void>;
   readonly makeWorker?: () => CheckWorker;
+  /** The reports of a run Get it ready made (Publish tab), shown until the next run here. */
+  readonly lastReports?: WaveSetReport[] | null;
 };
 
 const CELL: Record<CellState, string> = {
@@ -125,12 +127,13 @@ export function TestTab({
   review,
   onRecord,
   makeWorker,
+  lastReports = null,
 }: Props) {
   const [progress, setProgress] = useState<{
     done: number;
     total: number;
   } | null>(null);
-  const [reports, setReports] = useState<WaveSetReport[] | null>(null);
+  const [reports, setReports] = useState<WaveSetReport[] | null>(lastReports);
   const [message, setMessage] = useState<string | null>(null);
   const [slow, setSlow] = useState(false);
   const run = useRef<CheckRun | null>(null);
