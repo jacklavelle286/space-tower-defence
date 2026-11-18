@@ -35,6 +35,7 @@ import {
   type LevelView,
   type PictureSummary,
 } from "../api";
+import { clearFlash, peekFlash } from "../flash";
 import { hrefOf } from "../routes";
 import { artUrl, pictureUrl } from "./artUrls";
 import {
@@ -217,7 +218,9 @@ export function LevelEditor({ api, levelId, makeWorker }: Props) {
   // for the rules, and publishing off.
   const [baseVersion, setBaseVersion] = useState<string | null>(liveBaseLoaded() ? liveBase().version : null);
   const [baseError, setBaseError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
+  // A message carried from the Levels page (LD18: what Make the whole level made) shows until the first other one.
+  const [message, setMessage] = useState<string | null>(peekFlash);
+  useEffect(clearFlash, []);
   const [conflict, setConflict] = useState(false);
   const [busy, setBusy] = useState(false);
   const [showCoverage, setShowCoverage] = useState(false);

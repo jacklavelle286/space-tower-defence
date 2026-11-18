@@ -5,12 +5,16 @@ import { clearFlash, peekFlash, setFlash } from "../flash";
 import { hrefOf } from "../routes";
 import { LEVEL_ID, NAME_MAX, newLevel, readLevelFile, TEMPLATES } from "./levelFile";
 import { loadLiveBase } from "./liveBase";
+import { LevelMaker } from "./maker/LevelMaker";
 
-// Admin → Levels (Gate M, LD3; scope-level-designer.md §3.1 steps 1-2): the level drafts, New level from a template,
-// Upload level file (a file downloaded from the editor, or kept in the repo), and Delete. A level that was ever published
+// Admin → Levels (Gate M, LD3; scope-level-designer.md §3.1 steps 1-2): the level drafts, New level from a template
+// or made whole (LD18, maker/), Upload level file (a file downloaded from the editor, or kept in the repo), and Delete. A level that was ever published
 // cannot be deleted (saved games may be on its versions): its wave sets are retired in Versions instead (LD7).
 
-type Props = { readonly api: AdminApi; readonly navigate?: (hash: string) => void };
+type Props = { readonly api: AdminApi; readonly navigate?: (hash: string) => void; readonly maker?: Pick<Parameters<typeof LevelMaker>[0], "firstSeed" | "workers"> };
+
+/** "Start from" for Make it all for me (LD18): the map, waves and challenges made rather than copied. */
+const MAKE = "make";
 
 /** "Blob Rush!" -> "blob-rush": a suggested level ID (lower case, digits and dashes, at most 36). */
 export function slugOf(name: string): string {
@@ -29,7 +33,7 @@ function createError(error: unknown): string {
   return describeError(error);
 }
 
-export function LevelListPage({ api, navigate = (hash) => window.location.assign(hash) }: Props) {
+export function LevelListPage({ api, navigate = (hash) => window.location.assign(hash), maker }: Props) {
   const [items, setItems] = useState<LevelSummary[] | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [flash] = useState(peekFlash);
@@ -37,7 +41,7 @@ export function LevelListPage({ api, navigate = (hash) => window.location.assign
   const [name, setName] = useState("");
   const [levelId, setLevelId] = useState("");
   const [idTouched, setIdTouched] = useState(false);
-  const [template, setTemplate] = useState(TEMPLATES[0]?.id ?? "blank");
+  const [template, setTemplate] = useState(MAKE);
   const [busy, setBusy] = useState(false);
   const [deleting, setDeleting] = useState<string | null>(null);
   const deleteTrigger = useRef<HTMLButtonElement | null>(null);
@@ -70,7 +74,7 @@ export function LevelListPage({ api, navigate = (hash) => window.location.assign
   const idOk = LEVEL_ID.test(id);
   const nameOk = name.trim() !== "" && name.length <= NAME_MAX;
 
-  const create = async (level: LevelFile): Promise<void> => {
+  const create = async (level: LevelFile, carry?: string): Promise<void> => {
     setBusy(true);
     setMessage(null);
     try {
@@ -78,6 +82,7 @@ export function LevelListPage({ api, navigate = (hash) => window.location.assign
       const chosen = planets.find((p) => p.planetId === planet);
       const start = chosen?.backdrop && level.map.art.backdrop === null ? { ...level, map: { ...level.map, art: { ...level.map.art, backdrop: chosen.backdrop } } } : level;
       await api.createLevel(start, planet === "luna-1" ? undefined : planet);
+      if (carry !== undefined) setFlash(carry); // what was made, for the editor's first message (LD18)
       navigate(hrefOf({ page: "level", id: level.levelId }));
     } catch (error) {
       setMessage(createError(error));
@@ -128,7 +133,7 @@ export function LevelListPage({ api, navigate = (hash) => window.location.assign
         aria-labelledby="level-new-heading"
         onSubmit={(event) => {
           event.preventDefault();
-          if (idOk && nameOk && !busy) void create(newLevel(id, name.trim(), template));
+          if (idOk && nameOk && !busy && template !== MAKE) void create(newLevel(id, name.trim(), template));
         }}
       >
         <h3 id="level-new-heading">New level</h3>
@@ -167,6 +172,7 @@ export function LevelListPage({ api, navigate = (hash) => window.location.assign
         <label>
           Start from{" "}
           <select value={template} onChange={(e) => setTemplate(e.target.value)}>
+            <option value={MAKE}>Make it all for me: map, waves and challenges</option>
             {TEMPLATES.map((t) => (
               <option key={t.id} value={t.id}>
                 {t.label}
@@ -174,9 +180,20 @@ export function LevelListPage({ api, navigate = (hash) => window.location.assign
             ))}
           </select>
         </label>
-        <button type="submit" disabled={!idOk || !nameOk || busy}>
-          Create
-        </button>
+        {template === MAKE ? (
+          <LevelMaker
+            levelId={id}
+            name={name.trim()}
+            ready={idOk && nameOk && !busy}
+            planetNeedsCampaign={(planets.find((p) => p.planetId === planet)?.campaignWaves ?? (planet === "luna-1" ? 50 : 0)) === 0}
+            onMade={(level, notes) => create(level, notes.join(" "))}
+            {...maker}
+          />
+        ) : (
+          <button type="submit" disabled={!idOk || !nameOk || busy}>
+            Create
+          </button>
+        )}
       </form>
 
       <p>

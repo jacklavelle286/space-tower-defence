@@ -105,6 +105,7 @@ until then it was `release.yml` then `apply.yml`, and older rows still say "disp
 | LD15 | Make the waves for me | M | — | 40 seeds parse; tuned margins within 15 % on ordinary waves | Release; try it |
 | LD16 | Get it ready | M | — | One button: save, checks recorded, Validate | Release; try it |
 | LD17 | Copy from another level | M | — | Copied waves and challenges pass the rules on the new map | Release; try it |
+| LD18 | Make the whole level for me | M | — | Made challenges parse and the competent player wins each at 0 % | Release; try it |
 | 57 | Local database | M5 | M5-01 | Upgrade keeps queued ops | — |
 | 58 | Offline queue | M5 | M5-02 | Playwright: offline then flush in order | Release |
 | 59 | Offline preparation and audio cache | M5 | M5-03 | Network cut after "Ready offline": play continues | Release; try it |
@@ -2638,6 +2639,25 @@ the same day.
 | Deployed / how to see | Level editor → Waves tab → Copy from another level |
 | Exit criteria | A level with a campaign and a challenge copied onto another map passes the design rules; nothing outside the choice changes |
 | Risks | Low: it only edits the draft; the usual checks still run before publishing |
+
+### Phase LD18 — Make the whole level for me
+
+**Goal.** One button on New level makes a complete level from one number: a map, the 50 campaign waves (tuned when
+asked) and challenge wave sets, each a sensible default the operator can change afterwards.
+**Why now.** Owner, 2026-11-18: "i'd like to make wave sets also - so essentially there's one button which makes it all
+for me - a complete new level - randomised within sensible defaults".
+
+| Field | Detail |
+|---|---|
+| In scope | Levels → New level → Start from "Make it all for me" (the default): the map (LD14's generator; turns, 13–15 pads and 6–10 Moon decorations drawn from the number, the next number tried when one makes no map); the waves (LD15; tuning with the test player on by default); 0–4 challenges (default 3): an opening (waves 1 to 3–5, no presets, the campaign's credits), a boss fight (the 2–3 waves before wave 10 or 20, and the boss), then middles in 11–19 and 21–29. Each challenge starts from the board the competent test player had built by its first wave at 0 % learning: 60 % of those astronauts stay as presets and half the price of the rest comes back as credits; the astronauts unlocked by then are offered and the pads open by then are open; a meteor challenge halfway through a set of 4 or more waves. Each is played: the competent player at 0 % must clear it (astronauts, then credits, given back until it does; left out with a note otherwise), and astronauts are taken away while the presets alone would clear it. One worker per challenge. The campaign waves are ticked when the planet has no campaign yet; otherwise the waves are made on this map only as the challenges' own challenge waves ("<levelId>-w12"), with no boss challenge (challenge waves hold no boss). The editor opens with a line saying what was made |
+| Out of scope | A backdrop picture (the planet's default is used, as for any new level); library decorations; badges |
+| Files | `web/game-core/src/bot/challenges.ts`, `web/admin/src/levels/maker/` (`wholeLevel.ts`, `challenges.ts`, `challenges.worker.ts`, `LevelMaker.tsx`), `web/admin/src/levels/LevelListPage.tsx`, `web/admin/src/levels/LevelEditor.tsx` (the carried message) |
+| Depends on | LD5, LD14, LD15 |
+| Owner actions | Release; try it |
+| Tests and how to run | `game-core/src/bot/challenges.test.ts` (generated maps and campaigns: every challenge parses and the competent player wins it at 0 %, the same from the same number, a worker's single challenge equals the list's, own challenge waves without bosses); `admin/src/levels/LevelListPage.test.tsx` (one button with and without the campaign, Stop) |
+| Deployed / how to see | Admin → Levels → New level: give a name, keep "Make it all for me", Make the level |
+| Exit criteria | A made level opens in the editor with no problem that stops publishing, and its challenges pass the checks that block publishing |
+| Risks | Time: in node one level's four challenges take 15–27 s one after another (2026-11-18), so about the furthest one alone with a worker each, plus about half a minute of tuning; the time on the children's laptop is **[UNVERIFIED]** (the owner times it) |
 
 ---
 
