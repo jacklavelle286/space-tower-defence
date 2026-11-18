@@ -192,13 +192,32 @@ export function newLevel(levelId: string, name: string, templateId: string): Lev
   map.pads = (t?.pads ?? []).map((cell, i) => ({ id: padId(levelId, i + 1), x: cell[0], y: cell[1], opensAfterWave: cell[2] ?? 0 }));
   const level: LevelFile = { kind: "level", schema: 1, levelId, name, map, challengeWaves: {}, waveSets: {} };
   if (t?.campaign === true) {
-    // The base's campaign; a planet with nothing published (LD10) starts from the Moon's.
-    const live = liveBase().planet.waveSets["campaign"] !== undefined ? liveBase().planet : REPO_BASE.planet;
-    const campaign = live.waveSets["campaign"] as unknown as LevelWaveSet;
-    level.waves = structuredClone(live.waves as unknown as LevelWave[]);
-    level.waveSets = { campaign: { ...structuredClone(campaign), mapId: levelId, presetPlacements: [] } };
+    level.waves = structuredClone(campaignSource().waves as unknown as LevelWave[]);
+    level.waveSets = { campaign: campaignCard(levelId) };
   }
   return numberPadsInRouteOrder(level);
+}
+
+/** The base's campaign; a planet with nothing published (LD10) starts from the Moon's. */
+function campaignSource(): LiveBase["planet"] {
+  return liveBase().planet.waveSets["campaign"] !== undefined ? liveBase().planet : REPO_BASE.planet;
+}
+
+/** Tiles from the portal to the colony (40 while there is no route yet). */
+export function routeTiles(level: LevelFile): number {
+  let n = 0;
+  for (let i = 1; i < level.map.route.length; i += 1) {
+    const [ax, ay] = level.map.route[i - 1] ?? [0, 0];
+    const [bx, by] = level.map.route[i] ?? [0, 0];
+    n += Math.abs(bx - ax) + Math.abs(by - ay);
+  }
+  return n || 40;
+}
+
+/** The live campaign's card (credits, colony health, classes, pads, meteors) played on this level's map. */
+export function campaignCard(levelId: string): LevelWaveSet {
+  const campaign = campaignSource().waveSets["campaign"] as unknown as LevelWaveSet;
+  return { ...structuredClone(campaign), mapId: levelId, presetPlacements: [] };
 }
 
 /** Pads renumbered p01, p02, ... in route order (D5.1: route order is the attack order and the Tab order). */

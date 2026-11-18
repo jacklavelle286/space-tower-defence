@@ -3,7 +3,8 @@ import { LIMITS } from "@scd/shared";
 import { useState } from "react";
 import type { LevelFile, LevelGroup, LevelWave, LevelWaveBody } from "../api";
 import { CurvePanel } from "./curves/CurvePanel";
-import { currentRuleset, liveBase, problemText, type LevelProblem } from "./levelFile";
+import { currentRuleset, liveBase, problemText, routeTiles as routeTilesOf, type LevelProblem } from "./levelFile";
+import { WaveMaker } from "./WaveMaker";
 
 // The Waves tab (Gate M, LD4; scope-level-designer.md §3.1 step 8 and §3.1a). A campaign level edits the 50 campaign
 // waves: mark a few as keyframes, Fill in rebuilds the waves between them along a curve, a wave set by hand is kept;
@@ -25,16 +26,6 @@ const aliens = () =>
     .filter(([, a]) => !a.descendantOnly)
     .map(([id, a]) => ({ id, name: a.name }));
 const bosses = () => Object.entries(currentRuleset().bosses).map(([id, b]) => ({ id, name: b.name }));
-
-function routeLength(level: LevelFile): number {
-  let n = 0;
-  for (let i = 1; i < level.map.route.length; i += 1) {
-    const [ax, ay] = level.map.route[i - 1] ?? [0, 0];
-    const [bx, by] = level.map.route[i] ?? [0, 0];
-    n += Math.abs(bx - ax) + Math.abs(by - ay);
-  }
-  return n || 40;
-}
 
 function num(value: string, lo: number, hi: number, fallback: number): number {
   const v = Number(value);
@@ -145,7 +136,7 @@ export function WavesTab({ level, problems, onEdit }: Props) {
   const [range, setRange] = useState({ from: 1, to: 50, pct: 10 });
   const [rolls, setRolls] = useState<Record<number, { seed: number; body: LevelWaveBody }>>({});
   const [newWave, setNewWave] = useState("");
-  const tiles = routeLength(level);
+  const tiles = routeTilesOf(level);
   const waves = level.waves ?? [];
   const keyframes = level.design?.keyframes ?? [];
   const overrides = level.design?.overrides ?? [];
@@ -160,6 +151,7 @@ export function WavesTab({ level, problems, onEdit }: Props) {
 
   return (
     <div className="waves-tab">
+      <WaveMaker level={level} onEdit={onEdit} />
       {waves.length === 0 ? (
         <p>
           This level does not own the campaign: its challenges can use the live campaign's waves by number (1 to {liveBase().planet.waves.length}) and their own
