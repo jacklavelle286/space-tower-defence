@@ -173,6 +173,20 @@ def plain(value: Any) -> Any:
     return value
 
 
+def stored(value: Any) -> Any:
+    """JSON values as DynamoDB keeps them, the reverse of `plain`: float -> Decimal (its shortest decimal form, so 1.05
+    stays 1.05), maps and lists recursively. boto3's serialiser refuses floats with a TypeError, which was a 500 on a
+    level save holding generated waves (gaps of 0.25 s, health x1.05). JSON bodies cannot carry NaN or Infinity
+    (shared/body.py refuses them), so every float here is finite."""
+    if isinstance(value, float):
+        return Decimal(repr(value))
+    if isinstance(value, Mapping):
+        return {str(k): stored(v) for k, v in value.items()}
+    if isinstance(value, list | tuple):
+        return [stored(v) for v in value]
+    return value
+
+
 def canonical_json(value: Any) -> bytes:
     return json.dumps(plain(value), sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
 

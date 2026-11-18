@@ -70,6 +70,30 @@ def test_create_get_save_list_delete(api: Admin) -> None:
     assert sorted(i["action"]["S"] for i in audits) == ["level.create", "level.delete"]
 
 
+def test_waves_with_decimal_numbers_save_and_come_back_unchanged(api: Admin) -> None:
+    # 2026-11-18: a save holding generated waves was a 500 (boto3 refuses floats); the live campaign has them too.
+    wave = {"groups": [{"alien": "blob", "count": 6, "gap": 0.25, "start": 1.5}], "hpMult": 1.05, "speedMult": 1.0}
+    campaign = level(waves=[wave] * 50, waveSets={})
+    status, view = api.call("POST /api/admin/levels", {"level": campaign})
+    assert status == 201, view
+    assert view["draft"]["level"]["waves"][0] == wave
+    tuned = {**wave, "hpMult": 0.30000000000000004}  # a float with no short decimal form keeps its digits
+    status, view = api.call(
+        "PUT /api/admin/levels/{id}/draft", {"draftRevision": 0, "level": level(waves=[tuned] * 50)}, id="zigzag"
+    )
+    assert status == 200, view
+    assert view["draft"]["level"]["waves"][49] == tuned
+
+
+def test_nan_and_infinity_are_refused_as_malformed(api: Admin) -> None:
+    api.call("POST /api/admin/levels", {"level": level()})
+    wave = {"groups": [{"alien": "blob", "count": 6, "gap": float("nan")}], "hpMult": 1, "speedMult": float("inf")}
+    status, body = api.call(
+        "PUT /api/admin/levels/{id}/draft", {"draftRevision": 0, "level": level(waves=[wave])}, id="zigzag"
+    )
+    assert status == 400 and {"field": "body", "rule": "json"} in body["error"]["details"]
+
+
 def test_a_stale_revision_is_a_draft_conflict(api: Admin) -> None:
     api.call("POST /api/admin/levels", {"level": level()})
     assert api.call("PUT /api/admin/levels/{id}/draft", {"draftRevision": 0, "level": level()}, id="zigzag")[0] == 200

@@ -25,7 +25,7 @@ from typing import Any
 
 from shared.body import json_object
 from shared.bounds import VERSION
-from shared.content import as_int, audit_item, audit_key, iso_z, plain, problem
+from shared.content import as_int, audit_item, audit_key, iso_z, plain, problem, stored
 from shared.data import DynamoTable
 from shared.errors import ApiError, json_response
 from shared.gamedata_admin import level_publishing
@@ -124,7 +124,7 @@ def make_level_handlers(
         request.log["levelId"] = level_id
         moment, by = now(), request.caller.sub
         header, draft = new_level_items(
-            level=level, by=by, at=moment, planet_id=None if planet_id == DEFAULT_PLANET else planet_id
+            level=stored(level), by=by, at=moment, planet_id=None if planet_id == DEFAULT_PLANET else planet_id
         )
         content = table()
         pk, sk = audit_key(moment, level_id)
@@ -157,7 +157,7 @@ def make_level_handlers(
         problems = level_problems(body["level"], level_id)
         if problems:
             raise _invalid(problems)
-        level = dict(body["level"])
+        level = stored(body["level"])  # decimals as Decimal: boto3 refuses floats
         stamp, by = iso_z(now()), request.caller.sub
         content = table()
         actions = [

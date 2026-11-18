@@ -42,13 +42,18 @@ def raw_body(event: Mapping[str, Any]) -> bytes:
     return body.encode("utf-8")
 
 
+def _no_constant(name: str) -> Any:
+    """NaN, Infinity and -Infinity are not JSON (RFC 8259) and DynamoDB cannot keep them: refused as malformed."""
+    raise ValueError(name)
+
+
 def json_object(event: Mapping[str, Any], max_bytes: int = DEFAULT_MAX_BYTES) -> dict[str, Any]:
     """The body as a JSON object, or ApiError VALIDATION_FAILED (`max_bytes`, then `json`)."""
     raw = raw_body(event)
     if len(raw) > max_bytes:
         raise invalid("body", "max_bytes")
     try:
-        value = json.loads(raw)
+        value = json.loads(raw, parse_constant=_no_constant)
     except ValueError:  # JSONDecodeError and UnicodeDecodeError are both ValueErrors; an empty body lands here too
         raise invalid("body", "json") from None
     if not isinstance(value, dict):
