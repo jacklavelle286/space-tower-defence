@@ -62,6 +62,16 @@ export function tokenRequestBody(config: AdminConfig, origin: string, code: stri
   });
 }
 
+/** Renew with a refresh token (RFC 6749 §6). With rotation on, the answer carries a new refresh token too. */
+export function refreshRequestBody(config: AdminConfig, refreshToken: string): URLSearchParams {
+  return new URLSearchParams({ grant_type: "refresh_token", client_id: config.clientId, refresh_token: refreshToken });
+}
+
+/** Cognito /oauth2/revoke: ends the refresh token and the access tokens made from it (revocation is on, E.7.1). */
+export function revokeRequestBody(config: AdminConfig, refreshToken: string): URLSearchParams {
+  return new URLSearchParams({ token: refreshToken, client_id: config.clientId });
+}
+
 export type CallbackResult = { ok: true; code: string } | { ok: false; reason: "denied" | "state" | "missing" };
 
 /** Read the callback's query string against the state this tab sent. */

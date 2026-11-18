@@ -86,7 +86,7 @@ variable "explicit_auth_flows" {
 }
 
 variable "refresh_token_validity_days" {
-  description = "Refresh-token lifetime in days (E.7.1: 90 players, 1 operators)."
+  description = "Refresh-token lifetime in days (E.7.1: 90 players; operators 30, ADR-0042)."
   type        = number
 
   validation {

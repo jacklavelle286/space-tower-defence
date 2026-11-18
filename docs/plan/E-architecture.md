@@ -705,7 +705,7 @@ Notes:
 | Token sent to the API | Access token only | **[CONFIRMED]** "intended access tokens" `prompt.md:777` |
 | Profile data | Never a Cognito attribute (attributes leak into ID tokens); identity = access-token `sub` | **[PROPOSAL]**; leak **[VERIFIED]** [sources/05](sources/05-cognito-auth.md) §3.1 |
 | Browser library | `aws-amplify` v6, `aws-amplify/auth` only, configured by hand from `config.json` | **[PROPOSAL]** [sources/05](sources/05-cognito-auth.md) §8 |
-| Token lifetimes | access/ID 60 min; refresh 90 days (player), 1 day (operator); revocation on; rotation off for players, on for operators | **[PROPOSAL]** [sources/05](sources/05-cognito-auth.md) §3.5 |
+| Token lifetimes | access/ID 60 min; refresh 90 days (player), 30 days (operator, owner 2026-11-18, [ADR-0042](../decisions/0042-admin-trusted-browser.md); was 1 day); revocation on; rotation off for players, on for operators | **[PROPOSAL]** [sources/05](sources/05-cognito-auth.md) §3.5 |
 
 Why two pools: a player's token comes from a different issuer, so the operator authoriser rejects it at the gateway even if
 a handler forgot its group check; operator MFA comes from managed login with no app code; and the two login domains do not

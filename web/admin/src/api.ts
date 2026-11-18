@@ -53,13 +53,15 @@ function envelope(body: unknown): { code: string; details: Problem[]; info: Reco
 
 export function makeRequest(
   apiBase: string,
-  accessToken: string,
+  accessToken: string | (() => Promise<string>),
   fetchFn: typeof fetch = fetch,
 ): Request {
   return async (method, path, body) => {
+    // A function renews the token when it is near expiry (ADR-0042); it throws ApiError 401 when a sign-in is needed.
+    const token = typeof accessToken === "string" ? accessToken : await accessToken();
     const init: RequestInit = {
       method,
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: { Authorization: `Bearer ${token}` },
       cache: "no-store",
     };
     if (body !== undefined) {

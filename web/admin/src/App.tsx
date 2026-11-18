@@ -1,6 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { adminApi, ApiError, makeRequest, type Request } from "./api";
-import { completeSignIn, currentSession, forgetSession, isCallback, signOut, startSignIn, type Session } from "./auth/session";
+import { completeSignIn, forgetSession, freshSession, isCallback, signOut, startSignIn, TRUST_DAYS, trustsThisBrowser, type Session } from "./auth/session";
 import { loadConfig, type AdminConfig } from "./config";
 import { accessDetail, checkAccess, NOT_AUTHORISED } from "./guard";
 import { ActivityListPage } from "./pages/ActivityListPage";
@@ -45,8 +45,27 @@ async function boot(): Promise<Boot> {
       return { step: "signed-out", config, message: error instanceof Error ? error.message : "Sign-in did not complete." };
     }
   }
-  const session = currentSession();
-  return session === null ? { step: "signed-out", config } : { step: "signed-in", config, session };
+  try {
+    // The stored token, or a renewed one when this tab or this browser still holds a refresh token (ADR-0042).
+    const session = await freshSession(config);
+    return session === null ? { step: "signed-out", config } : { step: "signed-in", config, session };
+  } catch (error) {
+    return { step: "signed-out", config, message: error instanceof Error ? error.message : "Sign-in could not be renewed." };
+  }
+}
+
+/** The API client's token: the stored one, renewed when near expiry; a 401 when the operator must sign in again. */
+function renewingToken(config: AdminConfig): () => Promise<string> {
+  return async () => {
+    let session: Session | null;
+    try {
+      session = await freshSession(config);
+    } catch {
+      throw new ApiError(0, "NETWORK");
+    }
+    if (session === null) throw new ApiError(401, "AUTH_REQUIRED");
+    return session.accessToken;
+  };
 }
 
 function useRoute(): Route {
@@ -76,6 +95,7 @@ function useOnline(): boolean {
 export function App() {
   const [state, setState] = useState<Boot>({ step: "loading" });
   const [refused, setRefused] = useState(false);
+  const [trust, setTrust] = useState(trustsThisBrowser);
   const route = useRoute();
   const online = useOnline();
 
@@ -112,7 +132,7 @@ export function App() {
   const api = useMemo(
     () =>
       state.step === "signed-in" && access?.allowed === true
-        ? adminApi(watch(makeRequest(state.config.apiBase, state.session.accessToken), state.config))
+        ? adminApi(watch(makeRequest(state.config.apiBase, renewingToken(state.config)), state.config))
         : null,
     [state, access?.allowed, watch],
   );
@@ -133,7 +153,11 @@ export function App() {
         <h1>Space Colony Defence admin</h1>
         <p>Content admin for grown-ups. Sign in with your operator account and authenticator code.</p>
         {state.message !== undefined && <p className="error">{state.message}</p>}
-        <button type="button" className="primary" onClick={() => void startSignIn(config)}>
+        <label className="trust">
+          <input type="checkbox" checked={trust} onChange={(e) => setTrust(e.target.checked)} /> Trust this browser for {TRUST_DAYS} days (no
+          sign-in or authenticator code until then). Only on your own computer, never one the children use.
+        </label>
+        <button type="button" className="primary" onClick={() => void startSignIn(config, trust)}>
           Sign in
         </button>
       </main>

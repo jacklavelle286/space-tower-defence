@@ -80,6 +80,7 @@ afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();
   window.sessionStorage.clear();
+  window.localStorage.clear();
 });
 
 function signedInAs(token: string, hash = "") {
@@ -123,6 +124,27 @@ describe("route guard", () => {
     expect(await screen.findByText("Your sign-in has expired. Sign in again.")).toBeTruthy();
     expect(screen.getByRole("button", { name: "Sign in" })).toBeTruthy();
     expect(window.sessionStorage.getItem(TOKEN_KEY)).toBeNull();
+  });
+});
+
+describe("staying signed in (ADR-0042)", () => {
+  it("renews from a trusted browser's refresh token on opening, with no sign-in", async () => {
+    window.localStorage.setItem("scd-admin-refresh", "r1");
+    const fallback = vi.mocked(fetch).getMockImplementation();
+    vi.mocked(fetch).mockImplementation(((input: string, init?: RequestInit) =>
+      input === `https://${CONFIG.authDomain}/oauth2/token`
+        ? Promise.resolve(json({ access_token: operatorToken(), refresh_token: "r2" }))
+        : fallback?.(input, init)) as typeof fetch);
+    render(<App />);
+    expect(await screen.findByRole("table")).toBeTruthy();
+    expect(window.localStorage.getItem("scd-admin-refresh")).toBe("r2");
+  });
+
+  it("offers Trust this browser on the sign-in page, ticked again for a browser that was trusted", async () => {
+    window.localStorage.setItem("scd-admin-trusted", "1");
+    render(<App />);
+    const box = (await screen.findByLabelText(/Trust this browser for 30 days/u)) as HTMLInputElement;
+    expect(box.checked).toBe(true);
   });
 });
 

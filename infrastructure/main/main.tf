@@ -621,11 +621,14 @@ module "operator_pool" {
   callback_urls = ["${local.admin_origin}/auth/callback"]
   logout_urls   = ["${local.admin_origin}/"]
 
-  # Rotation on for operators (E.7.1). [UNVERIFIED] (U-058, ADR-0012 check 13): that Cognito refuses
-  # ALLOW_REFRESH_TOKEN_AUTH with rotation on, and that managed login needs nothing beyond SRP here; refresh goes through
-  # the token endpoint or GetTokensFromRefreshToken. Settled at the Phase 8 gate.
+  # Rotation on for operators (E.7.1). AWS docs: rotation "isn't compatible with ... REFRESH_TOKEN_AUTH" (so it is not
+  # listed) and the token endpoint renews with rotation on, which is what the admin uses (ADR-0042). [UNVERIFIED] live
+  # (U-058): the first renewal after the release that ships ADR-0042.
+  # 30 days (owner 2026-11-18, ADR-0042): a trusted browser signs in with password and TOTP once a month. Rotation does
+  # not extend the window, so 30 days after the sign-in it ends whatever happens. Keep TRUST_DAYS in
+  # web/admin/src/auth/session.ts the same.
   explicit_auth_flows         = ["ALLOW_USER_SRP_AUTH"]
-  refresh_token_validity_days = 1
+  refresh_token_validity_days = 30
   refresh_token_rotation      = true
 
   # Operator status = exact membership of "admin", checked in code too (E.7.3). Membership is a runbook step.
