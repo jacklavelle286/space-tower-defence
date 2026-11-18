@@ -104,6 +104,7 @@ until then it was `release.yml` then `apply.yml`, and older rows still say "disp
 | LD14 | Make a map for me | M | — | 150 seeds: no blocking problem | Release; try it |
 | LD15 | Make the waves for me | M | — | 40 seeds parse; tuned margins within 15 % on ordinary waves | Release; try it |
 | LD16 | Get it ready | M | — | One button: save, checks recorded, Validate | Release; try it |
+| LD17 | Copy from another level | M | — | Copied waves and challenges pass the rules on the new map | Release; try it |
 | 57 | Local database | M5 | M5-01 | Upgrade keeps queued ops | — |
 | 58 | Offline queue | M5 | M5-02 | Playwright: offline then flush in order | Release |
 | 59 | Offline preparation and audio cache | M5 | M5-03 | Network cut after "Ready offline": play continues | Release; try it |
@@ -2620,6 +2621,23 @@ the same day.
 | Deployed / how to see | Level editor → Publish tab → Get it ready |
 | Exit criteria | With an unsaved edit, one press saves (revision +1), records the checks on that revision and validates it; a design problem stops it before anything is sent |
 | Risks | Low: it runs the same calls as the three buttons; the server repeats every check at publish |
+
+### Phase LD17 — Copy from another level
+
+**Goal.** Bring another level's campaign waves and challenges, or the live campaign's waves, into this level.
+**Why now.** Owner, 2026-11-18: "also add the ability to copy waves wave sets etc from another map".
+
+| Field | Detail |
+|---|---|
+| In scope | Waves tab → Copy from another level: any other level's saved draft (any planet) or the live campaign's waves; campaign waves with the campaign card and keyframe marks; every challenge wave set and challenge wave, renamed "<other>-x" to "<this>-x" with their references; preset astronauts kept where this map has the pad, the rest left out and counted; one undoable edit |
+| Out of scope | The live planet's challenges (tied to the live maps); merging two campaigns |
+| Files | `web/admin/src/levels/copyWaves.ts`, `web/admin/src/levels/CopyWaves.tsx`, `web/admin/src/levels/WavesTab.tsx` |
+| Depends on | LD4 |
+| Owner actions | Release; try it |
+| Tests and how to run | `copyWaves.test.ts` (the copied level has no hard problem), `CopyWaves.test.tsx` |
+| Deployed / how to see | Level editor → Waves tab → Copy from another level |
+| Exit criteria | A level with a campaign and a challenge copied onto another map passes the design rules; nothing outside the choice changes |
+| Risks | Low: it only edits the draft; the usual checks still run before publishing |
 
 ---
 

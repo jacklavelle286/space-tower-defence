@@ -603,6 +603,7 @@ export function LevelEditor({ api, levelId, makeWorker }: Props) {
         >
           {tab === "waves" && (
             <WavesTab
+              api={api}
               level={level}
               problems={problems}
               onEdit={(next) => dispatch({ type: "edit", level: next })}

@@ -203,6 +203,7 @@ export function WaveSetsTab({ level, problems, onEdit }: Props) {
   const campaign = level.waveSets["campaign"];
   return (
     <div className="wave-sets-tab">
+      <p className="hint">To bring in another level's challenges or campaign: Waves tab → Copy from another level.</p>
       {campaign !== undefined && (
         <fieldset className="wave-set">
           <legend>The campaign</legend>

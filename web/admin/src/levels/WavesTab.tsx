@@ -1,7 +1,8 @@
 import { CURVES, fillIn, introduceAlien, isBoss, scaleCounts, typesBy, vary, waveStats, type AuthoredWave, type Curve, type WaveBody } from "@scd/game-core";
 import { LIMITS } from "@scd/shared";
 import { useState } from "react";
-import type { LevelFile, LevelGroup, LevelWave, LevelWaveBody } from "../api";
+import type { AdminApi, LevelFile, LevelGroup, LevelWave, LevelWaveBody } from "../api";
+import { CopyWaves } from "./CopyWaves";
 import { CurvePanel } from "./curves/CurvePanel";
 import { currentRuleset, liveBase, problemText, routeTiles as routeTilesOf, type LevelProblem } from "./levelFile";
 import { WaveMaker } from "./WaveMaker";
@@ -17,6 +18,8 @@ type Props = {
   readonly level: LevelFile;
   readonly problems: readonly LevelProblem[];
   readonly onEdit: (level: LevelFile) => void;
+  /** For Copy from another level (LD17); without it the panel is not shown. */
+  readonly api?: Pick<AdminApi, "listLevels" | "getLevel">;
 };
 
 const R = LIMITS.levelDesigner;
@@ -131,7 +134,7 @@ function WaveEditor({
   );
 }
 
-export function WavesTab({ level, problems, onEdit }: Props) {
+export function WavesTab({ level, problems, onEdit, api }: Props) {
   const [curve, setCurve] = useState<Curve>("linear");
   const [range, setRange] = useState({ from: 1, to: 50, pct: 10 });
   const [rolls, setRolls] = useState<Record<number, { seed: number; body: LevelWaveBody }>>({});
@@ -152,6 +155,7 @@ export function WavesTab({ level, problems, onEdit }: Props) {
   return (
     <div className="waves-tab">
       <WaveMaker level={level} onEdit={onEdit} />
+      {api !== undefined && <CopyWaves api={api} level={level} onEdit={onEdit} />}
       {waves.length === 0 ? (
         <p>
           This level does not own the campaign: its challenges can use the live campaign's waves by number (1 to {liveBase().planet.waves.length}) and their own
