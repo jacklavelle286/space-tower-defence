@@ -371,6 +371,30 @@ def test_failures_become_error_objects_and_nothing_is_raised(h: Harness, final: 
     assert (line["metric"], line["result"], line["code"]) == ("picture_usage", "ERROR", code)
 
 
+@pytest.mark.parametrize(
+    ("final", "reason"),
+    [
+        pytest.param(message("Here is a sun!"), "not_one_svg", id="no-svg"),
+        pytest.param(message('<?xml version="1.0" encoding="UTF-8"?>\n' + DRAWING), "not_one_svg", id="declaration"),
+        pytest.param(message(DRAWING.replace("<g ", "<g " + "a" * 70_000 + " ")), "too_large", id="over-64-kib"),
+        pytest.param(message(DRAWING.replace("</svg>", "<script>alert(1)</script></svg>")), "element", id="script"),
+        pytest.param(message(DRAWING.replace("</svg>", "<text>A</text></svg>")), "element", id="text"),
+    ],
+)
+def test_an_unusable_line_names_the_failed_check(h: Harness, final: Any, reason: str) -> None:
+    h.bedrock.final = final
+    h.run()
+    line = h.logger.lines()[-1]
+    assert (line["code"], line["refusedBy"]) == ("unusable", reason)
+    assert "alert" not in json.dumps(line) and "sun" not in json.dumps(line)
+
+
+def test_other_failures_name_no_check(h: Harness) -> None:
+    h.bedrock.final = message("<svg-refused/>")
+    h.run()
+    assert "refusedBy" not in h.logger.lines()[-1]
+
+
 def test_a_fenced_drawing_is_accepted(h: Harness) -> None:
     h.bedrock.final = message("```svg\n" + DRAWING + "\n```")
     h.run()
@@ -642,6 +666,7 @@ def test_a_square_drawing_for_a_background_is_unusable(h: Harness) -> None:
     h.bedrock.final = message(DRAWING)  # viewBox 0 0 256 256: the wrong aspect for 1920 x 1056
     h.run(kind="background")
     assert h.read("error.json") == {"code": "unusable"}
+    assert h.logger.lines()[-1]["refusedBy"] == "viewbox"
 
 
 def test_the_backdrop_is_too_big_for_a_256_kind(h: Harness) -> None:

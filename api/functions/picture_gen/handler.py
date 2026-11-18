@@ -38,6 +38,8 @@ For each message:
   6. Log one line `{"metric": "picture_usage", "provider": ..., ...}` with token counts only: the prompt, the
      description, the SVG and the API key are never logged. The CloudWatch metric filter on `$.metric =
      "picture_usage"` reads `outputTokens` (OpenAI's includes its reasoning tokens, as Claude's includes thinking).
+     An `unusable` line also names the failed check in `refusedBy` (`not_one_svg`, `too_large`, or the sanitiser's
+     reason such as `element`, `viewbox` or `path`), a fixed name, never text from the reply.
 
 Every exception is caught and becomes `error.json`, and the handler returns normally, so SQS never redelivers a paid
 call. If the stream breaks after it started, the usage line carries the token counts reported so far (Bedrock's
@@ -489,9 +491,13 @@ def openai_request_params(
 
 
 class JobFailed(Exception):
-    def __init__(self, code: str) -> None:
+    """`code` is what the operator is told; `reason`, for `unusable`, names the check that failed. Both are fixed
+    names (never text from the reply), so `reason` is logged as `refusedBy`."""
+
+    def __init__(self, code: str, reason: str | None = None) -> None:
         super().__init__(code)
         self.code = code
+        self.reason = reason
 
 
 class StreamFailed(Exception):
@@ -545,10 +551,10 @@ def extract_svg(text: str, max_bytes: int | None = None) -> str:
             raise JobFailed("declined")
     match = _SVG.match(body)
     if match is None:
-        raise JobFailed("unusable")
+        raise JobFailed("unusable", "not_one_svg")  # words, an XML declaration or a second SVG around it
     svg = match.group(1)
     if len(svg.encode("utf-8")) > (kind_spec(DEFAULT_KIND).svg_max_bytes if max_bytes is None else max_bytes):
-        raise JobFailed("unusable")
+        raise JobFailed("unusable", "too_large")
     return svg
 
 
@@ -786,9 +792,11 @@ class Worker:
             svg = extract_svg(reply.text, spec.svg_max_bytes)
             try:
                 clean = sanitise(svg, palette(), canvas=(spec.width, spec.height), max_bytes=spec.svg_max_bytes)
-            except SvgRefused:
-                raise JobFailed("unusable") from None
+            except SvgRefused as refused:
+                raise JobFailed("unusable", refused.reason) from None
         except JobFailed as failed:
+            if failed.reason is not None:
+                fields.update(refusedBy=failed.reason)
             self.finish_error(s3, config, job_id, failed.code, fields)
             return
         except StreamFailed as failed:

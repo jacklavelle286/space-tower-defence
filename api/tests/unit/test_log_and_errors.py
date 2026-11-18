@@ -89,6 +89,7 @@ PICTURE_FIELDS = {
     "upstreamStatus",
     "upstreamError",
     "provider",
+    "refusedBy",  # a sanitiser check's fixed name, never text from the reply
 }
 
 
