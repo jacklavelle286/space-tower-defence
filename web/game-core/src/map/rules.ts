@@ -333,6 +333,32 @@ export function planetProblems(doc: PlanetDocument, ruleset: Ruleset, options: P
   return out;
 }
 
+/**
+ * One map's design-rule problems on its own (no waves or wave sets): what planetProblems reports for that map. The
+ * map generator (generate.ts) scores its tries with it, so a generated map meets the same rules publishing does.
+ */
+export function mapProblems(map: PlanetMap, options: PlanetRuleOptions & { readonly hasCampaign?: boolean } = {}): PlanetProblem[] {
+  const out: PlanetProblem[] = [];
+  const P = "planet.map";
+  const hard = hardMapProblems(map, P);
+  out.push(...hard);
+  const cells = routeCells(map.route);
+  if (!hard.some((p) => p.field.startsWith(`${P}.route`) || p.field === `${P}.grid`)) routeProblems(map, P, cells, out);
+  padProblems(map, P, options.hasCampaign ?? true, cells, options.strictPadOrder ?? true, out);
+  decorationProblems(map, P, cells, out);
+  return out;
+}
+
+/** The route's own problems (hard, length, turns, touching, the portal and colony), with no pads yet. */
+export function routeDesignProblems(route: readonly (readonly [number, number])[]): PlanetProblem[] {
+  const map = { grid: { cols: GRID_COLS, rows: GRID_ROWS }, route, pads: [] };
+  const hard = hardMapProblems(map);
+  if (hard.length > 0) return hard;
+  const out: PlanetProblem[] = [];
+  routeProblems(map, "planet.map", routeCells(route), out);
+  return out;
+}
+
 /** "planet.map.route: The route passes through this cell twice. (cell 4,6)" — for the parser's error. */
 export function problemMessage(p: PlanetProblem): string {
   return `${PROBLEM_TEXT[p.rule]}${p.at === undefined ? "" : ` (cell ${p.at[0]},${p.at[1]})`}`;
