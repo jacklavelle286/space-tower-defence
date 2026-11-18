@@ -34,3 +34,16 @@ export {
   type JobResult,
   type WaveSetReport,
 } from "./checks";
+export {
+  assembleChallenges,
+  challengeBoards,
+  makeChallenge,
+  makeChallenges,
+  MAX_CHALLENGES,
+  planChallenges,
+  type ChallengePlan,
+  type ChallengeTheme,
+  type MadeChallenge,
+  type MadeChallenges,
+  type MakeChallengesOptions,
+} from "./challenges";
