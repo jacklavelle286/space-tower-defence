@@ -10,7 +10,7 @@
 //                order after every pad or route edit.
 //   decorations  a free cell places the chosen decoration; a decorated cell removes it.
 // Moving the cursor never changes the level, so it is not in the history.
-import { ANY_DIRECTION_ROUTES, entersFrom, GRID_COLS, GRID_ROWS, headingOf, leavesBy } from "@scd/game-core";
+import { ANY_DIRECTION_ROUTES, entersFrom, GRID_COLS, GRID_ROWS, headingOf, leavesBy, MAX_WAYPOINTS } from "@scd/game-core";
 import type { LevelFile } from "../api";
 import { numberPadsInRouteOrder, padId, type Cell } from "./levelFile";
 
@@ -101,6 +101,11 @@ export function nextRoutePoint(
   if (anyDirection && route.length === 1 && !entersFrom(last[0], last[1], headingOf(point[0] - last[0], point[1] - last[1]))) {
     return { refusal: "Leave the portal heading into the map." };
   }
+  // A click that carries straight on moves the last point (see place); any other click adds a waypoint, and the
+  // 17th is refused here, where the designer can see why, instead of as a problem afterwards.
+  if (!continuesStraight(route, point) && route.length >= MAX_WAYPOINTS) {
+    return { refusal: `A route has at most ${MAX_WAYPOINTS} waypoints (the start, the end and ${MAX_WAYPOINTS - 2} turns). Aim for 9 turns or fewer.` };
+  }
   // Going back over the route (a reversal) is a crossing too.
   const taken = routeCellSet(route);
   taken.delete(`${last[0]},${last[1]}`);
@@ -111,6 +116,13 @@ export function nextRoutePoint(
     if (cx === point[0] && cy === point[1]) break;
   }
   return { point };
+}
+
+/** True when `point` carries on along the route's last stretch, so it moves the last point instead of adding one. */
+function continuesStraight(route: readonly (readonly [number, number])[], point: readonly [number, number]): boolean {
+  const prev = route[route.length - 2];
+  const last = route[route.length - 1];
+  return prev !== undefined && last !== undefined && ((prev[0] === last[0] && last[0] === point[0]) || (prev[1] === last[1] && last[1] === point[1]));
 }
 
 function edited(state: EditorState, level: LevelFile): EditorState {
@@ -141,11 +153,8 @@ function place(state: EditorState): EditorState {
     const next = nextRoutePoint(level.map.route, cursor);
     if ("refusal" in next) return { ...state, refusal: next.refusal };
     const route = level.map.route.map(([a, b]): [number, number] => [a, b]);
-    const prev = route[route.length - 2];
-    const last = route[route.length - 1];
     // Continuing in the same direction moves the last point instead of adding a waypoint.
-    const extending = prev !== undefined && last !== undefined && ((prev[0] === last[0] && last[0] === next.point[0]) || (prev[1] === last[1] && last[1] === next.point[1]));
-    if (extending) route[route.length - 1] = next.point;
+    if (continuesStraight(route, next.point)) route[route.length - 1] = next.point;
     else route.push(next.point);
     // A pad or decoration the route now runs over goes (the editor keeps the map drawable as you go).
     const cells = routeCellSet(route);

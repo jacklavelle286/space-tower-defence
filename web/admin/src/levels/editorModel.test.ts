@@ -69,6 +69,21 @@ describe("route tool", () => {
     expect(nextRoutePoint([[0, 0], [0, 6]], [5, 6], true)).toEqual({ point: [5, 6] });
   });
 
+  it("refuses the 17th waypoint as it is clicked, and still lets a straight click move the 16th", () => {
+    // A staircase down from the top edge: 16 points, 14 turns, not yet off an edge.
+    const route: [number, number][] = [[1, 0]];
+    for (let i = 1; i < 16; i += 1) {
+      const [x, y] = route[i - 1] as [number, number];
+      route.push(i % 2 === 1 ? [x, y + 1] : [x + 1, y]);
+    }
+    expect(route).toHaveLength(16);
+    const last = route[15] as [number, number];
+    expect(nextRoutePoint(route, [last[0] + 3, last[1]], true)).toEqual({
+      refusal: "A route has at most 16 waypoints (the start, the end and 14 turns). Aim for 9 turns or fewer.",
+    });
+    expect(nextRoutePoint(route, [last[0], last[1] + 2], true)).toEqual({ point: [last[0], last[1] + 2] }); // y 8 to the bottom row
+  });
+
   it("Backspace takes the last point back; a route over a pad removes the pad", () => {
     let s = run(initialEditor(blank()), ...at(0, 5), ...at(10, 5), { type: "tool", tool: "pads" }, ...at(15, 5));
     expect(s.level.map.pads.map((p) => [p.x, p.y])).toEqual([[15, 5]]);
