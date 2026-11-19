@@ -16,13 +16,21 @@ export type DiffLine = {
 
 type Json = Record<string, unknown>;
 const isObj = (v: unknown): v is Json => typeof v === "object" && v !== null && !Array.isArray(v);
-/** JSON with object keys sorted, so key order (an editor's, or the publisher's) never reads as a change. */
+/** JSON with object keys sorted, so key order (an editor's, the publisher's or DynamoDB's) never reads as a change. Keys
+ * holding undefined are left out, as JSON.stringify and a save leave them out. */
 function canonical(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
-  if (isObj(value)) return `{${Object.keys(value).sort().map((k) => `${JSON.stringify(k)}:${canonical(value[k])}`).join(",")}}`;
+  if (isObj(value))
+    return `{${Object.keys(value)
+      .filter((k) => value[k] !== undefined)
+      .sort()
+      .map((k) => `${JSON.stringify(k)}:${canonical(value[k])}`)
+      .join(",")}}`;
   return JSON.stringify(value) ?? "null";
 }
-const same = (a: unknown, b: unknown): boolean => canonical(a) === canonical(b);
+/** The same JSON whatever the key order: the editor's "unsaved changes" and the publish diff. */
+export const sameJson = (a: unknown, b: unknown): boolean => canonical(a) === canonical(b);
+const same = sameJson;
 const nameOf = (entry: unknown, id: string): string => (isObj(entry) && typeof entry["name"] === "string" ? entry["name"] : id);
 
 /** Which top-level keys of two objects differ, in a fixed order (keys of `after` first, then removed ones). */

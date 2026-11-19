@@ -69,6 +69,9 @@ describe("LevelEditor", () => {
     ]);
     expect(saved?.map.pads).toEqual([{ id: "lvl-p01", x: 19, y: 3, opensAfterWave: 0 }]);
     await screen.findByText("Saved.");
+    // The server gives the level back with its keys in another order (DynamoDB): still saved, nothing to save again.
+    expect(Object.keys(saved ?? {})).toEqual([...Object.keys(saved ?? {})].sort());
+    expect((screen.getByRole("button", { name: "Save" }) as HTMLButtonElement).disabled).toBe(true);
   });
 
   it("undo and redo from the keyboard", async () => {

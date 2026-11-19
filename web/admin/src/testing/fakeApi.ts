@@ -70,6 +70,11 @@ type StoredPicture = Picture & { pngBase64: string };
 type Stored = { header: ActivityView["header"]; definition: Definition; draftRevision: number; versions: ActivityView["versions"] };
 
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
+/** As DynamoDB gives a map back: the same values, keys in sorted order (not the order they were saved in). */
+const asStored = <T>(value: T): T =>
+  JSON.parse(JSON.stringify(value), (_key, v: unknown) =>
+    typeof v === "object" && v !== null && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => (a < b ? -1 : 1))) : v,
+  ) as T;
 
 export class FakeAdminApi {
   readonly calls: Call[] = [];
@@ -379,7 +384,7 @@ export class FakeAdminApi {
       this.record("createLevel", level, planetId);
       if (this.levels.has(level.levelId)) throw new ApiError(400, "VALIDATION_FAILED", [{ field: "level.levelId", rule: "exists" }]);
       if (planetId !== undefined && planetId !== "luna-1" && !this.planets.has(planetId)) throw new ApiError(400, "VALIDATION_FAILED", [{ field: "planetId", rule: "unknown_planet" }]);
-      this.levels.set(level.levelId, { level: clone(level), draftRevision: 0, updatedAt: "2026-11-17T10:00:00Z", planetId: planetId ?? "luna-1" });
+      this.levels.set(level.levelId, { level: asStored(level), draftRevision: 0, updatedAt: "2026-11-17T10:00:00Z", planetId: planetId ?? "luna-1" });
       return this.levelView(level.levelId);
     },
     getLevel: async (levelId: string) => {
@@ -391,7 +396,7 @@ export class FakeAdminApi {
       const stored = this.levels.get(levelId);
       if (stored === undefined) throw new ApiError(404, "NOT_FOUND");
       if (stored.draftRevision !== body.draftRevision) throw new ApiError(409, "DRAFT_CONFLICT");
-      this.levels.set(levelId, { level: clone(body.level), draftRevision: stored.draftRevision + 1, updatedAt: "2026-11-17T10:05:00Z" });
+      this.levels.set(levelId, { level: asStored(body.level), draftRevision: stored.draftRevision + 1, updatedAt: "2026-11-17T10:05:00Z" });
       return this.levelView(levelId);
     },
     recordTestplay: async (levelId: string, body: { draftRevision: number; sourceVersion: string; blocking: number; warnings: number }) => {

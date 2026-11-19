@@ -58,6 +58,7 @@ import {
 import { loadLiveBase } from "./liveBase";
 import { MapMaker } from "./MapMaker";
 import { PublishTab } from "./publish/PublishTab";
+import { sameJson } from "./publish/diff";
 import "./levels.css";
 import { runChecks, type CheckRun, type CheckWorker } from "./checkRun";
 import type { GetReady } from "./publish/PublishTab";
@@ -279,10 +280,9 @@ export function LevelEditor({ api, levelId, makeWorker }: Props) {
   }, [api]);
 
   const level = state?.level ?? null;
-  const dirty =
-    level !== null &&
-    loaded !== null &&
-    JSON.stringify(level) !== JSON.stringify(loaded.level);
+  // Key order is not compared: the server gives a saved level back with its keys sorted (DynamoDB keeps maps that way),
+  // which once left every saved level "unsaved", so its checks and Validate never counted (Send to testers stayed off).
+  const dirty = useMemo(() => level !== null && loaded !== null && !sameJson(level, loaded.level), [level, loaded]);
   useEffect(() => {
     if (level === null || loaded === null) return;
     if (dirty) keepUnsaved(levelId, loaded.draftRevision, level);
