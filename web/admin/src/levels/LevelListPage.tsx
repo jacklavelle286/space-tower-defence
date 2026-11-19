@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ApiError, describeError, type AdminApi, type LevelFile, type LevelSummary, type PlanetSummary } from "../api";
 import { ConfirmDialog, useFocusReturn } from "../ConfirmDialog";
 import { clearFlash, peekFlash, setFlash } from "../flash";
@@ -6,9 +6,11 @@ import { hrefOf } from "../routes";
 import { LEVEL_ID, NAME_MAX, newLevel, readLevelFile, TEMPLATES } from "./levelFile";
 import { loadLiveBase } from "./liveBase";
 import { LevelMaker } from "./maker/LevelMaker";
+import { PlanetLevels } from "./PlanetLevels";
 
-// Admin → Levels (Gate M, LD3; scope-level-designer.md §3.1 steps 1-2): the level drafts, New level from a template
-// or made whole (LD18, maker/), Upload level file (a file downloaded from the editor, or kept in the repo), and Delete. A level that was ever published
+// Admin → Levels (Gate M, LD3; scope-level-designer.md §3.1 steps 1-2): the level drafts, grouped by planet with Copy
+// to planet and Move to planet (LD19, PlanetLevels.tsx), New level from a template or made whole (LD18, maker/), Upload
+// level file (a file downloaded from the editor, or kept in the repo), and Delete. A level that was ever published
 // cannot be deleted (saved games may be on its versions): its wave sets are retired in Versions instead (LD7).
 
 type Props = { readonly api: AdminApi; readonly navigate?: (hash: string) => void; readonly maker?: Pick<Parameters<typeof LevelMaker>[0], "firstSeed" | "workers"> };
@@ -60,12 +62,14 @@ export function LevelListPage({ api, navigate = (hash) => window.location.assign
   // planet's base is what "Copy Moonbeam map and campaign" copies from when it has a campaign.
   const [planets, setPlanets] = useState<PlanetSummary[]>([]);
   const [planet, setPlanet] = useState("luna-1");
-  useEffect(() => {
+  const reloadPlanets = useCallback(() => {
     api.listPlanets().then(
       (answer) => setPlanets(answer.planets),
       () => setPlanets([]),
     );
   }, [api]);
+  useEffect(reloadPlanets, [reloadPlanets]);
+  const [notice, setNotice] = useState<string | null>(null);
   useEffect(() => {
     loadLiveBase(api, planet === "luna-1" ? undefined : planet).catch(() => undefined);
   }, [api, planet]);
@@ -125,6 +129,7 @@ export function LevelListPage({ api, navigate = (hash) => window.location.assign
       </p>
       <div role="status">
         {flash !== null && <p className="flash">{flash}</p>}
+        {notice !== null && <p className="flash">{notice}</p>}
         {message !== null && <p className="error">{message}</p>}
       </div>
 
@@ -219,48 +224,26 @@ export function LevelListPage({ api, navigate = (hash) => window.location.assign
       ) : items.length === 0 ? (
         <p>No levels yet.</p>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th scope="col">Name</th>
-              <th scope="col">ID</th>
-              <th scope="col">Planet</th>
-              <th scope="col">Status</th>
-              <th scope="col">Updated</th>
-              <th scope="col">Drawings this month</th>
-              <th scope="col">
-                <span className="visually-hidden">Actions</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((item) => (
-              <tr key={item.levelId}>
-                <td>
-                  <a href={hrefOf({ page: "level", id: item.levelId })}>{item.name}</a>
-                </td>
-                <td>{item.levelId}</td>
-                <td>{planets.find((p) => p.planetId === (item.planetId ?? "luna-1"))?.name ?? item.planetId ?? "luna-1"}</td>
-                <td>{item.status === "DRAFT" ? "Draft" : "Published"}</td>
-                <td>{item.updatedAt.slice(0, 16).replace("T", " ")}</td>
-                <td>{item.drawingsThisMonth ?? 0}</td>
-                <td>
-                  {item.status === "DRAFT" && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        deleteTrigger.current = e.currentTarget;
-                        setDeleting(item.levelId);
-                      }}
-                    >
-                      Delete
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <PlanetLevels
+          api={api}
+          items={items}
+          planets={planets.length > 0 ? planets : [{ planetId: "luna-1", name: "luna-1", status: "RELEASED" }]}
+          busy={busy}
+          onBusy={setBusy}
+          onDelete={(target, button) => {
+            deleteTrigger.current = button;
+            setDeleting(target);
+          }}
+          onCopied={(target, text) => {
+            setFlash(text);
+            navigate(hrefOf({ page: "level", id: target }));
+          }}
+          onMoved={(text) => {
+            setNotice(text);
+            load();
+            reloadPlanets();
+          }}
+        />
       )}
 
       {deleting !== null && (

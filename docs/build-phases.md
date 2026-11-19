@@ -106,6 +106,8 @@ until then it was `release.yml` then `apply.yml`, and older rows still say "disp
 | LD16 | Get it ready | M | — | One button: save, checks recorded, Validate | Release; try it |
 | LD17 | Copy from another level | M | — | Copied waves and challenges pass the rules on the new map | Release; try it |
 | LD18 | Make the whole level for me | M | — | Made challenges parse and the competent player wins each at 0 % | Release; try it |
+| LD19 | Levels by planet; copy and move a level | M | — | A copy owns its IDs and parses; a published level never moves | Release (one new route, R62); try it |
+| LD20 | Make a planet for me | M | — | A theme makes a planet with approved pictures and its campaign level | Release; try it |
 | 57 | Local database | M5 | M5-01 | Upgrade keeps queued ops | — |
 | 58 | Offline queue | M5 | M5-02 | Playwright: offline then flush in order | Release |
 | 59 | Offline preparation and audio cache | M5 | M5-03 | Network cut after "Ready offline": play continues | Release; try it |
@@ -2658,6 +2660,26 @@ for me - a complete new level - randomised within sensible defaults".
 | Deployed / how to see | Admin → Levels → New level: give a name, keep "Make it all for me", Make the level |
 | Exit criteria | A made level opens in the editor with no problem that stops publishing, and its challenges pass the checks that block publishing |
 | Risks | Time: in node one level's four challenges take 15–27 s one after another (2026-11-18), so about the furthest one alone with a worker each, plus about half a minute of tuning; the time on the children's laptop is **[UNVERIFIED]** (the owner times it) |
+
+### Phase LD19 — Levels by planet; copy and move a level
+
+**Goal.** The Levels page shows each planet with its levels under it and what each has live there, and a level can be
+copied to any planet or, while it has never been published, moved to another.
+**Why now.** Owner, 2026-11-19: a level meant for a new planet went onto the Moon (the planet choice was hidden with one
+planet) and its campaign replaced the Moon's; "mapping maps to planets" (chosen: levels grouped by planet, copy a level
+to a planet, move a level's planet).
+
+| Field | Detail |
+|---|---|
+| In scope | R62 `PUT /api/admin/levels/{id}/planet {planetId}`: a level still DRAFT moves (its last test play is dropped: it was against the old planet's version); a published one (live or sent to testers) is 409 LEVEL_PUBLISHED, since saved games are pinned to its versions. Levels page: one table per planet (released ones in unlock order, then the rest) with "Live here" (campaign map, challenges) from each planet's live document; Copy to planet… (any level: new name and ID, the map, pads, challenges and challenge waves renamed to the new ID; "Bring the 50 campaign waves" ticked when the planet has no campaign yet, with a warning when publishing would replace one); Move to planet… (drafts only) |
+| Out of scope | Moving a published level (copy it); deleting a planet |
+| Files | `api/shared/level_admin.py`, `contracts/routes.json`, `api/functions/admin_api/handler.py`, `web/admin/src/levels/copyLevel.ts`, `web/admin/src/levels/PlanetLevels.tsx`, `web/admin/src/levels/LevelListPage.tsx` |
+| Depends on | LD10, LD17 |
+| Owner actions | Release (the plan adds one API Gateway route, R62); try it |
+| Tests and how to run | `api/tests/unit/test_planet_admin.py` (move and back, unknown planet, published refused); `admin/src/levels/copyLevel.test.ts`; `admin/src/levels/LevelListPage.test.tsx` (grouping, copy a published level onto another planet, move a draft) |
+| Deployed / how to see | Admin → Levels: the planets with their levels; Copy to planet… on any level |
+| Exit criteria | A copy opens in the editor on the chosen planet with no problem that stops publishing; a published level offers no Move |
+| Risks | A copy without the campaign keeps challenges that name campaign wave numbers: on a planet with no campaign yet the editor shows the problem until the planet has one |
 
 ---
 

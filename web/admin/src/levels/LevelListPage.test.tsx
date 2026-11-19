@@ -65,6 +65,44 @@ describe("LevelListPage", () => {
     expect(fake.levels.get("dusty")?.level.map.art.backdrop).toBe(BACK);
   });
 
+  it("lists levels under their planets, copies a published level onto another planet and moves a draft (LD19)", async () => {
+    fake.planets.set("mars-1", { planetId: "mars-1", name: "Red Dust", status: "DRAFT", artSet: "moon", campaignWaves: 0 });
+    await fake.api.createLevel(newLevel("lava", "Lava", "moonbeam-campaign"));
+    await fake.api.createLevel(newLevel("draft", "Draft one", "blank"));
+    const lava = fake.levels.get("lava");
+    if (lava !== undefined) lava.versions = [{ campaignVersion: "luna-1-a1", draftRevision: 0, sourceVersion: "luna-1-c2", publishedAt: "2026-11-19T02:13:19Z", by: "op" }];
+    const navigate = vi.fn();
+    render(<LevelListPage api={fake.api} navigate={navigate} />);
+    const moon = await screen.findByRole("region", { name: new RegExp(REPO_BASE.planet.name, "u") });
+    const mars = screen.getByRole("region", { name: /Red Dust/u });
+    expect(within(moon).getByRole("link", { name: "Lava" })).toBeTruthy();
+    expect(within(mars).getByText("No levels on this planet yet.")).toBeTruthy();
+
+    // A published level has no Move: it is copied, with the campaign (Red Dust has none yet).
+    const lavaRow = within(moon).getByRole("link", { name: "Lava" }).closest("tr") as HTMLElement;
+    expect(within(lavaRow).queryByRole("button", { name: "Move to planet…" })).toBeNull();
+    fireEvent.click(within(lavaRow).getByRole("button", { name: "Copy to planet…" }));
+    const copy = screen.getByRole("dialog", { name: /Copy Lava/u });
+    expect((within(copy).getByLabelText(/^Planet/u) as HTMLSelectElement).value).toBe("mars-1");
+    expect((await within(copy).findByLabelText(/Bring the 50 campaign waves/u) as HTMLInputElement).checked).toBe(true);
+    fireEvent.change(within(copy).getByLabelText(/^Name/u), { target: { value: "Lava Dust" } });
+    fireEvent.click(within(copy).getByRole("button", { name: "Copy" }));
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith("#levels/lava-dust"));
+    const copied = fake.levels.get("lava-dust");
+    expect(copied?.planetId).toBe("mars-1");
+    expect(copied?.level.waves).toHaveLength(50);
+    expect(copied?.level.map.pads[0]?.id).toBe("lava-dust-p01");
+    expect(peekFlash()).toBe("Copied from Lava onto Red Dust, with the 50 campaign waves.");
+
+    // A draft moves.
+    const draftRow = within(moon).getByRole("link", { name: "Draft one" }).closest("tr") as HTMLElement;
+    fireEvent.click(within(draftRow).getByRole("button", { name: "Move to planet…" }));
+    fireEvent.click(within(screen.getByRole("dialog", { name: /Move Draft one/u })).getByRole("button", { name: "Move" }));
+    await waitFor(() => expect(fake.levels.get("draft")?.planetId).toBe("mars-1"));
+    expect(await within(screen.getByRole("region", { name: /Red Dust/u })).findByRole("link", { name: "Draft one" })).toBeTruthy();
+    expect(screen.getByText(/Draft one moved to Red Dust/u)).toBeTruthy();
+  });
+
   it("says when the ID is taken", async () => {
     await fake.api.createLevel(newLevel("blob-rush", "Old", "blank"));
     render(<LevelListPage api={fake.api} navigate={vi.fn()} />);

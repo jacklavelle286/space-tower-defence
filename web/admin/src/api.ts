@@ -633,6 +633,9 @@ export function adminApi(request: Request) {
     /** R44: delete a level that was never published (409 LEVEL_PUBLISHED otherwise). */
     deleteLevel: (levelId: string) =>
       request("DELETE", `/admin/levels/${id(levelId)}`) as Promise<{ levelId: string; deleted: true }>,
+    /** R62: move a level that was never published to another planet (LD19); 409 LEVEL_PUBLISHED otherwise. */
+    moveLevel: (levelId: string, planetId: string) =>
+      request("PUT", `/admin/levels/${id(levelId)}/planet`, { planetId }) as Promise<LevelView>,
     /** R46: the live game data, versions, testers and publish history (Gate M, LD7). */
     getGameData: (planetId?: string) =>
       request("GET", planetId === undefined ? "/admin/game-data" : `/admin/game-data?planet=${id(planetId)}`) as Promise<GameData>,

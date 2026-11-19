@@ -396,7 +396,7 @@ export class FakeAdminApi {
       const stored = this.levels.get(levelId);
       if (stored === undefined) throw new ApiError(404, "NOT_FOUND");
       if (stored.draftRevision !== body.draftRevision) throw new ApiError(409, "DRAFT_CONFLICT");
-      this.levels.set(levelId, { level: asStored(body.level), draftRevision: stored.draftRevision + 1, updatedAt: "2026-11-17T10:05:00Z" });
+      this.levels.set(levelId, { ...stored, level: asStored(body.level), draftRevision: stored.draftRevision + 1, updatedAt: "2026-11-17T10:05:00Z" });
       return this.levelView(levelId);
     },
     recordTestplay: async (levelId: string, body: { draftRevision: number; sourceVersion: string; blocking: number; warnings: number }) => {
@@ -420,6 +420,16 @@ export class FakeAdminApi {
       if ((stored.versions?.length ?? 0) > 0) throw new ApiError(409, "LEVEL_PUBLISHED");
       this.levels.delete(levelId);
       return { levelId, deleted: true as const };
+    },
+    moveLevel: async (levelId: string, planetId: string) => {
+      this.record("moveLevel", levelId, planetId);
+      const stored = this.levels.get(levelId);
+      if (stored === undefined) throw new ApiError(404, "NOT_FOUND");
+      if (planetId !== "luna-1" && !this.planets.has(planetId)) throw new ApiError(400, "VALIDATION_FAILED", [{ field: "planetId", rule: "unknown_planet" }]);
+      if ((stored.versions?.length ?? 0) > 0) throw new ApiError(409, "LEVEL_PUBLISHED");
+      stored.planetId = planetId;
+      delete stored.review;
+      return this.levelView(levelId);
     },
     getGameData: async (planetId?: string) => {
       this.record("getGameData", planetId);
