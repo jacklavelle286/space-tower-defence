@@ -103,3 +103,35 @@ def test_a_planets_pictures_cannot_be_deleted(api: Admin) -> None:
     api.call("POST /api/admin/planets", MARS)
     assert picture_users(api.table, ICON) == ["planet:mars-1"]
     assert json.dumps(picture_users(api.table, BACKGROUND)) == '["planet:mars-1"]'
+
+
+def test_a_level_never_published_moves_to_another_planet_and_back(api: Admin) -> None:
+    """R62 (LD19): the header's planet changes, the last test play (against the old planet's version) is dropped, and
+    luna-1 is kept as no planetId, as create does."""
+    api.call("POST /api/admin/levels", {"level": level()})
+    api.call("POST /api/admin/levels/{id}/testplay",
+             {"draftRevision": 0, "sourceVersion": "luna-1-c1", "blocking": 0, "warnings": 0}, id="zigzag")  # fmt: skip
+    status, body = api.call("PUT /api/admin/levels/{id}/planet", {"planetId": "mars-1"}, id="zigzag")
+    assert status == 400 and body["error"]["details"] == [{"field": "planetId", "rule": "unknown_planet"}]
+    api.call("POST /api/admin/planets", MARS)
+    status, body = api.call("PUT /api/admin/levels/{id}/planet", {"planetId": "mars-1"}, id="zigzag")
+    assert status == 200, body
+    assert body["header"]["planetId"] == "mars-1"
+    assert body["draft"]["review"] == {} and body["draft"]["draftRevision"] == 0 and body["draft"]["level"] == level()
+    status, body = api.call("PUT /api/admin/levels/{id}/planet", {"planetId": "luna-1"}, id="zigzag")
+    assert status == 200 and body["header"]["planetId"] == "luna-1"
+    assert "planetId" not in (api.table.get_item("LEVEL", "zigzag") or {})
+
+
+def test_a_published_level_does_not_move_and_bad_bodies_are_refused(api: Admin) -> None:
+    api.call("POST /api/admin/planets", MARS)
+    assert api.call("PUT /api/admin/levels/{id}/planet", {"planetId": "mars-1"}, id="nolevel")[0] == 404
+    api.call("POST /api/admin/levels", {"level": level()})
+    status, body = api.call("PUT /api/admin/levels/{id}/planet", {"planetId": "Mars!"}, id="zigzag")
+    assert status == 400 and body["error"]["details"] == [{"field": "planetId", "rule": "pattern"}]
+    status, body = api.call("PUT /api/admin/levels/{id}/planet", {"planetId": "mars-1", "x": 1}, id="zigzag")
+    assert status == 400 and body["error"]["details"] == [{"field": "x", "rule": "additionalProperties"}]
+    api.table.update_item("LEVEL", "zigzag", update="SET #s = :p", names={"#s": "status"}, values={":p": "PUBLISHED"})
+    status, body = api.call("PUT /api/admin/levels/{id}/planet", {"planetId": "mars-1"}, id="zigzag")
+    assert status == 409 and body["error"]["code"] == "LEVEL_PUBLISHED"
+    assert (api.table.get_item("LEVEL", "zigzag") or {}).get("planetId") is None

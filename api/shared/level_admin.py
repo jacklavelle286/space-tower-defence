@@ -8,6 +8,8 @@
     R45 POST   /api/admin/levels/{id}/testplay   record that the checks ran on a draft revision against a live
                                                  version: {draftRevision, sourceVersion, blocking, warnings} (LD5,
                                                  LD7); refused (409) when the draft moved on
+    R62 PUT    /api/admin/levels/{id}/planet     move a level that was never published (nor sent to testers) to
+                                                 another planet: {planetId} (LD19; owner 2026-11-19)
 
 Create is create-only: header, draft and audit item in one transaction; an ID already used is refused
 (`{field: "level.levelId", rule: "exists"}`). Save conditions the draft on the revision the editor loaded, the same
@@ -66,7 +68,7 @@ def _only(body: Mapping[str, Any], fields: set[str]) -> None:
 def make_level_handlers(
     *, table: Callable[[], DynamoTable], now: Callable[[], datetime], transact: Transact, page: Page
 ) -> dict[str, Handler]:
-    """The six level handlers, by route key."""
+    """The seven level handlers, by route key."""
 
     def items(level_id: str) -> tuple[dict[str, Any], dict[str, Any]]:
         found = table().batch_get([(LEVEL_PK, level_id), (level_pk(level_id), DRAFT_SK)])
@@ -253,7 +255,62 @@ def make_level_handlers(
             raise ApiError("DRAFT_CONFLICT")
         return json_response(200, view(level_id))
 
+    def move_level(request: Request) -> dict[str, Any]:
+        """Move a level to another planet (LD19): only one never published, since saved games are pinned to the
+        versions a published level made on its planet (copy it instead). The last test play is dropped: it was
+        against the old planet's version."""
+        level_id = _level_id(request)
+        request.log.update(levelId=level_id, action="move")
+        body = json_object(request.event)
+        _only(body, {"planetId"})
+        planet_id = body["planetId"]
+        if not isinstance(planet_id, str) or not PLANET_ID.match(planet_id):
+            raise _invalid([problem("planetId", "pattern")])
+        content = table()
+        if planet_id != DEFAULT_PLANET and content.get_item(PLANET_PK, planet_id) is None:
+            raise _invalid([problem("planetId", "unknown_planet")])
+        items(level_id)  # NOT_FOUND
+        moment, by = now(), request.caller.sub
+        stamp = iso_z(moment)
+        # luna-1 is kept as "no planetId", as create does.
+        to_luna = planet_id == DEFAULT_PLANET
+        to_planet = "REMOVE #planet SET #at = :now" if to_luna else "SET #planet = :planet, #at = :now"
+        values: dict[str, Any] = {":now": stamp, ":draft": "DRAFT"}
+        if not to_luna:
+            values[":planet"] = planet_id
+        pk, sk = audit_key(moment, level_id)
+        actions = [
+            content.update_action(
+                LEVEL_PK,
+                level_id,
+                update=to_planet,
+                names={"#planet": "planetId", "#at": "updatedAt", "#status": "status"},
+                values=values,
+                condition="#status = :draft",
+            ),
+            content.update_action(
+                level_pk(level_id),
+                DRAFT_SK,
+                update="REMOVE #review",
+                names={"#review": "review", "#rev": "draftRevision"},
+                values={":zero": 0},
+                condition="#rev >= :zero",  # the draft is there
+            ),
+            content.put_action(
+                audit_item(pk, sk, "level.move", by, moment, levelId=level_id, planetId=planet_id),
+                condition="attribute_not_exists(#pk)",
+                names={"#pk": "pk"},
+            ),
+        ]
+        if transact(content, actions) is not None:
+            header = content.get_item(LEVEL_PK, level_id)
+            if header is not None and header.get("status") != "DRAFT":
+                raise ApiError("LEVEL_PUBLISHED")
+            raise ApiError("NOT_FOUND")
+        return json_response(200, view(level_id))
+
     return {
+        "PUT /api/admin/levels/{id}/planet": move_level,
         "POST /api/admin/levels/{id}/testplay": record_testplay,
         "GET /api/admin/levels": list_levels,
         "POST /api/admin/levels": create_level,

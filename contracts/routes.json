@@ -1,5 +1,5 @@
 {
-  "$comment": "Machine-readable copy of the route catalogue in docs/plan/G-api-contracts.md section 2 (R1-R30), plus R31 (DELETE an activity; owner decision 2026-11-16), R32 (DELETE a speech definition; owner ask 2026-11-16), and R33-R39 (library pictures and drawing with Claude; Gate P, Phases 42a and 42b, ADR-0031), R40-R45 (level drafts and test plays for the level designer; Gate M, LD3-LD5, ADR-0032), R46-R52 (validate, publish, versions, make live, wave set states and testers through the game-data publisher; Gate M, LD7, ADR-0037), R53-R56 (the planet registry and planet release; Gate M, LD10), and R57-R61 (aliens made in the portal; Gate M, AM1, ADR-0041). Route key = method + ' ' + path; paths keep the /api prefix (ADR-0001). Read by the api unit tests (each function's allow-list must equal its rows), the plan gate G-12 and the release smoke test. scope is the value of the Terraform variable player_route_scope / operator_route_scope.",
+  "$comment": "Machine-readable copy of the route catalogue in docs/plan/G-api-contracts.md section 2 (R1-R30), plus R31 (DELETE an activity; owner decision 2026-11-16), R32 (DELETE a speech definition; owner ask 2026-11-16), and R33-R39 (library pictures and drawing with Claude; Gate P, Phases 42a and 42b, ADR-0031), R40-R45 (level drafts and test plays for the level designer; Gate M, LD3-LD5, ADR-0032), R46-R52 (validate, publish, versions, make live, wave set states and testers through the game-data publisher; Gate M, LD7, ADR-0037), R53-R56 (the planet registry and planet release; Gate M, LD10), R57-R61 (aliens made in the portal; Gate M, AM1, ADR-0041), and R62 (move a level that was never published to another planet; Gate M, LD19). Route key = method + ' ' + path; paths keep the /api prefix (ADR-0001). Read by the api unit tests (each function's allow-list must equal its rows), the plan gate G-12 and the release smoke test. scope is the value of the Terraform variable player_route_scope / operator_route_scope.",
   "version": 1,
   "routes": [
     {
@@ -486,6 +486,14 @@
       "id": "R61",
       "method": "POST",
       "path": "/api/admin/aliens/{id}/publish",
+      "function": "admin-api",
+      "authoriser": "operator",
+      "scope": "ops/content"
+    },
+    {
+      "id": "R62",
+      "method": "PUT",
+      "path": "/api/admin/levels/{id}/planet",
       "function": "admin-api",
       "authoriser": "operator",
       "scope": "ops/content"

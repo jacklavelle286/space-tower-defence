@@ -234,9 +234,9 @@ def test_route_sweep_passes_on_all_four_names():
     assert report.hostnames_live
     for host in (CF, HOST, ADMIN_CF, ADMIN_HOST):
         checks = [r.check for r in api_results(report, host)]
-        assert len(checks) == len(ROUTES) + 1 == 62  # R1-R61 and the unknown route (Gate M adds R40-R61)
+        assert len(checks) == len(ROUTES) + 1 == 63  # R1-R62 and the unknown route (Gate M adds R40-R62)
         assert checks[-1] == "api-unknown"
-    assert report.to_json()["api"]["routesChecked"] == 61
+    assert report.to_json()["api"]["routesChecked"] == 62
     assert report.to_json()["api"]["hostsChecked"] == sorted([CF, HOST, ADMIN_CF, ADMIN_HOST])
     # Each route with its own method; path parameters replaced; admin routes on the player site too.
     assert (CF, "POST", "/api/runs/smoke-0000/ops") in fetch.methods

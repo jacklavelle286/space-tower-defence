@@ -190,6 +190,7 @@ ROUTES: dict[str, str] = {
     "PUT /api/admin/aliens/{id}": OPERATOR,
     "DELETE /api/admin/aliens/{id}": OPERATOR,
     "POST /api/admin/aliens/{id}/publish": OPERATOR,
+    "PUT /api/admin/levels/{id}/planet": OPERATOR,
 }
 
 DRAFT_MAX_BYTES: int = LIMITS["bodyMaxBytes"]["adminActivityDraft"]  # 64 KB for PUT .../draft (G §12)
