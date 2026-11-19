@@ -256,7 +256,7 @@
   font-weight: 700;
 }
 
-/* Map tab → Make a map for me (LD14) */
+/* Map tab → Make only a new map (LD14) */
 .map-maker {
   margin: 0.75rem 0;
 }

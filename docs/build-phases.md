@@ -108,6 +108,7 @@ until then it was `release.yml` then `apply.yml`, and older rows still say "disp
 | LD18 | Make the whole level for me | M | — | Made challenges parse and the competent player wins each at 0 % | Release; try it |
 | LD19 | Levels by planet; copy and move a level | M | — | A copy owns its IDs and parses; a published level never moves | Release (one new route, R62); try it |
 | LD20 | Make a planet for me | M | — | A theme makes a planet with approved pictures and its campaign level | Release; try it |
+| LD21 | Make it all again | M | — | One button in the editor remakes a level's map, waves and challenges together; challenge astronauts follow map edits | Release; try it |
 | 57 | Local database | M5 | M5-01 | Upgrade keeps queued ops | — |
 | 58 | Offline queue | M5 | M5-02 | Playwright: offline then flush in order | Release |
 | 59 | Offline preparation and audio cache | M5 | M5-03 | Network cut after "Ready offline": play continues | Release; try it |
@@ -2699,6 +2700,27 @@ in, everything out").
 | Deployed / how to see | Admin → Levels → Planets → Make a planet for me |
 | Exit criteria | A theme gives an unreleased planet with an approved icon and backdrop and a campaign level that opens in the editor with no problem that stops publishing |
 | Risks | Drawing quality: the backdrop description is a **[PROPOSAL]**, and a backdrop that looks like a path or an alien fails the Publish tab's hand ticks (draw again); the drawing caps (a background takes 3 places) |
+
+### Phase LD21 — Make it all again
+
+**Goal.** One button in the editor remakes the open level (a new map, with waves and challenges made for it), and a
+map edit can no longer leave a challenge astronaut on a pad that is gone or not open yet.
+**Why now.** Owner, 2026-11-19: "pad "lava-meltdown-p11" is not open when preparing wave 14" after Make a map for me on
+a level with challenges, and "surely it'd be better to have a single button which does EVERYTHING". The map maker
+replaced the pads but kept the challenges' preset astronauts on the old pad IDs, which now meant other pads, some
+opening after the challenge starts.
+
+| Field | Detail |
+|---|---|
+| In scope | Map tab → Make it all again (LevelMaker in the editor): makeWholeLevel for this level ID (the level's own campaign ticked when it has one; as many challenges as it has; tuned by default), keeping the name, the map's name and the backdrop, as one undo step, not saved until saved. Every map edit fits the presets (`fitPresets`): an astronaut moves with its pad when the pad is renumbered (same cell), and goes when no pad is left on its cell or the pad opens at or after the challenge's `padsOpenAsForWave`; the status line names the challenges that lost one. A draft saved with such a preset is fitted when it opens (shown as unsaved). Make a map for me is now "Make only a new map" |
+| Out of scope | Keeping published challenge IDs across a remake (the impact warnings show what a publish removes) |
+| Files | `web/admin/src/levels/levelFile.ts`, `web/admin/src/levels/editorModel.ts`, `web/admin/src/levels/maker/LevelMaker.tsx`, `web/admin/src/levels/LevelEditor.tsx`, `web/admin/src/levels/MapMaker.tsx` |
+| Depends on | LD14, LD18 |
+| Owner actions | Release; open Lava Meltdown: the broken astronaut is taken off (save), or press Make it all again |
+| Tests and how to run | `admin/src/levels/editorModel.test.ts` (generated map, renumbered pad, pad opening too late, a draft fitted when it opens); `admin/src/levels/LevelEditor.test.tsx` (a broken draft fitted, then Make it all again and saved with every preset on an open pad) |
+| Deployed / how to see | Admin → Levels → a level → Map tab → Make it all again |
+| Exit criteria | No editor action leaves a "pad … is not open when preparing wave …" problem; one button remakes map, waves and challenges |
+| Risks | A remake replaces challenges the level already published under new IDs; children's started games keep their pinned version |
 
 ---
 

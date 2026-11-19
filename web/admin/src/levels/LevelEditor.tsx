@@ -57,6 +57,9 @@ import {
 } from "./levelFile";
 import { loadLiveBase } from "./liveBase";
 import { MapMaker } from "./MapMaker";
+import { ownsCampaign } from "./copyLevel";
+import { LevelMaker } from "./maker/LevelMaker";
+import type { WholeLevelWorkers } from "./maker/wholeLevel";
 import { PublishTab } from "./publish/PublishTab";
 import { sameJson } from "./publish/diff";
 import "./levels.css";
@@ -79,6 +82,8 @@ type Props = {
   readonly levelId: string;
   /** Tests run the balance checks on the main thread instead of in Web Workers. */
   readonly makeWorker?: () => CheckWorker;
+  /** Make it all again: the first level number and the workers (tests run them on the main thread). */
+  readonly maker?: { readonly firstSeed?: number; readonly workers?: WholeLevelWorkers };
 };
 
 const MOONBEAM_LENGTH = 40;
@@ -213,7 +218,7 @@ function fromView(view: LevelView): Loaded {
   };
 }
 
-export function LevelEditor({ api, levelId, makeWorker }: Props) {
+export function LevelEditor({ api, levelId, makeWorker, maker }: Props) {
   const [loaded, setLoaded] = useState<Loaded | null>(null);
   // The live version levels are merged into (R46, LD7); null until loaded. A failure leaves this build's copy in use
   // for the rules, and publishing off.
@@ -877,6 +882,23 @@ export function LevelEditor({ api, levelId, makeWorker }: Props) {
                 ))}
               </select>
             </label>
+
+            <LevelMaker
+              again
+              levelId={level.levelId}
+              name={level.name}
+              ready={!busy}
+              planetNeedsCampaign={ownsCampaign(level)}
+              firstChallenges={Object.keys(level.waveSets).filter((k) => k !== "campaign").length}
+              {...(maker?.firstSeed === undefined ? {} : { firstSeed: maker.firstSeed })}
+              {...(maker?.workers === undefined ? {} : { workers: maker.workers })}
+              onMade={(made, notes) => {
+                // The name, the map's name and the backdrop are the level's; the rest is new.
+                const art = { ...made.map.art, backdrop: level.map.art.backdrop };
+                dispatch({ type: "edit", level: { ...made, name: level.name, map: { ...made.map, name: level.map.name, art } } });
+                setMessage(`Made it all again (not saved yet; Ctrl+Z puts back what you had). ${notes.join(" ")}`);
+              }}
+            />
 
             <MapMaker
               level={level}

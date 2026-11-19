@@ -15,7 +15,7 @@ const asMap = (m: Made) => ({ name: "", grid: { cols: 20, rows: 11 }, route: m.r
 function open(level = newLevel("lvl", "Level", "blank")) {
   const onMake = vi.fn<(map: Made) => void>();
   render(<MapMaker level={level} libraryDecorations={[]} onMake={onMake} firstSeed={5} />);
-  fireEvent.click(screen.getByText("Make a map for me"));
+  fireEvent.click(screen.getByText("Make only a new map"));
   return onMake;
 }
 

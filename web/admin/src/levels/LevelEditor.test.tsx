@@ -2,12 +2,14 @@
 // The map editor in the DOM (Gate M, LD3): a whole map drawn with the keyboard only (exit criterion "every editor
 // action works by keyboard"), saved with Ctrl+S; problems that jump to their cell; unsaved edits kept in the tab; a save
 // someone else beat shows the conflict screen.
-import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { ApiError } from "../api";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { makeChallenge, parseRuleset } from "@scd/game-core";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ApiError, type LevelFile } from "../api";
 import { FakeAdminApi } from "../testing/fakeApi";
 import { LevelEditor } from "./LevelEditor";
-import { newLevel, REPO_BASE, resetLiveBase } from "./levelFile";
+import { mergedLevel, newLevel, REPO_BASE, resetLiveBase } from "./levelFile";
+import type { ChallengeReply, ChallengeRequest, ChallengeWorker } from "./maker/challenges";
 
 let fake: FakeAdminApi;
 
@@ -32,6 +34,19 @@ const press = (el: Element, key: string, extra: Partial<KeyboardEventInit> = {})
 const times = (el: Element, key: string, n: number) => {
   for (let i = 0; i < n; i += 1) press(el, key);
 };
+
+/** The challenge worker on the main thread. */
+function challengeWorker(): ChallengeWorker {
+  const worker: ChallengeWorker = {
+    onmessage: null,
+    terminate: vi.fn(),
+    postMessage: (r: ChallengeRequest) => {
+      const made = makeChallenge(parseRuleset(r.ruleset), mergedLevel(r.level, r.base), r.plan, { seed: r.seed, levelId: r.level.levelId, ownsCampaign: r.ownsCampaign, index: r.index });
+      queueMicrotask(() => worker.onmessage?.({ data: { type: "done", made } } as MessageEvent<ChallengeReply>));
+    },
+  };
+  return worker;
+}
 
 describe("LevelEditor", () => {
   it("checks against the live version from admin-api, and a failed load turns publishing off (LD7)", async () => {
@@ -133,4 +148,65 @@ describe("LevelEditor", () => {
     await waitFor(() => expect(fake.levels.get("lvl")?.draftRevision).toBe(2));
     expect(fake.levels.get("lvl")?.level.map.route).toEqual([[0, 5]]);
   });
+
+  it("a challenge astronaut on a pad that is not open yet is taken off; Make it all again remakes map, waves and challenges", async () => {
+    const start = newLevel("old", "Lava Meltdown", "blank");
+    const level: LevelFile = {
+      ...start,
+      levelId: "lvl",
+      map: {
+        ...start.map,
+        route: [
+          [0, 5],
+          [19, 5],
+        ],
+        pads: [
+          { id: "lvl-p01", x: 3, y: 4, opensAfterWave: 0 },
+          { id: "lvl-p02", x: 9, y: 4, opensAfterWave: 20 },
+        ],
+      },
+      waveSets: {
+        "lvl-meteor-mite-surprise": {
+          mode: "CHALLENGE",
+          name: "Meteor Mite Surprise",
+          mapId: "lvl",
+          waves: [14, 15],
+          meteorAfter: [],
+          startCredits: 200,
+          colonyHealth: 20,
+          classes: ["nova"],
+          padsOpenAsForWave: 14,
+          presetPlacements: [
+            { padId: "lvl-p01", classId: "nova", level: 1, targeting: "FRONT" },
+            { padId: "lvl-p02", classId: "nova", level: 1, targeting: "FRONT" },
+          ],
+        },
+      },
+    };
+    fake = new FakeAdminApi();
+    await fake.api.createLevel(level);
+    render(<LevelEditor api={fake.api} levelId="lvl" maker={{ firstSeed: 4, workers: { challenge: challengeWorker } }} />);
+    await screen.findByRole("application");
+    // Saved before the fix: fitted when it opens, said, and unsaved until saved.
+    expect((await screen.findByText(/1 astronaut was taken off challenge pads/u)).textContent).toMatch(/Meteor Mite Surprise \(1\)/u);
+    expect(screen.queryByText(/is not open when preparing wave/u)).toBeNull();
+    expect((screen.getByRole("button", { name: "Save" }) as HTMLButtonElement).disabled).toBe(false);
+
+    const maker = screen.getByRole("group", { name: "Make it all again" });
+    const inMaker = within(maker);
+    expect((inMaker.getByLabelText("Challenges") as HTMLSelectElement).value).toBe("1");
+    fireEvent.click(inMaker.getByLabelText(/Tune the waves/u));
+    fireEvent.click(inMaker.getByRole("button", { name: "Make it all again" }));
+    await screen.findByText(/^Made it all again \(not saved yet/u, {}, { timeout: 30_000 });
+    expect(screen.queryByText(/is not open when preparing wave/u)).toBeNull();
+    press(window.document.body, "s", { ctrlKey: true });
+    await waitFor(() => expect(fake.levels.get("lvl")?.draftRevision).toBe(1));
+    const saved = fake.levels.get("lvl")?.level;
+    expect(saved?.name).toBe("Lava Meltdown");
+    expect(saved?.map.pads.length).toBeGreaterThanOrEqual(13);
+    const sets = Object.values(saved?.waveSets ?? {});
+    expect(sets).toHaveLength(1);
+    const pads = new Map((saved?.map.pads ?? []).map((p) => [p.id, p]));
+    for (const set of sets) for (const p of set.presetPlacements) expect(pads.get(p.padId)?.opensAfterWave ?? 99).toBeLessThan(set.padsOpenAsForWave);
+  }, 60_000);
 });

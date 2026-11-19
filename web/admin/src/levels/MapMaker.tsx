@@ -66,8 +66,11 @@ export function MapMaker({ level, libraryDecorations, onMake, firstSeed }: Props
 
   return (
     <details className="map-maker">
-      <summary>Make a map for me</summary>
-      <p className="hint">A route, pads and decorations that meet the design rules. Change anything afterwards by hand.</p>
+      <summary>Make only a new map</summary>
+      <p className="hint">
+        A route, pads and decorations that meet the design rules; the waves and challenges stay as they are, so challenge astronauts on pads that go are
+        taken off. To remake the waves and challenges for the new map too, use Make it all again.
+      </p>
       {ANY_DIRECTION_ROUTES && (
         <>
           <label htmlFor={`${id}-from`}>Portal on</label>
