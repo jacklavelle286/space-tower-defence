@@ -156,7 +156,9 @@ export function LevelListPage({ api, navigate = (hash) => window.location.assign
         <p id="level-id-hint" className="muted">
           Lower case letters, digits and dashes. It names the map and its pads, and cannot change later.
         </p>
-        {planets.length > 1 && (
+        {/* Always shown, even with only the Moon: a level goes onto one planet, and a campaign level replaces that
+            planet's campaign for every child when it is published. */}
+        {planets.length > 0 && (
           <label>
             Planet{" "}
             <select value={planet} onChange={(e) => setPlanet(e.target.value)}>

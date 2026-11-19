@@ -6,7 +6,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { clearFlash, peekFlash } from "../flash";
 import { FakeAdminApi } from "../testing/fakeApi";
-import { levelFileDownload, mergedLevel, newLevel } from "./levelFile";
+import { levelFileDownload, mergedLevel, newLevel, REPO_BASE } from "./levelFile";
 import type { CurveWorker } from "./curves/measure";
 import type { ChallengeReply, ChallengeRequest, ChallengeWorker } from "./maker/challenges";
 import { LevelListPage, slugOf } from "./LevelListPage";
@@ -41,6 +41,9 @@ describe("LevelListPage", () => {
     const navigate = vi.fn();
     render(<LevelListPage api={fake.api} navigate={navigate} />);
     await screen.findByText("No levels yet.");
+    // With only the Moon, the planet is still shown: the level goes onto the Moon (owner 2026-11-19).
+    const planet = (await screen.findByLabelText(/^Planet/u)) as HTMLSelectElement;
+    expect([...planet.options].map((o) => o.textContent)).toEqual([REPO_BASE.planet.name]);
     fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: "Blob Rush" } });
     fireEvent.change(screen.getByLabelText(/Start from/), { target: { value: "zigzag" } });
     fireEvent.click(screen.getByRole("button", { name: "Create" }));

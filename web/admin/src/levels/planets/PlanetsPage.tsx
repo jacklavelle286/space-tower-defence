@@ -195,8 +195,8 @@ export function PlanetsPage({ api }: { api: Api }) {
           Add planet
         </button>
         <p className="muted">
-          Then on Levels, make a New level for this planet from "Copy Moonbeam map and campaign": a new planet's first version comes from its
-          50-wave campaign.
+          Then on Levels, make a New level, choose this planet and keep "Make it all for me" with the 50 campaign waves ticked: a new
+          planet's first version comes from its 50-wave campaign.
         </p>
       </form>
 
