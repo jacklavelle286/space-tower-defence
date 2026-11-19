@@ -368,3 +368,46 @@ export function readLevelFile(text: string): { ok: true; level: LevelFile } | { 
 export function levelFileDownload(level: LevelFile): { name: string; text: string } {
   return { name: `${level.levelId}.level.json`, text: `${JSON.stringify(level, null, 2)}\n` };
 }
+
+/** Challenges whose astronauts already at their posts were taken off by fitPresets: the challenge's name and how many. */
+export type DroppedPresets = readonly { readonly name: string; readonly count: number }[];
+
+/**
+ * The challenges' astronauts already at their posts (presets), fitted to the level's map after it changed: each one
+ * moves with its pad when the pad was only renumbered (same cell), and goes when no pad is left on its cell or the pad
+ * opens after the challenge starts (opensAfterWave must be below padsOpenAsForWave, as the planet parser insists).
+ * `before` is the level as it was; pass the level itself to check it on its own (a draft saved before this fix).
+ */
+export function fitPresets(before: LevelFile, after: LevelFile): { level: LevelFile; dropped: DroppedPresets } {
+  const cellOf = new Map(before.map.pads.map((p) => [p.id, `${p.x},${p.y}`]));
+  const padAt = new Map(after.map.pads.map((p) => [`${p.x},${p.y}`, p]));
+  const dropped: { name: string; count: number }[] = [];
+  let changed = false;
+  const waveSets: Record<string, LevelWaveSet> = {};
+  for (const [id, set] of Object.entries(after.waveSets)) {
+    const used = new Set<string>();
+    const presetPlacements = set.presetPlacements.flatMap((p) => {
+      const cell = cellOf.get(p.padId);
+      const pad = cell === undefined ? undefined : padAt.get(cell);
+      if (pad === undefined || pad.opensAfterWave >= set.padsOpenAsForWave || used.has(pad.id)) return [];
+      used.add(pad.id);
+      return [pad.id === p.padId ? p : { ...p, padId: pad.id }];
+    });
+    const same = presetPlacements.length === set.presetPlacements.length && presetPlacements.every((p, i) => p === set.presetPlacements[i]);
+    if (presetPlacements.length < set.presetPlacements.length) dropped.push({ name: set.name, count: set.presetPlacements.length - presetPlacements.length });
+    if (!same) changed = true;
+    waveSets[id] = same ? set : { ...set, presetPlacements };
+  }
+  return { level: changed ? { ...after, waveSets } : after, dropped };
+}
+
+/** What fitPresets took off, for the editor's status line; null when nothing was. */
+export function droppedPresetsText(dropped: DroppedPresets): string | null {
+  if (dropped.length === 0) return null;
+  const total = dropped.reduce((n, d) => n + d.count, 0);
+  const where = dropped.map((d) => `${d.name} (${d.count})`).join(", ");
+  return (
+    `${total} astronaut${total === 1 ? " was" : "s were"} taken off challenge pads that are gone or not open yet: ${where}. ` +
+    "Those challenges may now be too hard: Make it all again (Map tab) remakes the waves and challenges for this map."
+  );
+}

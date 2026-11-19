@@ -10,9 +10,11 @@
 //                order after every pad or route edit.
 //   decorations  a free cell places the chosen decoration; a decorated cell removes it.
 // Moving the cursor never changes the level, so it is not in the history.
+// Every edit (and opening a draft) fits the challenges' preset astronauts to the map (fitPresets): a renumbered pad
+// keeps its astronaut, a pad that went or opens too late loses it, and the status line says which challenges lost one.
 import { ANY_DIRECTION_ROUTES, entersFrom, GRID_COLS, GRID_ROWS, headingOf, leavesBy, MAX_WAYPOINTS, type GeneratedMap } from "@scd/game-core";
 import type { LevelFile } from "../api";
-import { numberPadsInRouteOrder, padId, type Cell } from "./levelFile";
+import { droppedPresetsText, fitPresets, numberPadsInRouteOrder, padId, type Cell } from "./levelFile";
 
 export type Tool = "route" | "pads" | "decorations";
 export const TOOLS: readonly { readonly id: Tool; readonly label: string; readonly key: string }[] = [
@@ -48,13 +50,15 @@ export type Action =
   | { readonly type: "undo" }
   | { readonly type: "redo" }
   | { readonly type: "replace"; readonly level: LevelFile }
-  /** "Make a map for me" (LD14): the generated route, pads and decorations, as one step of the undo history. */
+  /** "Make only a new map" (LD14): the generated route, pads and decorations, as one step of the undo history. */
   | { readonly type: "generated"; readonly map: Pick<GeneratedMap, "route" | "pads" | "decorations"> }
   /** Any other edit (the waves and wave sets tabs build the new level): one step of the undo history. */
   | { readonly type: "edit"; readonly level: LevelFile };
 
 export function initialEditor(level: LevelFile): EditorState {
-  return { level, past: [], future: [], tool: "route", cursor: [0, 5], decoration: "deco-rock-1", refusal: null };
+  // A draft saved before presets were fitted (a map generated over its challenges) is fitted when it opens: unsaved.
+  const fitted = fitPresets(level, level);
+  return { level: fitted.level, past: [], future: [], tool: "route", cursor: [0, 5], decoration: "deco-rock-1", refusal: droppedPresetsText(fitted.dropped) };
 }
 
 const clamp = (v: number, hi: number): number => Math.max(0, Math.min(hi, v));
@@ -127,13 +131,16 @@ function continuesStraight(route: readonly (readonly [number, number])[], point:
   return prev !== undefined && last !== undefined && ((prev[0] === last[0] && last[0] === point[0]) || (prev[1] === last[1] && last[1] === point[1]));
 }
 
-function edited(state: EditorState, level: LevelFile): EditorState {
+/** One step of the undo history. A map edit moves the challenges' astronauts with their pads (by cell); a whole-level
+ * edit (`byCell` false: the tabs, Make it all again) brings its own presets, which are only checked against the map. */
+function edited(state: EditorState, next: LevelFile, byCell = true): EditorState {
+  const { level, dropped } = fitPresets(byCell ? state.level : next, next);
   return {
     ...state,
     level,
     past: [...state.past, state.level].slice(-HISTORY_MAX),
     future: [],
-    refusal: null,
+    refusal: droppedPresetsText(dropped),
   };
 }
 
@@ -232,7 +239,7 @@ export function editorReducer(state: EditorState, action: Action): EditorState {
       return { ...state, level: next, past: [...state.past, state.level], future: state.future.slice(1), refusal: null };
     }
     case "edit":
-      return edited(state, action.level);
+      return edited(state, action.level, false);
     case "generated": {
       const { route, pads, decorations } = action.map;
       const level = withMap(state.level, {

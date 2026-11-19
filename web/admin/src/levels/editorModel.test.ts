@@ -150,3 +150,72 @@ describe("history", () => {
     expect(s.cursor).toEqual([0, 0]);
   });
 });
+
+describe("challenge presets follow the map", () => {
+  const challenge = (padsOpenAsForWave: number, padIds: string[]) => ({
+    mode: "CHALLENGE" as const,
+    name: "Meteor Mite Surprise",
+    mapId: "lvl",
+    waves: [14, 15],
+    meteorAfter: [],
+    startCredits: 200,
+    colonyHealth: 20,
+    classes: ["nova"],
+    padsOpenAsForWave,
+    presetPlacements: padIds.map((padId) => ({ padId, classId: "nova", level: 1, targeting: "FRONT" as const })),
+  });
+  const withChallenge = (): LevelFile => ({
+    ...blank(),
+    map: {
+      ...blank().map,
+      route: [
+        [0, 5],
+        [19, 5],
+      ],
+      pads: [
+        { id: "lvl-p01", x: 3, y: 4, opensAfterWave: 0 },
+        { id: "lvl-p02", x: 8, y: 4, opensAfterWave: 0 },
+      ],
+    },
+    waveSets: { "lvl-c1": challenge(14, ["lvl-p01", "lvl-p02"]) },
+  });
+
+  it("a generated map takes off astronauts whose pad is gone or opens after the challenge starts, and says so", () => {
+    const start = initialEditor(withChallenge());
+    expect(start.refusal).toBeNull();
+    // The new map keeps a pad on (3, 4), opening after wave 0; the pad on (8, 4) is gone; (12, 6) opens after wave 14.
+    const map = {
+      route: [[0, 5], [19, 5]] as [number, number][],
+      pads: [
+        { id: "p01", x: 3, y: 4, opensAfterWave: 0 },
+        { id: "p02", x: 12, y: 6, opensAfterWave: 14 },
+      ],
+      decorations: [],
+    };
+    const after = editorReducer(start, { type: "generated", map });
+    expect(after.level.waveSets["lvl-c1"]?.presetPlacements.map((p) => p.padId)).toEqual(["lvl-p01"]);
+    expect(after.refusal).toMatch(/^1 astronaut was taken off challenge pads that are gone or not open yet: Meteor Mite Surprise \(1\)\./u);
+    expect(editorReducer(after, { type: "undo" }).level).toEqual(start.level);
+  });
+
+  it("an astronaut moves with its pad when the pad is renumbered, and goes when its pad opens too late", () => {
+    let s = initialEditor(withChallenge());
+    s = run(s, { type: "tool", tool: "pads" }, ...at(1, 4)); // a pad before the others on the route: they renumber
+    expect(s.level.map.pads.map((p) => p.id)).toEqual(["lvl-p01", "lvl-p02", "lvl-p03"]);
+    expect(s.level.waveSets["lvl-c1"]?.presetPlacements.map((p) => p.padId)).toEqual(["lvl-p02", "lvl-p03"]);
+    expect(s.refusal).toBeNull();
+    s = run(s, { type: "opens", padId: "lvl-p03", wave: 14 });
+    expect(s.level.waveSets["lvl-c1"]?.presetPlacements.map((p) => p.padId)).toEqual(["lvl-p02"]);
+    expect(s.refusal).toMatch(/Make it all again/u);
+  });
+
+  it("a draft saved with an astronaut on a pad that is not open yet is fitted when it opens", () => {
+    const broken = withChallenge();
+    broken.map.pads[1] = { id: "lvl-p02", x: 8, y: 4, opensAfterWave: 20 };
+    const s = initialEditor(broken);
+    expect(s.level.waveSets["lvl-c1"]?.presetPlacements.map((p) => p.padId)).toEqual(["lvl-p01"]);
+    expect(s.refusal).toMatch(/Meteor Mite Surprise \(1\)/u);
+    const clean = withChallenge();
+    expect(initialEditor(clean).level).toBe(clean); // nothing to fit: the same level, so not unsaved
+  });
+});
