@@ -124,7 +124,7 @@ export function LevelListPage({ api, navigate = (hash) => window.location.assign
       <h2>Levels</h2>
       <p>
         <a href={hrefOf({ page: "versions" })}>Versions</a>: what is live, rollback, retire, testers.{" "}
-        <a href={hrefOf({ page: "planets" })}>Planets</a>: add a planet and release it.{" "}
+        <a href={hrefOf({ page: "planets" })}>Planets</a>: make a planet for me, or add one by hand, and release it.{" "}
         <a href={hrefOf({ page: "aliens" })}>Aliens</a>: make an alien for your waves.
       </p>
       <div role="status">

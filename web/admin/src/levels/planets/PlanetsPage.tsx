@@ -1,5 +1,5 @@
 // Levels → Planets (Gate M, LD10; scope-level-designer.md §3.2 "Admin UX"): every planet, released ones first in the
-// order children unlock them. Add planet takes a name, an ID, an approved Planet picture (its icon on Home), the art
+// order children unlock them. Make a planet for me (LD20, PlanetMaker.tsx) does all of it from a theme. Add planet takes a name, an ID, an approved Planet picture (its icon on Home), the art
 // set its maps are drawn with (only "moon" until more route tiles are drawn) and an approved Background as the default
 // backdrop for its new levels. Build its maps and its 50-wave campaign as levels (New level → planet), send versions to
 // testers, then Release: it joins the end of the unlock order for good (children open it by reaching wave 20 on the
@@ -9,7 +9,9 @@ import { libraryPictureUrl } from "@scd/shared";
 import { ApiError, describeError, type AdminApi, type NewPlanet, type PictureSummary, type PlanetSummary } from "../../api";
 import { ConfirmDialog } from "../../ConfirmDialog";
 import { hrefOf } from "../../routes";
+import { setFlash } from "../../flash";
 import { refusalText } from "../publish/PublishTab";
+import { PlanetMaker } from "./PlanetMaker";
 import "../levels.css";
 
 const PLANET_ID = /^[a-z][a-z0-9-]{0,32}[a-z0-9]$/u;
@@ -27,9 +29,16 @@ function errorText(error: unknown): string {
   return describeError(error);
 }
 
-type Api = Pick<AdminApi, "listPlanets" | "createPlanet" | "updatePlanet" | "releasePlanet" | "listPictures">;
+type Api = Pick<AdminApi, "listPlanets" | "createPlanet" | "updatePlanet" | "releasePlanet" | "listPictures" | "startPictureJob" | "getPictureJob" | "createPicture" | "getGameData" | "createLevel">;
 
-export function PlanetsPage({ api }: { api: Api }) {
+type Props = {
+  readonly api: Api;
+  readonly navigate?: (hash: string) => void;
+  /** Tests: the drawing tools, the level maker's workers and number. */
+  readonly maker?: Pick<Parameters<typeof PlanetMaker>[0], "draw" | "workers" | "seed">;
+};
+
+export function PlanetsPage({ api, navigate = (hash) => window.location.assign(hash), maker }: Props) {
   const [planets, setPlanets] = useState<PlanetSummary[] | null>(null);
   const [artSets, setArtSets] = useState<string[]>(["moon"]);
   const [icons, setIcons] = useState<PictureSummary[]>([]);
@@ -135,6 +144,20 @@ export function PlanetsPage({ api }: { api: Api }) {
         </table>
       )}
 
+      <PlanetMaker
+        api={api}
+        icons={icons}
+        backgrounds={backgrounds}
+        taken={new Set((planets ?? []).map((p) => p.planetId))}
+        slugOf={slugOf}
+        onPlanetAdded={load}
+        onDone={(levelId, text) => {
+          setFlash(text);
+          navigate(hrefOf({ page: "level", id: levelId }));
+        }}
+        {...maker}
+      />
+
       <form
         className="level-new"
         aria-labelledby="planet-new-heading"
@@ -143,7 +166,7 @@ export function PlanetsPage({ api }: { api: Api }) {
           if (ok && !busy) void act(() => api.createPlanet({ ...form, planetId, name: form.name.trim() }), `Planet ${form.name.trim()} added. Make its levels next.`);
         }}
       >
-        <h3 id="planet-new-heading">Add planet</h3>
+        <h3 id="planet-new-heading">Add a planet by hand</h3>
         <label>
           Name <input value={form.name} maxLength={40} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
         </label>

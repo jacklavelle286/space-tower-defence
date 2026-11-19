@@ -2681,6 +2681,25 @@ to a planet, move a level's planet).
 | Exit criteria | A copy opens in the editor on the chosen planet with no problem that stops publishing; a published level offers no Move |
 | Risks | A copy without the campaign keeps challenges that name campaign wave numbers: on a planet with no campaign yet the editor shows the problem until the planet has one |
 
+### Phase LD20 — Make a planet for me
+
+**Goal.** From a theme, one panel draws a planet's icon and backdrop for approval, adds the planet and makes its
+campaign level, ready to send to testers.
+**Why now.** Owner, 2026-11-19: "a concept of planet being made automatically should also be a thing" (chosen: "theme
+in, everything out").
+
+| Field | Detail |
+|---|---|
+| In scope | Planets → Make a planet for me: a theme (3–40 characters) suggests the name ("ice crystals" → "Ice Crystals Planet") and the ID; the icon (kind planet) and the backdrop (kind background, 3 drawing places) are drawn from fixed descriptions built on the theme (the backdrop asks for no paths, creatures or buildings), or chosen from approved pictures (the backdrop may be none: the Moon ground). Each drawing is shown with the "no letters, numbers or words" tick and kept only on "Approve and use it" (R34 approve). Then one button adds the planet (R54, look "moon") and makes its campaign level "<planetId>-map" with Make it all (LD18: the 50 campaign waves, tuned by default, 0–4 challenges, default 3) against the new planet's empty base, on the planet's backdrop, and opens it in the editor |
+| Out of scope | Sending to testers and Release (the person's steps); new route-tile looks; more than one level |
+| Files | `web/admin/src/levels/planets/makePlanet.ts`, `web/admin/src/levels/planets/PlanetMaker.tsx`, `web/admin/src/levels/planets/PlanetsPage.tsx` |
+| Depends on | LD10, LD18, Phase 42b (drawing) |
+| Owner actions | Release; try it: make a planet, send its level to testers, play it as a tester |
+| Tests and how to run | `admin/src/levels/planets/PlanetsPage.test.tsx` (theme to planet and level with both drawings approved; a drawing cap; approved pictures instead); `admin/src/levels/planets/makePlanet.test.ts` (names, descriptions within 200 characters) |
+| Deployed / how to see | Admin → Levels → Planets → Make a planet for me |
+| Exit criteria | A theme gives an unreleased planet with an approved icon and backdrop and a campaign level that opens in the editor with no problem that stops publishing |
+| Risks | Drawing quality: the backdrop description is a **[PROPOSAL]**, and a backdrop that looks like a path or an alien fails the Publish tab's hand ticks (draw again); the drawing caps (a background takes 3 places) |
+
 ---
 
 ## Stage F — Robust persistence and offline, M5 (phases 57–63)
