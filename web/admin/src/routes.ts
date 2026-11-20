@@ -12,7 +12,6 @@ export type Route =
   | { readonly page: "levels" }
   | { readonly page: "level"; readonly id: string }
   | { readonly page: "versions" }
-  | { readonly page: "planets" }
   | { readonly page: "aliens" };
 
 /** The Pictures page's tabs (Phases 42a and 42b). */
@@ -39,7 +38,7 @@ export function parseRoute(hash: string): Route {
     case "versions":
       return { page: "versions" };
     case "planets":
-      return { page: "planets" };
+      return { page: "levels" }; // LD22 (ADR-0043): planets became maps; an old link opens Maps
     case "aliens":
       return { page: "aliens" };
     case "activities":
@@ -69,8 +68,6 @@ export function hrefOf(route: Route): string {
       return `#levels/${route.id}`;
     case "versions":
       return "#versions";
-    case "planets":
-      return "#planets";
     case "aliens":
       return "#aliens";
   }
@@ -81,13 +78,13 @@ export type Section = "activities" | "speech" | "pictures" | "levels" | "bank";
 
 export function sectionOf(route: Route): Section {
   if (route.page === "activity" || route.page === "new") return "activities";
-  return route.page === "level" || route.page === "versions" || route.page === "planets" || route.page === "aliens" ? "levels" : route.page;
+  return route.page === "level" || route.page === "versions" || route.page === "aliens" ? "levels" : route.page;
 }
 
 export const SECTIONS: readonly { readonly section: Section; readonly label: string; readonly href: string }[] = [
   { section: "activities", label: "Activities", href: "#activities" },
   { section: "speech", label: "Speech", href: "#speech" },
   { section: "pictures", label: "Pictures", href: "#pictures" },
-  { section: "levels", label: "Levels", href: "#levels" },
+  { section: "levels", label: "Maps", href: "#levels" }, // LD22: maps instead of planets
   { section: "bank", label: "Bank status", href: "#bank" },
 ];

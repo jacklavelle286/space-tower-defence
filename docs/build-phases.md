@@ -109,6 +109,7 @@ until then it was `release.yml` then `apply.yml`, and older rows still say "disp
 | LD19 | Levels by planet; copy and move a level | M | — | A copy owns its IDs and parses; a published level never moves | Release (one new route, R62); try it |
 | LD20 | Make a planet for me | M | — | A theme makes a planet with approved pictures and its campaign level | Release; try it |
 | LD21 | Make it all again | M | — | One button in the editor remakes a level's map, waves and challenges together; challenge astronauts follow map edits | Release; try it |
+| LD22 | Maps instead of planets | M | — | Each map is its own adventure on Home, all open from the start; publish puts a map on Home | Release; restore the Moon; make Fire Planet its own map |
 | 57 | Local database | M5 | M5-01 | Upgrade keeps queued ops | — |
 | 58 | Offline queue | M5 | M5-02 | Playwright: offline then flush in order | Release |
 | 59 | Offline preparation and audio cache | M5 | M5-03 | Network cut after "Ready offline": play continues | Release; try it |
@@ -2721,6 +2722,26 @@ opening after the challenge starts.
 | Deployed / how to see | Admin → Levels → a level → Map tab → Make it all again |
 | Exit criteria | No editor action leaves a "pad … is not open when preparing wave …" problem; one button remakes map, waves and challenges |
 | Risks | A remake replaces challenges the level already published under new IDs; children's started games keep their pinned version |
+
+### Phase LD22 — Maps instead of planets
+
+**Goal.** The admin speaks only of maps: each map is its own adventure on Home (50 waves and its challenges), every
+map is open from the start, and publishing a map puts it on Home (ADR-0043, Proposed).
+**Why now.** Owner, 2026-11-20, after "Fire Planet" (a level on the Moon) replaced the Moon's campaign: "drop the
+concept of planets - and just do maps as i think its overly complicated"; chosen: "Each map is its own adventure" and
+"All open from the start".
+
+| Field | Detail |
+|---|---|
+| In scope | `player-api`: every released planet unlocked, no PLANET_LOCKED. Player: the Home and My progress heading reads "Maps". Admin: the Levels tab is Maps; New map (no planet choice; ID a letter first, at most 34) makes the map's planet (R54, the map's name, look "moon", its backdrop) and its level, always with 50 waves (made by Make it all, or the Moon's for a template or upload); the list shows each map's place ("On Home", "Testers only", "Not yet") and the older levels on the Moon with "Make it its own map" (a draft moves with R62 and gets the Moon's waves if it has none; a published level is copied into a new map and stays on the Moon). Publish on a map not on Home publishes, then releases its planet (R56); "Put it on Home" releases alone. Make it all for me always makes the 50 waves. The Planets page, Make a planet for me (LD20) and Copy/Move to planet (LD19) are removed; `#planets` opens Maps |
+| Out of scope | Changing game data, routes or infrastructure (planets stay underneath); a map picture on Home other than the silhouette (the planet icon stays null); taking a map off Home (release is irreversible; retire its wave sets in Versions) |
+| Files | `api/functions/player_api/handler.py`, `web/player/src/copy/en-GB.ts`, `web/admin/src/levels/maps.ts`, `web/admin/src/levels/MapList.tsx`, `web/admin/src/levels/LevelListPage.tsx`, `web/admin/src/levels/publish/PublishTab.tsx`, `web/admin/src/levels/maker/LevelMaker.tsx`, `web/admin/src/levels/levelFile.ts`, `web/admin/src/routes.ts`, `docs/decisions/0043-maps-instead-of-planets.md` |
+| Depends on | LD10, LD18, LD19, LD21 |
+| Owner actions | Release. Then restore the Moon: Versions → make luna-1-a1 live (luna-1-a2 put the Fire Planet map in as the Moon's campaign). Then Maps → Older levels on the Moon → Fire Planet → Make it its own map, Get it ready, Publish: it goes on Home. In Versions, retire the Fire Planet challenges on the Moon if they should not stay there. Review ADR-0043 |
+| Tests and how to run | `api/tests/unit/test_runs.py`, `api/tests/unit/test_current.py` (open from the start); `admin/src/levels/maps.test.ts`; `admin/src/levels/LevelListPage.test.tsx` (template map, made map, older Moon level copied into a map, taken IDs, upload, delete); `admin/src/levels/publish/PublishTab.test.tsx` (Publish then release, Put it on Home, a refused release) |
+| Deployed / how to see | Admin → Maps; the child's Home lists every published map |
+| Exit criteria | A new map, published, is on Home for every child without any planet step; no admin screen mentions planets |
+| Risks | A map published live cannot leave Home; a release refused after a good publish (the question bank) leaves the map "Testers only" until Put it on Home works |
 
 ---
 

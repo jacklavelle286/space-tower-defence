@@ -58,6 +58,7 @@ import {
 import { loadLiveBase } from "./liveBase";
 import { MapMaker } from "./MapMaker";
 import { ownsCampaign } from "./copyLevel";
+import { MOON } from "./maps";
 import { LevelMaker } from "./maker/LevelMaker";
 import type { WholeLevelWorkers } from "./maker/wholeLevel";
 import { PublishTab } from "./publish/PublishTab";
@@ -654,6 +655,8 @@ export function LevelEditor({ api, levelId, makeWorker, maker }: Props) {
               blocked={problems.some((p) => p.severity !== "warn")}
               baseVersion={baseError === null ? baseVersion : null}
               released={released}
+              {...(planetId === null || planetId === MOON ? {} : { planetId })}
+              onReleased={loadBase}
               publish={loaded.publish}
               versions={loaded.versions}
               onView={onPublishView}
@@ -888,7 +891,7 @@ export function LevelEditor({ api, levelId, makeWorker, maker }: Props) {
               levelId={level.levelId}
               name={level.name}
               ready={!busy}
-              planetNeedsCampaign={ownsCampaign(level)}
+              ownsCampaign={ownsCampaign(level) || planetId !== MOON}
               firstChallenges={Object.keys(level.waveSets).filter((k) => k !== "campaign").length}
               {...(maker?.firstSeed === undefined ? {} : { firstSeed: maker.firstSeed })}
               {...(maker?.workers === undefined ? {} : { workers: maker.workers })}

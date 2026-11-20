@@ -86,7 +86,7 @@ export function WaveMaker({ level, onEdit, firstSeed, makeWorker }: Props) {
         All 50 campaign waves: each alien first on its own, then in growing mixes, a boss every tenth wave, meteors after waves 9, 19, 29, 39 and 49. Change
         anything afterwards by hand.
       </p>
-      {!ownsCampaign && <p className="hint">This level does not have the campaign yet: making waves gives it the campaign, so when it is published this map becomes the planet's campaign map.</p>}
+      {!ownsCampaign && <p className="hint">This map has no 50 waves of its own yet: making waves gives it its own adventure.</p>}
       <fieldset>
         <legend>Aliens, in the order they arrive</legend>
         {order.map((a) => (

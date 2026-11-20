@@ -163,7 +163,7 @@ describe("shell", () => {
     signedInAs(operatorToken());
     const nav = await screen.findByRole("navigation", { name: "Admin pages" });
     const links = within(nav).getAllByRole("link");
-    expect(links.map((a) => a.textContent)).toEqual(["Activities", "Speech", "Pictures", "Levels", "Bank status"]);
+    expect(links.map((a) => a.textContent)).toEqual(["Activities", "Speech", "Pictures", "Maps", "Bank status"]);
     expect(within(nav).getByRole("link", { name: "Activities" }).getAttribute("aria-current")).toBe("page");
 
     await goTo("#bank");

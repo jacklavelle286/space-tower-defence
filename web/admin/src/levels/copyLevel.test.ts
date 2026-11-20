@@ -4,7 +4,6 @@ import { describe, expect, it } from "vitest";
 import type { LevelFile } from "../api";
 import { copyLevel, ownsCampaign } from "./copyLevel";
 import { levelFileDownload, newLevel, readLevelFile } from "./levelFile";
-import { freeId, hasCampaign, liveRole } from "./PlanetLevels";
 
 function source(): LevelFile {
   const level = newLevel("lava", "Lava", "moonbeam-campaign");
@@ -43,20 +42,5 @@ describe("copyLevel", () => {
     expect(Object.keys(copy.waveSets)).toEqual(["fire-rush"]);
     expect(from).toEqual(source());
     expect(readLevelFile(levelFileDownload(copy).text).ok).toBe(true);
-  });
-});
-
-describe("the planet list's helpers", () => {
-  it("finds a free ID, says what a level has live and which planets have a campaign", () => {
-    expect(freeId("Lava Meltdown", new Set())).toBe("lava-meltdown");
-    expect(freeId("Lava Meltdown", new Set(["lava-meltdown", "lava-meltdown-2"]))).toBe("lava-meltdown-3");
-    const live = { waveSets: { campaign: { mapId: "lava" }, "lava-a": { mapId: "lava" }, "lava-b": { mapId: "lava" }, "x-c": { mapId: "x" } } };
-    expect(liveRole(live, "lava")).toBe("Campaign map, 2 challenges");
-    expect(liveRole(live, "x")).toBe("1 challenge");
-    expect(liveRole(live, "y")).toBe("");
-    expect(liveRole(undefined, "y")).toBe("");
-    expect(hasCampaign({ planetId: "a", name: "A", status: "RELEASED" })).toBe(true);
-    expect(hasCampaign({ planetId: "b", name: "B", status: "DRAFT", campaignWaves: 0 })).toBe(false);
-    expect(hasCampaign({ planetId: "b", name: "B", status: "DRAFT", campaignWaves: 50 })).toBe(true);
   });
 });

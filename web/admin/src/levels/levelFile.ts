@@ -411,3 +411,13 @@ export function droppedPresetsText(dropped: DroppedPresets): string | null {
     "Those challenges may now be too hard: Make it all again (Map tab) remakes the waves and challenges for this map."
   );
 }
+
+/** Whether a level holds its 50-wave adventure (the campaign: its own waves and the campaign card). */
+export const hasAdventure = (level: LevelFile): boolean => (level.waves?.length ?? 0) > 0 && level.waveSets["campaign"] !== undefined;
+
+/** The level with its 50-wave adventure (ADR-0043: every map is its own adventure): its own, or else the Moon's waves
+ *  and card played on its map. Challenges that named the Moon's waves by number name the same waves here. */
+export function withAdventure(level: LevelFile): LevelFile {
+  if (hasAdventure(level)) return level;
+  return { ...level, waves: structuredClone(campaignSource().waves as unknown as LevelWave[]), waveSets: { ...level.waveSets, campaign: campaignCard(level.levelId) } };
+}

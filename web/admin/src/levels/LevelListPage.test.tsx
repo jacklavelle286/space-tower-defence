@@ -6,7 +6,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { clearFlash, peekFlash } from "../flash";
 import { FakeAdminApi } from "../testing/fakeApi";
-import { levelFileDownload, mergedLevel, newLevel, REPO_BASE } from "./levelFile";
+import { levelFileDownload, mergedLevel, newLevel } from "./levelFile";
 import type { CurveWorker } from "./curves/measure";
 import type { ChallengeReply, ChallengeRequest, ChallengeWorker } from "./maker/challenges";
 import { LevelListPage, slugOf } from "./LevelListPage";
@@ -31,154 +31,118 @@ beforeEach(() => {
 });
 afterEach(cleanup);
 
-describe("LevelListPage", () => {
-  it("suggests an ID from the name", () => {
+describe("LevelListPage (Maps, LD22)", () => {
+  it("suggests a map ID from the name: a letter first", () => {
     expect(slugOf("Blob Rush!")).toBe("blob-rush");
+    expect(slugOf("3 Moons")).toBe("moons");
     expect(slugOf("  ")).toBe("");
   });
 
-  it("creates a level from a template and opens it", async () => {
+  it("makes a map from a template: its own planet, with the Moon's 50 waves, then opens it", async () => {
     const navigate = vi.fn();
     render(<LevelListPage api={fake.api} navigate={navigate} />);
-    await screen.findByText("No levels yet.");
-    // With only the Moon, the planet is still shown: the level goes onto the Moon (owner 2026-11-19).
-    const planet = (await screen.findByLabelText(/^Planet/u)) as HTMLSelectElement;
-    expect([...planet.options].map((o) => o.textContent)).toEqual([REPO_BASE.planet.name]);
+    await screen.findByText("No maps of your own yet.");
+    expect(screen.queryByLabelText(/^Planet/u)).toBeNull();
     fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: "Blob Rush" } });
     fireEvent.change(screen.getByLabelText(/Start from/), { target: { value: "zigzag" } });
     fireEvent.click(screen.getByRole("button", { name: "Create" }));
     await waitFor(() => expect(navigate).toHaveBeenCalledWith("#levels/blob-rush"));
-    expect(fake.levels.get("blob-rush")?.level.map.pads[0]?.id).toBe("blob-rush-p01");
+    const stored = fake.levels.get("blob-rush");
+    expect(stored?.planetId).toBe("blob-rush");
+    expect(stored?.level.map.pads[0]?.id).toBe("blob-rush-p01");
+    expect(stored?.level.waves).toHaveLength(50);
+    expect(fake.planets.get("blob-rush")).toMatchObject({ name: "Blob Rush", status: "DRAFT" });
   });
 
-  it("a level of another planet belongs to it and starts with its default backdrop (LD10)", async () => {
-    const BACK = "lib-" + "2".repeat(32);
-    fake.planets.set("mars-1", { planetId: "mars-1", name: "Red Dust", status: "DRAFT", backdrop: BACK, artSet: "moon" });
-    const navigate = vi.fn();
-    render(<LevelListPage api={fake.api} navigate={navigate} />);
-    fireEvent.change(await screen.findByLabelText(/^Planet/u), { target: { value: "mars-1" } });
-    fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: "Dusty" } });
-    fireEvent.change(screen.getByLabelText(/Start from/), { target: { value: "moonbeam" } });
-    fireEvent.click(screen.getByRole("button", { name: "Create" }));
-    await waitFor(() => expect(navigate).toHaveBeenCalledWith("#levels/dusty"));
-    expect(fake.levels.get("dusty")?.planetId).toBe("mars-1");
-    expect(fake.levels.get("dusty")?.level.map.art.backdrop).toBe(BACK);
-  });
-
-  it("lists levels under their planets, copies a published level onto another planet and moves a draft (LD19)", async () => {
-    fake.planets.set("mars-1", { planetId: "mars-1", name: "Red Dust", status: "DRAFT", artSet: "moon", campaignWaves: 0 });
+  it("lists maps with where they are for children, and makes an older Moon level its own map", async () => {
+    fake.planets.set("ice-world", { planetId: "ice-world", name: "Ice World", status: "RELEASED", artSet: "moon" });
+    await fake.api.createLevel(newLevel("ice-world", "Ice World", "moonbeam-campaign"), "ice-world");
     await fake.api.createLevel(newLevel("lava", "Lava", "moonbeam-campaign"));
-    await fake.api.createLevel(newLevel("draft", "Draft one", "blank"));
     const lava = fake.levels.get("lava");
     if (lava !== undefined) lava.versions = [{ campaignVersion: "luna-1-a1", draftRevision: 0, sourceVersion: "luna-1-c2", publishedAt: "2026-11-19T02:13:19Z", by: "op" }];
     const navigate = vi.fn();
     render(<LevelListPage api={fake.api} navigate={navigate} />);
-    const moon = await screen.findByRole("region", { name: new RegExp(REPO_BASE.planet.name, "u") });
-    const mars = screen.getByRole("region", { name: /Red Dust/u });
-    expect(within(moon).getByRole("link", { name: "Lava" })).toBeTruthy();
-    expect(within(mars).getByText("No levels on this planet yet.")).toBeTruthy();
-
-    // A published level has no Move: it is copied, with the campaign (Red Dust has none yet).
+    const maps = await screen.findByRole("region", { name: "Maps" });
+    const iceRow = (await within(maps).findByRole("link", { name: "Ice World" })).closest("tr") as HTMLElement;
+    await within(iceRow).findByText("On Home");
+    const moon = screen.getByRole("region", { name: "Older levels on the Moon" });
     const lavaRow = within(moon).getByRole("link", { name: "Lava" }).closest("tr") as HTMLElement;
-    expect(within(lavaRow).queryByRole("button", { name: "Move to planet…" })).toBeNull();
-    fireEvent.click(within(lavaRow).getByRole("button", { name: "Copy to planet…" }));
-    const copy = screen.getByRole("dialog", { name: /Copy Lava/u });
-    expect((within(copy).getByLabelText(/^Planet/u) as HTMLSelectElement).value).toBe("mars-1");
-    expect((await within(copy).findByLabelText(/Bring the 50 campaign waves/u) as HTMLInputElement).checked).toBe(true);
-    fireEvent.change(within(copy).getByLabelText(/^Name/u), { target: { value: "Lava Dust" } });
-    fireEvent.click(within(copy).getByRole("button", { name: "Copy" }));
-    await waitFor(() => expect(navigate).toHaveBeenCalledWith("#levels/lava-dust"));
-    const copied = fake.levels.get("lava-dust");
-    expect(copied?.planetId).toBe("mars-1");
-    expect(copied?.level.waves).toHaveLength(50);
-    expect(copied?.level.map.pads[0]?.id).toBe("lava-dust-p01");
-    expect(peekFlash()).toBe("Copied from Lava onto Red Dust, with the 50 campaign waves.");
+    expect(within(lavaRow).getByText("Published on the Moon")).toBeTruthy();
 
-    // A draft moves.
-    const draftRow = within(moon).getByRole("link", { name: "Draft one" }).closest("tr") as HTMLElement;
-    fireEvent.click(within(draftRow).getByRole("button", { name: "Move to planet…" }));
-    fireEvent.click(within(screen.getByRole("dialog", { name: /Move Draft one/u })).getByRole("button", { name: "Move" }));
-    await waitFor(() => expect(fake.levels.get("draft")?.planetId).toBe("mars-1"));
-    expect(await within(screen.getByRole("region", { name: /Red Dust/u })).findByRole("link", { name: "Draft one" })).toBeTruthy();
-    expect(screen.getByText(/Draft one moved to Red Dust/u)).toBeTruthy();
+    // Published on the Moon: it stays, and a copy becomes the map.
+    fireEvent.click(within(lavaRow).getByRole("button", { name: "Make it its own map…" }));
+    const dialog = screen.getByRole("dialog", { name: "Make Lava its own map?" });
+    expect(within(dialog).getByText(/so it stays there/u)).toBeTruthy();
+    fireEvent.click(within(dialog).getByRole("button", { name: "Make it its own map" }));
+    await waitFor(() => expect(navigate).toHaveBeenCalledWith("#levels/lava-2"));
+    expect(fake.levels.get("lava")?.planetId).toBe("luna-1");
+    expect(fake.levels.get("lava-2")?.planetId).toBe("lava-2");
+    expect(fake.levels.get("lava-2")?.level.waves).toHaveLength(50);
+    expect(peekFlash()).toMatch(/^Lava was copied into a map of its own, lava-2\./u);
   });
 
-  it("says when the ID is taken", async () => {
+  it("says when the ID is taken, by a map or by the planet underneath one", async () => {
     await fake.api.createLevel(newLevel("blob-rush", "Old", "blank"));
+    fake.planets.set("fire-pit", { planetId: "fire-pit", name: "Fire Pit", status: "RELEASED", artSet: "moon" });
     render(<LevelListPage api={fake.api} navigate={vi.fn()} />);
     await screen.findByRole("link", { name: "Old" });
-    fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: "Blob Rush" } });
     fireEvent.change(screen.getByLabelText(/Start from/), { target: { value: "blank" } });
-    fireEvent.click(screen.getByRole("button", { name: "Create" }));
-    expect(await screen.findByText(/already exists/)).toBeTruthy();
+    fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: "Blob Rush" } });
+    expect(screen.getByText(/That ID is taken/u)).toBeTruthy();
+    expect((screen.getByRole("button", { name: "Create" }) as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: "Fire Pit" } });
+    await waitFor(() => expect(screen.getByText(/That ID is taken/u)).toBeTruthy());
   });
 
-  it("makes a whole level with one button: map, then its challenges with their own waves (no campaign on luna-1)", { timeout: 60_000 }, async () => {
+  it("makes a whole map with one button: map, its 50 waves and its challenges", { timeout: 60_000 }, async () => {
     const navigate = vi.fn();
     render(<LevelListPage api={fake.api} navigate={navigate} maker={{ firstSeed: 4, workers: { challenge: challengeWorker } }} />);
-    await screen.findByText("No levels yet.");
+    await screen.findByText("No maps of your own yet.");
     fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: "Fire Pit" } });
-    expect((screen.getByLabelText(/The 50 campaign waves/u) as HTMLInputElement).checked).toBe(false);
+    expect(screen.queryByLabelText(/The 50 campaign waves/u)).toBeNull();
     fireEvent.click(screen.getByLabelText(/Tune the waves/u));
     fireEvent.change(screen.getByLabelText("Challenges"), { target: { value: "1" } });
-    fireEvent.click(screen.getByRole("button", { name: "Make the level" }));
+    fireEvent.click(screen.getByRole("button", { name: "Make the map" }));
     await waitFor(() => expect(navigate).toHaveBeenCalledWith("#levels/fire-pit"), { timeout: 30_000 });
-    const level = fake.levels.get("fire-pit")?.level;
-    expect(level?.waves ?? []).toEqual([]);
-    expect(level?.map.pads.length).toBeGreaterThanOrEqual(13);
-    const sets = Object.entries(level?.waveSets ?? {});
-    expect(sets).toHaveLength(1);
-    expect(sets[0]?.[0]).toMatch(/^fire-pit-/u);
-    expect(sets[0]?.[1].waves.every((w) => typeof w === "string" && Object.hasOwn(level?.challengeWaves ?? {}, w))).toBe(true);
+    const stored = fake.levels.get("fire-pit");
+    expect(stored?.planetId).toBe("fire-pit");
+    expect(stored?.level.waves).toHaveLength(50);
+    expect(stored?.level.waveSets["campaign"]?.mapId).toBe("fire-pit");
+    expect(Object.keys(stored?.level.waveSets ?? {}).filter((k) => k !== "campaign")).toHaveLength(1);
     expect(peekFlash()).toMatch(/^Map 4: .* Challenges: .+\.$/u);
   });
 
-  it("makes a level that carries the campaign when asked", { timeout: 60_000 }, async () => {
-    const navigate = vi.fn();
-    render(<LevelListPage api={fake.api} navigate={navigate} maker={{ firstSeed: 9, workers: { challenge: challengeWorker } }} />);
-    await screen.findByText("No levels yet.");
-    fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: "Lava Run" } });
-    fireEvent.click(screen.getByLabelText(/The 50 campaign waves/u));
-    fireEvent.click(screen.getByLabelText(/Tune the waves/u));
-    fireEvent.change(screen.getByLabelText("Challenges"), { target: { value: "0" } });
-    fireEvent.click(screen.getByRole("button", { name: "Make the level" }));
-    await waitFor(() => expect(navigate).toHaveBeenCalledWith("#levels/lava-run"), { timeout: 30_000 });
-    const level = fake.levels.get("lava-run")?.level;
-    expect(level?.waves).toHaveLength(50);
-    expect(Object.keys(level?.waveSets ?? {})).toEqual(["campaign"]);
-    expect(level?.waveSets["campaign"]?.mapId).toBe("lava-run");
-  });
-
-  it("Stop while tuning makes no level", async () => {
+  it("Stop while tuning makes no map", async () => {
     const hold = (): CurveWorker => ({ onmessage: null, terminate: vi.fn(), postMessage: () => undefined });
     render(<LevelListPage api={fake.api} navigate={vi.fn()} maker={{ firstSeed: 4, workers: { curve: hold, challenge: challengeWorker } }} />);
-    await screen.findByText("No levels yet.");
+    await screen.findByText("No maps of your own yet.");
     fireEvent.change(screen.getByLabelText(/^Name/), { target: { value: "Halted" } });
-    fireEvent.click(screen.getByRole("button", { name: "Make the level" }));
+    fireEvent.click(screen.getByRole("button", { name: "Make the map" }));
     fireEvent.click(await screen.findByRole("button", { name: "Stop" }));
-    expect(await screen.findByText("Stopped: no level was made.")).toBeTruthy();
+    expect(await screen.findByText("Stopped: no map was made.")).toBeTruthy();
     expect(fake.levels.has("halted")).toBe(false);
+    expect(fake.planets.has("halted")).toBe(false);
   });
 
-  it("uploads a level file, and refuses one that is not", async () => {
+  it("uploads a level file as a map, and refuses one that is not", async () => {
     const navigate = vi.fn();
     render(<LevelListPage api={fake.api} navigate={navigate} />);
     const input = await screen.findByLabelText(/Upload level file/);
     const good = levelFileDownload(newLevel("kept", "Kept", "u-bends"));
     fireEvent.change(input, { target: { files: [new File([good.text], good.name, { type: "application/json" })] } });
     await waitFor(() => expect(navigate).toHaveBeenCalledWith("#levels/kept"));
+    expect(fake.levels.get("kept")?.planetId).toBe("kept");
     fireEvent.change(input, { target: { files: [new File(["{}"], "x.json")] } });
     expect(await screen.findByText(/That file cannot be used: This is not a level file/)).toBeTruthy();
   });
 
-  it("deletes a level after the confirm", async () => {
+  it("deletes a draft after the confirm", async () => {
     await fake.api.createLevel(newLevel("gone", "Gone", "blank"));
     render(<LevelListPage api={fake.api} navigate={vi.fn()} />);
     await screen.findByRole("link", { name: "Gone" });
     fireEvent.click(screen.getByRole("button", { name: "Delete" }));
-    const dialog = screen.getByRole("dialog", { name: "Delete level gone?" });
-    fireEvent.click(within(dialog).getByRole("button", { name: "Delete level" }));
-    await screen.findByText("No levels yet.");
-    expect(fake.levels.has("gone")).toBe(false);
+    const dialog = screen.getByRole("dialog", { name: "Delete gone?" });
+    fireEvent.click(within(dialog).getByRole("button", { name: "Delete" }));
+    await waitFor(() => expect(fake.levels.has("gone")).toBe(false));
   });
 });

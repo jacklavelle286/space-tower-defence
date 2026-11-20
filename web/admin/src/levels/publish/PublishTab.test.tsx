@@ -116,13 +116,74 @@ describe("PublishTab", () => {
   });
 });
 
-describe("an unreleased planet (LD10)", () => {
-  it("offers only Send to testers, and says why", () => {
+describe("a map not on Home yet (LD10, LD22)", () => {
+  function showMap(publish: LevelPublish | null, versions: { campaignVersion: string; publishedAt: string; draftRevision: number; sourceVersion: string; by: string }[] = []) {
+    const onReleased = vi.fn();
+    const ui = (p: LevelPublish | null) => (
+      <PublishTab
+        api={fake.api}
+        levelId="zigzag"
+        level={level}
+        draftRevision={0}
+        review={TESTED}
+        dirty={false}
+        blocked={false}
+        baseVersion={REPO_BASE.version}
+        released={false}
+        planetId="mars-1"
+        onReleased={onReleased}
+        publish={p}
+        versions={versions}
+        onView={vi.fn()}
+      />
+    );
+    const { rerender } = render(ui(publish));
+    return { onReleased, rerender: (p: LevelPublish | null) => rerender(ui(p)) };
+  }
+
+  it("Publish makes its version, then puts the map on Home", async () => {
+    fake.planets.set("mars-1", { planetId: "mars-1", name: "Mars", status: "DRAFT", artSet: "moon", readyToRelease: true });
+    await fake.api.recordTestplay("zigzag", { draftRevision: 0, sourceVersion: REPO_BASE.version, blocking: 0, warnings: 0 });
+    const { onReleased, rerender } = showMap(null);
+    expect(screen.getByText(/not on Home yet\. Send to testers makes a preview/u)).toBeTruthy();
+    await act(async () => button("Validate on the server").click());
+    tickAll();
+    act(() => button("Publish").click());
+    expect(screen.getByText(/goes on Home for every child/u)).toBeTruthy();
+    await act(async () => screen.getAllByRole("button", { name: "Publish" }).at(-1)!.click());
+    expect(fake.callsNamed("releasePlanet")).toHaveLength(0); // not before the publish is done
+    rerender({ draftRevision: 0, state: "RUNNING" });
+    expect(fake.callsNamed("releasePlanet")).toHaveLength(0);
+    await act(async () => rerender({ draftRevision: 0, state: "DONE", campaignVersion: "mars-1-a1", live: false, liveRefused: "NOT_RELEASED" }));
+    expect(fake.callsNamed("releasePlanet")[0]?.args).toEqual(["mars-1"]);
+    expect(fake.planets.get("mars-1")?.status).toBe("RELEASED");
+    expect(await screen.findByText(/Zigzag is on Home for every child/u)).toBeTruthy();
+    expect(onReleased).toHaveBeenCalled();
+  });
+
+  it("Send to testers does not put it on Home; Put it on Home does, once a version is made", async () => {
+    fake.planets.set("mars-1", { planetId: "mars-1", name: "Mars", status: "DRAFT", artSet: "moon", readyToRelease: true });
+    const { rerender } = showMap({ draftRevision: 0, state: "DONE", campaignVersion: "mars-1-a1", live: false, liveRefused: "NOT_RELEASED" });
+    expect(screen.getByText(/mars-1-a1 is made: a preview for tester accounts until the map is on Home/u)).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Put it on Home" })).toBeNull();
+    expect(fake.callsNamed("releasePlanet")).toHaveLength(0);
+    rerender(null);
+    cleanup();
+    showMap(null, [{ campaignVersion: "mars-1-a1", publishedAt: "2026-11-20T10:00:00Z", draftRevision: 0, sourceVersion: "mars-1-new", by: "op" }]);
+    await act(async () => button("Put it on Home").click());
+    expect(fake.planets.get("mars-1")?.status).toBe("RELEASED");
+  });
+
+  it("a refused release says so and how to try again", async () => {
+    fake.planets.set("mars-1", { planetId: "mars-1", name: "Mars", status: "DRAFT", artSet: "moon", readyToRelease: false });
+    showMap(null, [{ campaignVersion: "mars-1-a1", publishedAt: "2026-11-20T10:00:00Z", draftRevision: 0, sourceVersion: "mars-1-new", by: "op" }]);
+    await act(async () => button("Put it on Home").click());
+    expect(screen.getByRole("alert").textContent).toMatch(/could not be put on Home: The map's newest version does not have its full 50 waves yet\. Try Put it on Home again\./u);
+  });
+
+  it("a map with nothing published yet says its first version starts from it", () => {
     show({ review: TESTED, released: false, baseVersion: "mars-1-new" });
-    expect(screen.queryByRole("button", { name: "Publish" })).toBeNull();
-    expect(screen.getByRole("button", { name: "Send to testers" })).toBeTruthy();
-    expect(screen.getByText(/not released yet: its versions are previews/u)).toBeTruthy();
-    expect(screen.getByText(/its first version starts from this level, which must hold the 50-wave campaign/u)).toBeTruthy();
+    expect(screen.getByText(/This map has nothing published yet/u)).toBeTruthy();
   });
 });
 

@@ -45,7 +45,7 @@ function open(level: LevelFile, make: () => CurveWorker) {
 describe("WaveMaker", () => {
   it("makes 50 waves and gives a level without the campaign the campaign card, in one edit", () => {
     const onEdit = open(newLevel("zig", "Zig", "zigzag"), workers(() => 1).make);
-    expect(screen.getByText(/does not have the campaign yet/u)).toBeTruthy();
+    expect(screen.getByText(/has no 50 waves of its own yet/u)).toBeTruthy();
     fireEvent.click(screen.getByLabelText(/Tune with the test player/u));
     fireEvent.click(screen.getByRole("button", { name: "Make the waves" }));
     const made = onEdit.mock.calls[0]?.[0] as LevelFile;

@@ -4,7 +4,10 @@
 // (live for new games). A publish runs in the publisher for about a minute: R49 queues it and this tab follows the
 // level's publish item (R42) until it is done or refused. Every check is repeated by the server; the ticks here only
 // say why a button is off.
-import { useEffect, useMemo, useRef, useState } from "react";
+// Maps (LD22, ADR-0043): a map not on Home yet (its planet unreleased) is put there by Publish: the publish makes its
+// first version (a preview, as for any unreleased planet), then the tab releases the planet (R56). "Put it on Home"
+// does the release alone, for a map whose version is already made.
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ApiError,
   describeError,
@@ -49,11 +52,11 @@ export function refusalText(refusal: PublishRefusal): string {
     case "BUSY":
       return "The publisher was busy. Try again.";
     case "NEEDS_CAMPAIGN":
-      return "A new planet's first version must come from a level that holds its 50-wave campaign.";
+      return "A map's first version needs its 50 waves: Make it all again on the Map tab makes them.";
     case "NOT_RELEASED":
-      return "This planet is not released yet. Release it on the Planets page.";
+      return "This map is not on Home yet: Publish puts it there.";
     case "NOT_READY":
-      return "The planet's newest version does not have its full 50-wave campaign yet.";
+      return "The map's newest version does not have its full 50 waves yet.";
     default:
       return `The publisher refused (${refusal.code}): ${refusal.message}`;
   }
@@ -70,7 +73,7 @@ function refusalOf(error: unknown): PublishRefusal | null {
 export type GetReady = (onStep: (text: string) => void) => Promise<{ readonly ok: true; readonly draftRevision: number } | { readonly ok: false; readonly message: string }>;
 
 type Props = {
-  readonly api: Pick<AdminApi, "validateLevel" | "publishLevel" | "getLevel">;
+  readonly api: Pick<AdminApi, "validateLevel" | "publishLevel" | "getLevel" | "releasePlanet">;
   readonly levelId: string;
   /** The saved draft (Publish never uses unsaved edits). */
   readonly level: LevelFile;
@@ -81,8 +84,13 @@ type Props = {
   readonly blocked: boolean;
   /** The live version the editor checks against, or null when it could not be loaded. */
   readonly baseVersion: string | null;
-  /** Whether the level's planet is released (LD10): an unreleased planet's versions are previews until its release. */
+  /** Whether the map is on Home (its planet released, LD10): until then its versions are previews, and Publish
+   *  releases it after its publish (LD22). */
   readonly released?: boolean;
+  /** The map's planet (released by Publish when it is not on Home yet). */
+  readonly planetId?: string;
+  /** The map is on Home now (the planet was released). */
+  readonly onReleased?: () => void;
   readonly publish: LevelPublish | null;
   readonly versions: readonly LevelVersion[];
   /** A fresh level view (after a poll); `wentLive` when a publish just moved the live version. */
@@ -90,12 +98,15 @@ type Props = {
   readonly onGetReady?: GetReady;
 };
 
-export function PublishTab({ api, levelId, level, draftRevision, review, dirty, blocked, baseVersion, released = true, publish, versions, onView, onGetReady }: Props) {
+export function PublishTab({ api, levelId, level, draftRevision, review, dirty, blocked, baseVersion, released = true, planetId, publish, versions, onView, onGetReady, onReleased }: Props) {
   const [validation, setValidation] = useState<{ revision: number; result: LevelValidation } | null>(null);
   const [ticks, setTicks] = useState<Record<HandTick, boolean>>(() => Object.fromEntries(HAND_TICKS.map(([k]) => [k, false])) as Record<HandTick, boolean>);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [confirmLive, setConfirmLive] = useState(false);
+  // Publish on a map not on Home yet: the draft revision whose publish is followed by its planet's release (LD22).
+  const releaseAfter = useRef<number | null>(null);
+  const [homeText, setHomeText] = useState<string | null>(null);
   const [step, setStep] = useState<string | null>(null);
   const [readyText, setReadyText] = useState<string | null>(null);
   const polls = useRef(0);
@@ -184,15 +195,47 @@ export function PublishTab({ api, levelId, level, draftRevision, review, dirty, 
     }
   }
 
+  /** Puts the map on Home: releases its planet (R56). */
+  const putOnHome = useCallback(async () => {
+    if (planetId === undefined) return;
+    setConfirmLive(false);
+    setBusy(true);
+    setMessage(null);
+    setHomeText("Putting it on Home…");
+    try {
+      await api.releasePlanet(planetId);
+      setHomeText(`${level.name} is on Home for every child, for new games in about a minute.`);
+      onReleased?.();
+    } catch (error) {
+      setHomeText(null);
+      const refusal = refusalOf(error);
+      const why = refusal !== null ? refusalText(refusal) : describeError(error);
+      setMessage(`It was published, but could not be put on Home: ${why} Try Put it on Home again.`);
+    } finally {
+      setBusy(false);
+    }
+  }, [api, planetId, level.name, onReleased]);
+
+  // The publish that Publish started on a map not on Home yet is done: put the map on Home.
+  useEffect(() => {
+    if (releaseAfter.current === null || publish === null || publish.draftRevision !== releaseAfter.current) return;
+    if (publish.state === "QUEUED" || publish.state === "RUNNING") return;
+    releaseAfter.current = null;
+    if (publish.state === "DONE") queueMicrotask(() => void putOnHome()); // after this render, not inside the effect
+  }, [publish, putOnHome]);
+
   async function send(live: boolean) {
     if (baseVersion === null) return;
     setConfirmLive(false);
     setBusy(true);
     setMessage(null);
+    setHomeText(null);
+    releaseAfter.current = live && !released ? draftRevision : null;
     try {
       await api.publishLevel(levelId, { draftRevision, sourceVersion: baseVersion, live, ticks });
       onView(await api.getLevel(levelId), false);
     } catch (error) {
+      releaseAfter.current = null;
       const refusal = refusalOf(error);
       setMessage(refusal !== null ? refusalText(refusal) : describeError(error));
     } finally {
@@ -208,7 +251,7 @@ export function PublishTab({ api, levelId, level, draftRevision, review, dirty, 
       ) : (
         <p className="muted">
           {baseVersion.endsWith("-new") ? (
-            <>This planet has nothing published yet: its first version starts from this level, which must hold the 50-wave campaign.</>
+            <>This map has nothing published yet: its first version starts from it, with its 50 waves.</>
           ) : (
             <>
               {released ? "Live version" : "Newest version"}: <strong>{baseVersion}</strong>. Publishing makes a new version from it with
@@ -220,7 +263,7 @@ export function PublishTab({ api, levelId, level, draftRevision, review, dirty, 
 
       <h4>Against live</h4>
       {diff === null ? (
-        <p className="muted">This level cannot be merged into the live planet yet (see the problems).</p>
+        <p className="muted">This map cannot be merged into its live version yet (see the problems).</p>
       ) : diff.length === 0 ? (
         <p className="muted">Nothing changes against live.</p>
       ) : (
@@ -282,17 +325,21 @@ export function PublishTab({ api, levelId, level, draftRevision, review, dirty, 
         <button type="button" onClick={() => void send(false)} disabled={!ready || busy || running}>
           Send to testers
         </button>
-        {released ? (
-          <button type="button" className="primary" onClick={() => setConfirmLive(true)} disabled={!ready || busy || running}>
-            Publish
+        <button type="button" className="primary" onClick={() => setConfirmLive(true)} disabled={!ready || busy || running || (!released && planetId === undefined)}>
+          Publish
+        </button>
+        {!released && planetId !== undefined && versions.length > 0 && (
+          <button type="button" onClick={() => void putOnHome()} disabled={busy || running}>
+            Put it on Home
           </button>
-        ) : null}
+        )}
         <span className="muted">
           {released
             ? "Send to testers makes a preview version only tester accounts see on Home."
-            : "This planet is not released yet: its versions are previews for tester accounts until you release it on the Planets page."}
+            : "This map is not on Home yet. Send to testers makes a preview only tester accounts see; Publish puts it on Home for every child."}
         </span>
       </div>
+      {homeText !== null && <p role="status">{homeText}</p>}
       {message !== null && (
         <p role="alert" className="notice">
           {message}
@@ -321,7 +368,14 @@ export function PublishTab({ api, levelId, level, draftRevision, review, dirty, 
           {(cancelRef) => (
             <>
               <h3 id="publish-confirm">Publish {level.name} for everyone?</h3>
-              <p>New games use the new version about a minute after the publisher finishes. Games already started keep theirs.</p>
+              {released ? (
+                <p>New games use the new version about a minute after the publisher finishes. Games already started keep theirs.</p>
+              ) : (
+                <p>
+                  It goes on Home for every child about a minute after the publisher finishes, and stays there: later you can publish changes or retire its
+                  wave sets in Versions, but not take the map off Home.
+                </p>
+              )}
               <div className="dialog-buttons">
                 <button type="button" ref={cancelRef} onClick={() => setConfirmLive(false)}>
                   Cancel
@@ -354,7 +408,9 @@ export function PublishStatus({ publish }: { publish: LevelPublish }) {
         <p role="status" className="publish-status">
           {publish.live === true
             ? `${publish.campaignVersion ?? "The new version"} is live for new games in about a minute (${revision}).`
-            : publish.liveRefused !== undefined
+            : publish.liveRefused === "NOT_RELEASED"
+              ? `${publish.campaignVersion ?? "The new version"} is made: a preview for tester accounts until the map is on Home (${revision}).`
+              : publish.liveRefused !== undefined
               ? `${publish.campaignVersion ?? "The new version"} was made, but the live version changed meanwhile: it is a preview. Make it live in Versions.`
               : `${publish.campaignVersion ?? "The new version"} is a preview for tester accounts (${revision}).`}
         </p>
