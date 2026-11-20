@@ -41,7 +41,7 @@ test("a new player sets up, plays two waves and answers an activity with the key
   await page.getByRole("heading", { name: /Hi, Keys/u }).waitFor();
   await axe(page, "Home");
   await page.keyboard.press("Tab");
-  expect(await focused(page)).toMatch(/New game/u);
+  expect(await focused(page)).toMatch(/First Contact/u); // LD23: the dev map's one challenge, on its map card
   await page.keyboard.press("Enter");
 
   // The battle: N chooses Nova and goes to the first empty pad, Enter places, R starts the wave.

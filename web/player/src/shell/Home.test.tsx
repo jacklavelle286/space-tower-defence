@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
-// P7 run setup on Home (Phase 53, D4 P7): with one wave set, Home keeps its single New game button (the live game
-// today); with several, it lists the campaign and then the quick challenges, each with Start.
+// Home's maps (Gate M, LD23; owner 2026-11-20: "just have a list of maps - really simple"): one card per map with a
+// drawing of the map, Play for its 50-wave adventure and its challenges as small buttons; every map open (ADR-0043).
 import type { Me, Planets } from "@scd/shared";
 import { act, cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { PROTOCOL_VERSION } from "../sync/protocol";
 import { SyncQueue } from "../sync/queue";
-import { allChoices, Home } from "./Home";
+import { allChoices, Home, mapCards } from "./Home";
+import { sketchOf } from "./mapSketch";
 
 afterEach(cleanup);
 
@@ -56,50 +57,55 @@ function renderHome(planets: Planets) {
   return onNewGame;
 }
 
-describe("Home run setup (Phase 53)", () => {
-  it("orders the campaign first, then the challenges", () => {
+describe("Home maps (LD23)", () => {
+  it("orders the campaign first, then the challenges; a card's Play is the live adventure, before a tester's preview", () => {
     expect(allChoices(FULL).map((c) => c.choice.waveSetId)).toEqual(["campaign", "first-contact", "blob-parade"]);
+    const preview = { ...set("campaign", "CAMPAIGN", "Big Adventure", 50), campaignVersion: "luna-1-a3", preview: true };
+    const [card] = mapCards({ ageBand: 6, planets: [{ ...FULL.planets[0]!, campaignVersion: "luna-1-a2", waveSets: [preview, ...FULL.planets[0]!.waveSets] }] });
+    expect(card?.play?.choice).toEqual({ planetId: "luna-1", waveSetId: "campaign" });
+    expect(card?.version).toBe("luna-1-a2");
+    expect(card?.more.map((c) => c.choice.campaignVersion ?? c.choice.waveSetId)).toEqual(["luna-1-a3", "first-contact", "blob-parade"]);
   });
 
-  it("with several wave sets: the campaign and quick challenges, each with Start", async () => {
-    const onNewGame = renderHome(FULL);
-    expect(await screen.findByRole("heading", { name: "New game: Moonbeam Colony" })).toBeTruthy();
-    expect(screen.getByText("Quick challenges")).toBeTruthy();
-    expect(screen.queryByRole("button", { name: "New game" })).toBeNull();
-    const starts = screen.getAllByRole("button", { name: "Start" });
-    expect(starts).toHaveLength(3);
-    await act(async () => starts[2]?.click());
+  it("one card per map: its name, Play for the adventure, its challenges as small buttons", async () => {
+    const fire = { planetId: "fire-planet-2", name: "Fire Planet", unlocked: true, waveSets: [set("campaign", "CAMPAIGN", "Big Trek", 50), set("fire-clank", "CHALLENGE", "Captain Clank", 4)] };
+    const onNewGame = renderHome({ ageBand: 6, planets: [FULL.planets[0]!, fire] });
+    expect(await screen.findByRole("heading", { name: "Maps" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Moonbeam Colony" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Fire Planet" })).toBeTruthy();
+    expect(screen.queryByText(/New game/u)).toBeNull();
+    const moonChallenges = screen.getByRole("group", { name: "Challenges on Moonbeam Colony" });
+    expect([...moonChallenges.querySelectorAll("button")].map((b) => b.textContent)).toEqual(["First Contact", "Blob Parade"]);
+    await act(async () => screen.getByRole("button", { name: "Play Fire Planet" }).click());
+    expect(onNewGame).toHaveBeenCalledWith({ planetId: "fire-planet-2", waveSetId: "campaign" }, expect.anything());
+    await act(async () => screen.getByRole("button", { name: "Blob Parade" }).click());
     expect(onNewGame).toHaveBeenCalledWith({ planetId: "luna-1", waveSetId: "blob-parade" }, expect.anything());
   });
 
-  it("a tester's preview is marked and starts on its version; the big New game never picks one (Gate M, LD7)", async () => {
+  it("a map with only challenges has no Play; a tester's preview is marked and starts on its version", async () => {
     const preview = { ...set("campaign", "CAMPAIGN", "Big Adventure", 50), campaignVersion: "luna-1-a3", preview: true };
     const planets: Planets = { ageBand: 6, planets: [{ ...ONE.planets[0]!, waveSets: [...ONE.planets[0]!.waveSets, preview] }] };
     const onNewGame = renderHome(planets);
-    await screen.findByRole("heading", { name: "New game: Moonbeam Colony" });
-    expect(screen.getAllByText("Test level").length).toBeGreaterThan(0);
-    const starts = screen.getAllByRole("button", { name: "Start" });
-    await act(async () => starts[0]?.click()); // the campaign comes first: the preview
+    const play = await screen.findByRole("button", { name: "Play Moonbeam Colony" });
+    expect(play.textContent).toMatch(/Test level/u);
+    await act(async () => play.click());
     expect(onNewGame).toHaveBeenCalledWith({ planetId: "luna-1", waveSetId: "campaign", campaignVersion: "luna-1-a3" }, expect.anything());
-  });
-
-  it("two released planets (Gate M, LD9): a section each; a locked one says what opens it", async () => {
-    const mars = { planetId: "mars-1", name: "Red Dust", unlocked: true, waveSets: [set("campaign", "CAMPAIGN", "Big Trek", 50)] };
-    const onNewGame = renderHome({ ageBand: 6, planets: [FULL.planets[0]!, mars] });
-    expect(await screen.findByRole("heading", { name: "New game: Moonbeam Colony" })).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "New game: Red Dust" })).toBeTruthy();
-    const marsSection = screen.getByRole("heading", { name: "New game: Red Dust" }).closest("section")!;
-    await act(async () => (marsSection.querySelector("button") as HTMLButtonElement).click());
-    expect(onNewGame).toHaveBeenCalledWith({ planetId: "mars-1", waveSetId: "campaign" }, expect.anything());
     cleanup();
-    renderHome({ ageBand: 6, planets: [FULL.planets[0]!, { ...mars, unlocked: false }] });
-    expect(await screen.findByText("Clear wave 20 on Moonbeam Colony to open this planet.")).toBeTruthy();
-    expect(screen.queryByRole("heading", { name: "New game: Red Dust" })).toBeNull();
-  });
-
-  it("with one wave set (the live game today): the single New game button, as before", async () => {
     renderHome(ONE);
-    expect(await screen.findByRole("button", { name: "New game" })).toBeTruthy();
-    expect(screen.queryByText("Quick challenges")).toBeNull();
+    expect(await screen.findByRole("button", { name: "First Contact" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /^Play/u })).toBeNull();
+  });
+});
+
+describe("map pictures (LD23)", () => {
+  it("reads the campaign map's route, pads and backdrop; anything unexpected is no sketch", () => {
+    const doc = {
+      waveSets: { campaign: { mapId: "fire" } },
+      maps: { fire: { route: [[0, 5], [19, 5]], pads: [{ x: 3, y: 4 }, { x: 40, y: 1 }], art: { backdrop: null } } },
+    };
+    expect(sketchOf(doc)).toEqual({ route: [[0, 5], [19, 5]], pads: [[3, 4]], ground: expect.stringMatching(/luna-backdrop/u) });
+    expect(sketchOf({ ...doc, maps: { fire: { ...doc.maps.fire, route: [[0, 99]] } } })).toBeNull();
+    expect(sketchOf({ waveSets: {}, maps: {} })).toBeNull();
+    expect(sketchOf("nope")).toBeNull();
   });
 });

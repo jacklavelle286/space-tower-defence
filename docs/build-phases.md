@@ -110,6 +110,7 @@ until then it was `release.yml` then `apply.yml`, and older rows still say "disp
 | LD20 | Make a planet for me | M | — | A theme makes a planet with approved pictures and its campaign level | Release; try it |
 | LD21 | Make it all again | M | — | One button in the editor remakes a level's map, waves and challenges together; challenge astronauts follow map edits | Release; try it |
 | LD22 | Maps instead of planets | M | — | Each map is its own adventure on Home, all open from the start; publish puts a map on Home | Release; restore the Moon; make Fire Planet its own map |
+| LD23 | Home is a list of maps | M | — | One card per map: a drawing of the map, Play (its 50 waves), its challenges as small buttons | Release; look at Home |
 | 57 | Local database | M5 | M5-01 | Upgrade keeps queued ops | — |
 | 58 | Offline queue | M5 | M5-02 | Playwright: offline then flush in order | Release |
 | 59 | Offline preparation and audio cache | M5 | M5-03 | Network cut after "Ready offline": play continues | Release; try it |
@@ -2742,6 +2743,24 @@ concept of planets - and just do maps as i think its overly complicated"; chosen
 | Deployed / how to see | Admin → Maps; the child's Home lists every published map |
 | Exit criteria | A new map, published, is on Home for every child without any planet step; no admin screen mentions planets |
 | Risks | A map published live cannot leave Home; a release refused after a good publish (the question bank) leaves the map "Testers only" until Put it on Home works |
+
+### Phase LD23 — Home is a list of maps
+
+**Goal.** The child's Home is one simple list of maps.
+**Why now.** Owner, 2026-11-20: "i think we scrap planets and just have a list of maps - really simple"; chosen: "Play,
+plus small challenge buttons" and "A small drawing of the map itself".
+
+| Field | Detail |
+|---|---|
+| In scope | Home keeps the Continue card and the bottom buttons; below it, "Maps": one card per map with a drawing of the map (its ground, route and pads, read from the map's published planet document, `/game-data/campaign/<version>.json`; the Moon ground when it cannot be read), its name, Play (its 50-wave adventure; the live one before a tester's preview) and its challenges as small buttons. Removed: the "New game: <planet>" sections, the single New game button and the planet panel (icons, the wave-set list, "Coming later") |
+| Out of scope | API changes (the cards come from `GET /api/planets` as before); a map picture drawn by hand |
+| Files | `web/player/src/shell/Home.tsx`, `web/player/src/shell/mapSketch.tsx`, `web/player/src/shell/shell.css`, `web/player/src/copy/en-GB.ts`, `web/player/e2e/local/keyboard.spec.ts`, `web/player/e2e/deployed/support.ts` |
+| Depends on | LD22 |
+| Owner actions | Release; look at Home as a child |
+| Tests and how to run | `player/src/shell/Home.test.tsx` (cards, Play and challenges start the right game, previews, the sketch reader); `npx playwright test -c playwright.local.config.ts` in `web/player` (keyboard-only game and axe scans, Home included) |
+| Deployed / how to see | The child's Home |
+| Exit criteria | Each map appears once, with a picture, its name and Play; no planet words on Home |
+| Risks | Each card fetches its map's planet document once (immutable, cached); a map that fails to load shows the plain ground |
 
 ---
 

@@ -40,11 +40,12 @@ export const COPY = {
     continueHeading: "Continue",
     continueButton: "Continue",
     wave: (n: number) => `Wave ${n}`,
-    newGame: "New game",
     starting: "Starting…", // [PROPOSAL]
     noWaveSet: "There is no game you can start yet.", // [PROPOSAL]
     preview: "Test level", // Gate M, LD7 [PROPOSAL]: a preview only tester accounts see
-    planetLocked: (previous: string) => `Clear wave 20 on ${previous} to open this planet.`, // Gate M, LD9 [PROPOSAL]
+    play: "Play", // Gate M, LD23 [PROPOSAL]: a map's 50-wave adventure
+    playMap: (map: string) => `Play ${map}`,
+    challengesOn: (map: string) => `Challenges on ${map}`,
     planetsHeading: "Maps", // ADR-0043: maps instead of planets
     comingLater: "Coming later",
     ageOutOfRange: "We don't have activities for your age yet.", // D7.3 AGE_OUT_OF_RANGE
