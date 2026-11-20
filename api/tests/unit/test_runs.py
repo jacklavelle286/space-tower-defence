@@ -374,25 +374,13 @@ class TwoPlanets:
         return self.real.current()
 
 
-def test_planet_locked_until_the_planet_before_reaches_wave_20(ddb: Any, player_event: dict) -> None:
+def test_every_released_planet_is_open_from_the_start(ddb: Any, player_event: dict) -> None:
+    """ADR-0043: maps instead of planets, all open from the start (no wave-20 unlock)."""
     api = RunsApi(ddb)
     api.reader = TwoPlanets(api.reader)
     api.bounds = lambda ruleset, campaign: load_bounds_fixture(ruleset, "luna-1-c1")  # mars reuses luna's numbers
     api.profile(player_event)
-    mars = {"planetId": "mars-2", "campaignVersion": "mars-2-c1"}
-
-    status, body = api.create(player_event, **mars)
-    assert (status, body["error"]["code"], body["error"]["details"]) == (
-        409,
-        "CONTENT_UNAVAILABLE",
-        {"reason": "PLANET_LOCKED"},
-    )
-
-    DynamoTable(api.raw, "test-game").update_item(
-        PK, "PROFILE", update="SET #p = :p", names={"#p": "planets"},
-        values={":p": {"luna-1": {"bestCompletedWave": 20}}},
-    )  # fmt: skip
-    assert api.create(player_event, **mars)[0] == 201
+    assert api.create(player_event, planetId="mars-2", campaignVersion="mars-2-c1")[0] == 201
 
 
 def test_run_limit_reached_at_five_open_runs(api: RunsApi, player_event: dict) -> None:

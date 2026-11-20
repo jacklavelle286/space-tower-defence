@@ -45,7 +45,7 @@ export const COPY = {
     noWaveSet: "There is no game you can start yet.", // [PROPOSAL]
     preview: "Test level", // Gate M, LD7 [PROPOSAL]: a preview only tester accounts see
     planetLocked: (previous: string) => `Clear wave 20 on ${previous} to open this planet.`, // Gate M, LD9 [PROPOSAL]
-    planetsHeading: "Planets",
+    planetsHeading: "Maps", // ADR-0043: maps instead of planets
     comingLater: "Coming later",
     ageOutOfRange: "We don't have activities for your age yet.", // D7.3 AGE_OUT_OF_RANGE
     bankNotReady: "Activities for your age are still being made. Please come back soon.", // D7.3 BANK_NOT_READY
@@ -129,7 +129,7 @@ export const COPY = {
     nothingYet: "Nothing here yet. Play a game to start!",
     showTopics: "Show topics",
     hideTopics: "Hide topics",
-    planetsHeading: "Planets",
+    planetsHeading: "Maps", // ADR-0043: maps instead of planets
     best: (planet: string, n: number) => `${planet}: best ${n} ${n === 1 ? "wave" : "waves"} cleared`,
     badgesHeading: "Badges",
     planetHero: (planet: string) => `${planet} Hero`, // Gate M, LD9 [PROPOSAL]: another planet's campaign badge

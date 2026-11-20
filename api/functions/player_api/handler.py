@@ -32,7 +32,6 @@ import time
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from decimal import Decimal
 from functools import cache
 from typing import Any
 
@@ -116,7 +115,6 @@ ROUTES: dict[str, str] = {
 }
 
 PROFILE_SK = "PROFILE"
-UNLOCK_AFTER_WAVE = 20  # the next planet unlocks at bestCompletedWave >= 20 on the one before (spine S8.1, G §3 R6)
 PREVIEW_VERSIONS = 3  # [ASSUMPTION] the newest versions with preview wave sets a tester sees on Home (Gate M, LD7)
 UUID = re.compile(LIMITS["ids"]["uuid"].removesuffix("$") + r"\Z")  # Python's $ also matches before a final newline
 DEVICE_LABEL_MAX: int = LIMITS["deviceLabelMaxLength"]
@@ -365,17 +363,11 @@ def _profile_or_404(table: DynamoTable, pk: str) -> dict[str, Any]:
 
 
 def _with_unlocks(planets: list[Planet], profile: Mapping[str, Any]) -> list[tuple[Planet, bool]]:
-    """Each released planet and whether it is unlocked: the first always; each next one once the planet before it
-    has bestCompletedWave >= 20 (derived, never stored; spine S8.1)."""
-    progress = profile.get("planets") if isinstance(profile.get("planets"), Mapping) else {}
-    result: list[tuple[Planet, bool]] = []
-    previous_best: int | None = None
-    for index, planet in enumerate(planets):
-        result.append((planet, index == 0 or (previous_best is not None and previous_best >= UNLOCK_AFTER_WAVE)))
-        best = progress.get(planet.planet_id, {}) if isinstance(progress, Mapping) else {}
-        value = best.get("bestCompletedWave") if isinstance(best, Mapping) else None
-        previous_best = int(value) if isinstance(value, Decimal | int) and not isinstance(value, bool) else None
-    return result
+    """Each released planet and whether it is unlocked: every one, from the start (ADR-0043, owner 2026-11-20: maps
+    instead of planets, "all open from the start"; it was the next planet once the one before reached wave 20,
+    spine S8.1). `profile` stays a parameter so a future rule can use the child's progress again."""
+    del profile
+    return [(planet, True) for planet in planets]
 
 
 def _is_ccf(error: ClientError) -> bool:
@@ -511,8 +503,6 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
             preview = deps.game_data().versions().state(body["campaignVersion"], body["waveSetId"]) == "preview"
             if not preview:
                 raise ApiError("CONTENT_VERSION_UNSUPPORTED", "Planet is not in the released game data")
-        elif not unlocks[body["planetId"]]:
-            raise ApiError("CONTENT_UNAVAILABLE", "Planet is locked", details={"reason": "PLANET_LOCKED"})
         statuses = [item.get("status") for item in table.query_prefix(pk, RUN_PREFIX, attributes=("status",))]
         if statuses.count("IN_PROGRESS") >= IN_PROGRESS_CAP:  # the soft cap, from the G1 Query
             raise ApiError("RUN_LIMIT_REACHED", "Too many games in progress")

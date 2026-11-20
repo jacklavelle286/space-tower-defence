@@ -1,6 +1,6 @@
 """current.json schema 1 and 2 in Python (Gate M, LD9): the shared fixtures (game-core's parseCurrent reads the same),
 what the publisher writes back, and the planets list on the reader and on GET /api/planets with two released
-planets: unlocked in order, never one that current.json does not list."""
+planets: listed in order, all open (ADR-0043), never one that current.json does not list."""
 
 from __future__ import annotations
 
@@ -55,7 +55,7 @@ def release_mars(api: RunsApi) -> None:
     s3.put_object(Bucket=BUCKET, Key="game-data/current.json", Body=json.dumps(current).encode())
 
 
-def test_two_released_planets_are_listed_in_order_the_second_locked(ddb: Any, player_event: dict) -> None:
+def test_two_released_planets_are_listed_in_order_both_open(ddb: Any, player_event: dict) -> None:
     api = RunsApi(ddb)
     release_mars(api)
     api.profile(player_event)
@@ -63,7 +63,7 @@ def test_two_released_planets_are_listed_in_order_the_second_locked(ddb: Any, pl
     assert status == 200
     assert [(p["planetId"], p["campaignVersion"], p["unlocked"]) for p in body["planets"]] == [
         ("luna-1", "luna-1-c1", True),
-        ("mars-1", "mars-1-c1", False),  # until luna-1's best completed wave reaches 20
+        ("mars-1", "mars-1-c1", True),  # ADR-0043: every map is open from the start
     ]
 
 
