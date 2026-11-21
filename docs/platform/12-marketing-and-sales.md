@@ -315,6 +315,9 @@ All checked 2026-11-21.
 
 ## 12. User stories
 
+*Snapshot of 2026-11-21. The source of truth for these stories is now Jira (project KAN); see
+[README §6](README.md#6-user-stories-and-jira). Edit the tickets, not this table.*
+
 | ID | Story | Acceptance criteria | Release |
 |---|---|---|---|
 | MKT-1 | As the owner, I want a brand kit in the game's art style, so that the platform looks the same everywhere | Logo, wordmark, palette tokens, favicon and app icon as SVG in `art/svg/brand/`, rendered by `tools/art/render.py` and listed in the asset catalogue; every palette text pair passes WCAG 2.2 AA contrast; the owner approves a brand sheet | Pilot |

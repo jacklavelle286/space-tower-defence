@@ -504,6 +504,9 @@ All read 2026-11-21.
 
 ## 13. User stories
 
+*Snapshot of 2026-11-21. The source of truth for these stories is now Jira (project KAN); see
+[README §6](README.md#6-user-stories-and-jira). Edit the tickets, not this table.*
+
 | ID | Story | Acceptance criteria | Release |
 |---|---|---|---|
 | AUTH-1 | As the owner, I want staff and pupil pools in each environment, so that adults and children are kept apart | Terraform creates both (Essentials, deletion protection); the staff pool has email usernames, required MFA (TOTP, email OTP) and no self sign-up; the pupil pool has no attributes and no self sign-up; `staff-web` and `pupil-web` clients exist with the flows in §3 | Pilot |

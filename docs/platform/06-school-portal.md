@@ -789,6 +789,9 @@ Specific to the portal:
 
 ## 18. User stories
 
+*Snapshot of 2026-11-21. The source of truth for these stories is now Jira (project KAN); see
+[README §6](README.md#6-user-stories-and-jira). Edit the tickets, not this table.*
+
 | ID | Story | Acceptance criteria | Release |
 |---|---|---|---|
 | SCH-1 | As a staff member, I want to sign in on my school's own page with email, password and MFA, so that only I can use my account | Sign-in page at `/staff` shows the school's name and badge; MFA required for email-and-password accounts; guesses limited at least to 10 in 5 minutes; failed sign-ins audited | Pilot |

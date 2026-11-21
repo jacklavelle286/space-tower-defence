@@ -230,6 +230,9 @@ full assurance pack):
 
 ## 11. User stories
 
+*Snapshot of 2026-11-21. The source of truth for these stories is now Jira (project KAN); see
+[README §6](README.md#6-user-stories-and-jira). Edit the tickets, not this table.*
+
 | ID | Story | Acceptance criteria | Release |
 |---|---|---|---|
 | DNS-1 | As the owner, I want the pipelines to manage records in my DNS account's zone without broader access, so that releases need no hand steps | A role in the DNS account allows record changes in `Z05584941EODCDVG5OXIT` only (names and types restricted); prod and dev pipeline roles can assume it; a test change outside the zone is refused | Pilot |

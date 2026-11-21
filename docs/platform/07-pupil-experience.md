@@ -348,6 +348,9 @@ re-checked against a pilot school's devices.
 
 ## 17. User stories
 
+*Snapshot of 2026-11-21. The source of truth for these stories is now Jira (project KAN); see
+[README §6](README.md#6-user-stories-and-jira). Edit the tickets, not this table.*
+
 | ID | Story | Acceptance criteria | Release |
 |---|---|---|---|
 | PUP-1 | As a pupil, I want to open my school's page and press "I'm at school", so that I can start signing in | `<school>.spacecolonydefence.com/` shows the school name and badge and the button; no class or pupil names appear | Pilot |

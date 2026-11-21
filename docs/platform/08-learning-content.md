@@ -326,6 +326,9 @@ each word list and its wrong spellings once, not every instance.
 
 ## 12. User stories
 
+*Snapshot of 2026-11-21. The source of truth for these stories is now Jira (project KAN); see
+[README §6](README.md#6-user-stories-and-jira). Edit the tickets, not this table.*
+
 | ID | Story | Acceptance criteria | Release |
 |---|---|---|---|
 | LRN-1 | As the owner, I want every topic and activity tagged with year groups, so that pupils get content for their year | `years` on topics and activities; validation rejects an activity outside its topic's years; migration screen shows derived years for all 88 topics for confirmation | Pilot |

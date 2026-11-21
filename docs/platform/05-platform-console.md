@@ -512,6 +512,9 @@ Proposed permission names for console screens. They are listed with the school p
 
 ## 15. User stories
 
+*Snapshot of 2026-11-21. The source of truth for these stories is now Jira (project KAN); see
+[README §6](README.md#6-user-stories-and-jira). Edit the tickets, not this table.*
+
 | ID | Story | Acceptance criteria | Release |
 |---|---|---|---|
 | CON-1 | As the owner, I want to sign in to the console with my password and an authenticator code, so that only I can run the platform | Operator pool in each account; TOTP required; sign-in, sign-out and failed sign-ins in the platform audit; console routes refused on any host but `admin.` | Pilot |

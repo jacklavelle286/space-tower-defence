@@ -145,6 +145,12 @@ it expires 2027-11-21 [VERIFIED: `route53domains get-domain-detail` and `route53
 
 ## 6. User stories and Jira
 
+**Source of truth.** From 2026-11-21 the stories live in **Jira**: project **KAN** ("Space Colony Defence") on
+`cumulus-consulting.atlassian.net`, epics KAN-4 to KAN-15, versions Pilot, Launch and Later. The owner reviews and edits
+them there. The story tables in these documents are the **starting snapshot** and are not kept up to date; the documents
+keep the reasoning behind the design. Every ticket carries its scope ID as a label, so a story's ticket is found with
+JQL `project = KAN AND labels = SCH-12`.
+
 Each layer document ends with **user stories** in one format:
 
 | ID | Story | Acceptance criteria | Release |
@@ -155,7 +161,6 @@ Each layer document ends with **user stories** in one format:
   MKT (12).
 - **Releases**: **Pilot** = what the first pilot school needs (free, one school); **Launch** = what selling to paying
   schools needs; **Later** = after launch.
-- **Epics** group the stories in [13](13-delivery-plan.md#2-epics). Once the Jira project exists, each epic becomes a
-  Jira epic and each story a Jira story under it: story text as the summary, acceptance criteria as the description,
-  release as the fix version, and the ID kept as a label so the documents and Jira stay linked. Claude can create them
-  through the Atlassian connector when the owner gives the site and project key and says to go ahead.
+- **Epics** group the stories in [13](13-delivery-plan.md#2-epics). On 2026-11-21 every epic, story and owner task
+  was created in Jira (KAN-4 onwards) with its release, acceptance criteria, a link back here and its ID as a label
+  ([13 §7](13-delivery-plan.md#7-jira); the ID-to-key map is [jira-keys.json](jira-keys.json)).

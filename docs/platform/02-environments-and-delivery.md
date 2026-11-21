@@ -185,6 +185,9 @@ It is excluded from billing, reports and counts.
 
 ## 11. User stories
 
+*Snapshot of 2026-11-21. The source of truth for these stories is now Jira (project KAN); see
+[README §6](README.md#6-user-stories-and-jira). Edit the tickets, not this table.*
+
 | ID | Story | Acceptance criteria | Release |
 |---|---|---|---|
 | ENV-1 | As the owner, I want dev and prod platform accounts in my organisation, so that real schools never share an account with testing | Two accounts exist in an OU with the guardrails in §2; budgets and anomaly alerts reach the owner | Pilot |

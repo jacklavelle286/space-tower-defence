@@ -474,6 +474,9 @@ Notes:
 
 ## 10. User stories
 
+*Snapshot of 2026-11-21. The source of truth for these stories is now Jira (project KAN); see
+[README §6](README.md#6-user-stories-and-jira). Edit the tickets, not this table.*
+
 | ID | Story | Acceptance criteria | Release |
 |---|---|---|---|
 | DAT-1 | As the owner, I want the `tenancy` table in each environment, so that school data has its own home | Terraform creates it with PITR, deletion protection, `prevent_destroy`, TTL `ttl` and `gsi1`; in the backup plan | Pilot |

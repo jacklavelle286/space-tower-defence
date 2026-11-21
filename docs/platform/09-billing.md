@@ -787,6 +787,9 @@ cost of billing (Lambda, DynamoDB) is small [ASSUMPTION].
 
 ## 19. User stories
 
+*Snapshot of 2026-11-21. The source of truth for these stories is now Jira (project KAN); see
+[README §6](README.md#6-user-stories-and-jira). Edit the tickets, not this table.*
+
 | ID | Story | Acceptance criteria | Release |
 |---|---|---|---|
 | BIL-1 | As the owner, I want a school to be "Not billed", so that the pilot runs before billing exists | The school has no Stripe customer; its Billing page says the pilot is free until the agreed date; enrolled counts are shown | Pilot |

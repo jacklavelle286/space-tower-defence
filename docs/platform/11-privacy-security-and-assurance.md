@@ -462,6 +462,9 @@ All checked 2026-11-21.
 
 ## 20. User stories
 
+*Snapshot of 2026-11-21. The source of truth for these stories is now Jira (project KAN); see
+[README §6](README.md#6-user-stories-and-jira). Edit the tickets, not this table.*
+
 | ID | Story | Acceptance criteria | Release |
 |---|---|---|---|
 | PRV-1 | As a school's DPO, I want a DPA that meets Article 28, so that our contract with the supplier is lawful | Has every ICO Article 28 element and the annex commitments (§4); drafted by the solicitor; signed by the pilot school before any pupil signs in | Pilot |
