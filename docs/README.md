@@ -73,4 +73,4 @@ The art is hand-drawn SVG made in this repository, rendered to PNG by [tools/art
 
 | Folder | For |
 |---|---|
-| `runbooks/` | Restore, rollback and operator procedures: [restore](runbooks/restore.md), [rollback](runbooks/rollback.md), [operator and test accounts](runbooks/operator-accounts.md) (password resets), [sign-up kill switch](runbooks/signup-kill-switch.md), [a wrong speech clip](runbooks/speech-withdrawal.md), [DNS hand-off](runbooks/dns-hand-off.md), [OpenAI key](runbooks/openai-key.md), [branches and merging family into dev](runbooks/branches.md) |
+| `runbooks/` | Restore, rollback and operator procedures: [restore](runbooks/restore.md), [rollback](runbooks/rollback.md), [operator and test accounts](runbooks/operator-accounts.md) (password resets), [sign-up kill switch](runbooks/signup-kill-switch.md), [a wrong speech clip](runbooks/speech-withdrawal.md), [DNS hand-off](runbooks/dns-hand-off.md), [OpenAI key](runbooks/openai-key.md), [branches and merging family into dev](runbooks/branches.md), [platform release](runbooks/platform-release.md) |
