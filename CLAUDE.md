@@ -42,6 +42,11 @@ and [spine S0.1](docs/plan/00-spine.md#s01-way-of-working-confirmed-by-owner-202
   [Local AWS writes that are not deployments](docs/build-phases.md#local-aws-writes-that-are-not-deployments) are run by the
   owner, not Claude. The list is a proposal until the owner confirms it at the Phase 0 gate. Any new write needs a new row and the
   owner's approval at a gate.
+- **AWS profiles.** Claude's AWS calls use only the `-readonly` CLI profiles: `space-tower-defence-readonly`,
+  `productivity-prod-readonly`, `dns-readonly`, `sca-dev-readonly`, `sca-prod-readonly` and `cumulus-main-readonly`
+  (the management account). They use the IAM Identity Center permission set `ReadOnlyAccess`, assigned in every account
+  (owner, 2026-11-21), so a write fails with AccessDenied. The profiles without `-readonly` have AdministratorAccess and
+  are the owner's. ReadOnlyAccess can still read S3 objects and DynamoDB items: the no-personal-data rule still applies.
 - **Secrets.** Never print, log or commit OIDC tokens, credentials or secrets. Print a token's claim, never the token. Never
   commit `.terraform*` folders, state, plan files or clip audio.
 - **No personal data.** No email addresses, dates of birth or real names in commits, docs, code, test data or requests to
