@@ -149,7 +149,7 @@ describe("LevelEditor", () => {
     expect(fake.levels.get("lvl")?.level.map.route).toEqual([[0, 5]]);
   });
 
-  it("a challenge astronaut on a pad that is not open yet is taken off; Make it all again remakes map, waves and challenges", async () => {
+  it("a challenge astronaut on a pad that is not open yet is taken off; Make it all again remakes map, waves and challenges; Ctrl+S at once saves them", async () => {
     const start = newLevel("old", "Lava Meltdown", "blank");
     const level: LevelFile = {
       ...start,
@@ -196,11 +196,20 @@ describe("LevelEditor", () => {
     const inMaker = within(maker);
     expect((inMaker.getByLabelText("Challenges") as HTMLSelectElement).value).toBe("1");
     fireEvent.click(inMaker.getByLabelText(/Tune the waves/u));
+    // Ctrl+S the moment the new level is on screen, before React has run its effects. The save listener once lagged a
+    // render behind there and saved the level from before (2 pads). A plain DOM event, as a real key press is.
+    let pressed = false;
+    const quick = new MutationObserver(() => {
+      if (!(document.body.textContent ?? "").includes("Made it all again (not saved yet")) return;
+      quick.disconnect();
+      pressed = true;
+      document.body.dispatchEvent(new KeyboardEvent("keydown", { key: "s", ctrlKey: true, bubbles: true }));
+    });
+    quick.observe(document.body, { childList: true, subtree: true, characterData: true });
     fireEvent.click(inMaker.getByRole("button", { name: "Make it all again" }));
-    await screen.findByText(/^Made it all again \(not saved yet/u, {}, { timeout: 30_000 });
-    expect(screen.queryByText(/is not open when preparing wave/u)).toBeNull();
-    press(window.document.body, "s", { ctrlKey: true });
+    await waitFor(() => expect(pressed).toBe(true), { timeout: 30_000 });
     await waitFor(() => expect(fake.levels.get("lvl")?.draftRevision).toBe(1));
+    expect(screen.queryByText(/is not open when preparing wave/u)).toBeNull();
     const saved = fake.levels.get("lvl")?.level;
     expect(saved?.name).toBe("Lava Meltdown");
     expect(saved?.map.pads.length).toBeGreaterThanOrEqual(13);
