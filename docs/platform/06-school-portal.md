@@ -7,7 +7,7 @@ Part of the [platform scope](README.md). Status: scope, parked.
 ## 1. Summary
 
 Each school's staff work at **`<slug>.spacecolonydefence.com/staff`** (PQ-1). It is a separate single-page app,
-`web/portal` ([02 §5](02-environments-and-delivery.md#5-code-on-the-schools-branch)), on the same address as the
+`web/portal` ([02 §5](02-environments-and-delivery.md#5-code-on-the-dev-branch)), on the same address as the
 school's pupils, who use `/`. In the portal, staff:
 
 - invite colleagues;

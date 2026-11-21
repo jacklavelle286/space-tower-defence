@@ -309,7 +309,7 @@ re-checked against a pilot school's devices.
 
 | Moment | Target [PROPOSAL] | Risk today |
 |---|---|---|
-| First load of the start page on a school connection | Under 3 s to the "I'm at school" button | Bundle size: staff code must stay out of the pupil bundle ([02 §5](02-environments-and-delivery.md#5-code-on-the-schools-branch)) |
+| First load of the start page on a school connection | Under 3 s to the "I'm at school" button | Bundle size: staff code must stay out of the pupil bundle ([02 §5](02-environments-and-delivery.md#5-code-on-the-dev-branch)) |
 | Sign-in (code → grid → pictures → Home) | Each step under 1 s at the server | Cognito custom auth triggers must answer within 5 s ([04](04-identity-and-access.md)) |
 | **A class pressing Play together** | 30 runs started within 20 s, none refused | Today `POST /api/runs` is throttled at 1 request per second, burst 5, **for all callers together** [VERIFIED `infrastructure/main/main.tf:672-688`]. Thirty pupils would be refused. The platform needs higher, per-school limits ([10](10-data-and-api.md)) |
 | Five classes at 9:05 | No errors; sign-in and run creation within the targets above | A load test is a Launch exit criterion ([11](11-privacy-security-and-assurance.md)) |
@@ -322,7 +322,7 @@ re-checked against a pilot school's devices.
 |---|---|
 | Routing | New routes: `/` (school start), `/class` (code and grid), `/q/:handle` (QR card), `/pictures`, `/avatar`, status pages. `/setup` and `/auth/callback` are not used by the schools edition |
 | Auth | Replace managed-login redirect with calls to the pupil sign-in API ([04](04-identity-and-access.md)); session storage per sign-in route (§7); Finish revokes |
-| Edition | An `edition` setting (`family` or `schools`) picks routes, sign-in and Home ([02 §5](02-environments-and-delivery.md#5-code-on-the-schools-branch)) |
+| Edition | An `edition` setting (`family` or `schools`) picks routes, sign-in and Home ([02 §5](02-environments-and-delivery.md#5-code-on-the-dev-branch)) |
 | School branding | The start page shows the school's name and badge from a public, cacheable school profile (name and badge only) |
 | Home | This week card; filter maps by the class's allowed list; Continue merged into the This week card |
 | Play | Handle "paused" and "resting" answers from lease renewal and run ops; school runs use block planning |

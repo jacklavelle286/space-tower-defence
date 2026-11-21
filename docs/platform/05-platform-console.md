@@ -14,7 +14,7 @@ The console at `admin.spacecolonydefence.com` (dev: `admin.dev.spacecolonydefenc
   AI-assisted question drafting.
 - **Running the platform**: health, costs, audit, settings, the demo school, and content export and import.
 
-The code base is today's `web/admin` app, extended ([02 §5](02-environments-and-delivery.md#5-code-on-the-schools-branch)).
+The code base is today's `web/admin` app, extended ([02 §5](02-environments-and-delivery.md#5-code-on-the-dev-branch)).
 
 In the first releases the owner is the only user. Every screen still checks a **named permission** (section 13), so
 that Support, Content editor and Finance roles can be added later without rewriting screens

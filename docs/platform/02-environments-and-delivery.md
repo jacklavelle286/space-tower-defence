@@ -22,10 +22,10 @@ untouched [CONFIRMED by owner, PD-1]. The one addition to the architecture still
 | Organization management | Owner's AWS Organization | Exists |
 | DNS, 521764600394 (profile `dns`) | Registration and hosted zone of `spacecolonydefence.com` | Exists [VERIFIED 2026-11-21] |
 | Family edition, 263185198757 (profile `space-tower-defence`) | `aliens.jackgl.com` | Exists, unchanged |
-| **Platform dev** | Development and testing; made-up data only | New; the owner creates it |
-| **Platform prod** | Real schools, the demo school, the owner's console and content | New; the owner creates it |
+| **`sca-dev`** | Development and testing; made-up data only; every merge into `dev` deploys here | New; the owner creates and bootstraps it |
+| **`sca-prod`** | Real schools, the demo school, the owner's console and content; deployed once, at the big release | New; the owner creates and bootstraps it |
 
-Account names are the owner's choice [ASSUMPTION: e.g. `scd-platform-dev`, `scd-platform-prod`].
+Named `sca-dev` and `sca-prod` [CONFIRMED by owner 2026-11-21, PD-21].
 
 **Guardrails** for an OU holding both accounts [PROPOSAL; the owner knows the org's existing SCPs]:
 
@@ -51,19 +51,30 @@ admin role. That needs either module support or a small addition in the bootstra
 `terraform-bootstrap` v1.0.0 inputs]. Failing that, use today's single-role shape, trusted only for the platform's own
 GitHub environments.
 
-[PROPOSAL; an ADR records it] The existing bootstrap root gains one instance per new account: `envs/platform-dev` and
-`envs/platform-prod` tfvars and their own state. That is **more instances of the same root, not a replacement
+[PROPOSAL; an ADR records it] The existing bootstrap root gains one instance per new account, from the env files
+`sca-dev.tfvars.json` and `sca-prod.tfvars.json` and with their own state. That is **more instances of the same root, not a replacement
 bootstrap**, so it keeps to [H §H.5](../plan/H-infrastructure-and-delivery.md#h5-bootstrap-changes-you-make-no-replacement-bootstrap).
 The owner applies each one; Claude edits and reviews the plan output.
 
-The roles trust GitHub's OIDC token only for this repository and only from a named GitHub environment:
+The roles trust GitHub's OIDC token only for this repository and only from a named GitHub environment
+[CONFIRMED by owner 2026-11-21 for the account names; environment names PROPOSAL]. The subjects use the same immutable
+form as the family account's (`common.auto.tfvars.json`), and each account's env file overrides the common list:
 
-| Role | Trusted subject [PROPOSAL] |
-|---|---|
-| dev plan | `repo:<owner>/space-tower-defence:environment:platform-dev-plan` |
-| dev apply | `…:environment:platform-dev-apply` |
-| prod plan | `…:environment:platform-prod-plan` |
-| prod apply | `…:environment:platform-prod-apply` (required reviewer: the owner) |
+| Env file (read by `bootstrap.sh <env>`) | Account | `trusted_subs` |
+|---|---|---|
+| `infrastructure/envs/sca-dev.tfvars.json` | sca-dev | `repo:jacklavelle286@78485499/space-tower-defence@1457706183:environment:sca-dev` |
+| `infrastructure/envs/sca-prod.tfvars.json` | sca-prod | `…:environment:sca-prod` and `…:environment:sca-prod-apply` |
+
+GitHub environments to create (owner):
+
+| Environment | Deployment branches | Reviewer | Used for |
+|---|---|---|---|
+| `sca-dev` | `dev` only | none (auto-deploy, PD-22) | Plan, apply and publish to sca-dev on every merge into `dev` |
+| `sca-prod` | `main` only | none | Plan, publish and smoke for prod |
+| `sca-prod-apply` | `main` only | the owner | The prod apply, held for approval |
+
+Limiting each environment to one branch matters because the bootstrap role has AdministratorAccess today: a feature
+branch must never be able to assume it.
 
 ---
 
@@ -86,13 +97,15 @@ family edition safe and lets the two diverge [PROPOSAL].
 
 | File | Holds |
 |---|---|
-| `infrastructure/envs/platform-dev.tfvars.json` | Account ID, domain `dev.spacecolonydefence.com`, Stripe mode `test`, small log retention, budgets |
-| `infrastructure/envs/platform-prod.tfvars.json` | Account ID, domain `spacecolonydefence.com`, Stripe mode `live`, alarms, backups |
+| `infrastructure/envs/sca-dev.tfvars.json` (shared with the bootstrap, as `prod.tfvars.json` is today) | Account ID, domain `dev.spacecolonydefence.com`, Stripe mode `test`, small log retention, budgets |
+| `infrastructure/envs/sca-prod.tfvars.json` | Account ID, domain `spacecolonydefence.com`, Stripe mode `live`, alarms, backups |
 | `infrastructure/envs/common.auto.tfvars.json` | Shared (Terraform 1.17.2 exact, region) |
 
 ---
 
-## 5. Code on the `schools` branch
+<a id="5-code-on-the-schools-branch"></a>
+
+## 5. Code on the `dev` branch
 
 | Path | Change |
 |---|---|
@@ -104,7 +117,11 @@ family edition safe and lets the two diverge [PROPOSAL].
 | **New functions** | `school_api`, `platform_api`, `pupil_auth`, `auth_triggers`, `billing` ([10 §4](10-data-and-api.md#4-lambda-functions-and-their-permissions)) |
 | `infrastructure/platform` | New root (section 4) |
 
-**Keeping the branch healthy** [PROPOSAL]: merge `main` into `schools` regularly so game and content fixes flow one way.
+**Branches** [CONFIRMED by owner 2026-11-21, ADR-0044]: `family` holds the family edition, `dev` the platform, and
+`main` waits for the big release. Platform work is done on short-lived feature branches named after the Jira ticket
+(`SCD-<n>-<short-name>`) and merged into `dev` by pull request once CI passes [PROPOSAL: Claude may merge its own green
+pull requests; the owner reviews everything before the prod release]. Merge `family` into `dev` after family fixes, so
+game and content fixes flow one way.
 Platform code stays additive where it can; where a shared file must differ (the player API, the player app), it reads
 an `edition` setting (`family` or `schools`). Whether the family edition eventually becomes a tenant of the platform, or
 both editions stay on one branch, is decided after the platform launches ([13](13-delivery-plan.md#5-decisions-still-open)).
@@ -115,17 +132,16 @@ both editions stay on one branch, is decided after the platform launches ([13](1
 
 | Workflow | Trigger | What it does |
 |---|---|---|
-| `ci.yml` | Push to `main` **and `schools`** | Today's checks plus platform tests (RBAC matrix, tenant isolation, billing webhooks) [PROPOSAL; today CI runs on `main` only, VERIFIED `.github/workflows/ci.yml`] |
-| **`platform-release.yml`** (new) | Manual dispatch by the owner; inputs `environment` (dev or prod) and `ref` | Plan → (prod: the owner approves `platform-prod-apply`) → apply → publish the web apps and game data → smoke test. Today's `release.yml`, `apply.yml`, `plan.yml` and `oidc-smoke.yml` hard-code `prod.tfvars.json` and the `prod` environments [VERIFIED release.yml:147-171, apply.yml:163-183], so the platform gets its own parameterised workflows and the family edition's stay untouched |
+| `ci.yml` | Pushes to `main`, `family` and `dev`, and pull requests into them [VERIFIED `.github/workflows/ci.yml`, ADR-0044] | Today's checks, plus platform tests (RBAC matrix, tenant isolation, billing webhooks) as they are written |
+| **`platform-release.yml`** (new) | **Push to `dev`**: deploys to sca-dev automatically (GitHub environment `sca-dev`, limited to `dev`). **Manual dispatch on `main`** by the owner: deploys to sca-prod (environments `sca-prod` and `sca-prod-apply`, limited to `main`; the owner approves `sca-prod-apply`) | Plan → (prod: the owner approves `sca-prod-apply`) → apply → publish the web apps and game data → smoke test. Today's `release.yml`, `apply.yml`, `plan.yml` and `oidc-smoke.yml` hard-code `prod.tfvars.json` and the `prod` environments [VERIFIED release.yml:147-171, apply.yml:163-183], so the platform gets its own parameterised workflows and the family edition's stay untouched |
 | `platform-plan.yml` (new) | Schedule or dispatch | Drift check per environment |
 
 Rules [PROPOSAL; follow CLAUDE.md]:
 
-- The owner dispatches every deploying run, dev included. Auto-deploy to dev on each push is possible later if the owner
-  wants it.
-- **Prod deploys only from a tag** `platform-v<major>.<minor>.<patch>` on `schools` (later on `main`). The workflow
-  refuses any other ref for prod.
-- Claude does not dispatch or approve any of them, even if `gh` is signed in.
+- A merge into `dev` deploys to sca-dev automatically [CONFIRMED by owner 2026-11-21, PD-22]. Every prod deploy is
+  dispatched and approved by the owner.
+- **Prod deploys only from `main`**, after `dev`'s one big merge into it; the workflow refuses any other ref for prod.
+- Claude does not dispatch or approve prod deploys, even if `gh` is signed in.
 - Releases are kept outside school hours where possible ([11](11-privacy-security-and-assurance.md)).
 
 ---

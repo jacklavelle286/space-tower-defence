@@ -1,8 +1,8 @@
 # Space Colony Defence for schools: platform scope
 
 Status: **scope, parked.** Not planned work and not built. Written 2026-11-21 at the owner's request: "we need to scope
-each layer of the app out in great detail - the architecture remains the same for now". It lives on the `schools`
-branch. It replaces [docs/plan/scope-schools.md](../plan/scope-schools.md) as the working scope; that file stays for its
+each layer of the app out in great detail - the architecture remains the same for now". It lives on the `dev`
+branch (called `schools` until 2026-11-21; [ADR-0044](../decisions/0044-branches-family-dev-main.md)). It replaces [docs/plan/scope-schools.md](../plan/scope-schools.md) as the working scope; that file stays for its
 research and its first answers.
 
 Labels as in the [spine](../plan/00-spine.md#what-this-file-is): **[CONFIRMED by owner 2026-11-21]**, **[PROPOSAL]**,
@@ -74,7 +74,9 @@ All dated 2026-11-21. Where an answer replaces one given earlier the same day, t
 | PD-17 | Selling: teachers try it free; direct to heads and trusts; resellers and catalogues; word of mouth. **The pilot is the owner's children's school** |
 | PD-18 | Web browser first; an **iPad app** later. Parents may **subscribe separately** later. Teachers' own questions later |
 | PD-19 | Keep the name **Space Colony Defence**; the full sales kit (brand, site, brochure, deck, curriculum map, privacy pack) |
-| PD-20 | Work happens on the **`schools` branch**. User stories are tracked in **Jira** (the owner is setting it up) |
+| PD-20 | Work happens on **`dev`**, through short-lived feature branches named after the Jira ticket (`SCD-<n>-…`); the family edition lives on **`family`**; `main` is kept for the one big release ([ADR-0044](../decisions/0044-branches-family-dev-main.md)). Stories are tracked in **Jira** project SCD. Earlier the same day: the `schools` branch |
+| PD-21 | The accounts are **`sca-dev`** and **`sca-prod`**, created and bootstrapped by the owner, locally, with the repository's bootstrap root |
+| PD-22 | **A merge into `dev` deploys to sca-dev automatically.** Everything stays on dev until **one big release to prod**: `dev` merges into `main`, and the owner dispatches and approves the prod deploy |
 
 ### 3.2 Proposed, for the owner to confirm
 

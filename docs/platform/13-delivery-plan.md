@@ -10,7 +10,7 @@ off the back burner.
 The platform is built in **three releases**: Pilot, Launch, Later ([01 §6](01-product-and-roles.md#6-releases)). Work is
 grouped into **12 epics**, one per layer plus one for the owner's own actions. Every story in the layer documents belongs
 to exactly one epic and one release, and becomes a Jira story (§7). Building follows the same loop as the family edition
-([build-phases.md](../build-phases.md#the-loop-for-every-phase)): small commits on the `schools` branch, every local
+([build-phases.md](../build-phases.md#the-loop-for-every-phase)): short-lived feature branches merged into `dev` (ADR-0044), every local
 check, the owner deploying through the pipelines.
 
 ---
@@ -46,7 +46,7 @@ estimates of time [ASSUMPTION].
 | Phase | Builds | Epics | Needs first | Size |
 |---|---|---|---|---|
 | PS0 | Decisions and ADRs: tenancy model, pupil identity, staff sign-in, DNS role, new Terraform root, billing provider. The owner answers the open decisions (§5) that block the Pilot | All | — | S |
-| PS1 | Accounts, bootstrap, `infrastructure/platform`, CI on `schools`, platform release workflow, alarms | E01 | OWN-1, OWN-2 | M |
+| PS1 | Accounts, bootstrap, `infrastructure/platform`, CI on `dev`, platform release workflow (auto-deploy to sca-dev), alarms | E01 | OWN-1, OWN-2 | M |
 | PS2 | DNS role and delegated dev zone, certificates, the four distributions, the host function, enforced CSP, SES | E02 | PS1, OWN-3, OWN-4 | M |
 | PS3 | The `tenancy` table, school registry and slugs, the tenant-isolation module and its tests, the `x-scd-host` mapping | E09 | PS1 | M |
 | PS4 | Console: Schools (enrol, lifecycle), demo school reset, platform audit | E04 | PS3 | M |
@@ -110,7 +110,7 @@ DAT-Q (10), PRV-Q (11), MKT-Q (12). Those that block the Pilot are answered in P
 
 | ID | Question | Recommendation |
 |---|---|---|
-| PLAN-Q1 | What happens to the family edition after the platform launches: stay separate on `main`, or become a "family" tenant? | Decide after the pilot; keep `main` merged into `schools` until then |
+| PLAN-Q1 | What happens to the family edition after the platform launches: stay separate on `main`, or become a "family" tenant? | Decide after the pilot; keep `family` merged into `dev` until then |
 | PLAN-Q2 | When does the platform come off the back burner? | After the family edition's Gate L (launch) work is done |
 | PLAN-Q3 | Does the pilot wait for billing (Launch) or run free before billing exists? | Run the pilot free, as a "Not billed" school (BIL-1); billing is built while the pilot runs |
 | PLAN-Q4 | Add **EventBridge Scheduler** for timed jobs: notices before each billing date, trial-ending emails, PO chasers, a nightly check against Stripe, retention deletions ([09](09-billing.md) BIL-Q11, [10](10-data-and-api.md)). It is new to the architecture (PD-4) | Yes, at Launch. Without it, these become banners and owner-pressed buttons |
@@ -132,7 +132,7 @@ DAT-Q (10), PRV-Q (11), MKT-Q (12). Those that block the Pilot are answered in P
 | 9 | Support load in school hours for a part-time owner | [ASSUMPTION] | Self-service resets, help pages, status page, support hours in the terms |
 | 10 | The pilot school is the owner's children's school | [CONFIRMED by owner, PD-17] | Safeguards in [12](12-marketing-and-sales.md) and [11](11-privacy-security-and-assurance.md); support access only at the school's request |
 | 11 | VAT treatment of the licence is wrong | [VERIFIED standard-rated for software generally; this product UNVERIFIED] | Accountant confirms (OWN-6) |
-| 12 | The `schools` branch drifts from `main` | [ASSUMPTION] | Regular merges from `main` (ENV-13); the `edition` setting in shared code |
+| 12 | `dev` drifts from `family` | [ASSUMPTION] | Regular merges from `family` into `dev` (ENV-13); the `edition` setting in shared code |
 | 13 | School web filters block the platform | [ASSUMPTION] | Published domain list ([03 §9](03-domains-edge-and-email.md#9-what-school-it-needs-from-us)); check with the pilot school's IT early |
 | 14 | Stripe transfers billing contacts' data to the US | [VERIFIED Stripe DPA] | Adults' contact data only; named in the privacy notice and sub-processor list |
 
