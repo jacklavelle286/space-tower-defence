@@ -1,11 +1,14 @@
 name: ci
 
-# Push-triggered checks (docs/build-phases.md "How we work"). Read-only: no id-token, no environment,
-# so this workflow cannot assume the AWS role and never deploys. Deploys are manual dispatches only.
+# Push- and pull-request-triggered checks (docs/build-phases.md "How we work"; branches in ADR-0044). Read-only: no
+# id-token, no environment, so this workflow cannot assume an AWS role and never deploys. Feature branches are checked
+# through their pull requests into dev.
 
 on:
   push:
-    branches: [main]
+    branches: [main, family, dev]
+  pull_request:
+    branches: [main, family, dev]
 
 permissions:
   contents: read

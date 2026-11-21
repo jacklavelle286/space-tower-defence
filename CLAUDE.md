@@ -15,12 +15,22 @@ and [spine S0.1](docs/plan/00-spine.md#s01-way-of-working-confirmed-by-owner-202
   [the loop for every phase](docs/build-phases.md#the-loop-for-every-phase): read the phase entry and its J tasks, build, run every
   local check, write the gate summary and gate-log row, then **stop** for the owner's review. Do not start the next phase until the
   owner approves the gate.
-- **Git.** Work on `main` in small commits, one concern each, following [Commit messages](docs/build-phases.md#commit-messages)
-  (`P<nn> <area>: <summary>`, J task IDs and checks in the body). Claude or the owner may commit and push to `main`.
+- **Git and branches ([ADR-0044](docs/decisions/0044-branches-family-dev-main.md), owner 2026-11-21).**
+  - **`family`** is the family edition (`aliens.jackgl.com`). Small commits, one concern each, following
+    [Commit messages](docs/build-phases.md#commit-messages) (`P<nn> <area>: <summary>`, J task IDs and checks in the
+    body). Claude or the owner may commit and push to `family`; family releases are dispatched on `family`.
+  - **`dev`** is the schools platform's integration branch. Work on short-lived feature branches named after the Jira
+    ticket, `SCD-<n>-<short-name>`, merged into `dev` by pull request once CI passes. Commit messages start with the
+    ticket key (`SCD-<n> <area>: <summary>`). The SCD tickets in Jira are the source of truth for the platform's stories
+    ([docs/platform §6](docs/platform/README.md#6-user-stories-and-jira) on `dev`). Merge `family` into `dev` after family fixes.
+  - **`main`** is kept for the platform's one big release: `dev` merges into it once, then prod deploys from it. Nothing
+    else goes onto `main` until then.
 - **Deployment only through GitHub Actions**, by manual workflow dispatch in the GitHub UI. Never deploy from the laptop, except
   the owner's bootstrap apply (below).
-- **The owner dispatches every deploying workflow** (`release.yml`, `apply.yml`, spike runs) after approving
-  the gate, and approves every `prod-apply` deployment. Claude does neither, even if `gh` is authenticated.
+- **The owner dispatches every deploying workflow** (`release.yml`, `apply.yml`, spike runs, the platform's prod release)
+  after approving the gate, and approves every `prod-apply` and `sca-prod-apply` deployment. Claude does neither, even if
+  `gh` is authenticated. The one exception (ADR-0044): a merge into `dev` deploys to the sca-dev account automatically,
+  once the platform's pipeline exists.
 - **Never run `terraform apply` locally on [infrastructure/main](infrastructure/main/).** Fine locally: `terraform fmt`,
   `validate`, `init -backend=false`, `plan` with read-only credentials, and read-only AWS calls (`describe-*`, `get-*`,
   `head-bucket`, …).

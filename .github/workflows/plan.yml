@@ -1,10 +1,10 @@
 name: plan
 
-# Manual drift check (plan H.8.8): a plan of main against production, with the plan guard, in the run summary.
+# Manual drift check (plan H.8.8): a plan of family against production, with the plan guard, in the run summary.
 # It never applies and never uploads a plan, so apply.yml can never use it.
 # Lambda keys (Phase 8, H.8.8): lambda_artifacts comes from the last successful release, releases/latest.json ->
 # its record.json -> its build manifest (SHA-256 checked) -> scripts/lambda_artifacts.py, the same derivation the
-# release's plan used. So "no changes" means "production matches main and the last release's Lambda zips". With no
+# release's plan used. So "no changes" means "production matches family and the last release's Lambda zips". With no
 # release yet (or only releases from before Phase 8) the run fails and says so: there are no keys to plan with.
 
 on:
@@ -31,10 +31,10 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - name: Refuse anything but main
+      - name: Refuse anything but family
         run: |
-          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
-            echo "::error::plan.yml runs only from main; this run was dispatched from $GITHUB_REF."
+          if [[ "$GITHUB_REF" != "refs/heads/family" ]]; then
+            echo "::error::plan.yml runs only from family; this run was dispatched from $GITHUB_REF."
             exit 1
           fi
           echo "OUT=$RUNNER_TEMP/plan" >> "$GITHUB_ENV"
@@ -165,9 +165,9 @@ jobs:
           rc=$?
           set -e
           case "$rc" in
-            0) verdict="No changes: production matches main and release $LAST_RELEASE's Lambda zips." ;;
-            2) verdict="Changes: production differs from main with release $LAST_RELEASE's Lambda zips (drift, or a commit not yet released)."
-               echo "::warning::Production differs from main; read the plan in the run summary." ;;
+            0) verdict="No changes: production matches family and release $LAST_RELEASE's Lambda zips." ;;
+            2) verdict="Changes: production differs from family with release $LAST_RELEASE's Lambda zips (drift, or a commit not yet released)."
+               echo "::warning::Production differs from family; read the plan in the run summary." ;;
             *) echo "::error::terraform plan failed (exit $rc)"; exit 1 ;;
           esac
           terraform show -no-color tfplan > "$OUT/plan.txt"
