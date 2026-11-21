@@ -28,7 +28,7 @@ Rules for an AI assistant are in [CLAUDE.md](../CLAUDE.md). The original specifi
 | [J-execution-backlog.md](plan/J-execution-backlog.md) | Ordered task backlog and the ADR practice |
 | [scope-asset-kinds-and-makers.md](plan/scope-asset-kinds-and-makers.md) | Proposal (2026-11-16): picture kinds for Draw with Claude (Gate P2) and admin makers (new Gate M); 16 owner decisions |
 | [scope-level-designer.md](plan/scope-level-designer.md) | Proposal (2026-11-16): the admin level designer in three tiers (planet-1 levels, new planets, flexible routes); 16 owner decisions |
-| [platform/](platform/README.md) | **Schools platform scope** (2026-11-21, parked, `dev` branch; Jira project SCD is the source of truth for its stories): every layer of the licensed schools product at `spacecolonydefence.com` (environments, domains, identity and RBAC, console, school portal, pupils, content Years 1–4, billing, data and API, privacy, marketing, delivery plan), with user stories for Jira |
+| [platform/](platform/README.md) | **Schools platform scope** (2026-11-21, active on the `dev` branch; Jira project SCD is the source of truth for its stories): every layer of the licensed schools product at `spacecolonydefence.com` (environments, domains, identity and RBAC, console, school portal, pupils, content Years 1–4, billing, data and API, privacy, marketing, delivery plan), with user stories for Jira |
 | [scope-schools.md](plan/scope-schools.md) | Superseded by platform/. Parked proposal (2026-11-17, owner answers 2026-11-21): a licensed, multi-tenant schools edition for England, Reception to Year 4 (per-school licence, pupil QR and picture sign-in, school portal, brand domain, demo school, iPad app, UK data protection); trialled on the `schools` branch; proposed Gate S after launch |
 
 ### Plan sources
@@ -73,4 +73,4 @@ The art is hand-drawn SVG made in this repository, rendered to PNG by [tools/art
 
 | Folder | For |
 |---|---|
-| `runbooks/` | Restore, rollback and operator procedures: [restore](runbooks/restore.md), [rollback](runbooks/rollback.md), [operator and test accounts](runbooks/operator-accounts.md) (password resets), [sign-up kill switch](runbooks/signup-kill-switch.md), [a wrong speech clip](runbooks/speech-withdrawal.md), [DNS hand-off](runbooks/dns-hand-off.md), [OpenAI key](runbooks/openai-key.md), [branches and merging family into dev](runbooks/branches.md) |
+| `runbooks/` | Restore, rollback and operator procedures: [restore](runbooks/restore.md), [rollback](runbooks/rollback.md), [operator and test accounts](runbooks/operator-accounts.md) (password resets), [sign-up kill switch](runbooks/signup-kill-switch.md), [a wrong speech clip](runbooks/speech-withdrawal.md), [DNS hand-off](runbooks/dns-hand-off.md), [OpenAI key](runbooks/openai-key.md), [branches and merging family into dev](runbooks/branches.md), [platform release](runbooks/platform-release.md) |

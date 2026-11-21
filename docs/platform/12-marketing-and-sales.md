@@ -1,6 +1,6 @@
 # 12. Marketing and sales
 
-Part of the [platform scope](README.md). Status: scope, parked.
+Part of the [platform scope](README.md). Status: active on `dev` from 2026-11-21.
 
 What it takes to sell the platform: a brand, a marketing site, a demo school, a sales kit, trials, routes to schools,
 and the pilot. The owner chose to keep the name and to have the full sales kit (PD-19). The demo school is a tenant in

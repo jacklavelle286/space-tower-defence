@@ -1,6 +1,6 @@
 # 09. Billing
 
-Part of the [platform scope](README.md). Status: scope, parked.
+Part of the [platform scope](README.md). Status: active on `dev` from 2026-11-21.
 
 ---
 

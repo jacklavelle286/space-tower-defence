@@ -1,0 +1,460 @@
+name: platform-release
+
+# The schools platform's release (ENV-6, ADR-0044). The family edition's release.yml, apply.yml and plan.yml are
+# separate and untouched.
+#
+#   push to dev       -> sca-dev, automatically (GitHub environment sca-dev: dev only, no reviewer)
+#   dispatch on dev   -> sca-dev again, without a merge (`gh workflow run platform-release.yml --ref dev`: GitHub shows
+#                        the Run workflow button only for workflows on the default branch, main, until the big release)
+#   dispatch on main  -> sca-prod: the plan runs in environment sca-prod, and the apply waits on sca-prod-apply for the
+#                        owner's approval (both main only)
+#   anything else     -> refused by the config job
+#
+# Re-runs: each attempt saves its plan under its own prefix, plans/<run_id>-<attempt>/. "Re-run all jobs" plans again
+# (the answer to "Saved plan is stale"); "Re-run failed jobs" keeps the plan job's outputs, so the apply retries the
+# same saved plan.
+#
+#   0 config -> 1 checks -> 2 plan (saved, create-only in the account's artefacts bucket) -> 3 apply (the saved plan,
+#   nothing else; skipped when the plan has no changes) -> 4 smoke
+#
+# There is no publish job yet: the platform has no web apps until PS2 (the distributions), and publish arrives with them.
+#
+# Rules kept from the family edition's workflows (plan H.7.1): values reach shell only through env:; only the jobs that
+# assume the CI role have id-token: write and an environment; the account is checked by configure-aws-credentials, by
+# a step, and by the provider (allowed_account_ids); the runner, actions and Terraform are pinned. The repository is
+# public: a saved plan goes to the account's own artefacts bucket, never to a GitHub artifact, and the plan text in the
+# run summary is public (as the family edition's is), so no secret value may ever go into this root.
+
+on:
+  push:
+    branches: [dev]
+  workflow_dispatch:
+
+permissions: {} # every job lists exactly what it needs
+
+# One run at a time per environment: dev deploys to sca-dev and main to sca-prod, so the ref names the environment. A
+# run waiting for approval holds its group; a newer run waits (pending), and a newer pending run replaces an older one,
+# so the latest merge into dev is the one that deploys.
+concurrency:
+  group: platform-release-${{ github.ref }}
+  cancel-in-progress: false
+
+defaults:
+  run:
+    shell: bash # -eo pipefail
+
+jobs:
+  # 0. config: the environment comes from the event and the ref only (there are no inputs). No AWS.
+  config:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      sha: ${{ steps.target.outputs.sha }}
+      environment: ${{ steps.target.outputs.environment }}
+      apply_environment: ${{ steps.target.outputs.apply_environment }}
+      account: ${{ steps.vars.outputs.account }}
+      region: ${{ steps.vars.outputs.region }}
+      tf_version: ${{ steps.vars.outputs.tf_version }}
+      name_prefix: ${{ steps.vars.outputs.name_prefix }}
+      role_arn: ${{ steps.vars.outputs.role_arn }}
+      state_bucket: ${{ steps.vars.outputs.state_bucket }}
+      artefacts_bucket: ${{ steps.vars.outputs.artefacts_bucket }}
+    steps:
+      - name: Choose the environment (dev -> sca-dev, main -> sca-prod; anything else is refused)
+        id: target
+        run: |
+          case "$GITHUB_EVENT_NAME:$GITHUB_REF" in
+            push:refs/heads/dev | workflow_dispatch:refs/heads/dev)
+              environment=sca-dev
+              apply_environment=sca-dev
+              ;;
+            workflow_dispatch:refs/heads/main)
+              environment=sca-prod
+              apply_environment=sca-prod-apply
+              ;;
+            *)
+              echo "::error::platform-release deploys dev (push or dispatch) to sca-dev and main (dispatch only) to sca-prod; refused: $GITHUB_EVENT_NAME on $GITHUB_REF."
+              exit 1
+              ;;
+          esac
+          {
+            echo "sha=$GITHUB_SHA"
+            echo "environment=$environment"
+            echo "apply_environment=$apply_environment"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ steps.target.outputs.sha }}
+          persist-credentials: false
+
+      - name: Read the env files
+        id: vars
+        env:
+          ENVIRONMENT: ${{ steps.target.outputs.environment }}
+        run: |
+          COMMON_FILE="infrastructure/envs/common.auto.tfvars.json"
+          ENV_FILE="infrastructure/envs/$ENVIRONMENT.tfvars.json"
+          [[ -f "$COMMON_FILE" && -f "$ENV_FILE" ]] || { echo "::error::Missing env files"; exit 1; }
+
+          PROJECT=$(jq -r '.project' "$COMMON_FILE")
+          REGION=$(jq -r '.region' "$COMMON_FILE")
+          TF_VERSION=$(jq -r '.terraform_version' "$COMMON_FILE")
+          ACCOUNT=$(jq -r '.aws_account_id' "$ENV_FILE")
+          FILE_ENVIRONMENT=$(jq -r '.environment' "$ENV_FILE")
+          for v in PROJECT REGION TF_VERSION ACCOUNT FILE_ENVIRONMENT; do
+            [[ -n "${!v}" && "${!v}" != "null" ]] || { echo "::error::$v is not set in the env files"; exit 1; }
+          done
+          [[ "$FILE_ENVIRONMENT" == "$ENVIRONMENT" ]] \
+            || { echo "::error::$ENV_FILE names environment $FILE_ENVIRONMENT, not $ENVIRONMENT"; exit 1; }
+          [[ "$ACCOUNT" =~ ^[0-9]{12}$ ]] || { echo "::error::aws_account_id is not a 12-digit account ID"; exit 1; }
+
+          # Names computed as the owner's bootstrap made them (infrastructure/bootstrap: locals.tf, artifacts.tf,
+          # outputs.tf), because both buckets are needed before this root has any output.
+          {
+            echo "account=$ACCOUNT"
+            echo "region=$REGION"
+            echo "tf_version=$TF_VERSION"
+            echo "name_prefix=${PROJECT}-${ENVIRONMENT}"
+            echo "role_arn=arn:aws:iam::${ACCOUNT}:role/${PROJECT}-${ENVIRONMENT}-github-oidc"
+            echo "state_bucket=${ENVIRONMENT}-state-bucket-${PROJECT}"
+            echo "artefacts_bucket=${ACCOUNT}-${REGION}-${ENVIRONMENT}-artifacts-bucket"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Summary
+        env:
+          ENVIRONMENT: ${{ steps.target.outputs.environment }}
+          APPLY_ENVIRONMENT: ${{ steps.target.outputs.apply_environment }}
+        run: |
+          {
+            echo "## Platform release to $ENVIRONMENT"
+            echo ""
+            echo "- Commit: \`$GITHUB_SHA\` ($GITHUB_EVENT_NAME on \`$GITHUB_REF_NAME\`)"
+            echo "- Plan in environment \`$ENVIRONMENT\`, apply in \`$APPLY_ENVIRONMENT\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  # 1. checks: the commit about to deploy. Pull requests into dev ran the full CI already; this repeats what concerns
+  # the platform root on the merged commit. No AWS.
+  checks:
+    needs: config
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.config.outputs.sha }}
+          persist-credentials: false
+
+      - name: Setup Terraform ${{ needs.config.outputs.tf_version }}
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ needs.config.outputs.tf_version }}
+          terraform_wrapper: false
+
+      - name: Terraform fmt
+        run: terraform fmt -check -recursive infrastructure/
+
+      - name: Terraform validate and tests (mock providers, no backend)
+        run: |
+          terraform -chdir=infrastructure/platform init -backend=false -input=false -lockfile=readonly
+          terraform -chdir=infrastructure/platform validate
+          terraform -chdir=infrastructure/platform test
+
+      - name: Setup Python (version from .python-version)
+        uses: actions/setup-python@v7
+        with:
+          python-version-file: .python-version
+
+      - name: G-5 repository invariants
+        run: python scripts/check_invariants.py
+
+  # 2. plan: saved, then stored create-only in this account's artefacts bucket. Nothing in the account changes here.
+  plan:
+    needs: [config, checks]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    environment:
+      name: ${{ needs.config.outputs.environment }}
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      changes: ${{ steps.plan.outputs.changes }}
+      plan_sha256: ${{ steps.tarball.outputs.sha256 }}
+      plan_prefix: ${{ steps.work.outputs.prefix }}
+    env:
+      SHA: ${{ needs.config.outputs.sha }}
+      ENVIRONMENT: ${{ needs.config.outputs.environment }}
+      ACCOUNT: ${{ needs.config.outputs.account }}
+      REGION: ${{ needs.config.outputs.region }}
+      TF_VERSION: ${{ needs.config.outputs.tf_version }}
+      STATE_BUCKET: ${{ needs.config.outputs.state_bucket }}
+      ARTEFACTS_BUCKET: ${{ needs.config.outputs.artefacts_bucket }}
+    steps:
+      - name: Work directory outside the checkout; this attempt's plan prefix
+        id: work
+        run: |
+          echo "OUT=$RUNNER_TEMP/plan" >> "$GITHUB_ENV"
+          mkdir -p "$RUNNER_TEMP/plan"
+          prefix="plans/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          echo "PREFIX=$prefix" >> "$GITHUB_ENV"
+          echo "prefix=$prefix" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ needs.config.outputs.sha }}
+          persist-credentials: false
+
+      - name: Setup Terraform ${{ needs.config.outputs.tf_version }}
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ needs.config.outputs.tf_version }}
+          terraform_wrapper: false
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ needs.config.outputs.role_arn }}
+          aws-region: ${{ needs.config.outputs.region }}
+          allowed-account-ids: ${{ needs.config.outputs.account }}
+
+      - name: Verify AWS account and buckets
+        run: |
+          ACTUAL=$(aws sts get-caller-identity --query Account --output text)
+          [[ "$ACTUAL" == "$ACCOUNT" ]] || { echo "::error::Account mismatch: $ACTUAL"; exit 1; }
+          aws s3api head-bucket --bucket "$STATE_BUCKET" \
+            || { echo "::error::State bucket $STATE_BUCKET not found"; exit 1; }
+          aws s3api head-bucket --bucket "$ARTEFACTS_BUCKET" \
+            || { echo "::error::Artefacts bucket $ARTEFACTS_BUCKET not found"; exit 1; }
+
+      - name: Terraform init (S3 backend, native locking, committed lock file)
+        working-directory: infrastructure/platform
+        run: |
+          terraform init -input=false -lockfile=readonly \
+            -backend-config="bucket=$STATE_BUCKET" \
+            -backend-config="key=platform/terraform.tfstate" \
+            -backend-config="region=$REGION" \
+            -backend-config="use_lockfile=true" \
+            -backend-config="encrypt=true"
+
+      - name: Terraform plan (saved)
+        id: plan
+        working-directory: infrastructure/platform
+        run: |
+          # Actions runs bash with -e; exit 2 means "changes", so capture the code: 0 and 2 pass, anything else fails.
+          set +e
+          terraform plan -input=false -lock-timeout=5m -detailed-exitcode -out=tfplan \
+            -var-file=../envs/common.auto.tfvars.json -var-file="../envs/$ENVIRONMENT.tfvars.json"
+          rc=$?
+          set -e
+          case "$rc" in
+            0) echo "changes=false" >> "$GITHUB_OUTPUT" ;;
+            2) echo "changes=true" >> "$GITHUB_OUTPUT" ;;
+            *) echo "::error::terraform plan failed (exit $rc)"; exit 1 ;;
+          esac
+
+      - name: Plan to the run summary
+        working-directory: infrastructure/platform
+        run: |
+          terraform show -no-color tfplan > "$OUT/plan.txt"
+          terraform show -json tfplan > "$OUT/tfplan.json"
+          read -r add change remove < <(jq -r '[.resource_changes[]?.change.actions] |
+            [(map(select(index("create"))) | length), (map(select(index("update"))) | length),
+             (map(select(index("delete"))) | length)] | @tsv' "$OUT/tfplan.json")
+          {
+            echo "### Terraform plan ($ENVIRONMENT)"
+            echo ""
+            echo "**$add to add, $change to change, $remove to delete** (a replace counts as one add and one delete)."
+            echo ""
+            echo '```'
+            # The step summary is limited to 1 MiB; the full text is also in this step's log.
+            head -c 900000 "$OUT/plan.txt"
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          jq -n --arg sha "$SHA" --arg run "$GITHUB_RUN_ID" --arg attempt "$GITHUB_RUN_ATTEMPT" --arg env "$ENVIRONMENT" \
+            --arg tf "$TF_VERSION" --arg lock "$(sha256sum .terraform.lock.hcl | cut -d' ' -f1)" --arg prefix "$PREFIX" \
+            --argjson add "$add" --argjson change "$change" --argjson remove "$remove" \
+            '{gitSha: $sha, planRunId: $run, planRunAttempt: $attempt, environment: $env, terraformVersion: $tf,
+              lockFileSha256: $lock, planKey: ($prefix + "/plan.tar.gz"),
+              summary: {add: $add, change: $change, delete: $remove}}' \
+            > "$OUT/plan-info.json"
+
+      - name: Plan tarball (the root with .terraform/ and its lock file, tfplan, the modules, the env files)
+        id: tarball
+        run: |
+          # Everything the apply job needs to apply this exact plan with the same provider build, at the same paths.
+          files=(
+            infrastructure/platform
+            infrastructure/modules
+            infrastructure/envs/common.auto.tfvars.json
+            "infrastructure/envs/$ENVIRONMENT.tfvars.json"
+          )
+          tar --dereference --sort=name -czf "$OUT/plan.tar.gz" "${files[@]}"
+          listing=$(tar -tzf "$OUT/plan.tar.gz")
+          for must in infrastructure/platform/.terraform/ infrastructure/platform/.terraform.lock.hcl \
+            infrastructure/platform/tfplan; do
+            grep -qxF "$must" <<< "$listing" || { echo "::error::plan tarball is missing $must"; exit 1; }
+          done
+          (cd "$OUT" && sha256sum plan.tar.gz > plan.tar.gz.sha256)
+          hash=$(cut -d' ' -f1 "$OUT/plan.tar.gz.sha256")
+          echo "sha256=$hash" >> "$GITHUB_OUTPUT"
+          echo "plan.tar.gz: $(du -h "$OUT/plan.tar.gz" | cut -f1), SHA-256 $hash"
+
+      - name: Upload the saved plan (create-only; plan-info.json last, as the completion marker)
+        run: |
+          # plans/ expires after 30 days (the bootstrap's lifecycle rule). Each attempt has its own prefix, so a re-run
+          # never meets an earlier attempt's plan; within one attempt nothing is ever overwritten.
+          scripts/s3_put_create_only.sh "$ARTEFACTS_BUCKET" "$PREFIX/plan.tar.gz" "$OUT/plan.tar.gz"
+          scripts/s3_put_create_only.sh "$ARTEFACTS_BUCKET" "$PREFIX/plan.tar.gz.sha256" "$OUT/plan.tar.gz.sha256"
+          scripts/s3_put_create_only.sh "$ARTEFACTS_BUCKET" "$PREFIX/plan-info.json" "$OUT/plan-info.json"
+
+      - name: Next step
+        env:
+          APPLY_ENVIRONMENT: ${{ needs.config.outputs.apply_environment }}
+          CHANGES: ${{ steps.plan.outputs.changes }}
+        run: |
+          if [[ "$CHANGES" != "true" ]]; then
+            msg="No changes: the apply is skipped and the smoke checks run."
+          elif [[ "$APPLY_ENVIRONMENT" == "sca-prod-apply" ]]; then
+            msg="Waiting for the owner's approval (environment sca-prod-apply): read the plan above, then use Review deployments at the top of this run."
+          else
+            msg="Applying this plan to $ENVIRONMENT now (environment $APPLY_ENVIRONMENT, no approval)."
+          fi
+          { echo "### Next"; echo ""; echo "$msg"; } >> "$GITHUB_STEP_SUMMARY"
+          echo "$msg"
+
+  # 3. apply: this run's saved plan and nothing else; infrastructure comes only from the verified tarball (no
+  # checkout). For sca-prod the job waits on sca-prod-apply until the owner approves, with no credentials until then.
+  apply:
+    needs: [config, plan]
+    if: needs.plan.outputs.changes == 'true'
+    runs-on: ubuntu-24.04 # the same image as the plan job
+    timeout-minutes: 55 # within the one-hour role session
+    environment:
+      name: ${{ needs.config.outputs.apply_environment }}
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      ACCOUNT: ${{ needs.config.outputs.account }}
+      STATE_BUCKET: ${{ needs.config.outputs.state_bucket }}
+      ARTEFACTS_BUCKET: ${{ needs.config.outputs.artefacts_bucket }}
+      PLAN_SHA256: ${{ needs.plan.outputs.plan_sha256 }}
+      PLAN_PREFIX: ${{ needs.plan.outputs.plan_prefix }}
+    steps:
+      - name: Work directory outside the workspace
+        run: |
+          echo "OUT=$RUNNER_TEMP/apply" >> "$GITHUB_ENV"
+          mkdir -p "$RUNNER_TEMP/apply"
+
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ needs.config.outputs.role_arn }}
+          aws-region: ${{ needs.config.outputs.region }}
+          allowed-account-ids: ${{ needs.config.outputs.account }}
+
+      - name: Verify AWS account and buckets
+        run: |
+          ACTUAL=$(aws sts get-caller-identity --query Account --output text)
+          [[ "$ACTUAL" == "$ACCOUNT" ]] || { echo "::error::Account mismatch: $ACTUAL"; exit 1; }
+          aws s3api head-bucket --bucket "$STATE_BUCKET" \
+            || { echo "::error::State bucket $STATE_BUCKET not found"; exit 1; }
+          aws s3api head-bucket --bucket "$ARTEFACTS_BUCKET" \
+            || { echo "::error::Artefacts bucket $ARTEFACTS_BUCKET not found"; exit 1; }
+
+      - name: Download and verify the plan tarball
+        run: |
+          # The plan job's prefix, not this attempt's: after "Re-run failed jobs" the apply retries the same plan.
+          [[ "$PLAN_PREFIX" == "plans/$GITHUB_RUN_ID-"* && "$PLAN_PREFIX" =~ ^plans/[0-9]+-[0-9]+$ ]] \
+            || { echo "::error::The plan job handed over no plan prefix for this run"; exit 1; }
+          [[ "$PLAN_SHA256" =~ ^[0-9a-f]{64}$ ]] || { echo "::error::The plan job handed over no SHA-256"; exit 1; }
+          aws s3api head-object --bucket "$ARTEFACTS_BUCKET" --key "$PLAN_PREFIX/plan-info.json" > /dev/null \
+            || { echo "::error::No completed plan at $PLAN_PREFIX (plan-info.json missing)"; exit 1; }
+          aws s3api get-object --bucket "$ARTEFACTS_BUCKET" --key "$PLAN_PREFIX/plan.tar.gz" "$OUT/plan.tar.gz" > /dev/null
+          # 1. the digest the plan job handed over
+          echo "$PLAN_SHA256  $OUT/plan.tar.gz" | sha256sum --check --strict
+          # 2. the checksum S3 stored (and verified) at upload
+          want=$(python3 -c 'import base64, sys; print(base64.b64encode(bytes.fromhex(sys.argv[1])).decode())' "$PLAN_SHA256")
+          got=$(aws s3api head-object --bucket "$ARTEFACTS_BUCKET" --key "$PLAN_PREFIX/plan.tar.gz" --checksum-mode ENABLED \
+            --query ChecksumSHA256 --output text)
+          [[ "$got" == "$want" ]] || { echo "::error::S3's stored SHA-256 for the tarball differs from the plan job's"; exit 1; }
+          echo "plan.tar.gz verified: SHA-256 $PLAN_SHA256"
+
+      - name: Unpack the plan at the paths it was made from
+        run: |
+          listing=$(tar -tzf "$OUT/plan.tar.gz")
+          outside=$(grep -vE '^infrastructure(/|$)' <<< "$listing" || true)
+          dotdot=$(grep -E '(^|/)\.\.(/|$)' <<< "$listing" || true)
+          if [[ -n "$outside" || -n "$dotdot" ]]; then
+            echo "::error::plan tarball has entries outside infrastructure/: $(head -c 300 <<< "$outside$dotdot")"
+            exit 1
+          fi
+          tar -xzf "$OUT/plan.tar.gz" -C "$GITHUB_WORKSPACE" --no-same-owner
+          [[ -f infrastructure/platform/tfplan && -d infrastructure/platform/.terraform ]] \
+            || { echo "::error::tfplan or .terraform/ missing from the tarball"; exit 1; }
+
+      - name: Setup Terraform ${{ needs.config.outputs.tf_version }} (the version that made the plan)
+        uses: hashicorp/setup-terraform@v4
+        with:
+          terraform_version: ${{ needs.config.outputs.tf_version }}
+          terraform_wrapper: false
+
+      - name: Terraform apply (the saved plan, nothing else)
+        working-directory: infrastructure/platform
+        run: |
+          # A saved plan applies without a prompt and takes no variables. If state changed since the plan, Terraform
+          # stops with "Saved plan is stale": use "Re-run all jobs", which plans again.
+          terraform apply -input=false -lock-timeout=5m tfplan
+
+  # 4. smoke: read-only checks that what the root holds is there. Runs after an apply, or straight after a plan with no
+  # changes. Today: the alerts topic and its email subscription.
+  smoke:
+    needs: [config, plan, apply]
+    if: ${{ !cancelled() && needs.plan.result == 'success' && (needs.apply.result == 'success' || needs.apply.result == 'skipped') }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment:
+      name: ${{ needs.config.outputs.environment }}
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      ENVIRONMENT: ${{ needs.config.outputs.environment }}
+      ACCOUNT: ${{ needs.config.outputs.account }}
+      REGION: ${{ needs.config.outputs.region }}
+      NAME_PREFIX: ${{ needs.config.outputs.name_prefix }}
+    steps:
+      - name: Configure AWS credentials (OIDC)
+        uses: aws-actions/configure-aws-credentials@v6
+        with:
+          role-to-assume: ${{ needs.config.outputs.role_arn }}
+          aws-region: ${{ needs.config.outputs.region }}
+          allowed-account-ids: ${{ needs.config.outputs.account }}
+
+      - name: The alerts topic exists and emails the owner
+        run: |
+          topic="arn:aws:sns:${REGION}:${ACCOUNT}:${NAME_PREFIX}-alerts"
+          aws sns get-topic-attributes --topic-arn "$topic" > /dev/null \
+            || { echo "::error::The alerts topic $topic is missing"; exit 1; }
+          subs=$(aws sns list-subscriptions-by-topic --topic-arn "$topic" \
+            --query "Subscriptions[?Protocol=='email'].SubscriptionArn" --output text)
+          [[ -n "$subs" && "$subs" != "None" ]] || { echo "::error::The alerts topic has no email subscription"; exit 1; }
+          if [[ "$subs" == *PendingConfirmation* ]]; then
+            state="waiting for the owner to confirm the email from AWS Notifications"
+          else
+            state="confirmed"
+          fi
+          {
+            echo "### Smoke ($ENVIRONMENT)"
+            echo ""
+            echo "- Alerts topic \`${NAME_PREFIX}-alerts\`: present; email subscription $state"
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "Alerts topic present; email subscription $state"

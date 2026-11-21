@@ -1,6 +1,6 @@
 # 02. Environments and delivery
 
-Part of the [platform scope](README.md). Status: scope, parked.
+Part of the [platform scope](README.md). Status: active on `dev` from 2026-11-21.
 
 ---
 
@@ -178,7 +178,7 @@ both editions stay on one branch, is decided after the platform launches ([13](1
 | Workflow | Trigger | What it does |
 |---|---|---|
 | `ci.yml` | Pushes to `main`, `family` and `dev`, and pull requests into them [VERIFIED `.github/workflows/ci.yml`, ADR-0044] | Today's checks, plus platform tests (RBAC matrix, tenant isolation, billing webhooks) as they are written |
-| **`platform-release.yml`** (new) | **Push to `dev`**: deploys to sca-dev automatically (GitHub environment `sca-dev`, limited to `dev`). **Manual dispatch on `main`** by the owner: deploys to sca-prod (environments `sca-prod` and `sca-prod-apply`, limited to `main`; the owner approves `sca-prod-apply`) | Plan → (prod: the owner approves `sca-prod-apply`) → apply → publish the web apps and game data → smoke test. Today's `release.yml`, `apply.yml`, `plan.yml` and `oidc-smoke.yml` hard-code `prod.tfvars.json` and the `prod` environments [VERIFIED release.yml:147-171, apply.yml:163-183], so the platform gets its own parameterised workflows and the family edition's stay untouched |
+| **`platform-release.yml`** (PS1, ENV-6) | **Push to `dev`**: deploys to sca-dev automatically (GitHub environment `sca-dev`, limited to `dev`). **Dispatch on `dev`** (`gh workflow run platform-release.yml --ref dev`; the Run workflow button needs the file on the default branch, `main`): the same, without a merge. **Dispatch on `main`** by the owner: deploys to sca-prod (environments `sca-prod` and `sca-prod-apply`, limited to `main`; the owner approves `sca-prod-apply`). Any other event or ref is refused | config → checks (fmt, validate, the root's tests, invariants) → plan (saved, then stored create-only in the account's artefacts bucket under `plans/<run_id>-<attempt>/`, so a re-run plans afresh) → apply (that plan only, from the verified tarball; skipped when nothing changes) → smoke (read-only checks of what the root holds). Publish (web apps and game data) arrives with the distributions in PS2. Today's `release.yml`, `apply.yml`, `plan.yml` and `oidc-smoke.yml` hard-code `prod.tfvars.json` and the `prod` environments [VERIFIED release.yml:147-171, apply.yml:163-183], so the platform has its own workflow and the family edition's stay untouched |
 | `platform-plan.yml` (new) | Schedule or dispatch | Drift check per environment |
 
 Rules [PROPOSAL; follow CLAUDE.md]:
@@ -188,6 +188,14 @@ Rules [PROPOSAL; follow CLAUDE.md]:
 - **Prod deploys only from `main`**, after `dev`'s one big merge into it; the workflow refuses any other ref for prod.
 - Claude does not dispatch or approve prod deploys, even if `gh` is signed in.
 - Releases are kept outside school hours where possible ([11](11-privacy-security-and-assurance.md)).
+
+How `platform-release.yml` keeps to those rules [ASSUMPTION, built in PS1]: the environment comes from the event and the
+ref only (no inputs); one run at a time per ref; only the plan, apply and smoke jobs can assume the CI role; the
+account is checked three times (credentials action, a step, the provider's `allowed_account_ids`); the apply job never
+checks out code and applies only the tarball whose SHA-256 the plan job recorded and S3 verified. The repository is
+public, so the saved plan stays in the account's bucket, never in a GitHub artifact, and the plan text in the run
+summary is public: no secret value may go into the platform root. The day-to-day steps are in the
+[platform release runbook](../runbooks/platform-release.md).
 
 ---
 

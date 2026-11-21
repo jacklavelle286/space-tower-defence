@@ -1,6 +1,7 @@
 # Space Colony Defence for schools: platform scope
 
-Status: **scope, parked.** Not planned work and not built. Written 2026-11-21 at the owner's request: "we need to scope
+Status: **active on `dev`** from 2026-11-21 (PS1 built; [gate log](13-delivery-plan.md#8-gate-log)). Written
+2026-11-21 at the owner's request: "we need to scope
 each layer of the app out in great detail - the architecture remains the same for now". It lives on the `dev`
 branch (called `schools` until 2026-11-21; [ADR-0044](../decisions/0044-branches-family-dev-main.md)). It replaces [docs/plan/scope-schools.md](../plan/scope-schools.md) as the working scope; that file stays for its
 research and its first answers.

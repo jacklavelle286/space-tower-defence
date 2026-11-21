@@ -1,6 +1,6 @@
 # 08. Learning content, Years 1 to 4
 
-Part of the [platform scope](README.md). Status: scope, parked.
+Part of the [platform scope](README.md). Status: active on `dev` from 2026-11-21.
 
 ---
 

@@ -1,6 +1,6 @@
 # 11. Privacy, security and assurance
 
-Part of the [platform scope](README.md). Status: scope, parked.
+Part of the [platform scope](README.md). Status: active on `dev` from 2026-11-21.
 
 This document scopes what the platform must do, and what it must be able to show, for schools, their data protection
 officers (DPOs) and their IT staff to buy it. It is scope, not legal advice. The **solicitor** settles the contracts,
