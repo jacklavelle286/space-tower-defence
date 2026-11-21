@@ -185,3 +185,15 @@ Counted from the stories tables on 2026-11-21.
 | E12 Owner actions (tasks) | OWN | | | | 15 |
 
 In Jira that is 3 versions, 12 epics, 268 stories and 15 tasks.
+
+---
+
+## 8. Gate log
+
+As in the family edition's [gate log](../build-phases.md#gate-log): Claude fills "Summary" at the end of each phase and
+the owner fills "Approved". Stories merge into `dev` as they pass CI ([ADR-0044](../decisions/0044-branches-family-dev-main.md));
+the owner reviews each phase here, and everything again before the prod release.
+
+| Phase | Gate commit | Summary (Claude) | Approved (date, by, notes) |
+|---|---|---|---|
+| PS1 | PR #5 (ENV-6), held for the owner's review | **Accounts and delivery (E01).** sca-dev and sca-prod bootstrapped by the owner; the OIDC provider, a CI role trusting only each account's own GitHub environments, and the state and artefacts buckets verified with read-only calls (ENV-2, OWN-2). A `ReadOnlyAccess` permission set in every account and six `-readonly` profiles, created by Claude at the owner's request and written into CLAUDE.md on `dev` and `family` (ENV-3, PR #3). `infrastructure/platform`: the alerts topic and email subscription, `allowed_account_ids`, environment limited to sca-dev and sca-prod, 6 offline tests in CI, a read-only plan of 2 to add in each account (ENV-4, PR #4). CI on `dev` and its pull requests, four required checks (ENV-5). `platform-release.yml`: push to `dev` → sca-dev; dispatch on `main` → sca-prod with the apply held on `sca-prod-apply`; saved plan create-only in the account's bucket; smoke checks the alerts topic; [runbook](../runbooks/platform-release.md) (ENV-6, PR #5). Branches runbook (ENV-13, PR #1). Still open: OWN-1 (OU, guardrails, budgets, anomaly alerts); alarms beyond the topic are ENV-11 (Launch). **For the owner:** review PR #5 (merging it is the first deploy to sca-dev), then confirm the alerts email. | |
