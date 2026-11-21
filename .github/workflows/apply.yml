@@ -19,8 +19,8 @@ name: apply
 #
 # It never plans: the only Terraform change it can make is the reviewed tfplan inside the tarball. A plan is refused
 # unless (all of these):
-#   - called: plan_run_id is this very run, and this run is a release.yml run dispatched on main (config);
-#     dispatched: plan_run_id is a successful release.yml run, dispatched on main, whose commit is on main (config);
+#   - called: plan_run_id is this very run, and this run is a release.yml run dispatched on family (config);
+#     dispatched: plan_run_id is a successful release.yml run, dispatched on family, whose commit is on family (config);
 #   - plans/<id>/plan-info.json (the completion marker, uploaded last by the plan job) exists and names that commit;
 #   - the tarball's SHA-256 matches its .sha256 file and S3's stored checksum, and no plans/<id>/ key was ever overwritten;
 #   - the tarball's release.tfvars.json (lambda_artifacts) is exactly what its manifest gives, and the file plan-info.json
@@ -65,8 +65,8 @@ defaults:
     shell: bash # -eo pipefail
 
 jobs:
-  # 0. config: main only; plan_run_id must be this release.yml run (called) or a successful release.yml run on main
-  # whose commit is on main (dispatched). No AWS.
+  # 0. config: family only (ADR-0044); plan_run_id must be this release.yml run (called) or a successful release.yml run on family
+  # whose commit is on family (dispatched). No AWS.
   config:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
@@ -86,13 +86,13 @@ jobs:
       player_hostname: ${{ steps.vars.outputs.player_hostname }}
       admin_hostname: ${{ steps.vars.outputs.admin_hostname }}
     steps:
-      - name: Refuse anything but main; check plan_run_id
+      - name: Refuse anything but family; check plan_run_id
         id: input
         env:
           PLAN_RUN_ID: ${{ inputs.plan_run_id }}
         run: |
-          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
-            echo "::error::apply.yml runs only from main; this run was dispatched from $GITHUB_REF."
+          if [[ "$GITHUB_REF" != "refs/heads/family" ]]; then
+            echo "::error::apply.yml runs only from family; this run was dispatched from $GITHUB_REF."
             exit 1
           fi
           if [[ ! "$PLAN_RUN_ID" =~ ^[0-9]{1,20}$ ]]; then
@@ -101,7 +101,7 @@ jobs:
           fi
           echo "plan_run_id=$PLAN_RUN_ID" >> "$GITHUB_OUTPUT"
 
-      - name: The plan run is a release.yml run on main (this run when called; a finished, successful one when dispatched)
+      - name: The plan run is a release.yml run on family (this run when called; a finished, successful one when dispatched)
         id: run
         env:
           GH_TOKEN: ${{ github.token }}
@@ -110,49 +110,49 @@ jobs:
           # GITHUB_WORKFLOW_REF is the top-level workflow of this run: apply.yml when dispatched, release.yml when called
           # (a called workflow sees its caller's github context). Anything else is refused.
           case "$GITHUB_WORKFLOW_REF" in
-            "$GITHUB_REPOSITORY/.github/workflows/apply.yml@refs/heads/main") mode=dispatched ;;
-            "$GITHUB_REPOSITORY/.github/workflows/release.yml@refs/heads/main") mode=called ;;
-            *) echo "::error::apply.yml runs only when dispatched on main or called by release.yml on main (workflow $GITHUB_WORKFLOW_REF)."; exit 1 ;;
+            "$GITHUB_REPOSITORY/.github/workflows/apply.yml@refs/heads/family") mode=dispatched ;;
+            "$GITHUB_REPOSITORY/.github/workflows/release.yml@refs/heads/family") mode=called ;;
+            *) echo "::error::apply.yml runs only when dispatched on family or called by release.yml on family (workflow $GITHUB_WORKFLOW_REF)."; exit 1 ;;
           esac
           if [[ "$mode" == called && "$PLAN_RUN_ID" != "$GITHUB_RUN_ID" ]]; then
             echo "::error::Called by release.yml, plan_run_id must be this run ($GITHUB_RUN_ID), not $PLAN_RUN_ID."; exit 1
           fi
           gh api "repos/$GITHUB_REPOSITORY/actions/runs/$PLAN_RUN_ID" > "$RUNNER_TEMP/run.json" \
             || { echo "::error::Run $PLAN_RUN_ID not found in this repository."; exit 1; }
-          # Both modes: a release.yml run, dispatched on main, in this repository.
+          # Both modes: a release.yml run, dispatched on family, in this repository.
           # Dispatched: that run has finished successfully (its plan job completed).
           # Called: that run is this one, so it has not finished, at this commit; the caller's plan job succeeded,
           # or this workflow would not have been called (release.yml: needs plan, result success). Right after the
           # prod-apply approval the API can report it "queued" or "waiting" rather than "in_progress", so any status but
           # "completed" is accepted.
           jq -e --arg repo "$GITHUB_REPOSITORY" --arg mode "$mode" --arg sha "$GITHUB_SHA" '
-              (.path | startswith(".github/workflows/release.yml")) and .head_branch == "main"
+              (.path | startswith(".github/workflows/release.yml")) and .head_branch == "family"
               and .event == "workflow_dispatch"
               and .repository.full_name == $repo and .head_repository.full_name == $repo
               and (if $mode == "called" then .status != "completed" and .head_sha == $sha
                    else .status == "completed" and .conclusion == "success" end)' "$RUNNER_TEMP/run.json" > /dev/null \
-            || { echo "::error::Run $PLAN_RUN_ID is not a usable release.yml run dispatched on main (mode $mode; $(jq -r '"\(.path) on \(.head_branch): \(.status)/\(.conclusion)"' "$RUNNER_TEMP/run.json"))."; exit 1; }
+            || { echo "::error::Run $PLAN_RUN_ID is not a usable release.yml run dispatched on family (mode $mode; $(jq -r '"\(.path) on \(.head_branch): \(.status)/\(.conclusion)"' "$RUNNER_TEMP/run.json"))."; exit 1; }
           sha=$(jq -r '.head_sha' "$RUNNER_TEMP/run.json")
           [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::Run $PLAN_RUN_ID has no commit SHA."; exit 1; }
           echo "sha=$sha" >> "$GITHUB_OUTPUT"
           echo "mode=$mode" >> "$GITHUB_OUTPUT"
           echo "Plan run $PLAN_RUN_ID at $sha ($mode)."
 
-      - name: Checkout main (full history, for the ancestry check)
+      - name: Checkout family (full history, for the ancestry check)
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: The released commit is on main
+      - name: The released commit is on family
         env:
           SHA: ${{ steps.run.outputs.sha }}
         run: |
-          # The release's commit must be main's tip or an ancestor of it: nothing from another branch is applied.
-          # Commits after it on main (e.g. docs) are fine; they are not part of this release.
+          # The release's commit must be family's tip or an ancestor of it: nothing from another branch is applied.
+          # Commits after it on family (e.g. docs) are fine; they are not part of this release.
           git merge-base --is-ancestor "$SHA" "$GITHUB_SHA" \
-            || { echo "::error::Release commit $SHA is not on main (tip $GITHUB_SHA)."; exit 1; }
-          echo "Release commit $SHA is on main ($(git rev-list --count "$SHA..$GITHUB_SHA") commit(s) behind the tip)."
+            || { echo "::error::Release commit $SHA is not on family (tip $GITHUB_SHA)."; exit 1; }
+          echo "Release commit $SHA is on family ($(git rev-list --count "$SHA..$GITHUB_SHA") commit(s) behind the tip)."
 
       - name: Read the env files (at the released commit)
         id: vars
@@ -186,7 +186,7 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
   # 4-5. approval, then apply: verify the saved plan, refuse a stale one, apply exactly tfplan, capture the outputs.
-  # The ONLY job on prod-apply (required reviewer: the owner; deployment branch main). GitHub holds the job before it
+  # The ONLY job on prod-apply (required reviewer: the owner; deployment branch family, ADR-0044). GitHub holds the job before it
   # starts, so no runner, no OIDC token and no role session exist until the owner approves (up to 30 days; the
   # timeout below counts from approval). Rejecting fails the job; publish, smoke and record are then skipped.
   # Publish and record stay on prod: they run only after this job succeeds, and a second prod-apply job would ask
@@ -733,7 +733,7 @@ jobs:
           elif gh api -X POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$tag" -f sha="$SHA" > /dev/null; then
             echo "Created tag $tag at $SHA"
           else
-            # GitHub refuses (HTTP 403) when the released commit's workflow files differ from main's, e.g. main moved
+            # GitHub refuses (HTTP 403) when the released commit's workflow files differ from family's, e.g. family moved
             # while the release waited for approval: the token may not "change workflows". The release itself is done
             # (record.json is written), so warn and carry on to latest.json; create the tag by hand afterwards.
             echo "::warning::Could not create tag $tag at $SHA (GitHub refused). Create it by hand: git tag $tag $SHA && git push origin $tag"
@@ -753,7 +753,7 @@ jobs:
 
       - name: Run summary and the docs/releases/ entry
         run: |
-          # The entry is committed to main by hand (Claude or the owner) in the next commit; this job never pushes
+          # The entry is committed to family by hand (Claude or the owner) in the next commit; this job never pushes
           # commits. Format: docs/releases/README.md.
           jq -r --arg prev "$PREVIOUS_RELEASE" --arg repo "$GITHUB_REPOSITORY" '
             def smoke_line: if .smoke.hostnamesLive then "green on both *.cloudfront.net names and both hostnames"

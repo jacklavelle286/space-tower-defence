@@ -26,7 +26,7 @@ name: release
 #
 # Rollback (H.12): dispatch with artefacts_from=<release_id>. The build is skipped; upload writes this release's
 # manifest from the archived one (same static archives and Lambda zips, each checked by SHA-256 in S3), the plan uses
-# current main Terraform with that release's Lambda keys, and apply.yml then publishes that archived build with a
+# current family Terraform with that release's Lambda keys, and apply.yml then publishes that archived build with a
 # config.json naming this new release. Only releases from Phase 8 on (manifest schemaVersion 2) can be reused, and from
 # Phase 42b on only releases that have all five Lambda zips, and from Gate M LD6 only releases with all seven (current
 # Terraform needs the publisher's two keys).
@@ -40,9 +40,9 @@ on:
   workflow_dispatch:
     inputs:
       ref:
-        description: "What to release: main (or the SHA at the tip of main). Nothing else is accepted."
+        description: "What to release: family (or the SHA at the tip of family). Nothing else is accepted."
         required: true
-        default: main
+        default: family
         type: string
       artefacts_from:
         description: "Rollback only: a release_id (e.g. 20261115T1432Z-6b9e326) whose archived build is reused. Leave empty to build."
@@ -71,7 +71,7 @@ defaults:
     shell: bash # -eo pipefail
 
 jobs:
-  # 0. config: main only, release_id, names from the env files. No AWS.
+  # 0. config: family only (ADR-0044), release_id, names from the env files. No AWS.
   config:
     runs-on: ubuntu-24.04
     timeout-minutes: 5
@@ -91,24 +91,24 @@ jobs:
       state_bucket: ${{ steps.vars.outputs.state_bucket }}
       artefacts_bucket: ${{ steps.vars.outputs.artefacts_bucket }}
     steps:
-      - name: Refuse anything but main
+      - name: Refuse anything but family
         id: ref
         env:
           INPUT_REF: ${{ inputs.ref }}
           INPUT_ARTEFACTS_FROM: ${{ inputs.artefacts_from }}
           INPUT_RESEED_CURRENT: ${{ inputs.reseed_current }}
         run: |
-          # The workflow must be dispatched from main (the prod environment also allows only main).
-          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
-            echo "::error::release.yml runs only from main; this run was dispatched from $GITHUB_REF."
+          # The workflow must be dispatched from family (the prod-apply environment also allows only family; ADR-0044).
+          if [[ "$GITHUB_REF" != "refs/heads/family" ]]; then
+            echo "::error::release.yml runs only from family; this run was dispatched from $GITHUB_REF."
             exit 1
           fi
-          # ref must resolve to the commit this run was dispatched at: the tip of main.
+          # ref must resolve to the commit this run was dispatched at: the tip of family.
           case "$INPUT_REF" in
-            main | refs/heads/main) ;;
+            family | refs/heads/family) ;;
             *)
               if [[ ! "$INPUT_REF" =~ ^[0-9a-f]{7,40}$ || "$GITHUB_SHA" != "$INPUT_REF"* ]]; then
-                echo "::error::ref must be main or the SHA at the tip of main ($GITHUB_SHA). Older commits are not released: roll back with artefacts_from, or revert in a new commit (plan H.12)."
+                echo "::error::ref must be family or the SHA at the tip of family ($GITHUB_SHA). Older commits are not released: roll back with artefacts_from, or revert in a new commit (plan H.12)."
                 exit 1
               fi
               ;;
