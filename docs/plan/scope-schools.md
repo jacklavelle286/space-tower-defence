@@ -1,6 +1,11 @@
 # Scope: a schools edition (licensed, multi-tenant, online)
 
-Status: **scope for the owner's decision**, not planned work. Written 2026-11-17 at the owner's request ("make this a
+Status: **parked (on the back burner)**, not planned work. Updated 2026-11-21 with the owner's answers: the aim is a real
+business, sold to schools in England by annual per-school licence, trialled on the `schools` branch. The answers and what
+they add (brand, domain, demo site, iPad app, Reception to Year 4, teacher questions, family subscription) are in
+[section 10](#10-owner-answers-and-additions-2026-11-21); the decisions they settle are marked in section 8.
+
+Written 2026-11-17 at the owner's request ("make this a
 fully online playable game to be sold to schools / played online by students, issuing numbers of users per school,
 licences etc., hosted on their own domain, e.g. stjosephs.spaceadventure.com; fully scope this out").
 Labels as in the [spine](00-spine.md). Legal and commercial points marked [UNVERIFIED] need a solicitor or accountant,
@@ -269,6 +274,27 @@ All [UNVERIFIED]; the owner, with an accountant and solicitor, settles.
 
 Order: S0 → S1 → S2/S3/S4 → S5/S6 → S7/S8 → S9/S10/S11 → S13; S12 when a school asks.
 
+**Added 2026-11-21** (section 10) [PROPOSAL]:
+
+| Phase | Builds | Checks | Size |
+|---|---|---|---|
+| B0 Name and domain (owner) | Register `spacecolonydefence.co.uk` (and optionally `.com` to protect the name); UK trade mark search and filing; App Store name check | Domain in the owner's registrar account; search result recorded in docs/legal | — |
+| B1 Domain and demo environment | Route 53 zone for the brand domain, managed by Terraform; wildcard certificate; a demo environment (its own tfvars, state key, OIDC role and GitHub environment: bootstrap change the owner applies) | `demo.<domain>` serves the game; prod untouched; deploys only by dispatch | M |
+| B2 Brand kit | Logo, wordmark, palette, type, favicon and app icon, drawn as SVG to [art/STYLE.md](../../art/STYLE.md) in `art/svg/brand/` | Owner review of a brand sheet | S |
+| B3 Marketing site | One static page at the apex and `www`: what it is, screenshots, ages and curriculum, safety and privacy, price bands, "Book a demo" form | Lighthouse and accessibility pass; the form's privacy notice | M |
+| B4 Demo school | A pretend school in the demo environment: classes, made-up pupil names, QR cards, pupils' progress already filled in. Before S5 exists: demo pupil accounts on today's game | A demo from a cold start in under two minutes | S, then M after S6 |
+| B5 Sales kit | Teacher brochure (PDF), sales deck, curriculum mapping sheet (Reception to Year 4), privacy pack for schools' data protection officers (DPA, sub-processors, DPIA template, security overview, accessibility statement, retention) | Solicitor has read the privacy pack | M |
+| S14 Class choices | Teachers choose per class which maps and topics are on this week, and turn maps off | A pupil sees only what the class allows; checked on every route that returns maps or activities | M |
+| S15 Teachers' questions | A simple question editor for teachers (not the map editor); the questions stay inside their school; optional speech | School A's questions never reach school B; speech cost capped per school | L |
+| S16 Reception to Year 4 | Age bands from Reception (EYFS) to Year 4; content for the new years: maths (including times tables) and phonics; easier game settings for Reception if playtests show the need | Owner and pilot-school playtests per year group | L (mostly content) |
+| S17 iPad app | The web app wrapped as an iPad app (section 10.4); offline assets; TestFlight; install through schools' device management | App Store review passed; a managed iPad installs it | M |
+| S18 Trusts | A trust as a parent tenant (section 3.5): one contract and invoice, reporting across its schools | Trust admin sees only its schools | M |
+| S19 Family subscription (later) | Parent accounts and a subscription for home use outside a school (section 10.6) | Consumer terms and cancellation tested | L |
+
+Order [PROPOSAL]: B0 now (the names are free today, section 10.2); B1 to B4 can run before Gate S, because they need no
+tenancy (B4 grows a teacher view after S6); B5 after S0's legal documents; S14 with S5/S6; S16 content alongside; S17
+after K (offline) or with it; S15, S18 and S19 after the pilot.
+
 ---
 
 ## 8. Decisions for you
@@ -289,6 +315,26 @@ Order: S0 → S1 → S2/S3/S4 → S5/S6 → S7/S8 → S9/S10/S11 → S13; S12 wh
     first or alongside, since classroom networks are patchy.
 11. **Company and paperwork.** Who drafts the DPA and terms (solicitor), and the company structure (accountant).
 
+**Status after 2026-11-21** [CONFIRMED by owner 2026-11-21 unless marked]:
+
+| # | Decision | Answer |
+|---|---|---|
+| 1 | Product domain | Keep the name **Space Colony Defence**; one brand domain with subdomains (section 10.2). The exact domain is [PROPOSAL] `spacecolonydefence.co.uk` |
+| 2 | Who buys | Schools first; trusts are also a sales channel (direct to heads and trusts), so trusts follow as S18 [PROPOSAL] |
+| 3 | Price model | **Per school, per year**; size bands and figures still open |
+| 4 | Pupil sign-in | **Class code and picture password, plus a QR code glued into the homework book**. Google and Microsoft sign-in for pupils not wanted for now |
+| 5 | School portal location | Open (recommendation unchanged) |
+| 6 | Family edition | Home play mainly through the school login; **parents can also subscribe individually** later (S19). What happens to today's free family edition is open |
+| 7 | Our data role | Open (recommendation unchanged: processor-only for schools) |
+| 8 | Curriculum reach | **England only**; ages widened to **Reception to Year 4** |
+| 9 | Custom domains | Open (recommendation unchanged) |
+| 10 | When | **Parked**; trialled on the `schools` branch; Gate S after launch |
+| 11 | Company | **The owner's existing limited company**; solicitor and accountant still needed |
+
+New open decisions (section 10): where the brand domain's DNS zone lives (10.2); whether the demo environment gets its own
+AWS account (10.3); the App Store category (10.4); price bands and trial length (10.7); whether teachers' questions get
+speech (10.5).
+
 ---
 
 ## 9. Risks and unknowns
@@ -307,10 +353,159 @@ Order: S0 → S1 → S2/S3/S4 → S5/S6 → S7/S8 → S9/S10/S11 → S13; S12 wh
 | 10 | Legal documents drafted without a specialist | [UNVERIFIED] | Solicitor in S0 |
 | 11 | Wonde costs or terms for small suppliers | [UNVERIFIED] | Ask Wonde before S12 |
 | 12 | CloudFront SaaS Manager quotas and Terraform support | [UNVERIFIED] | Spike in S9 |
+| 13 | Someone registers the name's domains first | [VERIFIED free on 2026-11-21, section 10.2] | Register in B0 soon |
+| 14 | The pilot school is the owner's children's school, so the platform operator is a parent of pupils there | [CONFIRMED by owner 2026-11-21] | Section 10.8 |
+| 15 | Reception to Year 4 multiplies the content work (EYFS and lower KS2 are new) | [ASSUMPTION] | Phase it: the current years first, then Year 3 and 4 maths, then Reception |
+| 16 | App Store review rejects a thin web wrapper, or the payment rules block the family subscription in the app | [UNVERIFIED] | Read the current App Review Guidelines before S17 (section 10.4) |
+| 17 | Teachers' questions carry pupils' personal data or unsuitable content | [ASSUMPTION] | Questions stay inside the school; the editor says not to use pupils' names; the school admin can remove any |
+| 18 | Part-time support cannot cover school hours | [ASSUMPTION] | Self-service resets, help pages, status page, support hours written into the terms |
 
 ---
 
-## 10. Sources
+## 10. Owner answers and additions (2026-11-21)
+
+### 10.1 What the owner decided
+
+Answers given in chat on 2026-11-21 [CONFIRMED by owner 2026-11-21]:
+
+| Question | Answer |
+|---|---|
+| Market | England only |
+| How schools pay | Per school, per year |
+| What teachers can do | Set up classes and pupils; see progress; choose what pupils play. (Making their own maps: not wanted) |
+| Pupil sign-in | QR code glued into the homework book, and class code with picture password |
+| Ambition | A real business |
+| Devices | Web browser (as now) and an iPad app on the App Store |
+| Learning content | Maths (number), phonics and reading, the current bank, and teachers adding their own questions. **Ages Reception to Year 4** (Year 4 is the oldest the game suits, the owner judges) |
+| Home use | Mainly through the school login; parents could also subscribe individually for a fee |
+| Company | The owner's existing limited company |
+| Time | Part-time (a day or two a week) at first |
+| Selling | All of: teachers try it free; direct to heads and trusts; resellers and catalogues; word of mouth from the pilot |
+| Pilot school | The owner's children's school |
+| Name | Keep "Space Colony Defence" |
+| Domains | One brand domain with subdomains |
+| Demo site | A separate environment with a ready-made demo school |
+| Branding | The full kit for sales: logo and palette, marketing site, brochure, deck, curriculum mapping, privacy pack |
+| Where | Trialled on a separate branch, `schools` |
+
+### 10.2 Name, domain and subdomains
+
+- **Availability.** On 2026-11-21 `spacecolonydefence.co.uk`, `spacecolonydefence.uk`, `spacecolonydefence.com` and
+  `spacecolonydefense.com` had no registration record: their RDAP lookups (Nominet and Verisign) returned 404 while
+  `google.co.uk` and `google.com` returned 200 [VERIFIED 2026-11-21]. A free domain can be taken at any time; B0 is the
+  owner's purchase, not Claude's.
+- **Trade mark** [UNVERIFIED]: search the UK IPO register for "Space Colony Defence" in the classes for software and
+  games (9), education (41) and perhaps toys and games (28), then decide whether to file. The App Store name must also be
+  free (S17).
+- **Layout** [PROPOSAL]:
+
+| Address | What |
+|---|---|
+| `spacecolonydefence.co.uk`, `www.` | Marketing site (B3) |
+| `<school>.spacecolonydefence.co.uk` | A school's game and its portal at `/admin` (sections 5.3 and 8.5) |
+| `demo.spacecolonydefence.co.uk` | The demo school (B4), in the demo environment |
+| `admin.spacecolonydefence.co.uk` | The platform console (yours) |
+| Reserved, never a school | `www`, `demo`, `admin`, `api`, `app`, `status`, `help`, `mail`, `staging` and similar |
+
+- **QR codes** encode the school's address and the class, never a secret, so a code in a homework book working at home
+  is expected; the picture password stays the secret (section 5.4).
+- **DNS zone** (open decision) [PROPOSAL]: a Route 53 hosted zone for the brand domain in the workload account, managed
+  by Terraform, so certificates validate without the manual hand-off `aliens.jackgl.com` needs today
+  ([docs/runbooks/](../runbooks/)). `jackgl.com` keeps the family edition.
+
+### 10.3 Demo environment and demo school
+
+- **Environment** [PROPOSAL]: a second stack from the same `infrastructure/main` root with `envs/demo.tfvars.json`, its
+  own state key, OIDC role and GitHub environment (a bootstrap change the owner applies; H §H.5), deployed only by
+  manual dispatch like prod. The demo environment holds made-up data only. Open decision: a separate AWS account for
+  demo and staging (cleaner isolation once prod holds pupils' data) or the same account.
+- **Branch** [PROPOSAL]: Gate S work lives on `schools`; prod deploys only from `main` (the release workflow refuses
+  another ref for prod) and the demo environment may deploy from `schools`. CI runs only on pushes to `main` today
+  [VERIFIED .github/workflows/ci.yml], so the branch adds itself to CI's triggers when building starts.
+- **Demo school** [PROPOSAL]: a seed script creates a pretend school with two or three classes, made-up pupil names
+  (never real children's), printed QR cards and progress already filled in, so the teacher view shows something on the
+  first click. Until the teacher view exists (S5, S6), B4 is demo pupil accounts on today's game.
+
+### 10.4 iPad app
+
+- **How** [PROPOSAL]: wrap the existing web app in a native shell (Capacitor or a plain WKWebView), bundle the game's
+  assets for offline play (Gate K), build and sign in GitHub Actions on macOS runners, ship through TestFlight. One code
+  base; the browser stays the main platform.
+- **Distribution**: schools install free apps on managed iPads through Apple School Manager and their device management;
+  the licence is bought from us outside the app [UNVERIFIED: App Review Guidelines 3.1.3 on services sold to
+  organisations; check the current text before S17].
+- **Rules to check before S17** [UNVERIFIED]: the Kids category rules (no third-party analytics or ads, a parental gate
+  before links out or purchases), the minimum-functionality rule for wrapped web apps, and whether a family subscription
+  offered in the app must use in-app purchase. Enrolling the limited company in the Apple Developer Program needs a
+  D-U-N-S number [UNVERIFIED; check Apple's enrolment page].
+- **Category** (open decision): Education with a children's age rating, or the Kids category.
+
+### 10.5 Reception to Year 4, curriculum and teachers' questions
+
+- **Ages** [CONFIRMED by owner 2026-11-21]: Reception to Year 4 (about 4 to 9), widening today's 5 to 7 age bands.
+  Reception follows the EYFS framework, not the national curriculum, and Years 3 and 4 are lower KS2 [ASSUMPTION;
+  check the DfE pages]. The age band comes from the class's year group (section 3.1).
+- **Maths**: number for each year; for Year 4, times tables practice, useful before the statutory multiplication tables
+  check [UNVERIFIED: check the current gov.uk guidance].
+- **Phonics and reading**: schools follow a DfE-validated phonics programme with its own order of sounds. Content stays
+  general (sounds and words), the teacher chooses which sounds a class practises (S14), and the marketing says it
+  "supports" phonics, naming no programme [PROPOSAL]. Pre-readers rely on the speech the game already has.
+- **Game difficulty**: whether Reception children can play the tower-defence itself (pointer skill, reading the shop) is
+  for playtests [UNVERIFIED].
+- **Teachers' questions** (S15) [PROPOSAL]: a narrow editor (question, answers, a picture from the library), questions
+  kept inside the school (the school's data, so it fits the processor role), no pupils' names. This ends "one global
+  content bank" (section 2): content gains a per-school layer. Open decision: whether teachers' questions get speech
+  (Polly cost per school, and nobody reviews the clips the way the operator does today).
+
+### 10.6 Home use and the family subscription
+
+- **Through the school** [CONFIRMED by owner 2026-11-21]: the homework-book QR code and the picture password work at
+  home; progress counts in the teacher's view. No parent accounts.
+- **Family subscription** (S19, later) [PROPOSAL]: a second product. For it we are the controller, so the Children's
+  code applies in full; it needs parent accounts, card payments with VAT, consumer contract terms (cancellation rights,
+  and the subscription-contract rules of the Digital Markets, Competition and Consumers Act 2024 [UNVERIFIED: check
+  which parts are in force]) and, in the iPad app, possibly in-app purchase (10.4). Today's free family edition could
+  become its free tier (decision 6).
+
+### 10.7 Selling and pricing
+
+- **Price**: per school, per year, in size bands by pupils on roll from Reception to Year 4 [PROPOSAL]. With a band, the
+  seat count in section 5.5 becomes a ceiling that warns rather than refuses [PROPOSAL]. Figures need the cost model
+  (section 5.6) and a look at what similar products charge schools [UNVERIFIED; research before B3 publishes prices].
+- **Channels** [CONFIRMED by owner 2026-11-21]: a free trial for one teacher's class (proposed: one half term) that the
+  school then buys; direct demos to heads and trusts (B4, B5); resellers and catalogues (a reseller price and invoice
+  route) [UNVERIFIED which]; word of mouth from the pilot.
+- **Self-serve trial** [PROPOSAL]: a teacher signs up on the marketing site, which creates a trial tenant with one class.
+  Checking that the person works at a school is open (school email domains are not uniform).
+- **Book a demo** collects adults' names, schools and emails: for that we are the controller, so it needs its own
+  privacy notice and retention period [PROPOSAL].
+
+### 10.8 Pilot at the owner's children's school
+
+- It is the easiest school to reach. The owner is both the platform operator and a parent there, so [PROPOSAL]: the
+  school signs the DPA even for a free pilot; a named teacher there is the contact; the owner uses support access only
+  at the school's request, and it is audited and visible to the school (section 3.4); the owner's own children's
+  accounts get no special treatment; no pupil's real name enters the repository, tests or demo data (CLAUDE.md). The
+  school's data protection officer reads the DPIA before any pupil signs in.
+
+### 10.9 Business
+
+- **Company**: the owner's existing limited company [CONFIRMED by owner 2026-11-21]. Still to arrange [UNVERIFIED, the
+  owner's accountant and solicitor]: professional indemnity and cyber insurance, ICO registration for the company,
+  VAT position, terms, DPA.
+- **Time**: part-time (a day or two a week) at first [CONFIRMED by owner 2026-11-21]. Low-touch matters: self-service
+  resets, help pages, a status page, support hours written into the terms.
+
+### 10.10 Cheap, time-sensitive steps while it is parked
+
+1. Register the domain (B0); the names are free today (10.2).
+2. Search the UK IPO trade mark register (10.2).
+3. Start the Apple Developer enrolment for the company if the D-U-N-S number takes time (10.4).
+4. Talk informally to the pilot school about whether they would try it, and who their data protection officer is (10.8).
+
+---
+
+## 11. Sources
 
 - ICO, The Children's code and education technologies (edtech):
   https://ico.org.uk/for-organisations/uk-gdpr-guidance-and-resources/childrens-information/childrens-code-guidance-and-resources/the-children-s-code-and-education-technologies-edtech/
