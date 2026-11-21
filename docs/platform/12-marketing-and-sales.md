@@ -315,7 +315,7 @@ All checked 2026-11-21.
 
 ## 12. User stories
 
-*Snapshot of 2026-11-21. The source of truth for these stories is now Jira (project KAN); see
+*Snapshot of 2026-11-21. The source of truth for these stories is now Jira (project SCD); see
 [README §6](README.md#6-user-stories-and-jira). Edit the tickets, not this table.*
 
 | ID | Story | Acceptance criteria | Release |

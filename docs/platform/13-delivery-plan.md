@@ -142,10 +142,9 @@ DAT-Q (10), PRV-Q (11), MKT-Q (12). Those that block the Pilot are answered in P
 
 ### 7.1 Where
 
-Site `cumulus-consulting.atlassian.net`, project **KAN** ("Space Colony Defence", team-managed), created by the owner
+Site `cumulus-consulting.atlassian.net`, project **SCD** ("Space Colony Defence", team-managed; created as KAN and renamed SCD on 2026-11-21), created by the owner
 on 2026-11-21 [VERIFIED through the Atlassian connector, 2026-11-21]. The connector cannot create Jira projects, only
-issues, versions and boards inside one. The owner may rename the key (to `SCD`); Jira keeps old keys working
-[UNVERIFIED: check Jira's warning when renaming].
+issues, versions and boards inside one. Jira re-keyed every ticket (KAN-17 became SCD-17) and keeps the old keys working [VERIFIED 2026-11-21].
 
 **From 2026-11-21 the tickets are the source of truth for the stories** [CONFIRMED by owner 2026-11-21]. The owner
 reviews and edits them in Jira; the story tables in the layer documents are the starting snapshot.
@@ -155,13 +154,13 @@ reviews and edits them in Jira; the story tables in the layer documents are the 
 | Jira item | What |
 |---|---|
 | Versions | Pilot, Launch, Later |
-| Epics | E01 to E12 as KAN-4 to KAN-15 (§2), each with its layer's summary and a link to its document; assigned to the owner |
+| Epics | E01 to E12 as SCD-4 to SCD-15 (§2), each with its layer's summary and a link to its document; assigned to the owner |
 | Stories (268) | Summary `<ID> <Role>: <what they want>`; description = the story, its acceptance criteria, its release and a link to the document's stories section; parent = its epic; labels = the story ID (e.g. `SCH-12`), the layer (e.g. `portal`) and `release-pilot`, `release-launch` or `release-later` |
 | Tasks (15) | OWN-1 to OWN-15 (§4) under E12, labelled `owner-action` and `release-…`; assigned to the owner |
 
 **Fix versions are not set yet.** The project's Releases feature was off when the tickets were made, so stories could
 not take a fix version. The `release-…` label carries the release instead. Once Releases is on, three bulk changes set
-them: search `project = KAN AND labels = release-pilot`, then Bulk change → Edit fields → Fix versions = Pilot, and the
+them: search `project = SCD AND labels = release-pilot`, then Bulk change → Edit fields → Fix versions = Pilot, and the
 same for Launch and Later.
 
 The full map from scope ID to Jira key is [jira-keys.json](jira-keys.json); in Jira, `labels = <ID>` finds any one.
