@@ -1,10 +1,11 @@
-# Runbook: branches, pull requests and merging `family` into `dev`
+# Runbook: branches and pull requests
 
-Why: [ADR-0044](../decisions/0044-branches-family-dev-main.md). Jira story: ENV-13 (SCD-67). Who: Claude or the owner.
+Why: [ADR-0044](../decisions/0044-branches-family-dev-main.md) and
+[ADR-0045](../decisions/0045-family-edition-frozen.md) (`family` frozen). Who: Claude or the owner.
 
 | Branch | Holds | Changes arrive by |
 |---|---|---|
-| `family` | The family edition, `aliens.jackgl.com` | Direct commits (`P<nn> <area>: …`); family releases are dispatched here |
+| `family` | The family edition, `aliens.jackgl.com`: the proof of concept, **frozen** from 2026-11-21 | Nothing: no commits, releases or merges into `dev` |
 | `dev` | The schools platform; deploys to sca-dev on every merge | Pull requests only, with the four CI checks passing (repository ruleset) |
 | `SCD-<n>-<short-name>` | One Jira story or phase | Commits `SCD-<n> <area>: …`; lives for days, then merges into `dev` |
 | `main` | Untouched until the platform's one big release | One pull request from `dev`, at the big release |
@@ -30,24 +31,17 @@ panel (the GitHub for Atlassian app).
 2. **Squash and merge**, keeping the title starting with the key, so `dev` gets one commit per story. Claude may merge
    its own pull requests once CI passes (owner, 2026-11-21); the owner reviews everything before the prod release.
 3. Delete the feature branch.
-4. The merge deploys to sca-dev once the platform's release workflow exists (ENV-6).
+4. The merge deploys to sca-dev through `platform-release.yml` ([runbook](platform-release.md)).
 
-## Merging `family` into `dev` (after a family fix)
+## `family` is frozen
 
-`dev` takes pull requests only, so the merge goes through one:
+From 2026-11-21 the family edition is the proof of concept and stays as it is
+([ADR-0045](../decisions/0045-family-edition-frozen.md)): no commits, no releases and no merges into `dev`. PR #6 was
+the last merge from `family`. A bug in code the platform inherited from the family edition is fixed on `dev`, through
+an `SCD-<n>` branch like any story. GitHub does not enforce the freeze: the ruleset "Long-lived branches" only stops
+deletion and force-pushes.
 
-```sh
-gh pr create --base dev --head family --title "Merge family into dev" --body "Family fixes: <commits>"
-```
-
-1. CI passes on the pull request.
-2. **Create a merge commit. Never squash this one**: a squash would make the same family commits conflict again at the
-   next merge.
-3. If shared files conflict (the player API, the player app), resolve them behind the `edition` setting
-   ([docs/platform 02 §5](../platform/02-environments-and-delivery.md#5-code-on-the-dev-branch)) on a short branch from
-   `dev`, then open the pull request from that branch instead.
-
-**Never merge `dev` into `family`.** Changes flow one way: `family` → `dev` → `main`.
+Changes flow one way: `SCD-<n>-…` → `dev` → `main`.
 
 ## The big release
 

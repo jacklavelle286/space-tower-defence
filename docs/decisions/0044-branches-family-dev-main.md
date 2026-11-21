@@ -1,5 +1,5 @@
 # 0044. Branches: `family` for the family edition, `dev` for the schools platform, `main` for its release
-Status: Proposed · Date: 2026-11-21
+Status: Proposed (amended by [0045](0045-family-edition-frozen.md): `family` is frozen) · Date: 2026-11-21
 
 Context: the family edition at `aliens.jackgl.com` is ready to play and stays for the owner's children. The schools
 platform ([docs/platform](../platform/README.md) on the platform branch) will be built over a long period, in two new

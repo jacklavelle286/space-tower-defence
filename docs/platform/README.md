@@ -19,10 +19,11 @@ staff manage classes and pupils and see progress, and its pupils sign in and pla
 `admin.spacecolonydefence.com`: enrolling schools, plans, invoices and payments, and all game content (levels, maps,
 aliens, questions, speech), including content made with AI help.
 
-The family edition at `aliens.jackgl.com` stays as it is, for the owner's children, on `main` and in its own account
-[CONFIRMED by owner 2026-11-21]. The platform is a separate deployment of the same code base and the same architecture
-(CloudFront and S3 single-page apps, an HTTP API, Python Lambdas, DynamoDB, Cognito, Terraform, GitHub Actions), in two
-new AWS accounts.
+The family edition at `aliens.jackgl.com` stays as it is, for the owner's children, in its own account
+[CONFIRMED by owner 2026-11-21]: it is the proof of concept, frozen on `family`
+([ADR-0045](../decisions/0045-family-edition-frozen.md)). The platform is a separate deployment of the same code base
+and the same architecture (CloudFront and S3 single-page apps, an HTTP API, Python Lambdas, DynamoDB, Cognito,
+Terraform, GitHub Actions), in two new AWS accounts.
 
 ---
 
@@ -75,7 +76,7 @@ All dated 2026-11-21. Where an answer replaces one given earlier the same day, t
 | PD-17 | Selling: teachers try it free; direct to heads and trusts; resellers and catalogues; word of mouth. **The pilot is the owner's children's school** |
 | PD-18 | Web browser first; an **iPad app** later. Parents may **subscribe separately** later. Teachers' own questions later |
 | PD-19 | Keep the name **Space Colony Defence**; the full sales kit (brand, site, brochure, deck, curriculum map, privacy pack) |
-| PD-20 | Work happens on **`dev`**, through short-lived feature branches named after the Jira ticket (`SCD-<n>-…`); the family edition lives on **`family`**; `main` is kept for the one big release ([ADR-0044](../decisions/0044-branches-family-dev-main.md)). Stories are tracked in **Jira** project SCD. Earlier the same day: the `schools` branch |
+| PD-20 | Work happens on **`dev`**, through short-lived feature branches named after the Jira ticket (`SCD-<n>-…`); the family edition lives on **`family`**, frozen as the proof of concept from 2026-11-21 ([ADR-0045](../decisions/0045-family-edition-frozen.md)); `main` is kept for the one big release ([ADR-0044](../decisions/0044-branches-family-dev-main.md)). Stories are tracked in **Jira** project SCD. Earlier the same day: the `schools` branch |
 | PD-21 | The accounts are **`sca-dev`** and **`sca-prod`**, created and bootstrapped by the owner, locally, with the repository's bootstrap root |
 | PD-22 | **A merge into `dev` deploys to sca-dev automatically.** Everything stays on dev until **one big release to prod**: `dev` merges into `main`, and the owner dispatches and approves the prod deploy |
 

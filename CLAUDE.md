@@ -15,15 +15,16 @@ and [spine S0.1](docs/plan/00-spine.md#s01-way-of-working-confirmed-by-owner-202
   [the loop for every phase](docs/build-phases.md#the-loop-for-every-phase): read the phase entry and its J tasks, build, run every
   local check, write the gate summary and gate-log row, then **stop** for the owner's review. Do not start the next phase until the
   owner approves the gate.
-- **Git and branches ([ADR-0044](docs/decisions/0044-branches-family-dev-main.md), owner 2026-11-21).**
-  - **`family`** is the family edition (`aliens.jackgl.com`). Small commits, one concern each, following
-    [Commit messages](docs/build-phases.md#commit-messages) (`P<nn> <area>: <summary>`, J task IDs and checks in the
-    body). Claude or the owner may commit and push to `family`; family releases are dispatched on `family`.
+- **Git and branches ([ADR-0044](docs/decisions/0044-branches-family-dev-main.md),
+  [ADR-0045](docs/decisions/0045-family-edition-frozen.md), owner 2026-11-21).**
+  - **`family`** is the family edition (`aliens.jackgl.com`), **frozen as the proof of concept** from 2026-11-21:
+    no commits, no family releases and no merges into `dev`, unless the owner says otherwise.
   - **`dev`** is the schools platform's integration branch. Work on short-lived feature branches named after the Jira
     ticket, `SCD-<n>-<short-name>`, merged into `dev` by pull request once CI passes. Commit messages start with the
     ticket key (`SCD-<n> <area>: <summary>`). Claude may merge its own pull requests into `dev` once CI passes (owner,
     2026-11-21; [branches runbook](docs/runbooks/branches.md)). The SCD tickets in Jira are the source of truth for the platform's stories
-    ([docs/platform §6](docs/platform/README.md#6-user-stories-and-jira) on `dev`). Merge `family` into `dev` after family fixes.
+    ([docs/platform §6](docs/platform/README.md#6-user-stories-and-jira) on `dev`). Bugs in code inherited from the
+    family edition are fixed on `dev` too, through an `SCD-<n>` branch.
   - **`main`** is kept for the platform's one big release: `dev` merges into it once, then prod deploys from it. Nothing
     else goes onto `main` until then.
 - **Deployment only through GitHub Actions**, by manual workflow dispatch in the GitHub UI. Never deploy from the laptop, except
