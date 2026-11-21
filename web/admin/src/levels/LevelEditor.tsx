@@ -18,6 +18,7 @@ import {
 import {
   useCallback,
   useEffect,
+  useEffectEvent,
   useMemo,
   useReducer,
   useRef,
@@ -441,16 +442,20 @@ export function LevelEditor({ api, levelId, makeWorker, maker }: Props) {
     }
   };
 
+  // Ctrl+S anywhere on the page. useEffectEvent hands the listener the save of the render on screen, from the moment
+  // React puts it there. A listener re-added by useEffect([save]) stayed a render behind until React ran its effects,
+  // so a Ctrl+S straight after Make it all again saved the level from before.
+  const onSaveKey = useEffectEvent((event: globalThis.KeyboardEvent) => {
+    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
+      event.preventDefault();
+      void save();
+    }
+  });
   useEffect(() => {
-    const onSave = (event: globalThis.KeyboardEvent) => {
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
-        event.preventDefault();
-        void save();
-      }
-    };
-    window.addEventListener("keydown", onSave);
-    return () => window.removeEventListener("keydown", onSave);
-  }, [save]);
+    const listener = (event: globalThis.KeyboardEvent) => onSaveKey(event);
+    window.addEventListener("keydown", listener);
+    return () => window.removeEventListener("keydown", listener);
+  }, []);
 
   if (state === null || level === null) {
     return (
