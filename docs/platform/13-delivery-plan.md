@@ -158,10 +158,9 @@ reviews and edits them in Jira; the story tables in the layer documents are the 
 | Stories (268) | Summary `<ID> <Role>: <what they want>`; description = the story, its acceptance criteria, its release and a link to the document's stories section; parent = its epic; labels = the story ID (e.g. `SCH-12`), the layer (e.g. `portal`) and `release-pilot`, `release-launch` or `release-later` |
 | Tasks (15) | OWN-1 to OWN-15 (§4) under E12, labelled `owner-action` and `release-…`; assigned to the owner |
 
-**Fix versions are not set yet.** The project's Releases feature was off when the tickets were made, so stories could
-not take a fix version. The `release-…` label carries the release instead. Once Releases is on, three bulk changes set
-them: search `project = SCD AND labels = release-pilot`, then Bulk change → Edit fields → Fix versions = Pilot, and the
-same for Launch and Later.
+**Fix versions** were set the same day, once the owner had switched on Releases: Pilot 164, Launch 103 and Later 16
+(stories and owner tasks; epics have none) [VERIFIED by JQL per release, 2026-11-21]. The `release-…` labels stay as
+a backup filter.
 
 The full map from scope ID to Jira key is [jira-keys.json](jira-keys.json); in Jira, `labels = <ID>` finds any one.
 
