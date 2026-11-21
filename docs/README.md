@@ -28,7 +28,8 @@ Rules for an AI assistant are in [CLAUDE.md](../CLAUDE.md). The original specifi
 | [J-execution-backlog.md](plan/J-execution-backlog.md) | Ordered task backlog and the ADR practice |
 | [scope-asset-kinds-and-makers.md](plan/scope-asset-kinds-and-makers.md) | Proposal (2026-11-16): picture kinds for Draw with Claude (Gate P2) and admin makers (new Gate M); 16 owner decisions |
 | [scope-level-designer.md](plan/scope-level-designer.md) | Proposal (2026-11-16): the admin level designer in three tiers (planet-1 levels, new planets, flexible routes); 16 owner decisions |
-| [scope-schools.md](plan/scope-schools.md) | Parked proposal (2026-11-17, owner answers 2026-11-21): a licensed, multi-tenant schools edition for England, Reception to Year 4 (per-school licence, pupil QR and picture sign-in, school portal, brand domain, demo school, iPad app, UK data protection); trialled on the `schools` branch; proposed Gate S after launch |
+| [platform/](platform/README.md) | **Schools platform scope** (2026-11-21, parked, `schools` branch): every layer of the licensed schools product at `spacecolonydefence.com` (environments, domains, identity and RBAC, console, school portal, pupils, content Years 1–4, billing, data and API, privacy, marketing, delivery plan), with user stories for Jira |
+| [scope-schools.md](plan/scope-schools.md) | Superseded by platform/. Parked proposal (2026-11-17, owner answers 2026-11-21): a licensed, multi-tenant schools edition for England, Reception to Year 4 (per-school licence, pupil QR and picture sign-in, school portal, brand domain, demo school, iPad app, UK data protection); trialled on the `schools` branch; proposed Gate S after launch |
 
 ### Plan sources
 

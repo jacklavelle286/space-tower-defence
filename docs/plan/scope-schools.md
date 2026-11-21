@@ -1,6 +1,11 @@
 # Scope: a schools edition (licensed, multi-tenant, online)
 
-Status: **parked (on the back burner)**, not planned work. Updated 2026-11-21 with the owner's answers: the aim is a real
+Status: **superseded by [docs/platform/](../platform/README.md)** (2026-11-21), the detailed platform scope, which
+replaces this file as the working scope. Where the two differ, docs/platform wins: per enrolled pupil, termly (not per
+school, per year); Years 1 to 4 (not Reception to Year 4); `spacecolonydefence.com` (not `.co.uk`); the demo school is a
+tenant in prod; dev and prod in two new accounts. Kept for its research and first answers.
+
+Earlier status: **parked (on the back burner)**, not planned work. Updated 2026-11-21 with the owner's answers: the aim is a real
 business, sold to schools in England by annual per-school licence, trialled on the `schools` branch. The answers and what
 they add (brand, domain, demo site, iPad app, Reception to Year 4, teacher questions, family subscription) are in
 [section 10](#10-owner-answers-and-additions-2026-11-21); the decisions they settle are marked in section 8.
