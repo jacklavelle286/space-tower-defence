@@ -32,9 +32,29 @@ Named `sca-dev` and `sca-prod` [CONFIRMED by owner 2026-11-21, PD-21].
 - Regions limited to `eu-west-2` plus the global services that need `us-east-1` (CloudFront certificates, Cognito
   custom domain certificates).
 - No leaving the organisation; CloudTrail and Config not removable.
-- IAM Identity Center permission sets per account: the owner's admin set, and a **read-only set** for local checks.
-  Claude uses only the read-only profiles (new CLI profiles, e.g. `scd-dev-readonly` and `scd-prod-readonly`).
+- IAM Identity Center permission sets: the owner's admin set (`AdministratorAccess`) and a **read-only set**
+  (`ReadOnlyAccess`) for local checks. Done for the whole organisation; see "Read-only access for Claude" below.
 - An AWS Budget and cost anomaly detection on each account, alerting the owner.
+
+**Read-only access for Claude (ENV-3).** At the owner's request on 2026-11-21, Claude created the Identity Center
+permission set `ReadOnlyAccess` in the management account (the AWS managed policy of that name, 8-hour sessions) and
+assigned it to the owner's user in all 20 accounts of the organisation [CONFIRMED by owner 2026-11-21: a one-off write
+by Claude, asked for in chat]. From then on Claude's AWS calls use only the profiles below. The profiles without the
+suffix keep AdministratorAccess and are the owner's, for the bootstrap and the runbooks.
+
+| Read-only profile | Account |
+|---|---|
+| `sca-dev-readonly` | sca-dev |
+| `sca-prod-readonly` | sca-prod |
+| `dns-readonly` | DNS (`spacecolonydefence.com`) |
+| `space-tower-defence-readonly` | Family edition |
+| `productivity-prod-readonly` | The `jackgl.com` zone (the family edition's DNS) |
+| `cumulus-main-readonly` | Organization management (Organizations and Identity Center reads) |
+
+[VERIFIED 2026-11-21] Each profile signs in as `AWSReservedSSO_ReadOnlyAccess_…` and can list resources. An EC2
+dry-run write returns `UnauthorizedOperation`, and a policy simulation denies `s3:PutObject`, `iam:CreateRole`,
+`dynamodb:PutItem`, `lambda:UpdateFunctionCode`, `secretsmanager:GetSecretValue` and `kms:Decrypt`. ReadOnlyAccess can
+still read data (S3 objects, DynamoDB items), so "no personal data" stays Claude's rule, not a permission.
 
 ---
 
