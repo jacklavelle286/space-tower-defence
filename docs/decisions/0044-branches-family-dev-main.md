@@ -32,7 +32,6 @@ testing; kept for prod).
 
 Consequences: amends 0019 (the family edition releases only from `family`; the deployment-branch rule is changed by the
 owner in GitHub) and CLAUDE.md's Git and dispatch rules. A merge into `dev` deploying to sca-dev is the one exception to
-"the owner dispatches every deploying workflow"; prod keeps the owner's dispatch and approval. Proposal for the owner:
-Claude may merge its own pull requests into `dev` once CI passes, and the owner reviews everything before the prod
-release. The platform scope's "prod deploys only from a tag on the platform branch" (docs/platform 02 §6) is replaced by
+"the owner dispatches every deploying workflow"; prod keeps the owner's dispatch and approval. The owner, 2026-11-21:
+Claude may merge its own pull requests into `dev` once CI passes; the owner reviews everything before the prod release. The platform scope's "prod deploys only from a tag on the platform branch" (docs/platform 02 §6) is replaced by
 "prod deploys from `main` after the big release".

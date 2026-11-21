@@ -27,7 +27,8 @@ panel (the GitHub for Atlassian app).
 ## Merging a story into `dev`
 
 1. CI passes on the pull request: web, repo, scripts, api.
-2. **Squash and merge**, keeping the title starting with the key, so `dev` gets one commit per story.
+2. **Squash and merge**, keeping the title starting with the key, so `dev` gets one commit per story. Claude may merge
+   its own pull requests once CI passes (owner, 2026-11-21); the owner reviews everything before the prod release.
 3. Delete the feature branch.
 4. The merge deploys to sca-dev once the platform's release workflow exists (ENV-6).
 
