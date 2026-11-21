@@ -119,9 +119,9 @@ family edition safe and lets the two diverge [PROPOSAL].
 
 **Branches** [CONFIRMED by owner 2026-11-21, ADR-0044]: `family` holds the family edition, `dev` the platform, and
 `main` waits for the big release. Platform work is done on short-lived feature branches named after the Jira ticket
-(`SCD-<n>-<short-name>`) and merged into `dev` by pull request once CI passes [PROPOSAL: Claude may merge its own green
-pull requests; the owner reviews everything before the prod release]. Merge `family` into `dev` after family fixes, so
-game and content fixes flow one way.
+(`SCD-<n>-<short-name>`) and merged into `dev` by pull request once CI passes [CONFIRMED by owner 2026-11-21: Claude may merge its own
+green pull requests; the owner reviews everything before the prod release]. Merge `family` into `dev` after family fixes, so
+game and content fixes flow one way. The day-to-day steps are in the [branches runbook](../runbooks/branches.md).
 Platform code stays additive where it can; where a shared file must differ (the player API, the player app), it reads
 an `edition` setting (`family` or `schools`). Whether the family edition eventually becomes a tenant of the platform, or
 both editions stay on one branch, is decided after the platform launches ([13](13-delivery-plan.md#5-decisions-still-open)).
