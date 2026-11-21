@@ -2,8 +2,8 @@
 Status: Proposed · Date: 2026-11-21
 
 Context: [0044](0044-branches-family-dev-main.md) kept the family edition on `family` and merged its fixes one way into
-`dev`, so that the platform, built from the same code, would get them too. PR #6 made the first such merge (the level
-editor's Ctrl+S fix). The owner, the same day: "family will remain untouched and not recieve any extra updates as the
+`dev`, so that the platform, built from the same code, would get them too. PR #6 merged the level editor's Ctrl+S fix
+that way. The owner, the same day: "family will remain untouched and not recieve any extra updates as the
 dev and prod platform for sca is going to be entirely different and my kids are happy with their family version -
 essentially we can see it as the POC".
 
