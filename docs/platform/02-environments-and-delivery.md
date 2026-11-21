@@ -22,8 +22,8 @@ untouched [CONFIRMED by owner, PD-1]. The one addition to the architecture still
 | Organization management | Owner's AWS Organization | Exists |
 | DNS, 521764600394 (profile `dns`) | Registration and hosted zone of `spacecolonydefence.com` | Exists [VERIFIED 2026-11-21] |
 | Family edition, 263185198757 (profile `space-tower-defence`) | `aliens.jackgl.com` | Exists, unchanged |
-| **`sca-dev`** | Development and testing; made-up data only; every merge into `dev` deploys here | New; the owner creates and bootstraps it |
-| **`sca-prod`** | Real schools, the demo school, the owner's console and content; deployed once, at the big release | New; the owner creates and bootstraps it |
+| **`sca-dev`**, 814155454655 (profile `sca-dev`) | Development and testing; made-up data only; every merge into `dev` deploys here | Created and bootstrapped by the owner [VERIFIED 2026-11-21, §3] |
+| **`sca-prod`**, 323879072257 (profile `sca-prod`) | Real schools, the demo school, the owner's console and content; deployed once, at the big release | Created and bootstrapped by the owner [VERIFIED 2026-11-21, §3] |
 
 Named `sca-dev` and `sca-prod` [CONFIRMED by owner 2026-11-21, PD-21].
 
@@ -65,7 +65,25 @@ form as the family account's (`common.auto.tfvars.json`), and each account's env
 | `infrastructure/envs/sca-dev.tfvars.json` | sca-dev | `repo:jacklavelle286@78485499/space-tower-defence@1457706183:environment:sca-dev` |
 | `infrastructure/envs/sca-prod.tfvars.json` | sca-prod | `…:environment:sca-prod` and `…:environment:sca-prod-apply` |
 
-GitHub environments to create (owner):
+The owner applied both on 2026-11-21 with the single-role shape: one CI role per account, with AdministratorAccess.
+The plan and apply role split above stays a proposal. Each account now holds the following [VERIFIED 2026-11-21,
+read-only AWS calls with the `sca-dev` and `sca-prod` profiles]:
+
+| What | Name (`<env>` is `sca-dev` or `sca-prod`; `<account>` is its ID) |
+|---|---|
+| GitHub OIDC provider, audience `sts.amazonaws.com` | `token.actions.githubusercontent.com` |
+| CI role: AdministratorAccess, 1-hour sessions, trusts exactly the subjects in the table above | `space-tower-defence-<env>-github-oidc` |
+| State bucket for the platform root (ENV-4) | `<env>-state-bucket-space-tower-defence` |
+| Release artefacts bucket | `<account>-eu-west-2-<env>-artifacts-bucket` |
+| The bootstrap's own state (made by `bootstrap.sh`) | `<account>-eu-west-2-space-tower-defence-<env>-bootstrap` |
+
+All three buckets are in eu-west-2, versioned, encrypted with SSE-S3, and block all public access. There is no lock
+table (state uses S3 native locking) and no ECR repository. Role ARNs for the platform's workflows:
+`arn:aws:iam::814155454655:role/space-tower-defence-sca-dev-github-oidc` and
+`arn:aws:iam::323879072257:role/space-tower-defence-sca-prod-github-oidc`.
+
+GitHub environments, created by the owner on 2026-11-21 [VERIFIED 2026-11-21, `gh api` on the repository's
+environments]:
 
 | Environment | Deployment branches | Reviewer | Used for |
 |---|---|---|---|
