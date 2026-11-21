@@ -21,7 +21,8 @@ and [spine S0.1](docs/plan/00-spine.md#s01-way-of-working-confirmed-by-owner-202
     body). Claude or the owner may commit and push to `family`; family releases are dispatched on `family`.
   - **`dev`** is the schools platform's integration branch. Work on short-lived feature branches named after the Jira
     ticket, `SCD-<n>-<short-name>`, merged into `dev` by pull request once CI passes. Commit messages start with the
-    ticket key (`SCD-<n> <area>: <summary>`). The SCD tickets in Jira are the source of truth for the platform's stories
+    ticket key (`SCD-<n> <area>: <summary>`). Claude may merge its own pull requests into `dev` once CI passes (owner,
+    2026-11-21; [branches runbook](docs/runbooks/branches.md)). The SCD tickets in Jira are the source of truth for the platform's stories
     ([docs/platform §6](docs/platform/README.md#6-user-stories-and-jira) on `dev`). Merge `family` into `dev` after family fixes.
   - **`main`** is kept for the platform's one big release: `dev` merges into it once, then prod deploys from it. Nothing
     else goes onto `main` until then.
