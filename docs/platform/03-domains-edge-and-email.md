@@ -1,6 +1,6 @@
 # 03. Domains, edge and email
 
-Part of the [platform scope](README.md). Status: scope, parked.
+Part of the [platform scope](README.md). Status: active on `dev` from 2026-11-21.
 
 ---
 

@@ -1,7 +1,7 @@
 # 13. Delivery plan
 
-Part of the [platform scope](README.md). Status: scope, parked. Nothing here starts until the owner takes the platform
-off the back burner.
+Part of the [platform scope](README.md). Status: active on `dev` from 2026-11-21 (PLAN-Q2); progress is in the
+[gate log](#8-gate-log).
 
 ---
 
@@ -111,7 +111,7 @@ DAT-Q (10), PRV-Q (11), MKT-Q (12). Those that block the Pilot are answered in P
 | ID | Question | Recommendation |
 |---|---|---|
 | PLAN-Q1 | What happens to the family edition after the platform launches: stay separate on `main`, or become a "family" tenant? | Decide after the pilot; keep `family` merged into `dev` until then |
-| PLAN-Q2 | When does the platform come off the back burner? | After the family edition's Gate L (launch) work is done |
+| PLAN-Q2 | When does the platform come off the back burner? | **Answered** [CONFIRMED by owner 2026-11-21]: now ("we are going to stay on this for a while"); the family edition stays playable on `family` (ADR-0044) |
 | PLAN-Q3 | Does the pilot wait for billing (Launch) or run free before billing exists? | Run the pilot free, as a "Not billed" school (BIL-1); billing is built while the pilot runs |
 | PLAN-Q4 | Add **EventBridge Scheduler** for timed jobs: notices before each billing date, trial-ending emails, PO chasers, a nightly check against Stripe, retention deletions ([09](09-billing.md) BIL-Q11, [10](10-data-and-api.md)). It is new to the architecture (PD-4) | Yes, at Launch. Without it, these become banners and owner-pressed buttons |
 

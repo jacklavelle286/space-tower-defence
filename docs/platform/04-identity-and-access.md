@@ -1,6 +1,6 @@
 # 04. Identity and access
 
-Part of the [platform scope](README.md). Status: scope, parked.
+Part of the [platform scope](README.md). Status: active on `dev` from 2026-11-21.
 
 Sources are keyed S1–S16 in [section 12](#12-sources). Code references come from a read of `main` at 292f4bc on
 2026-11-21.

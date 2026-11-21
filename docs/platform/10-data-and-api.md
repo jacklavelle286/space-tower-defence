@@ -1,6 +1,6 @@
 # 10. Data and API
 
-Part of the [platform scope](README.md). Status: scope, parked.
+Part of the [platform scope](README.md). Status: active on `dev` from 2026-11-21.
 
 Code facts come from a read of `main` at 292f4bc on 2026-11-21. Cognito and API Gateway facts are sourced in
 [04 §12](04-identity-and-access.md#12-sources).
