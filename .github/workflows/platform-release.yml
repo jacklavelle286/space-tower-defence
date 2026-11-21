@@ -4,10 +4,15 @@ name: platform-release
 # separate and untouched.
 #
 #   push to dev       -> sca-dev, automatically (GitHub environment sca-dev: dev only, no reviewer)
-#   dispatch on dev   -> sca-dev again (the owner re-runs a dev deploy, e.g. after a stale plan)
+#   dispatch on dev   -> sca-dev again, without a merge (`gh workflow run platform-release.yml --ref dev`: GitHub shows
+#                        the Run workflow button only for workflows on the default branch, main, until the big release)
 #   dispatch on main  -> sca-prod: the plan runs in environment sca-prod, and the apply waits on sca-prod-apply for the
 #                        owner's approval (both main only)
 #   anything else     -> refused by the config job
+#
+# Re-runs: each attempt saves its plan under its own prefix, plans/<run_id>-<attempt>/. "Re-run all jobs" plans again
+# (the answer to "Saved plan is stale"); "Re-run failed jobs" keeps the plan job's outputs, so the apply retries the
+# same saved plan.
 #
 #   0 config -> 1 checks -> 2 plan (saved, create-only in the account's artefacts bucket) -> 3 apply (the saved plan,
 #   nothing else; skipped when the plan has no changes) -> 4 smoke
@@ -182,6 +187,7 @@ jobs:
     outputs:
       changes: ${{ steps.plan.outputs.changes }}
       plan_sha256: ${{ steps.tarball.outputs.sha256 }}
+      plan_prefix: ${{ steps.work.outputs.prefix }}
     env:
       SHA: ${{ needs.config.outputs.sha }}
       ENVIRONMENT: ${{ needs.config.outputs.environment }}
@@ -191,10 +197,14 @@ jobs:
       STATE_BUCKET: ${{ needs.config.outputs.state_bucket }}
       ARTEFACTS_BUCKET: ${{ needs.config.outputs.artefacts_bucket }}
     steps:
-      - name: Work directory outside the checkout
+      - name: Work directory outside the checkout; this attempt's plan prefix
+        id: work
         run: |
           echo "OUT=$RUNNER_TEMP/plan" >> "$GITHUB_ENV"
           mkdir -p "$RUNNER_TEMP/plan"
+          prefix="plans/${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          echo "PREFIX=$prefix" >> "$GITHUB_ENV"
+          echo "prefix=$prefix" >> "$GITHUB_OUTPUT"
 
       - name: Checkout
         uses: actions/checkout@v7
@@ -268,11 +278,12 @@ jobs:
             head -c 900000 "$OUT/plan.txt"
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
-          jq -n --arg sha "$SHA" --arg run "$GITHUB_RUN_ID" --arg env "$ENVIRONMENT" --arg tf "$TF_VERSION" \
-            --arg lock "$(sha256sum .terraform.lock.hcl | cut -d' ' -f1)" \
+          jq -n --arg sha "$SHA" --arg run "$GITHUB_RUN_ID" --arg attempt "$GITHUB_RUN_ATTEMPT" --arg env "$ENVIRONMENT" \
+            --arg tf "$TF_VERSION" --arg lock "$(sha256sum .terraform.lock.hcl | cut -d' ' -f1)" --arg prefix "$PREFIX" \
             --argjson add "$add" --argjson change "$change" --argjson remove "$remove" \
-            '{gitSha: $sha, planRunId: $run, environment: $env, terraformVersion: $tf, lockFileSha256: $lock,
-              planKey: ("plans/" + $run + "/plan.tar.gz"), summary: {add: $add, change: $change, delete: $remove}}' \
+            '{gitSha: $sha, planRunId: $run, planRunAttempt: $attempt, environment: $env, terraformVersion: $tf,
+              lockFileSha256: $lock, planKey: ($prefix + "/plan.tar.gz"),
+              summary: {add: $add, change: $change, delete: $remove}}' \
             > "$OUT/plan-info.json"
 
       - name: Plan tarball (the root with .terraform/ and its lock file, tfplan, the modules, the env files)
@@ -298,12 +309,11 @@ jobs:
 
       - name: Upload the saved plan (create-only; plan-info.json last, as the completion marker)
         run: |
-          # plans/ expires after 30 days (the bootstrap's lifecycle rule). A tfplan is not byte-reproducible, so a
-          # re-run of this job meets the create-only refusal: dispatch platform-release again instead.
-          prefix="plans/$GITHUB_RUN_ID"
-          scripts/s3_put_create_only.sh "$ARTEFACTS_BUCKET" "$prefix/plan.tar.gz" "$OUT/plan.tar.gz"
-          scripts/s3_put_create_only.sh "$ARTEFACTS_BUCKET" "$prefix/plan.tar.gz.sha256" "$OUT/plan.tar.gz.sha256"
-          scripts/s3_put_create_only.sh "$ARTEFACTS_BUCKET" "$prefix/plan-info.json" "$OUT/plan-info.json"
+          # plans/ expires after 30 days (the bootstrap's lifecycle rule). Each attempt has its own prefix, so a re-run
+          # never meets an earlier attempt's plan; within one attempt nothing is ever overwritten.
+          scripts/s3_put_create_only.sh "$ARTEFACTS_BUCKET" "$PREFIX/plan.tar.gz" "$OUT/plan.tar.gz"
+          scripts/s3_put_create_only.sh "$ARTEFACTS_BUCKET" "$PREFIX/plan.tar.gz.sha256" "$OUT/plan.tar.gz.sha256"
+          scripts/s3_put_create_only.sh "$ARTEFACTS_BUCKET" "$PREFIX/plan-info.json" "$OUT/plan-info.json"
 
       - name: Next step
         env:
@@ -337,6 +347,7 @@ jobs:
       STATE_BUCKET: ${{ needs.config.outputs.state_bucket }}
       ARTEFACTS_BUCKET: ${{ needs.config.outputs.artefacts_bucket }}
       PLAN_SHA256: ${{ needs.plan.outputs.plan_sha256 }}
+      PLAN_PREFIX: ${{ needs.plan.outputs.plan_prefix }}
     steps:
       - name: Work directory outside the workspace
         run: |
@@ -361,16 +372,18 @@ jobs:
 
       - name: Download and verify the plan tarball
         run: |
-          prefix="plans/$GITHUB_RUN_ID"
+          # The plan job's prefix, not this attempt's: after "Re-run failed jobs" the apply retries the same plan.
+          [[ "$PLAN_PREFIX" == "plans/$GITHUB_RUN_ID-"* && "$PLAN_PREFIX" =~ ^plans/[0-9]+-[0-9]+$ ]] \
+            || { echo "::error::The plan job handed over no plan prefix for this run"; exit 1; }
           [[ "$PLAN_SHA256" =~ ^[0-9a-f]{64}$ ]] || { echo "::error::The plan job handed over no SHA-256"; exit 1; }
-          aws s3api head-object --bucket "$ARTEFACTS_BUCKET" --key "$prefix/plan-info.json" > /dev/null \
-            || { echo "::error::No completed plan for this run (plan-info.json missing)"; exit 1; }
-          aws s3api get-object --bucket "$ARTEFACTS_BUCKET" --key "$prefix/plan.tar.gz" "$OUT/plan.tar.gz" > /dev/null
+          aws s3api head-object --bucket "$ARTEFACTS_BUCKET" --key "$PLAN_PREFIX/plan-info.json" > /dev/null \
+            || { echo "::error::No completed plan at $PLAN_PREFIX (plan-info.json missing)"; exit 1; }
+          aws s3api get-object --bucket "$ARTEFACTS_BUCKET" --key "$PLAN_PREFIX/plan.tar.gz" "$OUT/plan.tar.gz" > /dev/null
           # 1. the digest the plan job handed over
           echo "$PLAN_SHA256  $OUT/plan.tar.gz" | sha256sum --check --strict
           # 2. the checksum S3 stored (and verified) at upload
           want=$(python3 -c 'import base64, sys; print(base64.b64encode(bytes.fromhex(sys.argv[1])).decode())' "$PLAN_SHA256")
-          got=$(aws s3api head-object --bucket "$ARTEFACTS_BUCKET" --key "$prefix/plan.tar.gz" --checksum-mode ENABLED \
+          got=$(aws s3api head-object --bucket "$ARTEFACTS_BUCKET" --key "$PLAN_PREFIX/plan.tar.gz" --checksum-mode ENABLED \
             --query ChecksumSHA256 --output text)
           [[ "$got" == "$want" ]] || { echo "::error::S3's stored SHA-256 for the tarball differs from the plan job's"; exit 1; }
           echo "plan.tar.gz verified: SHA-256 $PLAN_SHA256"
@@ -398,7 +411,7 @@ jobs:
         working-directory: infrastructure/platform
         run: |
           # A saved plan applies without a prompt and takes no variables. If state changed since the plan, Terraform
-          # stops with "Saved plan is stale": dispatch platform-release again on the same branch.
+          # stops with "Saved plan is stale": use "Re-run all jobs", which plans again.
           terraform apply -input=false -lock-timeout=5m tfplan
 
   # 4. smoke: read-only checks that what the root holds is there. Runs after an apply, or straight after a plan with no

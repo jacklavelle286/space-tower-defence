@@ -6,7 +6,8 @@ How the schools platform deploys: [`platform-release.yml`](../../.github/workflo
 and unchanged (`release.yml`, [rollback](rollback.md)).
 
 Each run: config → checks → plan → apply → smoke. The plan is saved create-only in the account's artefacts bucket
-(`plans/<run_id>/`, kept 30 days), and the apply applies exactly that plan. A plan with no changes skips the apply.
+(`plans/<run_id>-<attempt>/`, kept 30 days), and the apply applies exactly that plan. A plan with no changes skips the
+apply.
 
 ## Dev: every merge into `dev`
 
@@ -15,9 +16,13 @@ to do unless it fails:
 
 | What failed | What to do |
 |---|---|
-| The apply says `Saved plan is stale` | Another run changed the state first. Actions → platform-release → Run workflow → branch `dev`. |
-| "Re-run failed jobs" on the plan stops at the upload (412, create-only) | A saved plan is never overwritten. Run workflow on `dev` instead of re-running. |
+| The apply says `Saved plan is stale` | Another run changed the state first. On the run's page: **Re-run all jobs** (a new attempt plans again). |
+| The apply failed for a passing reason (throttling, a timeout) | **Re-run failed jobs**: the apply retries the same saved plan. |
 | A check or the plan fails | Fix it on an `SCD-<n>-…` branch and merge; the merge deploys. |
+
+To deploy `dev` without a merge: `gh workflow run platform-release.yml --ref dev`. GitHub shows the **Run workflow**
+button only for workflows on the default branch (`main`), so the button appears after the big release; the CLI works
+once the workflow has run at least once ([GitHub docs](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows)).
 
 ## Prod: one dispatch on `main`, one approval (the owner)
 
