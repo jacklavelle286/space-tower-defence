@@ -322,7 +322,7 @@ re-checked against a pilot school's devices.
 |---|---|
 | Routing | New routes: `/` (school start), `/class` (code and grid), `/q/:handle` (QR card), `/pictures`, `/avatar`, status pages. `/setup` and `/auth/callback` are not used by the schools edition |
 | Auth | Replace managed-login redirect with calls to the pupil sign-in API ([04](04-identity-and-access.md)); session storage per sign-in route (§7); Finish revokes |
-| Edition | An `edition` setting (`family` or `schools`) picks routes, sign-in and Home ([02 §5](02-environments-and-delivery.md#5-code-on-the-dev-branch)) |
+| Edition | No `edition` setting: the family edition is frozen on its own branch ([ADR-0045](../decisions/0045-family-edition-frozen.md)), so the player app on `dev` becomes the schools edition outright |
 | School branding | The start page shows the school's name and badge from a public, cacheable school profile (name and badge only) |
 | Home | This week card; filter maps by the class's allowed list; Continue merged into the This week card |
 | Play | Handle "paused" and "resting" answers from lease renewal and run ops; school runs use block planning |
