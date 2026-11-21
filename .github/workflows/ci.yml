@@ -99,7 +99,7 @@ jobs:
       # is pinned and hash-checked: a new provider release cannot change the result.
       - name: Terraform tests (mock providers)
         run: |
-          for dir in infrastructure/main infrastructure/modules/backup infrastructure/modules/monitoring infrastructure/modules/static_site; do
+          for dir in infrastructure/main infrastructure/platform infrastructure/modules/backup infrastructure/modules/monitoring infrastructure/modules/static_site; do
             echo "::group::terraform test $dir"
             terraform -chdir="$dir" init -backend=false -input=false -lockfile=readonly
             terraform -chdir="$dir" test
