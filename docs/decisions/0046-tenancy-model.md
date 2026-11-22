@@ -1,5 +1,5 @@
 # 0046. Tenancy model: one deployment for every school, the school taken from its address, kept apart by the API
-Status: Proposed · Date: 2026-11-22
+Status: Accepted · Date: 2026-11-22
 
 Context: the platform serves many schools, each at `<slug>.spacecolonydefence.com` [CONFIRMED by owner 2026-11-21,
 PD-6], on today's architecture (PD-4). A school is the tenant; one school seeing another's data is risk 1 in
@@ -36,10 +36,9 @@ Consequences: amends [0004](0004-two-dynamodb-tables.md) for the `tenancy` table
 [0048](0048-staff-sign-in-and-access-control.md). Harder: every check is ours, so the route × role matrix (AUTH-8) and
 the isolation suite (DAT-14) run in CI, the suite also against dev; schools share one API stage, so throttles are sized
 for whole classes, with fairness per pupil and school in code (DAT-Q6, load test DAT-19). A deleted school's audit
-items, outside `SCH#`, are kept 2 years (PQ-15, register PS0-7). Open: pupils' `username` claim is UNVERIFIED (10 §2.2
-defers it to AUTH-20, a Launch spike, but DAT-5 is Pilot), so it is checked in PS7, where the pupil pool is built; 05
-§5.3, §5.6, CON-11 and DAT-2 still hold a deleted slug 12 months, which the
-[register](../platform/14-decision-register.md) replaces with DAT-Q8 (CON-Q2).
+items, outside `SCH#`, are kept 2 years (PQ-15, register PS0-7). A deleted slug is never reused (DAT-Q8), as 05 and
+10 now say ([register](../platform/14-decision-register.md), CON-Q2). Open: pupils' `username` claim is UNVERIFIED
+(10 §2.2), so the spike in sca-dev before PS5 checks it (PS0-11, AUTH-26).
 
 Evidence: [README §3](../platform/README.md#3-decisions-so-far); DNS-Q2 (03 §10); CON-Q2
 ([05 §14](../platform/05-platform-console.md#14-decisions-for-the-owner)), 05 §5.4; DAT-Q1, DAT-Q2, DAT-Q6, DAT-Q8

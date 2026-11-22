@@ -35,8 +35,8 @@ Facts from the family edition, and whether the platform keeps each [VERIFIED cod
 | Two pools (players, operators) from one module, `ESSENTIALS` tier, deletion protection | `infrastructure/modules/cognito_pool/main.tf:38`; `infrastructure/main/main.tf:560-638` | Keep the module; add the staff and pupil pools |
 | Managed login v2 on Cognito prefix domains; one public client per pool, code flow with PKCE, one custom scope (`game/play`, `ops/content`) | `cognito_pool/main.tf:105-164` | Operators unchanged. Staff and pupils mostly don't use managed login (§4, §6) |
 | Players self-sign-up behind a daily cap (`cognito-presignup`); username only; recovery `admin_only` | `api/functions/cognito_presignup/handler.py:47-81`; `cognito_pool/main.tf:62-67` | Not used: staff are invited and pupils are created by teachers |
-| Operators: AdminCreateUser only, TOTP MFA required, refresh 30 days with rotation, group `admin` | `cognito_pool/main.tf:78-88`; `main.tf:605-637` | Kept for the console |
-| Console keeps its refresh token in `localStorage` only when "Trust this browser for 30 days" is ticked (ADR-0042, still Proposed) | `web/admin/src/auth/session.ts:4-12, 36-37` | Kept |
+| Operators: AdminCreateUser only, TOTP MFA required, refresh 30 days with rotation, group `admin` | `cognito_pool/main.tf:78-88`; `main.tf:605-637` | Kept for the console, but the 30-day window becomes 12 hours (CON-Q8) |
+| Console keeps its refresh token in `localStorage` only when "Trust this browser for 30 days" is ticked (ADR-0042, still Proposed) | `web/admin/src/auth/session.ts:4-12, 36-37` | Kept, but a trusted browser lasts 12 hours, not 30 days (CON-Q8) |
 | Player app uses `aws-amplify` 6 (auth only); tokens in `localStorage` | `web/player/src/auth/amplifyAuth.ts:24-66` | Staff portal and pupil app use Amplify too |
 | JWT authorisers check issuer and client ID; each function re-checks route, `token_use=access`, `admin` group and a UUID `sub` | `infrastructure/modules/http_api/main.tf:23-36`; `api/shared/auth.py:72-93` | Kept and extended with school membership (§5) |
 
@@ -260,13 +260,14 @@ The staff path through `school_api` (and `billing` for `/api/school/billing/*`):
   - The origin-verify header stops such calls earlier.
   - It also protects `pupil_auth`, which has no authoriser.
 - Scopes are required on every route because ID tokens can pass a client-ID audience check [VERIFIED S12].
-- Whether pre token generation v2 adds custom scopes to tokens from the user-pool API (not just OAuth) is
-  [UNVERIFIED: spike]. If it doesn't, the routes require `aws.cognito.signin.user.admin` instead.
+- Whether pre token generation v2 adds custom scopes to tokens from the user-pool API (not just OAuth), `school/staff`
+  to staff tokens and `game/play` to pupils', is [UNVERIFIED: a spike in sca-dev before PS5 checks it (PS0-11)]. If it
+  doesn't, the routes require `aws.cognito.signin.user.admin` instead.
 
 ### 5.4 Pupils
 
 `player_api` takes the pupil's ID from the access token's `username` claim, which is the pupilId [UNVERIFIED that the
-claim is present: check the access token claims in the spike]. It then:
+claim is present: a spike in sca-dev before PS5 checks the access token claims (PS0-11)]. It then:
 
 1. reads the pupil and their class from `tenancy`;
 2. checks that the host's school is the pupil's school, the pupil is enrolled, the school is not suspended and the class
@@ -293,10 +294,10 @@ recreated ([10 §2.2](10-data-and-api.md#22-changes-to-game), DAT-Q2).
 
 | | **Class code** (classroom) | **QR card** (any time, e.g. homework book) |
 |---|---|---|
-| Starts with | The teacher opens **class sign-in** (default 60 minutes, at most 3 hours [PROPOSAL]); a code like `KMTPRW` and its QR show on the board | The card's QR opens `https://<slug>.spacecolonydefence.com/c/<handle>` |
+| Starts with | The teacher opens **class sign-in** (default 60 minutes, at most 3 hours [PROPOSAL]); a code like `KMTPRW` and its QR show on the board | The card's QR opens `https://<slug>.spacecolonydefence.com/q/<handle>` (PS0-9) |
 | Pupil sees | The class's first names with last initials and avatars, only while sign-in is open | Their own first name and avatar |
 | Then | Taps their name → picture password (or typed password) | Picture password (or typed password) |
-| Works when | Sign-in is open; the school is not suspended | Always, unless the school turned home play off or is suspended |
+| Works when | Sign-in is open; the school is not suspended | Always, unless the school is suspended. If the class's home play is off, only within the school's hours (SCH-Q8, PS0-10) |
 | Not a secret | The code reveals the class list during the window | The handle reveals one first name and avatar |
 
 ### 6.2 What happens on the server
@@ -342,11 +343,11 @@ minutes" [VERIFIED S15]. Proposed numbers [PROPOSAL, AUTH-Q6]:
 
 | Scope | Rule | Effect |
 |---|---|---|
-| One pupil | 5 wrong answers | Locked 5 minutes (at most 5 guesses per 5 minutes) |
+| One pupil | 5 wrong answers in a row; a correct sign-in resets the count (PUP-Q2) | Locked 5 minutes (at most 5 guesses per 5 minutes) |
 | One pupil | 10 wrong answers in 24 hours | Locked until a teacher unlocks; the teacher sees a badge |
 | One class (code route) | 30 wrong answers in 5 minutes | Class sign-in closes; the teacher sees why |
 | One school | 200 wrong answers in 5 minutes | Alarm to the owner |
-| Per IP | A CloudFront WAF rate-based rule on `/api/pupil-auth/*`, generous, because a whole school shares one IP | 429 |
+| Per IP | From Launch, with DNS-Q3: a CloudFront WAF rate-based rule on `/api/pupil-auth/*`, generous, because a whole school shares one IP. The Pilot relies on the throttles in code (DAT-Q6) | 429 |
 
 At 5 guesses per 5 minutes, a classmate guessing has about a 1% chance per lock window and at most 10 tries a day. The
 DPIA records this trade-off ([11](11-privacy-security-and-assurance.md)). The harm is a classmate playing as someone
@@ -354,10 +355,11 @@ else; no personal data beyond a first name is exposed.
 
 ### 6.5 Class codes and QR handles
 
-- **Class code**:
-  - 6 letters from an alphabet without look-alikes (no I, L, O): about 148 million combinations;
-  - unique within the school;
-  - kept until the teacher asks for a new one, so it can stay on the wall;
+- **Class code** (SCH-Q6, PS0-8):
+  - 6 consonants: no vowels, so no accidental words, and no look-alikes (no L). The other 20 consonants give 64
+    million combinations [ASSUMPTION: the exact letters are chosen when it is built];
+  - unique within the school while sign-in is open;
+  - **new each time class sign-in opens**, so yesterday's code no longer works;
   - **only works while class sign-in is open** (PQ-11).
 - **QR handle**:
   - 128 random bits, base32;
@@ -381,8 +383,8 @@ else; no personal data beyond a first name is exposed.
 - **Created at first sign-in**, not at enrolment. A CSV of 300 pupils makes only `tenancy` records, so imports never
   hit Cognito's UserCreation quota of 50 per second per account [VERIFIED S1].
 - Creation: AdminCreateUser with the message suppressed, then AdminSetUserPassword with a long random permanent password
-  that is never stored. No password flow is enabled on `pupil-web`, so it cannot be used [ASSUMPTION: confirm in the
-  spike that custom auth works for a user in this state].
+  that is never stored. No password flow is enabled on `pupil-web`, so it cannot be used [ASSUMPTION: a spike in sca-dev
+  before PS5 confirms that custom auth works for a user in this state (PS0-11)].
 - **Archiving or deleting a pupil deletes their Cognito user** (AdminDeleteUser). Their data is keyed by pupilId, so
   nothing is lost if they are restored and the user is recreated.
 
@@ -392,7 +394,7 @@ else; no personal data beyond a first name is exposed.
 
 - The same as today, in each new account: AdminCreateUser only, TOTP MFA required, the console's own PKCE code, and the
   trusted browser of ADR-0042, which is still Proposed and whose first live renewal check (U-058) is open [VERIFIED
-  code map].
+  code map]. On the platform a trusted browser lasts 12 hours, not ADR-0042's 30 days (CON-Q8).
 - New scope `ops/platform` for `/api/platform/*`, alongside `ops/content` [PROPOSAL].
 - Operator groups stay. Today's exact `admin` group check [VERIFIED `api/shared/auth.py:72-93`] becomes named
   permissions:
@@ -450,7 +452,7 @@ Sign-in failures are counted on the pupil item and in metrics, not written as au
 | MFA | Required for staff (native); schools enforce it for Microsoft and Google |
 | Membership check per request | §5.3; removal works at once |
 | Scopes on every route | Stops ID tokens being used as access tokens [VERIFIED S12] |
-| Pupil limits | §6.4; WAF on CloudFront (WAF cannot attach to an HTTP API stage, E §E.2) |
+| Pupil limits | §6.4; from Launch, WAF on CloudFront (DNS-Q3; WAF cannot attach to an HTTP API stage, E §E.2) |
 | KMS | Pupil secrets only, decrypt by `school_api` alone |
 | CSP | Enforced on the platform. Today the family edition's CSP is still Report-Only [VERIFIED code map] |
 | Cognito quotas | Per account, all pools: UserAuthentication 120 RPS, RespondToAuthChallenge three times that, UserCreation 50 RPS, 10 operations per second per user. Adjustable; self-service increases are billed (since July 2026) [VERIFIED S1] |
@@ -459,6 +461,9 @@ Sign-in failures are counted on the pupil item and in metrics, not written as au
 ---
 
 ## 11. Decisions for the owner
+
+Answered at the PS0 gate on 2026-11-22: every recommendation below was accepted, except where the
+[decision register](14-decision-register.md) says Open.
 
 | ID | Question | Recommendation |
 |---|---|---|

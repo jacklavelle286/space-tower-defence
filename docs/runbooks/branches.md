@@ -8,7 +8,7 @@ Why: [ADR-0044](../decisions/0044-branches-family-dev-main.md) and
 | `family` | The family edition, `aliens.jackgl.com`: the proof of concept, **frozen** from 2026-11-21 | Nothing: no commits, releases or merges into `dev` |
 | `dev` | The schools platform; deploys to sca-dev on every merge | Pull requests only, with the four CI checks passing (repository ruleset) |
 | `SCD-<n>-<short-name>` | One Jira story or phase | Commits `SCD-<n> <area>: …`; lives for days, then merges into `dev` |
-| `main` | Untouched until the platform's one big release | One pull request from `dev`, at the big release |
+| `main` | The platform's release branch; untouched until the Pilot release | One pull request from `dev` at each release (Pilot, Launch, Later) |
 
 `main`, `family` and `dev` can't be deleted or force-pushed (ruleset "Long-lived branches").
 
@@ -43,7 +43,8 @@ deletion and force-pushes.
 
 Changes flow one way: `SCD-<n>-…` → `dev` → `main`.
 
-## The big release
+## Releases to prod
 
-When the platform is ready, one pull request from `dev` into `main` (**Create a merge commit**). The owner then
-dispatches the platform release on `main` and approves `sca-prod-apply` (ADR-0044, ENV-6).
+At each release (the Pilot first, then Launch and Later), one pull request from `dev` into `main` (**Create a merge
+commit**). The owner then dispatches the platform release on `main` and approves `sca-prod-apply`
+([ADR-0055](../decisions/0055-prod-release-per-release.md), ENV-6).

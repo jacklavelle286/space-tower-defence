@@ -1,5 +1,5 @@
 # 0048. Staff and operator sign-in, and access checked by our API on every request
-Status: Proposed · Date: 2026-11-22
+Status: Accepted · Date: 2026-11-22
 
 Context: staff sign in at `/staff` on their school's address, the owner at `admin.` (PQ-1, PD-5). PD-7 sets the roles;
 PD-9 puts email, password and MFA first, Microsoft and Google next. Cognito callback URLs match exactly, 100 per client

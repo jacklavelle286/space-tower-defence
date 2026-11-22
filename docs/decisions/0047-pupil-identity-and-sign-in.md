@@ -1,5 +1,5 @@
 # 0047. Pupil identity: a pupil pool, sign-in through our API, picture or typed passwords
-Status: Proposed · Date: 2026-11-22
+Status: Accepted · Date: 2026-11-22
 
 Context: pupils in Years 1 to 4 have no email and share classroom devices. PD-13 (owner, 2026-11-21): a class code and a
 picture password, or a QR card in the homework book; typed passwords per class at the teacher's choice (meant for Years
@@ -36,11 +36,11 @@ pupilId from the access token's `username` claim, not `sub`; DAT-Q2 keys pupils'
 recreated Cognito user ([0046](0046-tenancy-model.md) owns keying). Harder: our own sign-in code, triggers (5-second
 limit), KMS key and pepper. Pupil sign-in replaces the PKCE flow of `prompt.md:777`, a change N-8 reserves to the owner:
 accepting this ADR approves it. 504 combinations are weak offline, so the online limits are the protection. Open, for a
-spike in sca-dev before PS7 (register PS0-11): the `username` claim; custom auth for a user with an unused password;
-pre token generation adding `game/play`. 04 §6.4's per-IP WAF rule waits for DNS-Q3 (Launch). Where the documents
-disagree, the [register](../platform/14-decision-register.md) settles it: the class code is new at each opening
-(PS0-8; 04 §6.5 kept it until renewed), cards use `/q/` (PS0-9; 04 §6.1 said `/c/`), and home play is a class setting
-that limits cards to school hours (PS0-10; 04 §6.1 made it a school setting that stops cards).
+spike in sca-dev before PS5 (register PS0-11, AUTH-26): the `username` claim; custom auth for a user with an unused
+password; pre token generation adding `game/play`. 04 §6.4's per-IP WAF rule waits for DNS-Q3 (Launch). Where the
+documents disagree, the [register](../platform/14-decision-register.md) settles it: the class code is new at each
+opening (PS0-8; 04 §6.5 kept it until renewed), cards use `/q/` (PS0-9; 04 §6.1 said `/c/`), and home play is a class
+setting that limits cards to school hours (PS0-10; 04 §6.1 made it a school setting that stops cards).
 
 Evidence: PD-13, PQ-6, PQ-9, PQ-11 ([README §3](../platform/README.md#3-decisions-so-far)); AUTH-Q4 to AUTH-Q8
 ([04 §6](../platform/04-identity-and-access.md#6-pupil-sign-in), §11); PUP-Q1 to PUP-Q4 and SCH-Q6 to SCH-Q8

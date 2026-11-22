@@ -9,7 +9,8 @@ Part of the [platform scope](README.md). Status: active on `dev` from 2026-11-21
 Everything the platform serves sits under `spacecolonydefence.com`. Each school is a subdomain served by one wildcard
 CloudFront distribution. A CloudFront Function tells the API which school a request came from, from the host name. Email
 (staff invitations, MFA codes, notices) goes out through SES from the same domain. The zone stays in the owner's DNS
-account; the pipelines change its records through a narrow cross-account role (PQ-3).
+account; only the prod pipeline changes its records, through a narrow cross-account role, and dev manages its own
+delegated zone (PQ-3, PS0-4).
 
 ---
 
@@ -31,13 +32,13 @@ The family edition's domain, `jackgl.com`, is in another account (060421969689) 
 
 | Option | How | For | Against |
 |---|---|---|---|
-| **A. Cross-account role** [PROPOSAL] | A role in the DNS account that the prod and dev pipeline roles may assume. It may change records in zone `Z05584941EODCDVG5OXIT` only, limited further by Route 53's condition keys on record names and types. Terraform in `infrastructure/platform` uses it through a second provider | Records follow the code, including certificate validation; no hand steps per release | One more trust relationship; the owner creates the role (DNS account bootstrap) |
+| **A. Cross-account role** [CONFIRMED by owner 2026-11-22, DNS-Q1] | A role in the DNS account that only the prod pipeline role may assume (PS0-4). It may change records in zone `Z05584941EODCDVG5OXIT` only, limited further by Route 53's condition keys on record names and types. Terraform in `infrastructure/platform` uses it through a second provider | Records follow the code, including certificate validation; no hand steps per release | One more trust relationship; the owner creates the role (DNS account bootstrap) |
 | B. Hand-off, as today | The owner creates records from Terraform outputs, as for `aliens.jackgl.com` ([docs/runbooks/dns-hand-off.md](../runbooks/dns-hand-off.md)) | No cross-account access | Every new certificate or host needs the owner at the console |
 | C. Move the zone | Point the registration at a zone in the prod account | Prod owns everything | Breaks the owner's "central DNS account" pattern |
 
 Dev gets a **delegated zone**, `dev.spacecolonydefence.com`, in the dev account, with an NS record in the parent zone
 (created once, by the owner or the prod-side role). The dev pipeline then manages its own records without touching the
-parent zone [PROPOSAL].
+parent zone [CONFIRMED by owner 2026-11-22, DNS-Q1].
 
 Condition keys for restricting record changes by name and type exist in Route 53's IAM support [UNVERIFIED: confirm the
 current key names in the Route 53 IAM reference before writing the policy].
@@ -89,8 +90,9 @@ so dev has its own certificate in the dev account.
 **Reserved**, never a school: `www`, `admin`, `api`, `app`, `auth`, `login`, `sso`, `id`, `hooks`, `mail`, `smtp`,
 `status`, `help`, `support`, `docs`, `blog`, `billing`, `pay`, `portal`, `staff`, `school`, `schools`, `teacher`,
 `teachers`, `pupil`, `pupils`, `parent`, `parents`, `account`, `accounts`, `static`, `assets`, `cdn`, `media`, `dev`,
-`staging`, `test`, `demo` (held by the demo tenant), and anything starting with `xn--` or containing `--`. The list lives
-in the console settings ([05](05-platform-console.md)) and in the slug validator's tests.
+`staging`, `test`, `demo` (held by the demo tenant), and anything starting with `xn--` or containing `--`. There is one
+reserved list: the union of this one and the list in [05 §11.4](05-platform-console.md#114-settings), kept in one file
+that the console and the API both read (PS0-6).
 
 ---
 
@@ -218,6 +220,9 @@ full assurance pack):
 
 ## 10. Decisions for the owner
 
+Answered at the PS0 gate on 2026-11-22: every recommendation below was accepted, except where the
+[decision register](14-decision-register.md) says Open.
+
 | ID | Question | Recommendation |
 |---|---|---|
 | DNS-Q1 | Who changes records in the DNS account (§3)? | **Answered** [CONFIRMED by owner 2026-11-22]: A, a cross-account role limited to the zone, plus a delegated dev zone |
@@ -235,12 +240,12 @@ full assurance pack):
 
 | ID | Story | Acceptance criteria | Release |
 |---|---|---|---|
-| DNS-1 | As the owner, I want the pipelines to manage records in my DNS account's zone without broader access, so that releases need no hand steps | A role in the DNS account allows record changes in `Z05584941EODCDVG5OXIT` only (names and types restricted); prod and dev pipeline roles can assume it; a test change outside the zone is refused | Pilot |
+| DNS-1 | As the owner, I want the prod pipeline to manage records in my DNS account's zone without broader access, so that releases need no hand steps | A role in the DNS account allows record changes in `Z05584941EODCDVG5OXIT` only (names and types restricted); only the prod pipeline role can assume it (PS0-4); a test change outside the zone is refused | Pilot |
 | DNS-2 | As a developer, I want `dev.spacecolonydefence.com` delegated to the dev account, so that dev manages its own records | NS record in the parent zone; dev zone in the dev account; `dig` resolves a dev test record | Pilot |
 | DNS-3 | As the owner, I want edge certificates for prod and dev, so that every host is HTTPS | Certificates issued and validated by DNS; renewals automatic; `*.spacecolonydefence.com` and the apex covered | Pilot |
 | DNS-4 | As a pupil, I want my school's address to open my school's sign-in, so that I see my class and not another school's | `stjosephs.<domain>` and `oakfield.<domain>` (made-up slugs) each show their own school's name; an unknown slug shows "School not found" | Pilot |
 | DNS-5 | As the platform, I want every API request from a school host to carry that school's slug set at the edge, so that the API never trusts the browser for it | The function overwrites a client-supplied `x-scd-host`; a request with a forged header still reaches the API with the host's slug; tests cover malformed hosts | Pilot |
-| DNS-6 | As the platform, I want the API to accept only requests that came through CloudFront, so that edge protections can't be bypassed | Requests to the execute-api URL without the origin-verify secret get 403; the secret rotates without downtime | Launch |
+| DNS-6 | As the platform, I want the API to accept only requests that came through CloudFront, so that edge protections can't be bypassed | Requests to the execute-api URL without the origin-verify secret get 403; the secret rotates without downtime | Pilot (PS0-5) |
 | DNS-7 | As the owner, I want slugs validated against the rules and the reserved list, so that no school takes `admin` or a confusing name | Validator tests cover pattern, length, reserved names and reuse of a deleted slug | Pilot |
 | DNS-8 | As the owner, I want to rename a school's slug with a redirect, so that a renamed school keeps working | Old slug redirects for 12 months to the new one; QR cards made before the change still work during that time | Later |
 | DNS-9 | As a pupil, I want the pages to load only our own code, so that nothing tracks me | Enforced CSP per site with no third-party script sources; a CSP report-only canary shows no violations in normal use | Pilot |

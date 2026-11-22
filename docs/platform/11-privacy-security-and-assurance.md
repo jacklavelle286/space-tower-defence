@@ -69,7 +69,7 @@ The ICO's *Edtech examined* report (24 June 2026) covers audits of 28 providers 
 |---|---|---|---|---|---|
 | Pupil record | Pupils | First name, last initial, year group, class, optional school reference, an avatar from the game's art (PQ-9) | Sign-in, and choosing the right content | DynamoDB, eu-west-2 | While enrolled, then 90 days after leaving |
 | Sign-in secret | Pupils | Picture or typed password, encrypted with a KMS key; lockout counters | Sign-in | DynamoDB and KMS, eu-west-2 | Deleted with the pupil record |
-| Sign-in identity | Pupils | A Cognito user named by an opaque ID; no email, no phone number | Issuing tokens | Cognito, eu-west-2 | Deleted with the pupil record |
+| Sign-in identity | Pupils | A Cognito user named by an opaque ID; no email, no phone number | Issuing tokens | Cognito, eu-west-2 | Deleted when the pupil is archived (10 §6) |
 | Play and practice | Pupils | Runs, answers and attempts, practice by topic, badges, time played | The game, and the teacher's progress views | DynamoDB, eu-west-2 | Deleted with the pupil record |
 | Staff account | Staff | Name, school email, access level, billing flag, sign-in method, last sign-in; MFA secrets are held by Cognito | Portal access | Cognito and DynamoDB, eu-west-2 | Until the person is removed |
 | Audit log | Staff (and pupils, as the records acted on) | Who did what, when, to which record; never a secret | Accountability to the school | DynamoDB, eu-west-2 | 2 years |
@@ -150,7 +150,7 @@ are recorded ([06](06-school-portal.md)). A school that wants a signed copy gets
 |---|---|---|---|---|
 | Amazon Web Services | Hosting (CloudFront, S3, Lambda, DynamoDB, Cognito, KMS), email (SES), speech synthesis (Polly) | Everything in §3 except payment details | eu-west-2; CloudFront edges as in §3 | Yes |
 | Stripe | Invoices and payments ([09](09-billing.md)) | Billing contacts, the school's name and address, invoice amounts, pupil counts | United States (§3) | No pupil data. Stripe is our processor for billing, and a controller in its own right for fraud prevention, anti-money-laundering, know-your-customer checks and legal compliance [VERIFIED S13] |
-| AI providers used to make content: OpenAI for pictures, called by `picture_gen` [VERIFIED infrastructure/main/variables.tf:188-219, from the code map], and any provider later used to draft questions | Drafting content for the owner to review | **None.** They receive only the owner's prompts and content drafts, never school, staff or pupil data (PD-11) | — | **No** [PROPOSAL; the solicitor confirms they need not be listed as sub-processors for school data] |
+| AI providers used to make content: OpenAI for pictures, called by `picture_gen` [VERIFIED infrastructure/main/variables.tf:188-219, from the code map], and for drafting questions too (LRN-Q8, [ADR-0054](../decisions/0054-ai-drafting-uses-openai.md)) | Drafting content for the owner to review | **None.** They receive only the owner's prompts and content drafts, never school, staff or pupil data (PD-11) | — | **No** [PROPOSAL; the solicitor confirms they need not be listed as sub-processors for school data] |
 
 Two facts back the AI row:
 
@@ -187,7 +187,7 @@ S2]. We provide two documents [PROPOSAL]:
 | A classmate guesses a pupil's picture password and plays as them | Possible; minimal harm | Lockout within "no more than 10 guesses in 5 minutes" (§10); teacher reset; nothing sensitive behind the sign-in |
 | Someone outside school sees a QR card | Possible; minimal harm | The card's code is unguessable and shows only a first name, an initial and an avatar. Signing in still needs the pictures, and the card can be reissued ([07](07-pupil-experience.md)) |
 | The class sign-in page shows the class list | Possible; minimal harm | Only while the teacher has class sign-in open (PQ-11) |
-| A bug shows one school's data to another | Unlikely; significant harm | One access-check module; tests on every route and role; the request's school must match the token's school ([04](04-identity-and-access.md), [10](10-data-and-api.md)); penetration test |
+| A bug shows one school's data to another | Unlikely; significant harm | One access-check module; tests on every route and role; on every request the API checks an active membership of the host's school (for a pupil, that they are enrolled there), and the token proves identity only ([ADR-0046](../decisions/0046-tenancy-model.md), [ADR-0048](../decisions/0048-staff-sign-in-and-access-control.md); [04](04-identity-and-access.md), [10](10-data-and-api.md)); penetration test |
 | A staff account is taken over | Unlikely; significant harm | MFA, or the school's own MFA for Microsoft and Google; leavers removed; session timeouts |
 | Support access is misused | Unlikely; significant harm | Only at the school's request; time-limited; audited; visible to the school |
 | Data is kept longer than needed | Unlikely; moderate harm | Automatic deletion (§7) |
@@ -203,17 +203,17 @@ S2]. We provide two documents [PROPOSAL]:
 | Data | Kept | Then | How |
 |---|---|---|---|
 | An enrolled pupil's data | While the pupil is enrolled and the licence is live | — | — |
-| An archived pupil (left the school) | 90 days after archiving (PRV-Q3) | Deleted, with their Cognito user | TTL and a deletion job |
-| A school's data after its licence ends | 90 days, read-only, for export (PQ-15) | Deleted: pupils, classes, staff, game data, Cognito users | Deletion job, recorded |
+| An archived pupil (left the school) | 90 days after archiving (PRV-Q3) | Deleted | DynamoDB TTL, set at archiving (DAT-Q4). Their Cognito user is deleted at archiving ([10 §6](10-data-and-api.md#6-retention-and-deletion)) |
+| A school's data after its licence ends | 90 days, read-only, for export (PQ-15) | Deleted: pupils, classes, staff, game data, Cognito users | DynamoDB TTL, set when the school ends and recorded (DAT-Q4). Pupils' and other staff's Cognito users are deleted when it ends ([10 §6](10-data-and-api.md#6-retention-and-deletion)); a scheduler job at Launch deletes its Admins' Cognito users at day 90 (PS0-12) |
 | A staff account | Until the person is removed | Cognito user and membership deleted; their audit lines kept | Portal action |
 | Audit log | 2 years (PQ-15) | Deleted | TTL |
 | Lockout counters and sign-in attempts | 24 hours (PRV-Q9) | Deleted | TTL |
-| Invoices and billing records | 6 years (PQ-15) [UNVERIFIED: the accountant confirms the period] | Deleted from our copy; Stripe keeps its own records under its terms | Deletion job |
+| Invoices and billing records | 6 years (PQ-15) [UNVERIFIED: the accountant confirms the period] | Deleted from our copy; Stripe keeps its own records under its terms | DynamoDB TTL (DAT-Q4) |
 | Demo requests | 12 months (MKT-Q2) | Deleted | TTL |
 | Application logs | 90 days (PRV-Q9) | Expire | Log retention setting |
 | Backups | AWS Backup recovery points, plus DynamoDB point-in-time recovery (PITR) | Deleted data leaves the backups when the oldest recovery point expires | The family edition keeps 7 daily points [VERIFIED: AWS Backup daily, 7 points, from the code map]; the platform's PITR period is [UNVERIFIED: check DynamoDB's PITR period options] |
 
-The DPA gives two numbers [PROPOSAL; N and M are set when the jobs are built]:
+The DPA gives two numbers [PROPOSAL; N and M are set when deletion is built]:
 
 - deletion from live systems within N days;
 - deletion from backups within M days.
@@ -265,7 +265,7 @@ A runbook in `docs/runbooks/` and a yearly tabletop exercise put this into pract
 | Owner MFA | TOTP required, as for operators today [VERIFIED infrastructure/modules/cognito_pool/main.tf:78-88] | A console sign-in test |
 | Pupil sign-in | Picture or typed passwords. The DfE allows pupils "other means of logging on, other than passwords – for example, using a PIN code" [VERIFIED S4] | [07](07-pupil-experience.md) |
 | Guessing limits | Limits per pupil and per class, inside the DfE example of "no more than 10 guesses in 5 minutes" [VERIFIED S4]; the teacher can unlock | Tests (PRV-9) |
-| Keeping schools apart | On every request, one module checks that the school in the address matches the school in the token and the school that owns the record | A route × role test suite; the penetration test |
+| Keeping schools apart | On every request, one module checks an active membership of the school in the address (for a pupil, that they are enrolled there) and that this school owns the record; the token proves identity only (ADR-0046, ADR-0048) | A route × role test suite; the penetration test |
 | Least privilege | One IAM role per function. Functions that touch school data never touch content, and the other way round, as today (admin-api never touches `game`) [VERIFIED, from the code map] | IAM review; deny tests |
 | Encryption | TLS 1.2 or later at CloudFront [VERIFIED static_site module: TLS 1.2 (2021 policy)]; storage encrypted at rest [ASSUMPTION: AWS-managed encryption on DynamoDB and S3]; pupils' sign-in secrets under a customer-managed KMS key ([02](02-environments-and-delivery.md)) | Terraform |
 | Secrets | Secrets Manager. The owner sets the values; Claude never reads them (CLAUDE.md) | — |
@@ -318,7 +318,7 @@ publish a **domain list for school IT** [PROPOSAL; finalised once [03](03-domain
 
 | Domain | Used by | Why |
 |---|---|---|
-| `spacecolonydefence.com`, `*.spacecolonydefence.com` | Pupils and staff | The school's own site, the portal, staff sign-in (`login.`), the marketing site |
+| `spacecolonydefence.com`, `*.spacecolonydefence.com` | Pupils and staff | The school's own site, the portal, staff sign-in with Microsoft and Google (`login.`, from Launch), the marketing site |
 | `cognito-idp.eu-west-2.amazonaws.com` | Staff, and pupils if their browsers call Cognito directly | Sign-in and token refresh |
 | The platform's audio bucket host, e.g. `<bucket>.s3.eu-west-2.amazonaws.com` | Pupils | Speech clips, fetched through short-lived links as in the family edition today [VERIFIED, from the code map] |
 | Stripe's hosted pages: the hosted invoice page, the customer portal, Checkout for Direct Debit mandates | Billing admins only | Paying invoices ([09](09-billing.md)). The exact hostnames are [UNVERIFIED: check Stripe's published domain list] |
@@ -445,6 +445,9 @@ All checked 2026-11-21.
 
 ## 19. Decisions for the owner
 
+Answered at the PS0 gate on 2026-11-22: every recommendation below was accepted, except where the
+[decision register](14-decision-register.md) says Open.
+
 | ID | Proposal |
 |---|---|
 | PRV-Q1 | Tell affected schools within **24 hours** of confirming a breach |
@@ -485,7 +488,7 @@ All checked 2026-11-21.
 | PRV-16 | As a school, I want the pupil app and the portal audited against WCAG 2.2 AA, so that every pupil and member of staff can use them | An independent audit is done; issues are fixed or listed in a published accessibility statement | Launch |
 | PRV-17 | As a school's IT lead, I want a domain list, so that our filtering doesn't block lessons | The list is published (§12); a filtered classroom device at the pilot school reaches every listed domain before the first lesson | Pilot |
 | PRV-18 | As a school, I want a status page and incident emails, so that I know when something is wrong | The status page is hosted outside the platform's accounts; affected schools' Admins are emailed when an incident starts and ends | Launch |
-| PRV-19 | As a DPO, I want support access audited and visible, so that the supplier can't look at data unseen | Support access works only after the school grants it, and expires; every action is audited and shown in the school's audit log ([04](04-identity-and-access.md)) | Pilot |
+| PRV-19 | As a DPO, I want support access audited and visible, so that the supplier can't look at data unseen | Support access works only after the school grants it, and expires; every action is audited and shown in the school's audit log ([04](04-identity-and-access.md)) | Launch (with support access, AUTH-Q9) |
 | PRV-20 | As the owner, I want a restore drill each term, so that the backups are proven | The drill restores a platform table into a new table, checks it, and records the result in `docs/validation/` | Launch |
 | PRV-21 | As a school, I want a privacy notice template for parents, so that families know how pupils' data is used | Checked by the solicitor; describes our processing; given to the pilot school | Pilot |
 | PRV-22 | As the owner, I want the terms accepted in the portal, so that every school is on the current terms | The first Admin must accept before setup continues; the version, the person and the time are recorded; a new version asks for acceptance again | Launch |

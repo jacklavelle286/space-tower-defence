@@ -304,7 +304,8 @@
   "LRN-26": "SCD-302",
   "LRN-27": "SCD-303",
   "PS0": "SCD-299",
-  "OWN-16": "SCD-304"
+  "OWN-16": "SCD-304",
+  "AUTH-26": "SCD-305"
  },
  "note": "Created as KAN on 2026-11-21 and renamed SCD the same day; Jira keeps the old KAN keys working."
 }

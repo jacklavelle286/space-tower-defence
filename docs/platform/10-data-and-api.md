@@ -21,7 +21,7 @@ What changes:
 | Layer | Change |
 |---|---|
 | Tables | `game` and `content` stay. A new **`tenancy`** table holds everything about schools: schools, staff, classes, pupils, sign-in, imports, audit, support access, plans and the billing mirror |
-| Keys | Everything a school owns sits under `SCH#<schoolId>`. A school's data is one partition: easy to keep apart, export and delete |
+| Keys | Everything a school owns sits under `SCH#<schoolId>`, except its audit, lookup and rate-counter items (ADR-0046). The rest is one partition: easy to keep apart, export and delete |
 | Pupils' play | Stays in `game`, keyed by **pupilId** for school pupils (DAT-Q2) |
 | API | New route groups: `/api/pupil-auth/*`, `/api/school/*`, `/api/platform/*`, `/api/hooks/stripe`. The player routes become school-aware |
 | Functions | New: `school_api`, `platform_api`, `pupil_auth`, `auth_triggers` (two deployments), `billing`. Existing functions are unchanged apart from `player_api` and `tts` |
@@ -45,7 +45,7 @@ What changes:
 
 - **School pupils' partitions are `U#<pupilId>`, not `U#<sub>`** [PROPOSAL, DAT-Q2].
   - The pupilId is the pupil's Cognito username and comes in the access token's `username` claim (claim presence
-    UNVERIFIED; confirm in the AUTH-20 spike).
+    UNVERIFIED; a short spike in sca-dev before PS5 checks it, PS0-11).
   - A pupil's Cognito user is deleted when they are archived and created again at their next sign-in
     ([04 §6.7](04-identity-and-access.md#67-pupils-cognito-users)), which gives it a new `sub`. Keying by pupilId keeps
     their play.
@@ -84,8 +84,9 @@ This revisits ADR-0004 (no GSI) **for this table only**; `game` keeps none (DAT-
 
 **Key rules**
 
-1. **Everything a school owns is under `pk = SCH#<schoolId>`.** One Query returns a school's data for export or
-   deletion. An ID from another school is simply not found under this school's key.
+1. **Everything a school owns is under `pk = SCH#<schoolId>`**, except its audit, lookup and rate-counter items
+   (ADR-0046). One Query returns the rest of a school's data for export or deletion. An ID from another school is
+   simply not found under this school's key.
 2. **Anything that decides access is a strongly consistent GetItem on the base table.** That covers sign-in lookups,
    membership checks and uniqueness. GSIs only return eventually consistent reads [ASSUMPTION: standard DynamoDB
    behaviour], so `gsi1` is used **only for lists**.
@@ -101,12 +102,12 @@ This revisits ADR-0004 (no GSI) **for this table only**; `game` keeps none (DAT-
 
 | Item | `pk` | `sk` | Main attributes | `gsi1pk` / `gsi1sk` | `ttl` |
 |---|---|---|---|---|---|
-| School | `SCH#<schoolId>` | `PROFILE` | slug, display and legal name, URN, establishment type, status, plan and version, settings (staff sign-in methods, home play, enrolment limit, PO required), counts (enrolled pupils, classes, staff), terms accepted (version, by, at), Stripe IDs, billing contacts, `demo` | `SCHOOLS` / `<status>#<slug>` | — |
+| School | `SCH#<schoolId>` | `PROFILE` | slug, display and legal name, URN, establishment type, status, plan and version, settings (staff sign-in methods, school hours, enrolment limit, PO required), counts (enrolled pupils, classes, staff), terms accepted (version, by, at), Stripe IDs, billing contacts, `demo` | `SCHOOLS` / `<status>#<slug>` | — |
 | Slug | `SLUG#<slug>` | `SLUG` | schoolId; `retired: true` after deletion (a tombstone holding no school data) | — | Never: slugs are never reused ([03 §5](03-domains-edge-and-email.md#5-school-addresses-slugs-pq-2), DAT-Q8) |
 | Invitation | `SCH#<schoolId>` | `INVITE#<email>` | access level, billing flag, invited by and when | — | 14 days |
 | Email pointer | `EMAIL#<email>` | `SCH#<schoolId>` | status. Used by the triggers and to stop duplicate invitations | — | — |
 | Membership | `SCH#<schoolId>` | `MEMBER#<sub>` | email, name, access level, billing, status, identity provider, joined, last sign-in | `SUB#<sub>` / `SCH#<schoolId>` | — |
-| Class | `SCH#<schoolId>` | `CLASS#<classId>` | name, year groups, `teacherSub`, status. Sign-in: mode, code, `openUntil`, `signedOutAt`. Play: This week (map, topic set, ends on), maps off, paused, home play | — | — |
+| Class | `SCH#<schoolId>` | `CLASS#<classId>` | name, year groups, `teacherSub`, status. Sign-in: mode, code, `openUntil`, `signedOutAt`. Play: This week (map, topic set, ends on), maps off, paused, home play (a class setting: SCH-Q8, PS0-10) | — | — |
 | Class code | `SCH#<schoolId>` | `CODE#<code>` | classId | — | — |
 | Pupil | `SCH#<schoolId>` | `PUPIL#<pupilId>` | first name, last initial, display name, year group, optional level override, classId or none, status (`enrolled`, `archived`), avatar, optional school reference, `hasCognitoUser`. Sign-in: mode, `secretHash`, salt, `secretEnc`, failure counters, `lockedUntil`, `needsTeacher`. Plus qrHandle, created by and at, `archivedAt` | `CLASS#<classId>` or `UNASSIGNED#<schoolId>` / `<displayName>#<pupilId>` | `archivedAt` + 90 days (DAT-Q9) |
 | QR handle | `QR#<handle>` | `QR` | schoolId, pupilId | — | with the pupil |
@@ -142,10 +143,10 @@ This revisits ADR-0004 (no GSI) **for this table only**; `game` keeps none (DAT-
 | New class code | Put the new `CODE#` (must not exist) + update the class + delete the old `CODE#` |
 | Archive a pupil | Update the pupil (status, `archivedAt`, `ttl`) + delete `QR#` + subtract from the count; then AdminDeleteUser, TTL on the pupil's `game` items, and a `billing` sync |
 
-- A CSV of up to 300 pupils goes in batches of 30 pupils per transaction, each holding its own count update.
-  - Pupil IDs are generated when the preview is made and stored on the import item, so a retried confirm is idempotent
-    through the "must not exist" conditions.
-  - The transaction size limit is [UNVERIFIED: check the current TransactWriteItems item limit].
+-  A CSV of up to 500 pupils (Admins; 60 for Teachers, SCH-Q2) goes in batches of 30 pupils per transaction, each
+  holding its own count update. - Pupil IDs are generated when the preview is made and stored on the import item, so a
+  retried confirm is idempotent through the "must not exist" conditions. - The transaction size limit is [UNVERIFIED:
+  check the current TransactWriteItems item limit].
 - **Hot partitions**: one school's partition takes all its staff writes and its pupils' sign-in counters. A school of a
   few hundred pupils is far below DynamoDB's per-partition throughput [ASSUMPTION: documented per-partition limits; to
   be confirmed by the load test, DAT-19].
@@ -191,7 +192,7 @@ overwriting anything the client sent:
 
 | Namespace | Host | Authoriser | Function |
 |---|---|---|---|
-| `/api/pupil-auth/*` | School | None (rate-limited, origin-verified, WAF) | `pupil_auth` |
+| `/api/pupil-auth/*` | School | None (rate-limited, origin-verified; WAF from Launch, DNS-Q3) | `pupil_auth` |
 | `/api/me*`, `/api/planets`, `/api/runs*`, `/api/session`, `/api/speech` | School | `pupil` | `player_api`, `tts` |
 | `/api/school/*` (except billing) | School | `staff` | `school_api` |
 | `/api/school/billing/*` | School | `staff` | `billing` |
@@ -333,7 +334,8 @@ no API function calls another synchronously (DAT-Q3).
 
 - **Fairness per pupil and per school goes in our code** (for example at most one new run per pupil every 10 seconds),
   because HTTP APIs have no per-client usage plans [UNVERIFIED, noted in the code map].
-- Abuse per IP goes in CloudFront WAF rate rules, set high enough for a school's shared IP.
+- From Launch (DNS-Q3), abuse per IP goes in CloudFront WAF rate rules, set high enough for a school's shared IP. The
+  Pilot relies on the throttles above.
 - **Cognito**: 120 sign-ins per second per account across pools, more than enough
   ([04 §10](04-identity-and-access.md#10-capacity-and-security-controls)).
 - **Lambda**: new accounts may start with a low concurrency quota. Check it, and ask for an increase before the pilot
@@ -385,7 +387,7 @@ Notes:
 |---|---|
 | Edge | `x-scd-host` set by CloudFront; origin-verify header; no route works on the wrong kind of host |
 | Identity | Staff need an active membership of the host's school, checked on every request. Pupils' tokens map to one pupil in one school |
-| Keys | Everything under `SCH#<schoolId>`; a pupil's play under `U#<pupilId>` |
+| Keys | Everything under `SCH#<schoolId>` except audit, lookup and rate-counter items (ADR-0046); a pupil's play under `U#<pupilId>` |
 | IAM | LeadingKeys per function; only `platform_api` and `billing` read across schools |
 | Logs | `schoolId` in every log line; no names |
 | Tests | Below; the penetration test focuses here ([11](11-privacy-security-and-assurance.md)) |
@@ -408,7 +410,7 @@ Notes:
 |---|---|---|
 | Enrolled pupil | While enrolled | — |
 | Archived pupil (un-enrolled) | **90 days** after archiving (DAT-Q9) | When archived: TTL on the pupil item and their `game` items; Cognito user deleted. Restoring within 90 days clears the TTLs |
-| School after its licence ends | **90 days** (PQ-15) | When the school becomes `ENDED`, `platform_api` sets TTL (end + 90 days) on every `SCH#<id>` item except billing, every pupil's `game` items, `QR#` and `EMAIL#`. It deletes pupils' Cognito users and staff users who have no other membership |
+| School after its licence ends | **90 days** (PQ-15) | When the school becomes `ENDED`, `platform_api` sets TTL (end + 90 days) on every `SCH#<id>` item except billing, every pupil's `game` items, `QR#` and `EMAIL#`. It deletes pupils' Cognito users and staff users who have no other membership, except the school's Admins: they keep sign-in for the 90-day export window, and a scheduler job (Launch) deletes their Cognito users at day 90 (PS0-12) |
 | Slug | Kept as a tombstone for ever, so it is never reused | `SLUG#` with `retired: true`, no TTL (DAT-Q8) |
 | Invoices, subscription mirror | **6 years** from issue (PQ-15) | TTL; also kept by Stripe |
 | Audit | **2 years** | TTL |
@@ -417,7 +419,7 @@ Notes:
 | Stripe events | 30 days | TTL |
 | Backups | PITR up to 35 days; AWS Backup 7 daily points (today's pattern) | Expire; the privacy notice says deleted data can survive in backups up to 35 days [PROPOSAL] |
 
-- No scheduler is needed: TTLs are set at the moment a pupil is archived or a school ends.
+- No scheduler is needed for table items: TTLs are set at the moment a pupil is archived or a school ends.
 - DynamoDB TTL deletes items some time after they expire, so reads filter out expired items [ASSUMPTION: standard TTL
   behaviour].
 - A pupil with very many `game` items has their TTLs set by an asynchronous invoke of `school_api` itself.
@@ -457,6 +459,9 @@ Notes:
 
 ## 9. Decisions for the owner
 
+Answered at the PS0 gate on 2026-11-22: every recommendation below was accepted, except where the
+[decision register](14-decision-register.md) says Open.
+
 | ID | Question | Recommendation |
 |---|---|---|
 | DAT-Q1 | A new `tenancy` table with one overloaded GSI (revisiting ADR-0004 for this table only), with access decisions always on base-table reads? | Yes |
@@ -464,7 +469,7 @@ Notes:
 | DAT-Q3 | Billing routes served by `billing` directly, rather than `school_api` and `platform_api` calling it? | Yes: one holder of the Stripe key, no synchronous chains |
 | DAT-Q4 | Deletion by TTL set when a pupil is archived or a school ends (no scheduler)? | Yes |
 | DAT-Q5 | Whole-school exports as a ZIP in an exports bucket with 7-day expiry and 15-minute links? | Yes |
-| DAT-Q6 | Throttles as in §3.4, with fairness per pupil and school in code and WAF rate rules per IP? | Yes, then tuned by the load test |
+| DAT-Q6 | Throttles as in §3.4, with fairness per pupil and school in code and WAF rate rules per IP? | Yes, then tuned by the load test. The WAF rules come at Launch, with DNS-Q3 (PS0 gate) |
 | DAT-Q7 | New routes numbered from R63 in `contracts/routes.json`, each with a `permission` field? | Yes |
 | DAT-Q8 | A deleted school's slug is never reused (a tombstone with no school data), so an old QR card or bookmark can't reach a new school ([03 §5](03-domains-edge-and-email.md#5-school-addresses-slugs-pq-2))? | Yes |
 | DAT-Q9 | Archived pupils deleted 90 days after archiving (the same period as a school's end)? | Yes |
@@ -480,7 +485,7 @@ Notes:
 | ID | Story | Acceptance criteria | Release |
 |---|---|---|---|
 | DAT-1 | As the owner, I want the `tenancy` table in each environment, so that school data has its own home | Terraform creates it with PITR, deletion protection, `prevent_destroy`, TTL `ttl` and `gsi1`; in the backup plan | Pilot |
-| DAT-2 | As the owner, I want slugs to be unique and reserved names refused, so that two schools never share an address | Conditional put on `SLUG#`; reserved list from [03](03-domains-edge-and-email.md) enforced; a deleted school's slug held 12 months | Pilot |
+| DAT-2 | As the owner, I want slugs to be unique and reserved names refused, so that two schools never share an address | Conditional put on `SLUG#`; the reserved list (one file, the union of [03](03-domains-edge-and-email.md) §5 and [05](05-platform-console.md) §11.4: PS0-6) enforced; a deleted school's slug never reused: its `SLUG#` item stays as a tombstone with no school data (DAT-Q8) | Pilot |
 | DAT-3 | As a developer, I want membership and invitation items with strongly consistent lookups, so that access checks are never stale | Membership read by GetItem on every request; email pointer stops duplicate invites; tests cover invite → active → removed | Pilot |
 | DAT-4 | As a developer, I want class, class-code and pupil items with a roster index, so that teachers can list a class quickly | A roster of 35 lists in under 300 ms; class codes unique per school; moves update the roster | Pilot |
 | DAT-5 | As a developer, I want school pupils' play keyed by pupilId, so that it survives their Cognito user being recreated | `player_api` and `tts` use the `username` claim for school pupils; archive and restore keeps progress; family edition unchanged | Pilot |
@@ -493,11 +498,11 @@ Notes:
 | DAT-12 | As a teacher, I want progress endpoints for my class and each pupil, so that the portal can show practice | Class grid for 35 pupils in under 1 s; numbers match the pupil's own My progress | Pilot |
 | DAT-13 | As an Admin, I want audit records written for every write, so that the log is complete | Every write route produces one record; records hold IDs, not names; month queries work; TTL 2 years | Pilot |
 | DAT-14 | As the owner, I want the isolation suite in CI and against dev, so that a cross-school leak is caught before release | The six cases in §5 pass; a deliberately broken check makes CI fail | Pilot |
-| DAT-15 | As the owner, I want throttles sized for whole classes, so that a lesson start isn't refused | Limits as §3.4; per-pupil run limit in code; WAF rule on `/api/pupil-auth/*` | Pilot |
+| DAT-15 | As the owner, I want throttles sized for whole classes, so that a lesson start isn't refused | Limits as §3.4; per-pupil run limit in code. The Pilot relies on these throttles in code; any WAF part, such as a rule on `/api/pupil-auth/*`, comes at Launch with DNS-Q3 (DAT-Q6) | Pilot |
 | DAT-16 | As an Admin, I want archived pupils deleted after 90 days, so that we keep no more than needed | TTLs set at archive on both tables; Cognito user deleted; restore within 90 days clears the TTLs | Pilot |
 | DAT-17 | As the billing function, I want mirror items and event de-duplication, so that invoices show in the portal and duplicates do nothing | Each Stripe event processed once; the mirror matches Stripe after replaying events out of order | Launch |
 | DAT-18 | As an Admin, I want a whole-school export, so that I can leave with our data or answer a request | ZIP of JSON and CSV in the exports bucket; 15-minute link; expires after 7 days; audited | Launch |
 | DAT-19 | As the owner, I want a load test of five classes starting at once, so that I know the pilot won't fail at 9:05 | 150 pupils sign in and play ten waves; no 429 or 5xx; p95 under 1 s; results recorded | Launch |
-| DAT-20 | As the owner, I want an ended school's data to go 90 days after its licence ends, so that we meet the DPA | TTLs set at `ENDED`; Cognito users removed; invoices and audit kept; slug held | Launch |
+| DAT-20 | As the owner, I want an ended school's data to go 90 days after its licence ends, so that we meet the DPA | TTLs set at `ENDED`; Cognito users removed (its Admins' at day 90, after the export window, PS0-12); invoices and audit kept; slug kept as a tombstone, never reused (DAT-Q8) | Launch |
 | DAT-21 | As the owner, I want each function's IAM reviewed against §4, so that a bug in one can't reach another school's data | Policies match §4; IAM Access Analyzer shows no unused grants; the `tts` game-data grant removed | Launch |
 | DAT-22 | As a trust's staff member, I want one account in several schools, so that I don't need many logins | Memberships in several schools; school picker from `gsi1` `SUB#`; each request still checks the host's school | Later |

@@ -1,5 +1,5 @@
 # 0053. Staff and console screens look like professional software; the pupils' game keeps its look
-Status: Proposed · Date: 2026-11-22
+Status: Accepted · Date: 2026-11-22
 
 Context: the family edition's admin uses the game's playful heading font, Unkempt, with the system font for text, and
 the pupils' learning panels use Andika, a font designed for beginning readers (`web/admin/src/global.css:65-67`,

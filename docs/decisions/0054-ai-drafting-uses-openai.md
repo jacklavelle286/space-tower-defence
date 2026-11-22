@@ -1,5 +1,5 @@
 # 0054. AI question drafting in the console uses OpenAI, as picture generation does
-Status: Proposed · Date: 2026-11-22
+Status: Accepted · Date: 2026-11-22
 
 Context: the owner's console will draft questions with AI [CONFIRMED by owner 2026-11-22, PD-24; design in
 [08 §6](../platform/08-learning-content.md#6-ai-assisted-authoring-console-only)], and AI stays in the owner's backend

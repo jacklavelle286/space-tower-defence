@@ -10,8 +10,11 @@ The platform runs in **two new AWS accounts, dev and prod**, in the owner's AWS 
 2026-11-21, PD-3]. It uses the same architecture and delivery rules as the family edition: Terraform applied only by
 GitHub Actions on the owner's dispatch, the owner approving every prod apply, and Claude making only read-only AWS calls
 (CLAUDE.md). The family edition keeps its account (263185198757), its `infrastructure/main` root and its workflows,
-untouched [CONFIRMED by owner, PD-1]. The one addition to the architecture still open is a scheduler for timed jobs
-(billing notices, a nightly Stripe check, retention deletions): [13 PLAN-Q4](13-delivery-plan.md#5-decisions-still-open).
+untouched [CONFIRMED by owner, PD-1]. The one addition to the architecture is EventBridge Scheduler, from Launch, for
+the timed billing jobs (billing notices, a nightly Stripe check) [CONFIRMED by owner 2026-11-22, PLAN-Q4 in
+[13](13-delivery-plan.md#5-decisions-still-open); [ADR-0052](../decisions/0052-eventbridge-scheduler-at-launch.md)].
+Retention deletions are not among them: DynamoDB TTL deletes the data (DAT-Q4). The scheduler's one deletion is an
+ended school's Admins' Cognito users, at day 90 (PS0-12).
 
 ---
 
@@ -23,7 +26,7 @@ untouched [CONFIRMED by owner, PD-1]. The one addition to the architecture still
 | DNS, 521764600394 (profile `dns`) | Registration and hosted zone of `spacecolonydefence.com` | Exists [VERIFIED 2026-11-21] |
 | Family edition, 263185198757 (profile `space-tower-defence`) | `aliens.jackgl.com` | Exists, unchanged |
 | **`sca-dev`**, 814155454655 (profile `sca-dev`) | Development and testing; made-up data only; every merge into `dev` deploys here | Created and bootstrapped by the owner [VERIFIED 2026-11-21, §3] |
-| **`sca-prod`**, 323879072257 (profile `sca-prod`) | Real schools, the demo school, the owner's console and content; deployed once, at the big release | Created and bootstrapped by the owner [VERIFIED 2026-11-21, §3] |
+| **`sca-prod`**, 323879072257 (profile `sca-prod`) | Real schools, the demo school, the owner's console and content; deployed at each release, the Pilot first ([ADR-0055](../decisions/0055-prod-release-per-release.md)) | Created and bootstrapped by the owner [VERIFIED 2026-11-21, §3] |
 
 Named `sca-dev` and `sca-prod` [CONFIRMED by owner 2026-11-21, PD-21].
 
@@ -163,14 +166,14 @@ family edition safe and lets the two diverge [PROPOSAL].
 | `infrastructure/platform` | New root (section 4) |
 
 **Branches** [CONFIRMED by owner 2026-11-21, ADR-0044]: `family` holds the family edition, `dev` the platform, and
-`main` waits for the big release. Platform work is done on short-lived feature branches named after the Jira ticket
-(`SCD-<n>-<short-name>`) and merged into `dev` by pull request once CI passes [CONFIRMED by owner 2026-11-21: Claude
-may merge its own green pull requests; the owner reviews everything before the prod release]. The family edition is
-**frozen as the proof of concept** [CONFIRMED by owner 2026-11-21, ADR-0045]: no more commits on `family` and no
-merges from it, so the platform changes the code it inherited as it needs to, with no `edition` setting to keep shared
-files in step ([ADR-0045](../decisions/0045-family-edition-frozen.md)). The day-to-day steps are in the
-[branches runbook](../runbooks/branches.md). Whether the family edition ever becomes a tenant of the platform is
-decided after the platform launches ([13](13-delivery-plan.md#5-decisions-still-open)).
+`main` takes a merge from `dev` at each release, the Pilot first (ADR-0055). Platform work is done on short-lived
+feature branches named after the Jira ticket (`SCD-<n>-<short-name>`) and merged into `dev` by pull request once CI
+passes [CONFIRMED by owner 2026-11-21: Claude may merge its own green pull requests; the owner reviews everything before
+the prod release]. The family edition is **frozen as the proof of concept** [CONFIRMED by owner 2026-11-21, ADR-0045]:
+no more commits on `family` and no merges from it, so the platform changes the code it inherited as it needs to, with no
+`edition` setting to keep shared files in step ([ADR-0045](../decisions/0045-family-edition-frozen.md)). The day-to-day
+steps are in the [branches runbook](../runbooks/branches.md). Whether the family edition ever becomes a tenant of the
+platform is decided after the platform launches ([13](13-delivery-plan.md#5-decisions-still-open)).
 
 ---
 
@@ -186,7 +189,8 @@ Rules [PROPOSAL; follow CLAUDE.md]:
 
 - A merge into `dev` deploys to sca-dev automatically [CONFIRMED by owner 2026-11-21, PD-22]. Every prod deploy is
   dispatched and approved by the owner.
-- **Prod deploys only from `main`**, after `dev`'s one big merge into it; the workflow refuses any other ref for prod.
+-  **Prod deploys only from `main`**, after `dev` is merged into it for a release; the workflow refuses any other ref
+  for prod.
 - Claude does not dispatch or approve prod deploys, even if `gh` is signed in.
 - Releases are kept outside school hours where possible ([11](11-privacy-security-and-assurance.md)).
 
@@ -226,7 +230,7 @@ by Claude, never in tfvars, plans or logs (CLAUDE.md).
 |---|---|---|
 | Stripe secret key (restricted key) | `billing` | Test key in dev, live key in prod ([09](09-billing.md)) |
 | Stripe webhook signing secret | `billing` | One per endpoint |
-| AI vendor keys | The existing content generation functions | As today; Claude never reads them |
+| AI vendor keys | The content generation functions, including the question-drafting worker with the platform's own OpenAI key ([ADR-0054](../decisions/0054-ai-drafting-uses-openai.md), OWN-16) | As today; Claude never reads them |
 
 Plus a KMS key per account for pupils' sign-in secrets ([04](04-identity-and-access.md)).
 

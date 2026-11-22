@@ -1,5 +1,5 @@
 # 0050. The platform has its own Terraform root, `infrastructure/platform`
-Status: Proposed · Date: 2026-11-22
+Status: Accepted · Date: 2026-11-22
 
 Context: the platform runs in two new accounts, `sca-dev` and `sca-prod` [CONFIRMED by owner 2026-11-21, PD-3, PD-21],
 with the same architecture as the family edition (PD-4). The family edition's root, `infrastructure/main`, encodes that

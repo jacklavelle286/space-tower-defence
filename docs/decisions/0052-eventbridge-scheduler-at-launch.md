@@ -1,5 +1,5 @@
 # 0052. EventBridge Scheduler runs the timed billing jobs, from Launch
-Status: Proposed · Date: 2026-11-22
+Status: Accepted · Date: 2026-11-22
 
 Context: some billing work ([0051](0051-billing-on-stripe.md)) falls due at a time, not on a request or a Stripe event:
 Stripe sends nothing before a `send_invoice` renewal, held drafts need chasing, and our copy of Stripe's data can drift
@@ -22,9 +22,9 @@ Consequences: amends PD-4 by one AWS service. The nightly sync needs the Stripe 
 (DAT-Q3), which sends billing emails through SES (03 §8.1), a grant not yet in 10 §4. No phase in 13 §3.2 names the
 scheduler; PS14, with the reminders, fits [PROPOSAL]. 02 §1 and PLAN-Q4 list retention deletions as a scheduler job, and
 11 §7 a "deletion job": they are to follow DAT-Q4. DAT-Q4's TTL also amends [0004](0004-two-dynamodb-tables.md) ("no
-TTL except the sign-up counter") for the platform's tables. TTL removes table items, not Cognito users: 10 §6 deletes an
-ended school's staff users at once, but 05 §5.6 and 09 §5.5 let its Admins export for 90 days. The register recommends
-that its Admins keep sign-in until day 90, when a scheduler job deletes them (PS0-12).
+TTL except the sign-up counter") for the platform's tables. TTL removes table items, not Cognito users: an ended
+school's Admins keep sign-in for its 90-day export window (05 §5.6, 09 §5.5), and a scheduler job deletes their Cognito
+users at day 90; other staff users go when the school ends (PS0-12, 10 §6).
 
 Evidence: BIL-Q11 in [09 §18](../platform/09-billing.md#18-decisions-for-the-owner); PLAN-Q4 in
 [13 §5](../platform/13-delivery-plan.md#5-decisions-still-open); DAT-Q4 in

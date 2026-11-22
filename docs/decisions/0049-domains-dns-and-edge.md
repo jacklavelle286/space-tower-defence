@@ -1,5 +1,5 @@
 # 0049. Domains, DNS and the edge: the zone stays in the DNS account, every school on one wildcard distribution
-Status: Proposed · Date: 2026-11-22
+Status: Accepted · Date: 2026-11-22
 
 Context: the platform serves everything under `spacecolonydefence.com` (PD-2): the console at `admin.` (PD-5), one
 address per school (PD-6), the demo school as a tenant in prod (PD-15), and email to staff. The zone is in the owner's
