@@ -1,5 +1,5 @@
 # 0045. The family edition is frozen as the proof of concept
-Status: Proposed · Date: 2026-11-21
+Status: Accepted · Date: 2026-11-21
 
 Context: [0044](0044-branches-family-dev-main.md) kept the family edition on `family` and merged its fixes one way into
 `dev`, so that the platform, built from the same code, would get them too. PR #6 merged the level editor's Ctrl+S fix
