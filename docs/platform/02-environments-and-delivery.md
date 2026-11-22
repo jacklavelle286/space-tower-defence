@@ -23,7 +23,7 @@ untouched [CONFIRMED by owner, PD-1]. The one addition to the architecture still
 | DNS, 521764600394 (profile `dns`) | Registration and hosted zone of `spacecolonydefence.com` | Exists [VERIFIED 2026-11-21] |
 | Family edition, 263185198757 (profile `space-tower-defence`) | `aliens.jackgl.com` | Exists, unchanged |
 | **`sca-dev`**, 814155454655 (profile `sca-dev`) | Development and testing; made-up data only; every merge into `dev` deploys here | Created and bootstrapped by the owner [VERIFIED 2026-11-21, §3] |
-| **`sca-prod`**, 323879072257 (profile `sca-prod`) | Real schools, the demo school, the owner's console and content; deployed once, at the big release | Created and bootstrapped by the owner [VERIFIED 2026-11-21, §3] |
+| **`sca-prod`**, 323879072257 (profile `sca-prod`) | Real schools, the demo school, the owner's console and content; deployed at each release, the Pilot first ([ADR-0055](../decisions/0055-prod-release-per-release.md)) | Created and bootstrapped by the owner [VERIFIED 2026-11-21, §3] |
 
 Named `sca-dev` and `sca-prod` [CONFIRMED by owner 2026-11-21, PD-21].
 
@@ -163,7 +163,7 @@ family edition safe and lets the two diverge [PROPOSAL].
 | `infrastructure/platform` | New root (section 4) |
 
 **Branches** [CONFIRMED by owner 2026-11-21, ADR-0044]: `family` holds the family edition, `dev` the platform, and
-`main` waits for the big release. Platform work is done on short-lived feature branches named after the Jira ticket
+`main` takes a merge from `dev` at each release, the Pilot first (ADR-0055). Platform work is done on short-lived feature branches named after the Jira ticket
 (`SCD-<n>-<short-name>`) and merged into `dev` by pull request once CI passes [CONFIRMED by owner 2026-11-21: Claude
 may merge its own green pull requests; the owner reviews everything before the prod release]. The family edition is
 **frozen as the proof of concept** [CONFIRMED by owner 2026-11-21, ADR-0045]: no more commits on `family` and no
@@ -186,7 +186,7 @@ Rules [PROPOSAL; follow CLAUDE.md]:
 
 - A merge into `dev` deploys to sca-dev automatically [CONFIRMED by owner 2026-11-21, PD-22]. Every prod deploy is
   dispatched and approved by the owner.
-- **Prod deploys only from `main`**, after `dev`'s one big merge into it; the workflow refuses any other ref for prod.
+- **Prod deploys only from `main`**, after `dev` is merged into it for a release; the workflow refuses any other ref for prod.
 - Claude does not dispatch or approve prod deploys, even if `gh` is signed in.
 - Releases are kept outside school hours where possible ([11](11-privacy-security-and-assurance.md)).
 

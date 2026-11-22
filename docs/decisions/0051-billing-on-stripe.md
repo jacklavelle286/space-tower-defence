@@ -1,5 +1,5 @@
 # 0051. Billing runs on Stripe: one subscription per school, invoiced on 1 September, 1 January and 1 May
-Status: Proposed · Date: 2026-11-22
+Status: Accepted · Date: 2026-11-22
 
 Context: schools pay termly, in advance, per pupil enrolled when the invoice is made, invoiced automatically; one plan,
 a price per pupil with a minimum; bank transfer, card or Direct Debit; PO numbers [CONFIRMED by owner 2026-11-21,

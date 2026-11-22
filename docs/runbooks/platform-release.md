@@ -21,12 +21,13 @@ to do unless it fails:
 | A check or the plan fails | Fix it on an `SCD-<n>-…` branch and merge; the merge deploys. |
 
 To deploy `dev` without a merge: `gh workflow run platform-release.yml --ref dev`. GitHub shows the **Run workflow**
-button only for workflows on the default branch (`main`), so the button appears after the big release; the CLI works
+button only for workflows on the default branch (`main`), so the button appears after the Pilot release; the CLI works
 once the workflow has run at least once ([GitHub docs](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows)).
 
 ## Prod: one dispatch on `main`, one approval (the owner)
 
-Only after `dev` has been merged into `main` for the big release ([branches runbook](branches.md)).
+Only after `dev` has been merged into `main` for a release, the Pilot first ([branches runbook](branches.md),
+[ADR-0055](../decisions/0055-prod-release-per-release.md)).
 
 1. Actions → platform-release → Run workflow → branch `main`.
 2. Read the plan in the run summary (the plan job runs in environment `sca-prod`).

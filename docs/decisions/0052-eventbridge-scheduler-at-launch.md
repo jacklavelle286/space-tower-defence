@@ -1,5 +1,5 @@
 # 0052. EventBridge Scheduler runs the timed billing jobs, from Launch
-Status: Proposed · Date: 2026-11-22
+Status: Accepted · Date: 2026-11-22
 
 Context: some billing work ([0051](0051-billing-on-stripe.md)) falls due at a time, not on a request or a Stripe event:
 Stripe sends nothing before a `send_invoice` renewal, held drafts need chasing, and our copy of Stripe's data can drift

@@ -12,7 +12,7 @@ This repository holds two editions of it.
 | What | The proof of concept: the game for the owner's children, aged 5 to 7 | A paid version for state primary schools in England, Years 1 to 4, licensed per enrolled pupil |
 | Where | `aliens.jackgl.com` | `spacecolonydefence.com`: `<school>.spacecolonydefence.com` for each school, `admin.spacecolonydefence.com` for the owner |
 | State | Live, and **frozen** since 2026-11-21 ([ADR-0045](docs/decisions/0045-family-edition-frozen.md)): no more changes | Being built, phase by phase, towards a Pilot ([delivery plan](docs/platform/13-delivery-plan.md)) |
-| Branch | `family` | `dev`, then `main` at the one big release |
+| Branch | `family` | `dev`, then `main` at each release, the Pilot first |
 | AWS | Its own account; Terraform root [infrastructure/main](infrastructure/main/) | Accounts `sca-dev` and `sca-prod`; Terraform root [infrastructure/platform](infrastructure/platform/) |
 | Deploys | [release.yml](.github/workflows/release.yml), dispatched by the owner; no more releases | [platform-release.yml](.github/workflows/platform-release.yml): every merge into `dev` deploys to sca-dev; sca-prod from `main`, with the owner's approval |
 
@@ -35,7 +35,7 @@ changes it story by story, and will end up entirely different.
 | Branch | Holds | Changes arrive by |
 |---|---|---|
 | `dev` | The schools platform; every merge deploys to sca-dev | Pull requests from `SCD-<n>-<short-name>` branches, squash-merged once the four CI checks pass |
-| `main` | The family edition as it was when the branches split (292f4bc), until the big release | One pull request from `dev`, at the big release |
+| `main` | The family edition as it was when the branches split (292f4bc), until the Pilot release; then the platform's releases | One pull request from `dev` at each release ([ADR-0055](docs/decisions/0055-prod-release-per-release.md)) |
 | `family` | The family edition, frozen | Nothing |
 
 The day-to-day steps are in the [branches runbook](docs/runbooks/branches.md).
@@ -89,7 +89,7 @@ Only through GitHub Actions. Nothing is applied from a laptop except each accoun
   plan saved create-only in the account's artefacts bucket, an apply of exactly that plan (skipped when nothing
   changes), then smoke checks. No approval. What to do when a run fails:
   [platform release runbook](docs/runbooks/platform-release.md).
-- **sca-prod**: only after the big release. The owner dispatches the same workflow on `main`, reads the plan in the run
+- **sca-prod**: only from a release on `main`, the Pilot first. The owner dispatches the same workflow on `main`, reads the plan in the run
   summary and approves the `sca-prod-apply` deployment.
 - **Family edition**: frozen. Its [release.yml](.github/workflows/release.yml) and
   [apply.yml](.github/workflows/apply.yml) stay in the repository, accept only `family`, and are not run any more.

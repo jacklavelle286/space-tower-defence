@@ -1,5 +1,5 @@
 # 0047. Pupil identity: a pupil pool, sign-in through our API, picture or typed passwords
-Status: Proposed · Date: 2026-11-22
+Status: Accepted · Date: 2026-11-22
 
 Context: pupils in Years 1 to 4 have no email and share classroom devices. PD-13 (owner, 2026-11-21): a class code and a
 picture password, or a QR card in the homework book; typed passwords per class at the teacher's choice (meant for Years

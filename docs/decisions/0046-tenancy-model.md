@@ -1,5 +1,5 @@
 # 0046. Tenancy model: one deployment for every school, the school taken from its address, kept apart by the API
-Status: Proposed · Date: 2026-11-22
+Status: Accepted · Date: 2026-11-22
 
 Context: the platform serves many schools, each at `<slug>.spacecolonydefence.com` [CONFIRMED by owner 2026-11-21,
 PD-6], on today's architecture (PD-4). A school is the tenant; one school seeing another's data is risk 1 in
