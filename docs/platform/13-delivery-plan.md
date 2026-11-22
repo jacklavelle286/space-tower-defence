@@ -99,6 +99,7 @@ Things only the owner can do. They become Jira tasks under E12.
 | OWN-13 | Commission the penetration test | Launch |
 | OWN-14 | Set the price per pupil per term (P) and the minimum (M) | PS13 |
 | OWN-15 | Apple Developer Program enrolment for the company (the iPad app) | Later |
+| OWN-16 | Create the platform's OpenAI project (Europe data residency, a monthly budget) and its key; store the key in sca-prod's secret, as in the [OpenAI key runbook](../runbooks/openai-key.md) (LRN-Q8) | PS9 |
 
 ---
 

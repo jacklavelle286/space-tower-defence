@@ -22,9 +22,12 @@ spike, or your choice); each says what settles it and when it is needed.
 **Release** is the first release whose work depends on the answer: Pilot (phases PS2 to PS12), Launch or Later. When
 unsure, the earlier one.
 
-**Four conflicts** between documents, settled here (each row says so): a deleted school's slug (CON-Q2, DAT-Q8); notice
-of a price change (CON-Q7, BIL-Q12); how the pilot is free (PQ-13, MKT-Q9, PLAN-Q3); and when the WAF arrives (DNS-Q3,
-DAT-Q6, PRV-Q10). The job list in PLAN-Q4 also names retention deletions, which DAT-Q4 does with DynamoDB TTL instead.
+**Conflicts** between documents, settled here (each row says so): a deleted school's slug (CON-Q2, DAT-Q8); notice
+of a price change (CON-Q7, BIL-Q12); how the pilot is free (PQ-13, MKT-Q9, PLAN-Q3); when the WAF arrives (DNS-Q3,
+DAT-Q6, PRV-Q10, DAT-15, 04 §6.4); who may assume the DNS role (PS0-4); when the origin-verify header arrives (PS0-5); the reserved
+slugs (PS0-6); a deleted school's audit records (PS0-7); the class code (PS0-8); the QR card path (PS0-9); home play
+(PS0-10); support access (AUTH-Q9, CON-Q5); and the console's trusted browser (CON-Q8). The job list in PLAN-Q4 also names retention deletions,
+which DAT-Q4 does with DynamoDB TTL instead.
 
 ---
 
@@ -32,12 +35,13 @@ DAT-Q6, PRV-Q10). The job list in PLAN-Q4 also names retention deletions, which 
 
 | State | Pilot | Launch | Later | All |
 |---|---|---|---|---|
-| Confirmed | 7 | 2 | 1 | 10 |
-| Accept | 82 | 27 | 3 | 112 |
-| Open | 1 | 9 | 2 | 12 |
-| **All** | 90 | 38 | 6 | **134** |
+| Confirmed | 8 | 2 | 1 | 11 |
+| Accept | 89 | 29 | 3 | 121 |
+| Open | 0 | 10 | 2 | 12 |
+| **All** | 97 | 41 | 6 | **144** |
 
-The one Pilot item still open is LRN-Q8, the AI provider for question drafting, needed before PS9.
+No decision that the Pilot needs is still open: the last one, LRN-Q8 (which AI drafts questions), was answered on
+2026-11-22.
 
 ## 2. Proposals ([README §3.2](README.md#32-proposed-for-the-owner-to-confirm))
 
@@ -81,7 +85,7 @@ The one Pilot item still open is LRN-Q8, the AI provider for question drafting, 
 | AUTH-Q6 | The lockout numbers in §6.4 | Pilot | Accept | [0047](../decisions/0047-pupil-identity-and-sign-in.md) |
 | AUTH-Q7 | Teachers can view pupils' secrets (an encrypted copy, every view audited), not only reset them | Pilot | Accept | [0047](../decisions/0047-pupil-identity-and-sign-in.md) |
 | AUTH-Q8 | Tokens: staff 30 min / 12 h / 60 min idle; pupils 60 min / 12 h / 20 min idle | Pilot | Accept | [0047](../decisions/0047-pupil-identity-and-sign-in.md), [0048](../decisions/0048-staff-sign-in-and-access-control.md) |
-| AUTH-Q9 | Support access is granted by the school: 24 hours by default, 7 days at most | Pilot | Accept | [0048](../decisions/0048-staff-sign-in-and-access-control.md) |
+| AUTH-Q9 | Support access is granted by the school, with a reason: 24 hours by default, or 72 hours or 7 days at most (settles 05 §9.1 and 06 §12, which offered other lengths) | Launch | Accept | [0048](../decisions/0048-staff-sign-in-and-access-control.md) |
 | AUTH-Q10 | An origin-verify header between CloudFront and the API | Pilot | Accept | [0048](../decisions/0048-staff-sign-in-and-access-control.md) |
 | AUTH-Q11 | Federated sign-in needs an invitation first; no joining by email domain | Launch | Accept | [0048](../decisions/0048-staff-sign-in-and-access-control.md) |
 
@@ -93,10 +97,10 @@ The one Pilot item still open is LRN-Q8, the AI provider for question drafting, 
 | CON-Q2 | Slugs: 3–30 characters, letters, digits and hyphens, a letter first, the reserved list. A deleted school's slug is never reused (DAT-Q8), replacing "held for 12 months" | Pilot | Accept | [0046](../decisions/0046-tenancy-model.md) |
 | CON-Q3 | A school moves from Pending to Trial only when its first Admin accepts the terms and DPA | Pilot | Accept | — |
 | CON-Q4 | The owner sees staff names and emails, never pupils' or classes' outside support access | Pilot | Accept | [0048](../decisions/0048-staff-sign-in-and-access-control.md) |
-| CON-Q5 | Support access needs the school's grant; without it only for an incident or legal duty, read-only, school told | Pilot | Accept | [0048](../decisions/0048-staff-sign-in-and-access-control.md) |
+| CON-Q5 | Support access needs the school's grant. Without it (an incident or a legal duty: read-only, the school told at once) only if the DPA allows it; until then only at the school's request, as 11 §2 and PRV-19 say | Launch | Open: the solicitor's DPA wording (OWN-6) | [0048](../decisions/0048-staff-sign-in-and-access-control.md) |
 | CON-Q6 | A lost last Admin is replaced only after calling the school back on its public GIAS number | Pilot | Accept | — |
 | CON-Q7 | Price changes take effect on a billing date after one full billing period's notice (BIL-Q12), which always meets this row's 60 days | Launch | Accept | [0051](../decisions/0051-billing-on-stripe.md) |
-| CON-Q8 | The console's trusted-browser window is 12 hours, not ADR-0042's 30 days | Pilot | Accept | [0048](../decisions/0048-staff-sign-in-and-access-control.md) |
+| CON-Q8 | The console's trusted-browser window is 12 hours, not ADR-0042's 30 days; 04 §2 and §7, which keep 30 days, are corrected | Pilot | Accept | [0048](../decisions/0048-staff-sign-in-and-access-control.md) |
 | CON-Q9 | Preview versions go to tester schools (the demo school, and the pilot school if it agrees) | Pilot | Accept | — |
 | CON-Q10 | AI question drafting: up to 10 drafts a request, daily and monthly caps, never published automatically | Pilot | Accept | — |
 | CON-Q11 | Ended schools are deleted 90 days after ending (PQ-15) unless the owner places a hold, with a reason | Pilot | Accept | — |
@@ -145,7 +149,7 @@ The one Pilot item still open is LRN-Q8, the AI provider for question drafting, 
 | LRN-Q5 | 70% this week's work, 30% review favouring topics still being practised | Pilot | Accept | — |
 | LRN-Q6 | No FIXED activity repeats for a pupil within 14 days, across runs | Pilot | Accept | — |
 | LRN-Q7 | The Secure, Practising and "needs help" rules as written | Pilot | Accept | — |
-| LRN-Q8 | Which AI drafts questions in the console. Reuse the existing OpenAI integration (`picture_gen`'s pattern, an EU endpoint), or Claude on Amazon Bedrock, which keeps traffic inside AWS [UNVERIFIED: model availability in `eu-west-2` or an EU inference profile]. Neither receives pupil data ([11](11-privacy-security-and-assurance.md)). No recommendation: Claude, which writes these documents, is one of the options | Pilot | Open: the owner's choice, before PS9 | — |
+| LRN-Q8 | OpenAI drafts questions in the console, through the same integration as picture generation (Europe data residency), with the platform's own OpenAI project and key (OWN-16). No pupil data reaches it ([11](11-privacy-security-and-assurance.md)) | Pilot | Confirmed 2026-11-22 | [0054](../decisions/0054-ai-drafting-uses-openai.md) |
 | LRN-Q9 | No item statistics across schools unless the DPA permits them | Launch | Open: the solicitor (OWN-6); none until then | — |
 | LRN-Q10 | Statutory-check practice: "real or alien word", hear-and-choose; times tables with an optional 6-second timer, off by default | Pilot | Accept | — |
 | LRN-Q11 | Out of scope: comprehension beyond single sentences, composition, handwriting, spoken language | Pilot | Accept | — |
@@ -241,3 +245,13 @@ content phase, grows with PD-24 and PD-25; its size is estimated again when it s
 | PS0-1 | The professional look's font is Inter, bundled and served from our own domain; each look is a set of design tokens | Pilot | Accept | [0053](../decisions/0053-professional-look-for-staff-and-console.md) |
 | PS0-2 | Move LRN-17, LRN-18 and LRN-19 (AI drafting, its review, no pupil data to AI) from Launch to the Pilot, matching PS9 and PD-24 | Pilot | Accept | — |
 | PS0-3 | Move LRN-11 (Year 3 and 4 maths topics) from Launch to the Pilot, so the pilot's Years 3 and 4 have aligned maths (PD-25) | Pilot | Accept | — |
+| PS0-4 | Only the prod pipeline may assume the DNS role; dev manages its own delegated zone. 03 §3 option A and DNS-1 also name dev, which the delegated zone makes unnecessary | Pilot | Accept | [0049](../decisions/0049-domains-dns-and-edge.md) |
+| PS0-5 | The origin-verify header comes in the Pilot, as AUTH-19 and DAT-6 say: DNS-6 moves from Launch to the Pilot | Pilot | Accept | [0049](../decisions/0049-domains-dns-and-edge.md) |
+| PS0-6 | One reserved-slug list, the union of 03 §5 and 05 §11.4 (which differ), in one file that the console and the API both read | Pilot | Accept | [0046](../decisions/0046-tenancy-model.md) |
+| PS0-7 | A deleted school's audit records are kept for 2 years (PQ-15, 10 §2.4); 05 §5's "deleting a school removes its audit log" is corrected | Pilot | Accept | [0046](../decisions/0046-tenancy-model.md) |
+| PS0-8 | A new six-consonant class code each time class sign-in opens (SCH-Q6); 04 §6.5, which keeps one code until it is renewed, is corrected | Pilot | Accept | [0047](../decisions/0047-pupil-identity-and-sign-in.md) |
+| PS0-9 | QR cards use `/q/<handle>` (06 §8.2, 07); 04 §6.1's `/c/` is corrected. Settle it before any card is printed | Pilot | Accept | [0047](../decisions/0047-pupil-identity-and-sign-in.md) |
+| PS0-10 | Home play is a class setting: off limits QR cards to school hours (SCH-Q8); 04 §6.1's school setting that stops cards is corrected | Pilot | Accept | [0047](../decisions/0047-pupil-identity-and-sign-in.md) |
+| PS0-11 | A short spike in sca-dev before PS5 checks four Cognito behaviours sign-in relies on: pupils' `username` claim, custom auth for a user with an unused password, pre token generation adding `game/play`, and API sign-in tokens for staff getting `school/staff`. Today 10 §2.2 and 04 §5.3 leave them to AUTH-20, a Launch spike | Pilot | Accept | [0047](../decisions/0047-pupil-identity-and-sign-in.md), [0048](../decisions/0048-staff-sign-in-and-access-control.md) |
+| PS0-12 | An ended school's Admins keep sign-in for its 90-day export window (05 §5.6, 09 §5.5); a scheduler job deletes their Cognito users at day 90. Other staff users go when the school ends (10 §6) | Launch | Accept | [0052](../decisions/0052-eventbridge-scheduler-at-launch.md) |
+| PS0-13 | **Changes PD-22.** The pilot runs in prod before billing exists (PLAN-Q3), so prod gets more than one release: the "one big release" is the Pilot's (`dev` into `main`, then your dispatch and approval), and Launch and Later follow the same way. ADR-0044, CLAUDE.md and the branches runbook change when this is accepted | Pilot | Accept | [0051](../decisions/0051-billing-on-stripe.md) |

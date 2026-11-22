@@ -237,9 +237,9 @@ The records extend today's `SUM#` items, written in the same transaction as the 
 | Pictures | Today's Draw flow, with owner approval |
 | UI wording | "Draft with help", "Drafted with help". No vendor or model names in the console (standing owner rule) |
 
-The provider is open (LRN-Q8). One option reuses the existing OpenAI integration pattern. The other is Claude on
-Amazon Bedrock, which keeps traffic inside AWS [UNVERIFIED: model availability in `eu-west-2` or an EU inference profile].
-Either way the provider receives no personal data. It is a supplier for content creation, not a sub-processor of school
+**The provider is OpenAI** [CONFIRMED by owner 2026-11-22, LRN-Q8; [0054](../decisions/0054-ai-drafting-uses-openai.md)]: the same integration as
+`picture_gen` (Europe data residency), with the platform's own OpenAI project and key in sca-prod (OWN-16). The
+provider receives no personal data. It is a supplier for content creation, not a sub-processor of school
 data ([11](11-privacy-security-and-assurance.md)).
 
 ---
@@ -321,7 +321,7 @@ each word list and its wrong spellings once, not every instance.
 | LRN-Q5 | 70% This week, 30% review favouring Practising topics |
 | LRN-Q6 | No FIXED activity repeats for a pupil within 14 days, across runs |
 | LRN-Q7 | Status rules: Secure at 8 of the last 10 first tries on at least 2 days, back to Practising below 6; "needs help" at no more than 3 of 10 after 6 resolutions |
-| LRN-Q8 | AI question drafting in the console only; provider to choose (the existing OpenAI pattern, or Claude on Bedrock); caps; every item reviewed |
+| LRN-Q8 | AI question drafting in the console only; provider to choose (the existing OpenAI pattern, or Claude on Bedrock); caps; every item reviewed. **Answered** [CONFIRMED by owner 2026-11-22]: OpenAI, as for pictures |
 | LRN-Q9 | Item statistics across schools: none, or only with DPA permission (with the solicitor) |
 | LRN-Q10 | Statutory-check practice: "real or alien word" and hear-and-choose for phonics; times-tables practice with an optional 6-second timer, off by default |
 | LRN-Q11 | Out of scope: comprehension beyond single sentences, composition, handwriting, spoken language |
