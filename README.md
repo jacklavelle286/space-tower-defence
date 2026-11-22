@@ -89,7 +89,7 @@ Only through GitHub Actions. Nothing is applied from a laptop except each accoun
   plan saved create-only in the account's artefacts bucket, an apply of exactly that plan (skipped when nothing
   changes), then smoke checks. No approval. What to do when a run fails:
   [platform release runbook](docs/runbooks/platform-release.md).
--  **sca-prod**: only from a release on `main`, the Pilot first. The owner dispatches the same workflow on `main`, reads
+- **sca-prod**: only from a release on `main`, the Pilot first. The owner dispatches the same workflow on `main`, reads
   the plan in the run summary and approves the `sca-prod-apply` deployment.
 - **Family edition**: frozen. Its [release.yml](.github/workflows/release.yml) and
   [apply.yml](.github/workflows/apply.yml) stay in the repository, accept only `family`, and are not run any more.

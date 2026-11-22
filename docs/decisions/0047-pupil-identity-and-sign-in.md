@@ -17,7 +17,7 @@ Decision: a pupil pool in each environment, beside operators and staff; pupils s
 - **Secrets** (AUTH-Q5, PUP-Q1): 3 of 9 pictures in order, no repeats (504), fixed grid; or, per class, a generated word
   plus two digits (`comet42`). Stored as an HMAC hash for that check and a KMS-encrypted copy only `school_api`
   decrypts, which Admins and the class's Teacher can show for 30 seconds or print, always audited (AUTH-Q7, SCH-Q7).
--  **Lockouts** (AUTH-Q6, PUP-Q2): 5 wrong in a row (a correct sign-in resets the count) lock a pupil out for 5 minutes,
+- **Lockouts** (AUTH-Q6, PUP-Q2): 5 wrong in a row (a correct sign-in resets the count) lock a pupil out for 5 minutes,
   10 in 24 hours until a teacher unlocks; 30 in a class in 5 minutes close its sign-in; 200 in a school in 5 minutes
   alert the owner.
 - **Sessions** (AUTH-Q8, PUP-Q4): access and ID tokens 60 minutes, refresh 12 hours, rotated; kept in `sessionStorage`
