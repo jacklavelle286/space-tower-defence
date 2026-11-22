@@ -88,7 +88,7 @@ The documents use these as their working assumption. Each is argued where it is 
 |---|---|---|
 | PQ-1 | The staff portal lives at `/staff` on the school's address; pupils use `/` | [03](03-domains-edge-and-email.md) |
 | PQ-2 | A school's address comes from a **slug** the owner chooses at enrolment, checked against a reserved list | [03](03-domains-edge-and-email.md) |
-| PQ-3 | DNS: the zone stays in the DNS account. The prod pipeline gets a narrow cross-account role for its records. `dev.spacecolonydefence.com` is delegated to the dev account | [03](03-domains-edge-and-email.md) |
+| PQ-3 | DNS: the zone stays in the DNS account. The prod pipeline gets a narrow cross-account role for its records. `dev.spacecolonydefence.com` is delegated to the dev account. **[CONFIRMED by owner 2026-11-22, DNS-Q1]** | [03](03-domains-edge-and-email.md) |
 | PQ-4 | A new Terraform root, `infrastructure/platform`, reuses the existing modules; `infrastructure/main` (the family edition) is untouched | [02](02-environments-and-delivery.md) |
 | PQ-5 | Content (levels, maps, questions, speech) is authored in **prod's** console; dev gets content by export and import | [02](02-environments-and-delivery.md) |
 | PQ-6 | Three Cognito user pools per environment: operators, staff, pupils. Pupils sign in through our API, which checks the picture password and has Cognito issue the tokens | [04](04-identity-and-access.md) |

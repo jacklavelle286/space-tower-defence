@@ -112,8 +112,8 @@ DAT-Q (10), PRV-Q (11), MKT-Q (12). Those that block the Pilot are answered in P
 |---|---|---|
 | PLAN-Q1 | What happens to the family edition after the platform launches: stay separate, or become a "family" tenant? | Partly answered (owner, 2026-11-21, [ADR-0045](../decisions/0045-family-edition-frozen.md)): it is frozen as the proof of concept and stays separate on `family`. Whether it ever becomes a tenant: decide after the pilot |
 | PLAN-Q2 | When does the platform come off the back burner? | **Answered** [CONFIRMED by owner 2026-11-21]: now ("we are going to stay on this for a while"); the family edition stays playable on `family` (ADR-0044) |
-| PLAN-Q3 | Does the pilot wait for billing (Launch) or run free before billing exists? | Run the pilot free, as a "Not billed" school (BIL-1); billing is built while the pilot runs |
-| PLAN-Q4 | Add **EventBridge Scheduler** for timed jobs: notices before each billing date, trial-ending emails, PO chasers, a nightly check against Stripe, retention deletions ([09](09-billing.md) BIL-Q11, [10](10-data-and-api.md)). It is new to the architecture (PD-4) | Yes, at Launch. Without it, these become banners and owner-pressed buttons |
+| PLAN-Q3 | Does the pilot wait for billing (Launch) or run free before billing exists? | **Answered** [CONFIRMED by owner 2026-11-22]: run the pilot free, as a "Not billed" school (BIL-1); billing is built while the pilot runs |
+| PLAN-Q4 | Add **EventBridge Scheduler** for timed jobs: notices before each billing date, trial-ending emails, PO chasers, a nightly check against Stripe, retention deletions ([09](09-billing.md) BIL-Q11, [10](10-data-and-api.md)). It is new to the architecture (PD-4) | **Answered** [CONFIRMED by owner 2026-11-22]: yes, at Launch. Without it, these become banners and owner-pressed buttons |
 
 ---
 

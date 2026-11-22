@@ -220,7 +220,7 @@ full assurance pack):
 
 | ID | Question | Recommendation |
 |---|---|---|
-| DNS-Q1 | Who changes records in the DNS account (§3)? | A: cross-account role limited to the zone, plus a delegated dev zone |
+| DNS-Q1 | Who changes records in the DNS account (§3)? | **Answered** [CONFIRMED by owner 2026-11-22]: A, a cross-account role limited to the zone, plus a delegated dev zone |
 | DNS-Q2 | May the owner rename a school's slug, with a 12-month redirect (§5)? | Yes |
 | DNS-Q3 | AWS WAF on the school distribution at Launch (§6.4)? | Yes, a rate-based rule on pupil sign-in; decide after seeing the cost |
 | DNS-Q4 | Which mailbox provider receives `support@`, `privacy@`, `billing@` (§8.2)? | The company's existing provider |
