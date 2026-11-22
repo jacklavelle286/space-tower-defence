@@ -122,8 +122,9 @@ branch must never be able to assume it.
 ## 4. Terraform
 
 **`infrastructure/platform/`** is the platform's root, separate from the family edition's `infrastructure/main`. It
-exists from PS1 (ENV-4) and so far holds the alerts topic, `<project>-<environment>-alerts`, with the owner's email
-subscription. Its state is `platform/terraform.tfstate` in each account's state bucket. It uses the same provider
+exists from PS1 (ENV-4) and holds the alerts topic, `<project>-<environment>-alerts`, with the owner's email
+subscription. From PS3 (DAT-1) it also holds the `tenancy` table, `<project>-<environment>-tenancy`
+([ADR-0046](../decisions/0046-tenancy-model.md)), and the platform's daily backup plan, which selects it. Its state is `platform/terraform.tfstate` in each account's state bucket. It uses the same provider
 constraints and lock entry as `infrastructure/main`, refuses any account but the env file's (`allowed_account_ids`)
 and any environment but `sca-dev` and `sca-prod`, and tags everything `edition = platform` [VERIFIED 2026-11-21:
 `terraform validate`; `terraform test`, 6 offline runs; a read-only `plan` for sca-dev and for sca-prod, 2 to add each].

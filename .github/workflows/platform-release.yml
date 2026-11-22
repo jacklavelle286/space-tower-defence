@@ -458,3 +458,37 @@ jobs:
             echo "- Alerts topic \`${NAME_PREFIX}-alerts\`: present; email subscription $state"
           } >> "$GITHUB_STEP_SUMMARY"
           echo "Alerts topic present; email subscription $state"
+
+      # DAT-1 (ADR-0046): the tenancy table exists with its protections, gsi1 and TTL, and the daily backup selects it.
+      # TTL takes up to an hour to switch on after the table is made, so ENABLING passes.
+      - name: The tenancy table is protected, indexed and backed up
+        run: |
+          table="${NAME_PREFIX}-tenancy"
+          desc=$(aws dynamodb describe-table --table-name "$table" --output json) \
+            || { echo "::error::The tenancy table $table is missing"; exit 1; }
+          jq -e '.Table.TableStatus == "ACTIVE" and .Table.DeletionProtectionEnabled == true
+                 and ([.Table.GlobalSecondaryIndexes[]? | select(.IndexName == "gsi1" and .IndexStatus == "ACTIVE"
+                       and .Projection.ProjectionType == "ALL")] | length == 1)' <<<"$desc" > /dev/null \
+            || { echo "::error::$table is not active, deletion-protected and indexed by gsi1"; exit 1; }
+          pitr=$(aws dynamodb describe-continuous-backups --table-name "$table" \
+            --query 'ContinuousBackupsDescription.PointInTimeRecoveryDescription.PointInTimeRecoveryStatus' --output text)
+          [[ "$pitr" == "ENABLED" ]] || { echo "::error::Point-in-time recovery is $pitr on $table"; exit 1; }
+          ttl=$(aws dynamodb describe-time-to-live --table-name "$table" \
+            --query 'TimeToLiveDescription.[TimeToLiveStatus,AttributeName]' --output text)
+          [[ "$ttl" == ENABLED*ttl || "$ttl" == ENABLING*ttl ]] || { echo "::error::TTL on $table is: $ttl"; exit 1; }
+          arn=$(jq -r '.Table.TableArn' <<<"$desc")
+          plan=$(aws backup list-backup-plans \
+            --query "BackupPlansList[?BackupPlanName=='${NAME_PREFIX}-daily'].BackupPlanId" --output text)
+          [[ -n "$plan" && "$plan" != "None" ]] || { echo "::error::The backup plan ${NAME_PREFIX}-daily is missing"; exit 1; }
+          found=no
+          for selection in $(aws backup list-backup-selections --backup-plan-id "$plan" \
+              --query 'BackupSelectionsList[].SelectionId' --output text); do
+            if aws backup get-backup-selection --backup-plan-id "$plan" --selection-id "$selection" \
+                --query 'BackupSelection.Resources' --output text | tr '\t' '\n' | grep -qxF "$arn"; then
+              found=yes
+            fi
+          done
+          [[ "$found" == yes ]] || { echo "::error::$table is not in the backup plan ${NAME_PREFIX}-daily"; exit 1; }
+          echo "- Tenancy table \`$table\`: active, deletion-protected, PITR on, TTL on \`ttl\`, \`gsi1\` active, in the daily backup" \
+            >> "$GITHUB_STEP_SUMMARY"
+          echo "Tenancy table checks passed"

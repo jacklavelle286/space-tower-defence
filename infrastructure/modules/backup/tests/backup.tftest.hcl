@@ -47,3 +47,26 @@ run "both_tables_are_required" {
   }
   expect_failures = [var.table_arns]
 }
+
+# The platform root backs up its own tables (ADR-0050): required_tables replaces the family edition's game and content.
+run "a_root_names_its_own_required_tables" {
+  command = plan
+  variables {
+    name_prefix     = "space-tower-defence-sca-dev"
+    required_tables = ["tenancy"]
+    table_arns      = { tenancy = "arn:aws:dynamodb:eu-west-2:111111111111:table/space-tower-defence-sca-dev-tenancy" }
+  }
+  assert {
+    condition     = toset(aws_backup_selection.tables.resources) == toset(values(var.table_arns))
+    error_message = "The selection backs up exactly the tables the root names."
+  }
+}
+
+run "a_required_table_must_be_given" {
+  command = plan
+  variables {
+    required_tables = ["tenancy"]
+    table_arns      = { game = "arn:aws:dynamodb:eu-west-2:111111111111:table/space-tower-defence-prod-game" }
+  }
+  expect_failures = [var.table_arns]
+}

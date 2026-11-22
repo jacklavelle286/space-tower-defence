@@ -4,12 +4,23 @@ variable "name_prefix" {
 }
 
 variable "table_arns" {
-  description = "The tables to back up, by name (game, content): selected by ARN (H.13). Both are required (G-5)."
+  description = "The tables to back up, by name, selected by ARN (H.13). It must name every table in required_tables."
   type        = map(string)
 
   validation {
-    condition     = alltrue([for k in ["game", "content"] : contains(keys(var.table_arns), k)])
-    error_message = "table_arns must name both the game and the content table (gate G-5)."
+    condition     = alltrue([for k in var.required_tables : contains(keys(var.table_arns), k)])
+    error_message = "table_arns must name every table in required_tables (for the family edition, game and content: gate G-5)."
+  }
+}
+
+variable "required_tables" {
+  description = "Table names that table_arns must include. The default is the family edition's gate G-5 (game and content); the platform root passes its own list (ADR-0050)."
+  type        = list(string)
+  default     = ["game", "content"]
+
+  validation {
+    condition     = length(var.required_tables) > 0
+    error_message = "required_tables must name at least one table."
   }
 }
 
