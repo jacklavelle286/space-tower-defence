@@ -237,10 +237,10 @@ The records extend today's `SUM#` items, written in the same transaction as the 
 | Pictures | Today's Draw flow, with owner approval |
 | UI wording | "Draft with help", "Drafted with help". No vendor or model names in the console (standing owner rule) |
 
-**The provider is OpenAI** [CONFIRMED by owner 2026-11-22, LRN-Q8; [0054](../decisions/0054-ai-drafting-uses-openai.md)]: the same integration as
-`picture_gen` (Europe data residency), with the platform's own OpenAI project and key in sca-prod (OWN-16). The
-provider receives no personal data. It is a supplier for content creation, not a sub-processor of school
-data ([11](11-privacy-security-and-assurance.md)).
+**The provider is OpenAI** [CONFIRMED by owner 2026-11-22, LRN-Q8]: the same integration as `picture_gen` (Europe data
+residency), with the platform's own OpenAI project and key in sca-prod (OWN-16;
+[ADR-0054](../decisions/0054-ai-drafting-uses-openai.md)). The provider receives no personal data. It is a supplier for
+content creation, not a sub-processor of school data ([11](11-privacy-security-and-assurance.md)).
 
 ---
 

@@ -5,7 +5,8 @@ Context: staff sign in at `/staff` on their school's address, the owner at `admi
 PD-9 puts email, password and MFA first, Microsoft and Google next. Cognito callback URLs match exactly, 100 per client
 at most; the DfE standard asks for MFA on staff accounts; rule R1 and CON-Q4 limit what the owner may see.
 
-Decision: a **staff** user pool joins the operator pool in each account (PQ-6); pupils are in [0047](0047-pupil-identity-and-sign-in.md).
+Decision: a **staff** user pool joins the operator pool in each account (PQ-6); pupils are in
+[0047](0047-pupil-identity-and-sign-in.md).
 - **Staff sign-in, Pilot** (AUTH-Q1): our own screens at `/staff` call Cognito's user-pool API through Amplify, with one
   client, `staff-web`, for every school. MFA is required: TOTP or email codes, no SMS, passkeys Later (AUTH-Q3). Staff
   join only by invitation, from an Admin (or the owner, for a first or replacement Admin), valid 7 days (SCH-Q10).

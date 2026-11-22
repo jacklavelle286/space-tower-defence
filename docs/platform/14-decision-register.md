@@ -22,12 +22,13 @@ spike, or your choice); each says what settles it and when it is needed.
 **Release** is the first release whose work depends on the answer: Pilot (phases PS2 to PS12), Launch or Later. When
 unsure, the earlier one.
 
-**Conflicts** between documents, settled here (each row says so): a deleted school's slug (CON-Q2, DAT-Q8); notice
-of a price change (CON-Q7, BIL-Q12); how the pilot is free (PQ-13, MKT-Q9, PLAN-Q3); when the WAF arrives (DNS-Q3,
-DAT-Q6, PRV-Q10, DAT-15, 04 §6.4); who may assume the DNS role (PS0-4); when the origin-verify header arrives (PS0-5); the reserved
-slugs (PS0-6); a deleted school's audit records (PS0-7); the class code (PS0-8); the QR card path (PS0-9); home play
-(PS0-10); support access (AUTH-Q9, CON-Q5); and the console's trusted browser (CON-Q8). The job list in PLAN-Q4 also names retention deletions,
-which DAT-Q4 does with DynamoDB TTL instead.
+**Conflicts** between documents, settled here (each row says so): a deleted school's slug (CON-Q2, DAT-Q8); notice of a
+price change (CON-Q7, BIL-Q12); how the pilot is free (PQ-13, MKT-Q9, PLAN-Q3); when the WAF arrives (DNS-Q3, DAT-Q6,
+PRV-Q10, DAT-15, 04 §6.4); who may assume the DNS role (PS0-4); when the origin-verify header arrives (PS0-5); the
+reserved slugs (PS0-6); a deleted school's audit records (PS0-7); the class code (PS0-8); the QR card path (PS0-9); home
+play (PS0-10); support access (AUTH-Q9, CON-Q5); the console's trusted browser (CON-Q8); and how prod is released after
+the pilot (PS0-13, which changes PD-22). The job list in PLAN-Q4 also names retention deletions, which DAT-Q4 does with
+DynamoDB TTL instead.
 
 ---
 

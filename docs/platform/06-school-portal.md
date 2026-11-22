@@ -91,9 +91,9 @@ sign-in.
 
 ## 3. Layout, navigation and dashboards
 
-**Look** [CONFIRMED by owner 2026-11-22, PD-23; [ADR-0053](../decisions/0053-professional-look-for-staff-and-console.md)]: the staff portal shares the console's
-professional look, in the same brand but without the pupils' fonts. The pupils' pages at `/` keep the game's look.
-Story SCH-40.
+**Look** [CONFIRMED by owner 2026-11-22, PD-23]: the staff portal shares the console's professional look, in the same
+brand but without the pupils' fonts ([ADR-0053](../decisions/0053-professional-look-for-staff-and-console.md)). The
+pupils' pages at `/` keep the game's look. Story SCH-40.
 
 ### 3.1 Navigation by role
 

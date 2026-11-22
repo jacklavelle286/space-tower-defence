@@ -31,8 +31,9 @@ Consequences: MKT-Q9 and 12 §9 make the pilot free "through a 100% coupon", and
 agreed terms"; PLAN-Q3 makes it "Not billed". Settled: "Not billed" during the Pilot; a 100% coupon only if the pilot
 school stays on once billing exists (09 §5.4). MKT-Q9, 12 §9, PQ-13 and MKT-13 (SCD-251, a Pilot story) need rewording.
 Billing goes to prod during the pilot, so after PD-22's "one big release" (02 §2: "deployed once"): the register
-recommends that the big release is the Pilot's, and Launch follows it the same way (PS0-13). Open: price and minimum (BIL-Q1, OWN-14) and VAT (BIL-Q6, the accountant, OWN-6); 09's [UNVERIFIED] Stripe points
-await the sandbox (BIL-29). Timed jobs: [0052](0052-eventbridge-scheduler-at-launch.md).
+recommends that the big release is the Pilot's, and Launch follows it the same way (PS0-13). Open: price and minimum
+(BIL-Q1, OWN-14) and VAT (BIL-Q6, the accountant, OWN-6); 09's [UNVERIFIED] Stripe points await the sandbox (BIL-29).
+Timed jobs: [0052](0052-eventbridge-scheduler-at-launch.md).
 
 Evidence: [09](../platform/09-billing.md) §3–§16 and [§18](../platform/09-billing.md#18-decisions-for-the-owner);
 [10 §9](../platform/10-data-and-api.md#9-decisions-for-the-owner);
