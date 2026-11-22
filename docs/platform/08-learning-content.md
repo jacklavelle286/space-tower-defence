@@ -312,6 +312,9 @@ each word list and its wrong spellings once, not every instance.
 
 ## 11. Decisions for the owner
 
+Answered at the PS0 gate on 2026-11-22: every recommendation below was accepted, except where the
+[decision register](14-decision-register.md) says Open.
+
 | ID | Proposal |
 |---|---|
 | LRN-Q1 | Content level is the school year (1–4) on topics and activities; the family edition maps 5 → Y1, 6 → Y1–Y2, 7 → Y2–Y3 (and later 8 → Y3–Y4, 9 → Y4) |

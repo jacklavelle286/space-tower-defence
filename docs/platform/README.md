@@ -7,7 +7,9 @@ branch (called `schools` until 2026-11-21; [ADR-0044](../decisions/0044-branches
 research and its first answers.
 
 Labels as in the [spine](../plan/00-spine.md#what-this-file-is): **[CONFIRMED by owner 2026-11-21]**, **[PROPOSAL]**,
-**[ASSUMPTION]**, **[VERIFIED]** (source given), **[UNVERIFIED]** (how to check given).
+**[ASSUMPTION]**, **[VERIFIED]** (source given), **[UNVERIFIED]** (how to check given). From the PS0 gate (2026-11-22)
+the [decision register](14-decision-register.md) wins over any [PROPOSAL] label in these documents: a recommendation it
+lists as Confirmed is the owner's decision.
 
 ---
 
@@ -77,7 +79,7 @@ All dated 2026-11-21. Where an answer replaces one given earlier the same day, t
 | PD-17 | Selling: teachers try it free; direct to heads and trusts; resellers and catalogues; word of mouth. **The pilot is the owner's children's school** |
 | PD-18 | Web browser first; an **iPad app** later. Parents may **subscribe separately** later. Teachers' own questions later |
 | PD-19 | Keep the name **Space Colony Defence**; the full sales kit (brand, site, brochure, deck, curriculum map, privacy pack) |
-| PD-20 | Work happens on **`dev`**, through short-lived feature branches named after the Jira ticket (`SCD-<n>-…`); the family edition lives on **`family`**, frozen as the proof of concept from 2026-11-21 ([ADR-0045](../decisions/0045-family-edition-frozen.md)); `main` is kept for the one big release ([ADR-0044](../decisions/0044-branches-family-dev-main.md)). Stories are tracked in **Jira** project SCD. Earlier the same day: the `schools` branch |
+| PD-20 | Work happens on **`dev`**, through short-lived feature branches named after the Jira ticket (`SCD-<n>-…`); the family edition lives on **`family`**, frozen as the proof of concept from 2026-11-21 ([ADR-0045](../decisions/0045-family-edition-frozen.md)); `main` is kept for releases, the Pilot first ([ADR-0044](../decisions/0044-branches-family-dev-main.md), [ADR-0055](../decisions/0055-prod-release-per-release.md)). Stories are tracked in **Jira** project SCD. Earlier the same day: the `schools` branch |
 | PD-21 | The accounts are **`sca-dev`** and **`sca-prod`**, created and bootstrapped by the owner, locally, with the repository's bootstrap root |
 | PD-22 | **A merge into `dev` deploys to sca-dev automatically.** Everything stays on dev until **one big release to prod**: `dev` merges into `main`, and the owner dispatches and approves the prod deploy. Amended 2026-11-22 (PS0-13, [ADR-0055](../decisions/0055-prod-release-per-release.md)): the big release is the Pilot's, and Launch and Later follow the same way |
 | PD-23 | **The console and the staff portal look like professional SaaS software**, in the same brand but without the pupils' fonts; the pupils' game keeps its look. Dated 2026-11-22 ([ADR-0053](../decisions/0053-professional-look-for-staff-and-console.md)) |
@@ -86,7 +88,9 @@ All dated 2026-11-21. Where an answer replaces one given earlier the same day, t
 
 ### 3.2 Proposed, for the owner to confirm
 
-The documents use these as their working assumption. Each is argued where it is introduced.
+The documents use these as their working assumption. Each is argued where it is introduced. The owner confirmed PQ-1 to
+PQ-15 at the PS0 gate on 2026-11-22 (PQ-3 earlier that day, as DNS-Q1), except PQ-7, which waits for the federation
+spike (AUTH-20); the [decision register](14-decision-register.md#2-proposals-readme-32) gives each one's state.
 
 | ID | Proposal | Where |
 |---|---|---|
@@ -102,7 +106,7 @@ The documents use these as their working assumption. Each is argued where it is 
 | PQ-10 | A teacher's "remove from class" leaves the pupil enrolled but unassigned; only Admins un-enrol (which stops billing) | [06](06-school-portal.md) |
 | PQ-11 | A class code works only while the teacher has **class sign-in open**; QR cards work any time | [07](07-pupil-experience.md) |
 | PQ-12 | Billing runs on **Stripe**: one subscription per school, a four-monthly cycle on **1 September, 1 January and 1 May**, quantity kept equal to the enrolled count | [09](09-billing.md) |
-| PQ-13 | New schools are free until the next billing date (at least 30 days). The pilot school gets a 100% discount for agreed terms | [09](09-billing.md) |
+| PQ-13 | New schools are free until the next billing date (at least 30 days). The pilot school is "Not billed" during the pilot (PLAN-Q3); a 100% discount applies only if it stays on once billing exists | [09](09-billing.md) |
 | PQ-14 | Overdue invoices bring reminders and banners. **Suspension is the owner's decision, never automatic**; a suspended school's pupils cannot play, but its staff can still pay and export | [09](09-billing.md) |
 | PQ-15 | Retention: a school's pupil data is deleted 90 days after its licence ends; audit records are kept 2 years; invoices 6 years | [11](11-privacy-security-and-assurance.md) |
 
@@ -121,7 +125,7 @@ it expires 2027-11-21 [VERIFIED: `route53domains get-domain-detail` and `route53
 | `admin.spacecolonydefence.com` | Platform console (the owner) | `admin.dev.spacecolonydefence.com` |
 | `<school>.spacecolonydefence.com` | A school: pupils at `/`, staff at `/staff` | `<school>.dev.spacecolonydefence.com` |
 | `demo.spacecolonydefence.com` | The demo school (a tenant in prod) | none |
-| `login.spacecolonydefence.com` | Staff sign-in pages (Cognito managed login, custom domain) | `login.dev.spacecolonydefence.com` |
+| `login.spacecolonydefence.com` | Staff sign-in pages for Microsoft and Google, from Launch (Cognito managed login, custom domain; [03](03-domains-edge-and-email.md)). In the Pilot, staff sign in at `/staff` (AUTH-Q1) | `login.dev.spacecolonydefence.com` |
 | `hooks.spacecolonydefence.com` | Incoming webhooks (Stripe) | `hooks.dev.spacecolonydefence.com` |
 
 ---

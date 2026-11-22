@@ -50,11 +50,11 @@ estimates of time [ASSUMPTION].
 | PS2 | DNS role and delegated dev zone, certificates, the four distributions, the host function, enforced CSP, SES | E02 | PS1, OWN-3, OWN-4 | M |
 | PS3 | The `tenancy` table, school registry and slugs, the tenant-isolation module and its tests, the `x-scd-host` mapping | E09 | PS1 | M |
 | PS4 | Console: Schools (enrol, lifecycle), demo school reset, platform audit | E04 | PS3 | M |
-| PS5 | Staff pool, embedded sign-in with MFA, invitations, memberships, the RBAC module and its route × role matrix tests | E03 | PS2, PS3 | L |
+| PS5 | Staff pool, embedded sign-in with MFA, invitations, memberships, the RBAC module and its route × role matrix tests, after a Cognito spike in sca-dev (PS0-11) | E03 | PS2, PS3 | L |
 | PS6 | Portal: staff, classes, pupils, **CSV enrolment**, unassigned pupils, audit log | E05 | PS5 | L |
 | PS7 | Pupil pool, `pupil_auth`, class sign-in, QR cards, picture and typed passwords, lockouts; card and password-sheet printing | E03, E05 | PS6 | L |
 | PS8 | The player app made school-aware: sign-in screens, avatar, Home with This week, Finish, status screens; `player_api` reading year groups and class settings | E06 | PS7 | M |
-| PS9 | Content model for Years 1–4, topic sets, selection weighting; the first content set; AI-assisted question drafting in the console | E07 | PS3 | L (mostly content) |
+| PS9 | Content model for Years 1–4, topic sets, selection weighting; the first content set; AI-assisted question drafting in the console. It grows with PD-24 and PD-25 (many more question types, every year curriculum-aligned) | E07 | PS3 | L (mostly content); estimated again when it starts |
 | PS10 | This week and class settings in the portal; progress summaries, class grid, pupil page, CSV export | E05, E07 | PS8, PS9 | M |
 | PS11 | Privacy pack drafts (DPA, DPIA template, privacy notices, sub-processors, retention), domain list for school IT, accessibility check of pupil and portal paths | E10 | PS6 to PS10 | M |
 | PS12 | Pilot readiness: load test of five classes signing in together, restore drill, runbook, the pilot school set up | E01, E09, E10 | All above, OWN-7 | M |
@@ -86,7 +86,7 @@ Things only the owner can do. They become Jira tasks under E12.
 |---|---|---|
 | OWN-1 | Create the platform dev and prod accounts in the organisation (OU, guardrails, Identity Center admin and read-only permission sets, budgets) | PS1 |
 | OWN-2 | Apply the bootstrap for each account (Claude prepares and reviews the plan) | PS1 |
-| OWN-3 | Create the cross-account DNS role in the DNS account, or choose the hand-off (DNS-Q1) | PS2 |
+| OWN-3 | Create the cross-account DNS role in the DNS account (DNS-Q1: the role, confirmed 2026-11-22) | PS2 |
 | OWN-4 | Request SES production access in prod | PS2 |
 | OWN-5 | Open the company's Stripe account: verify the business; enable cards, Bacs Direct Debit and bank transfers; set the invoice numbering, footer and VAT number; create restricted keys and webhook endpoints; create a sandbox for dev | PS13 |
 | OWN-6 | Solicitor: terms, DPA, privacy notices. Accountant: VAT treatment, invoice wording, record keeping | PS11 (drafts), Launch (final) |
@@ -115,7 +115,7 @@ DAT-Q (10), PRV-Q (11), MKT-Q (12). Those that block the Pilot are answered in P
 | PLAN-Q1 | What happens to the family edition after the platform launches: stay separate, or become a "family" tenant? | Partly answered (owner, 2026-11-21, [ADR-0045](../decisions/0045-family-edition-frozen.md)): it is frozen as the proof of concept and stays separate on `family`. Whether it ever becomes a tenant: decide after the pilot |
 | PLAN-Q2 | When does the platform come off the back burner? | **Answered** [CONFIRMED by owner 2026-11-21]: now ("we are going to stay on this for a while"); the family edition stays playable on `family` (ADR-0044) |
 | PLAN-Q3 | Does the pilot wait for billing (Launch) or run free before billing exists? | **Answered** [CONFIRMED by owner 2026-11-22]: run the pilot free, as a "Not billed" school (BIL-1); billing is built while the pilot runs |
-| PLAN-Q4 | Add **EventBridge Scheduler** for timed jobs: notices before each billing date, trial-ending emails, PO chasers, a nightly check against Stripe, retention deletions ([09](09-billing.md) BIL-Q11, [10](10-data-and-api.md)). It is new to the architecture (PD-4) | **Answered** [CONFIRMED by owner 2026-11-22]: yes, at Launch. Without it, these become banners and owner-pressed buttons |
+| PLAN-Q4 | Add **EventBridge Scheduler** for timed jobs: notices before each billing date, trial-ending emails, PO chasers, a nightly check against Stripe, retention deletions ([09](09-billing.md) BIL-Q11, [10](10-data-and-api.md)). It is new to the architecture (PD-4) | **Answered** [CONFIRMED by owner 2026-11-22]: yes, at Launch ([ADR-0052](../decisions/0052-eventbridge-scheduler-at-launch.md)). Without it, these become banners and owner-pressed buttons. Not retention deletions: DynamoDB TTL does those (DAT-Q4); the scheduler's one deletion is an ended school's Admins' Cognito users, at day 90 (PS0-12) |
 
 ---
 
@@ -184,6 +184,11 @@ Counted from the stories tables on 2026-11-21.
 | E10 Privacy, security and assurance | PRV | 13 | 10 | 1 | 24 |
 | E11 Marketing and sales | MKT | 5 | 8 | 2 | 15 |
 | **Stories** | | **156** | **97** | **15** | **268** |
+
+These counts are the 2026-11-21 snapshot. Since PS0 (2026-11-22): new stories CON-31, SCH-40, LRN-26, LRN-27 and
+AUTH-26; new tasks OWN-16 and PS0 (SCD-299); DNS-6, LRN-11 and LRN-17 to LRN-19 moved from Launch to the Pilot, and
+PRV-19 from the Pilot to Launch ([decision register](14-decision-register.md)).
+
 | E12 Owner actions (tasks) | OWN | | | | 15 |
 
 In Jira that is 3 versions, 12 epics, 268 stories and 15 tasks.

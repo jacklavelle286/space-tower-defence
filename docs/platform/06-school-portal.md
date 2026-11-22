@@ -139,7 +139,8 @@ Only the owner suspends or reinstates a school.
 
 ## 4. Staff
 
-Admins only, except My account (section 4.6).
+Admins only, except two things: every staff member has My account (section 4.6), and Read-only staff see the staff list
+(section 4.1) with names and roles only, not emails or staff actions (SCH-Q14).
 
 ### 4.1 Staff list
 
@@ -573,8 +574,8 @@ What pupils see first after signing in [CONFIRMED by owner, PD-14].
 
 | Field | Rules |
 |---|---|
-| Map | One released map. Pupils see it as the big card on Home ([07](07-pupil-experience.md)) |
-| Topic sets | One to three topic sets offered for the class's year groups ([05 §8.3](05-platform-console.md#83-topic-sets), [08](08-learning-content.md)), each showing how many questions it has |
+| Map | Optional (LRN-Q3): one released map. Pupils see it as the big card on Home ([07](07-pupil-experience.md)) |
+| Topic sets | A published topic set, or 1 to 5 topics, for the class's year groups (LRN-Q3; [05 §8.3](05-platform-console.md#83-topic-sets), [08](08-learning-content.md)), each showing how many questions it has |
 | End date | Default: the coming Friday. After it, This week clears and pupils see the maps only |
 
 - **Mixed-age classes**: each pupil's questions come from their own year group within the chosen topic sets
@@ -678,9 +679,9 @@ Admins only.
 | Staff sign-in methods | Pilot: email, password and MFA, always on. Launch: **Connect Microsoft 365** and **Connect Google Workspace**. Each has steps for the school's IT (Microsoft needs the school's IT to grant consent; Google needs the school's domain), a test sign-in, then **Turn on**, and optionally "Require it for staff with an @school address". Details in [04](04-identity-and-access.md) |
 | Pupil sign-in defaults | The default for new classes (picture or typed). The lock-out rule is shown for information ([07](07-pupil-experience.md)) |
 | Enrolment limit | Optional number; above it only Admins can enrol (section 6.8) |
-| Data | **Export everything**: a ZIP of CSV and JSON files (staff, classes, pupils without secrets, progress, settings, audit log), prepared in the background, with a download link valid 24 hours. The DfE cloud standard asks for exit data "in an open standard or neutral format" [VERIFIED gov.uk cloud solutions standard, updated 16 Sep 2026]. **Request deletion** of the school's data: goes to the owner to confirm ([05 §9.3](05-platform-console.md#93-data-requests)) |
+| Data | **Export everything**: a ZIP of CSV and JSON files (staff, classes, pupils without secrets, progress, settings, audit log), prepared in the background, kept 7 days, with download links valid 15 minutes (DAT-Q5). The DfE cloud standard asks for exit data "in an open standard or neutral format" [VERIFIED gov.uk cloud solutions standard, updated 16 Sep 2026]. **Request deletion** of the school's data: goes to the owner to confirm ([05 §9.3](05-platform-console.md#93-data-requests)) |
 | Terms and DPA | Accepted versions, who accepted, when; download each; accept a new version (section 2.3) |
-| Support access | Grant now (24 or 72 hours, read-only or read-write); requests waiting; history; revoke ([05 §9.1](05-platform-console.md#91-support-access)) |
+| Support access | Grant now: 24 hours by default, or 72 hours or 7 days at most (AUTH-Q9), read-only or read-write; requests waiting; history; revoke ([05 §9.1](05-platform-console.md#91-support-access)) |
 
 ---
 
@@ -772,6 +773,9 @@ Specific to the portal:
 
 ## 17. Decisions for the owner
 
+Answered at the PS0 gate on 2026-11-22: every recommendation below was accepted, except where the
+[decision register](14-decision-register.md) says Open.
+
 | ID | Proposal |
 |---|---|
 | SCH-Q1 | CSV files are read in the browser; only first name, last initial, year group, class and reference reach our servers. Surnames never leave the device |
@@ -824,16 +828,16 @@ Specific to the portal:
 | SCH-24 | As a Teacher, I want to switch my class between picture and typed passwords, so that older pupils can type | New secrets for the whole class on confirm; the password sheet opens; warning shown first | Pilot |
 | SCH-25 | As a Teacher, I want to set This week's map and topic sets, so that practice matches my teaching | Fields as §9.1; only sets offered for the class's year groups; clears after the end date; "same as last week" works | Pilot |
 | SCH-26 | As a Teacher, I want to turn maps on or off and choose home play, so that pupils play what suits my class | At least one map stays on; New maps setting respected; home play off limits QR cards to school hours | Pilot |
-| SCH-27 | As a Teacher, I want to pause my class, so that I get their attention or end the lesson | No new games at once; running games stop within 90 seconds (lease renewal); resume immediate; sign-in unaffected | Pilot |
+| SCH-27 | As a Teacher, I want to pause my class, so that I get their attention or end the lesson | No new games at once; running games stop within 60 seconds (lease renewal, PUP-Q6); resume immediate; sign-in unaffected | Pilot |
 | SCH-28 | As a Teacher, I want a class progress grid, so that I see who is practising what | Grid as §10.2; text and colour; needs-help filter; data no older than a few minutes | Pilot |
 | SCH-29 | As a Teacher, I want a pupil page and a list of who is playing now, so that I can follow one child | Contents as §10.3 and §10.5; refreshes every 30 s | Pilot |
 | SCH-30 | As a Read-only member of staff, I want to see every class's progress and export it, so that I can report to leaders | Read-only sees all classes; no change actions visible or accepted by the API; CSV protected against formula injection | Pilot |
 | SCH-31 | As an Admin or Billing admin, I want the Billing page, so that the school can pay and keep its records | As 09 §13; Read-only sees counts only; Teachers see no Billing page | Launch |
 | SCH-32 | As an Admin, I want school settings, so that the school looks and works as we want | Settings as §12; badge shown on sign-in pages and cards; school hours used by home play | Pilot |
 | SCH-33 | As an Admin, I want to connect Microsoft 365 or Google Workspace for staff sign-in, so that staff use their school accounts | Steps as §12 and 04; test sign-in before turning on; "require it" option; audited | Launch |
-| SCH-34 | As an Admin, I want to export all our data, so that we can keep or move it | ZIP of CSV and JSON as §12; prepared in the background; link valid 24 h; audited | Launch |
+| SCH-34 | As an Admin, I want to export all our data, so that we can keep or move it | ZIP of CSV and JSON as §12; prepared in the background; kept 7 days, links valid 15 minutes (DAT-Q5); audited | Launch |
 | SCH-35 | As an Admin, I want an audit log, so that I can see who did what | Events as §13; filters; CSV export; support actions shown as support; kept 2 years | Pilot |
-| SCH-36 | As an Admin, I want to grant and revoke support access, so that the platform's support can help us only when we agree | Grant 24 or 72 h, read-only or read-write; pending requests shown; revoke effective on the next request | Launch |
+| SCH-36 | As an Admin, I want to grant and revoke support access, so that the platform's support can help us only when we agree | Grant for 24 h by default, or 72 h or 7 days at most (AUTH-Q9), read-only or read-write; pending requests shown; revoke effective on the next request | Launch |
 | SCH-37 | As an Admin, I want a new-school-year wizard, so that moving every class up takes minutes | Steps as §14; leavers un-enrolled on confirm and not on the September invoice; restore within 90 days; review shows the billing effect | Launch |
 | SCH-38 | As a staff member, I want help pages and a support form, so that I can solve problems myself or ask | Pages and form as §15; IT allow-list page; form warns against pupils' full names | Pilot |
 | SCH-39 | As a staff member who uses assistive technology, I want the portal to meet WCAG 2.2 AA, so that I can do my job | Automated checks in CI plus a manual audit before Launch ([11](11-privacy-security-and-assurance.md)); items in §16 tested | Launch |

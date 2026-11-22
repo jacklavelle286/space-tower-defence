@@ -333,6 +333,9 @@ re-checked against a pilot school's devices.
 
 ## 16. Decisions for the owner
 
+Answered at the PS0 gate on 2026-11-22: every recommendation below was accepted, except where the
+[decision register](14-decision-register.md) says Open.
+
 | ID | Proposal |
 |---|---|
 | PUP-Q1 | Picture password: three of nine pictures in order, no repeats, grid in a fixed order |

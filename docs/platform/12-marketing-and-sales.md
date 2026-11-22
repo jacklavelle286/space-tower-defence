@@ -30,7 +30,7 @@ Sources are keyed M1 to M17 and listed in [§10](#10-sources).
 | Wordmark "Space Colony Defence", plus a "for schools" version | Marketing site, portal header, brochure, deck |
 | Lock-ups (horizontal and stacked) | Headers, documents |
 | Palette as named tokens for light and dark, each text and background pair checked against WCAG 2.2 AA contrast | Every app and document |
-| Type: one heading family, system fonts for body text | Marketing site, portal, documents |
+| Type: two looks, one brand ([ADR-0053](../decisions/0053-professional-look-for-staff-and-console.md)): the game's fonts for pupils; Inter for the console, the staff portal and documents (PS0-1) | Marketing site, portal, documents |
 | Favicon set and app icon (the iPad app comes later, PD-18) | Browsers; the App Store later |
 | Email header | Invitations and notices sent through SES ([03](03-domains-edge-and-email.md)) |
 | Social preview image | Links shared to the site |
@@ -235,9 +235,9 @@ The owner chose all four [CONFIRMED by owner, PD-17]:
 ## 9. The pilot
 
 - **School:** the owner's children's school (PD-17).
-- **Terms:** free for one term (MKT-Q9). This is done with a 100% coupon on the school's subscription, so the whole
-  billing path runs without charging anything (PQ-13, [09](09-billing.md)). The DPA is signed before any pupil signs in
-  (PRV-1 in [11](11-privacy-security-and-assurance.md#20-user-stories)).
+- **Terms:** free for one term (MKT-Q9). While billing does not exist, the pilot school is "Not billed", with no Stripe
+  customer (PLAN-Q3, [09](09-billing.md) §5.4). A 100% coupon applies only if it stays on once billing exists (PQ-13).
+  The DPA is signed before any pupil signs in (PRV-1 in [11](11-privacy-security-and-assurance.md#20-user-stories)).
 - **Scope:** the Pilot release ([01 §6](01-product-and-roles.md#6-releases)).
 
 **Safeguards**, because the owner is both the platform operator and a parent at the school. These carry over from
@@ -299,6 +299,9 @@ All checked 2026-11-21.
 
 ## 11. Decisions for the owner
 
+Answered at the PS0 gate on 2026-11-22: every recommendation below was accepted, except where the
+[decision register](14-decision-register.md) says Open.
+
 | ID | Proposal |
 |---|---|
 | MKT-Q1 | The prices published on the site: the per-pupil termly price and the minimum per school (PD-12 sets the model, not the figures) |
@@ -309,7 +312,7 @@ All checked 2026-11-21.
 | MKT-Q6 | Search the UK IPO register for "Space Colony Defence" and decide whether to file |
 | MKT-Q7 | Reseller terms (discount or margin, how they are invoiced), once a reseller is interested |
 | MKT-Q8 | The pilot's success measures (§9) |
-| MKT-Q9 | The pilot runs for one term, free, through a 100% coupon |
+| MKT-Q9 | The pilot runs for one term, free: the pilot school is "Not billed" while billing does not exist (PLAN-Q3), and a 100% coupon applies only if it stays on once billing exists |
 
 ---
 
@@ -332,6 +335,6 @@ All checked 2026-11-21.
 | MKT-10 | As a subject lead, I want a curriculum mapping sheet for Years 1–4, so that I can see what is covered | Built from the content's curriculum tags ([08](08-learning-content.md)); shows the national curriculum headings for each year; dated, and revised when the new curriculum is published | Launch |
 | MKT-11 | As a DPO, I want the privacy pack on the website, so that I can check the supplier before a demo | The assurance pack ([11 §17](11-privacy-security-and-assurance.md#17-the-assurance-pack)) can be downloaded from the safety and privacy page | Launch |
 | MKT-12 | As a business manager, I want a quote I can file, so that I can meet our procurement rules | A quote template with the school's pupil count, the termly price, the minimum, VAT and validity; produced by the owner | Launch |
-| MKT-13 | As the owner, I want a pilot plan agreed with the school, so that we both know what success means | Dates, a named contact, the §9 measures and safeguards written down; DPA signed; a 100% coupon on the school's subscription | Pilot |
+| MKT-13 | As the owner, I want a pilot plan agreed with the school, so that we both know what success means | Dates, a named contact, the §9 measures and safeguards written down; DPA signed; the school set up as "Not billed" while billing does not exist (PLAN-Q3); a 100% coupon only if it stays on once billing exists | Pilot |
 | MKT-14 | As the owner, I want a case study after the pilot, so that other schools hear from a real one | Written permission from the school; only staff quotes given with consent; no pupil data | Later |
 | MKT-15 | As a teacher, I want to start a trial from the website, so that I can try it without waiting for a demo | A sign-up form takes the school's URN and the teacher's work email; the owner approves before the trial school is created; the trial follows PQ-13 | Later |

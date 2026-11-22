@@ -33,7 +33,7 @@ The console works with counts, school details, staff details and billing.
 | Pool | The **operator pool** in each platform account, as in the family edition: accounts created by the owner only, no self sign-up [PROPOSAL; today's pool: VERIFIED infrastructure/main/main.tf:601-638] |
 | Factors | Password and **TOTP MFA**, enrolled at first sign-in [VERIFIED today: cognito_pool/main.tf:78-88] |
 | Flow | Managed login on a Cognito domain with the admin's own PKCE code: access token in `sessionStorage`, renewal through `/oauth2/token`, revoke and logout on sign-out [VERIFIED today: web/admin/src/auth/session.ts] |
-| Trusted browser | "Trust this browser" keeps the refresh token in `localStorage` (ADR-0042, **Proposed**). The console can enrol schools and move money, so a shorter trust window is proposed (CON-Q8) |
+| Trusted browser | "Trust this browser" keeps the refresh token in `localStorage` (ADR-0042, **Proposed**). The console can enrol schools and move money, so its trust window is 12 hours (CON-Q8, [ADR-0048](../decisions/0048-staff-sign-in-and-access-control.md)) |
 | Network | Only `admin.` serves the console bundle and the `/api/platform/*` routes. A request for those routes on any other host is refused at the edge ([03](03-domains-edge-and-email.md)) |
 | Idle | The console signs out after 30 minutes without input; a warning appears 2 minutes before, with "Stay signed in" [PROPOSAL] |
 
@@ -44,7 +44,7 @@ The owner's own sign-ins, failed sign-ins and MFA changes go to the platform aud
 ## 3. Layout and navigation
 
 **Look** [CONFIRMED by owner 2026-11-22, PD-23]: the console looks like professional SaaS software, in the Space Colony
-Defence brand but without the pupils' fonts: one UI font for headings and text (Inter is proposed), and dense tables and
+Defence brand but without the pupils' fonts: one UI font for headings and text (Inter, PS0-1), and dense tables and
 forms ([ADR-0053](../decisions/0053-professional-look-for-staff-and-console.md)). The staff portal shares this look
 ([06 §3](06-school-portal.md)). Story CON-31.
 
@@ -141,7 +141,7 @@ A wizard of eight steps. Each step can go back; nothing is created until step 8.
 |---|---|---|
 | 1. Find the school | Search the register by name, URN or postcode; pick one. "Not in the register" lets the owner type details by hand (e.g. a school that opened this week), flagged on the school record | A URN already enrolled is refused, unless that school's record is **ended** or **deleted**, which re-enrols it as a new school. A closed school, or one whose phase is not primary, gives a warning the owner must tick to continue (e.g. an all-through school) |
 | 2. School details | **Display name** (shown to pupils and staff), **invoice name** (the legal customer: the governing body or school for maintained schools, the academy trust for academies), invoice address, school type and trust (from the register) | Display name 2–60 characters. Invoice name and address are required before Launch billing; optional for a pilot school |
-| 3. Address | **Slug**, suggested from the display name, e.g. `exampleprimary` for "Example Primary School" → `exampleprimary.spacecolonydefence.com` | 3–30 characters; lower-case letters, digits and hyphens; starts with a letter; no double hyphen; not on the reserved list (section 11.4); not used by a deleted school in the last 12 months [PROPOSAL, CON-Q2]. Checked live as the owner types |
+| 3. Address | **Slug**, suggested from the display name, e.g. `exampleprimary` for "Example Primary School" → `exampleprimary.spacecolonydefence.com` | 3–30 characters; lower-case letters, digits and hyphens; starts with a letter; no double hyphen; not on the reserved list (section 11.4); not a deleted school's slug, as slugs are never reused (DAT-Q8) [PROPOSAL, CON-Q2]. Checked live as the owner types |
 | 4. Plan and trial | Plan (one at launch, PD-12); trial end (default: the next billing date, at least 30 days away, PQ-13); discount (e.g. pilot: 100% for named terms); **PO required** (yes or no); "Not billed" for the pilot before billing exists | Trial end must be on or before a billing date. A 100% discount needs an end date or "until changed" |
 | 5. Billing contact | Name and email of the person who receives invoices (e.g. the school business manager). Optional second contact | Email format checked. The school's Billing admins can change contacts later ([09 §13](09-billing.md#13-the-schools-billing-page)) |
 | 6. First Admin | Email and name of the person who will set the school up. Option: send the invitation now or later | Email format checked; warns if the address looks personal (a common webmail domain) rather than a school one [PROPOSAL] |
@@ -198,9 +198,10 @@ Rules:
 - Every change made by the owner needs a reason, which is shown to the school's Admins for Suspended, Ended and Deleted.
 - Changes to **Suspended** or **Ended** email the school's Admins and Billing admins, and show a portal banner at once.
 - **Deleted** removes: pupils, their sign-in identities, their game data, classes, staff memberships and staff sign-in
-  identities, settings, and the school's audit log ([10](10-data-and-api.md), [11](11-privacy-security-and-assurance.md)).
-  What stays is a **tombstone**: school ID, display name, URN, dates and a deletion record, so the owner can prove what
-  was deleted and when. The slug stays reserved for 12 months.
+  identities, and settings ([10](10-data-and-api.md), [11](11-privacy-security-and-assurance.md)). The school's audit
+  records are kept for 2 years (PQ-15, PS0-7). A **tombstone** also stays: school ID, display name, URN, dates and a
+  deletion record, so the owner can prove what was deleted and when. The slug is never reused: its `SLUG#` item stays
+  as a tombstone with no school data (DAT-Q8).
 - **Hold**: the owner can hold an Ended school from automatic deletion, for example when a legal request or a dispute
   is open. A hold needs a reason and a review date, and the school is told [PROPOSAL].
 
@@ -224,7 +225,7 @@ still supports more plans without code changes.
 **Changing a price** [PROPOSAL, CON-Q7]. Stripe prices can't be edited, so a change makes a new **price version**:
 
 1. The owner chooses the billing date it takes effect.
-2. It must be at least 60 days away.
+2. It must be at least one full billing period away (BIL-Q12), which always meets CON-Q7's 60 days.
 3. The console lists the affected schools, and their Admins and Billing admins are emailed with the new price and date.
 4. On that date each school's subscription moves to the new version ([09](09-billing.md)).
 
@@ -338,14 +339,15 @@ R1].
 
 | Step | What happens |
 |---|---|
-| Request | On the school page: the reason (required), read-only or read-write, and duration (2, 24 or 72 hours) |
+| Request | On the school page: the reason (required), read-only or read-write, and duration: 24 hours by default, or 72 hours or 7 days at most (AUTH-Q9) |
 | School sees it | The school's Admins get an email and a portal notice: who is asking, why, for how long, what kind of access |
 | Grant | An Admin grants or declines in the portal. An Admin can also grant without a request ("Let support see our school for 24 hours"), e.g. while on the phone |
 | During | The console shows a red bar: "Support access to Example Primary School, read-only, until 15:30". The owner sees the portal as an Admin would, without billing actions or staff changes. Every page viewed and every change is written to **the school's** audit log |
 | End | Access stops at the end time, or when an Admin revokes it, or when the owner ends it. Revocation takes effect on the next request |
 
-**Without consent**: only for a security incident or a legal obligation. The owner records the reason, the school's
-Admins are told at once, and it is in their audit log. Read-only only [PROPOSAL].
+**Without consent**: only once the DPA allows it (CON-Q5, open until the solicitor's wording, OWN-6); until then only at
+the school's request. If allowed: only for a security incident or a legal obligation. The owner records the reason, the
+school's Admins are told at once, and it is in their audit log. Read-only only.
 
 ### 9.2 Replacing a lost last Admin
 
@@ -450,7 +452,7 @@ Kept 2 years (PQ-15); searchable; exportable as CSV.
 
 | Setting | What |
 |---|---|
-| Reserved slugs | The list no school can take. Starts with: `www`, `admin`, `api`, `app`, `auth`, `login`, `sso`, `id`, `account`, `accounts`, `hooks`, `status`, `help`, `support`, `docs`, `blog`, `news`, `mail`, `email`, `smtp`, `imap`, `mx`, `ns`, `autodiscover`, `autoconfig`, `postmaster`, `hostmaster`, `webmaster`, `abuse`, `security`, `privacy`, `legal`, `terms`, `billing`, `pay`, `invoice`, `shop`, `store`, `sales`, `marketing`, `about`, `static`, `assets`, `cdn`, `media`, `images`, `files`, `download`, `demo`, `dev`, `staging`, `test`, `sandbox`, `staff`, `teacher`, `teachers`, `parent`, `parents`, `pupil`, `pupils`, `school`, `schools`, `class`, `classes`. A word list of offensive terms is also checked [PROPOSAL] |
+| Reserved slugs | The list no school can take. Starts with: `www`, `admin`, `api`, `app`, `auth`, `login`, `sso`, `id`, `account`, `accounts`, `hooks`, `status`, `help`, `support`, `docs`, `blog`, `news`, `mail`, `email`, `smtp`, `imap`, `mx`, `ns`, `autodiscover`, `autoconfig`, `postmaster`, `hostmaster`, `webmaster`, `abuse`, `security`, `privacy`, `legal`, `terms`, `billing`, `pay`, `invoice`, `shop`, `store`, `sales`, `marketing`, `about`, `static`, `assets`, `cdn`, `media`, `images`, `files`, `download`, `demo`, `dev`, `staging`, `test`, `sandbox`, `staff`, `teacher`, `teachers`, `parent`, `parents`, `pupil`, `pupils`, `school`, `schools`, `class`, `classes`. There is one list, the union of this one and [03 §5](03-domains-edge-and-email.md#5-school-addresses-slugs-pq-2)'s, in one file that the console and the API both read (PS0-6). A word list of offensive terms is also checked [PROPOSAL] |
 | Legal documents | Versions of the terms of service, the DPA and the privacy notice, each with an effective date. Publishing a new version asks every school's Admins to accept it at their next sign-in ([06 §2](06-school-portal.md#2-sign-in-and-first-time-setup)) |
 | Email templates | Staff invitation, support access request, Admin replacement, lifecycle notices, announcements. Each has a preview, plain text, and the school's display name and address filled in. Billing emails come from Stripe ([09](09-billing.md)) |
 | School register | Refresh (section 5.2) and its date |
@@ -498,15 +500,18 @@ Proposed permission names for console screens. They are listed with the school p
 
 ## 14. Decisions for the owner
 
+Answered at the PS0 gate on 2026-11-22: every recommendation below was accepted, except where the
+[decision register](14-decision-register.md) says Open.
+
 | ID | Proposal |
 |---|---|
 | CON-Q1 | Load GIAS from the daily CSV into a compact lookup file; find columns by name; **never store head teacher names or phone numbers** |
-| CON-Q2 | Slug rules: 3–30 characters, letters, digits and hyphens, a letter first; the reserved list in 11.4; a deleted school's slug is held for 12 months |
+| CON-Q2 | Slug rules: 3–30 characters, letters, digits and hyphens, a letter first; the reserved list in 11.4; a deleted school's slug is never reused: its `SLUG#` item stays as a tombstone with no school data (settled by DAT-Q8) |
 | CON-Q3 | A school moves from Pending to Trial only when its first Admin accepts the terms and DPA; no pupils can be enrolled before that |
 | CON-Q4 | The owner sees staff names and emails (needed for support), but never pupils' or classes' names or progress outside support access |
-| CON-Q5 | Support access needs the school's grant; without consent only for a security incident or legal obligation, read-only, told to the school at once |
+| CON-Q5 | Support access needs the school's grant; without consent only for a security incident or legal obligation, read-only, told to the school at once. Open until the solicitor's DPA wording (OWN-6); until then, support access only at the school's request |
 | CON-Q6 | A lost last Admin is replaced only after calling the school back on its public GIAS phone number |
-| CON-Q7 | Price changes take effect on a billing date at least 60 days after schools are told |
+| CON-Q7 | Price changes take effect on a billing date at least 60 days after schools are told. Settled as one full billing period's notice (BIL-Q12), which always meets the 60 days |
 | CON-Q8 | Shorter trusted-browser window for the platform console than ADR-0042's 30 days, e.g. 12 hours |
 | CON-Q9 | Preview versions are shown to tester schools (the demo school, and the pilot school if it agrees) instead of a list of tester accounts |
 | CON-Q10 | AI-assisted question drafting: up to 10 drafts per request, daily and monthly caps, never published automatically |
@@ -532,12 +537,12 @@ Proposed permission names for console screens. They are listed with the school p
 | CON-8 | As the owner, I want a school page with tabs, so that everything about a school is in one place | Tabs as §5.5; no pupil or class names outside support access; edits audited with a reason | Pilot |
 | CON-9 | As the owner, I want the school lifecycle enforced, so that each status allows exactly what §5.6 says | A test per status checks pupil sign-in, staff portal access, enrolment and invoicing; status changes email Admins and Billing admins where §5.6 says | Launch |
 | CON-10 | As the owner, I want to suspend a school only by my own decision, with a reason, so that a child is never cut off by an automatic rule | No code path suspends without an owner action; the reason is shown to the school's Admins; reinstating restores access at once | Launch |
-| CON-11 | As the owner, I want ended schools deleted after 90 days unless I hold them, so that we keep no data we don't need | Deletion runs on day 90; a hold with a reason and review date stops it; a tombstone remains; the slug is held 12 months | Launch |
-| CON-12 | As the owner, I want a plan catalogue with price versions, so that prices can change without editing live subscriptions | Fields as §6; a price change creates a version effective on a billing date ≥ 60 days away; affected schools listed and emailed | Launch |
+| CON-11 | As the owner, I want ended schools deleted after 90 days unless I hold them, so that we keep no data we don't need | Deletion runs on day 90; a hold with a reason and review date stops it; a tombstone remains; the slug is never reused (DAT-Q8) | Launch |
+| CON-12 | As the owner, I want a plan catalogue with price versions, so that prices can change without editing live subscriptions | Fields as §6; a price change creates a version effective on a billing date at least one full billing period away (BIL-Q12); affected schools listed and emailed | Launch |
 | CON-13 | As the owner, I want my billing screens, so that I can follow and act on every invoice | Screens as §7 and 09 §14 | Launch |
 | CON-14 | As the owner, I want the activity editor to use year groups Y1–Y4, so that school content fits the years schools teach | Year-group chips replace ages for platform content; validation checks the topic is taught in each chosen year | Pilot |
 | CON-15 | As the owner, I want a Topics and topic sets page, so that teachers have well-formed sets to choose from | Fields as §8.3; a set is offered only when every year group meets the minimum bank; retired sets stay on classes until This week ends | Pilot |
-| CON-16 | As the owner, I want help drafting questions for a topic and year group, so that I can make content faster | Up to 10 drafts per request; drafts labelled `AI_ASSISTED`; never auto-published; caps enforced; prompts contain no school data (tested); no model or vendor name in the UI | Launch |
+| CON-16 | As the owner, I want help drafting questions for a topic and year group, so that I can make content faster | Up to 10 drafts per request; drafts labelled `AI_ASSISTED`; never auto-published; caps enforced; prompts contain no school data (tested); no model or vendor name in the UI | Pilot (PS0-2) |
 | CON-17 | As the owner, I want preview versions visible to tester schools, so that a real class can try new content first | A preview version is visible only in tester schools; turning a school off as tester hides it at the next page load | Launch |
 | CON-18 | As the owner, I want to request support access to a school, so that I can help with its pupils or classes with the school's permission | Request with reason, mode and duration; Admins emailed; access only after a grant; a red bar while active; every view and change in the school's audit; stops at the end time or on revocation | Launch |
 | CON-19 | As the owner, I want to replace a lost last Admin after a call-back, so that a school is never locked out and never hijacked | The flow in §9.2; the call-back confirmation is mandatory; staff notified; audited in both logs | Launch |

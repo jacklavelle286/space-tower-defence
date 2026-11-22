@@ -36,9 +36,9 @@ DynamoDB TTL instead.
 
 | State | Pilot | Launch | Later | All |
 |---|---|---|---|---|
-| Confirmed | 97 | 31 | 4 | 132 |
+| Confirmed | 96 | 32 | 4 | 132 |
 | Open | 0 | 10 | 2 | 12 |
-| **All** | 97 | 41 | 6 | **144** |
+| **All** | 96 | 42 | 6 | **144** |
 
 No decision that the Pilot needs is still open: the last one, LRN-Q8 (which AI drafts questions), was answered on
 2026-11-22.
@@ -186,7 +186,7 @@ No decision that the Pilot needs is still open: the last one, LRN-Q8 (which AI d
 | DAT-Q2 | School pupils' `game` partitions keyed by pupilId (the Cognito username), not `sub` | Pilot | Confirmed 2026-11-22 (PS0 gate) | [0046](../decisions/0046-tenancy-model.md) |
 | DAT-Q3 | Billing routes are served by `billing` itself: the one holder of the Stripe key | Launch | Confirmed 2026-11-22 (PS0 gate) | [0051](../decisions/0051-billing-on-stripe.md) |
 | DAT-Q4 | Deletion by DynamoDB TTL, set when a pupil is archived or a school ends; no scheduler needed for it | Pilot | Confirmed 2026-11-22 (PS0 gate) | [0052](../decisions/0052-eventbridge-scheduler-at-launch.md) |
-| DAT-Q5 | Whole-school exports as a ZIP in an exports bucket: 7-day expiry, 15-minute links | Pilot | Confirmed 2026-11-22 (PS0 gate) | — |
+| DAT-Q5 | Whole-school exports as a ZIP in an exports bucket: 7-day expiry, 15-minute links | Launch | Confirmed 2026-11-22 (PS0 gate) | — |
 | DAT-Q6 | The throttles in §3.4, with fairness per pupil and school in code; WAF rules per IP come with DNS-Q3, at Launch | Pilot | Confirmed 2026-11-22 (PS0 gate) | — |
 | DAT-Q7 | New routes numbered from R63 in `contracts/routes.json`, each with a `permission` field | Pilot | Confirmed 2026-11-22 (PS0 gate) | — |
 | DAT-Q8 | A deleted school's slug is never reused (a tombstone with no school data), so old QR cards can't reach a new school | Pilot | Confirmed 2026-11-22 (PS0 gate) | [0046](../decisions/0046-tenancy-model.md) |

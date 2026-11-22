@@ -22,7 +22,7 @@ banners for the school's billing people; only the owner can suspend a school. No
 | Billing admins pay through the platform; Admins can too; the owner runs billing in the console | [CONFIRMED by owner 2026-11-21, PD-5, PD-7] |
 | Pupils added after an invoice is made are free until the next billing date | [CONFIRMED by owner 2026-11-21, the termly option as asked] |
 | Stripe; one subscription per school; a four-monthly cycle on 1 Sep, 1 Jan, 1 May; quantity = `max(N, M)` | [PROPOSAL, PQ-12] |
-| Free until the next billing date (at least 30 days); the pilot school gets a 100% coupon for agreed terms | [PROPOSAL, PQ-13] |
+| Free until the next billing date (at least 30 days). The pilot school is "Not billed" during the pilot (PLAN-Q3); a 100% coupon only if it stays on once billing exists ([ADR-0051](../decisions/0051-billing-on-stripe.md), §5.4) | [PROPOSAL, PQ-13]; the pilot [CONFIRMED by owner 2026-11-22, PLAN-Q3] |
 | Reminders and banners; suspension only by the owner; suspended pupils can't play, staff can pay and export | [PROPOSAL, PQ-14] |
 | Invoices kept 6 years | [PROPOSAL, PQ-15] |
 
@@ -216,9 +216,9 @@ opens its next one. All three fall in one academy year.
 
 - **Before billing is built**, the pilot school's state is **Not billed**. It has no Stripe customer, and its Billing
   page says the pilot is free until an agreed date.
-- **When billing goes live**, the pilot school gets a customer and a subscription with a 100% coupon for the agreed
-  periods (PQ-13). Its staff see real £0 invoices before the first charged one [ASSUMPTION: Stripe marks £0 invoices
-  paid automatically; check in the sandbox].
+-  **When billing goes live**, if the pilot school stays on, it gets a customer and a subscription with a 100% coupon
+  for the agreed periods (PQ-13). Its staff see real £0 invoices before the first charged one [ASSUMPTION: Stripe marks
+  £0 invoices paid automatically; check in the sandbox].
 - **The demo school** never has a Stripe customer. Its Billing page shows made-up example invoices from the demo
   fixtures ([12](12-marketing-and-sales.md)).
 
@@ -563,8 +563,8 @@ A console button, per school and for all schools, that:
 - reports differences (quantity against the live `Q`, invoices missing from our copy);
 - writes nothing to Stripe.
 
-A nightly automatic run would need a scheduler (EventBridge Scheduler), which today's architecture doesn't have
-(BIL-Q11).
+A nightly automatic run needs a scheduler (EventBridge Scheduler), which comes at Launch (BIL-Q11, ADR-0052); today's
+architecture doesn't have it (BIL-Q11).
 
 ### 12.4 What we keep [PROPOSAL; key names in [10](10-data-and-api.md)]
 
@@ -762,6 +762,9 @@ cost of billing (Lambda, DynamoDB) is small [ASSUMPTION].
 ---
 
 ## 18. Decisions for the owner
+
+Answered at the PS0 gate on 2026-11-22: every recommendation below was accepted, except where the
+[decision register](14-decision-register.md) says Open.
 
 | ID | Decision | Recommendation |
 |---|---|---|
