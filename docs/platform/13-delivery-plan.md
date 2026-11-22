@@ -99,6 +99,7 @@ Things only the owner can do. They become Jira tasks under E12.
 | OWN-13 | Commission the penetration test | Launch |
 | OWN-14 | Set the price per pupil per term (P) and the minimum (M) | PS13 |
 | OWN-15 | Apple Developer Program enrolment for the company (the iPad app) | Later |
+| OWN-16 | Create the platform's OpenAI project (Europe data residency, a monthly budget) and its key; store the key in sca-prod's secret, as in the [OpenAI key runbook](../runbooks/openai-key.md) (LRN-Q8) | PS9 |
 
 ---
 
@@ -106,14 +107,15 @@ Things only the owner can do. They become Jira tasks under E12.
 
 The proposals in [README §3.2](README.md#32-proposed-for-the-owner-to-confirm) (PQ-1 to PQ-15), plus each document's
 "Decisions for the owner" table: DNS-Q (03), AUTH-Q (04), CON-Q (05), SCH-Q (06), PUP-Q (07), LRN-Q (08), BIL-Q (09),
-DAT-Q (10), PRV-Q (11), MKT-Q (12). Those that block the Pilot are answered in PS0. Three cross-cutting ones:
+DAT-Q (10), PRV-Q (11), MKT-Q (12). Those that block the Pilot are answered in PS0: all of them are in the
+[decision register](14-decision-register.md), with their release, recommendation and state. Three cross-cutting ones:
 
 | ID | Question | Recommendation |
 |---|---|---|
 | PLAN-Q1 | What happens to the family edition after the platform launches: stay separate, or become a "family" tenant? | Partly answered (owner, 2026-11-21, [ADR-0045](../decisions/0045-family-edition-frozen.md)): it is frozen as the proof of concept and stays separate on `family`. Whether it ever becomes a tenant: decide after the pilot |
 | PLAN-Q2 | When does the platform come off the back burner? | **Answered** [CONFIRMED by owner 2026-11-21]: now ("we are going to stay on this for a while"); the family edition stays playable on `family` (ADR-0044) |
-| PLAN-Q3 | Does the pilot wait for billing (Launch) or run free before billing exists? | Run the pilot free, as a "Not billed" school (BIL-1); billing is built while the pilot runs |
-| PLAN-Q4 | Add **EventBridge Scheduler** for timed jobs: notices before each billing date, trial-ending emails, PO chasers, a nightly check against Stripe, retention deletions ([09](09-billing.md) BIL-Q11, [10](10-data-and-api.md)). It is new to the architecture (PD-4) | Yes, at Launch. Without it, these become banners and owner-pressed buttons |
+| PLAN-Q3 | Does the pilot wait for billing (Launch) or run free before billing exists? | **Answered** [CONFIRMED by owner 2026-11-22]: run the pilot free, as a "Not billed" school (BIL-1); billing is built while the pilot runs |
+| PLAN-Q4 | Add **EventBridge Scheduler** for timed jobs: notices before each billing date, trial-ending emails, PO chasers, a nightly check against Stripe, retention deletions ([09](09-billing.md) BIL-Q11, [10](10-data-and-api.md)). It is new to the architecture (PD-4) | **Answered** [CONFIRMED by owner 2026-11-22]: yes, at Launch. Without it, these become banners and owner-pressed buttons |
 
 ---
 
@@ -196,4 +198,5 @@ the owner reviews each phase here, and everything again before the prod release.
 
 | Phase | Gate commit | Summary (Claude) | Approved (date, by, notes) |
 |---|---|---|---|
+| PS0 | PR #9 (SCD-299) | **Decisions and ADRs (all epics).** The owner's answers of 2026-11-22: DNS-Q1, PLAN-Q3, PLAN-Q4 and LRN-Q8 (OpenAI drafts questions), and three design notes, PD-23 to PD-25 (a professional look for the console and the staff portal; many more question types, drafted with AI; every year curriculum-aligned). Ten ADRs, all Proposed: 0046 tenancy, 0047 pupil identity, 0048 staff sign-in and access, 0049 domains, DNS and the edge, 0050 the Terraform root, 0051 billing on Stripe, 0052 the scheduler at Launch, 0053 the professional look, 0054 AI drafting on OpenAI. The [decision register](14-decision-register.md): all 144 decisions in the scope with their release and state (11 Confirmed, 121 Accept, 12 Open, none of them needed for the Pilot), and 14 conflicts between documents settled. Jira: SCD-299; new stories CON-31, SCH-40, LRN-26 and LRN-27 (SCD-300 to SCD-303); owner task OWN-16 (SCD-304). Risk: four Cognito behaviours that sign-in relies on are unverified, so a spike in sca-dev comes before PS5 (PS0-11). **For the owner:** read the register's Accept rows and name any to change, **PS0-13 especially: it changes PD-22** (prod gets the Pilot release first, then Launch). Approving this gate accepts the rest and the ADRs. After approval: the ADRs become Accepted; the documents and Jira follow the register (fix versions for PS0-2, PS0-3 and PS0-5, story texts such as MKT-13, and the lines each ADR names); ADR-0044, CLAUDE.md and the branches runbook follow PS0-13. Next: PS3 (tenancy), which needs nothing from the owner; PS2 waits for OWN-3 and OWN-4. | |
 | PS1 | `a3be3df` (PR #5, merged on the owner's go-ahead 2026-11-21) | **Accounts and delivery (E01).** sca-dev and sca-prod bootstrapped by the owner; the OIDC provider, a CI role trusting only each account's own GitHub environments, and the state and artefacts buckets verified with read-only calls (ENV-2, OWN-2). A `ReadOnlyAccess` permission set in every account and six `-readonly` profiles, created by Claude at the owner's request and written into CLAUDE.md on `dev` and `family` (ENV-3, PR #3). `infrastructure/platform`: the alerts topic and email subscription, `allowed_account_ids`, environment limited to sca-dev and sca-prod, 6 offline tests in CI, a read-only plan of 2 to add in each account (ENV-4, PR #4). CI on `dev` and its pull requests, four required checks (ENV-5). `platform-release.yml`: push to `dev` → sca-dev; dispatch on `main` → sca-prod with the apply held on `sca-prod-apply`; saved plan create-only in the account's bucket; smoke checks the alerts topic; [runbook](../runbooks/platform-release.md) (ENV-6, PR #5). Branches runbook (ENV-13, PR #1). Still open: OWN-1 (OU, guardrails, budgets, anomaly alerts); alarms beyond the topic are ENV-11 (Launch). The first platform-release run on `dev` (the PR #5 merge) planned 2 to add, applied exactly that plan and passed its smoke check; the run after PR #6 planned no changes and skipped the apply. **For the owner:** confirm the alerts email (the subscription is pending), then approve this gate. | 2026-11-22, the owner, in chat: "approved" |

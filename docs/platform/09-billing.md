@@ -775,7 +775,7 @@ cost of billing (Lambda, DynamoDB) is small [ASSUMPTION].
 | BIL-Q8 | Refund policy | Refunds only for mistakes; the free trial is the evaluation |
 | BIL-Q9 | Timings | No more than one quantity update per school per minute; a 24-hour draft window; Stripe finalises at its end |
 | BIL-Q10 | Overdue timeline | §10.1 as written; suspension reviewed from D + 45 |
-| BIL-Q11 | A scheduler (EventBridge Scheduler, new to the architecture) for: pre-billing notices 14 days before each billing date, trial-ending emails, PO chasers, a nightly reconciliation | Add it at Launch; until then banners only and a manual Sync |
+| BIL-Q11 | A scheduler (EventBridge Scheduler, new to the architecture) for: pre-billing notices 14 days before each billing date, trial-ending emails, PO chasers, a nightly reconciliation | **Answered** [CONFIRMED by owner 2026-11-22, PLAN-Q4]: add it at Launch; until then banners only and a manual Sync |
 | BIL-Q12 | Notice of a price change | One full billing period |
 | BIL-Q13 | Who can end the licence, and by when | Admins only; before the billing date |
 | BIL-Q14 | Where Stripe sends invoices | One billing email per school (ideally the school's finance mailbox); we notify other Billing admins ourselves |

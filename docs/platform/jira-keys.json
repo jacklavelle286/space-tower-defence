@@ -298,7 +298,13 @@
   "OWN-12": "SCD-289",
   "OWN-13": "SCD-291",
   "OWN-14": "SCD-293",
-  "OWN-15": "SCD-295"
+  "OWN-15": "SCD-295",
+  "CON-31": "SCD-300",
+  "SCH-40": "SCD-301",
+  "LRN-26": "SCD-302",
+  "LRN-27": "SCD-303",
+  "PS0": "SCD-299",
+  "OWN-16": "SCD-304"
  },
  "note": "Created as KAN on 2026-11-21 and renamed SCD the same day; Jira keeps the old KAN keys working."
 }

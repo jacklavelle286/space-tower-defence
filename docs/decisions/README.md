@@ -61,6 +61,15 @@ The rules are in [J §J.6](../plan/J-execution-backlog.md#j6-decision-log-practi
 | [0043](0043-maps-instead-of-planets.md) | Maps instead of planets: each map is its own adventure on its own hidden planet, made and released by the admin; every map open from the start; amends 0040 and spine S8.1 | Proposed |
 | [0044](0044-branches-family-dev-main.md) | Branches: `family` for the family edition (its release workflows accept only `family`), `dev` for the schools platform (feature branches `SCD-<n>-…`, auto-deploy to sca-dev), `main` kept for the platform's one big release; amends 0019 | Accepted; amended by 0045 |
 | [0045](0045-family-edition-frozen.md) | The family edition is frozen as the proof of concept: no more commits, releases or merges from `family` into `dev`; the platform changes the code it inherited as it needs to; amends 0044 | Accepted |
+| [0046](0046-tenancy-model.md) | Tenancy: one deployment for every school, the school taken from its address and kept apart by the API; a `tenancy` table with one GSI (amends 0004 for it); slugs never reused | Proposed |
+| [0047](0047-pupil-identity-and-sign-in.md) | Pupil identity: a pupil pool; sign-in through our API with a class code or QR card and a picture or typed password; lockouts and sessions | Proposed |
+| [0048](0048-staff-sign-in-and-access-control.md) | Staff and operator sign-in on our own screens with MFA; access checked by our API on every request; support access granted by the school; a 12-hour console trusted browser (amends 0042 for the platform) | Proposed |
+| [0049](0049-domains-dns-and-edge.md) | Domains, DNS and the edge: the zone stays in the DNS account, a narrow role for prod's pipeline, a delegated dev zone, one wildcard school distribution, SES; amends 0001 for the platform | Proposed |
+| [0050](0050-platform-terraform-root.md) | The platform's own Terraform root, `infrastructure/platform` | Proposed |
+| [0051](0051-billing-on-stripe.md) | Billing on Stripe from Launch: one subscription per school, invoiced 1 September, 1 January and 1 May; the pilot is "Not billed" | Proposed |
+| [0052](0052-eventbridge-scheduler-at-launch.md) | EventBridge Scheduler for the timed billing jobs, from Launch; retention by DynamoDB TTL (amends 0004's "no TTL") | Proposed |
+| [0053](0053-professional-look-for-staff-and-console.md) | Staff and console screens look like professional software (Inter proposed); the pupils' game keeps its look; one brand | Proposed |
+| [0054](0054-ai-drafting-uses-openai.md) | AI question drafting in the console uses OpenAI, as picture generation does, with the platform's own key | Proposed |
 
 ## Next in line
 

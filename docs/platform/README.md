@@ -46,6 +46,7 @@ Read in this order. Each layer document ends with its user stories, written to b
 | 11 | [Privacy, security and assurance](11-privacy-security-and-assurance.md) | Data protection roles, DPA and DPIA, sub-processors, security controls, testing, accessibility, DfE standards |
 | 12 | [Marketing and sales](12-marketing-and-sales.md) | Brand kit, marketing site, demo school, sales kit, trials |
 | 13 | [Delivery plan](13-delivery-plan.md) | Epics, releases and phases, owner actions, decisions still open, risks, Jira import |
+| 14 | [Decision register](14-decision-register.md) | Every open decision in one table: its release, the recommendation, and whether it is confirmed, accepted or still open (PS0) |
 
 ---
 
@@ -79,6 +80,9 @@ All dated 2026-11-21. Where an answer replaces one given earlier the same day, t
 | PD-20 | Work happens on **`dev`**, through short-lived feature branches named after the Jira ticket (`SCD-<n>-…`); the family edition lives on **`family`**, frozen as the proof of concept from 2026-11-21 ([ADR-0045](../decisions/0045-family-edition-frozen.md)); `main` is kept for the one big release ([ADR-0044](../decisions/0044-branches-family-dev-main.md)). Stories are tracked in **Jira** project SCD. Earlier the same day: the `schools` branch |
 | PD-21 | The accounts are **`sca-dev`** and **`sca-prod`**, created and bootstrapped by the owner, locally, with the repository's bootstrap root |
 | PD-22 | **A merge into `dev` deploys to sca-dev automatically.** Everything stays on dev until **one big release to prod**: `dev` merges into `main`, and the owner dispatches and approves the prod deploy |
+| PD-23 | **The console and the staff portal look like professional SaaS software**, in the same brand but without the pupils' fonts; the pupils' game keeps its look. Dated 2026-11-22 ([ADR-0053](../decisions/0053-professional-look-for-staff-and-console.md)) |
+| PD-24 | **Many more question types** for the platform, generated with **AI from the owner's console** (drafts the owner reviews, PD-11). Dated 2026-11-22 |
+| PD-25 | **Every year, 1 to 4, aligned to the national curriculum.** Dated 2026-11-22 |
 
 ### 3.2 Proposed, for the owner to confirm
 
@@ -88,7 +92,7 @@ The documents use these as their working assumption. Each is argued where it is 
 |---|---|---|
 | PQ-1 | The staff portal lives at `/staff` on the school's address; pupils use `/` | [03](03-domains-edge-and-email.md) |
 | PQ-2 | A school's address comes from a **slug** the owner chooses at enrolment, checked against a reserved list | [03](03-domains-edge-and-email.md) |
-| PQ-3 | DNS: the zone stays in the DNS account. The prod pipeline gets a narrow cross-account role for its records. `dev.spacecolonydefence.com` is delegated to the dev account | [03](03-domains-edge-and-email.md) |
+| PQ-3 | DNS: the zone stays in the DNS account. The prod pipeline gets a narrow cross-account role for its records. `dev.spacecolonydefence.com` is delegated to the dev account. **[CONFIRMED by owner 2026-11-22, DNS-Q1]** | [03](03-domains-edge-and-email.md) |
 | PQ-4 | A new Terraform root, `infrastructure/platform`, reuses the existing modules; `infrastructure/main` (the family edition) is untouched | [02](02-environments-and-delivery.md) |
 | PQ-5 | Content (levels, maps, questions, speech) is authored in **prod's** console; dev gets content by export and import | [02](02-environments-and-delivery.md) |
 | PQ-6 | Three Cognito user pools per environment: operators, staff, pupils. Pupils sign in through our API, which checks the picture password and has Cognito issue the tokens | [04](04-identity-and-access.md) |

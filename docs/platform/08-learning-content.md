@@ -17,6 +17,12 @@ entirely new content. The model also changes in five ways:
 - The owner gets **AI help to draft questions** in the console. Every item is reviewed before any child sees it, and no
   school or pupil data ever reaches an AI provider [CONFIRMED by owner, PD-11].
 
+**The owner, 2026-11-22** [CONFIRMED by owner 2026-11-22, PD-24, PD-25]: the platform needs **many more question
+types** than today's six activity kinds and 17 maths generators (§2), generated with AI from the owner's console
+(§6), and **every year, 1 to 4, aligned to the national curriculum** (today only Years 1 and 2 carry references,
+§2). Stories LRN-26 and LRN-27. The decision register proposes moving LRN-11 and LRN-17 to LRN-19 into the Pilot
+([14 §14](14-decision-register.md#14-new-owner-decisions-during-ps0)).
+
 ---
 
 ## 2. What exists today
@@ -231,10 +237,10 @@ The records extend today's `SUM#` items, written in the same transaction as the 
 | Pictures | Today's Draw flow, with owner approval |
 | UI wording | "Draft with help", "Drafted with help". No vendor or model names in the console (standing owner rule) |
 
-The provider is open (LRN-Q8). One option reuses the existing OpenAI integration pattern. The other is Claude on
-Amazon Bedrock, which keeps traffic inside AWS [UNVERIFIED: model availability in `eu-west-2` or an EU inference profile].
-Either way the provider receives no personal data. It is a supplier for content creation, not a sub-processor of school
-data ([11](11-privacy-security-and-assurance.md)).
+**The provider is OpenAI** [CONFIRMED by owner 2026-11-22, LRN-Q8]: the same integration as `picture_gen` (Europe data
+residency), with the platform's own OpenAI project and key in sca-prod (OWN-16;
+[ADR-0054](../decisions/0054-ai-drafting-uses-openai.md)). The provider receives no personal data. It is a supplier for
+content creation, not a sub-processor of school data ([11](11-privacy-security-and-assurance.md)).
 
 ---
 
@@ -315,7 +321,7 @@ each word list and its wrong spellings once, not every instance.
 | LRN-Q5 | 70% This week, 30% review favouring Practising topics |
 | LRN-Q6 | No FIXED activity repeats for a pupil within 14 days, across runs |
 | LRN-Q7 | Status rules: Secure at 8 of the last 10 first tries on at least 2 days, back to Practising below 6; "needs help" at no more than 3 of 10 after 6 resolutions |
-| LRN-Q8 | AI question drafting in the console only; provider to choose (the existing OpenAI pattern, or Claude on Bedrock); caps; every item reviewed |
+| LRN-Q8 | AI question drafting in the console only; provider to choose (the existing OpenAI pattern, or Claude on Bedrock); caps; every item reviewed. **Answered** [CONFIRMED by owner 2026-11-22]: OpenAI, as for pictures |
 | LRN-Q9 | Item statistics across schools: none, or only with DPA permission (with the solicitor) |
 | LRN-Q10 | Statutory-check practice: "real or alien word" and hear-and-choose for phonics; times-tables practice with an optional 6-second timer, off by default |
 | LRN-Q11 | Out of scope: comprehension beyond single sentences, composition, handwriting, spoken language |
