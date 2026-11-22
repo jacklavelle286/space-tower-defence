@@ -106,7 +106,8 @@ Things only the owner can do. They become Jira tasks under E12.
 
 The proposals in [README §3.2](README.md#32-proposed-for-the-owner-to-confirm) (PQ-1 to PQ-15), plus each document's
 "Decisions for the owner" table: DNS-Q (03), AUTH-Q (04), CON-Q (05), SCH-Q (06), PUP-Q (07), LRN-Q (08), BIL-Q (09),
-DAT-Q (10), PRV-Q (11), MKT-Q (12). Those that block the Pilot are answered in PS0. Three cross-cutting ones:
+DAT-Q (10), PRV-Q (11), MKT-Q (12). Those that block the Pilot are answered in PS0: all of them are in the
+[decision register](14-decision-register.md), with their release, recommendation and state. Three cross-cutting ones:
 
 | ID | Question | Recommendation |
 |---|---|---|

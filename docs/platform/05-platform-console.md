@@ -43,6 +43,11 @@ The owner's own sign-ins, failed sign-ins and MFA changes go to the platform aud
 
 ## 3. Layout and navigation
 
+**Look** [CONFIRMED by owner 2026-11-22, PD-23; [ADR-0053](../decisions/0053-professional-look-for-staff-and-console.md)]: the console looks like professional SaaS
+software, in the Space Colony Defence brand but without the pupils' fonts: one UI font for headings and text (Inter
+is proposed), and dense tables and forms. The staff portal shares this look ([06 §3](06-school-portal.md)). Story
+CON-31.
+
 | Area | Pages | Permission (section 13) |
 |---|---|---|
 | Dashboard | Dashboard | `platform.dashboard.read` |

@@ -17,6 +17,12 @@ entirely new content. The model also changes in five ways:
 - The owner gets **AI help to draft questions** in the console. Every item is reviewed before any child sees it, and no
   school or pupil data ever reaches an AI provider [CONFIRMED by owner, PD-11].
 
+**The owner, 2026-11-22** [CONFIRMED by owner 2026-11-22, PD-24, PD-25]: the platform needs **many more question
+types** than today's six activity kinds and 17 maths generators (§2), generated with AI from the owner's console
+(§6), and **every year, 1 to 4, aligned to the national curriculum** (today only Years 1 and 2 carry references,
+§2). Stories LRN-26 and LRN-27. The decision register proposes moving LRN-11 and LRN-17 to LRN-19 into the Pilot
+([14 §14](14-decision-register.md#14-new-owner-decisions-during-ps0)).
+
 ---
 
 ## 2. What exists today
