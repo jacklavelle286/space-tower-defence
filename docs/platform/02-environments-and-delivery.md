@@ -189,7 +189,7 @@ Rules [PROPOSAL; follow CLAUDE.md]:
 
 - A merge into `dev` deploys to sca-dev automatically [CONFIRMED by owner 2026-11-21, PD-22]. Every prod deploy is
   dispatched and approved by the owner.
--  **Prod deploys only from `main`**, after `dev` is merged into it for a release; the workflow refuses any other ref
+- **Prod deploys only from `main`**, after `dev` is merged into it for a release; the workflow refuses any other ref
   for prod.
 - Claude does not dispatch or approve prod deploys, even if `gh` is signed in.
 - Releases are kept outside school hours where possible ([11](11-privacy-security-and-assurance.md)).

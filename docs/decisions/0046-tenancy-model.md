@@ -20,7 +20,7 @@ school; a new school needs no DNS or certificate work. The demo school is a tena
   `game`, plus one overloaded GSI, `gsi1`, for lists only. A school's items sit under `pk = SCH#<schoolId>` (except
   lookup, audit and rate-counter items), so another school's IDs are not found. Access decisions read the base table,
   strongly consistent; uniqueness uses conditional puts. Pupils' play stays in `game` under `U#<pupilId>` (DAT-Q2).
--  **Slugs** ([03 §5](../platform/03-domains-edge-and-email.md#5-school-addresses-slugs-pq-2), PQ-2, CON-Q2): picked by
+- **Slugs** ([03 §5](../platform/03-domains-edge-and-email.md#5-school-addresses-slugs-pq-2), PQ-2, CON-Q2): picked by
   the owner at enrolment; 3–30 lower-case letters, digits and single hyphens, a letter first and no hyphen last, not on
   the reserved list (one list, read by the console and the API: register PS0-6). Never reused: a deleted school's
   `SLUG#` item stays as a tombstone with no school data, so an old QR card can't open another school (DAT-Q8). The owner

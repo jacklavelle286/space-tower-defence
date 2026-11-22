@@ -216,7 +216,7 @@ opens its next one. All three fall in one academy year.
 
 - **Before billing is built**, the pilot school's state is **Not billed**. It has no Stripe customer, and its Billing
   page says the pilot is free until an agreed date.
--  **When billing goes live**, if the pilot school stays on, it gets a customer and a subscription with a 100% coupon
+- **When billing goes live**, if the pilot school stays on, it gets a customer and a subscription with a 100% coupon
   for the agreed periods (PQ-13). Its staff see real £0 invoices before the first charged one [ASSUMPTION: Stripe marks
   £0 invoices paid automatically; check in the sandbox].
 - **The demo school** never has a Stripe customer. Its Billing page shows made-up example invoices from the demo

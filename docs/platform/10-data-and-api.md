@@ -143,10 +143,11 @@ This revisits ADR-0004 (no GSI) **for this table only**; `game` keeps none (DAT-
 | New class code | Put the new `CODE#` (must not exist) + update the class + delete the old `CODE#` |
 | Archive a pupil | Update the pupil (status, `archivedAt`, `ttl`) + delete `QR#` + subtract from the count; then AdminDeleteUser, TTL on the pupil's `game` items, and a `billing` sync |
 
--  A CSV of up to 500 pupils (Admins; 60 for Teachers, SCH-Q2) goes in batches of 30 pupils per transaction, each
-  holding its own count update. - Pupil IDs are generated when the preview is made and stored on the import item, so a
-  retried confirm is idempotent through the "must not exist" conditions. - The transaction size limit is [UNVERIFIED:
-  check the current TransactWriteItems item limit].
+- A CSV of up to 500 pupils (Admins; 60 for Teachers, SCH-Q2) goes in batches of 30 pupils per transaction, each
+  holding its own count update.
+  - Pupil IDs are generated when the preview is made and stored on the import item, so a retried confirm is idempotent
+    through the "must not exist" conditions.
+  - The transaction size limit is [UNVERIFIED: check the current TransactWriteItems item limit].
 - **Hot partitions**: one school's partition takes all its staff writes and its pupils' sign-in counters. A school of a
   few hundred pupils is far below DynamoDB's per-partition throughput [ASSUMPTION: documented per-partition limits; to
   be confirmed by the load test, DAT-19].
