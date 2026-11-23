@@ -204,6 +204,7 @@ If the branding-style limit applies, A still covers 2,000 schools. Option B is t
 
 From the matrix in [01 §3.1](01-product-and-roles.md#31-school-roles-confirmed-by-owner-2026-11-21-pd-7-and-pd-8-details-proposal)
 [CONFIRMED by owner 2026-11-21 for the roles; names and the Read-only staff view are PROPOSAL]:
+The table lives in `contracts/permissions.json` (DAT-7), which the API reads; a test keeps the two the same.
 
 | Permission | Covers | Admin | Teacher | Read-only | Billing |
 |---|---|---|---|---|---|

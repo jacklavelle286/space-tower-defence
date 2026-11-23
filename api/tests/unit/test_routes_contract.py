@@ -67,3 +67,13 @@ def test_picture_routes_are_admin_api_operator_routes() -> None:
         "R39": "GET /api/admin/picture-jobs/{jobId}",
     }
     assert all(r["function"] == "admin-api" and r["authoriser"] == "operator" for r in ROUTES if r["id"] in pictures)
+
+def test_routes_from_r63_name_a_known_permission() -> None:
+    """DAT-7: every school route, from R63, names one permission from contracts/permissions.json (the tenancy checks
+    refuse a member without it, 04 §5.3 check 6). The family edition's R1-R62 keep their authorisers and name none."""
+    permissions = json.loads((REPO / "contracts" / "permissions.json").read_text())["permissions"]
+    for route in ROUTES:
+        if int(route["id"][1:]) >= 63:
+            assert route.get("permission") in permissions, route["id"]
+        else:
+            assert "permission" not in route, route["id"]

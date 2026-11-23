@@ -7,6 +7,7 @@ Each zip holds, at its root:
   contracts/limits.json, contracts/schemas/*.schema.json        the shared contracts shared/rules reads (Phase 12);
   contracts/topics.json                                         the topic registry shared/topics reads (plan C19);
   contracts/reserved-slugs.json                                 the slugs no school can take, shared/slugs (DAT-2);
+  contracts/permissions.json                                    the school permissions, shared/permissions (DAT-7);
                                                                 fixtures and routes.json stay out
   content/listening-verdicts.json (admin-api only)              the G-14 verdicts shared/verdicts.py reads when a
                                                                 PHONEME speech definition is approved (Phase 20)
@@ -92,8 +93,8 @@ PIP_TARGET = [
 _SKIPPED_DIRS = frozenset({"__pycache__"})
 _SKIPPED_SUFFIXES = frozenset({".pyc", ".pyo"})
 # Globs under contracts/, the files the code reads: limits, schemas (shared/rules), topic registry (shared/topics),
-# reserved slugs (shared/slugs).
-CONTRACT_FILES = ("limits.json", "topics.json", "reserved-slugs.json", "schemas/*.schema.json")
+# reserved slugs (shared/slugs), school permissions (shared/permissions).
+CONTRACT_FILES = ("limits.json", "topics.json", "reserved-slugs.json", "permissions.json", "schemas/*.schema.json")
 # Repository files one function reads at run time, at the same relative path in its zip (Phase 20).
 # picture-gen: the house style and every picture kind's example drawings, sent as fixed system-prompt blocks (Phase
 # 42b; kinds Gate P2). This list must hold every path in KIND_EXAMPLES in api/functions/picture_gen/handler.py (an api
