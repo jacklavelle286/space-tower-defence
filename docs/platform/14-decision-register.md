@@ -18,6 +18,7 @@ figure, the accountant, the solicitor, or a spike); each says what settles it an
 | **Confirmed** | The owner has answered (date given) |
 | **Confirmed (PS0 gate)** | The recommendation, accepted with the PS0 gate on 2026-11-22 |
 | **Open** | Not answered yet; the row says what settles it and by when |
+| **Proposed (PS<n> gate)** | Decided while building phase PS<n> (§15); confirmed when the owner approves that gate |
 
 **Release** is the first release whose work depends on the answer: Pilot (phases PS2 to PS12), Launch or Later. When
 unsure, the earlier one.
@@ -37,8 +38,9 @@ DynamoDB TTL instead.
 | State | Pilot | Launch | Later | All |
 |---|---|---|---|---|
 | Confirmed | 96 | 32 | 4 | 132 |
+| Proposed (PS3 gate) | 2 | 0 | 0 | 2 |
 | Open | 0 | 10 | 2 | 12 |
-| **All** | 96 | 42 | 6 | **144** |
+| **All** | 98 | 42 | 6 | **146** |
 
 No decision that the Pilot needs is still open: the last one, LRN-Q8 (which AI drafts questions), was answered on
 2026-11-22.
@@ -255,3 +257,13 @@ content phase, grows with PD-24 and PD-25; its size is estimated again when it s
 | PS0-11 | A short spike in sca-dev before PS5 checks four Cognito behaviours sign-in relies on: pupils' `username` claim, custom auth for a user with an unused password, pre token generation adding `game/play`, and API sign-in tokens for staff getting `school/staff`. Today 10 §2.2 and 04 §5.3 leave them to AUTH-20, a Launch spike | Pilot | Confirmed 2026-11-22 (PS0 gate) | [0047](../decisions/0047-pupil-identity-and-sign-in.md), [0048](../decisions/0048-staff-sign-in-and-access-control.md) |
 | PS0-12 | An ended school's Admins keep sign-in for its 90-day export window (05 §5.6, 09 §5.5); a scheduler job deletes their Cognito users at day 90. Other staff users go when the school ends (10 §6) | Launch | Confirmed 2026-11-22 (PS0 gate) | [0052](../decisions/0052-eventbridge-scheduler-at-launch.md) |
 | PS0-13 | **Changes PD-22** ([ADR-0055](../decisions/0055-prod-release-per-release.md)). The pilot runs in prod before billing exists (PLAN-Q3), so prod gets more than one release: the "one big release" is the Pilot's (`dev` into `main`, then your dispatch and approval), and Launch and Later follow the same way. ADR-0044, CLAUDE.md and the branches runbook change when this is accepted | Pilot | Confirmed 2026-11-22 (PS0 gate) | [0051](../decisions/0051-billing-on-stripe.md) |
+
+## 15. Decisions taken while building
+
+Choices made while building a phase, where a story or a document left the answer open or two of them disagreed. Each
+is a recommendation until the owner approves that phase's gate ([13 §8](13-delivery-plan.md#8-gate-log)).
+
+| ID | Decision in brief | Release | State | ADR |
+|---|---|---|---|---|
+| PS3-1 | Audit records name staff by ID and email, and by name once memberships hold one; pupils only ever by ID. Settles DAT-13 ("records hold IDs, not names") against SCH-Q9 (removed staff stay readable in the audit log for 2 years) | Pilot | Proposed (PS3 gate) | — |
+| PS3-2 | A school request writes at most one transaction, which holds its one audit record. The tenancy module refuses anything else before sending it. PS6's CSV enrolment (up to 500 rows, SCH-Q2) needs more than DynamoDB's 100 actions in one transaction, so PS6 revisits this: an import job, or one audit record per transaction | Pilot | Proposed (PS3 gate) | — |
