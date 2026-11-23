@@ -755,7 +755,8 @@ jobs:
         run: |
           # Fails the release on any difference: a route missing, extra, without its JWT authoriser or scope.
           set +e
-          python scripts/check_route_keys.py "$OUT/tfplan.json" --routes contracts/routes.json > "$OUT/route-keys.md"
+          python scripts/check_route_keys.py "$OUT/tfplan.json" --routes contracts/routes.json \
+            --function player-api --function admin-api --function tts > "$OUT/route-keys.md"
           rc=$?
           set -e
           cat "$OUT/route-keys.md" >> "$GITHUB_STEP_SUMMARY"

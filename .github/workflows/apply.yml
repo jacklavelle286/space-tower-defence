@@ -628,7 +628,7 @@ jobs:
           python scripts/smoke.py --release-id "$RELEASE_ID" --hostname-mode "$HOSTNAME_MODE" \
             --site player "$PLAYER_DOMAIN" "$PLAYER_HOSTNAME" \
             --site admin "$ADMIN_DOMAIN" "$ADMIN_HOSTNAME" \
-            --routes _released/contracts/routes.json \
+            --routes _released/contracts/routes.json --function player-api --function admin-api --function tts \
             --json-out "$RUNNER_TEMP/smoke.json" --markdown-out "$GITHUB_STEP_SUMMARY"
           rc=$?
           set -e

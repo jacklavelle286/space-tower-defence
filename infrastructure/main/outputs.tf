@@ -126,7 +126,7 @@ output "api_id" {
 }
 
 output "api_route_keys" {
-  description = "Route keys deployed (equal to contracts/routes.json; G-12 checks the plan)."
+  description = "Route keys deployed (equal to the routes of local.api_functions in contracts/routes.json; G-12 checks the plan)."
   value       = module.api.route_keys
 }
 

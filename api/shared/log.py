@@ -33,6 +33,7 @@ ALLOWED_FIELDS: frozenset[str] = frozenset(
         "status",
         "durationMs",
         "sub",
+        "schoolId",  # school routes (10 §5: in every line; never a name)
         "runId",
         "slotId",
         "opId",

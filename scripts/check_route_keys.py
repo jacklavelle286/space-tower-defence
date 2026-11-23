@@ -2,7 +2,11 @@
 """Gate G-12: the planned HTTP API routes equal contracts/routes.json (plan H.10, spine S11.6).
 
     terraform show -json tfplan > tfplan.json
-    python scripts/check_route_keys.py tfplan.json [--routes contracts/routes.json]
+    python scripts/check_route_keys.py tfplan.json [--routes contracts/routes.json] [--function NAME ...]
+
+--function (repeatable) keeps only the catalogue's routes for those functions; without it, every route counts. The family
+edition's root (infrastructure/main) deploys player-api, admin-api and tts, so its workflows name those three: the
+school platform's routes (R63 onwards, DAT-7) are not in its plan. A named function with no route is an input error.
 
 What it reads from the plan JSON: `planned_values`, the state Terraform will leave behind once the plan is applied,
 walked through `root_module` and every `child_modules` entry. Each `aws_apigatewayv2_route` resource there gives:
@@ -26,7 +30,7 @@ import argparse
 import json
 import sys
 from collections import Counter
-from collections.abc import Iterator
+from collections.abc import Collection, Iterator
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -60,12 +64,19 @@ class Planned:
     scopes: tuple[str, ...] | None
 
 
-def load_catalogue(path: Path) -> dict[str, Expected]:
+def load_catalogue(path: Path, functions: Collection[str] | None = None) -> dict[str, Expected]:
+    """The catalogue's routes by key; with `functions`, only the routes of those functions."""
     try:
         data = json.loads(path.read_text(encoding="utf-8"))
         routes = data["routes"]
     except (OSError, ValueError, KeyError, TypeError) as exc:
         raise InputError(f"{path}: not a route catalogue ({exc})") from exc
+    if functions is not None:
+        named = {r.get("function") for r in routes if isinstance(r, dict)}
+        missing = sorted(set(functions) - named)
+        if missing:
+            raise InputError(f"{path}: no route for function(s) {', '.join(missing)}")
+        routes = [r for r in routes if r.get("function") in functions]
     expected: dict[str, Expected] = {}
     for r in routes:
         try:
@@ -149,10 +160,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("plan_json", type=Path, help="output of `terraform show -json tfplan`")
     parser.add_argument("--routes", type=Path, default=ROUTES_FILE,
                         help="route catalogue (default: contracts/routes.json)")
+    parser.add_argument("--function", action="append", dest="functions", metavar="NAME",
+                        help="only this function's routes (repeatable; default: every route)")
     args = parser.parse_args(argv)
+    selection = f" (functions: {', '.join(args.functions)})" if args.functions else ""
 
     try:
-        expected = load_catalogue(args.routes)
+        expected = load_catalogue(args.routes, args.functions)
         try:
             plan = json.loads(args.plan_json.read_text(encoding="utf-8"))
         except (OSError, ValueError) as exc:
@@ -166,14 +180,14 @@ def main(argv: list[str] | None = None) -> int:
     print("### G-12 route keys\n")
     if problems:
         print(f"**FAILED**: the plan's {len(planned)} `{ROUTE_TYPE}` resource(s) do not match the "
-              f"{len(expected)} routes in `contracts/routes.json`:\n")
+              f"{len(expected)} routes in `contracts/routes.json`{selection}:\n")
         for line in problems:
             print(f"- {line}")
         print()
         print(f"check_route_keys: FAILED: {len(problems)} difference(s)", file=sys.stderr)
         return EXIT_MISMATCH
     jwt = sum(1 for e in expected.values() if e.authorization_type == "JWT")
-    print(f"OK: the plan's {len(planned)} routes equal `contracts/routes.json` "
+    print(f"OK: the plan's {len(planned)} routes equal `contracts/routes.json`{selection} "
           f"({jwt} JWT with their scope, {len(expected) - jwt} without an authoriser).\n")
     return EXIT_OK
 

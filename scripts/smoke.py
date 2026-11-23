@@ -4,7 +4,7 @@
     python scripts/smoke.py --release-id <id> \
         --site player d111.cloudfront.net aliens.jackgl.com \
         --site admin  d222.cloudfront.net admin.aliens.jackgl.com \
-        [--routes contracts/routes.json] \
+        [--routes contracts/routes.json [--function NAME ...]] \
         [--hostname-mode auto|require|skip] [--json-out results.json] [--record responses.json]
 
 For every site the same checks run against its *.cloudfront.net name and its hostname:
@@ -33,6 +33,9 @@ With --routes (Phase 9, M1-10 part 5), the same-origin API through the /api/* be
   api-unknown   GET /api/does-not-exist: 404 with a JSON body, not HTML: the gateway's own 404 (no $default route),
                 not S3's XML 404 and not index.html. Its body is recorded for register row U-027.
 
+--function (repeatable) keeps only those functions' routes. The family edition deploys player-api, admin-api and tts,
+so apply.yml names those three; the school platform's routes (R63 onwards, DAT-7) are not on its API.
+
 No request ever carries a token or a cookie: the request headers are fixed in https_fetch.
 
 Hostnames (H.8.6 last row): DNS for aliens.jackgl.com is created by hand after the first apply, so
@@ -54,6 +57,7 @@ import socket
 import ssl
 import sys
 import time
+from collections.abc import Collection
 from dataclasses import asdict, dataclass, field
 from typing import Callable, Protocol
 
@@ -108,10 +112,17 @@ class Route:
         return PATH_PARAM.sub(PATH_PARAM_VALUE, self.path)
 
 
-def load_routes(path: str) -> list[Route]:
+def load_routes(path: str, functions: Collection[str] | None = None) -> list[Route]:
+    """The catalogue's routes; with `functions`, only those functions' routes (a named function with none is an error)."""
     with open(path, encoding="utf-8") as fh:
         data = json.load(fh)
-    routes = [Route(r["id"], r["method"], r["path"]) for r in data["routes"]]
+    entries = data["routes"]
+    if functions is not None:
+        missing = sorted(set(functions) - {r.get("function") for r in entries})
+        if missing:
+            raise ValueError(f"{path}: no route for function(s) {', '.join(missing)}")
+        entries = [r for r in entries if r.get("function") in functions]
+    routes = [Route(r["id"], r["method"], r["path"]) for r in entries]
     if not routes or any(not r.path.startswith("/api/") for r in routes):
         raise ValueError(f"{path}: expected routes whose paths start with /api/")
     return routes
@@ -404,6 +415,8 @@ def main(argv: list[str] | None = None) -> int:
                         help="HOSTNAME may be - for none")
     parser.add_argument("--hostname-mode", choices=("auto", "require", "skip"), default="auto")
     parser.add_argument("--routes", help="contracts/routes.json: check every route refuses a request without a token")
+    parser.add_argument("--function", action="append", dest="functions", metavar="NAME",
+                        help="with --routes: only this function's routes (repeatable; default: every route)")
     parser.add_argument("--json-out", help="write the results as JSON here")
     parser.add_argument("--markdown-out", help="append the results table here (e.g. $GITHUB_STEP_SUMMARY)")
     parser.add_argument("--record", help="write every response here, keyed by path (fixture material)")
@@ -420,7 +433,7 @@ def main(argv: list[str] | None = None) -> int:
     routes = None
     if args.routes:
         try:
-            routes = load_routes(args.routes)
+            routes = load_routes(args.routes, args.functions)
         except (OSError, ValueError, KeyError, TypeError) as exc:
             print(f"smoke: error: --routes: {exc}", file=sys.stderr)
             return 2

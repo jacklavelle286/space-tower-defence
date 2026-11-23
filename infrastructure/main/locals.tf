@@ -64,6 +64,10 @@ locals {
   )
 
   # The route catalogue (G §2; ADR-0001: keys keep /api). Keyed by route key, "GET /api/me". A duplicate key fails here.
+  # This root deploys the family edition's three functions and only their routes. The school platform's routes (R63
+  # onwards, DAT-7) belong to infrastructure/platform. G-12 and the smoke test select the same functions (--function in
+  # release.yml, plan.yml and apply.yml).
+  api_functions   = ["player-api", "admin-api", "tts"]
   route_catalogue = jsondecode(file("${path.module}/../../contracts/routes.json"))
   api_routes = {
     for r in local.route_catalogue.routes : "${r.method} ${r.path}" => {
@@ -71,6 +75,6 @@ locals {
       function   = r.function
       authoriser = r.authoriser
       scope      = r.scope
-    }
+    } if contains(local.api_functions, r.function)
   }
 }

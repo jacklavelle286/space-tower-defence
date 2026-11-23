@@ -7,26 +7,16 @@ from typing import Any
 
 import pytest
 from botocore.exceptions import ClientError
+from schools import create_tenancy_table
 
 from shared import slugs
 from shared.data import DynamoTable, cancellation_reasons
 from shared.rules.contracts import CONTRACTS_DIR
 
-TABLE = "test-tenancy"
-
 
 @pytest.fixture
 def tenancy(ddb: Any) -> DynamoTable:
-    ddb.create_table(
-        TableName=TABLE,
-        KeySchema=[{"AttributeName": "pk", "KeyType": "HASH"}, {"AttributeName": "sk", "KeyType": "RANGE"}],
-        AttributeDefinitions=[
-            {"AttributeName": "pk", "AttributeType": "S"},
-            {"AttributeName": "sk", "AttributeType": "S"},
-        ],
-        BillingMode="PAY_PER_REQUEST",
-    )
-    return DynamoTable(ddb, TABLE)
+    return create_tenancy_table(ddb)
 
 
 class Clock:
@@ -120,3 +110,16 @@ def test_resolver_answers_none_for_unknown_and_malformed_slugs(tenancy: DynamoTa
     assert resolver.resolve("Bad--Slug") is None
     claim(tenancy, "nobody-here", "s9")
     assert resolver.resolve("nobody-here") is None  # the miss is cached too, for at most 60 seconds
+
+
+def test_resolver_forgets_everything_past_its_size_limit(tenancy: DynamoTable) -> None:
+    """Requests for unknown hosts cannot grow a warm function's cache without end: past the limit it starts again."""
+    claim(tenancy, "example", "s1")
+    resolver = slugs.SlugResolver(tenancy, clock=Clock(), max_entries=3)
+    assert resolver.resolve("example") == "s1"
+    tenancy.transact_write([slugs.retire_action(tenancy, "example", "s1", "2026-11-23T10:00:00Z")])
+    assert resolver.resolve("one-unknown") is None
+    assert resolver.resolve("two-unknown") is None
+    assert resolver.resolve("example") == "s1"  # three answers kept: still the cached one
+    assert resolver.resolve("three-unknown") is None  # a fourth clears them
+    assert resolver.resolve("example") is None  # read again: retired

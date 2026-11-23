@@ -256,6 +256,14 @@ The staff path through `school_api` (and `billing` for `/api/school/billing/*`):
 | 7 | The resource is in this school (all its keys sit under `SCH#<schoolId>`, so another school's ID is simply not found); for own-class permissions, ownership | 404 / 403 |
 | 8 | Writes add an audit record (§9) | — |
 
+- Built in PS3 (DAT-8, DAT-13) as `api/shared/tenancy_auth.py` [VERIFIED `api/tests/unit/test_tenancy_auth.py`]:
+  - Step 4 runs before step 3, because it reads nothing. Unknown routes, failed origin checks and bad tokens are
+    refused before any read.
+  - Handlers reach the table only through the context the checks give them, which reads and writes by sort key under
+    the school's partition. A test fails if a `school_api` handler file touches DynamoDB any other way.
+  - Step 8: a request sends at most one transaction, and only if it holds exactly one audit record and nothing
+    outside the school. Otherwise nothing is sent, and the answer is 500 `INTERNAL`. A write route that returns
+    without its record also gets `INTERNAL`.
 - Step 2 matters because the execute-api endpoint is public. A direct call could carry a forged `x-scd-host`.
   - That would still fail at step 5 for a school the caller doesn't belong to.
   - The origin-verify header stops such calls earlier.

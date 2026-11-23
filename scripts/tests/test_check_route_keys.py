@@ -16,6 +16,7 @@ sys.path.insert(0, str(SCRIPTS))
 import check_route_keys as crk  # noqa: E402
 
 CATALOGUE = json.loads((REPO / "contracts" / "routes.json").read_text())
+FAMILY = ("player-api", "admin-api", "tts")  # the family edition's root deploys these (infrastructure/main/locals.tf)
 
 
 def route_resource(name: str, key: str, auth: str = "JWT", scopes: list[str] | None = None) -> dict:
@@ -30,9 +31,11 @@ def route_resource(name: str, key: str, auth: str = "JWT", scopes: list[str] | N
     }
 
 
-def matching_plan() -> dict:
-    """A plan shaped like `terraform show -json`: routes inside a child module, other resources beside them."""
-    routes = [route_resource(r["id"], f"{r['method']} {r['path']}", "JWT", [r["scope"]]) for r in CATALOGUE["routes"]]
+def matching_plan(functions: tuple[str, ...] | None = None) -> dict:
+    """A plan shaped like `terraform show -json`: routes inside a child module, other resources beside them. With
+    `functions`, only those functions' routes, as the family edition's root plans them."""
+    routes = [route_resource(r["id"], f"{r['method']} {r['path']}", "JWT", [r["scope"]]) for r in CATALOGUE["routes"]
+              if functions is None or r["function"] in functions]
     return {
         "format_version": "1.2",
         "planned_values": {"root_module": {
@@ -50,10 +53,12 @@ def matching_plan() -> dict:
     }
 
 
-def run(tmp_path: Path, plan: dict, catalogue: dict | None = None) -> int:
+def run(tmp_path: Path, plan: dict, catalogue: dict | None = None, functions: tuple[str, ...] = ()) -> int:
     plan_file = tmp_path / "tfplan.json"
     plan_file.write_text(json.dumps(plan))
     args = [str(plan_file)]
+    for function in functions:
+        args += ["--function", function]
     if catalogue is not None:
         routes_file = tmp_path / "routes.json"
         routes_file.write_text(json.dumps(catalogue))
@@ -71,13 +76,32 @@ def problems(plan: dict) -> list[str]:
 
 def test_matching_plan_passes(tmp_path: Path, capsys) -> None:
     assert run(tmp_path, matching_plan()) == crk.EXIT_OK
-    assert "OK: the plan's 62 routes equal" in capsys.readouterr().out
+    assert f"OK: the plan's {len(CATALOGUE['routes'])} routes equal" in capsys.readouterr().out
 
 
-def test_catalogue_has_thirty_nine_routes_with_api_prefix() -> None:
+def test_catalogue_routes_keep_the_api_prefix() -> None:
     expected = crk.load_catalogue(crk.ROUTES_FILE)
-    assert len(expected) == 62  # R1-R32, R33-R39 (Gate P pictures), R40-R62 (Gate M levels, game data, planets, aliens)
+    assert len(expected) == len(CATALOGUE["routes"])
     assert all(key.split(" ", 1)[1].startswith("/api/") for key in expected)
+    # The family edition's functions: R1-R32, R33-R39 (Gate P pictures), R40-R62 (Gate M levels, game data, planets,
+    # aliens). The school platform's routes start at R63 (DAT-7).
+    family = crk.load_catalogue(crk.ROUTES_FILE, FAMILY)
+    assert sorted(int(e.id[1:]) for e in family.values()) == list(range(1, 63))
+
+
+def test_the_family_plan_passes_with_its_functions_named(tmp_path: Path, capsys) -> None:
+    """release.yml and plan.yml name the three functions infrastructure/main deploys; R63 onwards is not in its plan."""
+    plan = matching_plan(FAMILY)
+    assert run(tmp_path, plan, functions=FAMILY) == crk.EXIT_OK
+    assert "OK: the plan's 62 routes equal `contracts/routes.json` (functions: player-api, admin-api, tts)" in (
+        capsys.readouterr().out)
+    assert run(tmp_path, plan) == crk.EXIT_MISMATCH  # without the selection, the school routes are missing
+    assert "missing from the plan: R63 `GET /api/school/me`" in capsys.readouterr().out
+
+
+def test_a_function_with_no_route_is_an_input_error(tmp_path: Path, capsys) -> None:
+    assert run(tmp_path, matching_plan(FAMILY), functions=("player-api", "player_api")) == crk.EXIT_BAD_INPUT
+    assert "no route for function(s) player_api" in capsys.readouterr().err
 
 
 def test_missing_route_fails(tmp_path: Path, capsys) -> None:
