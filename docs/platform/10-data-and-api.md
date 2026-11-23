@@ -102,11 +102,11 @@ This revisits ADR-0004 (no GSI) **for this table only**; `game` keeps none (DAT-
 
 | Item | `pk` | `sk` | Main attributes | `gsi1pk` / `gsi1sk` | `ttl` |
 |---|---|---|---|---|---|
-| School | `SCH#<schoolId>` | `PROFILE` | slug, display and legal name, URN, establishment type, status, plan and version, settings (staff sign-in methods, school hours, enrolment limit, PO required), counts (enrolled pupils, classes, staff), terms accepted (version, by, at), Stripe IDs, billing contacts, `demo` | `SCHOOLS` / `<status>#<slug>` | — |
+| School | `SCH#<schoolId>` | `PROFILE` | slug, display and legal name, URN, establishment type, status, plan and version, settings (staff sign-in methods, school hours, enrolment limit, PO required), counts (enrolled pupils, classes, staff, and active Admins, so the last one cannot be removed: `LAST_ADMIN`), terms accepted (version, by, at), Stripe IDs, billing contacts, `demo` | `SCHOOLS` / `<status>#<slug>` | — |
 | Slug | `SLUG#<slug>` | `SLUG` | schoolId; `retired: true` after deletion (a tombstone holding no school data) | — | Never: slugs are never reused ([03 §5](03-domains-edge-and-email.md#5-school-addresses-slugs-pq-2), DAT-Q8) |
 | Reserved slug additions | `CONFIG` | `RESERVED_SLUGS` | names the owner adds in the console (CON-26), each with who added it and when; checked with the baseline in `contracts/reserved-slugs.json` (PS0-6, DAT-2) | — | — |
 | Invitation | `SCH#<schoolId>` | `INVITE#<email>` | access level, billing flag, invited by and when | — | 14 days |
-| Email pointer | `EMAIL#<email>` | `SCH#<schoolId>` | status. Used by the triggers and to stop duplicate invitations | — | — |
+| Email pointer | `EMAIL#<email>` | `SCH#<schoolId>` | status: `invited` (with the invitation's `expiresAt`), `active` (with the `sub`) or `removed`. Used by the triggers and to stop duplicate invitations; a removed email, or one whose invitation expired, can be invited again (DAT-3) | — | — |
 | Membership | `SCH#<schoolId>` | `MEMBER#<sub>` | email, name, access level, billing, status, identity provider, joined, last sign-in | `SUB#<sub>` / `SCH#<schoolId>` | — |
 | Class | `SCH#<schoolId>` | `CLASS#<classId>` | name, year groups, `teacherSub`, status. Sign-in: mode, code, `openUntil`, `signedOutAt`. Play: This week (map, topic set, ends on), maps off, paused, home play (a class setting: SCH-Q8, PS0-10) | — | — |
 | Class code | `SCH#<schoolId>` | `CODE#<code>` | classId | — | — |
