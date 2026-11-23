@@ -411,6 +411,7 @@ def is_transient(error: ClientError) -> bool:
 # Environment variable names the Lambda module sets (H §H.4.4 lists the values; the names are [ASSUMPTION]).
 GAME_TABLE_ENV = "GAME_TABLE_NAME"
 CONTENT_TABLE_ENV = "CONTENT_TABLE_NAME"
+TENANCY_TABLE_ENV = "TENANCY_TABLE_NAME"  # the platform's tenancy table (ADR-0046)
 
 
 def table_from_env(env_var: str) -> DynamoTable:

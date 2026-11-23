@@ -104,6 +104,7 @@ This revisits ADR-0004 (no GSI) **for this table only**; `game` keeps none (DAT-
 |---|---|---|---|---|---|
 | School | `SCH#<schoolId>` | `PROFILE` | slug, display and legal name, URN, establishment type, status, plan and version, settings (staff sign-in methods, school hours, enrolment limit, PO required), counts (enrolled pupils, classes, staff), terms accepted (version, by, at), Stripe IDs, billing contacts, `demo` | `SCHOOLS` / `<status>#<slug>` | — |
 | Slug | `SLUG#<slug>` | `SLUG` | schoolId; `retired: true` after deletion (a tombstone holding no school data) | — | Never: slugs are never reused ([03 §5](03-domains-edge-and-email.md#5-school-addresses-slugs-pq-2), DAT-Q8) |
+| Reserved slug additions | `CONFIG` | `RESERVED_SLUGS` | names the owner adds in the console (CON-26), each with who added it and when; checked with the baseline in `contracts/reserved-slugs.json` (PS0-6, DAT-2) | — | — |
 | Invitation | `SCH#<schoolId>` | `INVITE#<email>` | access level, billing flag, invited by and when | — | 14 days |
 | Email pointer | `EMAIL#<email>` | `SCH#<schoolId>` | status. Used by the triggers and to stop duplicate invitations | — | — |
 | Membership | `SCH#<schoolId>` | `MEMBER#<sub>` | email, name, access level, billing, status, identity provider, joined, last sign-in | `SUB#<sub>` / `SCH#<schoolId>` | — |

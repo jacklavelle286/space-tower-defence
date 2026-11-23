@@ -107,7 +107,7 @@ def test_real_functions_build_twice_to_the_same_hashes(tmp_path: Path) -> None:
     assert not any("__pycache__" in name or name.endswith(".pyc") for name in names)
     schemas = sorted(f"contracts/schemas/{p.name}" for p in (REPO / "contracts" / "schemas").glob("*.schema.json"))
     assert sorted(n for n in names if n.startswith("contracts/")) == [
-        "contracts/limits.json", *schemas, "contracts/topics.json",
+        "contracts/limits.json", "contracts/reserved-slugs.json", *schemas, "contracts/topics.json",
     ]  # fmt: skip
     assert not any(n.startswith("content/") for n in names)
     with zipfile.ZipFile(tmp_path / "out1" / "admin-api.zip") as archive:
