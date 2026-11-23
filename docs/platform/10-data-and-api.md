@@ -409,6 +409,15 @@ Notes:
    cannot reach any `/api/school/*` route.
 6. A support grant for A gives the owner nothing in B.
 
+Built in PS3 (DAT-14):
+- Cases 1 to 4 run in CI at module level [VERIFIED `api/tests/unit/test_isolation.py`].
+- Five copies each break one check: origin verify, the host's school, the membership, the permission and the
+  school partition. The suite must fail against every copy, so a broken check fails CI.
+- Still to come:
+  - case 3 against sca-dev, once the edge (PS2) and the platform's API (PS5) are deployed;
+  - case 5 with pupils (PS7);
+  - case 6 with support access (PS16).
+
 ---
 
 ## 6. Retention and deletion
