@@ -73,7 +73,7 @@ Content stays **global**: one bank for every school, published by the owner (PQ-
 
 ### 2.4 The new `tenancy` table
 
-**Settings** [PROPOSAL]:
+**Settings** [built in PS3, DAT-1: `infrastructure/platform/tenancy.tf`, with the daily backup plan]:
 
 - on demand, `pk` and `sk` strings;
 - PITR, deletion protection, `prevent_destroy`;

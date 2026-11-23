@@ -1,7 +1,13 @@
 # The platform root (ENV-4, PS1). Offline: a mock provider and plans, so nothing reaches AWS or the state bucket.
 # Run from infrastructure/platform: terraform init -backend=false && terraform test (CI repo job).
 
-mock_provider "aws" {}
+# The backup module builds its role's trust policy with aws_iam_policy_document; the mock returns a valid empty policy
+# (as modules/backup's own tests do), since a random string is not JSON.
+mock_provider "aws" {
+  mock_data "aws_iam_policy_document" {
+    defaults = { json = "{\"Version\":\"2012-10-17\",\"Statement\":[]}" }
+  }
+}
 
 variables {
   project            = "space-tower-defence"
@@ -85,4 +91,31 @@ run "refuses_a_malformed_email" {
   }
 
   expect_failures = [var.notification_email]
+}
+
+run "tenancy_table_and_its_daily_backup" {
+  command = plan
+
+  assert {
+    condition     = output.tenancy_table_name == "space-tower-defence-sca-dev-tenancy"
+    error_message = "The tenancy table is named <project>-<environment>-tenancy."
+  }
+
+  assert {
+    condition     = output.backup_vault_name == "space-tower-defence-sca-dev-vault"
+    error_message = "The platform has its own backup vault, named from the environment."
+  }
+}
+
+run "prod_names_its_tenancy_table" {
+  command = plan
+
+  variables {
+    environment = "sca-prod"
+  }
+
+  assert {
+    condition     = output.tenancy_table_name == "space-tower-defence-sca-prod-tenancy"
+    error_message = "Each account gets its own tenancy table."
+  }
 }

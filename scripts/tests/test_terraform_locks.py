@@ -1,8 +1,9 @@
 """The modules that run `terraform test` carry a committed lock that pins the root's hashicorp/aws build.
 
-CI and the release checks job init infrastructure/modules/{backup,monitoring,static_site} with `-lockfile=readonly`, so
-the provider those mock-provider tests run against is the same build, with the same hashes, as the root plans with. If
-the root's provider is upgraded, copy its aws block into each module lock (this test names the files that differ).
+CI inits infrastructure/modules/{backup,dynamodb_table,monitoring,static_site} with `-lockfile=readonly` (the family
+edition's release checks job, the three without dynamodb_table), so the provider those mock-provider tests run against
+is the same build, with the same hashes, as the root plans with. If the root's provider is upgraded, copy its aws block
+into each module lock (this test names the files that differ).
 """
 
 from __future__ import annotations
@@ -12,7 +13,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[2]
 ROOT_LOCK = REPO / "infrastructure" / "main" / ".terraform.lock.hcl"
-TESTED_MODULES = ("backup", "monitoring", "static_site")
+TESTED_MODULES = ("backup", "dynamodb_table", "monitoring", "static_site")
 _AWS_BLOCK = re.compile(r'provider "registry\.terraform\.io/hashicorp/aws" \{.*?\n\}\n', re.S)
 _PROVIDER = re.compile(r'^provider "([^"]+)"', re.M)
 
