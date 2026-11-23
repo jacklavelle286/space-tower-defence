@@ -497,6 +497,15 @@
       "function": "admin-api",
       "authoriser": "operator",
       "scope": "ops/content"
+    },
+    {
+      "id": "R63",
+      "method": "GET",
+      "path": "/api/school/me",
+      "function": "school-api",
+      "authoriser": "staff",
+      "scope": "school/staff",
+      "permission": "school.view"
     }
   ]
 }

@@ -30,6 +30,7 @@ SLUG_SK = "SLUG"
 MIN_LENGTH = 3
 MAX_LENGTH = 30
 CACHE_SECONDS = 60.0
+CACHE_ENTRIES = 10_000  # a warm function forgets them all past this, so unknown hosts cannot grow it
 
 # A letter, then letters or digits, with single hyphens between runs: no leading, trailing or double hyphen.
 _FORMAT = re.compile(r"^[a-z][a-z0-9]*(?:-[a-z0-9]+)*$")
@@ -93,11 +94,19 @@ class SlugResolver:
 
     One resolver lives as long as the Lambda environment, so a warm function reads each slug at most once a minute.
     A slug that is unknown, retired or malformed resolves to None (the chain answers 404 NOT_FOUND); None is cached
-    too, so a stream of requests for a missing slug cannot hammer the table."""
+    too, so a stream of requests for a missing slug cannot hammer the table. At most `max_entries` answers are kept;
+    the next new slug past that clears them all (a re-read costs one GetItem each)."""
 
-    def __init__(self, table: DynamoTable, ttl: float = CACHE_SECONDS, clock: Callable[[], float] = time.monotonic):
+    def __init__(
+        self,
+        table: DynamoTable,
+        ttl: float = CACHE_SECONDS,
+        clock: Callable[[], float] = time.monotonic,
+        max_entries: int = CACHE_ENTRIES,
+    ):
         self._table = table
         self._ttl = ttl
+        self._max_entries = max_entries
         self._clock = clock
         self._cache: dict[str, tuple[str | None, float]] = {}
 
@@ -107,6 +116,8 @@ class SlugResolver:
         if cached is not None and cached[1] > now:
             return cached[0]
         school_id = self._read(slug)
+        if slug not in self._cache and len(self._cache) >= self._max_entries:
+            self._cache.clear()
         self._cache[slug] = (school_id, now + self._ttl)
         return school_id
 

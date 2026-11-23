@@ -20,6 +20,9 @@ from typing import Any
 STATUS_BY_CODE: Mapping[str, int] = {
     "VALIDATION_FAILED": 400,
     "FORBIDDEN": 403,
+    "NOT_A_MEMBER": 403,  # school routes: no active membership of the host's school (04 §5.3, check 5)
+    "SCHOOL_SUSPENDED": 403,  # the school is suspended and the route is not open to it (PQ-14)
+    "SCHOOL_ENDED": 403,  # the school's licence has ended and the route is not open to it
     "NOT_FOUND": 404,
     "PROFILE_NOT_FOUND": 404,
     "ACTIVE_SESSION_ELSEWHERE": 409,
@@ -46,6 +49,9 @@ STATUS_BY_CODE: Mapping[str, int] = {
 _DEFAULT_MESSAGES: Mapping[str, str] = {
     "VALIDATION_FAILED": "Request failed validation",
     "FORBIDDEN": "Not allowed",
+    "NOT_A_MEMBER": "Not a member of this school",
+    "SCHOOL_SUSPENDED": "This school is suspended",
+    "SCHOOL_ENDED": "This school's licence has ended",
     "NOT_FOUND": "Not found",
     "PROFILE_NOT_FOUND": "Profile not found",
     "INTERNAL": "Internal error",

@@ -195,7 +195,8 @@ jobs:
       - name: G-12 route keys
         run: |
           set +e
-          python scripts/check_route_keys.py "$OUT/tfplan.json" --routes contracts/routes.json > "$OUT/route-keys.md"
+          python scripts/check_route_keys.py "$OUT/tfplan.json" --routes contracts/routes.json \
+            --function player-api --function admin-api --function tts > "$OUT/route-keys.md"
           rc=$?
           set -e
           cat "$OUT/route-keys.md" >> "$GITHUB_STEP_SUMMARY"

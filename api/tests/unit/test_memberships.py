@@ -6,11 +6,11 @@ from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import pytest
+from schools import TENANCY, create_tenancy_table
 
 from shared import memberships as m
 from shared.data import DynamoTable
 
-TABLE = "test-tenancy"
 SCHOOL = "s01JTEST"
 NOW = datetime(2026, 11, 23, 9, 0, tzinfo=UTC)
 ADMIN_SUB = "11111111-1111-4111-8111-111111111111"
@@ -19,24 +19,8 @@ TEACHER_SUB = "22222222-2222-4222-8222-222222222222"
 
 @pytest.fixture
 def tenancy(ddb: Any) -> DynamoTable:
-    ddb.create_table(
-        TableName=TABLE,
-        KeySchema=[{"AttributeName": "pk", "KeyType": "HASH"}, {"AttributeName": "sk", "KeyType": "RANGE"}],
-        AttributeDefinitions=[{"AttributeName": a, "AttributeType": "S"} for a in ("pk", "sk", "gsi1pk", "gsi1sk")],
-        GlobalSecondaryIndexes=[
-            {
-                "IndexName": "gsi1",
-                "KeySchema": [
-                    {"AttributeName": "gsi1pk", "KeyType": "HASH"},
-                    {"AttributeName": "gsi1sk", "KeyType": "RANGE"},
-                ],
-                "Projection": {"ProjectionType": "ALL"},
-            }
-        ],
-        BillingMode="PAY_PER_REQUEST",
-    )
-    table = DynamoTable(ddb, TABLE)
-    ddb.put_item(TableName=TABLE, Item={"pk": {"S": f"SCH#{SCHOOL}"}, "sk": {"S": "PROFILE"}})
+    table = create_tenancy_table(ddb)
+    ddb.put_item(TableName=TENANCY, Item={"pk": {"S": f"SCH#{SCHOOL}"}, "sk": {"S": "PROFILE"}})
     return table
 
 

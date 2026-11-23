@@ -16,7 +16,8 @@ import smoke  # noqa: E402
 
 REPO = SCRIPTS.parent
 FIXTURE = json.loads((Path(__file__).parent / "fixtures" / "smoke" / "player-site.json").read_text())
-ROUTES = smoke.load_routes(str(REPO / "contracts" / "routes.json"))
+FAMILY = ("player-api", "admin-api", "tts")  # apply.yml names the family edition's functions (R1-R62)
+ROUTES = smoke.load_routes(str(REPO / "contracts" / "routes.json"), FAMILY)
 ADMIN_CF = "d222222abcdef8.cloudfront.net"
 ADMIN_HOST = "admin.aliens.jackgl.com"
 RELEASE_ID = FIXTURE["releaseId"]
@@ -307,6 +308,17 @@ def test_requests_never_carry_credentials():
 
 def test_cli_rejects_a_non_cloudfront_name():
     assert smoke.main(["--release-id", RELEASE_ID, "--site", "player", "aliens.jackgl.com", "-"]) == 2
+
+
+def test_function_selection_keeps_the_family_routes():
+    """The catalogue also holds the school platform's routes (R63 onwards, DAT-7); the family smoke test leaves them
+    out, because the family edition's API does not serve them."""
+    everything = smoke.load_routes(str(REPO / "contracts" / "routes.json"))
+    assert [r.id for r in ROUTES] == [f"R{n}" for n in range(1, 63)]
+    assert len(everything) > len(ROUTES)
+    assert all(int(r.id[1:]) >= 63 for r in everything[len(ROUTES):])
+    with pytest.raises(ValueError, match="no route for function"):
+        smoke.load_routes(str(REPO / "contracts" / "routes.json"), ("player-api", "nope"))
 
 
 def test_cli_rejects_a_bad_route_catalogue(tmp_path):

@@ -161,10 +161,15 @@ This revisits ADR-0004 (no GSI) **for this table only**; `game` keeps none (DAT-
 
 **Routes**
 
-- Routes stay in **`contracts/routes.json`**. Today it has R1–R62, and Terraform and the functions' allow-lists are
-  generated from it [VERIFIED `contracts/routes.json`; `infrastructure/main/locals.tf:66-75`].
+- Routes stay in **`contracts/routes.json`**. R1–R62 are the family edition's. Terraform and the functions'
+  allow-lists are generated from it [VERIFIED `contracts/routes.json`; `infrastructure/main/locals.tf:66-75`].
+  - The family edition's root deploys only its three functions' routes (`player-api`, `admin-api`, `tts`), and its
+    route-key and smoke checks select the same three [VERIFIED `infrastructure/main/locals.tf`;
+    `scripts/check_route_keys.py --function`].
 - New routes continue from **R63** (DAT-Q7). Each entry gains a `permission` field, from which the permission table in
   [04 §5.2](04-identity-and-access.md#52-permissions) is generated.
+  - R63, `GET /api/school/me` (`school.view`), came first, in PS3: who the caller is in the host's school, with their
+    permissions. It stays open while the school is suspended or ended.
 
 **Authorisers** (JWT, one per pool):
 
