@@ -27,5 +27,11 @@ player and the admin show as school years (`web/shared/src/schoolYears.ts`). Yea
 (topics) and YG3 (drafting) and the owner's drafting (YG4); until then Hard for Year 2, and Year 4 at all, answer
 "still being made". The date of birth is no longer collected (a privacy gain); `age` in GET /api/me is null without one.
 
-Evidence: `api/tests/unit/test_school_years.py`; `web/player/src/shell/Home.test.tsx` (YG1 block),
+Drafting (YG3): new questions are drafted with AI in the admin, as the owner chose. A drafting job rides on the picture
+machinery (ADR-0031): the same queue, worker (picture-gen, OpenAI), job objects and daily and monthly caps, so it adds
+routes R63-R64 and no AWS resource; each draft is checked as the editor checks it and saved only when the owner presses
+Save, then reviewed and published like any activity.
+
+Evidence: `api/tests/unit/test_school_years.py`, `test_grammar_rotation.py`, `test_drafting.py`,
+`test_picture_gen_drafts.py`, `test_admin_drafts.py`; `web/player/src/shell/Home.test.tsx` (YG1 block),
 `web/player/src/shell/Shell.test.tsx`, `web/player/e2e/local/keyboard.spec.ts`; admin tests named in build-phases.md YG1.
