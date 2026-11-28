@@ -70,6 +70,8 @@ ALLOWED_FIELDS: frozenset[str] = frozenset(
         "kind",  # picture-gen (Gate P2): the job's picture kind, one of picture.kinds in contracts/limits.json
         "provider",  # picture-gen: who drew it, openai or bedrock (PICTURE_PROVIDER; owner decision 2026-11-16)
         "refusedBy",  # picture-gen: on an `unusable` drawing, the failed check (a fixed name: element, viewbox, ...)
+        "draftCount",  # picture-gen (YG3): an activity-drafts job's usable drafts and rejected drafts, counts only
+        "rejectedCount",
         # game-data-publish (Gate M, LD6): which level and version an action touched, and how it ended
         "levelId",
         "campaignVersion",

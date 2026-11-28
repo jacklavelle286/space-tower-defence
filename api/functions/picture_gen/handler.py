@@ -104,6 +104,7 @@ from typing import Any
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 
+from shared import drafting
 from shared.audio import MISSING, client_error_code, s3_client
 from shared.log import ApiLogger
 from shared.pictures import (
@@ -745,6 +746,10 @@ class Worker:
         return {"batchItemFailures": []}
 
     def job(self, record: Any) -> None:
+        drafts = _draft_message(record)
+        if drafts is not None:
+            self.draft_job(record, drafts)  # YG3: an activity-drafts job, not a drawing
+            return
         message = _message(record)
         if message is None:
             self.logger.line("WARNING", metric="picture_usage", result="ERROR", code="bad_message")
@@ -826,6 +831,64 @@ class Worker:
         }
         self.put_json(s3, config, job_key(config.job_prefix, job_id, "result.json"), result)
         self.logger.line(**fields, result="OK", durationMs=elapsed)
+
+    def draft_job(self, record: Any, doc: Mapping[str, Any]) -> None:
+        """YG3: up to five questions on one topic for one school year, from OpenAI as JSON (shared/drafting.py),
+        checked as the editor checks them; result.json {drafts, rejected, usage, ms, model}. The same claim, queue age,
+        deadline, key and error codes as a drawing; the usage line is `draft_usage`. OpenAI only."""
+        job_id = str(doc["jobId"])
+        config = self.deps.config()
+        s3 = self.deps.s3()
+        if not self.claim(s3, config, job_id):
+            self.logger.line(metric="draft_usage", jobId=job_id, result="DUPLICATE")
+            return
+        fields: dict[str, Any] = {"metric": "draft_usage", "jobId": job_id, "provider": config.provider}
+        if config.provider != "openai":
+            self.finish_error(s3, config, job_id, "not_set_up", fields)  # drafting is built for OpenAI only
+            return
+        fields["model"] = config.openai_model_id
+        waited = self.waited(record, doc.get("startedAt"))
+        if waited is not None and waited > QUEUE_MAX_AGE:
+            fields["queuedSeconds"] = int(waited.total_seconds())
+            self.finish_error(s3, config, job_id, "timed_out", fields)
+            return
+        topic = drafting.TOPICS[str(doc["topicId"])]
+        band, interaction_type, count = int(doc["band"]), str(doc["interactionType"]), int(doc["count"])
+        started = self.deps.clock()
+        try:
+            client = self.deps.openai(config, DEFAULT_KIND, self.api_key(config))
+            params = draft_request_params(config, topic, band, interaction_type, count, doc.get("notes"))
+            with self.deps.alarm(CALL_SECONDS):
+                response = client.responses.create(**params)
+            reply = openai_reply(response)
+            usage = reply.usage
+            fields.update(inputTokens=usage["input"], outputTokens=usage["output"], stopReason=reply.stop_reason)
+            if reply.failure is not None:
+                raise JobFailed(reply.failure)
+            try:
+                good, rejected = drafting.drafts_from_reply(
+                    reply.text, topic=topic, band=band, interaction_type=interaction_type, count=count, seed=job_id
+                )
+            except ValueError:
+                raise JobFailed("unusable", "not_the_json_asked_for") from None
+        except JobFailed as failed:
+            if failed.reason is not None:
+                fields.update(refusedBy=failed.reason)
+            self.finish_error(s3, config, job_id, failed.code, fields)
+            return
+        except StreamFailed as failed:
+            fields.update(errorType=type(failed.cause).__name__, **openai_upstream_fields(failed.cause))
+            self.finish_error(s3, config, job_id, self.failure_code(config, failed.cause), fields)
+            return
+        except Exception as error:  # noqa: BLE001 - any SDK or network failure: never redelivered (a paid call)
+            fields["errorType"] = type(error).__name__
+            fields.update(openai_upstream_fields(error))
+            self.finish_error(s3, config, job_id, self.failure_code(config, error), fields)
+            return
+        elapsed = round((self.deps.clock() - started) * 1000)
+        result = {"drafts": good, "rejected": rejected, "usage": usage, "ms": elapsed, "model": config.openai_model_id}
+        self.put_json(s3, config, job_key(config.job_prefix, job_id, "result.json"), result)
+        self.logger.line(**fields, result="OK", durationMs=elapsed, draftCount=len(good), rejectedCount=len(rejected))
 
     def failure_code(self, config: WorkerConfig, error: BaseException) -> str:
         """The error.json code for a failed call. A key OpenAI refused is dropped, so the next job reads the secret
@@ -1087,6 +1150,53 @@ def _message(record: Any) -> tuple[str, str, str, str | None, str | None, str | 
         return None
     kind = doc.get("kind", DEFAULT_KIND)
     return job_id, description, kind if is_kind(kind) else "", previous, change, started
+
+
+def _draft_message(record: Any) -> dict[str, Any] | None:
+    """An activity-drafts job (YG3) from one SQS record, checked as admin-api checked it (R63); None when the record is
+    not one (a drawing, or anything else, which `_message` then judges)."""
+    body = record.get("body") if isinstance(record, Mapping) else None
+    try:
+        doc = json.loads(body) if isinstance(body, str) else None
+    except ValueError:
+        return None
+    if not isinstance(doc, dict) or doc.get("jobType") != drafting.JOB_TYPE:
+        return None
+    allowed = {"jobType", "jobId", "topicId", "band", "interactionType", "count", "notes", "startedAt"}
+    job_id, started = doc.get("jobId"), doc.get("startedAt")
+    if set(doc) - allowed or not (isinstance(job_id, str) and UUID.fullmatch(job_id)):
+        return None
+    if started is not None and not (isinstance(started, str) and _STARTED_AT.fullmatch(started)):
+        return None
+    return doc if not drafting.request_problems(doc) else None
+
+
+DRAFT_MAX_OUTPUT_TOKENS = 16000  # five short questions plus the model's reasoning [ASSUMPTION]
+
+
+def draft_request_params(
+    config: WorkerConfig, topic: Any, band: int, interaction_type: str, count: int, notes: Any
+) -> dict[str, Any]:
+    """The responses.create arguments for a drafting job: the drawing's settings (store=False, the same reasoning
+    effort) plus structured output in `drafting.output_schema`. [UNVERIFIED: `text.format` json_schema is the
+    Responses API's structured output; the first real job confirms it with SDK 3.48.]"""
+    return {
+        "model": config.openai_model_id,
+        "instructions": drafting.instructions(interaction_type),
+        "input": drafting.user_text(topic, band, count, notes if isinstance(notes, str) and notes else None),
+        "max_output_tokens": DRAFT_MAX_OUTPUT_TOKENS,
+        "reasoning": {"effort": OPENAI_REASONING_EFFORT},
+        "store": False,
+        "prompt_cache_key": f"activity-drafts:{interaction_type}:v1",
+        "text": {
+            "format": {
+                "type": "json_schema",
+                "name": "activity_drafts",
+                "schema": drafting.output_schema(interaction_type),
+                "strict": True,
+            }
+        },
+    }
 
 
 DEFAULT_DEPS = Deps()

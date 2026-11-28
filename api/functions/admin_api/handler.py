@@ -128,6 +128,7 @@ from shared.data import (
     is_transient,
     table_from_env,
 )
+from shared.draft_admin import make_draft_handlers
 from shared.errors import ApiError, json_response
 from shared.game_data import GameDataReader, GameDataUnavailable, reader_from_env
 from shared.gamedata_admin import PublisherClient, make_gamedata_handlers
@@ -191,6 +192,8 @@ ROUTES: dict[str, str] = {
     "DELETE /api/admin/aliens/{id}": OPERATOR,
     "POST /api/admin/aliens/{id}/publish": OPERATOR,
     "PUT /api/admin/levels/{id}/planet": OPERATOR,
+    "POST /api/admin/draft-jobs": OPERATOR,  # YG3: AI drafting (shared/draft_admin.py)
+    "GET /api/admin/draft-jobs/{jobId}": OPERATOR,
 }
 
 DRAFT_MAX_BYTES: int = LIMITS["bodyMaxBytes"]["adminActivityDraft"]  # 64 KB for PUT .../draft (G §12)
@@ -1161,6 +1164,14 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
                 manifest_users=lambda picture_id: [
                     f"manifest:{m['version']}" for m in deps.manifests() if picture_id in manifest_pictures(m)
                 ],
+            ),
+            now=deps.now,
+            transact=transact,
+        ),
+        **make_draft_handlers(
+            table=table,
+            services=PictureServices(
+                config=deps.pictures, s3=deps.s3, sqs=deps.sqs, cloudfront=deps.cloudfront, manifest_users=lambda _: []
             ),
             now=deps.now,
             transact=transact,

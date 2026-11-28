@@ -16,14 +16,14 @@ MODULE = {"player-api": "player_api", "admin-api": "admin_api", "tts": "tts"}
 def test_sixty_two_routes_in_catalogue_order() -> None:
     """R1-R30 (G §2), R31-R32 (deletes, 2026-11-16), R33-R39 (pictures; Gate P), R40-R45 (levels; Gate M, LD3-LD5),
     R46-R52 (game data through the publisher; Gate M, LD7), R53-R56 (planets; LD10), R57-R61 (aliens; AM1),
-    R62 (move a level; LD19)."""
-    assert [route["id"] for route in ROUTES] == [f"R{n}" for n in range(1, 63)]
+    R62 (move a level; LD19), R63-R64 (AI drafting jobs; YG3)."""
+    assert [route["id"] for route in ROUTES] == [f"R{n}" for n in range(1, 65)]
     assert all(set(route) == FIELDS for route in ROUTES)
 
 
 def test_route_keys_are_unique_and_keep_the_api_prefix() -> None:
     keys = [f"{route['method']} {route['path']}" for route in ROUTES]
-    assert len(set(keys)) == 62
+    assert len(set(keys)) == 64
     for route in ROUTES:
         assert route["method"] in {"GET", "POST", "PUT", "PATCH", "DELETE"}
         assert route["path"].startswith("/api/")
@@ -44,7 +44,7 @@ def test_functions_per_g2() -> None:
     assert by_function == {
         "player-api": [f"R{n}" for n in range(1, 15)],
         "tts": ["R15", "R16"],
-        "admin-api": [f"R{n}" for n in range(17, 63)],
+        "admin-api": [f"R{n}" for n in range(17, 65)],
     }
 
 

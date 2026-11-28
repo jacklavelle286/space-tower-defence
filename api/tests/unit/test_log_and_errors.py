@@ -90,6 +90,8 @@ PICTURE_FIELDS = {
     "upstreamError",
     "provider",
     "refusedBy",  # a sanitiser check's fixed name, never text from the reply
+    "draftCount",  # YG3: an activity-drafts job's counts
+    "rejectedCount",
 }
 
 
