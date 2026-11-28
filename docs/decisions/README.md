@@ -60,6 +60,7 @@ The rules are in [J §J.6](../plan/J-execution-backlog.md#j6-decision-log-practi
 | [0042](0042-admin-trusted-browser.md) | Admin stays signed in on a trusted browser: operator refresh token 30 days, silent renewal at /oauth2/token, "Trust this browser" keeps it in localStorage; amends 0023 | Proposed |
 | [0043](0043-maps-instead-of-planets.md) | Maps instead of planets: each map is its own adventure on its own hidden planet, made and released by the admin; every map open from the start; amends 0040 and spine S8.1 | Proposed |
 | [0044](0044-branches-family-dev-main.md) | Branches: `family` for the family edition (its release workflows accept only `family`), `dev` for the schools platform (feature branches `SCD-<n>-…`, auto-deploy to sca-dev), `main` kept for the platform's one big release; amends 0019 | Proposed |
+| [0056](0056-school-years-and-hard-mode.md) | School years and Hard mode instead of ages: a profile's school year picks its questions (band = year + 5), Hard plays the year above; no date of birth is asked for (0045 to 0055 are on `dev`) | Proposed |
 
 ## Next in line
 

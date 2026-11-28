@@ -111,6 +111,10 @@ until then it was `release.yml` then `apply.yml`, and older rows still say "disp
 | LD21 | Make it all again | M | — | One button in the editor remakes a level's map, waves and challenges together; challenge astronauts follow map edits | Release; try it |
 | LD22 | Maps instead of planets | M | — | Each map is its own adventure on Home, all open from the start; publish puts a map on Home | Release; restore the Moon; make Fire Planet its own map |
 | LD23 | Home is a list of maps | M | — | One card per map: a drawing of the map, Play (its 50 waves), its challenges as small buttons | Release; look at Home |
+| YG1 | School years and Easy or Hard | YG | — | A profile's school year picks its band; Hard plays the year above; no date of birth asked | Release; set each child's school year |
+| YG2 | Grammar, and topics for Years 3 to 5 | YG | — | Topic tables for Years 3–5 (maths, grammar and punctuation, spelling); bands 8+ rotate maths, grammar, spelling | Review the topic tables |
+| YG3 | AI drafting in the admin | YG | — | A year, a subject and a topic give OpenAI drafts that pass the activity checks; nothing reaches children unapproved | Release; draft and approve a few |
+| YG4 | The first Year 3–5 questions | YG | — | Years 3, 4 and 5 each have enough approved questions for a game (bank status: not Blocked) | Draft and approve; play Year 2 Hard and Year 4 |
 | 57 | Local database | M5 | M5-01 | Upgrade keeps queued ops | — |
 | 58 | Offline queue | M5 | M5-02 | Playwright: offline then flush in order | Release |
 | 59 | Offline preparation and audio cache | M5 | M5-03 | Network cut after "Ready offline": play continues | Release; try it |
@@ -2763,6 +2767,65 @@ plus small challenge buttons" and "A small drawing of the map itself".
 | Risks | Each card fetches its map's planet document once (immutable, cached); a map that fails to load shows the plain ground |
 
 ---
+
+## Stage YG — School years: Year 2 and Year 4, Easy or Hard (owner 2026-11-28)
+
+The owner, 2026-11-28: "on the family branch i would like to now make a module for year 4s and years 2s ... when you
+choose a game mode you can do easy / hard mode and hard mode does the year above in terms of the curriculum - stick on
+this for now" [CONFIRMED by owner 2026-11-28]. Chosen in chat: a School year setting, Easy or Hard per game at Play,
+grammar and punctuation as the third subject for Years 3–5, questions drafted with AI in the admin
+([ADR-0056](decisions/0056-school-years-and-hard-mode.md)). The `family` branch is open again for this stage; nothing
+from it is merged into `dev`.
+
+### Phase YG1 — School years and Easy or Hard
+
+**Goal.** A child's school year, not their age, picks their questions, and each new game can be Easy (their year) or
+Hard (the year above).
+**Why now.** The first step for Year 2 and Year 4: Year 4 had no band at all (ages 5–7 only).
+
+| Field | Detail |
+|---|---|
+| In scope | `contracts/limits.json`: `ageBands` 5–11 and `schoolYears` (names, firstBand 5). `api/shared/profile.py`: `schoolYear` on PUT/PATCH (PUT needs it, or a date of birth from an older player), `band_for` (school year + 5, Hard + 1; an older profile's age 5–7). `player-api`: GET /api/me and /api/planets give `schoolYear`, `ageBand` and `hardAgeBand`; POST /api/runs takes `difficulty` and pins it; run summaries and views carry it. Player: setup asks the school year (the birthday picker goes); Home shows the year with Change (PATCH) and asks "How hard?" at Play and at each challenge; Continue marks Hard. Admin: bands shown as school years (lists, filters, editor, new activity, bank status) |
+| Out of scope | Questions for Years 3–6 (YG2–YG4); renaming the `ageBand`/`minAge`/`maxAge` fields |
+| Files | `contracts/limits.json` (and the generated `web/shared/src/limits.ts`, `web/game-core/src/rules/contracts.generated.ts`), `api/shared/profile.py`, `api/shared/runs.py`, `api/functions/player_api/handler.py`, `web/shared/src/schoolYears.ts`, `web/shared/src/api/types.ts`, `web/player/src/shell/{ProfileSetup,SchoolYearPicker,Home,Shell}.tsx`, `web/player/src/run/newGame.ts`, `web/player/src/dev/devServices.ts`, `web/admin/src/{activityList.ts,pages/ActivityListPage.tsx,editor/*,bank/*}` |
+| Depends on | LD23 |
+| Owner actions | Release; on each child's Home press Change and set their school year (Year 2, Year 4) |
+| Tests and how to run | `api/tests/unit/test_school_years.py` (bands per year, Hard, an older profile, bad years and difficulties, Hard with no questions); `test_profile.py`, `test_runs.py` (shapes); `player/src/shell/Home.test.tsx` (YG1 block), `Shell.test.tsx` (setup); `shared/src/schoolYears.test.ts`; admin list, editor, identity and bank tests; `npx playwright test -c playwright.local.config.ts keyboard` |
+| Deployed / how to see | A new profile asks the school year; Home: "School year: Year 2 · Change"; Play → How hard? |
+| Exit criteria | A Year 2 profile's Easy game pins band 7, Hard band 8; a Year 4 profile pins 9 and 10; existing profiles keep playing |
+| Risks | Until YG4, Year 4 and Year 2 Hard answer "Questions for this year are still being made" |
+
+### Phase YG2 — Grammar, and topics for Years 3 to 5
+
+**Goal.** The curriculum, written down: topic tables for Years 3, 4 and 5 in maths, spelling and a new subject, grammar
+and punctuation, so drafting and selection know what each year covers.
+
+| Field | Detail |
+|---|---|
+| In scope | C19-style tables for Years 3–5 (National Curriculum 2014 programmes of study and English Appendices 1 and 2, cited by code); `scripts/gen_topics.py` and `contracts/topics.json`; the `grammar` subject through content validation, selection (bands 8 and above rotate maths, grammar, spelling) and the admin |
+| Depends on | YG1 |
+| Owner actions | Review the topic tables |
+
+### Phase YG3 — AI drafting in the admin
+
+**Goal.** The owner drafts questions for a year, subject and topic with OpenAI (the key picture generation uses), reads
+them in the editor, and approves the good ones.
+
+| Field | Detail |
+|---|---|
+| In scope | An admin route that asks OpenAI for N drafts in the activity schema for one topic and band; every draft goes through the existing validation and lands as a draft activity; an Admin page to choose and send, then the editor to review and publish |
+| Depends on | YG2 |
+| Owner actions | Release; draft and approve a few |
+
+### Phase YG4 — The first Year 3–5 questions
+
+**Goal.** Enough approved questions that Year 4, and Year 2 on Hard, can play.
+
+| Field | Detail |
+|---|---|
+| In scope | Drafting runs per topic; the bank status page shows each year not Blocked |
+| Depends on | YG3 |
+| Owner actions | Draft and approve; play as each child |
 
 ## Stage F — Robust persistence and offline, M5 (phases 57–63)
 
