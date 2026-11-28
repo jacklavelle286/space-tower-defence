@@ -74,6 +74,7 @@ def new_run_item(
     wave_set_bounds: Mapping[str, Any],
     preset_placements: Sequence[Mapping[str, Any]],
     age_band: int,
+    difficulty: str = "EASY",
     seed: str,
     ruleset_version: str,
     campaign_version: str,
@@ -111,6 +112,7 @@ def new_run_item(
         "lastPlayedAt": now,
         "pins": {
             "ageBand": age_band,
+            "difficulty": difficulty,  # YG1: EASY plays the school year, HARD the year above (ageBand says which)
             "seed": seed,
             "rulesetVersion": ruleset_version,
             "campaignVersion": campaign_version,
@@ -183,6 +185,7 @@ def run_summary(item: Mapping[str, Any], playable: Callable[[Any, Any, Any], boo
     for name in _OPTIONAL_SUMMARY_FIELDS:
         if item.get(name) is not None:
             summary[name] = plain(item[name])
+    summary["difficulty"] = _pins(item).get("difficulty") or "EASY"  # YG1
     summary["playable"] = is_playable(item, playable)
     if not summary["playable"]:
         summary["reason"] = "CONTENT_VERSION_UNSUPPORTED"
@@ -231,6 +234,7 @@ def run_view(
         name: plain(pins.get(name))
         for name in ("ageBand", "rulesetVersion", "campaignVersion", "assetManifestVersion", "protocolVersion")
     }
+    view["pins"]["difficulty"] = pins.get("difficulty") or "EASY"  # a run made before YG1 played its school year
     view["currentSlot"] = current_slot
     recent = run.get("recentOps") if isinstance(run.get("recentOps"), list) else []
     view["recentOpIds"] = [op.get("opId") for op in recent if isinstance(op, Mapping)]

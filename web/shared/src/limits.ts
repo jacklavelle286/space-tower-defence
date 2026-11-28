@@ -58,8 +58,24 @@ export const LIMITS = {
   "ageBands": [
     5,
     6,
-    7
+    7,
+    8,
+    9,
+    10,
+    11
   ],
+  "schoolYears": {
+    "$comment": "YG1 (owner 2026-11-28): a profile's school year picks its questions. A band number is the school year + firstBand: Reception 5, Year 1 6, Year 2 7 (the bands that were ages 5-7), then Year 3 8 ... Year 6 11. Hard plays the band above.",
+    "names": [
+      "Reception",
+      "Year 1",
+      "Year 2",
+      "Year 3",
+      "Year 4",
+      "Year 5"
+    ],
+    "firstBand": 5
+  },
   "deviceLabelMaxLength": 40,
   "previewTextMaxLength": 300,
   "speechTake": {

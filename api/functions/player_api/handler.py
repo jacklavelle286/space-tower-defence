@@ -54,7 +54,16 @@ from shared.errors import ApiError, json_response
 from shared.game_data import DEFAULT_MANIFEST_VERSION, GameDataReader, GameDataUnavailable, Planet, reader_from_env
 from shared.log import ApiLogger
 from shared.ops import ENDLESS_ENVELOPE, OPS_ENVELOPE, OPS_MAX_BYTES, OpsBatch, check_envelope
-from shared.profile import age_band, stored_age, today_in_london, validate_profile
+from shared.profile import (
+    DIFFICULTIES,
+    EASY,
+    HARD,
+    band_for,
+    school_year,
+    stored_age,
+    today_in_london,
+    validate_profile,
+)
 from shared.prune import prune_terminal_runs
 from shared.resets import apply_reset, checked_type
 from shared.router import Request, Router
@@ -210,6 +219,10 @@ def _mode_rule(value: Any) -> str | None:
     return None if value in ("claim", "renew") else "enum"
 
 
+def _difficulty_rule(value: Any) -> str | None:
+    return None if value in DIFFICULTIES else "enum"
+
+
 Rule = Callable[[Any], str | None]
 
 
@@ -240,6 +253,7 @@ CREATE_RUN_FIELDS: dict[str, tuple[bool, Rule]] = {
     "sessionId": (True, _uuid_rule),
     "deviceLabel": (True, _device_label_rule),
     "takeover": (False, _bool_rule),
+    "difficulty": (False, _difficulty_rule),  # YG1: EASY (the default) plays the school year, HARD the year above
 }
 SESSION_FIELDS: dict[str, tuple[bool, Rule]] = {
     "mode": (True, _mode_rule),
@@ -332,7 +346,8 @@ class _Playability:
 def _me_view(deps: Deps, table: DynamoTable, pk: str, profile: Mapping[str, Any], session_id: str | None) -> dict:
     """The R1 body. Every field is named here; nothing is copied from the item wholesale."""
     now = deps.now()
-    age = stored_age(profile, today_in_london(now))
+    today = today_in_london(now)
+    age = stored_age(profile, today) if profile.get("dob") is not None else None
     session = table.get_item(pk, SESSION_SK)
     runs = [
         item
@@ -347,7 +362,9 @@ def _me_view(deps: Deps, table: DynamoTable, pk: str, profile: Mapping[str, Any]
         "nickname": profile.get("nickname"),
         "avatarId": profile.get("avatarId"),
         "age": age,
-        "ageBand": age_band(age),
+        "schoolYear": school_year(profile),
+        "ageBand": band_for(profile, today),
+        "hardAgeBand": band_for(profile, today, HARD),
         "planets": plain(planets) if isinstance(planets, Mapping) else {},
         "badges": plain(badges) if isinstance(badges, Mapping) else {},
         "session": _session_view(session, session_id, now),
@@ -493,9 +510,12 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
             raise ApiError("CONTENT_VERSION_UNSUPPORTED", "This wave set is not open for new games")
 
         now = deps.now()
-        band = age_band(stored_age(profile, today_in_london(now)))
+        difficulty = body.get("difficulty", EASY)
+        band = band_for(profile, today_in_london(now), difficulty)
         if band is None:
-            raise ApiError("CONTENT_UNAVAILABLE", "No activities for this age", details={"reason": "AGE_OUT_OF_RANGE"})
+            raise ApiError(
+                "CONTENT_UNAVAILABLE", "No activities for this school year", details={"reason": "AGE_OUT_OF_RANGE"}
+            )
         released = deps.game_data().released_planets()
         unlocks = {planet.planet_id: unlocked for planet, unlocked in _with_unlocks(released, profile)}
         if body["planetId"] not in unlocks:
@@ -554,6 +574,7 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
                 wave_set_bounds=ws_bounds,
                 preset_placements=wave_set.preset_placements,
                 age_band=band,
+                difficulty=difficulty,
                 seed=seed,
                 ruleset_version=body["rulesetVersion"],
                 campaign_version=body["campaignVersion"],
@@ -841,31 +862,42 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
         fields = validate_profile(json_object(request.event), partial=False, today=today_in_london(now))
         table = deps.game()
         pk = _pk(request)
-        # The only write that creates PROFILE (spine S8.1): the three fields, then createdAt and the two maps only if
-        # missing. Repeating the same body leaves the same item.
+        # The only write that creates PROFILE (spine S8.1): the fields, then createdAt and the two maps only if
+        # missing. Repeating the same body leaves the same item. YG1: a PUT without a date of birth removes any stored
+        # one; the school year decides the questions now.
+        # A PUT sets what it carries of schoolYear and dob and removes the other (a player made before YG1 sends dob).
+        values: dict[str, Any] = {
+            ":nickname": fields["nickname"],
+            ":avatarId": fields["avatarId"],
+            ":now": iso_z(now),
+            ":empty": {},
+        }
+        sets, removes = [], []
+        for name in ("schoolYear", "dob"):
+            if name in fields:
+                sets.append(f"#{name} = :{name}, ")
+                values[f":{name}"] = fields[name]
+            else:
+                removes.append(f"#{name}")
         profile = table.update_item(
             pk,
             PROFILE_SK,
             update=(
-                "SET #nickname = :nickname, #avatarId = :avatarId, #dob = :dob, "
+                f"SET #nickname = :nickname, #avatarId = :avatarId, {''.join(sets)}"
                 "#createdAt = if_not_exists(#createdAt, :now), "
                 "#planets = if_not_exists(#planets, :empty), #badges = if_not_exists(#badges, :empty)"
+                + (f" REMOVE {', '.join(removes)}" if removes else "")
             ),
             names={
                 "#nickname": "nickname",
                 "#avatarId": "avatarId",
+                "#schoolYear": "schoolYear",
                 "#dob": "dob",
                 "#createdAt": "createdAt",
                 "#planets": "planets",
                 "#badges": "badges",
             },
-            values={
-                ":nickname": fields["nickname"],
-                ":avatarId": fields["avatarId"],
-                ":dob": fields["dob"],
-                ":now": iso_z(now),
-                ":empty": {},
-            },
+            values=values,
             return_values="ALL_NEW",
         )
         return json_response(200, _me_view(deps, table, pk, profile, session_id))
@@ -897,10 +929,11 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
     def get_planets(request: Request) -> dict[str, Any]:
         now = deps.now()
         table = deps.game()
-        profile = table.get_item(_pk(request), PROFILE_SK, attributes=("dob", "planets"))
+        profile = table.get_item(_pk(request), PROFILE_SK, attributes=("dob", "schoolYear", "planets"))
         if profile is None:
             raise ApiError("PROFILE_NOT_FOUND")
-        band = age_band(stored_age(profile, today_in_london(now)))
+        band = band_for(profile, today_in_london(now))
+        hard_band = band_for(profile, today_in_london(now), HARD)
         planets: list[dict[str, Any]] = []
         versions = deps.game_data().versions()
         sub = request.caller.sub
@@ -966,7 +999,10 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
                         ],
                     }
                 )
-        return json_response(200, {"ageBand": band, "planets": planets})
+        return json_response(
+            200,
+            {"ageBand": band, "hardAgeBand": hard_band, "schoolYear": school_year(profile), "planets": planets},
+        )
 
     handlers = {
         "GET /api/me": get_me,

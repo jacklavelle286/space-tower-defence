@@ -29,7 +29,18 @@ BUCKET = "test-player-site"
 DOB = "2020-07-16"  # made up: a summer birthday, so London is on BST on the eve
 MY_SESSION = "11111111-2222-4333-8444-555555555555"
 OTHER_SESSION = "99999999-8888-4777-8666-555555555555"
-R1_KEYS = {"nickname", "avatarId", "age", "ageBand", "planets", "badges", "session", "runs"}
+R1_KEYS = {
+    "nickname",
+    "avatarId",
+    "age",
+    "schoolYear",
+    "ageBand",
+    "hardAgeBand",
+    "planets",
+    "badges",
+    "session",
+    "runs",
+}
 
 
 def at(text: str) -> datetime:
@@ -188,7 +199,7 @@ def test_put_repeated_is_idempotent_and_keeps_created_at_and_progress(api: Api, 
     assert {k: v for k, v in body.items() if k != "planets"} == {k: v for k, v in first[1].items() if k != "planets"}
 
 
-def test_put_needs_all_three_fields(api: Api, player_event: dict) -> None:
+def test_put_needs_a_nickname_an_avatar_and_a_school_year(api: Api, player_event: dict) -> None:
     status, body = api.call(player_event, "PUT /api/me/profile", {})
 
     assert status == 400
@@ -196,7 +207,7 @@ def test_put_needs_all_three_fields(api: Api, player_event: dict) -> None:
     assert errors(body) == [
         {"field": "nickname", "rule": "required"},
         {"field": "avatarId", "rule": "required"},
-        {"field": "dob", "rule": "required"},
+        {"field": "schoolYear", "rule": "required"},  # or, from a player made before YG1, a dob
     ]
     assert api.item("PROFILE") is None
 
@@ -415,7 +426,7 @@ def test_runs_lists_in_progress_summaries_newest_first(api: Api, player_event: d
     assert older["playable"] is True and "reason" not in older
     assert set(older) == {
         "runId", "planetId", "waveSetId", "mode", "status", "stage", "phase", "wave", "finalWave",
-        "highestCompletedWave", "lastPlayedAt", "createdAt", "revision", "playable",
+        "highestCompletedWave", "lastPlayedAt", "createdAt", "revision", "difficulty", "playable",
     }  # fmt: skip
     assert older["revision"] == 4 and isinstance(older["revision"], int)
 
@@ -524,6 +535,8 @@ def test_planets_lists_the_released_planet_for_the_age_band(api: Api, player_eve
     assert status == 200
     assert body == {
         "ageBand": 5,
+        "hardAgeBand": 6,  # YG1: a profile from before (a date of birth, age 5) plays Year 1 on Hard
+        "schoolYear": None,
         "planets": [
             {
                 "planetId": "luna-1",

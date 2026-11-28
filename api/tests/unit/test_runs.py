@@ -41,8 +41,8 @@ from shared.game_data import Planet, WaveSet
 
 RUN_VIEW_KEYS = {
     "runId", "planetId", "waveSetId", "mode", "status", "stage", "phase", "wave", "finalWave", "highestCompletedWave",
-    "lastPlayedAt", "createdAt", "revision", "playable", "plannedThrough", "snapshot", "seed", "pins", "currentSlot",
-    "recentOpIds",
+    "lastPlayedAt", "createdAt", "revision", "difficulty", "playable", "plannedThrough", "snapshot", "seed", "pins",
+    "currentSlot", "recentOpIds",
 }  # fmt: skip
 
 
@@ -167,6 +167,7 @@ def test_create_writes_session_run_profile_check_and_slots_in_one_transaction(ap
         "lastPlayedAt": "2026-11-20T10:00:00Z",
         "createdAt": "2026-11-20T10:00:00Z",
         "revision": 0,
+        "difficulty": "EASY",  # YG1: no difficulty in the body plays the school year
         "playable": True,
         "plannedThrough": 1,
         "snapshot": None,
@@ -177,6 +178,7 @@ def test_create_writes_session_run_profile_check_and_slots_in_one_transaction(ap
             "campaignVersion": "luna-1-c1",
             "assetManifestVersion": "m1",  # Gate M, LD8: current.json names none, so m1
             "protocolVersion": 1,
+            "difficulty": "EASY",
         },
         "currentSlot": None,
         "recentOpIds": [],
