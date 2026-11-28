@@ -88,7 +88,7 @@ from shared.runs import (
 )
 from shared.selection.bank import read_units, read_versions, version_key
 from shared.selection.eligibility import select_units
-from shared.selection.plan import LIVE_CONFIG, BankNotReady, SelectionConfig, plan_slots, slot_specs
+from shared.selection.plan import LIVE_CONFIG, BankNotReady, SelectionConfig, for_band, plan_slots, slot_specs
 from shared.session import (
     RESET_HOLDER_PREFIX,
     SESSION_SK,
@@ -532,15 +532,18 @@ def make_router(deps: Deps, logger: ApiLogger | None = None) -> Router:
             raise ApiError("CONTENT_VERSION_UNSUPPORTED")
         # Selection (C24): pinned once, here; a replay never re-selects.
         seed = deps.seed()
-        specs = slot_specs(
-            int(ws_bounds["finalWave"]),
-            list(ws_bounds["meteorAfter"]),
-            list(ws_bounds["normalRewardByInterval"]),
-            list(bounds.get("powerAwardRotation", [])),
+        specs = for_band(  # YG2: grammar instead of phonics from Year 3
+            slot_specs(
+                int(ws_bounds["finalWave"]),
+                list(ws_bounds["meteorAfter"]),
+                list(ws_bounds["normalRewardByInterval"]),
+                list(bounds.get("powerAwardRotation", [])),
+            ),
+            band,
         )
         content = deps.content()
         try:
-            chosen = select_units(specs, read_units(content, band), seed, deps.selection)
+            chosen = select_units(specs, read_units(content, band), seed, deps.selection, band)
             versions = read_versions(content, {(unit.activity_id, unit.version) for unit in chosen})
             plans = plan_slots(specs, chosen, versions, seed)
         except BankNotReady as refusal:

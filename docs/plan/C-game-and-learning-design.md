@@ -1512,6 +1512,166 @@ version one and listed as later candidates. Accent: no sound-discrimination item
 oo-in-foot, because a single southern-British synthetic voice (the default is Amazon Polly's en-GB voice Amy, **[CONFIRMED by owner,
 2026-11-14]**) would mark some children's home accent as wrong. **[PROPOSAL]**
 
+### Years 3 to 5 (YG2, owner 2026-11-28)
+
+The owner asked for Year 2 and Year 4, with a Hard mode that plays the year above
+([ADR-0056](../decisions/0056-school-years-and-hard-mode.md)). A band is a school year: band = year + 5, so the tables above
+(ages 5, 6, 7) are Reception, Year 1 and Year 2, and these are Year 3 (band 8), Year 4 (band 9) and Year 5 (band 10). Phonics
+stops at Year 2; from Year 3 the third subject is **grammar and punctuation** (English Appendix 2), and the rotation for bands 8
+and above is maths, grammar, spelling **[CONFIRMED by owner 2026-11-28]**. Spelling follows English Appendix 1, which gives
+Years 3–4 and Years 5–6 one list each, so those topics are marked (8–9) and (10–11).
+
+Codes: `NC14.Ma.Y3.NPV-1` is the National Curriculum 2014, maths, Year 3, number and place value, statement 1 (NPV, AS addition
+and subtraction, MD multiplication and division, F fractions, decimals and percentages, M measurement, G properties of shape, PD
+position and direction, S statistics), numbered in the order the programme of study lists them. English rows quote the Appendix
+heading. **[UNVERIFIED: the statement numbers and quotations are from memory of the DfE programmes of study (2013, updated
+2015); check them against the published documents at the YG2 review.]** Source: D = drafted with AI in the admin (YG3) and
+reviewed by the owner; T = an existing generator where one fits. Audio is None for these rows: a spelling question shows the
+word's meaning or a picture, or asks which spelling is right, rather than relying on a clip.
+
+### C19.11 Band 8 (Year 3) — maths (16 topics)
+
+| topicId | What the child does | Curriculum reference | Types | Audio | Source | Example |
+|---|---|---|---|---|---|---|
+| `maths-count-multiples-4-8-50-100` | Counts in 4s, 8s, 50s and 100s; finds 10 or 100 more or less | NC14.Ma.Y3.NPV-1 | TY, NS, AR | None | T `SKIP_COUNT`, D | 350, 400, 450, ? → 500 |
+| `maths-placevalue-hundreds` | Hundreds, tens and ones in a three-digit number | NC14.Ma.Y3.NPV-2 | MC, TY | None | T `PLACE_VALUE`, D | "What is the 6 worth in 362?" → 60 |
+| `maths-compare-order-to1000` | Compares and orders numbers to 1000 | NC14.Ma.Y3.NPV-3 | AR, MC | None | T `ORDER_NUMBERS`, D | order 509, 590, 95, 950 |
+| `maths-number-words-to1000` | Matches numerals and words to 1000 | NC14.Ma.Y3.NPV-5 | MC, TY | None | D | "four hundred and seven" → 407 |
+| `maths-add-sub-mental-3digit` | Adds or subtracts ones, tens or hundreds to a three-digit number in the head | NC14.Ma.Y3.AS-1 | TY, MC | None | T `ADD_WITHIN`, `SUB_WITHIN`, D | 546 + 300 → 846 |
+| `maths-add-sub-written-3digit` | Adds and subtracts two three-digit numbers | NC14.Ma.Y3.AS-2 | TY | None | D | 368 + 257 → 625 |
+| `maths-estimate-inverse-check` | Estimates an answer and checks it with the inverse | NC14.Ma.Y3.AS-3, AS-4 | MC, TY | None | D | "412 − 199 is about…" → 200 |
+| `maths-times-tables-3-4-8` | Multiplication and division facts for the 3, 4 and 8 times tables | NC14.Ma.Y3.MD-1 | TY, NS, MC | None | T `TIMES_TABLE` | 8 × 7 → 56 |
+| `maths-multiply-2digit-by-1digit` | Two-digit times one-digit, using known tables | NC14.Ma.Y3.MD-2 | TY, MC | None | D | 23 × 4 → 92 |
+| `maths-fractions-of-amounts` | Finds unit and simple non-unit fractions of a set of objects | NC14.Ma.Y3.F-2 | TY, OM, MC | None | D | ¼ of 12 stars → 3 |
+| `maths-fractions-equivalent-compare` | Equivalent fractions with small denominators; compares and orders fractions | NC14.Ma.Y3.F-4, F-6 | MC, AR | None | D | "Which is bigger, ⅓ or ⅕?" |
+| `maths-fractions-add-sub-same-denom` | Adds and subtracts fractions with the same denominator within one whole | NC14.Ma.Y3.F-5 | MC, TY | None | D | ²⁄₇ + ³⁄₇ → ⁵⁄₇ |
+| `maths-time-analogue-roman` | Tells the time to the nearest minute, including Roman numeral clocks | NC14.Ma.Y3.M-4, M-5 | MC, TY | None | D | a clock face at 7:38 |
+| `maths-money-change` | Adds amounts of money and gives change | NC14.Ma.Y3.M-3 | TY, MC | None | D | £1 for a 65p rocket → 35p change |
+| `maths-angles-right-lines` | Right angles, angles bigger or smaller than a right angle; parallel and perpendicular lines | NC14.Ma.Y3.G-3, G-4, G-5 | MC, PS | None | D | "Which angle is smaller than a right angle?" |
+| `maths-bar-charts-pictograms` | Reads scaled bar charts, pictograms and tables to answer one- and two-step questions | NC14.Ma.Y3.S-1, S-2 | MC, TY | None | D | a pictogram where each star is 2 aliens |
+
+### C19.12 Band 8 (Year 3) — grammar (9 topics)
+
+| topicId | What the child does | Curriculum reference | Types | Audio | Source | Example |
+|---|---|---|---|---|---|---|
+| `grammar-word-classes` (8–9) | Finds the noun, verb, adjective or adverb in a sentence | NC14.En.App2.Y3 terminology; NC14.En.App2.Y2 terminology | MC, PS | None | D | "The robot zoomed quickly." Which word is the adverb? |
+| `grammar-a-or-an` | Chooses a or an by the next word's first sound | NC14.En.App2.Y3 "Word: a or an" | MC | None | D | "___ alien" → an |
+| `grammar-prefixes-super-anti-auto` | Makes and reads nouns with super-, anti- and auto- | NC14.En.App2.Y3 "Word: prefixes" | MC, TY | None | D | "super + market" → supermarket |
+| `grammar-word-families` | Groups words that share a root, like solve, solution, dissolve | NC14.En.App2.Y3 "Word: word families" | OM, MC | None | D | which word is not in the family of "help"? |
+| `grammar-conjunctions-time-cause` | Joins clauses with when, before, after, while, so, because | NC14.En.App2.Y3 "Sentence: conjunctions" | MC | None | D | "We hid ___ the meteor hit." → when |
+| `grammar-adverbs-prepositions-time` | Shows time, place and cause with adverbs and prepositions (then, soon, during, because of) | NC14.En.App2.Y3 "Sentence: adverbs and prepositions" | MC | None | D | "We waited ___ the storm." → during |
+| `grammar-present-perfect` | Uses the present perfect (has landed) as well as the simple past (landed) | NC14.En.App2.Y3 "Text: present perfect" | MC | None | D | "She ___ her helmet." → has lost |
+| `grammar-inverted-commas` | Puts inverted commas round the words someone says | NC14.En.App2.Y3 "Punctuation: inverted commas" | MC, AR | None | D | which sentence punctuates the speech correctly? |
+| `grammar-sentence-punctuation` | Capital letters, full stops, question marks and exclamation marks; commas in a list | NC14.En.App2.Y2 punctuation | MC, PS | None | D | "where is the rocket" → needs a question mark |
+
+### C19.13 Band 8 (Year 3) — spelling (12 topics)
+
+| topicId | What the child does | Curriculum reference | Types | Audio | Source | Example |
+|---|---|---|---|---|---|---|
+| `spelling-suffixes-doubling` (8–9) | Adds -ing, -er, -en, -ed to longer words, doubling where the last syllable is stressed | NC14.En.App1.Y3-4 "adding suffixes beginning with vowel letters to words of more than one syllable" | MC, TY, AR | None | D | begin + ing → beginning |
+| `spelling-y-and-ou-sounds` (8–9) | The /ɪ/ sound spelt y (gym, myth) and the /ʌ/ sound spelt ou (young, touch) | NC14.En.App1.Y3-4 "the /ɪ/ sound spelt y"; "the /ʌ/ sound spelt ou" | MC, AR | None | D | "Which is right: jym or gym?" |
+| `spelling-prefixes-dis-mis-in-re` (8–9) | Adds dis-, mis-, in-, il-, im-, ir-, re-, sub-, inter-, super-, anti-, auto- | NC14.En.App1.Y3-4 "more prefixes" | MC, TY | None | D | the opposite of "possible" → impossible |
+| `spelling-suffixes-ation-ly` (8–9) | Adds -ation and -ly (including -ally) | NC14.En.App1.Y3-4 "the suffix -ation"; "the suffix -ly" | MC, TY | None | D | inform → information |
+| `spelling-endings-sure-ture` (8–9) | Words ending in -sure and -ture | NC14.En.App1.Y3-4 "words with endings sounding like /ʒə/ or /tʃə/" | MC, AR | None | D | "pic___" → picture |
+| `spelling-endings-tion-sion-ssion-cian` (8–9) | Endings that sound like "shun": -tion, -sion, -ssion, -cian | NC14.En.App1.Y3-4 "endings which sound like /ʒən/"; "endings which sound like /ʃən/" | MC | None | D | music → musician |
+| `spelling-suffix-ous` (8–9) | Adds -ous (poisonous, famous, various) | NC14.En.App1.Y3-4 "the suffix -ous" | MC, TY | None | D | "fame" → famous |
+| `spelling-ch-for-k-and-sh` (8–9) | ch for the /k/ sound (school, chorus) and the /ʃ/ sound (chef, machine) | NC14.En.App1.Y3-4 "the /k/ sound spelt ch"; "the /ʃ/ sound spelt ch" | MC | None | D | "Which is right: skeme or scheme?" |
+| `spelling-gue-que-sc` (8–9) | -gue and -que endings; the /s/ sound spelt sc | NC14.En.App1.Y3-4 "-gue and -que"; "the /s/ sound spelt sc" | MC, AR | None | D | tongue, antique, science |
+| `spelling-ei-eigh-ey` (8–9) | The /eɪ/ sound spelt ei, eigh or ey | NC14.En.App1.Y3-4 "the /eɪ/ sound spelt ei, eigh, or ey" | MC | None | D | eight, vein, obey |
+| `spelling-homophones-y3-4` (8–9) | Chooses between homophones and near-homophones (accept/except, whether/weather) | NC14.En.App1.Y3-4 "homophones and near-homophones" | MC | None | D | "I don't know ___ it will rain." → whether |
+| `spelling-word-list-y3-4` (8–9) | Spells words from the Year 3 and 4 word list | NC14.En.App1.Y3-4 word list | MC, AR, TY | None | D | "Which is right: calender or calendar?" |
+
+### C19.14 Band 9 (Year 4) — maths (17 topics)
+
+| topicId | What the child does | Curriculum reference | Types | Audio | Source | Example |
+|---|---|---|---|---|---|---|
+| `maths-count-6-7-9-25-1000` | Counts in 6s, 7s, 9s, 25s and 1000s; finds 1000 more or less | NC14.Ma.Y4.NPV-1, NPV-2 | TY, NS, AR | None | T `SKIP_COUNT`, D | 63, 72, 81, ? → 90 |
+| `maths-negative-numbers-count` | Counts back through zero into negative numbers | NC14.Ma.Y4.NPV-3 | NS, TY | None | D | 3 less than 1 → −2 |
+| `maths-placevalue-four-digit` | The value of each digit in a four-digit number | NC14.Ma.Y4.NPV-4 | MC, TY | None | T `PLACE_VALUE`, D | the 7 in 7,245 is worth → 7000 |
+| `maths-round-10-100-1000` | Rounds any number to the nearest 10, 100 or 1000 | NC14.Ma.Y4.NPV-7 | MC, TY | None | D | 4,682 to the nearest 100 → 4,700 |
+| `maths-roman-numerals-to100` | Reads Roman numerals to 100 | NC14.Ma.Y4.NPV-9 | MC, TY | None | D | XLVII → 47 |
+| `maths-add-sub-4digit` | Adds and subtracts numbers with up to four digits | NC14.Ma.Y4.AS-1, AS-2 | TY, MC | None | D | 3,456 + 1,278 → 4,734 |
+| `maths-times-tables-to12` | All multiplication and division facts up to 12 × 12 | NC14.Ma.Y4.MD-1 | TY, NS, MC | None | T `TIMES_TABLE` | 7 × 9 → 63 |
+| `maths-multiply-mental-facts` | Multiplies by 0 and 1, multiplies three numbers, uses factor pairs | NC14.Ma.Y4.MD-2, MD-3 | TY, MC | None | D | 2 × 6 × 5 → 60 |
+| `maths-multiply-3digit-by-1digit` | Three-digit times one-digit, written out | NC14.Ma.Y4.MD-4 | TY | None | D | 243 × 6 → 1,458 |
+| `maths-fractions-equivalent-families` | Families of equivalent fractions | NC14.Ma.Y4.F-1 | MC, OM | None | D | which is not equal to ½: 2⁄4, 3⁄6, 4⁄6? |
+| `maths-decimals-tenths-hundredths` | Tenths and hundredths as decimals; ¼, ½, ¾ as decimals | NC14.Ma.Y4.F-2, F-5, F-6 | MC, TY | None | D | ¾ → 0.75 |
+| `maths-divide-by-10-100` | Divides a one- or two-digit number by 10 or 100 | NC14.Ma.Y4.F-7 | TY, MC | None | D | 37 ÷ 100 → 0.37 |
+| `maths-area-perimeter-rectilinear` | Perimeter of rectilinear shapes; area by counting squares | NC14.Ma.Y4.M-2, M-3 | TY, MC | None | D | a 6 by 4 rectangle: perimeter → 20 cm |
+| `maths-time-12-24-hour` | Converts between analogue, 12-hour and 24-hour times | NC14.Ma.Y4.M-5, M-6 | MC, TY | None | D | 7:15 pm → 19:15 |
+| `maths-angles-acute-obtuse` | Acute and obtuse angles; sorts triangles and quadrilaterals | NC14.Ma.Y4.G-1, G-2 | MC, PS, OM | None | D | "Which angle is obtuse?" |
+| `maths-symmetry-lines` | Lines of symmetry; completes a symmetric figure | NC14.Ma.Y4.G-3, G-4 | MC, PS | None | D | how many lines of symmetry has a square? → 4 |
+| `maths-coordinates-first-quadrant` | Reads and plots coordinates; describes a translation | NC14.Ma.Y4.PD-1, PD-2, PD-3 | MC, TY | None | D | the alien is at (3, 5); move 2 right → (5, 5) |
+
+### C19.15 Band 9 (Year 4) — grammar (8 topics)
+
+| topicId | What the child does | Curriculum reference | Types | Audio | Source | Example |
+|---|---|---|---|---|---|---|
+| `grammar-plural-or-possessive-s` | Tells a plural -s from a possessive -s | NC14.En.App2.Y4 "Word: plural and possessive -s" | MC | None | D | "the robot's arm" or "the robots arm"? |
+| `grammar-standard-english-verbs` | Uses standard English verb forms (we were, I did) | NC14.En.App2.Y4 "Word: standard English forms for verb inflections" | MC | None | D | "We ___ late." → were |
+| `grammar-expanded-noun-phrases` | Builds noun phrases with adjectives, nouns and preposition phrases | NC14.En.App2.Y4 "Sentence: expanded noun phrases" | MC, AR | None | D | "the alien" → "the tall alien with green spots" |
+| `grammar-fronted-adverbials` | Starts a sentence with an adverbial and puts a comma after it | NC14.En.App2.Y4 "Sentence: fronted adverbials"; "Punctuation: commas after fronted adverbials" | MC | None | D | "Later that day, we landed." Where does the comma go? |
+| `grammar-pronouns-for-cohesion` | Chooses a pronoun or a noun so a passage is clear and not repetitive | NC14.En.App2.Y4 "Text: pronouns and nouns for cohesion" | MC | None | D | "Pip saw Nova. ___ waved." → She |
+| `grammar-speech-punctuation` | Punctuates direct speech: inverted commas, commas, capital letters | NC14.En.App2.Y4 "Punctuation: direct speech" | MC, AR | None | D | "Come here, said Max." → "Come here," said Max. |
+| `grammar-apostrophes-plural-possession` | Puts the apostrophe after the s for plural possession | NC14.En.App2.Y4 "Punctuation: apostrophes to mark plural possession" | MC | None | D | the aliens' ship (more than one alien) |
+| `grammar-determiners-pronouns` | Determiners, pronouns and possessive pronouns | NC14.En.App2.Y4 terminology | MC, PS | None | D | "That helmet is ___." → mine |
+
+### C19.16 Band 9 (Year 4) — spelling (1 topic)
+
+| topicId | What the child does | Curriculum reference | Types | Audio | Source | Example |
+|---|---|---|---|---|---|---|
+| `spelling-possessive-apostrophe-plurals` | Places the possessive apostrophe in regular and irregular plurals (girls', children's) | NC14.En.App1.Y3-4 "possessive apostrophe with plural words" | MC | None | D | the children's rockets |
+
+### C19.17 Band 10 (Year 5) — maths (18 topics)
+
+| topicId | What the child does | Curriculum reference | Types | Audio | Source | Example |
+|---|---|---|---|---|---|---|
+| `maths-placevalue-to-million` | Reads, writes and compares numbers to 1,000,000 | NC14.Ma.Y5.NPV-1 | MC, TY, AR | None | D | the 4 in 945,210 is worth → 40,000 |
+| `maths-steps-powers-of-10` | Counts forwards and back in 10s, 100s, 1000s, 10,000s and 100,000s | NC14.Ma.Y5.NPV-2 | TY, NS | None | D | 245,000 + 10,000 → 255,000 |
+| `maths-negative-numbers-context` | Negative numbers in context, such as temperatures | NC14.Ma.Y5.NPV-3 | NS, TY, MC | None | D | −4 °C warms by 7 degrees → 3 °C |
+| `maths-round-to-100000` | Rounds to the nearest 10, 100, 1000, 10,000 or 100,000 | NC14.Ma.Y5.NPV-4 | MC, TY | None | D | 348,612 to the nearest 10,000 → 350,000 |
+| `maths-roman-numerals-to1000` | Reads Roman numerals to 1000 and years | NC14.Ma.Y5.NPV-6 | MC, TY | None | D | MCMXC → 1990 |
+| `maths-add-sub-large-numbers` | Adds and subtracts numbers with more than four digits | NC14.Ma.Y5.AS-1, AS-2 | TY, MC | None | D | 45,320 − 12,815 → 32,505 |
+| `maths-factors-multiples` | Factors, factor pairs, common factors and multiples | NC14.Ma.Y5.MD-1 | MC, OM, TY | None | D | "Which is a factor of 36: 7, 8 or 9?" |
+| `maths-prime-numbers` | Prime and composite numbers; primes to 19 | NC14.Ma.Y5.MD-2, MD-3 | MC, OM | None | D | sort 11, 15, 17, 21 into prime and not prime |
+| `maths-square-cube-numbers` | Square and cube numbers and their notation | NC14.Ma.Y5.MD-8 | TY, MC | None | D | 4³ → 64 |
+| `maths-multiply-divide-10-100-1000` | Multiplies and divides whole numbers and decimals by 10, 100 and 1000 | NC14.Ma.Y5.MD-7 | TY, MC | None | D | 3.6 × 100 → 360 |
+| `maths-long-multiplication` | Multiplies up to four digits by one or two digits | NC14.Ma.Y5.MD-4 | TY | None | D | 34 × 26 → 884 |
+| `maths-short-division-remainders` | Short division with remainders | NC14.Ma.Y5.MD-6 | TY, MC | None | D | 437 ÷ 6 → 72 r 5 |
+| `maths-fractions-mixed-improper` | Converts between mixed numbers and improper fractions | NC14.Ma.Y5.F-3 | MC, TY | None | D | 2⅓ → ⁷⁄₃ |
+| `maths-fractions-add-sub-related` | Adds and subtracts fractions with related denominators | NC14.Ma.Y5.F-4 | MC, TY | None | D | ½ + ⅜ → ⅞ |
+| `maths-decimals-thousandths-round` | Thousandths; rounds decimals; orders numbers with three decimal places | NC14.Ma.Y5.F-7, F-8, F-9 | MC, AR, TY | None | D | 3.46 to one decimal place → 3.5 |
+| `maths-percentages` | Per cent as parts per hundred; equivalents of ½, ¼, ⅕, ⅖, ⅘ | NC14.Ma.Y5.F-11, F-12 | MC, TY | None | D | ¼ → 25% |
+| `maths-area-rectangles` | Area of rectangles in cm² and m²; perimeter of composite shapes | NC14.Ma.Y5.M-3, M-4 | TY, MC | None | D | 7 m by 5 m → 35 m² |
+| `maths-angles-degrees-turns` | Acute, obtuse and reflex angles; angles on a line and round a point | NC14.Ma.Y5.G-2, G-4 | MC, TY | None | D | angles on a straight line: 110° and ? → 70° |
+
+### C19.18 Band 10 (Year 5) — grammar (7 topics)
+
+| topicId | What the child does | Curriculum reference | Types | Audio | Source | Example |
+|---|---|---|---|---|---|---|
+| `grammar-suffixes-ate-ise-ify` | Turns nouns and adjectives into verbs with -ate, -ise, -ify | NC14.En.App2.Y5 "Word: converting nouns or adjectives into verbs" | MC, TY | None | D | "pure" → purify |
+| `grammar-verb-prefixes` | Changes a verb's meaning with dis-, de-, mis-, over-, re- | NC14.En.App2.Y5 "Word: verb prefixes" | MC, TY | None | D | "to do it again" → redo |
+| `grammar-relative-clauses` | Relative clauses with who, which, where, when, whose, that | NC14.En.App2.Y5 "Sentence: relative clauses" | MC | None | D | "The robot ___ fixed the ship is Max." → who |
+| `grammar-modal-verbs-possibility` | Shows how likely something is with modal verbs and adverbs (might, must, perhaps, surely) | NC14.En.App2.Y5 "Sentence: degrees of possibility" | MC | None | D | which word makes it least certain? |
+| `grammar-cohesion-adverbials` | Links ideas with adverbials of time, place and number (later, nearby, secondly) | NC14.En.App2.Y5 "Text: cohesion within a paragraph"; "linking ideas across paragraphs" | MC | None | D | "___, we packed. Secondly, we launched." → Firstly |
+| `grammar-parenthesis` | Brackets, dashes or commas for parenthesis | NC14.En.App2.Y5 "Punctuation: brackets, dashes or commas to indicate parenthesis" | MC | None | D | "Nova (the bravest astronaut) led the way." |
+| `grammar-commas-for-meaning` | Uses commas to make the meaning clear | NC14.En.App2.Y5 "Punctuation: commas to clarify meaning" | MC | None | D | "Let's eat, Grandma!" |
+
+### C19.19 Band 10 (Year 5) — spelling (10 topics)
+
+| topicId | What the child does | Curriculum reference | Types | Audio | Source | Example |
+|---|---|---|---|---|---|---|
+| `spelling-cious-tious-cial-tial` (10–11) | Endings -cious, -tious, -cial and -tial | NC14.En.App1.Y5-6 "endings which sound like /ʃəs/"; "endings which sound like /ʃəl/" | MC | None | D | vicious, ambitious, official, partial |
+| `spelling-ant-ance-ent-ence` (10–11) | Endings -ant, -ance, -ancy, -ent, -ence, -ency | NC14.En.App1.Y5-6 "words ending in -ant, -ance/-ancy, -ent, -ence/-ency" | MC | None | D | "Which is right: independant or independent?" |
+| `spelling-able-ible-ably-ibly` (10–11) | Endings -able, -ible, -ably, -ibly | NC14.En.App1.Y5-6 "words ending in -able and -ible" | MC, TY | None | D | "Which is right: sensable or sensible?" |
+| `spelling-suffixes-after-fer` (10–11) | Adds suffixes to words ending in -fer (referring, reference) | NC14.En.App1.Y5-6 "adding suffixes beginning with vowel letters to words ending in -fer" | MC | None | D | prefer + ed → preferred |
+| `spelling-hyphens` (10–11) | Hyphens joining a prefix to a word starting with a vowel (co-ordinate, re-enter) | NC14.En.App1.Y5-6 "use of the hyphen" | MC | None | D | re + enter → re-enter |
+| `spelling-ei-after-c` (10–11) | ee sound spelt ei after c, and the words that break the rule | NC14.En.App1.Y5-6 "words with the /i:/ sound spelt ei after c" | MC | None | D | receive, ceiling |
+| `spelling-ough-words` (10–11) | The many sounds of ough | NC14.En.App1.Y5-6 "words containing the letter-string ough" | MC, AR | None | D | though, through, cough, rough |
+| `spelling-silent-letters` (10–11) | Words with silent letters (doubt, island, knight) | NC14.En.App1.Y5-6 "words with silent letters" | MC, AR | None | D | "Which is right: nite or knight?" |
+| `spelling-homophones-y5-6` (10–11) | Homophones and words often confused (advice/advise, stationary/stationery) | NC14.En.App1.Y5-6 "homophones and other words that are often confused" | MC | None | D | "Can you give me some ___?" → advice |
+| `spelling-word-list-y5-6` (10–11) | Spells words from the Year 5 and 6 word list | NC14.En.App1.Y5-6 word list | MC, AR, TY | None | D | "Which is right: neccessary or necessary?" |
+
 ---
 
 ## C20. The six interaction types (data definitions)

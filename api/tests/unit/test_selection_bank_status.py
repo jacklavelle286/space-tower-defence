@@ -32,10 +32,9 @@ def counts(band: dict[str, Any]) -> dict[tuple[str, str], int]:
 def test_an_empty_bank_is_blocked_at_every_age(api: Admin) -> None:
     status, body = api.call(ROUTE)
     assert status == 200
+    # YG1: one band per school year, Reception (5) to Year 6 (11).
     assert [(b["ageBand"], b["mode"], b["activities"]) for b in body["ageBands"]] == [
-        (5, "BLOCKED", 0),
-        (6, "BLOCKED", 0),
-        (7, "BLOCKED", 0),
+        (band, "BLOCKED", 0) for band in range(5, 12)
     ]
 
 
@@ -48,13 +47,13 @@ def test_publish_and_retire_show_at_once_with_the_selectors_counts(api: Admin) -
     status, body = api.call(ROUTE)
     assert status == 200
     assert body["releasedWaveSets"] == ["first-contact"]
-    five, six, _ = body["ageBands"]
+    five, six, *_ = body["ageBands"]
     assert counts(five)[("phonics", "NORMAL")] == 1 and counts(five)[("phonics", "METEOR")] == 0
     assert counts(six)[("maths", "NORMAL")] == counts(six)[("maths", "METEOR")] == 1  # BOTH counts in both
-    assert [b["mode"] for b in body["ageBands"]] == ["STARTER", "STARTER", "STARTER"]
+    assert [b["mode"] for b in body["ageBands"]] == ["STARTER"] * 3 + ["BLOCKED"] * 4  # nothing for Year 3 on yet
     for band in body["ageBands"]:  # exactly what selection would see for that band
         assert band == band_view(band["ageBand"], read_units(api.table, band["ageBand"]), LIVE_CONFIG, FIRST_CONTACT)
-        assert band["waveSets"] == [{"waveSetId": "first-contact", "fillable": True}]
+    assert all(b["waveSets"] == [{"waveSetId": "first-contact", "fillable": True}] for b in body["ageBands"][:3])
 
     assert api.call(RETIRE, {}, id=ACT)[0] == 200
     five = api.call(ROUTE)[1]["ageBands"][0]

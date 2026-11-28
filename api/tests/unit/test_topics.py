@@ -33,7 +33,7 @@ def test_loader_reads_the_repository_file() -> None:
     assert topics.TOPICS_VERSION == doc["version"] == 1
     assert list(topics.TOPICS) == [entry["topicId"] for entry in doc["topics"]]
     # 99 rows in C19.1-C19.9; 11 topics are shared between two bands, so 88 topics.
-    assert len(topics.TOPICS) == 88
+    assert len(topics.TOPICS) == 186  # 88 for Reception to Year 2, 98 for Years 3 to 5 (YG2)
 
 
 def test_every_topic_is_well_formed() -> None:
@@ -43,7 +43,7 @@ def test_every_topic_is_well_formed() -> None:
         assert re.fullmatch(r"[a-z0-9-]{1,40}", topic_id)
         assert topic.subject in SUBJECTS and topic_id.startswith(f"{topic.subject}-")
         assert 1 <= len(topic.title) <= 60 and topic.description and topic.audio
-        assert topic.ages and set(topic.ages) <= {5, 6, 7} and list(topic.ages) == sorted(set(topic.ages))
+        assert topic.ages and set(topic.ages) <= set(range(5, 12)) and list(topic.ages) == sorted(set(topic.ages))
         assert 1 <= len(topic.curriculum) <= 4
         assert topic.types and set(topic.types) <= {"PS", "NS", "OM", "AR", "MC", "TY"}
         order.append((SUBJECTS.index(topic.subject), topic.ages[0]))

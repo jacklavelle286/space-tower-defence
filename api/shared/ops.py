@@ -49,7 +49,7 @@ from shared.rules.next_phase import slot_id_for
 from shared.runs import PROTOCOL_VERSION, TERMINAL, new_slot_item, plain, resolved_of, run_sk, slot_prefix, slot_sk
 from shared.selection.bank import read_units, read_versions, version_key
 from shared.selection.endless import blocks_to_plan, build_block, choose_block, endless_specs
-from shared.selection.plan import instance_key
+from shared.selection.plan import for_band, instance_key
 from shared.session import SESSION_SK, generation_of, iso_z
 
 OPS_MAX_BYTES: int = LIMITS["bodyMaxBytes"]["ops"]
@@ -667,7 +667,8 @@ class OpsBatch:
         pins = run.get("pins") if isinstance(run.get("pins"), Mapping) else {}
         seed = str(pins.get("seed") or run_id)
         content = self._content()
-        units = read_units(content, int(plain(pins.get("ageBand")) or 0))
+        band = int(plain(pins.get("ageBand")) or 0)
+        units = read_units(content, band)
         existing = self.table.query_prefix(pk, slot_prefix(run_id), attributes=("activityId", "resolved"))
         used = {str(s.get("activityId")) for s in existing}
         taken = {
@@ -677,13 +678,16 @@ class OpsBatch:
         }
         items: list[dict[str, Any]] = []
         for first, last in blocks:
-            specs = endless_specs(
-                first,
-                last,
-                reward=int(ws_bounds["endless"]["learningReward"]),
-                meteors_before=len(ws_bounds["meteorAfter"]),
-                final_wave=int(ws_bounds["finalWave"]),
-                rotation=list(bounds.get("powerAwardRotation", [])),
+            specs = for_band(  # YG2: grammar instead of phonics from Year 3
+                endless_specs(
+                    first,
+                    last,
+                    reward=int(ws_bounds["endless"]["learningReward"]),
+                    meteors_before=len(ws_bounds["meteorAfter"]),
+                    final_wave=int(ws_bounds["finalWave"]),
+                    rotation=list(bounds.get("powerAwardRotation", [])),
+                ),
+                band,
             )
             label = f"endless:{first}"
             picks = choose_block(specs, units, seed=seed, label=label, used_activities=used)

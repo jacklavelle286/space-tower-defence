@@ -34,7 +34,7 @@ from shared.selection.plan import (
 
 K = 10
 LAST_INTERVAL = 998
-FALLBACK_ORDER = ("maths", "phonics", "spelling")
+FALLBACK_ORDER = ("maths", "phonics", "spelling", "grammar")  # YG2: a band holds only its own subjects
 
 
 def blocks_to_plan(planned_through: int, wave: int) -> list[tuple[int, int]]:

@@ -16,7 +16,7 @@ from pathlib import Path
 
 import pytest
 
-from shared.selection.bank import SLOT_KINDS, SUBJECTS, Unit, fills, group_units, units_for_band
+from shared.selection.bank import ALL_SUBJECTS, SLOT_KINDS, SUBJECTS, Unit, fills, group_units, units_for_band
 from shared.selection.eligibility import (
     AGE_BANDS,
     band_status,
@@ -98,6 +98,8 @@ def test_the_plan_thresholds_are_the_c24_7_table_and_never_below_the_hard_minimu
         ("maths", "METEOR"): 4,
         ("phonics", "METEOR"): 4,
         ("spelling", "METEOR"): 2,
+        ("grammar", "NORMAL"): 32,  # YG2: grammar takes phonics's place from Year 3, with its numbers
+        ("grammar", "METEOR"): 4,
     }
     for key, minimum in HARD_MINIMUMS.items():
         assert PLAN_CONFIG.thresholds[key] >= minimum
@@ -110,8 +112,9 @@ def test_the_plan_thresholds_are_the_c24_7_table_and_never_below_the_hard_minimu
 
 
 def test_the_hard_minimums_are_what_one_campaign_uses() -> None:
-    used = Counter((spec.subject, spec.kind) for spec in campaign_specs())
-    assert dict(used) == dict(HARD_MINIMUMS)  # 17/16/16 normal and 2/2/1 meteor
+    for band, second in ((5, "phonics"), (8, "grammar")):  # YG2: the rotation from Year 3 is maths, grammar, spelling
+        used = Counter((spec.subject, spec.kind) for spec in campaign_specs(band))
+        assert dict(used) == {key: n for key, n in HARD_MINIMUMS.items() if key[0] in ("maths", second, "spelling")}
 
 
 # --- The one counting function -------------------------------------------------------------------------------------
@@ -271,7 +274,7 @@ def test_bank_status_reports_every_band_and_what_to_add() -> None:
     assert body["rules"]["starterUntilEligible"] is True
     assert body["rules"]["campaignSlots"] == {"NORMAL": 49, "METEOR": 5}
     assert [b["ageBand"] for b in body["ageBands"]] == list(AGE_BANDS)
-    five, six, seven = body["ageBands"]
+    five, six, seven, *_ = body["ageBands"]  # YG1: then Years 3 to 6
     assert (five["mode"], five["eligible"], five["activities"]) == ("STARTER", False, 2)
     rows = {(g["subject"], g["rewardCategory"]): g for g in five["groups"]}
     assert rows[("maths", "METEOR")] == {
@@ -332,10 +335,12 @@ def test_bank_status_counts_are_the_selectors_counts() -> None:
     view = band_view(6, units, LIVE_CONFIG)
     groups = group_units(units)
     assert {(g["subject"], g["rewardCategory"]): g["count"] for g in view["groups"]} == {
-        key: len(members) for key, members in groups.items()
+        key: len(members)
+        for key, members in groups.items()
+        if key[0] in SUBJECTS  # band 6: no grammar (YG2)
     }
     assert (view["mode"], view["eligible"], view["needs"]) == ("READY", True, [])
-    assert {(s, k) for s in SUBJECTS for k in SLOT_KINDS} == set(groups)
+    assert {(s, k) for s in ALL_SUBJECTS for k in SLOT_KINDS} == set(groups)
 
 
 def starter_pack_headers() -> list[dict]:
@@ -355,7 +360,7 @@ def test_the_starter_pack_keeps_the_live_game_playable_at_every_age() -> None:
     headers = starter_pack_headers()
     assert headers, "content/seed/activities is empty"
     specs = slot_specs(2, [], [30])
-    for band in AGE_BANDS:
+    for band in (5, 6, 7):  # Reception to Year 2: Years 3 on have no starter questions (they come with YG4)
         units = units_for_band(headers, band)
         assert units, band
         view = band_view(band, units, LIVE_CONFIG)

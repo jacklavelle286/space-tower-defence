@@ -26,7 +26,8 @@ from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, replace
 from typing import Any
 
-from shared.selection.bank import SLOT_KINDS, SUBJECTS, Unit, group_units, units_for_band
+from shared.rules.contracts import LIMITS
+from shared.selection.bank import SLOT_KINDS, Unit, group_units, subjects_for, units_for_band
 from shared.selection.plan import (
     HARD_MINIMUMS,
     LIVE_CONFIG,
@@ -35,18 +36,19 @@ from shared.selection.plan import (
     SelectionConfig,
     SlotSpec,
     choose_units,
+    for_band,
     slot_specs,
 )
 
-AGE_BANDS = (5, 6, 7)
+AGE_BANDS = tuple(LIMITS["ageBands"])  # YG1: Reception (5) to Year 6 (11)
 CAMPAIGN_FINAL_WAVE = 50  # C24.2: N-001 ... N-049
 CAMPAIGN_METEOR_AFTER = (9, 19, 29, 39, 49)  # C24.2: M-009 ... M-049
 FEASIBILITY_SEED = "0000000000000000"  # any seed gives the same yes/no (see the module docstring)
 
 
-def campaign_specs() -> list[SlotSpec]:
-    """The 54 slots of a campaign (C24.2). Rewards do not matter for counting, so they are 0."""
-    return slot_specs(CAMPAIGN_FINAL_WAVE, CAMPAIGN_METEOR_AFTER, [0] * (CAMPAIGN_FINAL_WAVE - 1))
+def campaign_specs(age_band: int | None = None) -> list[SlotSpec]:
+    """The 54 slots of a campaign (C24.2), in the band's rotation (YG2). Rewards do not matter for counting, so 0."""
+    return for_band(slot_specs(CAMPAIGN_FINAL_WAVE, CAMPAIGN_METEOR_AFTER, [0] * (CAMPAIGN_FINAL_WAVE - 1)), age_band)
 
 
 def can_fill(specs: Sequence[SlotSpec], units: Sequence[Unit], config: SelectionConfig) -> bool:
@@ -118,8 +120,10 @@ class BandStatus:
         )
 
 
-def band_status(units: Sequence[Unit], config: SelectionConfig) -> BandStatus:
-    """Counts against the configuration for one band's units (what `select_units` decides on and R30 shows)."""
+def band_status(units: Sequence[Unit], config: SelectionConfig, age_band: int | None = None) -> BandStatus:
+    """Counts against the configuration for one band's units (what `select_units` decides on and R30 shows), for the
+    band's subjects (YG2: grammar instead of phonics from Year 3)."""
+    subjects = subjects_for(age_band)
     groups = group_units(units)
     group_rows = tuple(
         GroupStatus(
@@ -130,7 +134,7 @@ def band_status(units: Sequence[Unit], config: SelectionConfig) -> BandStatus:
             hard_minimum=HARD_MINIMUMS[(subject, kind)],
             topics=dict(sorted(Counter(u.topic_id for u in groups[(subject, kind)]).items())),
         )
-        for subject in SUBJECTS
+        for subject in subjects
         for kind in SLOT_KINDS
     )
     subject_rows = tuple(
@@ -140,7 +144,7 @@ def band_status(units: Sequence[Unit], config: SelectionConfig) -> BandStatus:
             needed=config.topics_per_subject,
             units_per_topic=config.units_per_topic,
         )
-        for subject in SUBJECTS
+        for subject in subjects
     )
     template_rows = tuple(
         TemplateStatus(
@@ -155,17 +159,22 @@ def band_status(units: Sequence[Unit], config: SelectionConfig) -> BandStatus:
         groups=group_rows,
         subjects=subject_rows,
         templates=template_rows,
-        campaign_fillable=can_fill(campaign_specs(), units, config),
+        campaign_fillable=can_fill(campaign_specs(age_band), units, config),
         activities=len({u.activity_id for u in units}),
     )
 
 
 def select_units(
-    specs: Sequence[SlotSpec], units: Sequence[Unit], seed: str, config: SelectionConfig = LIVE_CONFIG
+    specs: Sequence[SlotSpec],
+    units: Sequence[Unit],
+    seed: str,
+    config: SelectionConfig = LIVE_CONFIG,
+    age_band: int | None = None,
 ) -> list[Unit]:
     """One unit per slot for a new run, or BankNotReady: the configuration's rules when the band is eligible,
-    otherwise the starter rules (`starter_until_eligible`) or a refusal."""
-    if band_status(units, config).eligible:
+    otherwise the starter rules (`starter_until_eligible`) or a refusal. `specs` are already in the band's rotation
+    (`for_band`)."""
+    if band_status(units, config, age_band).eligible:
         return choose_units(specs, units, seed, config)
     if config.starter_until_eligible:
         return choose_units(specs, units, seed, STARTER_CONFIG)
@@ -193,10 +202,10 @@ def rules_in_force(status: BandStatus, config: SelectionConfig) -> SelectionConf
     return STARTER_CONFIG if config.starter_until_eligible else None
 
 
-def _fill_by_kind(units: Sequence[Unit], rules: SelectionConfig) -> bool:
-    """A unit can fill one slot of each kind (any subject: the fallback specs are checked one by one)."""
+def _fill_by_kind(units: Sequence[Unit], rules: SelectionConfig, age_band: int | None = None) -> bool:
+    """A unit can fill one slot of each kind (any of the band's subjects: the fallback specs are checked one by one)."""
     return all(
-        any(can_fill([replace(spec, subject=subject)], units, rules) for subject in SUBJECTS)
+        any(can_fill([replace(spec, subject=subject)], units, rules) for subject in subjects_for(age_band))
         for spec in _FALLBACK_SPECS
     )
 
@@ -236,17 +245,17 @@ def band_view(
 ) -> dict[str, Any]:
     """One age band of R30's body. The mode says what a new game does now: it runs the released wave sets through
     the selector under the rules in force for this band, so the page cannot say games start when they are refused."""
-    status = band_status(units, config)
-    starter_fillable = can_fill(campaign_specs(), units, STARTER_CONFIG)
+    status = band_status(units, config, age_band)
+    starter_fillable = can_fill(campaign_specs(age_band), units, STARTER_CONFIG)
     rules = rules_in_force(status, config)
     wave_sets = [
-        {"waveSetId": wave_set_id, "fillable": rules is not None and can_fill(specs, units, rules)}
+        {"waveSetId": wave_set_id, "fillable": rules is not None and can_fill(for_band(specs, age_band), units, rules)}
         for wave_set_id, specs in (released or ())
     ]
     if rules is None:
         playable = False
     elif released is None:
-        playable = _fill_by_kind(units, rules)  # the released wave sets could not be read
+        playable = _fill_by_kind(units, rules, age_band)  # the released wave sets could not be read
     else:
         playable = bool(wave_sets) and all(ws["fillable"] for ws in wave_sets)
     if not playable:

@@ -321,11 +321,7 @@ def test_bank_readiness_judges_only_ages_that_can_start_the_campaign(env: Env, m
 
     monkeypatch.setattr(gd, "can_fill", lambda specs, units, rules: len(specs) == len(gd.campaign_specs()))
     problems = env.publisher.bank_problems(bounds, ["blob-parade"])
-    assert {(p["ageBand"], p["waveSetId"]) for p in problems} == {
-        (5, "blob-parade"),
-        (6, "blob-parade"),
-        (7, "blob-parade"),
-    }
+    assert {(p["ageBand"], p["waveSetId"]) for p in problems} == {(band, "blob-parade") for band in range(5, 12)}
     with pytest.raises(PublishRefused) as refused:
         env.publish()
     assert refused.value.code == "BANK_NOT_READY"

@@ -62,7 +62,7 @@ from typing import Any
 
 from shared import generators
 from shared.rules.next_phase import slot_id_for
-from shared.selection.bank import SLOT_KINDS, SUBJECTS, Unit, fills, group_units
+from shared.selection.bank import ALL_SUBJECTS, SLOT_KINDS, SUBJECTS, Unit, fills, group_units, subjects_for
 from shared.selection.draws import draw, shuffle
 
 ALGORITHM_VERSION = 1
@@ -102,6 +102,9 @@ HARD_MINIMUMS: Mapping[tuple[str, str], int] = {
     ("maths", "METEOR"): 2,
     ("phonics", "METEOR"): 2,
     ("spelling", "METEOR"): 1,
+    # YG2: grammar takes phonics's place in the rotation from Year 3, so it has phonics's numbers.
+    ("grammar", "NORMAL"): 16,
+    ("grammar", "METEOR"): 2,
 }
 
 # C24.7 "Eligibility threshold, version one": twice what one campaign uses [PROPOSAL].
@@ -113,6 +116,8 @@ PLAN_CONFIG = SelectionConfig(
         ("maths", "METEOR"): 4,
         ("phonics", "METEOR"): 4,
         ("spelling", "METEOR"): 2,
+        ("grammar", "NORMAL"): 32,
+        ("grammar", "METEOR"): 4,
     },
     subject_fallback=False,
     topics_per_subject=5,
@@ -122,7 +127,7 @@ PLAN_CONFIG = SelectionConfig(
 
 # The Milestone 1 rules (B N-7), kept for a band that is not eligible yet: thresholds 1, subject fallback on.
 STARTER_CONFIG = SelectionConfig(
-    thresholds={(subject, kind): 1 for subject in SUBJECTS for kind in SLOT_KINDS},
+    thresholds={(subject, kind): 1 for subject in ALL_SUBJECTS for kind in SLOT_KINDS},
     subject_fallback=True,
 )
 
@@ -191,6 +196,15 @@ def slot_specs(
         )
     specs.sort(key=lambda spec: (spec.interval, spec.kind != "NORMAL"))
     return specs
+
+
+def for_band(specs: Sequence[SlotSpec], age_band: int | None) -> list[SlotSpec]:
+    """`specs` (built in the SUBJECTS rotation by `slot_specs`) in the band's rotation: from Year 3 the phonics slots
+    are grammar slots (YG2). Bands to Year 2, and None, are unchanged."""
+    rotation = subjects_for(age_band)
+    if rotation == SUBJECTS:
+        return list(specs)
+    return [replace(spec, subject=rotation[SUBJECTS.index(spec.subject)]) for spec in specs]
 
 
 class _Group:
@@ -307,7 +321,8 @@ def choose_units(specs: Sequence[SlotSpec], units: Sequence[Unit], seed: str, co
     def subjects_for(spec: SlotSpec) -> list[str]:
         order = [spec.subject]
         if config.subject_fallback:
-            order += [subject for subject in SUBJECTS if subject != spec.subject]
+            # A band's units hold only its own subjects (`units_for_band`), so the others' groups are empty.
+            order += [subject for subject in ALL_SUBJECTS if subject != spec.subject]
         return order
 
     def take_free(spec: SlotSpec) -> Unit | None:

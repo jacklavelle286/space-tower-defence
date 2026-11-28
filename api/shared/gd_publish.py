@@ -96,7 +96,7 @@ from shared.planets import (
 )
 from shared.selection.bank import HEADER_PK, units_for_band
 from shared.selection.eligibility import AGE_BANDS, band_status, campaign_specs, can_fill, rules_in_force
-from shared.selection.plan import LIVE_CONFIG, slot_specs
+from shared.selection.plan import LIVE_CONFIG, for_band, slot_specs
 from shared.versions import STATES, SUB, Versions, VersionsUnavailable, parse_versions, versions_body
 
 COUNTER_PK = "GDCOUNTER"
@@ -296,14 +296,13 @@ class Publisher:
         problems: list[dict[str, Any]] = []
         for band in AGE_BANDS:
             units = units_for_band(headers, band)
-            rules = rules_in_force(band_status(units, LIVE_CONFIG), LIVE_CONFIG)
-            if rules is None or not can_fill(campaign_specs(), units, rules):
+            rules = rules_in_force(band_status(units, LIVE_CONFIG, band), LIVE_CONFIG)
+            if rules is None or not can_fill(campaign_specs(band), units, rules):
                 continue  # this age cannot start the campaign today; a new wave set changes nothing for it
             for ws_id in wave_set_ids:
                 ws = bounds["waveSets"][ws_id]
-                specs = slot_specs(
-                    int(ws["finalWave"]), list(ws["meteorAfter"]), list(ws["normalRewardByInterval"]), rotation
-                )
+                rewards = list(ws["normalRewardByInterval"])
+                specs = for_band(slot_specs(int(ws["finalWave"]), list(ws["meteorAfter"]), rewards, rotation), band)
                 if not can_fill(specs, units, rules):
                     problems.append({"ageBand": band, "waveSetId": ws_id})
         return problems

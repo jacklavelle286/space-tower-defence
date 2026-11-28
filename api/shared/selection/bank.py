@@ -32,6 +32,19 @@ from shared.data import DynamoTable
 
 HEADER_PK = "ACT"
 SUBJECTS = ("maths", "phonics", "spelling")  # also the rotation order (C24.2) and the fallback order (C24.6)
+# YG2 (ADR-0056): phonics is taught to Year 2. From band 8 (Year 3) the second subject of the rotation is grammar and
+# punctuation; slot specs are built in the SUBJECTS rotation and moved to a band's with `plan.for_band`.
+UPPER_SUBJECTS = ("maths", "grammar", "spelling")
+FIRST_UPPER_BAND = 8
+ALL_SUBJECTS = ("maths", "phonics", "spelling", "grammar")
+
+
+def subjects_for(age_band: int | None) -> tuple[str, str, str]:
+    """The rotation (and fallback order) of a band: maths, phonics, spelling to Year 2; maths, grammar, spelling from
+    Year 3. None is a band to Year 2 (callers that do not name one)."""
+    return UPPER_SUBJECTS if age_band is not None and age_band >= FIRST_UPPER_BAND else SUBJECTS
+
+
 SLOT_KINDS = ("NORMAL", "METEOR")
 CATEGORIES = (*SLOT_KINDS, "BOTH")  # a header's rewardCategory
 
@@ -95,7 +108,7 @@ def units_for_band(headers: Iterable[Mapping[str, Any]], age_band: int) -> list[
         if (
             header.get("state") != "PUBLISHED"
             or mode not in ("FIXED", "TEMPLATE")
-            or header.get("subject") not in SUBJECTS
+            or header.get("subject") not in subjects_for(age_band)
             or header.get("rewardCategory") not in CATEGORIES
             or not min_age <= age_band <= max_age
         ):
@@ -126,10 +139,10 @@ def group_units(units: Iterable[Unit]) -> dict[tuple[str, str], list[Unit]]:
     METEOR. Selection builds its queues from these lists (shared/selection/plan.py `choose_units`) and bank status
     counts them (shared/selection/eligibility.py, R30), so the page and the selector can never disagree. A template
     is already one or two units here (`template_units`)."""
-    groups: dict[tuple[str, str], list[Unit]] = {(s, k): [] for s in SUBJECTS for k in SLOT_KINDS}
+    groups: dict[tuple[str, str], list[Unit]] = {(s, k): [] for s in ALL_SUBJECTS for k in SLOT_KINDS}
     for unit in units:
         for kind in SLOT_KINDS:
-            if unit.subject in SUBJECTS and fills(unit.category, kind):
+            if unit.subject in ALL_SUBJECTS and fills(unit.category, kind):
                 groups[(unit.subject, kind)].append(unit)
     return groups
 
