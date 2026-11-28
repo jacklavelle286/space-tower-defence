@@ -49,7 +49,8 @@ TYPES = frozenset({"PS", "NS", "OM", "AR", "MC", "TY"})
 COLUMNS = ("topicId", "What the child does", "Curriculum reference", "Types", "Audio", "Source", "Example")
 
 _HEADING = re.compile(
-    r"^### C19\.(\d+) (?:Age ([5-7])|Band (8|9|10|11) \(Year ([3-6])\)) — (maths|phonics|spelling|grammar) \((\d+) topics?\)$"
+    r"^### C19\.(\d+) (?:Age ([5-7])|Band (8|9|10|11) \(Year ([3-6])\))"  # "Age 5", or "Band 8 (Year 3)" (YG2)
+    r" — (maths|phonics|spelling|grammar) \((\d+) topics?\)$"
 )
 _ANY_HEADING = re.compile(r"^#{1,3} ")
 EN_DASH = "\u2013"  # C19 writes the shared-band marker as "(5<en dash>6)"
