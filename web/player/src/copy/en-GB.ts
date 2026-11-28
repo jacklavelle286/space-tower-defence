@@ -131,7 +131,7 @@ export const COPY = {
   progress: {
     // D4 P12 My progress [PROPOSAL] copy: counts only, no percentages, grades, ages, streaks or comparisons
     heading: "My progress",
-    subjects: { maths: "Maths", phonics: "Phonics", spelling: "Spelling" } as Record<string, string>,
+    subjects: { maths: "Maths", phonics: "Phonics", spelling: "Spelling", grammar: "Grammar" } as Record<string, string>,
     done: (n: number) => `Activities done: ${n}`,
     stars: (n: number) => `Stars: ${n}`,
     practising: (n: number) => `Still practising: ${n}`,

@@ -257,7 +257,7 @@ function topicsModule(): string {
     "/** One registry entry. `curriculum` holds the C19 references as written; `types` are C20 abbreviations. */\n" +
     "export interface Topic {\n" +
     "  readonly topicId: string;\n" +
-    '  readonly subject: "maths" | "phonics" | "spelling";\n' +
+    '  readonly subject: "maths" | "phonics" | "spelling" | "grammar";\n' +
     "  readonly title: string;\n" +
     "  readonly description: string;\n" +
     "  readonly ages: readonly number[];\n" +

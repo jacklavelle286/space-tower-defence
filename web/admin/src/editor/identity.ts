@@ -16,9 +16,9 @@ const TYPE_CODES: Record<string, string> = {
 };
 
 /** Plan C §activityId: the subject's prefix and four digits, immutable and never reused. */
-export const ID_PREFIX: Record<string, string> = { maths: "ma-", phonics: "ph-", spelling: "sp-" };
+export const ID_PREFIX: Record<string, string> = { maths: "ma-", phonics: "ph-", spelling: "sp-", grammar: "gr-" };
 
-const SUBJECT_NAMES: Record<string, string> = { maths: "Maths", phonics: "Phonics", spelling: "Spelling" };
+const SUBJECT_NAMES: Record<string, string> = { maths: "Maths", phonics: "Phonics", spelling: "Spelling", grammar: "Grammar and punctuation" };
 
 export function subjectName(subject: string): string {
   return SUBJECT_NAMES[subject] ?? subject;

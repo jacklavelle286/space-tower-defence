@@ -11,7 +11,7 @@ describe("TOPICS", () => {
     const doc = JSON.parse(readFileSync(FILE, "utf8")) as { version: number; topics: unknown[] };
     expect(TOPICS_VERSION).toBe(doc.version);
     expect(TOPICS).toEqual(doc.topics);
-    expect(TOPICS).toHaveLength(88);
+    expect(TOPICS).toHaveLength(186); // 88 for Reception to Year 2, 98 for Years 3 to 5 (YG2)
   });
 
   it("has unique IDs that start with their subject", () => {

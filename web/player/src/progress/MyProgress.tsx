@@ -1,4 +1,4 @@
-// P12 My progress (Phase 43, M3-08; D4 P12): three subject cards, each "Activities done: 23 · Stars: 19" and, when
+// P12 My progress (Phase 43, M3-08; D4 P12): a card per subject played (maths and spelling always; YG2), each "Activities done: 23 · Stars: 19" and, when
 // there are any, "Still practising: 4"; a card opens to list its topics by their child-friendly title (the C19 registry,
 // topicById). Below, each planet's best ("Moonbeam Colony: best 34 waves cleared") and any badges earned. Counts only:
 // no percentages, grades, ages, school years, streaks or comparisons (prompt.md:155, 527).
@@ -10,7 +10,9 @@ import { useEffect, useState } from "react";
 import type { PlayerApi } from "../api/playerApi";
 import { COPY } from "../copy/en-GB";
 
-const SUBJECTS = ["maths", "phonics", "spelling"] as const;
+const SUBJECTS = ["maths", "phonics", "spelling", "grammar"] as const;
+/** YG2: phonics stops at Year 2 and grammar starts at Year 3, so their cards show only once the child has played them. */
+const ALWAYS_SHOWN: readonly string[] = ["maths", "spelling"];
 
 export interface SubjectTotals {
   readonly done: number;
@@ -80,7 +82,7 @@ export function MyProgress({ api, onBack }: { api: Pick<PlayerApi, "getProgress"
       {progress !== null && summaries.length === 0 ? <p>{COPY.progress.nothingYet}</p> : null}
       {progress !== null && summaries.length > 0 ? (
         <section className="progress-subjects">
-          {SUBJECTS.map((subject) => {
+          {SUBJECTS.filter((s) => ALWAYS_SHOWN.includes(s) || summaries.some((x) => x.subject === s)).map((subject) => {
             const totals = subjectTotals(summaries, subject);
             const topics = summaries.filter((s) => s.subject === subject);
             const expanded = open === subject;

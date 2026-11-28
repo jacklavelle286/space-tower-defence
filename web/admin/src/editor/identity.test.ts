@@ -40,7 +40,7 @@ describe("topics", () => {
 
   it("group by subject, with the topics that suit the type first, and filter by name", () => {
     const groups = topicGroups("LETTERS");
-    expect(groups.map((g) => g.label)).toEqual(["Maths", "Phonics", "Spelling"]);
+    expect(groups.map((g) => g.label)).toEqual(["Maths", "Phonics", "Spelling", "Grammar and punctuation"]);
     expect(groups.flatMap((g) => g.topics)).toHaveLength(TOPICS.length);
     for (const group of groups) {
       const suits = group.topics.map((t) => topicSuits(t, "LETTERS"));

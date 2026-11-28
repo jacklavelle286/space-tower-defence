@@ -115,7 +115,7 @@ export type EditorState = {
   speech: SpeechRef[];
 };
 
-export const SUBJECTS = ["maths", "phonics", "spelling"] as const;
+export const SUBJECTS = ["maths", "phonics", "spelling", "grammar"] as const;
 /** Which between-wave slot may use the activity (C22.1). BOTH: either a normal or a meteor slot; the slot, never the
  * activity, decides the reward (space credits after a normal wave, a power charge after a meteor wave). */
 export const REWARD_CATEGORIES = ["BOTH", "NORMAL", "METEOR"] as const;
