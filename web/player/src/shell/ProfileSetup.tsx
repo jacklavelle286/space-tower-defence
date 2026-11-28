@@ -1,7 +1,7 @@
 import { LIMITS, type ProfileInput } from "@scd/shared";
 import { useId, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { COPY } from "../copy/en-GB";
-import { BirthdayPicker, type BirthdayPickerHandle, type BirthdayValue } from "./BirthdayPicker";
+import { SchoolYearPicker } from "./SchoolYearPicker";
 import { useOnline } from "./useOnline";
 
 const NICKNAME = new RegExp(LIMITS.nickname.pattern);
@@ -11,16 +11,6 @@ export function validNickname(raw: string): string | null {
   const name = raw.trim();
   if (name.length < LIMITS.nickname.minLength || name.length > LIMITS.nickname.maxLength) return null;
   return NICKNAME.test(name) ? name : null;
-}
-
-/** `YYYY-MM-DD` for a real calendar date not after `today`, else null (G R3: real date, not in the future). */
-export function dobString(year: number, month: number, day: number, today: Date): string | null {
-  if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) return null;
-  const date = new Date(Date.UTC(year, month - 1, day));
-  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null;
-  const todayUtc = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
-  if (date.getTime() > todayUtc) return null;
-  return `${String(year).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
 /** A field's hint, or its problem: the problem gets the warning icon, the error style and an alert (D1 rule 7: never
@@ -42,39 +32,33 @@ function Hint({ id, problem, hint }: { id?: string; problem: string | null; hint
 }
 
 /**
- * P3 Profile setup (D4): name, one of the twelve avatars, and the birthday as three big pickers (day, month name, year
- * from the last ten years; BirthdayPicker, backlog B-5). The birthday goes to the server once and is never shown again or kept in the browser (spine S2:
- * write-only). Needs a connection (spine S7.4).
+ * P3 Profile setup (D4): name, one of the twelve avatars, and the school year (YG1, owner 2026-11-28: the school year
+ * picks the questions; no date of birth is asked for). Needs a connection (spine S7.4).
  */
-export function ProfileSetup({ save, today: fixedToday }: { save: (input: ProfileInput) => Promise<boolean>; today?: Date }) {
-  const [now] = useState(() => new Date());
-  const today = fixedToday ?? now;
+export function ProfileSetup({ save }: { save: (input: ProfileInput) => Promise<boolean> }) {
   const online = useOnline();
   const ids = useId();
   const [nickname, setNickname] = useState("");
   const [avatarId, setAvatarId] = useState<string>(LIMITS.avatarIds[0]);
-  const [birthday, setBirthday] = useState<BirthdayValue>({ day: null, month: null, year: null });
+  const [schoolYear, setSchoolYear] = useState<number | null>(null);
   const [touched, setTouched] = useState(false);
   const [saving, setSaving] = useState(false);
   const [failed, setFailed] = useState(false);
   const nameInput = useRef<HTMLInputElement>(null);
-  const picker = useRef<BirthdayPickerHandle>(null);
+  const yearGroup = useRef<HTMLFieldSetElement>(null);
 
   const name = validNickname(nickname);
-  const { day, month, year } = birthday;
-  const dob = day !== null && month !== null && year !== null ? dobString(year, month, day, today) : null;
-  const years = Array.from({ length: 11 }, (_, i) => today.getFullYear() - i);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
     setTouched(true);
     // Move to the first field with a problem, so the child (or grown-up) sees what to fix.
     if (name === null) nameInput.current?.focus();
-    else if (dob === null) picker.current?.focus(month === null && day !== null ? "month" : year === null && day !== null && month !== null ? "year" : "day");
-    if (name === null || dob === null || !online || saving) return;
+    else if (schoolYear === null) yearGroup.current?.querySelector("input")?.focus();
+    if (name === null || schoolYear === null || !online || saving) return;
     setSaving(true);
     setFailed(false);
-    const ok = await save({ nickname: name, avatarId, dob });
+    const ok = await save({ nickname: name, avatarId, schoolYear });
     // On success the shell moves to Home and this form unmounts.
     if (!ok) {
       setSaving(false);
@@ -125,17 +109,20 @@ export function ProfileSetup({ save, today: fixedToday }: { save: (input: Profil
         </fieldset>
 
         <div className="setup-bottom">
-          <fieldset className="field">
-            <legend className="field-label">{COPY.setup.birthdayLabel}</legend>
-            <BirthdayPicker
-              ref={picker}
-              value={birthday}
-              years={years}
-              invalid={touched && dob === null}
-              describedBy={`${ids}-dob-hint`}
-              onChange={setBirthday}
+          <fieldset className="field" ref={yearGroup}>
+            <legend className="field-label">{COPY.setup.schoolYearLabel}</legend>
+            <SchoolYearPicker
+              name={`${ids}-year`}
+              value={schoolYear}
+              invalid={touched && schoolYear === null}
+              describedBy={`${ids}-year-hint`}
+              onChange={setSchoolYear}
             />
-            <Hint id={`${ids}-dob-hint`} problem={touched && dob === null ? COPY.setup.birthdayInvalid : null} hint={COPY.setup.birthdayHint} />
+            <Hint
+              id={`${ids}-year-hint`}
+              problem={touched && schoolYear === null ? COPY.setup.schoolYearInvalid : null}
+              hint={COPY.setup.schoolYearHint}
+            />
           </fieldset>
           <button type="submit" className="btn btn-big btn-go" disabled={!online || saving}>
             {saving ? COPY.setup.saving : COPY.setup.done}

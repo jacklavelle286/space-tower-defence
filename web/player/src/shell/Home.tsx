@@ -1,4 +1,4 @@
-import { type Me, type Planets, trapTab, type WaveSetEntry } from "@scd/shared";
+import { bandName, type Difficulty, type Me, type Planets, trapTab, type WaveSetEntry, yearName } from "@scd/shared";
 import { useEffect, useRef, useState } from "react";
 import { COPY } from "../copy/en-GB";
 import type { PlayerApi } from "../api/playerApi";
@@ -6,6 +6,7 @@ import type { CreateOutcome } from "../run/newGame";
 import type { SyncQueue } from "../sync/queue";
 import { SyncChip } from "../sync/SyncChip";
 import { MapPicture } from "./mapSketch";
+import { SchoolYearPicker } from "./SchoolYearPicker";
 import { useOnline } from "./useOnline";
 
 function reasonLine(reason: string | undefined): string | null {
@@ -20,11 +21,13 @@ export interface GameChoice {
   waveSetId: string;
   /** A tester's preview version (Gate M, LD7); absent for the version current.json names. */
   campaignVersion?: string;
+  /** YG1: Hard plays the year above; absent is Easy. */
+  difficulty?: Difficulty;
 }
 
 /** A choice's key: the same wave set can be offered live and as a preview of a newer version. */
 export function choiceKey(c: GameChoice): string {
-  return `${c.planetId}/${c.waveSetId}${c.campaignVersion !== undefined ? `@${c.campaignVersion}` : ""}`;
+  return `${c.planetId}/${c.waveSetId}${c.campaignVersion !== undefined ? `@${c.campaignVersion}` : ""}${c.difficulty === "HARD" ? "#hard" : ""}`;
 }
 
 /** Every wave set a new game could use now, planet by planet (P7, Phase 53): the campaign first, then challenges. */
@@ -111,6 +114,7 @@ export function Home({
   onMyProgress,
   onSettings,
   onNewGame,
+  onSchoolYear,
   practice = false,
 }: {
   me: Me;
@@ -127,6 +131,8 @@ export function Home({
   onSettings?: () => void;
   /** Creates the run; on `ok` the caller has already moved to the run screen. */
   onNewGame: (choice: GameChoice, options: { runId?: string; takeover?: boolean }) => Promise<CreateOutcome>;
+  /** YG1: saves the school year (R4); true when saved. Without it Home shows the year but cannot change it. */
+  onSchoolYear?: (year: number) => Promise<boolean>;
   practice?: boolean;
 }) {
   const online = useOnline();
@@ -134,6 +140,10 @@ export function Home({
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
   const [takeover, setTakeover] = useState<{ runId: string; deviceLabel: string; choice: GameChoice } | null>(null);
+  // YG1: the game waiting for Easy or Hard, and the school-year dialog (its draft year, and a failed save).
+  const [asking, setAsking] = useState<GameChoice | null>(null);
+  const [yearDraft, setYearDraft] = useState<number | null | undefined>(undefined);
+  const [yearFailed, setYearFailed] = useState(false);
   // G R8: a runId whose create got no definite answer is sent again on the next press for the same choice.
   const pending = useRef<{ runId: string; key: string } | null>(null);
 
@@ -149,6 +159,29 @@ export function Home({
 
   const continueRun = me.runs.find((run) => run.playable && run.status === "IN_PROGRESS");
   const cards = mapCards(planets);
+  const easyBand = planets?.ageBand ?? null;
+  const hardBand = planets?.hardAgeBand ?? null;
+  const yearLabel = me.schoolYear != null ? yearName(me.schoolYear) : null;
+
+  /** Play or a challenge: ask Easy or Hard when there is a year above to play (YG1), else start straight away. */
+  function press(chosen: GameChoice) {
+    if (easyBand !== null && hardBand !== null) setAsking(chosen);
+    else void start(chosen);
+  }
+
+  async function saveYear() {
+    if (yearDraft == null || onSchoolYear === undefined) return;
+    setBusy(true);
+    setYearFailed(false);
+    const ok = await onSchoolYear(yearDraft);
+    if (ok) {
+      // A new school year changes the bands Play offers: read the maps again.
+      const result = await api.getPlanets();
+      if (result.kind === "ok") setPlanets(result.body);
+      setYearDraft(undefined);
+    } else setYearFailed(true);
+    setBusy(false);
+  }
 
   async function start(chosen: GameChoice, options: { runId?: string; takeover?: boolean } = {}) {
     setBusy(true);
@@ -173,6 +206,15 @@ export function Home({
         <SyncChip queue={queue} onSignIn={onSignInAgain} />
       </header>
 
+      <p className="home-year">
+        {yearLabel !== null ? COPY.home.schoolYear(yearLabel) : COPY.home.schoolYearUnset}{" "}
+        {onSchoolYear !== undefined ? (
+          <button type="button" className="btn btn-small" disabled={!online || busy} onClick={() => setYearDraft(me.schoolYear ?? null)}>
+            {COPY.home.changeYear}
+          </button>
+        ) : null}
+      </p>
+
       {me.session.activeElsewhere && me.session.deviceLabel ? (
         <p className="notice">{COPY.home.activeElsewhere(me.session.deviceLabel)}</p>
       ) : null}
@@ -180,7 +222,10 @@ export function Home({
       {continueRun ? (
         <section className="panel continue-card" aria-labelledby="continue-heading">
           <h2 id="continue-heading">{COPY.home.continueHeading}</h2>
-          <p>{COPY.home.wave(continueRun.wave)}</p>
+          <p>
+            {COPY.home.wave(continueRun.wave)}
+            {continueRun.difficulty === "HARD" ? <span className="hard-tag"> {COPY.home.hardTag}</span> : null}
+          </p>
           <button
             type="button"
             className="btn btn-big btn-go"
@@ -210,7 +255,7 @@ export function Home({
                           className="btn btn-big btn-go"
                           aria-label={COPY.home.playMap(card.name)}
                           disabled={!online || busy}
-                          onClick={() => card.play && void start(card.play.choice)}
+                          onClick={() => card.play && press(card.play.choice)}
                         >
                           {busy ? COPY.home.starting : COPY.home.play}
                           {card.play.set.preview === true ? <span className="preview-tag"> {COPY.home.preview}</span> : null}
@@ -224,7 +269,7 @@ export function Home({
                         {card.more
                           .filter((c) => c.set.available)
                           .map((c) => (
-                            <button key={choiceKey(c.choice)} type="button" className="btn btn-small" disabled={!online || busy} onClick={() => void start(c.choice)}>
+                            <button key={choiceKey(c.choice)} type="button" className="btn btn-small" disabled={!online || busy} onClick={() => press(c.choice)}>
                               {c.set.name}
                               {c.set.preview === true ? <span className="preview-tag"> {COPY.home.preview}</span> : null}
                             </button>
@@ -265,6 +310,64 @@ export function Home({
           </p>
         ) : null}
       </section>
+
+      {asking !== null && easyBand !== null && hardBand !== null ? (
+        <div className="dialog-backdrop">
+          <div className="panel dialog" role="dialog" aria-modal="true" aria-labelledby="how-hard" onKeyDown={trapTab}>
+            <h2 id="how-hard">{COPY.home.howHard}</h2>
+            <div className="dialog-buttons difficulty-buttons">
+              <button
+                type="button"
+                className="btn btn-big btn-go"
+                autoFocus
+                onClick={() => {
+                  setAsking(null);
+                  void start({ ...asking, difficulty: "EASY" });
+                }}
+              >
+                {COPY.home.easy}
+                <span className="difficulty-line">{COPY.home.easyLine(bandName(easyBand))}</span>
+              </button>
+              <button
+                type="button"
+                className="btn btn-big btn-hard"
+                onClick={() => {
+                  setAsking(null);
+                  void start({ ...asking, difficulty: "HARD" });
+                }}
+              >
+                {COPY.home.hard}
+                <span className="difficulty-line">{COPY.home.hardLine(bandName(hardBand))}</span>
+              </button>
+            </div>
+            <button type="button" className="btn btn-small" onClick={() => setAsking(null)}>
+              {COPY.home.cancel}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {yearDraft !== undefined ? (
+        <div className="dialog-backdrop">
+          <div className="panel dialog" role="dialog" aria-modal="true" aria-labelledby="choose-year" onKeyDown={trapTab}>
+            <h2 id="choose-year">{COPY.home.chooseYearHeading}</h2>
+            <SchoolYearPicker name="home-year" value={yearDraft} onChange={setYearDraft} />
+            {yearFailed ? (
+              <p className="notice" role="alert">
+                {COPY.home.yearFailed}
+              </p>
+            ) : null}
+            <div className="dialog-buttons">
+              <button type="button" className="btn btn-big" onClick={() => setYearDraft(undefined)}>
+                {COPY.home.cancel}
+              </button>
+              <button type="button" className="btn btn-big btn-go" disabled={yearDraft === null || busy || !online} onClick={() => void saveYear()}>
+                {COPY.home.saveYear}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {takeover !== null ? (
         <div className="dialog-backdrop">

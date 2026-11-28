@@ -23,25 +23,28 @@ test("a new player sets up, plays two waves and answers an activity with the key
   await page.getByRole("heading", { name: /set up your astronaut/u }).waitFor();
   await axe(page, "profile setup");
 
-  // Name, picture, birthday (2 January 2020: six years old), Done.
+  // Name, picture, school year (YG1: Year 1, band 6 for the dev activity), Done.
   await page.keyboard.press("Tab");
   await page.keyboard.type("Keys");
   await page.keyboard.press("Tab");
   await page.keyboard.press("ArrowRight");
-  for (const [steps, label] of [[1, /Day: 2/u], [0, /Month: January/u], [6, /Year: 2020/u]] as const) {
-    await page.keyboard.press("Tab");
-    await page.keyboard.press("Enter");
-    for (let k = 0; k < steps; k += 1) await page.keyboard.press("ArrowRight");
-    await page.keyboard.press("Enter");
-    expect(await focused(page)).toMatch(label);
-  }
+  await page.keyboard.press("Tab"); // into the school years: Reception
+  await page.keyboard.press("ArrowRight"); // Year 1
+  await expect(page.getByLabel("Year 1", { exact: true })).toBeChecked();
   await page.keyboard.press("Tab");
   await page.keyboard.press("Enter");
 
   await page.getByRole("heading", { name: /Hi, Keys/u }).waitFor();
   await axe(page, "Home");
   await page.keyboard.press("Tab");
+  expect(await focused(page)).toMatch(/Change/u); // YG1: the school year's Change button comes first
+  await page.keyboard.press("Tab");
   expect(await focused(page)).toMatch(/First Contact/u); // LD23: the dev map's one challenge, on its map card
+  await page.keyboard.press("Enter");
+  // YG1: How hard? Easy has the focus.
+  await page.getByRole("dialog", { name: "How hard?" }).waitFor();
+  expect(await focused(page)).toMatch(/Easy/u);
+  await axe(page, "how hard");
   await page.keyboard.press("Enter");
 
   // The battle: N chooses Nova and goes to the first empty pad, Enter places, R starts the wave.

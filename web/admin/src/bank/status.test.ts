@@ -24,7 +24,7 @@ describe("bank status words", () => {
       "Ready. New games use the full selection rules.",
     );
     expect(modeSentence(seven)).toBe(
-      "Blocked: nothing is published for age 7, so new games cannot start.",
+      "Blocked: nothing is published for Year 2, so new games cannot start.",
     );
     expect(modeSentence({ ...five, mode: "BLOCKED" })).toMatch(
       /below its thresholds/u,
@@ -60,7 +60,7 @@ describe("bank status words", () => {
 
   it("notes the full campaign only when it cannot be filled", () => {
     expect(campaignNote(five, BANK.rules.campaignSlots)).toBe(
-      "A full campaign needs 54 different activities (49 normal and 5 meteor slots); this age has 26.",
+      "A full campaign needs 54 different activities (49 normal and 5 meteor slots); this year has 26.",
     );
     expect(campaignNote(six, BANK.rules.campaignSlots)).toBeNull();
   });

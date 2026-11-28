@@ -1,3 +1,4 @@
+import { bandName } from "@scd/shared";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import {
   COLUMNS,
@@ -79,10 +80,12 @@ export function ActivityListPage({ api }: Props) {
     subject: facet("subject", "Subject"),
     topicId: text("topicId", "Topic"),
     ages: (
-      <select aria-label="Filter Ages: includes age" value={filter.age} onChange={(e) => set({ age: e.target.value })}>
+      <select aria-label="Filter School years: includes year" value={filter.age} onChange={(e) => set({ age: e.target.value })}>
         <option value="">any</option>
         {withCurrent(ageValues(all), filter.age).map((age) => (
-          <option key={age}>{age}</option>
+          <option key={age} value={age}>
+            {bandName(Number(age))}
+          </option>
         ))}
       </select>
     ),

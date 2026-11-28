@@ -2,6 +2,7 @@
 // change it. Templates are written as seed files (content/seed/activities/, D §D8.6) for now; this page shows what the
 // template is and lets the operator run admin-api's full check (R26), which reports how many questions the template
 // makes and shows five of them (the smallest, three middle and the largest) with their answers.
+import { bandRangeName } from "@scd/shared";
 import { useState } from "react";
 import { describeError, type AdminApi, type Definition, type Validation } from "../api";
 import { describeProblem } from "./problems";
@@ -43,9 +44,9 @@ export function TemplateView({ api, activityId, definition, draftRevision }: Pro
       <dl>
         <dt>Interaction type</dt>
         <dd>{definition.interactionType}</dd>
-        <dt>Ages</dt>
+        <dt>School years</dt>
         <dd>
-          {definition.minAge === definition.maxAge ? definition.minAge : `${definition.minAge}–${definition.maxAge}`}
+          {bandRangeName(definition.minAge, definition.maxAge)}
         </dd>
       </dl>
       <details>

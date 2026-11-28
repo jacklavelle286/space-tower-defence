@@ -57,6 +57,8 @@ export interface CreateRunBody {
   sessionId: string;
   deviceLabel: string;
   takeover?: boolean;
+  /** YG1: EASY (the default) or HARD. */
+  difficulty?: "EASY" | "HARD";
 }
 
 export interface CreateRunResponse {

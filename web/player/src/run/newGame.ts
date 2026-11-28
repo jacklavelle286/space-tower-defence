@@ -48,7 +48,7 @@ function reason(result: ApiResult<unknown>): string {
 export async function createRun(
   deps: CreateDeps,
   /** `campaignVersion`: a tester's preview version (Gate M, LD7), used instead of current.json's. */
-  choice: { planetId: string; waveSetId: string; campaignVersion?: string },
+  choice: { planetId: string; waveSetId: string; campaignVersion?: string; difficulty?: "EASY" | "HARD" },
   options: { runId?: string; takeover?: boolean } = {},
 ): Promise<CreateOutcome> {
   const newId = deps.newId ?? (() => crypto.randomUUID());
@@ -87,6 +87,7 @@ export async function createRun(
         sessionId: deps.lease.sessionId,
         deviceLabel: deps.lease.deviceLabel,
         ...(options.takeover ? { takeover: true } : {}),
+        ...(choice.difficulty === "HARD" ? { difficulty: "HARD" as const } : {}),
       }),
     );
     if (result.kind === "ok") {

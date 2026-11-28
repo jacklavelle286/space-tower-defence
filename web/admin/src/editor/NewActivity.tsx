@@ -7,7 +7,7 @@
 // Create is idempotent on the activity ID: when the ID is already taken (someone created one since the list was
 // read), admin-api answers 200 with the existing activity. This page then tries the next number, up to five times,
 // instead of writing over it.
-import { topicById, type Topic } from "@scd/shared";
+import { bandName, topicById, type Topic } from "@scd/shared";
 import { useEffect, useState } from "react";
 import { describeError, type AdminApi, type NewActivity } from "../api";
 import { hrefOf } from "../routes";
@@ -162,13 +162,19 @@ export function NewActivityPage({ api, navigate = (hash) => window.location.assi
           <TextField path="title" label="Title (for the admin list)" value={title} maxLength={80} wide onChange={setTitle} />
           <SelectField
             path="minAge"
-            label="Youngest age"
+            label="Lowest school year"
             value={String(minAge)}
-            options={youngest.map(String)}
-            hint={topic === null ? "Set by the topic." : `The topic is for age ${agesText(topic.ages)}.`}
+            options={youngest.map((band) => ({ value: String(band), label: bandName(band) }))}
+            hint={topic === null ? "Set by the topic." : `The topic is for ${agesText(topic.ages)}.`}
             onChange={chooseMinAge}
           />
-          <SelectField path="maxAge" label="Oldest age" value={String(maxAge)} options={oldest.map(String)} onChange={(v) => setMaxAge(Number.parseInt(v, 10))} />
+          <SelectField
+            path="maxAge"
+            label="Highest school year"
+            value={String(maxAge)}
+            options={oldest.map((band) => ({ value: String(band), label: bandName(band) }))}
+            onChange={(v) => setMaxAge(Number.parseInt(v, 10))}
+          />
           <SelectField
             path="rewardCategory"
             label="Reward"

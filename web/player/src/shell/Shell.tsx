@@ -186,6 +186,19 @@ export function Shell({ services }: { services: Services }) {
     [navigate],
   );
 
+  /** YG1: a new school year (R4), then Home shows the new bands. */
+  const saveSchoolYear = useCallback(async (schoolYear: number) => {
+    const s = session.current;
+    if (s === null) return false;
+    const result = await s.api.patchProfile({ schoolYear });
+    if (result.kind === "ok") {
+      setState({ kind: "ready", session: s, me: result.body });
+      return true;
+    }
+    if (result.kind === "auth-required") setState({ kind: "auth-required" });
+    return false;
+  }, []);
+
   /** After a reset (Phase 55): read the profile again, or, after WHOLE_PROFILE, drop the device's database and restart. */
   const afterReset = useCallback(async (type: ResetType) => {
     const s = session.current;
@@ -296,6 +309,7 @@ export function Shell({ services }: { services: Services }) {
                     onMyProgress={() => navigate("/progress")}
                     onSettings={() => navigate("/settings")}
                     onNewGame={newGame}
+                    onSchoolYear={saveSchoolYear}
                     practice={services.localPractice}
                   />
                 ) : (

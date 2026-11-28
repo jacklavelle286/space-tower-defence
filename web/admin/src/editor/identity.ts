@@ -1,7 +1,7 @@
 // What a new activity's identity is filled in from, so the operator types none of it: the topic (plan C19, the
 // registry in @scd/shared) gives the subject, the ages and a starting title, and the activity list gives the next free
 // activity ID. Pure functions; NewActivity.tsx and ActivityEditor.tsx call them.
-import { TOPICS, type Topic } from "@scd/shared";
+import { bandRangeName, TOPICS, type Topic } from "@scd/shared";
 import type { StepKind } from "./model";
 import { kindInfo } from "./model";
 
@@ -29,12 +29,12 @@ export function agesText(ages: readonly number[]): string {
   const first = ages[0];
   const last = ages[ages.length - 1];
   if (first === undefined || last === undefined) return "";
-  return first === last ? `${first}` : `${first}–${last}`;
+  return bandRangeName(first, last); // YG1: bands are school years
 }
 
 /** The select's label for a topic: "Count objects to 10 — ages 5–6" ("age 5" for one age). */
 export function topicLabel(topic: Topic): string {
-  return `${topic.title} — ${topic.ages.length === 1 ? "age" : "ages"} ${agesText(topic.ages)}`;
+  return `${topic.title} — ${agesText(topic.ages)}`;
 }
 
 /** Whether C19 lists the step kind's interaction type for this topic. */

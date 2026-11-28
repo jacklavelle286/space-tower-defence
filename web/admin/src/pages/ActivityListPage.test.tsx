@@ -53,7 +53,7 @@ describe("Activity list", () => {
       "Filter Title: contains",
       "Filter Subject",
       "Filter Topic: contains",
-      "Filter Ages: includes age",
+      "Filter School years: includes year",
       "Filter Type",
       "Filter Mode",
       "Filter Reward",
@@ -84,7 +84,7 @@ describe("Activity list", () => {
 
   it("filters ages, state, published version and updated", async () => {
     await openList();
-    fireEvent.change(screen.getByLabelText("Filter Ages: includes age"), { target: { value: "7" } });
+    fireEvent.change(screen.getByLabelText("Filter School years: includes year"), { target: { value: "7" } });
     expect(shownIds()).toEqual(["sp-0001"]);
     fireEvent.click(screen.getByRole("button", { name: "Clear filters" }));
 
@@ -143,7 +143,7 @@ describe("Activity list", () => {
     const state = screen.getByLabelText("Filter State") as HTMLSelectElement;
     expect(state.value).toBe("DRAFT");
     expect(state.selectedOptions[0]?.textContent).toBe("draft");
-    expect((screen.getByLabelText("Filter Ages: includes age") as HTMLSelectElement).value).toBe("9");
+    expect((screen.getByLabelText("Filter School years: includes year") as HTMLSelectElement).value).toBe("9");
 
     fireEvent.click(screen.getByRole("button", { name: "Clear filters" }));
     await screen.findByText("Showing 1 of 1.");

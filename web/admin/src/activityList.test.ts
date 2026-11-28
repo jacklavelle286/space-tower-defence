@@ -130,8 +130,8 @@ describe("activity list filters", () => {
   });
 
   it("labels ages and codes for reading", () => {
-    expect(agesLabel({ minAge: 5, maxAge: 6 })).toBe("5–6");
-    expect(agesLabel({ minAge: 7, maxAge: 7 })).toBe("7");
+    expect(agesLabel({ minAge: 5, maxAge: 6 })).toBe("Reception–Year 1"); // YG1: bands are school years
+    expect(agesLabel({ minAge: 7, maxAge: 7 })).toBe("Year 2");
     expect(words("MULTIPLE_CHOICE")).toBe("multiple choice");
     expect(words("BOTH")).toBe("normal or meteor");
   });

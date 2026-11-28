@@ -5,7 +5,7 @@
 //   like managed login would. The fake token is an unsigned JWT whose `sub` is derived from the name; it is kept in
 //   localStorage under a key shaped like the real library's, so two tabs with different names exercise the real
 //   cross-tab "one page load = one account" path.
-// - Fake API: GET /api/me, PUT /api/me/profile, GET /api/planets, and the run routes (create, read, pack, ops,
+// - Fake API: GET /api/me, PUT and PATCH /api/me/profile, GET /api/planets, and the run routes (create, read, pack, ops,
 //   session, speech) through FakeRunServer, in localStorage per fake account. The date of birth is used to work out
 //   the age and then thrown away, as the real server keeps it private. The speech clip is a short made-up tone.
 import { LIMITS, unsignedToken, type Me } from "@scd/shared";
@@ -63,14 +63,14 @@ function devAuth(): AuthPort {
 interface StoredProfile {
   nickname: string;
   avatarId: string;
-  age: number;
+  /** YG1: 0 Reception ... 5 Year 5. */
+  schoolYear: number;
 }
 
-function ageFrom(dob: string, today = new Date()): number {
-  const [y, m, d] = dob.split("-").map(Number) as [number, number, number];
-  let age = today.getFullYear() - y;
-  if (today.getMonth() + 1 < m || (today.getMonth() + 1 === m && today.getDate() < d)) age -= 1;
-  return age;
+/** YG1: the band a school year plays (Hard: the year above), or null past the last band. */
+function bandOf(schoolYear: number, hard = false): number | null {
+  const band = schoolYear + LIMITS.schoolYears.firstBand + (hard ? 1 : 0);
+  return (LIMITS.ageBands as readonly number[]).includes(band) ? band : null;
 }
 
 function json(status: number, body: unknown): Response {
@@ -84,8 +84,10 @@ function meView(p: StoredProfile): Me {
   return {
     nickname: p.nickname,
     avatarId: p.avatarId,
-    age: p.age,
-    ageBand: (LIMITS.ageBands as readonly number[]).includes(p.age) ? p.age : null,
+    age: null,
+    schoolYear: p.schoolYear,
+    ageBand: bandOf(p.schoolYear),
+    hardAgeBand: bandOf(p.schoolYear, true),
     planets: {},
     badges: {},
     session: { activeElsewhere: false, runId: null, deviceLabel: null, leaseExpiresAt: null },
@@ -176,19 +178,28 @@ function devFetch(): typeof fetch {
       return json(200, { ...meView(profile), runs: (await runServer(payload.sub)).runs() });
     }
     if (route === "PUT /api/me/profile") {
-      const body = JSON.parse(String(init?.body ?? "{}")) as { nickname?: string; avatarId?: string; dob?: string };
-      if (!body.nickname || !body.avatarId || !body.dob || !/^\d{4}-\d{2}-\d{2}$/.test(body.dob)) {
+      const body = JSON.parse(String(init?.body ?? "{}")) as { nickname?: string; avatarId?: string; schoolYear?: number };
+      if (!body.nickname || !body.avatarId || !Number.isInteger(body.schoolYear)) {
         return json(400, { error: { code: "VALIDATION_FAILED", message: "Request body failed validation" } });
       }
-      const next: StoredProfile = { nickname: body.nickname, avatarId: body.avatarId, age: ageFrom(body.dob) };
+      const next: StoredProfile = { nickname: body.nickname, avatarId: body.avatarId, schoolYear: body.schoolYear as number };
       localStorage.setItem(key, JSON.stringify(next));
       return json(200, meView(next));
+    }
+    if (route === "PATCH /api/me/profile") {
+      if (!profile) return json(404, { error: { code: "PROFILE_NOT_FOUND", message: "No profile" } });
+      const body = JSON.parse(String(init?.body ?? "{}")) as { schoolYear?: number };
+      const next: StoredProfile = { ...profile, ...(Number.isInteger(body.schoolYear) ? { schoolYear: body.schoolYear as number } : {}) };
+      localStorage.setItem(key, JSON.stringify(next));
+      return json(200, { ...meView(next), runs: (await runServer(payload.sub)).runs() });
     }
     if (route === "GET /api/planets") {
       if (!profile) return json(404, { error: { code: "PROFILE_NOT_FOUND", message: "No profile" } });
       const band = meView(profile).ageBand;
       return json(200, {
         ageBand: band,
+        hardAgeBand: bandOf(profile.schoolYear, true),
+        schoolYear: profile.schoolYear,
         planets: [
           {
             planetId: "luna-1",

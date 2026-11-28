@@ -12,6 +12,8 @@ export type {
   PlanetEntry,
   Planets,
   ProfileInput,
+  ProfilePatch,
+  Difficulty,
   Progress,
   RunList,
   RunMode,

@@ -4,6 +4,7 @@
 // Every column has one filter (owner request, 2026-11-16): "contains" text for the free-text columns, a dropdown built
 // from the values present for the coded columns, and "last N days" for Updated.
 
+import { bandRangeName } from "@scd/shared";
 import type { ActivitySummary } from "./api";
 
 export type ListFilter = {
@@ -200,7 +201,7 @@ export function saveListState(filter: ListFilter, sort: Sort): void {
 
 /** "5–6", or "5" when the range is one age. */
 export function agesLabel(item: Pick<ActivitySummary, "minAge" | "maxAge">): string {
-  return item.minAge === item.maxAge ? `${item.minAge}` : `${item.minAge}–${item.maxAge}`;
+  return bandRangeName(item.minAge, item.maxAge); // YG1: bands are school years
 }
 
 /** Codes whose plain words are not just the code lower-cased. */

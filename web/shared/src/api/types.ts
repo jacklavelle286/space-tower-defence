@@ -39,6 +39,9 @@ export interface MeSession {
 
 export type RunMode = "CAMPAIGN" | "CHALLENGE";
 
+/** YG1: Easy plays the child's school year, Hard the year above. */
+export type Difficulty = "EASY" | "HARD";
+
 /** `RunSummary` (G §4.1). */
 export interface RunSummary {
   runId: string;
@@ -55,6 +58,8 @@ export interface RunSummary {
   lastPlayedAt: string;
   createdAt: string;
   revision: number;
+  /** YG1: absent from a server before YG1, which played the school year (Easy). */
+  difficulty?: Difficulty;
   playable: boolean;
   reason?: string;
 }
@@ -87,19 +92,26 @@ export interface Me {
   nickname: string;
   avatarId: string;
   age: number | null;
+  /** YG1: 0 Reception ... 5 Year 5 (LIMITS.schoolYears.names), or null for a profile from before YG1. */
+  schoolYear?: number | null;
   ageBand: number | null;
+  /** YG1: the band Hard plays, or null when there is none. */
+  hardAgeBand?: number | null;
   planets: Record<string, { bestCompletedWave?: number }>;
   badges: Record<string, string>;
   session: MeSession;
   runs: RunSummary[];
 }
 
-/** R3 `PUT /api/me/profile` request: all three fields required; `dob` is `YYYY-MM-DD`. */
+/** R3 `PUT /api/me/profile` request (YG1): nickname, avatar and school year; no date of birth is asked for. */
 export interface ProfileInput {
   nickname: string;
   avatarId: string;
-  dob: string;
+  schoolYear: number;
 }
+
+/** R4 `PATCH /api/me/profile` request: any of the fields. */
+export type ProfilePatch = Partial<ProfileInput>;
 
 /** R6 `GET /api/planets`. */
 export interface WaveSetEntry {
@@ -130,6 +142,9 @@ export interface PlanetEntry {
 
 export interface Planets {
   ageBand: number | null;
+  /** YG1: the band Hard plays, or null (absent from a server before YG1). */
+  hardAgeBand?: number | null;
+  schoolYear?: number | null;
   planets: PlanetEntry[];
 }
 

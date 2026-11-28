@@ -1,4 +1,4 @@
-import type { ApiClient, ApiResult, Me, OpsBatchBody, OpsResponse, Planets, ProfileInput, Progress, RunList } from "@scd/shared";
+import type { ApiClient, ApiResult, Me, OpsBatchBody, OpsResponse, Planets, ProfileInput, ProfilePatch, Progress, RunList } from "@scd/shared";
 import type { SpeechRequest, SpeechResponse } from "@scd/shared/audio";
 import type { CreateRunBody, SessionBody } from "../run/types";
 import type { SyncTransport } from "../sync/queue";
@@ -12,6 +12,8 @@ export type ResetType = "CAMPAIGN_PROGRESS" | "LEARNING_HISTORY" | "WHOLE_PROFIL
 export interface PlayerApi extends SyncTransport {
   getMe(): Promise<ApiResult<Me>>;
   putProfile(input: ProfileInput): Promise<ApiResult<Me>>;
+  /** R4: change some profile fields (YG1: the school year). */
+  patchProfile(patch: ProfilePatch): Promise<ApiResult<Me>>;
   getPlanets(): Promise<ApiResult<Planets>>;
   /** R5: one of the three account resets; `confirm` must equal `type` (Phase 55). */
   postReset(body: { type: ResetType; confirm: ResetType }): Promise<ApiResult<{ type: ResetType; completedAt: string }>>;
@@ -34,6 +36,7 @@ export function createPlayerApi(client: ApiClient): PlayerApi {
   return {
     getMe: () => client.request<Me>("GET", "/me"),
     putProfile: (input) => client.request<Me>("PUT", "/me/profile", input),
+    patchProfile: (patch) => client.request<Me>("PATCH", "/me/profile", patch),
     getPlanets: () => client.request<Planets>("GET", "/planets"),
     postReset: (body) => client.request<{ type: ResetType; completedAt: string }>("POST", "/me/resets", body),
     getProgress: () => client.request<Progress>("GET", "/me/progress"),

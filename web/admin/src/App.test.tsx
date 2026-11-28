@@ -153,7 +153,7 @@ describe("shell", () => {
     signedInAs(operatorToken());
     const table = await screen.findByRole("table");
     const row = within(table).getByRole("row", { name: /ph-0102/u });
-    for (const text of ["phonics", "5–6", "multiple choice", "published", "fixed"]) {
+    for (const text of ["phonics", "Reception–Year 1", "multiple choice", "published", "fixed"]) {
       expect(within(row).getByText(text)).toBeTruthy();
     }
     expect(calls).toEqual(["/api/admin/activities?limit=200"]);
@@ -169,7 +169,7 @@ describe("shell", () => {
     await goTo("#bank");
     expect(screen.getByRole("heading", { name: "Bank status" })).toBeTruthy();
     expect(within(nav).getByRole("link", { name: "Bank status" }).getAttribute("aria-current")).toBe("page");
-    expect(await screen.findByRole("article", { name: /Age 5/u })).toBeTruthy();
+    expect(await screen.findByRole("article", { name: /Reception/u })).toBeTruthy();
     expect(calls).toContain("/api/admin/bank-status"); // R30 (Phase 42)
 
     await goTo("#speech");

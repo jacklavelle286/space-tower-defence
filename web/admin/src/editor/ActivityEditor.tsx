@@ -6,7 +6,7 @@
 import "@scd/shared/learning/reading.css";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ApiError, describeError, type ActivityView, type AdminApi, type Problem, type SpeechSummary } from "../api";
-import { topicById } from "@scd/shared";
+import { bandName, LIMITS, topicById } from "@scd/shared";
 import { CheckAll } from "../CheckAll";
 import { canPublish, PUBLISH_CHECKLIST } from "../review";
 import { SelectField, TextField } from "./fields";
@@ -18,6 +18,9 @@ import { describeProblem, fieldId, focusTarget, LEGACY_NOTICE_ID } from "./probl
 import { StepEditor } from "./StepEditor";
 import { TemplateView } from "./TemplateView";
 import { forgetUnsaved, keepUnsaved, unsavedFor } from "./unsaved";
+
+/** YG1: every question band, labelled by its school year (5 Reception, 6 Year 1, ...). */
+const BAND_OPTIONS = LIMITS.ageBands.map((band) => ({ value: String(band), label: bandName(band) }));
 
 type Props = {
   readonly api: AdminApi;
@@ -178,8 +181,8 @@ export function ActivityEditor({ api, activityId, play, onLoad }: Props) {
             hint={rewardHint(state.rewardCategory)}
             onChange={(rewardCategory) => set({ rewardCategory })}
           />
-          <SelectField path="minAge" label="Youngest age" value={String(state.minAge)} options={["5", "6", "7"]} onChange={(v) => set({ minAge: Number.parseInt(v, 10) })} />
-          <SelectField path="maxAge" label="Oldest age" value={String(state.maxAge)} options={["5", "6", "7"]} onChange={(v) => set({ maxAge: Number.parseInt(v, 10) })} />
+          <SelectField path="minAge" label="Lowest school year" value={String(state.minAge)} options={BAND_OPTIONS} onChange={(v) => set({ minAge: Number.parseInt(v, 10) })} />
+          <SelectField path="maxAge" label="Highest school year" value={String(state.maxAge)} options={BAND_OPTIONS} onChange={(v) => set({ maxAge: Number.parseInt(v, 10) })} />
           <SelectField path="audioRequirement" label="Audio" value={state.audioRequirement} options={AUDIO_OPTIONS} hint={'With "Child must press Play first", Check waits until the child has heard the sound.'} onChange={(audioRequirement) => set({ audioRequirement })} />
         </div>
       </fieldset>

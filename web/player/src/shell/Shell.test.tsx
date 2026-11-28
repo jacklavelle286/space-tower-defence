@@ -1,12 +1,11 @@
 // @vitest-environment jsdom
 import { unsignedToken } from "@scd/shared";
-import { press, tab } from "@scd/shared/learning/testing";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { AuthPort } from "../auth/types";
 import type { PlayerConfig } from "../config";
-import { dobString, ProfileSetup, validNickname } from "./ProfileSetup";
+import { ProfileSetup, validNickname } from "./ProfileSetup";
 import type { Services } from "./services";
 import { Shell } from "./Shell";
 
@@ -53,14 +52,6 @@ function renderShell(path: string, services: Services) {
   );
 }
 
-/** Choose a birthday with the mouse: open each part, click the value. */
-function chooseBirthday(day: string, month: string, year: string) {
-  for (const [part, value] of [["Day", day], ["Month", month], ["Year", year]] as const) {
-    fireEvent.click(screen.getByRole("button", { name: new RegExp(`^${part}(:|, not chosen)`) }));
-    fireEvent.click(within(screen.getByRole("group", { name: `Choose the ${part.toLowerCase()}` })).getByRole("button", { name: value }));
-  }
-}
-
 afterEach(cleanup);
 
 describe("Shell", () => {
@@ -89,15 +80,13 @@ describe("Shell", () => {
 
     fireEvent.change(await screen.findByLabelText(/Your name/), { target: { value: "  Star Kid " } });
     fireEvent.click(screen.getByRole("radio", { name: "robot astronaut" }));
-    chooseBirthday("9", "March", String(new Date().getFullYear() - 6));
+    fireEvent.click(screen.getByLabelText("Year 2"));
     fireEvent.click(screen.getByRole("button", { name: "Done" }));
 
     expect(await screen.findByRole("heading", { name: "Hi, Star Kid!" })).toBeTruthy();
     expect(screen.getByRole("status").textContent).toContain("Saved to the cloud");
     const put = requests.find((r) => r.method === "PUT");
-    expect(put?.body).toEqual({ nickname: "Star Kid", avatarId: "avatar-06", dob: `${new Date().getFullYear() - 6}-03-09` });
-    // The birthday is not kept anywhere in the browser.
-    expect(JSON.stringify({ ...localStorage })).not.toContain("-03-09");
+    expect(put?.body).toEqual({ nickname: "Star Kid", avatarId: "avatar-06", schoolYear: 2 });
   });
 
   it("setup: Done with a bad name shows the problem as an alert and moves focus to the name", async () => {
@@ -110,7 +99,7 @@ describe("Shell", () => {
     fireEvent.click(screen.getByRole("button", { name: "Done" }));
     const alerts = screen.getAllByRole("alert").map((a) => a.textContent);
     expect(alerts).toContain("Use letters, numbers, spaces or hyphens (up to 20).");
-    expect(alerts).toContain("Please choose a real date.");
+    expect(alerts).toContain("Please choose your school year.");
     expect(document.activeElement).toBe(name);
     expect(name.getAttribute("aria-invalid")).toBe("true");
   });
@@ -175,117 +164,31 @@ describe("ProfileSetup rules", () => {
     expect(validNickname("<b>")).toBeNull();
   });
 
-  it("birthday: a real calendar date, not in the future", () => {
-    const today = new Date(2026, 10, 15);
-    expect(dobString(2020, 2, 29, today)).toBe("2020-02-29");
-    expect(dobString(2021, 2, 29, today)).toBeNull();
-    expect(dobString(2020, 4, 31, today)).toBeNull();
-    expect(dobString(2026, 11, 15, today)).toBe("2026-11-15");
-    expect(dobString(2026, 11, 16, today)).toBeNull();
-  });
-
-  it("shows the hints when Done is pressed with a missing name or date, and sends nothing", async () => {
+  it("shows the hints when Done is pressed with a missing name or school year, and sends nothing", () => {
     const save = vi.fn(async () => true);
-    render(<ProfileSetup save={save} today={new Date(2026, 10, 15)} />);
+    render(<ProfileSetup save={save} />);
     fireEvent.click(screen.getByRole("button", { name: "Done" }));
     expect(screen.getByText("Use letters, numbers, spaces or hyphens (up to 20).")).toBeTruthy();
-    expect(screen.getByText("Please choose a real date.")).toBeTruthy();
+    expect(screen.getByText("Please choose your school year.")).toBeTruthy();
     expect(save).not.toHaveBeenCalled();
   });
 
-  it("offers twelve pictures as one radio group and the last ten years", () => {
-    render(<ProfileSetup save={vi.fn(async () => true)} today={new Date(2026, 10, 15)} />);
-    expect(screen.getAllByRole("radio")).toHaveLength(12);
-    fireEvent.click(screen.getByRole("button", { name: "Year, not chosen" }));
-    const years = within(screen.getByRole("group", { name: "Choose the year" })).getAllByRole("button").map((b) => b.textContent);
-    expect(years[0]).toBe("2026");
-    expect(years.at(-1)).toBe("2016");
+  it("offers twelve pictures and six school years, Reception to Year 5, each as a radio group", () => {
+    render(<ProfileSetup save={vi.fn(async () => true)} />);
+    const years = within(screen.getByRole("radiogroup")).getAllByRole("radio");
+    expect(years.map((r) => r.closest("label")?.textContent)).toEqual(["Reception", "Year 1", "Year 2", "Year 3", "Year 4", "Year 5"]);
+    expect(screen.getAllByRole("radio")).toHaveLength(12 + 6);
   });
 
-  // Backlog B-5: no native selects (their lists closed at once on Chrome for Linux); big buttons and a grid instead.
-  it("birthday, mouse only: each part opens a grid in the page, a click chooses and closes it; no select anywhere", async () => {
+  it("YG1: a name and a school year are enough; no date of birth is asked for", async () => {
     const save = vi.fn(async () => true);
-    render(<ProfileSetup save={save} today={new Date(2026, 10, 15)} />);
-    expect(document.querySelector("select")).toBeNull();
-    fireEvent.change(screen.getByLabelText(/Your name/), { target: { value: "Star Kid" } });
-    const day = screen.getByRole("button", { name: "Day, not chosen" });
-    expect(day.getAttribute("aria-expanded")).toBe("false");
-    fireEvent.click(day);
-    expect(day.getAttribute("aria-expanded")).toBe("true");
-    expect(within(screen.getByRole("group", { name: "Choose the day" })).getAllByRole("button")).toHaveLength(31);
-    fireEvent.click(screen.getByRole("button", { name: "9" }));
-    expect(screen.queryByRole("group", { name: "Choose the day" })).toBeNull();
-    expect(screen.getByRole("button", { name: "Day: 9" })).toBeTruthy();
-    expect(document.activeElement).toBe(screen.getByRole("button", { name: "Day: 9" }));
-    fireEvent.click(screen.getByRole("button", { name: "Month, not chosen" }));
-    fireEvent.click(screen.getByRole("button", { name: "March" }));
-    fireEvent.click(screen.getByRole("button", { name: "Year, not chosen" }));
-    fireEvent.click(screen.getByRole("button", { name: "2020" }));
-    // a part can be changed again; the chosen value is marked
-    fireEvent.click(screen.getByRole("button", { name: "Day: 9" }));
-    expect(screen.getByRole("button", { name: "9" }).getAttribute("aria-pressed")).toBe("true");
-    fireEvent.click(screen.getByRole("button", { name: "Day: 9" })); // closes again
-    expect(screen.queryByRole("group", { name: "Choose the day" })).toBeNull();
-    fireEvent.click(screen.getByRole("button", { name: "Done" }));
-    await waitFor(() => expect(save).toHaveBeenCalledWith({ nickname: "Star Kid", avatarId: "avatar-01", dob: "2020-03-09" }));
-  });
-
-  it("birthday, keyboard only: Enter opens a part on its first value, arrows move, Enter chooses, Esc closes", async () => {
-    const save = vi.fn(async () => true);
-    render(<ProfileSetup save={save} today={new Date(2026, 10, 15)} />);
-    fireEvent.change(screen.getByLabelText(/Your name/), { target: { value: "Pip" } });
-    let el = tab();
-    while (el.getAttribute("aria-label") !== "Day, not chosen") el = tab();
-    press("Enter");
-    expect(document.activeElement?.textContent).toBe("1");
-    press("ArrowDown"); // a row of seven
-    press("ArrowRight");
-    expect(document.activeElement?.textContent).toBe("9");
-    press("Enter");
-    expect(document.activeElement?.getAttribute("aria-label")).toBe("Day: 9");
-    tab();
-    press(" ");
-    press("ArrowDown");
-    press("Escape"); // closes without choosing
-    expect(document.activeElement?.getAttribute("aria-label")).toBe("Month, not chosen");
-    press("Enter");
-    press("End");
-    expect(document.activeElement?.textContent).toBe("December");
-    press("Home");
-    press("ArrowRight");
-    press("ArrowRight"); // March
-    press("Enter");
-    tab();
-    press("Enter");
-    expect(document.activeElement?.textContent).toBe("2026");
-    press("ArrowDown");
-    press("ArrowRight"); // 2021
-    press("Enter");
-    expect(document.activeElement?.getAttribute("aria-label")).toBe("Year: 2021");
-    fireEvent.click(screen.getByRole("button", { name: "Done" }));
-    await waitFor(() => expect(save).toHaveBeenCalledWith(expect.objectContaining({ dob: "2021-03-09" })));
-  });
-
-  it("birthday: Done with a missing or impossible date shows the problem and focuses the part to fix", () => {
-    const save = vi.fn(async () => true);
-    render(<ProfileSetup save={save} today={new Date(2026, 10, 15)} />);
+    render(<ProfileSetup save={save} />);
+    expect(screen.queryByText(/birthday/i)).toBeNull();
     fireEvent.change(screen.getByLabelText(/Your name/), { target: { value: "Pip" } });
     fireEvent.click(screen.getByRole("button", { name: "Done" }));
-    expect(document.activeElement?.getAttribute("aria-label")).toBe("Day, not chosen");
-    expect(document.activeElement?.getAttribute("aria-invalid")).toBe("true");
-    expect(screen.getByRole("alert").textContent).toContain("Please choose a real date.");
-    fireEvent.click(screen.getByRole("button", { name: "Day, not chosen" }));
-    fireEvent.click(screen.getByRole("button", { name: "31" }));
+    expect(document.activeElement?.closest("label")?.textContent).toBe("Reception"); // focus moves to the years
+    fireEvent.click(screen.getByLabelText("Year 4"));
     fireEvent.click(screen.getByRole("button", { name: "Done" }));
-    expect(document.activeElement?.getAttribute("aria-label")).toBe("Month, not chosen");
-    fireEvent.click(screen.getByRole("button", { name: "Month, not chosen" }));
-    fireEvent.click(screen.getByRole("button", { name: "February" }));
-    fireEvent.click(screen.getByRole("button", { name: "Done" }));
-    expect(document.activeElement?.getAttribute("aria-label")).toBe("Year, not chosen");
-    fireEvent.click(screen.getByRole("button", { name: "Year, not chosen" }));
-    fireEvent.click(screen.getByRole("button", { name: "2020" }));
-    fireEvent.click(screen.getByRole("button", { name: "Done" })); // 31 February
-    expect(document.activeElement?.getAttribute("aria-label")).toBe("Day: 31");
-    expect(save).not.toHaveBeenCalled();
+    await waitFor(() => expect(save).toHaveBeenCalledWith({ nickname: "Pip", avatarId: "avatar-01", schoolYear: 4 }));
   });
 });

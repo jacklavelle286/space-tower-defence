@@ -24,9 +24,9 @@ describe("the next activity ID", () => {
 
 describe("topics", () => {
   it("label a topic with its ages", () => {
-    expect(topicLabel(topic("maths-count-objects-to10"))).toBe("Count objects to 10 — age 5");
-    expect(topicLabel(topic("phonics-gpc-consonant-digraphs"))).toBe("GPC consonant digraphs — ages 5–6");
-    expect(agesText([6, 7])).toBe("6–7");
+    expect(topicLabel(topic("maths-count-objects-to10"))).toBe("Count objects to 10 — Reception");
+    expect(topicLabel(topic("phonics-gpc-consonant-digraphs"))).toBe("GPC consonant digraphs — Reception–Year 1");
+    expect(agesText([6, 7])).toBe("Year 1–Year 2");
   });
 
   it("start at the topic's youngest age and span at most two ages", () => {

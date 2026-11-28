@@ -33,6 +33,7 @@ export function apiFor(server: FakeRunServer): PlayerApi {
   return {
     getMe: async () => ({ kind: "error", status: 404, code: "PROFILE_NOT_FOUND", body: null }),
     putProfile: async () => ({ kind: "error", status: 500, code: "INTERNAL", body: null }),
+    patchProfile: async () => ({ kind: "error", status: 500, code: "INTERNAL", body: null }),
     getPlanets: async () => ({ kind: "error", status: 500, code: "INTERNAL", body: null }),
     postReset: async () => ({ kind: "error", status: 500, code: "INTERNAL", body: null }),
     getProgress: async () => ({ kind: "error", status: 500, code: "INTERNAL", body: null }),

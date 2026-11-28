@@ -73,8 +73,8 @@ async function createFor(definition: Definition) {
   expect(field("Activity ID").value).toBe(definition.activityId); // the next free number, not typed
   type("Title (for the admin list)", definition.title);
   type("Reward", definition.rewardCategory);
-  type("Youngest age", String(definition.minAge));
-  type("Oldest age", String(definition.maxAge));
+  type("Lowest school year", String(definition.minAge));
+  type("Highest school year", String(definition.maxAge));
   await act(async () => click("Create draft"));
   await waitFor(() => expect(navigate).toHaveBeenCalledWith(`#activities/${definition.activityId}`));
   cleanup();
@@ -498,8 +498,8 @@ describe("New activity", () => {
     expect(field("Activity ID").value).toBe("ph-0001");
     expect((field("Activity ID") as HTMLInputElement).readOnly).toBe(true);
     expect(field("Title (for the admin list)").value).toBe("Alt pronunciation");
-    expect([field("Youngest age").value, field("Oldest age").value]).toEqual(["6", "7"]);
-    expect(within(field("Youngest age")).getAllByRole("option").map((o) => o.textContent)).toEqual(["6", "7"]);
+    expect([field("Lowest school year").value, field("Highest school year").value]).toEqual(["6", "7"]);
+    expect(within(field("Lowest school year")).getAllByRole("option").map((o) => o.textContent)).toEqual(["Year 1", "Year 2"]);
     expect(field("Reward").value).toBe("BOTH");
     await act(async () => click("Create draft"));
     await waitFor(() => expect(navigate).toHaveBeenCalledWith("#activities/ph-0001"));

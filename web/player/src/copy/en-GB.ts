@@ -22,15 +22,9 @@ export const COPY = {
     nameHint: "This is the name you'll see in the game.", // D4 P3
     nameInvalid: "Use letters, numbers, spaces or hyphens (up to 20).", // [PROPOSAL]
     pictureLabel: "Pick your picture",
-    birthdayLabel: "Your birthday",
-    birthdayHint: "Only used to choose activities for your age. Nobody else sees it.", // D4 P3
-    birthdayInvalid: "Please choose a real date.", // [PROPOSAL]
-    day: "Day",
-    month: "Month",
-    year: "Year",
-    // B-5: tap-friendly birthday pickers instead of three native selects. [PROPOSAL]
-    partValue: (part: string, value: string | null) => (value === null ? `${part}, not chosen` : `${part}: ${value}`),
-    choosePart: (part: string) => `Choose the ${part.toLowerCase()}`,
+    schoolYearLabel: "Your school year", // YG1
+    schoolYearHint: "Your questions come from this year's lessons. Hard mode uses the year above.", // YG1
+    schoolYearInvalid: "Please choose your school year.", // YG1
     done: "Done",
     saving: "Saving…",
     failed: "We couldn't save that. Please try again.", // [PROPOSAL]
@@ -48,8 +42,22 @@ export const COPY = {
     challengesOn: (map: string) => `Challenges on ${map}`,
     planetsHeading: "Maps", // ADR-0043: maps instead of planets
     comingLater: "Coming later",
-    ageOutOfRange: "We don't have activities for your age yet.", // D7.3 AGE_OUT_OF_RANGE
-    bankNotReady: "Activities for your age are still being made. Please come back soon.", // D7.3 BANK_NOT_READY
+    ageOutOfRange: "Choose your school year to play.", // D7.3 AGE_OUT_OF_RANGE; YG1: no school year set
+    bankNotReady: "Questions for this year are still being made. Please come back soon.", // D7.3 BANK_NOT_READY
+    // YG1 (owner 2026-11-28): the school year, and Easy or Hard for each new game.
+    schoolYear: (year: string) => `School year: ${year}`,
+    schoolYearUnset: "Which school year are you in?",
+    changeYear: "Change",
+    chooseYearHeading: "Your school year",
+    saveYear: "Save",
+    cancel: "Back",
+    yearFailed: "We couldn't save that. Please try again.",
+    howHard: "How hard?",
+    easy: "Easy",
+    hard: "Hard",
+    easyLine: (year: string) => `${year} questions`,
+    hardLine: (year: string) => `${year} questions — a bit harder!`,
+    hardTag: "Hard",
     activeElsewhere: (device: string) => `You're playing on ${device} right now.`, // D4 P4
     signOut: "Sign out",
     practice: "Practice battle (development only)",

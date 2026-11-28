@@ -1,7 +1,7 @@
 // Bank status in plain words (A10, D §D8.5; Phase 42). R30 sends the counts, thresholds and what is missing; these
 // functions only word them, so the numbers on the page are always the server's (the same counting function selection
 // uses, api/shared/selection/eligibility.py). Topic names come from the registry (plan C19).
-import { TOPICS, type Topic } from "@scd/shared";
+import { bandName, TOPICS, type Topic } from "@scd/shared";
 import type { BankBand, BankNeed } from "../api";
 
 type Slot = "NORMAL" | "METEOR";
@@ -38,14 +38,14 @@ export function modeSentence(band: BankBand): string {
     case "READY":
       return "Ready. New games use the full selection rules.";
     case "STARTER":
-      return "Not ready yet, but new games still start: until this age is ready, any subject can fill a slot while activities last.";
+      return "Not ready yet, but new games still start: until this year is ready, any subject can fill a slot while activities last.";
     case "BLOCKED":
       if (band.activities === 0)
-        return `Blocked: nothing is published for age ${band.ageBand}, so new games cannot start.`;
+        return `Blocked: nothing is published for ${bandName(band.ageBand)}, so new games cannot start.`;
       if (stuck.length > 0) {
         return `Blocked: there are not enough activities for every slot of ${stuck.join(", ")} (a meteor slot needs one marked Meteor or Both), so new games are refused until you publish more.`;
       }
-      return `Blocked: age ${band.ageBand} is below its thresholds, so new games are refused until you publish more.`;
+      return `Blocked: ${bandName(band.ageBand)} is below its thresholds, so new games are refused until you publish more.`;
   }
 }
 
@@ -56,7 +56,7 @@ export function campaignNote(
 ): string | null {
   if (band.campaignFillable || band.starterCampaignFillable) return null;
   const needed = slots.NORMAL + slots.METEOR;
-  return `A full campaign needs ${needed} different activities (${slots.NORMAL} normal and ${slots.METEOR} meteor slots); this age has ${band.activities}.`;
+  return `A full campaign needs ${needed} different activities (${slots.NORMAL} normal and ${slots.METEOR} meteor slots); this year has ${band.activities}.`;
 }
 
 /** One line of "What to add". */

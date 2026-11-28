@@ -166,17 +166,14 @@ export async function signIn(page: Page, account: TestAccount): Promise<void> {
 }
 
 /**
- * Makes sure the account has a profile (P3). A new profile gets the account's test nickname and a made-up birthday:
- * 1 January six years ago, computed at run time, so the account is age 6 for the whole year (the M1 activity is for
- * ages 5–6). Returns the nickname Home greets the player with.
+ * Makes sure the account has a profile (P3). A new profile gets the account's test nickname and Year 1 (YG1: band 6;
+ * the M1 activity is for bands 5–6). Returns the nickname Home greets the player with.
  */
 export async function ensureProfile(page: Page, account: TestAccount): Promise<string> {
   if (new URL(page.url()).pathname === "/setup") {
     await page.getByLabel("Your name").fill(TEST_NICKNAMES[account]);
     await page.locator('input[type="radio"]').first().check();
-    await page.getByLabel("Day", { exact: true }).selectOption("1");
-    await page.getByLabel("Month", { exact: true }).selectOption({ label: "January" });
-    await page.getByLabel("Year", { exact: true }).selectOption(String(new Date().getFullYear() - 6));
+    await page.getByLabel("Year 1", { exact: true }).check();
     await page.getByRole("button", { name: "Done" }).click();
     await page.waitForURL(/\/home$/);
   }

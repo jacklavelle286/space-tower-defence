@@ -1,3 +1,4 @@
+import { bandName } from "@scd/shared";
 import { useCallback, useEffect, useState } from "react";
 import {
   describeError,
@@ -51,7 +52,7 @@ export function BankStatus({ api }: Props) {
     <section aria-labelledby="bank-heading" className="bank">
       <h2 id="bank-heading">Bank status</h2>
       <p className="muted">
-        Published activities for each age, against the thresholds new games
+        Published activities for each school year, against the thresholds new games
         need. An activity marked <em>Both</em> counts for normal and for meteor
         slots. <em>Counted</em> is what the thresholds measure: an activity
         counts 1, and a template counts 2 when it can make 20 or more questions.
@@ -107,7 +108,7 @@ function AgeBand({
   return (
     <article aria-labelledby={headingId} className="bank-age">
       <h3 id={headingId}>
-        Age {band.ageBand}{" "}
+        {bandName(band.ageBand)}{" "}
         <span className={`state bank-${band.mode.toLowerCase()}`}>
           {MODE_LABEL[band.mode]}
         </span>
@@ -116,7 +117,7 @@ function AgeBand({
       {note !== null && <p className="muted">{note}</p>}
 
       <div className="table-scroll">
-        <table aria-label={`Age ${band.ageBand} counts`}>
+        <table aria-label={`${bandName(band.ageBand)} counts`}>
           <thead>
             <tr>
               <th scope="col">Subject</th>
@@ -164,9 +165,9 @@ function AgeBand({
 
       <h4>What to add</h4>
       {band.needs.length === 0 ? (
-        <p className="ok">Nothing: age {band.ageBand} meets every threshold.</p>
+        <p className="ok">Nothing: {bandName(band.ageBand)} meets every threshold.</p>
       ) : (
-        <ul aria-label={`What to add for age ${band.ageBand}`}>
+        <ul aria-label={`What to add for ${bandName(band.ageBand)}`}>
           {band.needs.map((need, index) => (
             <li key={index}>
               {needSentence(need, unitsPerTopic)}
