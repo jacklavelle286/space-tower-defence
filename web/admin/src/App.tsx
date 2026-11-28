@@ -6,6 +6,7 @@ import { accessDetail, checkAccess, NOT_AUTHORISED } from "./guard";
 import { ActivityListPage } from "./pages/ActivityListPage";
 import { ActivityPage } from "./pages/ActivityPage";
 import { NewActivityPage } from "./editor/NewActivity";
+import { DraftPage } from "./pages/DraftPage";
 import { BankStatusPage } from "./pages/BankStatusPage";
 import { PicturesPage } from "./pages/PicturesPage";
 import { SpeechPage } from "./pages/SpeechPage";
@@ -212,6 +213,7 @@ export function App() {
           {route.page === "activities" && <ActivityListPage api={api} />}
           {route.page === "activity" && <ActivityPage key={route.id} api={api} activityId={route.id} />}
           {route.page === "new" && <NewActivityPage api={api} />}
+          {route.page === "drafts" && <DraftPage api={api} />}
           {route.page === "speech" && <SpeechPage key={route.id ?? ""} api={api} initial={route.id} />}
           {route.page === "pictures" && <PicturesPage api={api} tab={route.tab} />}
           {route.page === "bank" && <BankStatusPage api={api} />}

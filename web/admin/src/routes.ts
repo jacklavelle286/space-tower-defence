@@ -6,6 +6,7 @@ export type Route =
   | { readonly page: "activities" }
   | { readonly page: "activity"; readonly id: string }
   | { readonly page: "new" }
+  | { readonly page: "drafts" }
   | { readonly page: "speech"; readonly id: string | null }
   | { readonly page: "bank" }
   | { readonly page: "pictures"; readonly tab: PictureTab }
@@ -33,6 +34,8 @@ export function parseRoute(hash: string): Route {
       return { page: "pictures", tab: PICTURE_TABS.find((t) => t === id) ?? "upload" };
     case "new-activity":
       return { page: "new" };
+    case "draft-questions":
+      return { page: "drafts" }; // YG3: AI drafting
     case "levels":
       return goodId === null ? { page: "levels" } : { page: "level", id: goodId };
     case "versions":
@@ -60,6 +63,8 @@ export function hrefOf(route: Route): string {
       return "#bank";
     case "new":
       return "#new-activity";
+    case "drafts":
+      return "#draft-questions";
     case "pictures":
       return route.tab === "upload" ? "#pictures" : `#pictures/${route.tab}`;
     case "levels":
@@ -77,7 +82,7 @@ export function hrefOf(route: Route): string {
 export type Section = "activities" | "speech" | "pictures" | "levels" | "bank";
 
 export function sectionOf(route: Route): Section {
-  if (route.page === "activity" || route.page === "new") return "activities";
+  if (route.page === "activity" || route.page === "new" || route.page === "drafts") return "activities";
   return route.page === "level" || route.page === "versions" || route.page === "aliens" ? "levels" : route.page;
 }
 

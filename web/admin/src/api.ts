@@ -450,6 +450,31 @@ export type NewPictureJob = { jobId: string; description: string; kind: PictureK
 /** R38's 202 answer. */
 export type PictureJobStarted = { jobId: string; state?: string; kind?: PictureKindId } & PictureUsage;
 
+/** R63 (YG3): what to draft. `band` is a school year's band (5 Reception, 8 Year 3, ...; ADR-0056). */
+export type NewDraftJob = {
+  jobId: string;
+  topicId: string;
+  band: number;
+  interactionType: "MULTIPLE_CHOICE" | "TYPED";
+  count: number;
+  notes?: string;
+};
+
+/** A drafting job's summary (R63's answer and every R64 answer). */
+export type DraftJobSummary = { jobId: string; topicId: string; band: number; interactionType: string; count: number; startedAt: string; notes?: string };
+
+/** A draft the model wrote that failed a check: its place in the reply, a short title and the problem names. */
+export type RejectedDraft = { index: number | null; title: string; problems: string[] };
+
+/** R64: where a drafting job is. READY carries the drafts that passed every check, as activity definitions with a
+ *  placeholder activityId ("draft-1"): the admin gives each one the next free ID when the owner saves it. */
+export type DraftJob = DraftJobSummary &
+  (
+    | { state: "QUEUED" | "DRAFTING"; elapsedSeconds?: number }
+    | { state: "READY"; drafts: Definition[]; rejected: RejectedDraft[] }
+    | { state: "FAILED"; error: string; message?: string }
+  );
+
 /** Why a drawing failed (R39 FAILED `error`). */
 export type PictureJobError = "declined" | "too_long" | "unusable" | "throttled" | "bedrock_error" | "timed_out" | "could_not_start" | "expired" | "bad_request" | "not_set_up";
 
@@ -613,6 +638,10 @@ export function adminApi(request: Request) {
       request("POST", "/admin/picture-jobs", body) as Promise<PictureJobStarted>,
     /** R39: where a drawing job is. */
     getPictureJob: (jobId: string) => request("GET", `/admin/picture-jobs/${id(jobId)}`) as Promise<PictureJob>,
+    /** R63 (YG3): starts an AI drafting job (one place in the drawing caps; 429 PICTURE_CAP_REACHED when full). */
+    startDraftJob: (body: NewDraftJob) => request("POST", "/admin/draft-jobs", body) as Promise<DraftJob>,
+    /** R64: where a drafting job is, and its drafts when ready. */
+    getDraftJob: (jobId: string) => request("GET", `/admin/draft-jobs/${id(jobId)}`) as Promise<DraftJob>,
     /** R40, every page: the level drafts (Gate M, LD3). */
     listLevels: () => allPages<LevelSummary>("/admin/levels"),
     /** R41: a new level from a level file body (a template or an uploaded file). An ID in use is refused

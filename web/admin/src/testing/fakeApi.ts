@@ -30,6 +30,7 @@ import {
   type OpenPictureJob,
   type Picture,
   type PictureJob,
+  type DraftJob,
   type PictureUsage,
   type Problem,
   type SpeechSummary,
@@ -97,6 +98,9 @@ export class FakeAdminApi {
   readonly jobScripts = new Map<string, PictureJob[]>();
   /** R39 answers for jobs a test did not script (by start order): the first started job gets the first script. */
   readonly nextJobScripts: PictureJob[][] = [];
+  /** R64 answers for drafting jobs (YG3), as for drawings: the next started job takes the next script. */
+  readonly draftScripts = new Map<string, Partial<DraftJob>[]>();
+  readonly nextDraftScripts: Partial<DraftJob>[][] = [];
   readonly startedJobs = new Set<string>();
   /** The kind each started job is drawn as (R38), which a GENERATED picture takes (R34). */
   readonly jobKinds = new Map<string, PictureKindId>();
@@ -367,6 +371,20 @@ export class FakeAdminApi {
       if (script === undefined || script.length === 0) return { state: "QUEUED" };
       const next = script.length > 1 ? script.shift() : script[0];
       return clone(next as PictureJob);
+    },
+    startDraftJob: async (body) => {
+      this.record("startDraftJob", body);
+      const summary = { jobId: body.jobId, topicId: body.topicId, band: body.band, interactionType: body.interactionType, count: body.count, startedAt: "2026-11-28T10:00:00Z" };
+      if (!this.draftScripts.has(body.jobId)) this.draftScripts.set(body.jobId, this.nextDraftScripts.shift() ?? []);
+      return { ...summary, state: "QUEUED" as const };
+    },
+    getDraftJob: async (jobId) => {
+      this.record("getDraftJob", jobId);
+      const script = this.draftScripts.get(jobId) ?? [];
+      const base = { jobId, topicId: "", band: 0, interactionType: "", count: 0, startedAt: "2026-11-28T10:00:00Z" };
+      if (script.length === 0) return { ...base, state: "QUEUED" as const };
+      const next = script.length > 1 ? script.shift() : script[0];
+      return clone({ ...base, ...(next as object) }) as DraftJob;
     },
     listLevels: async () => {
       this.record("listLevels");

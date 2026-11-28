@@ -116,6 +116,9 @@ export function ActivityListPage({ api }: Props) {
       <p>
         <a className="button primary" href={hrefOf({ page: "new" })}>
           New activity
+        </a>{" "}
+        <a className="button" href={hrefOf({ page: "drafts" })}>
+          Draft questions with AI
         </a>
       </p>
       {flash !== null && (
